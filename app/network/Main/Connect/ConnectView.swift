@@ -20,13 +20,15 @@ struct ConnectView: View {
     var logout: () -> Void
     var api: SdkApi
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
+    var tunnelConnected: Bool
     
     init(
         api: SdkApi,
         logout: @escaping () -> Void,
         device: SdkDeviceRemote?,
         connectViewController: SdkConnectViewController?,
-        providerListSheetViewModel: ProviderListSheetViewModel
+        providerListSheetViewModel: ProviderListSheetViewModel,
+        tunnelConnected: Bool
     ) {
         _viewModel = StateObject.init(wrappedValue: ViewModel(
             api: api,
@@ -36,6 +38,7 @@ struct ConnectView: View {
         self.logout = logout
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel
+        self.tunnelConnected = tunnelConnected
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -47,16 +50,16 @@ struct ConnectView: View {
         
         VStack {
             
-            HStack {
-                Spacer()
-                AccountMenu(
-                    isGuest: isGuest,
-                    logout: logout,
-                    api: api,
-                    isPresentedCreateAccount: $viewModel.isPresentedCreateAccount
-                )
-            }
-            .frame(height: 32)
+//            HStack {
+//                Spacer()
+//                AccountMenu(
+//                    isGuest: isGuest,
+//                    logout: logout,
+//                    api: api,
+//                    isPresentedCreateAccount: $viewModel.isPresentedCreateAccount
+//                )
+//            }
+//            .frame(height: 32)
             
             Spacer()
             
@@ -67,7 +70,8 @@ struct ConnectView: View {
                 connectionStatus: viewModel.connectionStatus,
                 windowCurrentSize: viewModel.windowCurrentSize,
                 connect: viewModel.connect,
-                disconnect: viewModel.disconnect
+                disconnect: viewModel.disconnect,
+                tunnelConnected: tunnelConnected
             )
             
             Spacer()
@@ -256,6 +260,7 @@ struct ConnectView: View {
         logout: {},
         device: nil,
         connectViewController: nil,
-        providerListSheetViewModel: ProviderListSheetViewModel()
+        providerListSheetViewModel: ProviderListSheetViewModel(),
+        tunnelConnected: true
     )
 }

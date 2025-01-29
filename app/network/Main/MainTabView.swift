@@ -62,7 +62,8 @@ struct MainTabView: View {
                 logout: logout,
                 device: device,
                 connectViewController: connectViewController,
-                providerListSheetViewModel: providerListSheetViewModel
+                providerListSheetViewModel: providerListSheetViewModel,
+                tunnelConnected: tunnelStateViewModel.tunnelConnected
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {

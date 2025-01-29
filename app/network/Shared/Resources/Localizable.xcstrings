@@ -2151,6 +2151,9 @@
         }
       }
     },
+    "Contract premium" : {
+
+    },
     "Create account" : {
       "localizations" : {
         "ar" : {
@@ -8127,6 +8130,9 @@
     "Refer friends" : {
       "shouldTranslate" : false
     },
+    "Remaining balance for today: 100mb" : {
+
+    },
     "Remove wallet" : {
       "localizations" : {
         "ar" : {
@@ -11668,6 +11674,12 @@
           }
         }
       }
+    },
+    "Tunnel Connected" : {
+
+    },
+    "Tunnel Disconnected" : {
+
     },
     "Unpaid megabytes provided" : {
       "localizations" : {

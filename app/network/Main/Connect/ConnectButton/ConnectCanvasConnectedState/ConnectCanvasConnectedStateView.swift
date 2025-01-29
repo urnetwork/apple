@@ -47,12 +47,15 @@ struct ConnectCanvasConnectedStateView: View {
         self.isActive = isActive
     }
     
+    // let circleDiameter: CGFloat = 180
+    let circleDiameter: CGFloat = 220
+    
     var body: some View {
         ZStack {
             ForEach(0..<5) { index in
                 Circle()
                     .fill(self.colors[index])
-                    .frame(width: 180, height: 180)
+                    .frame(width: circleDiameter, height: circleDiameter)
                     .offset(self.animateCircles
                             ? self.circleOffsets[index].final
                             : self.circleOffsets[index].initial

@@ -18,8 +18,13 @@ struct ConnectButtonView: View {
     var windowCurrentSize: Int32
     var connect: () -> Void
     var disconnect: () -> Void
+    var tunnelConnected: Bool
     
-    let canvasWidth: CGFloat = 256
+    let baseCanvasWidth: CGFloat = 256
+    
+    var canvasWidth: CGFloat {
+        baseCanvasWidth * (connectionStatus == .connected ? 1.2 : 1.0)
+    }
     
     var statusMsgIconColor: Color {
         
@@ -73,6 +78,7 @@ struct ConnectButtonView: View {
                     canvasWidth: canvasWidth,
                     isActive: connectionStatus == .connected
                 )
+                .animation(.easeInOut(duration: 0.3), value: connectionStatus)
             
                 // for capturing tap when disconnected
                 Circle()
@@ -86,6 +92,7 @@ struct ConnectButtonView: View {
                         }
                         
                     }
+                    .animation(.easeInOut(duration: 0.3), value: connectionStatus)
                 
             }
             .background(themeManager.currentTheme.tintedBackgroundBase)
@@ -93,30 +100,124 @@ struct ConnectButtonView: View {
                 Image("ur.symbols.globe")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .frame(width: canvasWidth, height: canvasWidth) // Set explicit size
+//                    .scaleEffect(connectionStatus == .connected ? 1.2 : 1.0) // Add scale effect
+                    .animation(.easeInOut(duration: 0.3), value: connectionStatus) // Animate changes
             }
 
             
             Spacer().frame(height: 32)
             
-            HStack {
-                
-                if connectionStatus != nil {
-                    ZStack {
-                        Image("GlobeMask")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 16, height: 16)
+            VStack(alignment: .leading, spacing: 0) {
+             
+                // provider connection count
+                HStack {
+                    
+                    if connectionStatus != nil {
+                        ZStack {
+                            Image("GlobeMask")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                        }
+                        .background(statusMsgIconColor)
                     }
-                    .background(statusMsgIconColor)
+                    
+                    Spacer().frame(width: 8)
+                    
+                    Text(statusMsg)
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    Spacer()
+                    
                 }
+                .padding(12)
                 
-                Spacer().frame(width: 8)
+                Divider()
                 
-                Text(statusMsg)
-                    .font(themeManager.currentTheme.bodyFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
+                // tunnel connected:
+                HStack {
+                    
+                    if connectionStatus != nil {
+                        ZStack {
+                            Image("GlobeMask")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                        }
+                        .background(tunnelConnected ? .urGreen : .urCoral)
+                    }
+                    
+                    Spacer().frame(width: 8)
+                    
+                    Text(tunnelConnected ? "Tunnel Connected" : "Tunnel Disconnected")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    Spacer()
+                    
+                }
+                .padding(12)
+                
+                Divider()
+                
+                // TODO: placeholder for contract premium
+                HStack {
+                    
+                    if connectionStatus != nil {
+                        ZStack {
+                            Image("GlobeMask")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                        }
+                        .background(tunnelConnected ? .urGreen : .urCoral)
+                    }
+                    
+                    Spacer().frame(width: 8)
+                    
+                    Text("Contract premium")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    Spacer()
+                    
+                }
+                .padding(12)
+                
+                Divider()
+                
+                // TODO: placeholder for daily balance
+                HStack {
+                    
+                    if connectionStatus != nil {
+                        ZStack {
+                            Image("GlobeMask")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                        }
+                        .background(tunnelConnected ? .urGreen : .urCoral)
+                    }
+                    
+                    Spacer().frame(width: 8)
+                    
+                    Text("Remaining balance for today: 100mb")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    Spacer()
+                    
+                }
+                .padding(12)
                 
             }
+            .frame(maxWidth: .infinity)
+            // .padding(12)
+            .background(themeManager.currentTheme.tintedBackgroundBase)
+            .cornerRadius(12)
+            .padding(24)
             
             Spacer().frame(height: 16)
             
@@ -137,7 +238,7 @@ struct ConnectButtonView: View {
             .frame(width: 156, height: 48)
             
         }
-        .padding()
+        // .padding()
         
     }
 }
@@ -149,6 +250,7 @@ struct ConnectButtonView: View {
         connectionStatus: .disconnected,
         windowCurrentSize: 12,
         connect: {},
-        disconnect: {}
+        disconnect: {},
+        tunnelConnected: true
     )
 }

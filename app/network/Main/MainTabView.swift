@@ -19,6 +19,8 @@ struct MainTabView: View {
     @State private var opacity: Double = 0
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
     
+    @StateObject var tunnelStateViewModel: TunnelStateViewModel
+    
     var vpnManager: VPNManager
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -42,6 +44,8 @@ struct MainTabView: View {
 //        self.vpnManager = VPNManager(device: device)
         self.vpnManager = vpnManager
         // vpnManager.loadOrCreateManager()
+        
+        _tunnelStateViewModel = StateObject(wrappedValue: TunnelStateViewModel(device: device))
         
         setupTabBar()
     }

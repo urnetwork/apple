@@ -32,7 +32,7 @@ private class GridListener: NSObject, SdkGridListenerProtocol {
     }
 }
 
-private class ConnectionStatusListener: NSObject, SdkConnectionStatusListenerProtocol {
+class ConnectionStatusListener: NSObject, SdkConnectionStatusListenerProtocol {
 
     private let callback: () -> Void
 

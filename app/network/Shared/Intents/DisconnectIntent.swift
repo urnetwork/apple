@@ -40,7 +40,7 @@ struct DisconnectIntent: AppIntent {
             return .result(dialog: "Failed to connect URnetwork")
         }
         
-        var status = connectViewController.getConnectionStatus()
+        let status = connectViewController.getConnectionStatus()
         print("connect status is: \(status)")
         
         if (status == SdkDisconnected) {
@@ -49,13 +49,88 @@ struct DisconnectIntent: AppIntent {
             )
         }
         
-        connectViewController.disconnect()
+        try await waitForConnectionStatusDisconnected(connectViewController)
         
-        status = connectViewController.getConnectionStatus()
-        print("after disconnect status is: \(status)")
+        device.close(connectViewController)
         
-        return .result(dialog: "URnetwork VPN disconnected")
+        try await waitForRemoteClose(
+            device: device
+        )
+        
+        return .result(
+            dialog: "URnetwork VPN disconnected"
+        )
          
+    }
+    
+    enum WaitForDisconnectedError: Error {
+        case noStatus
+    }
+    
+    func waitForConnectionStatusDisconnected(
+        _ connectViewController: SdkConnectViewController
+    ) async throws {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let listener = ConnectionStatusListener {
+                
+                let statusString = connectViewController.getConnectionStatus()
+                
+                if let status = ConnectionStatus(rawValue: statusString) {
+                    
+                    if status == .disconnected {
+                        continuation.resume(returning: ())
+                    }
+                    
+                } else {
+                    continuation.resume(throwing: WaitForDisconnectedError.noStatus)
+                }
+                
+            }
+            
+            connectViewController.add(listener)
+            
+            connectViewController.disconnect()
+            
+        }
+        
+    }
+    
+    func waitForRemoteClose(
+        device: SdkDeviceRemote
+    ) async throws -> Void {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let listener = RemoteChangeListener { connected in
+                
+                if (!connected) {
+                    continuation.resume(returning: ())
+                }
+                
+            }
+
+            device.add(listener)
+            
+            device.close()
+            
+        }
+        
+    }
+    
+}
+
+private class RemoteChangeListener: NSObject, SdkRemoteChangeListenerProtocol {
+    
+    var c: (Bool) -> Void
+
+    init(c: @escaping (Bool) -> Void) {
+        self.c = c
+    }
+    
+    func remoteChanged(_ remoteConnected: Bool) {
+        c(remoteConnected)
     }
     
 }

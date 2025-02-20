@@ -151,8 +151,15 @@ struct NetworkApp: App {
             })
             Divider()
             Button("Quit URnetwork", action: {
-                deviceManager.vpnManager?.close()
-                NSApplication.shared.terminate(nil)
+                connectViewModel.disconnect()
+                
+                Task {
+                    if let vpnManager = deviceManager.vpnManager {
+                        await vpnManager.close()
+                    }
+                    NSApplication.shared.terminate(nil)
+                }
+                
             })
             
         }

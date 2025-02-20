@@ -116,8 +116,8 @@ class VPNManager {
 //        self.close()
 //    }
     
-    func close() {
-        self.stopVpnTunnel()
+    func close() async {
+        await self.stopVpnTunnel()
         
         // UIApplication.shared.isIdleTimerDisabled = false
         self.setIdleTimerDisabled(false)
@@ -195,7 +195,9 @@ class VPNManager {
 
             self.setIdleTimerDisabled(false)
             
-            self.stopVpnTunnel()
+            Task {
+                await self.stopVpnTunnel()
+            }
             
         }
     }
@@ -319,56 +321,46 @@ class VPNManager {
                 }
             }
         }
-    }	
+    }
     
-    private func stopVpnTunnel() {
-//        if self.tunnelRequestStatus == .stopped {
-//            return
-//        }
-//        self.tunnelRequestStatus = .stopped
-        
-        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
-            if let error = error {
-                print("[VPNManager]error loading managers: \(error.localizedDescription)")
-//                self.tunnelRequestStatus = .none
-                return
-            }
-//            if self.tunnelRequestStatus != .stopped {
-//                return
-//            }
-//            guard let self = self else {
-//                return
-//            }
-            
-            guard let tunnelManager = managers?.first else {
-                return
-            }
-            
-            
-            tunnelManager.isEnabled = false
-            tunnelManager.isOnDemandEnabled = false
-            
-            tunnelManager.saveToPreferences { error in
-                if let _ = error {
-                    // when changing locations quickly, another change might have intercepted this save
-//                    self.tunnelRequestStatus = .none
+    private func stopVpnTunnel() async {
+        return await withCheckedContinuation { continuation in
+            NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+                if let error = error {
+                    print("[VPNManager]error loading managers: \(error.localizedDescription)")
+                    continuation.resume()
                     return
                 }
-//                if self.tunnelRequestStatus != .stopped {
-//                    return
-//                }
                 
-                // see https://forums.developer.apple.com/forums/thread/25928
-                tunnelManager.loadFromPreferences { error in
-                    if let _ = error {
-//                        self.tunnelRequestStatus = .none
+                guard let tunnelManager = managers?.first else {
+                    continuation.resume()
+                    return
+                }
+                
+                tunnelManager.isEnabled = false
+                tunnelManager.isOnDemandEnabled = false
+                
+                tunnelManager.saveToPreferences { error in
+                    if let error = error {
+                        print("[VPNManager]error saving preferences: \(error.localizedDescription)")
+                        continuation.resume()
                         return
                     }
-//                    if self.tunnelRequestStatus != .stopped {
-//                        return
-//                    }
                     
-                    tunnelManager.connection.stopVPNTunnel()
+                    tunnelManager.loadFromPreferences { error in
+                        if let error = error {
+                            print("[VPNManager]error loading preferences: \(error.localizedDescription)")
+                            continuation.resume()
+                            return
+                        }
+                        
+                        tunnelManager.connection.stopVPNTunnel()
+                        
+                        // Give a short delay to ensure the tunnel is fully stopped
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            continuation.resume()
+                        }
+                    }
                 }
             }
         }

@@ -54,18 +54,23 @@ class DeviceManager: ObservableObject {
             self.device?.close()
             self.device = device
             
-            self.vpnManager?.close()
-            self.vpnManager = nil
+            Task {
             
-            if let device = device {
-                print("set device hit: device exists: resetting vpn manager")
-                self.provideWhileDisconnected = device.getProvideWhileDisconnected()
-                self.deviceInitialized = true
-                self.vpnManager = VPNManager(device: device)
-            } else {
-                self.provideWhileDisconnected = false
-                self.deviceInitialized = false
+                await self.vpnManager?.close()
+                self.vpnManager = nil
+                
+                if let device = device {
+                    print("set device hit: device exists: resetting vpn manager")
+                    self.provideWhileDisconnected = device.getProvideWhileDisconnected()
+                    self.deviceInitialized = true
+                    self.vpnManager = VPNManager(device: device)
+                } else {
+                    self.provideWhileDisconnected = false
+                    self.deviceInitialized = false
+                }
+                
             }
+            
         }
     }
     

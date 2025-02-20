@@ -126,31 +126,7 @@ class ConnectViewModel: ObservableObject {
     var device: SdkDeviceRemote?
     var connectViewController: SdkConnectViewController?
     
-    init(
-//        api: SdkApi,
-//        device: SdkDeviceRemote?,
-//        connectViewController: SdkConnectViewController?
-    ) {
-//        self.api = api
-//        self.connectViewController = connectViewController
-//        self.addGridListener()
-//        self.addConnectionStatusListener()
-//        self.addSelectedLocationListener()
-//        
-//        self.updateConnectionStatus()
-//        
-//        self.selectedProvider = device?.getConnectLocation()
-//        
-        // when search changes
-        // debounce and fire search
-//        $searchQuery
-//            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-//            .sink { [weak self] query in
-//                self?.performSearch(query)
-//            }
-//            .store(in: &cancellables)
-        
-    }
+    init() {}
     
     func setup(api: SdkApi?, device: SdkDeviceRemote, connectViewController: SdkConnectViewController?) {
         self.api = api

@@ -47,16 +47,11 @@ struct ContentView: View {
                             device: device,
                             logout: {
                                 
-                                print("logout hit!!")
-                                
                                 Task {
                                     connectViewModel.disconnect()
                                     
                                     if let vpnManager = deviceManager.vpnManager {
                                         await vpnManager.close()
-                                        print("vpn manager closed")
-                                    } else {
-                                        print("no vpn manager exists")
                                     }
                                     
                                     deviceManager.logout()

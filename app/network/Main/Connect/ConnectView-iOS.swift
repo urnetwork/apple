@@ -16,7 +16,7 @@ struct ConnectView_iOS: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @Environment(\.requestReview) private var requestReview
     
-    @StateObject private var connectViewModel: ConnectViewModel
+    @EnvironmentObject var connectViewModel: ConnectViewModel
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -28,15 +28,9 @@ struct ConnectView_iOS: View {
         api: SdkApi,
         logout: @escaping () -> Void,
         device: SdkDeviceRemote?,
-        connectViewController: SdkConnectViewController?,
         providerListSheetViewModel: ProviderListSheetViewModel,
         referralLinkViewModel: ReferralLinkViewModel
     ) {
-        _connectViewModel = StateObject.init(wrappedValue: ConnectViewModel(
-            api: api,
-            device: device,
-            connectViewController: connectViewController
-        ))
         self.logout = logout
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel

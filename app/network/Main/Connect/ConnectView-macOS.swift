@@ -16,28 +16,9 @@ struct ConnectView_macOS: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @Environment(\.requestReview) private var requestReview
     
-    @StateObject private var connectViewModel: ConnectViewModel
+    @EnvironmentObject var connectViewModel: ConnectViewModel
     
     @State var isLoading: Bool = false
-    
-    var logout: () -> Void
-    var api: SdkApi
-    
-    init(
-        api: SdkApi,
-        logout: @escaping () -> Void,
-        device: SdkDeviceRemote?,
-        connectViewController: SdkConnectViewController?
-    ) {
-        _connectViewModel = StateObject.init(wrappedValue: ConnectViewModel(
-            api: api,
-            device: device,
-            connectViewController: connectViewController
-        ))
-        self.logout = logout
-        self.api = api
-        
-    }
     
     var body: some View {
          

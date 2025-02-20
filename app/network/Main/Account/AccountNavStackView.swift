@@ -24,12 +24,10 @@ struct AccountNavStackView: View {
     var api: SdkApi
     var device: SdkDeviceRemote
     var logout: () -> Void
-    @Binding var provideWhileDisconnected: Bool
     
     init(
         api: SdkApi,
         device: SdkDeviceRemote,
-        provideWhileDisconnected: Binding<Bool>,
         logout: @escaping () -> Void,
         accountPaymentsViewModel: AccountPaymentsViewModel,
         networkUserViewModel: NetworkUserViewModel,
@@ -54,7 +52,6 @@ struct AccountNavStackView: View {
         self.networkUserViewModel = networkUserViewModel
         
         self.device = device
-        self._provideWhileDisconnected = provideWhileDisconnected
         self.logout = logout
         self.referralLinkViewModel = referralLinkViewModel
     }
@@ -92,7 +89,6 @@ struct AccountNavStackView: View {
                     SettingsView(
                         api: api,
                         clientId: device.getClientId(),
-                        provideWhileDisconnected: $provideWhileDisconnected,
                         accountPreferencesViewModel: accountPreferencesViewModel
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())

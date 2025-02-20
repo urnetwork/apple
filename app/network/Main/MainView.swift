@@ -46,15 +46,13 @@ struct MainView: View {
                 MainTabView(
                     api: api,
                     device: device,
-                    logout: deviceManager.logout,
-                    provideWhileDisconnected: $deviceManager.provideWhileDisconnected
+                    logout: deviceManager.logout
                 )
                 #elseif os(macOS)
                 MainNavigationSplitView(
                     api: api,
                     device: device,
-                    logout: deviceManager.logout,
-                    provideWhileDisconnected: $deviceManager.provideWhileDisconnected
+                    logout: deviceManager.logout
                 )
                 #endif
             }

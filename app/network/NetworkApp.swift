@@ -192,6 +192,7 @@ struct NetworkApp: App {
             let contentView = ContentView()
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
+                .environmentObject(connectViewModel)
                 .preferredColorScheme(.dark)
                 .background(themeManager.currentTheme.backgroundColor)
 

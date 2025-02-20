@@ -19,18 +19,15 @@ struct SettingsView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     
     var clientId: SdkId?
-    @Binding var provideWhileDisconnected: Bool
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
     
     init(
         api: SdkApi,
         clientId: SdkId?,
-        provideWhileDisconnected: Binding<Bool>,
         accountPreferencesViewModel: AccountPreferencesViewModel
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
         self.clientId = clientId
-        _provideWhileDisconnected = provideWhileDisconnected
         self.accountPreferencesViewModel = accountPreferencesViewModel
     }
     
@@ -181,7 +178,7 @@ struct SettingsView: View {
                         Spacer()
                     }
                     
-                    UrSwitchToggle(isOn: $provideWhileDisconnected) {
+                    UrSwitchToggle(isOn: $deviceManager.provideWhileDisconnected) {
                         Text("Provide while disconnected")
                             .font(themeManager.currentTheme.bodyFont)
                             .foregroundColor(themeManager.currentTheme.textColor)
@@ -321,7 +318,6 @@ struct SettingsView: View {
     SettingsView(
         api: SdkApi(),
         clientId: nil,
-        provideWhileDisconnected: .constant(true),
         accountPreferencesViewModel: accountPreferenceViewModel
     )
     .environmentObject(themeManager)

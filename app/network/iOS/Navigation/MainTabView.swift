@@ -15,7 +15,6 @@ struct MainTabView: View {
     var device: SdkDeviceRemote
     var logout: () -> Void
     var connectViewController: SdkConnectViewController?
-    @Binding var provideWhileDisconnected: Bool
     
     @State private var opacity: Double = 0
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
@@ -31,8 +30,7 @@ struct MainTabView: View {
     init(
         api: SdkApi,
         device: SdkDeviceRemote,
-        logout: @escaping () -> Void,
-        provideWhileDisconnected: Binding<Bool>
+        logout: @escaping () -> Void
     ) {
         self.api = api
         self.logout = logout
@@ -43,8 +41,6 @@ struct MainTabView: View {
                 api: api
             )
         )
-        
-        _provideWhileDisconnected = provideWhileDisconnected
         
         _networkUserViewModel = StateObject(wrappedValue: NetworkUserViewModel(api: api))
         
@@ -64,7 +60,6 @@ struct MainTabView: View {
                 api: api,
                 logout: logout,
                 device: device,
-                connectViewController: connectViewController,
                 providerListSheetViewModel: providerListSheetViewModel,
                 referralLinkViewModel: referralLinkViewModel
             )
@@ -88,7 +83,6 @@ struct MainTabView: View {
             AccountNavStackView(
                 api: api,
                 device: device,
-                provideWhileDisconnected: $provideWhileDisconnected,
                 logout: logout,
                 accountPaymentsViewModel: accountPaymentsViewModel,
                 networkUserViewModel: networkUserViewModel,

@@ -122,30 +122,55 @@ class ConnectViewModel: ObservableObject {
     @Published var isPresentedCreateAccount: Bool = false
     
     
-    var api: SdkApi
+    var api: SdkApi?
     var device: SdkDeviceRemote?
     var connectViewController: SdkConnectViewController?
     
-    init(api: SdkApi, device: SdkDeviceRemote?, connectViewController: SdkConnectViewController?) {
+    init(
+//        api: SdkApi,
+//        device: SdkDeviceRemote?,
+//        connectViewController: SdkConnectViewController?
+    ) {
+//        self.api = api
+//        self.connectViewController = connectViewController
+//        self.addGridListener()
+//        self.addConnectionStatusListener()
+//        self.addSelectedLocationListener()
+//        
+//        self.updateConnectionStatus()
+//        
+//        self.selectedProvider = device?.getConnectLocation()
+//        
+        // when search changes
+        // debounce and fire search
+//        $searchQuery
+//            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+//            .sink { [weak self] query in
+//                self?.performSearch(query)
+//            }
+//            .store(in: &cancellables)
+        
+    }
+    
+    func setup(api: SdkApi?, device: SdkDeviceRemote, connectViewController: SdkConnectViewController?) {
         self.api = api
         self.connectViewController = connectViewController
+        
         self.addGridListener()
         self.addConnectionStatusListener()
         self.addSelectedLocationListener()
         
         self.updateConnectionStatus()
         
-        self.selectedProvider = device?.getConnectLocation()
+        self.selectedProvider = device.getConnectLocation()
         
-        // when search changes
-        // debounce and fire search
+        
         $searchQuery
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] query in
                 self?.performSearch(query)
             }
             .store(in: &cancellables)
-        
     }
     
     /**
@@ -257,7 +282,9 @@ extension ConnectViewModel {
                 let args = SdkFindLocationsArgs()
                 args.query = query
                 
-                api.findProviderLocations(args, callback: callback)
+                if let api = self.api {
+                    api.findProviderLocations(args, callback: callback)
+                }
             }
             
             self.handleLocations(result)
@@ -358,7 +385,10 @@ extension ConnectViewModel {
                     
                 }
                 
-                api.getProviderLocations(callback)
+                if let api = self.api {
+                    api.getProviderLocations(callback)
+                }
+    
             }
             
             self.handleLocations(result)

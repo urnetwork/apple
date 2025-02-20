@@ -27,6 +27,44 @@ struct NetworkApp: App {
     
     @StateObject var deviceManager = DeviceManager()
     
+    @StateObject var connectViewModel = ConnectViewModel()
+    
+    func setupConnectViewModel(_ device: SdkDeviceRemote) {
+        
+        let connectViewController = device.openConnectViewController()
+        
+        self.connectViewModel.setup(
+            api: deviceManager.api,
+            device: device,
+            connectViewController: connectViewController
+        )
+        
+    }
+    
+    private var menuBarImage: String {
+        
+        let provideWhileDisconnected = deviceManager.provideWhileDisconnected
+        
+        switch connectViewModel.connectionStatus {
+        case .connected:
+            
+            if provideWhileDisconnected {
+                return "MenuBarProvideConnect"
+            } else {
+                return "MenuBarNoProvideConnect"
+            }
+            
+        default:
+            if provideWhileDisconnected {
+                return "MenuBarProvideNoConnect"
+            } else {
+                return "MenuBarNoProvideNoConnect"
+            }
+            
+        }
+    }
+    
+    
     var body: some Scene {
         WindowGroup {
             
@@ -35,15 +73,24 @@ struct NetworkApp: App {
             ContentView()
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
+                .environmentObject(connectViewModel)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
                 .preferredColorScheme(.dark)
                 .background(themeManager.currentTheme.backgroundColor)
+                .onReceive(deviceManager.$device) { device in
+                    
+                    if let device = device {
+                        setupConnectViewModel(device)
+                    }
+                    
+                }
             #elseif os(macOS)
             ContentView()
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
+                .environmentObject(connectViewModel)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -57,6 +104,13 @@ struct NetworkApp: App {
                         }
                         return event
                     }
+                }
+                .onReceive(deviceManager.$device) { device in
+                    
+                    if let device = device {
+                        setupConnectViewModel(device)
+                    }
+                    
                 }
             #endif
             
@@ -89,7 +143,7 @@ struct NetworkApp: App {
         #if os(macOS)
         MenuBarExtra(
             "URnetwork System Menu",
-            image: "MenuBarProvideNoConnect",
+            image: menuBarImage,
             isInserted: $showMenuBarExtra
         ) {
             Button("Show", action: {

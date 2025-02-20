@@ -24,8 +24,6 @@ struct MainNavigationSplitView: View {
     var api: SdkApi
     var device: SdkDeviceRemote
     var logout: () -> Void
-    var connectViewController: SdkConnectViewController?
-    @Binding var provideWhileDisconnected: Bool
     
     // can probably pass this down from MainView
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
@@ -37,14 +35,11 @@ struct MainNavigationSplitView: View {
     init(
         api: SdkApi,
         device: SdkDeviceRemote,
-        logout: @escaping () -> Void,
-        provideWhileDisconnected: Binding<Bool>
+        logout: @escaping () -> Void
     ) {
         self.api = api
         self.logout = logout
         self.device = device
-        self._provideWhileDisconnected = provideWhileDisconnected
-        self.connectViewController = device.openConnectViewController()
 
         _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(
                 api: api
@@ -100,17 +95,11 @@ struct MainNavigationSplitView: View {
             
             switch selectedTab {
             case .connect:
-                ConnectView_macOS(
-                        api: api,
-                        logout: logout,
-                        device: device,
-                        connectViewController: connectViewController
-                )
+                ConnectView_macOS()
             case .account:
                 AccountNavStackView(
                     api: api,
                     device: device,
-                    provideWhileDisconnected: $provideWhileDisconnected,
                     logout: logout,
                     accountPaymentsViewModel: accountPaymentsViewModel,
                     networkUserViewModel: networkUserViewModel,

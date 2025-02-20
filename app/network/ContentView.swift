@@ -15,6 +15,7 @@ struct ContentView: View {
     
     @StateObject var viewModel = ViewModel()
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var connectViewModel: ConnectViewModel
     @StateObject private var snackbarManager = UrSnackbarManager()
     
     @State private var opacity: Double = 0.0
@@ -44,8 +45,19 @@ struct ContentView: View {
                         MainView(
                             api: api,
                             device: device,
-                            // todo: we don't need to prop drill this, just access deviceManager through environment object
-                            logout: deviceManager.logout,
+                            logout: {
+                                
+                                Task {
+                                    connectViewModel.disconnect()
+                                    
+                                    if let vpnManager = deviceManager.vpnManager {
+                                        await vpnManager.close()
+                                    }
+                                    
+                                    deviceManager.logout()
+                                }
+                                
+                            },
                             welcomeAnimationComplete: $welcomeAnimationComplete
                         )
                         .opacity(opacity)

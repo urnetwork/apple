@@ -146,10 +146,40 @@ struct NetworkApp: App {
             image: menuBarImage,
             isInserted: $showMenuBarExtra
         ) {
+            
+            Text("URnetwork Status")
+                .font(.headline)
+            
+
+            Button(action: {}) {
+                HStack {
+                    Image(systemName: connectViewModel.connectionStatus == .connected ? "checkmark" : "xmark")
+                    Text("Connected")
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(true)
+
+            Button(action: {}) {
+                HStack {
+                    // if connected, user is providing
+                    // if not connected, check if user has provideWhileDisconnected set
+                    Image(systemName:
+                            connectViewModel.connectionStatus == .connected
+                          ? "checkmark"
+                          : deviceManager.provideWhileDisconnected ? "checkmark" : "xmark")
+                    Text("Providing")
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(true)
+            
+            Divider()
+            
             Button("Show", action: {
                 showWindow()
             })
-            Divider()
+            
             Button("Quit URnetwork", action: {
                 connectViewModel.disconnect()
                 
@@ -161,6 +191,7 @@ struct NetworkApp: App {
                 }
                 
             })
+            
             
         }
         #endif
@@ -216,3 +247,4 @@ struct NetworkApp: App {
     #endif
     
 }
+

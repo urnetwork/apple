@@ -1723,6 +1723,142 @@
         }
       }
     },
+    "Connected" : {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متصل"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Συνδεδεμένο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מחובר"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कनेक्टेड"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terhubung"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connesso"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続済み"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결됨"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключено"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansluten"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เชื่อมต่อแล้ว"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підключено"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã kết nối"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已連接"
+          }
+        }
+      }
+    },
     "Connected wallets" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5428,143 +5564,143 @@
       }
     },
     "Launch URnetwork on system startup" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تشغيل URnetwork عند بدء النظام"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تشغيل URnetwork عند بدء النظام"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork beim Systemstart starten"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork beim Systemstart starten"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Εκκίνηση του URnetwork κατά την εκκίνηση του συστήματος"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εκκίνηση του URnetwork κατά την εκκίνηση του συστήματος"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Launch URnetwork on system startup"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch URnetwork on system startup"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar URnetwork al arrancar el sistema"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar URnetwork al arrancar el sistema"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar URnetwork al arrancar el sistema"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar URnetwork al arrancar el sistema"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lancer URnetwork au démarrage du système"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer URnetwork au démarrage du système"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הפעל את URnetwork בעת הפעלת המערכת"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפעל את URnetwork בעת הפעלת המערכת"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सिस्टम स्टार्टअप पर URnetwork लॉन्च करें"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सिस्टम स्टार्टअप पर URnetwork लॉन्च करें"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jalankan URnetwork saat sistem startup"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jalankan URnetwork saat sistem startup"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avvia URnetwork all'avvio del sistema"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avvia URnetwork all'avvio del sistema"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "システム起動時にURnetworkを起動"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム起動時にURnetworkを起動"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "시스템 시작 시 URnetwork 실행"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 시작 시 URnetwork 실행"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uruchom URnetwork przy starcie systemu"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchom URnetwork przy starcie systemu"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar URnetwork na inicialização do sistema"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar URnetwork na inicialização do sistema"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar URnetwork no arranque do sistema"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar URnetwork no arranque do sistema"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Запускать URnetwork при запуске системы"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запускать URnetwork при запуске системы"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starta URnetwork vid systemstart"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starta URnetwork vid systemstart"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เปิด URnetwork เมื่อเริ่มต้นระบบ"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิด URnetwork เมื่อเริ่มต้นระบบ"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Запускати URnetwork під час запуску системи"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запускати URnetwork під час запуску системи"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Khởi chạy URnetwork khi khởi động hệ thống"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khởi chạy URnetwork khi khởi động hệ thống"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "系统启动时启动 URnetwork"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统启动时启动 URnetwork"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "系統啟動時啟動 URnetwork"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統啟動時啟動 URnetwork"
           }
         }
       }
@@ -7998,6 +8134,9 @@
           }
         }
       }
+    },
+    "Providing" : {
+
     },
     "Quit URnetwork" : {
       "localizations" : {
@@ -12544,6 +12683,9 @@
           }
         }
       }
+    },
+    "URnetwork Status" : {
+
     },
     "URnetwork System Menu" : {
 

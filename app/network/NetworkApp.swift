@@ -134,7 +134,15 @@ struct NetworkApp: App {
             #if os(macOS)
             CommandGroup(replacing: .appTermination) {
                 Button("Quit URnetwork") {
-                    NSApplication.shared.terminate(nil)
+                    
+                    connectViewModel.disconnect()
+                    
+                    Task {
+                        if let vpnManager = deviceManager.vpnManager {
+                            await vpnManager.close()
+                        }
+                        NSApplication.shared.terminate(nil)
+                    }
                 }
             }
             #endif
@@ -143,7 +151,16 @@ struct NetworkApp: App {
              
                 CommandMenu("Account") {
                     Button("Sign out") {
-                        deviceManager.logout()
+                        
+                        connectViewModel.disconnect()
+                        
+                        Task {
+                            if let vpnManager = deviceManager.vpnManager {
+                                await vpnManager.close()
+                            }
+                            deviceManager.logout()
+                        }
+                        
                     }
                 }
                 

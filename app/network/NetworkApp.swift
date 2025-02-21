@@ -16,7 +16,7 @@ struct NetworkApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #elseif os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @State private var mainWindowController: NSWindowController?
+    @State private var mainWindow: NSWindow?
     #endif
     
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
@@ -112,6 +112,16 @@ struct NetworkApp: App {
                     }
                     
                 }
+                .onAppear {
+                    if mainWindow == nil {
+                        mainWindow = NSApplication.shared.windows.first { window in
+                            window.styleMask.contains(.titled) &&
+                            window.styleMask.contains(.closable) &&
+                            !window.styleMask.contains(.nonactivatingPanel)
+                        }
+                        mainWindow?.isReleasedWhenClosed = false
+                    }
+                }
             #endif
             
         }
@@ -198,50 +208,21 @@ struct NetworkApp: App {
     }
     
     #if os(macOS)
+    
     private func hideWindow() {
-
-        NSApplication.shared.windows
-         .filter { window in
-             // Only close windows that are:
-             // - Not the MenuBarExtra (nonactivatingPanel)
-             // - Main application windows (titled, closable, etc)
-             !window.styleMask.contains(.nonactivatingPanel) &&
-             window.styleMask.contains(.titled) &&
-             window.styleMask.contains(.closable)
-         }
-         .forEach { $0.close() }
-
-        NSApp.setActivationPolicy(.accessory)
-
+        mainWindow?.orderOut(nil)  // Hide the window without destroying it
+        NSApp.setActivationPolicy(.accessory)  // Remove from Dock
         isWindowVisible = false
     }
-    
+
     private func showWindow() {
-        NSApp.setActivationPolicy(.regular)
+        NSApp.setActivationPolicy(.regular)  // Show in Dock
 
-        if mainWindowController == nil {
-            let contentView = ContentView()
-                .environmentObject(themeManager)
-                .environmentObject(deviceManager)
-                .environmentObject(connectViewModel)
-                .preferredColorScheme(.dark)
-                .background(themeManager.currentTheme.backgroundColor)
-
-            let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 900, height: 500),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable],
-                backing: .buffered,
-                defer: false
-            )
-            window.contentView = NSHostingView(rootView: contentView)
-            window.center()
-
-            mainWindowController = NSWindowController(window: window)
+        if let window = mainWindow {
+            window.makeKeyAndOrderFront(nil)
         }
-
-        mainWindowController?.showWindow(nil)
+        
         NSApplication.shared.activate(ignoringOtherApps: true)
-
         isWindowVisible = true
     }
     #endif

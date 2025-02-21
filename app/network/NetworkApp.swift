@@ -43,25 +43,35 @@ struct NetworkApp: App {
     
     private var menuBarImage: String {
         
-        let provideWhileDisconnected = deviceManager.provideWhileDisconnected
+        guard let device = deviceManager.device else {
+            return "MenuBarNoProvideNoConnect"
+        }
         
-        switch connectViewModel.connectionStatus {
-        case .connected:
+        let connectEnabled = device.getConnectEnabled()
+        let provideEnabled = device.getProvideEnabled()
+        
+        if connectEnabled {
             
-            if provideWhileDisconnected {
+            // connect and provide enabled
+            if provideEnabled {
                 return "MenuBarProvideConnect"
-            } else {
-                return "MenuBarNoProvideConnect"
             }
             
-        default:
-            if provideWhileDisconnected {
+            // connected and provide disabled
+            return "MenuBarNoProvideConnect"
+            
+        } else {
+            
+            // disconnected with provide enabled
+            if provideEnabled {
                 return "MenuBarProvideNoConnect"
-            } else {
-                return "MenuBarNoProvideNoConnect"
             }
+            
+            // disconnected and provide disabled
+            return "MenuBarNoProvideNoConnect"
             
         }
+        
     }
     
     
@@ -202,6 +212,16 @@ struct NetworkApp: App {
             .disabled(true)
             
             Divider()
+            
+            if connectViewModel.connectionStatus == .disconnected {
+                Button("Connect", action: {
+                    connectViewModel.connect()
+                })
+            } else {
+                Button("Disconnect", action: {
+                    connectViewModel.disconnect()
+                })
+            }
             
             Button("Show", action: {
                 showWindow()

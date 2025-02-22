@@ -12,12 +12,12 @@ import GoogleSignIn
 @main
 struct NetworkApp: App {
     
-    #if os(iOS)
+#if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    #elseif os(macOS)
+#elseif os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var mainWindow: NSWindow?
-    #endif
+#endif
     
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
     
@@ -41,19 +41,30 @@ struct NetworkApp: App {
         
     }
     
-    private var menuBarImage: String {
+    private var connectEnabled: Bool {
         
         guard let device = deviceManager.device else {
-            return "MenuBarNoProvideNoConnect"
+            return false
         }
         
-        let connectEnabled = device.getConnectEnabled()
-        let provideEnabled = device.getProvideEnabled()
+        return device.getConnectEnabled()
         
-        if connectEnabled {
+    }
+    
+    private var provideEnabled: Bool {
+        guard let device = deviceManager.device else {
+            return false
+        }
+        
+        return device.getProvideEnabled()
+    }
+
+    private var menuBarImage: String {
+        
+        if self.connectEnabled {
             
             // connect and provide enabled
-            if provideEnabled {
+            if self.provideEnabled {
                 return "MenuBarProvideConnect"
             }
             
@@ -63,7 +74,7 @@ struct NetworkApp: App {
         } else {
             
             // disconnected with provide enabled
-            if provideEnabled {
+            if self.provideEnabled {
                 return "MenuBarProvideNoConnect"
             }
             
@@ -190,7 +201,7 @@ struct NetworkApp: App {
 
             Button(action: {}) {
                 HStack {
-                    Image(systemName: connectViewModel.connectionStatus == .connected ? "checkmark" : "xmark")
+                    Image(systemName: self.connectEnabled ? "checkmark" : "xmark")
                     Text("Connected")
                 }
             }
@@ -199,12 +210,7 @@ struct NetworkApp: App {
 
             Button(action: {}) {
                 HStack {
-                    // if connected, user is providing
-                    // if not connected, check if user has provideWhileDisconnected set
-                    Image(systemName:
-                            connectViewModel.connectionStatus == .connected
-                          ? "checkmark"
-                          : deviceManager.provideWhileDisconnected ? "checkmark" : "xmark")
+                    Image(systemName: self.provideEnabled ? "checkmark" : "xmark")
                     Text("Providing")
                 }
             }

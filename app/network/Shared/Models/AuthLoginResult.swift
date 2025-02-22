@@ -15,11 +15,11 @@ enum AuthLoginResult {
     case create(SdkAuthLoginArgs)
     case failure(Error)
     case verificationRequired(_ userAuth: String)
+    case incorrectAuth(_ authAllowed: String)
 }
 
 enum AuthLoginError: Error {
     case isInProgress
     case invalidResult
     case invalidArguments
-    
 }

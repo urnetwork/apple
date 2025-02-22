@@ -102,7 +102,26 @@ extension LoginInitialView {
                                 
                             } else {
                                 
-                                continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "authAllowed missing password: \(authAllowed)"]))
+                                /**
+                                 * Trying to login with the wrong account
+                                 * ie email is used with google, but trying that same email with apple
+                                 */
+                                
+                                var acceptedAuthMethods: [String] = []
+    
+                                // loop authAllowed
+                                for i in 0..<authAllowed.len() {
+                                    acceptedAuthMethods.append(authAllowed.get(i))
+                                }
+    
+                                guard acceptedAuthMethods.isEmpty else {
+    
+                                    let errMessage = "Please login with one of: \(acceptedAuthMethods.joined(separator: ", "))."
+    
+                                    continuation.resume(returning: .incorrectAuth(errMessage))
+    
+                                    return
+                                }
                                 
                             }
                             
@@ -320,5 +339,6 @@ enum LoginError: Error {
     case googleNoResult
     case googleNoIdToken
     case inProgress
+    case incorrectAuth(_ authAllowed: String)
 }
 

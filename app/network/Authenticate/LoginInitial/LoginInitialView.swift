@@ -258,6 +258,10 @@ struct LoginInitialView: View {
             print("verificationRequired should not be hit from this view")
             navigate(.verify(userAuth))
             break
+            
+        case .incorrectAuth(let authAllowedErr):
+            snackbarManager.showSnackbar(message: authAllowedErr)
+            break
         
         case .failure(let error):
             print("auth login error: \(error.localizedDescription)")

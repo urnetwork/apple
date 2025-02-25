@@ -20,6 +20,8 @@ struct ConnectView_macOS: View {
     
     @State var isLoading: Bool = false
     
+    @State private var isProviderTableVisible: Bool = false
+    
     var body: some View {
          
         VStack {
@@ -41,10 +43,19 @@ struct ConnectView_macOS: View {
                     
                     HStack {
                         
-                        SelectedProvider(
-                            selectedProvider: connectViewModel.selectedProvider,
-                            getProviderColor: connectViewModel.getProviderColor
-                        )
+                        Button(
+                            action: {
+                                withAnimation(.spring(duration: 0.3)) {
+                                    self.isProviderTableVisible.toggle()
+                                }
+                            }
+                        ) {
+                            SelectedProvider(
+                                selectedProvider: connectViewModel.selectedProvider,
+                                getProviderColor: connectViewModel.getProviderColor
+                            )
+                        }
+                        .buttonStyle(.plain)
                         
                     }
                     .background(themeManager.currentTheme.tintedBackgroundBase)
@@ -57,31 +68,55 @@ struct ConnectView_macOS: View {
                 
                 Divider()
                 
-                ProviderTable(
-                    selectedProvider: connectViewModel.selectedProvider,
-                    connect: { provider in
-                        connectViewModel.connect(provider)
-                    },
-                    connectBestAvailable: {
-                        connectViewModel.connectBestAvailable()
-                    },
-                    providerCountries: connectViewModel.providerCountries,
-                    providerPromoted: connectViewModel.providerPromoted,
-                    providerDevices: connectViewModel.providerDevices,
-                    providerRegions: connectViewModel.providerRegions,
-                    providerCities: connectViewModel.providerCities,
-                    providerBestSearchMatches: connectViewModel.providerBestSearchMatches,
-                    searchQuery: $connectViewModel.searchQuery,
-                    refresh: {
-                        Task {
-                            let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
-                        }
-                    },
-                    isLoading: connectViewModel.providersLoading
-                )
+                if isProviderTableVisible {
+                    ProviderTable(
+                        selectedProvider: connectViewModel.selectedProvider,
+                        connect: { provider in
+                            connectViewModel.connect(provider)
+                        },
+                        connectBestAvailable: {
+                            connectViewModel.connectBestAvailable()
+                        },
+                        providerCountries: connectViewModel.providerCountries,
+                        providerPromoted: connectViewModel.providerPromoted,
+                        providerDevices: connectViewModel.providerDevices,
+                        providerRegions: connectViewModel.providerRegions,
+                        providerCities: connectViewModel.providerCities,
+                        providerBestSearchMatches: connectViewModel.providerBestSearchMatches,
+                        searchQuery: $connectViewModel.searchQuery,
+                        refresh: {
+                            Task {
+                                let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                            }
+                        },
+                        isLoading: connectViewModel.providersLoading
+                    )
+                    .transition(.move(edge: .trailing))
+                }
                 
             }
             .frame(maxWidth: .infinity)
+        }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    withAnimation(.spring(duration: 0.3)) {
+                        isProviderTableVisible.toggle()
+                    }
+                }) {
+                    Image("ur.symbols.tab.connect")
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .help(isProviderTableVisible ? "Hide Provider List" : "Show Provider List")
+                }
+                .background(
+                    isProviderTableVisible ?
+                    themeManager.currentTheme.textFaintColor :
+                        Color.clear
+                )
+                .cornerRadius(4)
+            }
         }
         
     }

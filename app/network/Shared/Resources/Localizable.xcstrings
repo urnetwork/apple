@@ -1724,137 +1724,137 @@
       }
     },
     "Connected" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "متصل"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متصل"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verbunden"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbunden"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Συνδεδεμένο"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδεδεμένο"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectado"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectado"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connecté"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecté"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מחובר"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מחובר"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "कनेक्टेड"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कनेक्टेड"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terhubung"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terhubung"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connesso"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connesso"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "接続済み"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続済み"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "연결됨"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결됨"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Połączono"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połączono"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectado"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectado"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Подключено"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключено"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ansluten"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansluten"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เชื่อมต่อแล้ว"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อแล้ว"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Підключено"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключено"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã kết nối"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã kết nối"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已连接"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已連接"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已連接"
           }
         }
       }
@@ -5130,6 +5130,148 @@
         }
       }
     },
+    "Hide Provider List" : {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إخفاء قائمة المزودين"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anbieter-Liste ausblenden"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Απόκρυψη λίστας παρόχων"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Provider List"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar lista de proveedores"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar lista de proveedores"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer la liste des fournisseurs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הסתר רשימת ספקים"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रदाता सूची छिपाएं"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sembunyikan Daftar Penyedia"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nascondi elenco provider"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロバイダーリストを非表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제공업체 목록 숨기기"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukryj listę dostawców"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar lista de provedores"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar lista de fornecedores"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скрыть список провайдеров"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dölj leverantörslista"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ซ่อนรายชื่อผู้ให้บริการ"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приховати список провайдерів"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ẩn danh sách nhà cung cấp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏供应商列表"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隱藏供應商列表"
+          }
+        }
+      }
+    },
     "I agree to URnetwork's " : {
 
     },
@@ -8136,137 +8278,137 @@
       }
     },
     "Providing" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "جاري التوفير"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جاري التوفير"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bereitstellung"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitstellung"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated", 
-            "value": "Παροχή"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παροχή"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Proporcionando"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proporcionando"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Proporcionando"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proporcionando"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fourniture"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fourniture"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מספק"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מספק"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "प्रदान कर रहा है"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रदान कर रहा है"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menyediakan"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menyediakan"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fornendo"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fornendo"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提供中"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供中"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제공 중"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제공 중"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Udostępnianie"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Udostępnianie"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fornecendo"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fornecendo"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A fornecer"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fornecer"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Предоставление"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предоставление"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tillhandahåller"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillhandahåller"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "กำลังให้บริการ"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กำลังให้บริการ"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Надання"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надання"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đang cung cấp"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang cung cấp"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提供中"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供中"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提供中"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供中"
           }
         }
       }
@@ -10263,6 +10405,148 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示"
+          }
+        }
+      }
+    },
+    "Show Provider List" : {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إظهار قائمة المزودين"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anbieter-Liste anzeigen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Εμφάνιση λίστας παρόχων"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Provider List"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar lista de proveedores"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar lista de proveedores"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher la liste des fournisseurs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הצג רשימת ספקים"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रदाता सूची दिखाएं"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tampilkan Daftar Penyedia"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra elenco provider"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロバイダーリストを表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제공업체 목록 표시"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż listę dostawców"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar lista de provedores"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar lista de fornecedores"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать список провайдеров"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa leverantörslista"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แสดงรายชื่อผู้ให้บริการ"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показати список провайдерів"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiển thị danh sách nhà cung cấp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示供应商列表"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示供應商列表"
           }
         }
       }
@@ -12818,137 +13102,137 @@
       }
     },
     "URnetwork Status" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حالة URnetwork"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حالة URnetwork"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated", 
-            "value": "URnetwork Status"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork Status"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Κατάσταση URnetwork"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κατάσταση URnetwork"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estado de URnetwork"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado de URnetwork"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estado de URnetwork"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado de URnetwork"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "État URnetwork"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "État URnetwork"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סטטוס URnetwork"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סטטוס URnetwork"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork स्थिति"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork स्थिति"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Status URnetwork"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status URnetwork"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stato URnetwork"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stato URnetwork"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetworkステータス"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetworkステータス"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork 상태"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 상태"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Status URnetwork"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status URnetwork"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Status URnetwork"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status URnetwork"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estado URnetwork"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado URnetwork"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Статус URnetwork"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статус URnetwork"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork Status"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork Status"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "สถานะ URnetwork"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "สถานะ URnetwork"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Статус URnetwork"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статус URnetwork"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trạng thái URnetwork"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trạng thái URnetwork"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork 状态"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 状态"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork 狀態"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 狀態"
           }
         }
       }
@@ -12957,409 +13241,409 @@
 
     },
     "URnetwork VPN already started" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN قد بدأ بالفعل"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN قد بدأ بالفعل"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN bereits gestartet"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN bereits gestartet"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Το URnetwork VPN έχει ήδη ξεκινήσει"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το URnetwork VPN έχει ήδη ξεκινήσει"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN ya iniciada"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN ya iniciada"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN ya iniciada"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN ya iniciada"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN déjà démarré"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN déjà démarré"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN כבר פועל"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN כבר פועל"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN पहले से चालू है"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN पहले से चालू है"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN sudah dimulai"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN sudah dimulai"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN già avviata"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN già avviata"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPNはすでに起動しています"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPNはすでに起動しています"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN이 이미 시작됨"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN이 이미 시작됨"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN już uruchomiona"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN już uruchomiona"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN já iniciada"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN já iniciada"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN já iniciada"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN já iniciada"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN уже запущен"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN уже запущен"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN redan startad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN redan startad"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN เริ่มทำงานแล้ว"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN เริ่มทำงานแล้ว"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN вже запущено"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN вже запущено"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN đã được khởi động"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN đã được khởi động"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 已启动"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 已启动"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 已啟動"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 已啟動"
           }
         }
       }
     },
     "URnetwork VPN disconnected" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN غير متصل"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN غير متصل"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN getrennt"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN getrennt"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Το URnetwork VPN αποσυνδέθηκε"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το URnetwork VPN αποσυνδέθηκε"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN desconectada"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN desconectada"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN desconectada"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN desconectada"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN déconnecté"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN déconnecté"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN מנותק"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN מנותק"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN डिस्कनेक्ट हो गया"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN डिस्कनेक्ट हो गया"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN terputus"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN terputus"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN disconnessa"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN disconnessa"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN が切断されました"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN が切断されました"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 연결 해제됨"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 연결 해제됨"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN rozłączona"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN rozłączona"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN desconectada"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN desconectada"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN desligada"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN desligada"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN отключен"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN отключен"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN frånkopplad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN frånkopplad"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN ถูกตัดการเชื่อมต่อ"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN ถูกตัดการเชื่อมต่อ"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN відключено"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN відключено"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN đã ngắt kết nối"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN đã ngắt kết nối"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 已断开连接"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 已断开连接"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 已斷開連接"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 已斷開連接"
           }
         }
       }
     },
     "URnetwork VPN started" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تم تشغيل URnetwork VPN"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم تشغيل URnetwork VPN"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN gestartet"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN gestartet"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Το URnetwork VPN ξεκίνησε"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το URnetwork VPN ξεκίνησε"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN iniciada"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN iniciada"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN iniciada"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN iniciada"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN démarré"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN démarré"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN הופעל"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN הופעל"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN शुरू हो गया"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN शुरू हो गया"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN dimulai"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN dimulai"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN avviata"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN avviata"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN が起動しました"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN が起動しました"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 시작됨"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 시작됨"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN uruchomiona"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN uruchomiona"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN iniciada"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN iniciada"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN iniciada"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN iniciada"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN запущен"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN запущен"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN startad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN startad"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN เริ่มทำงานแล้ว"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN เริ่มทำงานแล้ว"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN запущено"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN запущено"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN đã khởi động"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN đã khởi động"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 已启动"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 已启动"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "URnetwork VPN 已啟動"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN 已啟動"
           }
         }
       }

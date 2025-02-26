@@ -8,6 +8,8 @@
 import Foundation
 import StoreKit
 
+// todo: delete this?
+
 class MockSKProduct: SKProduct {
     private let mockLocalizedTitle: String
     private let mockLocalizedDescription: String

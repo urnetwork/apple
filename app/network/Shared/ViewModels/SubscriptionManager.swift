@@ -15,7 +15,7 @@ class SubscriptionManager: NSObject, ObservableObject {
     private var productRequest: SKProductsRequest?
     
     func fetchProducts() {
-        let productIdentifiers = Set(["supporter_plan"]) // Replace with your product ID
+        let productIdentifiers = Set(["supporter"]) // Replace with your product ID
         productRequest = SKProductsRequest(productIdentifiers: productIdentifiers)
         productRequest?.delegate = self
         productRequest?.start()
@@ -42,6 +42,7 @@ class SubscriptionManager: NSObject, ObservableObject {
 extension SubscriptionManager: SKProductsRequestDelegate {
     func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
         DispatchQueue.main.async {
+            print("retrieved products: \(response.products)")
             self.products = response.products
         }
     }
@@ -52,16 +53,18 @@ extension SubscriptionManager: SKPaymentTransactionObserver {
         for transaction in transactions {
             switch transaction.transactionState {
             case .purchased:
-                // Handle successful purchase
-                
+                print("✅ Purchase successful in \(Bundle.main.appStoreReceiptURL?.absoluteString.contains("sandbox") ?? false ? "SANDBOX" : "PRODUCTION")")
                 DispatchQueue.main.async {
                     self.onPurchase()
                 }
-                
                 SKPaymentQueue.default().finishTransaction(transaction)
             case .failed:
-                // Handle failed purchase
+                if let error = transaction.error as? SKError {
+                    print("❌ Purchase failed: \(error.localizedDescription)")
+                }
                 SKPaymentQueue.default().finishTransaction(transaction)
+            case .purchasing:
+                print("💳 Processing purchase in sandbox...")
             default:
                 break
             }

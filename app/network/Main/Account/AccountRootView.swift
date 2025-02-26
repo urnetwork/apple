@@ -87,12 +87,12 @@ struct AccountRootView: View {
                     Spacer()
   
                     // TODO: add back in when upgrade subscription work complete
-//                    Button(action: {
-//                        viewModel.isPresentedUpgradeSheet = true
-//                    }) {
-//                        Text("Create account")
-//                            .font(themeManager.currentTheme.secondaryBodyFont)
-//                    }
+                    Button(action: {
+                        viewModel.isPresentedUpgradeSheet = true
+                    }) {
+                        Text("Create account")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                    }
                     
                 }
                 

@@ -26,50 +26,50 @@ struct ProviderListGroup: View {
     #endif
     
     var body: some View {
-        if !providers.isEmpty {
-            Section(
-                header: HStack {
-                    Text(groupName)
-                        .textCase(nil) // for some reason, header text is all caps by default in swiftui
-                        .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                    
-                    Spacer()
-                }
-                    .padding(.horizontal, padding)
-                    .padding(.vertical, 8)
-            ) {
+        
+        Section(
+            header: HStack {
+                Text(groupName)
+                    .textCase(nil) // for some reason, header text is all caps by default in swiftui
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
                 
-                if isPromotedLocations {
-                    ProviderListItemView(
-                        name: "Best available provider",
-                        providerCount: nil,
-                        color: Color.urCoral,
-                        isSelected: false,
-                        connect: {
-                            connectBestAvailable()
-                        }
-                    )
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-                }
-                
-                ForEach(providers, id: \.connectLocationId) { provider in
-                    ProviderListItemView(
-                        name: provider.name,
-                        providerCount: provider.providerCount,
-                        color: getProviderColor(provider),
-                        isSelected: selectedProvider != nil && selectedProvider?.connectLocationId?.cmp(provider.connectLocationId) == 0,
-                        connect: {
-                            connect(provider)
-                        }
-                    )
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-                }
+                Spacer()
             }
-            .listRowBackground(Color.clear)
+                .padding(.horizontal, padding)
+                .padding(.vertical, 8)
+        ) {
+            
+            if isPromotedLocations {
+                ProviderListItemView(
+                    name: "Best available provider",
+                    providerCount: nil,
+                    color: Color.urCoral,
+                    isSelected: false,
+                    connect: {
+                        connectBestAvailable()
+                    }
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+            }
+            
+            ForEach(providers, id: \.connectLocationId) { provider in
+                ProviderListItemView(
+                    name: provider.name,
+                    providerCount: provider.providerCount,
+                    color: getProviderColor(provider),
+                    isSelected: selectedProvider != nil && selectedProvider?.connectLocationId?.cmp(provider.connectLocationId) == 0,
+                    connect: {
+                        connect(provider)
+                    }
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+            }
         }
+        .listRowBackground(Color.clear)
+        
     }
     
 }

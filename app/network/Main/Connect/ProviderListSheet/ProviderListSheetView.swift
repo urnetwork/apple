@@ -34,44 +34,62 @@ struct ProviderListSheetView: View {
     var body: some View {
         List {
             
-            ProviderListGroup(
-                groupName: "Best Search Matches",
-                providers: providerBestSearchMatches,
-                selectedProvider: selectedProvider,
-                connect: connect
-            )
-            ProviderListGroup(
-                groupName: "Promoted Locations",
-                providers: providerPromoted,
-                selectedProvider: selectedProvider,
-                connect: connect,
-                connectBestAvailable: connectBestAvailable,
-                isPromotedLocations: true
-            )
-            ProviderListGroup(
-                groupName: "Countries",
-                providers: providerCountries,
-                selectedProvider: selectedProvider,
-                connect: connect
-            )
-            ProviderListGroup(
-                groupName: "Regions",
-                providers: providerRegions,
-                selectedProvider: selectedProvider,
-                connect: connect
-            )
-            ProviderListGroup(
-                groupName: "Cities",
-                providers: providerCities,
-                selectedProvider: selectedProvider,
-                connect: connect
-            )
-            ProviderListGroup(
-                groupName: "Devices",
-                providers: providerDevices,
-                selectedProvider: selectedProvider,
-                connect: connect
-            )
+            if !providerBestSearchMatches.isEmpty {
+                ProviderListGroup(
+                    groupName: "Best Search Matches",
+                    providers: providerBestSearchMatches,
+                    selectedProvider: selectedProvider,
+                    connect: connect
+                )
+            }
+
+            if !providerPromoted.isEmpty {
+                ProviderListGroup(
+                    groupName: "Promoted Locations",
+                    providers: providerPromoted,
+                    selectedProvider: selectedProvider,
+                    connect: connect,
+                    connectBestAvailable: connectBestAvailable,
+                    isPromotedLocations: true
+                )
+            }
+
+            if !providerCountries.isEmpty {
+                ProviderListGroup(
+                    groupName: "Countries",
+                    providers: providerCountries,
+                    selectedProvider: selectedProvider,
+                    connect: connect
+                )
+            }
+
+            if !providerRegions.isEmpty {
+                ProviderListGroup(
+                    groupName: "Regions",
+                    providers: providerRegions,
+                    selectedProvider: selectedProvider,
+                    connect: connect
+                )
+            }
+
+            if !providerCities.isEmpty {
+                ProviderListGroup(
+                    groupName: "Cities",
+                    providers: providerCities,
+                    selectedProvider: selectedProvider,
+                    connect: connect
+                )
+            }
+
+            if !providerDevices.isEmpty {
+                ProviderListGroup(
+                    groupName: "Devices",
+                    providers: providerDevices,
+                    selectedProvider: selectedProvider,
+                    connect: connect
+                )
+            }
+
         }
         .listStyle(.plain)
         .background(themeManager.currentTheme.backgroundColor)

@@ -5131,143 +5131,143 @@
       }
     },
     "Hide Provider List" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إخفاء قائمة المزودين"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إخفاء قائمة المزودين"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anbieter-Liste ausblenden"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anbieter-Liste ausblenden"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Απόκρυψη λίστας παρόχων"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απόκρυψη λίστας παρόχων"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hide Provider List"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Provider List"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar lista de proveedores"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar lista de proveedores"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar lista de proveedores"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar lista de proveedores"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Masquer la liste des fournisseurs"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer la liste des fournisseurs"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הסתר רשימת ספקים"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסתר רשימת ספקים"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "प्रदाता सूची छिपाएं"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रदाता सूची छिपाएं"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sembunyikan Daftar Penyedia"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sembunyikan Daftar Penyedia"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nascondi elenco provider"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nascondi elenco provider"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プロバイダーリストを非表示"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロバイダーリストを非表示"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제공업체 목록 숨기기"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제공업체 목록 숨기기"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ukryj listę dostawców"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukryj listę dostawców"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar lista de provedores"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar lista de provedores"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar lista de fornecedores"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar lista de fornecedores"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скрыть список провайдеров"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрыть список провайдеров"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dölj leverantörslista"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dölj leverantörslista"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ซ่อนรายชื่อผู้ให้บริการ"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ซ่อนรายชื่อผู้ให้บริการ"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Приховати список провайдерів"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приховати список провайдерів"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ẩn danh sách nhà cung cấp"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn danh sách nhà cung cấp"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "隐藏供应商列表"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏供应商列表"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "隱藏供應商列表"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏供應商列表"
           }
         }
       }
@@ -8697,6 +8697,148 @@
         }
       }
     },
+    "Reconnect" : {
+"localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة الاتصال"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu verbinden"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επανασύνδεση"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconectar"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconectar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnecter"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחבר מחדש"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुनः कनेक्ट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sambung ulang"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riconnetti"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再接続"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 연결"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połącz ponownie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconectar"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconectar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переподключиться"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Återanslut"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เชื่อมต่อใหม่"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перепідключитися"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết nối lại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新連接"
+          }
+        }
+      }
+    },
     "Refer and earn" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10410,143 +10552,143 @@
       }
     },
     "Show Provider List" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إظهار قائمة المزودين"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إظهار قائمة المزودين"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anbieter-Liste anzeigen"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anbieter-Liste anzeigen"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Εμφάνιση λίστας παρόχων"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφάνιση λίστας παρόχων"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show Provider List"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Provider List"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar lista de proveedores"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar lista de proveedores"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar lista de proveedores"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar lista de proveedores"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher la liste des fournisseurs"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la liste des fournisseurs"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הצג רשימת ספקים"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצג רשימת ספקים"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "प्रदाता सूची दिखाएं"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रदाता सूची दिखाएं"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tampilkan Daftar Penyedia"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tampilkan Daftar Penyedia"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostra elenco provider"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra elenco provider"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プロバイダーリストを表示"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロバイダーリストを表示"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제공업체 목록 표시"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제공업체 목록 표시"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pokaż listę dostawców"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż listę dostawców"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar lista de provedores"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar lista de provedores"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar lista de fornecedores"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar lista de fornecedores"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показать список провайдеров"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать список провайдеров"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visa leverantörslista"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa leverantörslista"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "แสดงรายชื่อผู้ให้บริการ"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แสดงรายชื่อผู้ให้บริการ"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показати список провайдерів"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показати список провайдерів"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hiển thị danh sách nhà cung cấp"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị danh sách nhà cung cấp"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "显示供应商列表"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示供应商列表"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顯示供應商列表"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示供應商列表"
           }
         }
       }

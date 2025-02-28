@@ -42,7 +42,11 @@ struct ConnectView_macOS: View {
                                 isProviderTableVisible = false
                             }
                         },
-                        disconnect: connectViewModel.disconnect
+                        disconnect: connectViewModel.disconnect,
+                        connectTunnel: {
+                            deviceManager.vpnManager?.updateVpnService()
+                        },
+                        tunnelConnected: $connectViewModel.tunnelConnected
                     )
                     .frame(maxHeight: .infinity)
                     

@@ -18,8 +18,13 @@ struct ConnectButtonView: View {
     var windowCurrentSize: Int32
     var connect: () -> Void
     var disconnect: () -> Void
+    var connectTunnel: () -> Void
+    
+    @Binding var tunnelConnected: Bool
     
     let canvasWidth: CGFloat = 256
+    
+    @State var displayReconnectTunnel: Bool = false
     
     var statusMsgIconColor: Color {
         
@@ -27,7 +32,7 @@ struct ConnectButtonView: View {
         case .disconnected: return .urElectricBlue
         case .connecting: return .urYellow
         case .destinationSet: return .urYellow
-        case .connected: return .urGreen
+        case .connected: return displayReconnectTunnel ? .urCoral : .urGreen
         case .none: return .urElectricBlue
         }
         
@@ -37,7 +42,13 @@ struct ConnectButtonView: View {
         switch connectionStatus {
         case .disconnected: return "Ready to connect"
         case .connecting, .destinationSet: return "Connecting to providers"
-        case .connected: return "Connected to \(windowCurrentSize) providers"
+        case .connected: do {
+            if displayReconnectTunnel {
+                return "VPN tunnel disconnected 😓"
+            } else {
+                return "Connected to \(windowCurrentSize) providers"
+            }
+        }
         case .none: return ""
         }
     }
@@ -71,7 +82,8 @@ struct ConnectButtonView: View {
                  */
                 ConnectCanvasConnectedStateView(
                     canvasWidth: canvasWidth,
-                    isActive: connectionStatus == .connected
+                    isActive: connectionStatus == .connected,
+                    displayReconnectTunnel: displayReconnectTunnel
                 )
             
                 // for capturing tap when disconnected
@@ -128,28 +140,65 @@ struct ConnectButtonView: View {
             
             HStack {
                 
-                UrButton(
-                    text: "Disconnect",
-                    action: {
-                        disconnect()
-#if canImport(UIKit)
-                            let impact = UIImpactFeedbackGenerator(style: .soft)
-                            impact.impactOccurred()
-#endif
-                    },
-                    style: .outlineSecondary,
-                    enabled: connectionStatus != .disconnected
-                )
-                .opacity(connectionStatus != .disconnected ? 1 : 0)
-                .animation(.easeInOut(duration: 0.5), value: connectionStatus)
+                if (connectionStatus != .disconnected && !displayReconnectTunnel) {
+
+                    UrButton(
+                        text: "Disconnect",
+                        action: {
+                            disconnect()
+    #if canImport(UIKit)
+                                let impact = UIImpactFeedbackGenerator(style: .soft)
+                                impact.impactOccurred()
+    #endif
+                        },
+                        style: .outlineSecondary,
+                        enabled: connectionStatus != .disconnected
+                    )
+                    .animation(.easeInOut(duration: 0.5), value: connectionStatus)
+                    
+                }
+                
+                if displayReconnectTunnel {
+                    UrButton(
+                        text: "Reconnect",
+                        action: {
+                            
+                            connectTunnel()
+                            
+    #if canImport(UIKit)
+                                let impact = UIImpactFeedbackGenerator(style: .soft)
+                                impact.impactOccurred()
+    #endif
+                        },
+                        style: .outlineSecondary
+                    )
+                }
+
                 
             }
             .frame(width: 156, height: 48)
             
         }
         .padding()
+        .onChange(of: connectionStatus) { _ in
+            checkTunnelStatus()
+        }
+        .onChange(of: tunnelConnected) { _ in
+            checkTunnelStatus()
+        }
         
     }
+    
+    private func checkTunnelStatus() {
+        
+        if connectionStatus == .connected && !tunnelConnected {
+            self.displayReconnectTunnel = true
+        } else {
+            self.displayReconnectTunnel = false
+        }
+        
+    }
+    
 }
 
 #Preview {
@@ -159,6 +208,8 @@ struct ConnectButtonView: View {
         connectionStatus: .disconnected,
         windowCurrentSize: 12,
         connect: {},
-        disconnect: {}
+        disconnect: {},
+        connectTunnel: {},
+        tunnelConnected: .constant(true)
     )
 }

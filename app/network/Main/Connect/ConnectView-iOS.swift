@@ -66,7 +66,11 @@ struct ConnectView_iOS: View {
                 connectionStatus: connectViewModel.connectionStatus,
                 windowCurrentSize: connectViewModel.windowCurrentSize,
                 connect: connectViewModel.connect,
-                disconnect: connectViewModel.disconnect
+                disconnect: connectViewModel.disconnect,
+                connectTunnel: {
+                    deviceManager.vpnManager?.updateVpnService()
+                },
+                tunnelConnected: $connectViewModel.tunnelConnected
             )
             
             Spacer()

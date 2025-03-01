@@ -19,28 +19,28 @@ struct UrSwitchToggleStyle: ToggleStyle {
                 // track
                 RoundedRectangle(cornerRadius: 16)
                     .fill(configuration.isOn ? themeManager.currentTheme.accentColor : Color.clear)
-                    .frame(width: 42, height: 24)
+                    .frame(width: 40, height: 22)
                     .overlay(
                         // track border
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(themeManager.currentTheme.accentColor, lineWidth: 4)
+                            .stroke(themeManager.currentTheme.accentColor, lineWidth: 3)
                     )
                     .animation(.easeInOut(duration: 0.2), value: configuration.isOn)
                 
                 // circle
                 Circle()
                     .fill(themeManager.currentTheme.backgroundColor)
-                    .frame(width: 12, height: 12)
+                    .frame(width: 10, height: 10)
                     .overlay(
                         // circle border
                         Circle()
                             .stroke(
                                 configuration.isOn ? themeManager.currentTheme.backgroundColor : themeManager.currentTheme.accentColor,
-                                lineWidth: 4
+                                lineWidth: 3
                             )
                             .animation(.easeInOut(duration: 0.2), value: configuration.isOn)
                     )
-                    .offset(x: configuration.isOn ? 10 : -8)
+                    .offset(x: configuration.isOn ? 11 : -9)
                     .animation(.easeInOut(duration: 0.2), value: configuration.isOn)
             }
             .onTapGesture {

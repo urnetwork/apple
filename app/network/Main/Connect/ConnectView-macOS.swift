@@ -48,6 +48,7 @@ struct ConnectView_macOS: View {
                         },
                         tunnelConnected: $connectViewModel.tunnelConnected
                     )
+                    .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                     .frame(maxHeight: .infinity)
                     
                     HStack {
@@ -100,10 +101,35 @@ struct ConnectView_macOS: View {
                         },
                         isLoading: connectViewModel.providersLoading
                     )
-                    .transition(.move(edge: .trailing))
+                    .frame(maxWidth: 260)
+                    .frame(maxHeight: .infinity)
+                    .searchable(
+                        text: $connectViewModel.searchQuery,
+                        prompt: "Search providers"
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .automatic) {
+                            Button(action: {
+                                Task {
+                                    let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                                }
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                            }
+                            .disabled(isLoading)
+                        }
+                    }
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)
+                        )
+                    )
+
                 }
                 
             }
+            .animation(.spring(duration: 0.3), value: isProviderTableVisible)
             .frame(maxWidth: .infinity)
         }
         .toolbar {
@@ -221,20 +247,6 @@ struct ProviderTable: View {
                 
             }
             
-        }
-        .searchable(
-            text: $searchQuery,
-            prompt: "Search providers"
-        )
-        .frame(maxWidth: 260)
-        .frame(maxHeight: .infinity)
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(action: refresh) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(isLoading)
-            }
         }
         
     }

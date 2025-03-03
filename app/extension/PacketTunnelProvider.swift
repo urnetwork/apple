@@ -31,9 +31,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override init() {
         super.init()
         
-        logger.info("PacketTunnelProvider init")
+        logger.info("[PacketTunnelProvider]init")
         
-        if #available(iOS 16, macOS 14, *) {
+        if #available(iOS 16, macOS 13, *) {
             // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18
             // the binary and go runtime take about 30mib of that, leaving at most about 20mib for the sdk and tunnel provider
             // since the limit is a soft limit, take ~80% of the available for the SDK
@@ -51,7 +51,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             memoryPressureSource.setEventHandler {
                 switch memoryPressureSource.mask {
                 case DispatchSource.MemoryPressureEvent.normal:
-    //                SdkFreeMemory()
+                    //                SdkFreeMemory()
                     break
                 case DispatchSource.MemoryPressureEvent.warning:
                     SdkFreeMemory()
@@ -64,7 +64,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
             memoryPressureSource.activate()
         }
-        
     }
     
     
@@ -107,7 +106,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
         
-        
         let deviceConfiguration = [
             "by_jwt": byJwt,
             "network_space": networkSpaceJson,
@@ -118,6 +116,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         if let device = self.device {
             if self.deviceConfiguration == deviceConfiguration && !device.getDone() {
                 // already running
+                // this would theoretically happen if start was called multiple times without stop
                 completionHandler(nil)
                 return
             }
@@ -282,7 +281,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
    
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
-        self.logger.info("Stopping tunnel with reason: \(String(describing: reason))")
+        logger.info("[PacketTunnelProvider]stop with reason: \(String(describing: reason))")
+        
         self.device?.cancel()
         self.memoryPressureSource?.cancel()
         completionHandler()
@@ -372,7 +372,8 @@ private class RouteLocalChangeListener: NSObject, SdkRouteLocalChangeListenerPro
 
 
 func canProvideOnNetwork(path: Network.NWPath) ->  Bool {
-    if #available(iOS 16, *) {
+    // TODO it seems like iOS 16,17 have more issues than 18, but the root cause is unknown
+    if #available(iOS 18, macOS 15, *) {
         if path.isExpensive || path.isConstrained {
             return false
         } else if let primaryInterface = path.availableInterfaces.first {

@@ -36,9 +36,19 @@ struct ConnectView_macOS: View {
                         gridWidth: connectViewModel.gridWidth,
                         connectionStatus: connectViewModel.connectionStatus,
                         windowCurrentSize: connectViewModel.windowCurrentSize,
-                        connect: connectViewModel.connect,
-                        disconnect: connectViewModel.disconnect
+                        connect: {
+                            connectViewModel.connect()
+                            withAnimation(.spring(duration: 0.3)) {
+                                isProviderTableVisible = false
+                            }
+                        },
+                        disconnect: connectViewModel.disconnect,
+                        connectTunnel: {
+                            deviceManager.vpnManager?.updateVpnService()
+                        },
+                        tunnelConnected: $connectViewModel.tunnelConnected
                     )
+                    .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                     .frame(maxHeight: .infinity)
                     
                     HStack {
@@ -91,10 +101,35 @@ struct ConnectView_macOS: View {
                         },
                         isLoading: connectViewModel.providersLoading
                     )
-                    .transition(.move(edge: .trailing))
+                    .frame(maxWidth: 260)
+                    .frame(maxHeight: .infinity)
+                    .searchable(
+                        text: $connectViewModel.searchQuery,
+                        prompt: "Search providers"
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .automatic) {
+                            Button(action: {
+                                Task {
+                                    let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                                }
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                            }
+                            .disabled(isLoading)
+                        }
+                    }
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)
+                        )
+                    )
+
                 }
                 
             }
+            .animation(.spring(duration: 0.3), value: isProviderTableVisible)
             .frame(maxWidth: .infinity)
         }
         .toolbar {
@@ -145,23 +180,25 @@ struct ProviderTable: View {
     var isLoading: Bool
     
     var body: some View {
-        
-        VStack {
             
-            List {
-                
-                if (isLoading) {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(32)
-                } else {
-                
+        List {
+            
+            if (isLoading) {
+                ProgressView()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(32)
+            } else {
+            
+                if !providerBestSearchMatches.isEmpty {
                     ProviderListGroup(
                         groupName: "Best Search Matches",
                         providers: providerBestSearchMatches,
                         selectedProvider: selectedProvider,
                         connect: connect
                     )
+                }
+
+                if !providerPromoted.isEmpty {
                     ProviderListGroup(
                         groupName: "Promoted Locations",
                         providers: providerPromoted,
@@ -170,50 +207,47 @@ struct ProviderTable: View {
                         connectBestAvailable: connectBestAvailable,
                         isPromotedLocations: true
                     )
+                }
+
+                if !providerCountries.isEmpty {
                     ProviderListGroup(
                         groupName: "Countries",
                         providers: providerCountries,
                         selectedProvider: selectedProvider,
                         connect: connect
                     )
+                }
+                
+                if !providerRegions.isEmpty {
                     ProviderListGroup(
                         groupName: "Regions",
                         providers: providerRegions,
                         selectedProvider: selectedProvider,
                         connect: connect
                     )
+                }
+
+                if !providerCities.isEmpty {
                     ProviderListGroup(
                         groupName: "Cities",
                         providers: providerCities,
                         selectedProvider: selectedProvider,
                         connect: connect
                     )
+                }
+
+                if !providerDevices.isEmpty {
                     ProviderListGroup(
                         groupName: "Devices",
                         providers: providerDevices,
                         selectedProvider: selectedProvider,
                         connect: connect
                     )
-                    
                 }
                 
             }
-            .searchable(
-                text: $searchQuery,
-                prompt: "Search providers"
-            )
-            .frame(maxHeight: .infinity)
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
-                    Button(action: refresh) {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .disabled(isLoading)
-                }
-            }
             
         }
-        .frame(maxWidth: 260)
         
     }
 }

@@ -28,19 +28,19 @@ class VPNManager {
     
 //    var tunnelRequestStatus: TunnelRequestStatus = .none
     
-    var routeLocalSub: SdkSubProtocol?
+    private var routeLocalSub: SdkSubProtocol?
     
-    var deviceProvideSub: SdkSubProtocol?
+    private var deviceProvideSub: SdkSubProtocol?
     
-    var deviceProvidePausedSub: SdkSubProtocol?
+    private var deviceProvidePausedSub: SdkSubProtocol?
     
-    var deviceOflineSub: SdkSubProtocol?
+    private var deviceOfflineSub: SdkSubProtocol?
     
-    var deviceConnectSub: SdkSubProtocol?
+    private var deviceConnectSub: SdkSubProtocol?
     
 //    var deviceRemoteSub: SdkSubProtocol?
     
-    var tunnelSub: SdkSubProtocol?
+    private var tunnelSub: SdkSubProtocol?
     
     var contractStatusSub: SdkSubProtocol?
     
@@ -67,7 +67,7 @@ class VPNManager {
             }
         })
         
-        self.deviceOflineSub = device.add(OfflineChangeListener { [weak self] offline, vpnInterfaceWhileOffline in
+        self.deviceOfflineSub = device.add(OfflineChangeListener { [weak self] offline, vpnInterfaceWhileOffline in
             DispatchQueue.main.async {
                 self?.updateVpnService()
             }
@@ -131,8 +131,8 @@ class VPNManager {
         self.deviceProvidePausedSub?.close()
         self.deviceProvidePausedSub = nil
         
-        self.deviceOflineSub?.close()
-        self.deviceOflineSub = nil
+        self.deviceOfflineSub?.close()
+        self.deviceOfflineSub = nil
         
         self.deviceConnectSub?.close()
         self.deviceConnectSub = nil
@@ -168,7 +168,7 @@ class VPNManager {
     }
     
     
-    private func updateVpnService() {
+    func updateVpnService() {
         let provideEnabled = device.getProvideEnabled()
         let providePaused = device.getProvidePaused()
         let connectEnabled = device.getConnectEnabled()
@@ -444,19 +444,6 @@ private class RemoteChangeListener: NSObject, SdkRemoteChangeListenerProtocol {
     
     func remoteChanged(_ remoteConnected: Bool) {
         c(remoteConnected)
-    }
-}
-
-private class TunnelChangeListener: NSObject, SdkTunnelChangeListenerProtocol {
-    
-    private let c: (_ tunnelStarted: Bool) -> Void
-
-    init(c: @escaping (_ tunnelStarted: Bool) -> Void) {
-        self.c = c
-    }
-    
-    func tunnelChanged(_ tunnelStarted: Bool) {
-        c(tunnelStarted)
     }
 }
 

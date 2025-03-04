@@ -39,6 +39,10 @@ struct CreateNetworkView: View {
             authType = AuthType.apple
         }
         
+        if authLoginArgs.authJwtType == "google" {
+            authType = AuthType.google
+        }
+        
         _viewModel = StateObject.init(wrappedValue: ViewModel(
             api: api,
             authType: authType
@@ -183,7 +187,8 @@ struct CreateNetworkView: View {
                             }
                             
                         },
-                        enabled: viewModel.formIsValid && !viewModel.isCreatingNetwork
+                        enabled: viewModel.formIsValid && !viewModel.isCreatingNetwork,
+                        isProcessing: viewModel.isCreatingNetwork
                     )
                     
                 }
@@ -213,16 +218,6 @@ struct CreateNetworkView: View {
             break
             
         }
-    }
-    
-    private func getAuthTypeFromArgs(_ args: SdkAuthLoginArgs) -> AuthType {
-        
-        if args.authJwtType == "apple" {
-            return AuthType.apple
-        } else {
-            return AuthType.password
-        }
-        
     }
     
 }

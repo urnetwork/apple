@@ -121,12 +121,14 @@ class ConnectViewModel: ObservableObject {
      */
     @Published var isPresentedCreateAccount: Bool = false
     
+    /**
+     * Tunnel connected
+     */
+    @Published var tunnelConnected: Bool = false
     
     var api: SdkApi?
     var device: SdkDeviceRemote?
     var connectViewController: SdkConnectViewController?
-    
-    init() {}
     
     func setup(api: SdkApi?, device: SdkDeviceRemote, connectViewController: SdkConnectViewController?) {
         self.api = api
@@ -138,7 +140,18 @@ class ConnectViewModel: ObservableObject {
         
         self.updateConnectionStatus()
         
+        self.device = device
         self.selectedProvider = device.getConnectLocation()
+        
+        self.device?.add(TunnelChangeListener { [weak self] tunnelStarted in
+            guard let self = self else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.tunnelConnected = tunnelStarted
+            }
+        })
         
         
         $searchQuery

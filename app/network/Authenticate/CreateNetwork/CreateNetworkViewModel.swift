@@ -24,6 +24,7 @@ private class UpgradeGuestCallback: SdkCallback<SdkUpgradeGuestResult, SdkUpgrad
 enum AuthType {
     case password
     case apple
+    case google
 }
 
 extension CreateNetworkView {
@@ -94,7 +95,7 @@ extension CreateNetworkView {
                                 // if auth type is password, check password length
                                 (authType == .password && password.count >= ViewModel.minPasswordLength)
                                 // otherwise, no need to check password length
-                                || authType == .apple
+                                || (authType == .apple || authType == .google)
                             ) &&
                             termsAgreed
         }
@@ -126,7 +127,6 @@ extension CreateNetworkView {
                         
                         if let error = error {
                             print("error checking network name: \(error.localizedDescription)")
-                            
                             
                             self.setNetworkNameSupportingText(ViewModel.networkNameCheckError)
                             self.networkNameValidationState = .invalid
@@ -337,9 +337,9 @@ extension CreateNetworkView {
                     
                 }
                 
-                DispatchQueue.main.async {
-                    self.isCreatingNetwork = false
-                }
+//                DispatchQueue.main.async {
+//                    self.isCreatingNetwork = false
+//                }
                 
                 return result
                 

@@ -20,7 +20,8 @@ struct AccountRootView: View {
     var api: SdkApi
     
     @StateObject private var viewModel: ViewModel = ViewModel()
-    @StateObject private var subscriptionManager = SubscriptionManager()
+    // @StateObject private var subscriptionManager = SubscriptionManager()
+    @StateObject private var subscriptionManager: SubscriptionManager
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
@@ -30,12 +31,14 @@ struct AccountRootView: View {
         logout: @escaping () -> Void,
         api: SdkApi,
         referralLinkViewModel: ReferralLinkViewModel,
-        accountPaymentsViewModel: AccountPaymentsViewModel
+        accountPaymentsViewModel: AccountPaymentsViewModel,
+        networkId: SdkId?
     ) {
         self.navigate = navigate
         self.logout = logout
         self.api = api
-        // self.totalPayments = totalPayments
+        
+        _subscriptionManager = StateObject(wrappedValue: SubscriptionManager(networkId: networkId))
         self.referralLinkViewModel = referralLinkViewModel
         self.accountPaymentsViewModel = accountPaymentsViewModel
     }
@@ -87,12 +90,12 @@ struct AccountRootView: View {
                     Spacer()
   
                     // TODO: add back in when upgrade subscription work complete
-//                    Button(action: {
-//                        viewModel.isPresentedUpgradeSheet = true
-//                    }) {
-//                        Text("Create account")
-//                            .font(themeManager.currentTheme.secondaryBodyFont)
-//                    }
+                    Button(action: {
+                        viewModel.isPresentedUpgradeSheet = true
+                    }) {
+                        Text("Create account")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                    }
                     
                 }
                 
@@ -258,13 +261,24 @@ struct AccountRootView: View {
             UpgradeSubscriptionSheet(
                 subscriptionProduct: subscriptionManager.products.first,
                 purchase: { product in
-                    subscriptionManager.purchase(
-                        product: product,
-                        onSuccess: {
-                            print("on success called")
-                            viewModel.isPresentedUpgradeSheet = false
+                    
+                    Task {
+                        do {
+                            try await subscriptionManager.purchase(
+                                product: product,
+                                onSuccess: {
+                                    print("on success called")
+                                    viewModel.isPresentedUpgradeSheet = false
+                                }
+                            )
+    
+                        } catch(let error) {
+                            print("error making purchase: \(error)")
                         }
-                    )
+                        
+
+                    }
+
                 }
             )
         }

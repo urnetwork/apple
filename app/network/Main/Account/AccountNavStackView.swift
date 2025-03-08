@@ -11,6 +11,7 @@ import URnetworkSdk
 struct AccountNavStackView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var deviceManager: DeviceManager
     @StateObject private var viewModel: ViewModel = ViewModel()
     
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
@@ -57,6 +58,9 @@ struct AccountNavStackView: View {
     }
     
     var body: some View {
+        
+        let networkId = deviceManager.parsedJwt?.networkId
+        
         NavigationStack(
             path: $viewModel.navigationPath
         ) {
@@ -65,7 +69,8 @@ struct AccountNavStackView: View {
                 logout: logout,
                 api: api,
                 referralLinkViewModel: referralLinkViewModel,
-                accountPaymentsViewModel: accountPaymentsViewModel
+                accountPaymentsViewModel: accountPaymentsViewModel,
+                networkId: networkId
             )
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationDestination(for: AccountNavigationPath.self) { path in

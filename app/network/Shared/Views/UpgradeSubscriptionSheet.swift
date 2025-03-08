@@ -12,8 +12,8 @@ struct UpgradeSubscriptionSheet: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    var subscriptionProduct: SKProduct?
-    var purchase: (SKProduct) -> Void
+    var subscriptionProduct: Product?
+    var purchase: (Product) -> Void
     
     var body: some View {
         
@@ -29,14 +29,14 @@ struct UpgradeSubscriptionSheet: View {
                     
                     Spacer()
                     
-                    Text("$\(product.price)/month")
+                    Text("\(product.displayPrice)/month")
                         .font(themeManager.currentTheme.titleCondensedFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                     
                 }
                 
                 HStack {
-                    Text(product.localizedTitle)
+                    Text(product.displayName)
                         .font(themeManager.currentTheme.titleFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                     
@@ -73,25 +73,25 @@ struct UpgradeSubscriptionSheet: View {
     }
 }
 
-#Preview {
-    
-    let themeManager = ThemeManager.shared
-    
-    let mockProduct = MockSKProduct(
-        localizedTitle: "URnetwork Supporter",
-        localizedDescription: "Support us in building a new kind of network that gives instead of takes.",
-        price: 5.00,
-        priceLocale: Locale(identifier: "en_US")
-    )
-    
-    VStack {
-        UpgradeSubscriptionSheet(
-            subscriptionProduct: mockProduct,
-            purchase: {_ in}
-        )
-    }
-    .environmentObject(themeManager)
-    .background(themeManager.currentTheme.backgroundColor)
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    
-}
+//#Preview {
+//    
+//    let themeManager = ThemeManager.shared
+//    
+//    let mockProduct = MockSKProduct(
+//        localizedTitle: "URnetwork Supporter",
+//        localizedDescription: "Support us in building a new kind of network that gives instead of takes.",
+//        price: 5.00,
+//        priceLocale: Locale(identifier: "en_US")
+//    )
+//    
+//    VStack {
+//        UpgradeSubscriptionSheet(
+//            subscriptionProduct: mockProduct,
+//            purchase: {_ in}
+//        )
+//    }
+//    .environmentObject(themeManager)
+//    .background(themeManager.currentTheme.backgroundColor)
+//    .frame(maxWidth: .infinity, maxHeight: .infinity)
+//    
+//}

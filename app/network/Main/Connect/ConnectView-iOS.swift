@@ -24,6 +24,8 @@ struct ConnectView_iOS: View {
     var api: SdkApi
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
     
+    @StateObject var egressContractStatsViewModel: EgressContractStatsViewModel
+    
     init(
         api: SdkApi,
         logout: @escaping () -> Void,
@@ -35,6 +37,8 @@ struct ConnectView_iOS: View {
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
+        
+        _egressContractStatsViewModel = StateObject(wrappedValue: EgressContractStatsViewModel(device: device))
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing

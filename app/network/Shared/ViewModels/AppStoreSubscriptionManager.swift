@@ -9,8 +9,11 @@ import Foundation
 import StoreKit
 import URnetworkSdk
 
+/**
+ * For creating a subscription with the App Store
+ */
 @MainActor
-class SubscriptionManager: ObservableObject {
+class AppStoreSubscriptionManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var isPurchasing: Bool = false
     

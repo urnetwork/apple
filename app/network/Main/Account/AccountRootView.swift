@@ -14,6 +14,7 @@ struct AccountRootView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     
     var navigate: (AccountNavigationPath) -> Void
     var logout: () -> Void
@@ -21,7 +22,7 @@ struct AccountRootView: View {
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     // @StateObject private var subscriptionManager = SubscriptionManager()
-    @StateObject private var subscriptionManager: SubscriptionManager
+    @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
@@ -38,7 +39,7 @@ struct AccountRootView: View {
         self.logout = logout
         self.api = api
         
-        _subscriptionManager = StateObject(wrappedValue: SubscriptionManager(networkId: networkId))
+        _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
         self.referralLinkViewModel = referralLinkViewModel
         self.accountPaymentsViewModel = accountPaymentsViewModel
     }
@@ -83,18 +84,33 @@ struct AccountRootView: View {
                 
                 HStack(alignment: .firstTextBaseline) {
                     
-                    Text(isGuest ? "Guest" : "Free")
-                        .font(themeManager.currentTheme.titleCondensedFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                    if (isGuest) {
+                        Text("Guest")
+                            .font(themeManager.currentTheme.titleCondensedFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                    } else {
+                     
+                        Text(subscriptionBalanceViewModel.currentPlan == .none ? "Free" : "Supporter")
+                            .font(themeManager.currentTheme.titleCondensedFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        
+                    }
                     
                     Spacer()
   
-                    // TODO: add back in when upgrade subscription work complete
-                    Button(action: {
-                        viewModel.isPresentedUpgradeSheet = true
-                    }) {
-                        Text("Create account")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
+                    /**
+                     * Upgrade subscription button
+                     * if user is
+                     */
+                    if (subscriptionBalanceViewModel.currentPlan != .supporter && !isGuest) {
+                     
+                        Button(action: {
+                            viewModel.isPresentedUpgradeSheet = true
+                        }) {
+                            Text("Upgrade")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                        }
+                        
                     }
                     
                 }
@@ -257,6 +273,11 @@ struct AccountRootView: View {
 //        .onChange(of: deviceManager.device) {
 //            viewModel.isPresentedCreateAccount = false
 //        }
+        .onAppear {
+            Task {
+                await subscriptionBalanceViewModel.fetchSubscriptionBalance()
+            }
+        }
         .sheet(isPresented: $viewModel.isPresentedUpgradeSheet) {
             UpgradeSubscriptionSheet(
                 subscriptionProduct: subscriptionManager.products.first,
@@ -269,6 +290,7 @@ struct AccountRootView: View {
                                 onSuccess: {
                                     print("on success called")
                                     viewModel.isPresentedUpgradeSheet = false
+                                    subscriptionBalanceViewModel.setCurrentPlan(.supporter)
                                 }
                             )
     
@@ -279,7 +301,8 @@ struct AccountRootView: View {
 
                     }
 
-                }
+                },
+                isPurchasing: subscriptionManager.isPurchasing
             )
         }
         #if os(iOS)

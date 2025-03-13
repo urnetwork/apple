@@ -13,8 +13,9 @@ struct MainView: View {
     var api: SdkApi
     var device: SdkDeviceRemote
     var logout: () -> Void
-    var connectViewController: SdkConnectViewController?
+    // var connectViewController: SdkConnectViewController?
     var welcomeAnimationComplete: Binding<Bool>
+    @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -28,8 +29,9 @@ struct MainView: View {
         self.api = api
         self.logout = logout
         self.device = device
-        self.connectViewController = device.openConnectViewController()
+//        self.connectViewController = device.openConnectViewController()
         self.welcomeAnimationComplete = welcomeAnimationComplete
+        _subscriptionBalanceViewModel = StateObject(wrappedValue: SubscriptionBalanceViewModel(api: api))
     }
     
     var body: some View {
@@ -60,6 +62,7 @@ struct MainView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.currentTheme.backgroundColor)
+        .environmentObject(subscriptionBalanceViewModel)
     }
 }
 

@@ -94,7 +94,8 @@ struct AccountNavStackView: View {
                     SettingsView(
                         api: api,
                         clientId: device.getClientId(),
-                        accountPreferencesViewModel: accountPreferencesViewModel
+                        accountPreferencesViewModel: accountPreferencesViewModel,
+                        referralLinkViewModel: referralLinkViewModel
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .toolbar {

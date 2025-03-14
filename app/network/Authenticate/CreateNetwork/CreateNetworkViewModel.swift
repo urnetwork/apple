@@ -21,6 +21,12 @@ private class UpgradeGuestCallback: SdkCallback<SdkUpgradeGuestResult, SdkUpgrad
     }
 }
 
+private class ValidateReferralCallback: SdkCallback<SdkValidateReferralCodeResult, SdkValidateReferralCodeCallbackProtocol>, SdkValidateReferralCodeCallbackProtocol {
+    func result(_ result: SdkValidateReferralCodeResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 enum AuthType {
     case password
     case apple
@@ -81,6 +87,19 @@ extension CreateNetworkView {
         
         @Published private(set) var isCreatingNetwork: Bool = false
         
+        @Published var isPresentedAddBonusSheet: Bool = false
+        
+        @Published private(set) var isValidReferralCode: Bool = false
+        
+        @Published var bonusReferralCode: String = "" {
+            didSet {
+                self.isValidReferralCode = false
+            }
+        }
+        
+        @Published private(set) var isValidatingReferralCode: Bool = false
+        @Published private(set) var referralValidationComplete: Bool = false
+        
         private func setNetworkNameSupportingText(_ text: LocalizedStringKey) {
             networkNameSupportingText = text
         }
@@ -98,6 +117,74 @@ extension CreateNetworkView {
                                 || (authType == .apple || authType == .google)
                             ) &&
                             termsAgreed
+        }
+        
+        func validateReferralCode() async -> Result<Bool, Error> {
+            
+            if isValidatingReferralCode {
+                return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "already validating"]))
+            }
+            
+            isValidatingReferralCode = true
+            referralValidationComplete = false
+            
+            do {
+                
+                let result: SdkValidateReferralCodeResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                    
+                    guard let self = self else { return }
+                    
+                    let callback = ValidateReferralCallback { result, err in
+                        
+                        if let err = err {
+                            continuation.resume(throwing: err)
+                            return
+                        }
+                        
+                        guard let result = result else {
+                            continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "No validate referral code result is nil"]))
+                            return
+                        }
+                        
+                        continuation.resume(returning: result)
+                        
+                    }
+                    
+                    let args = SdkValidateReferralCodeArgs()
+                    
+                    var err: NSError?
+                    
+                    args.referralCode = SdkParseId(self.bonusReferralCode, &err)
+                    
+                    if err != nil {
+                        continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Error parsing ID referral code"]))
+                        return
+                    }
+                    
+                    api.validateReferralCode(args, callback: callback)
+                    
+                }
+                
+                DispatchQueue.main.async {
+                    
+                    self.isValidReferralCode = result.isValid
+                    self.isValidatingReferralCode = false
+                    self.referralValidationComplete = true
+                }
+                
+                return .success(result.isValid)
+                
+            } catch(let error) {
+                DispatchQueue.main.async {
+                    self.isValidatingReferralCode = false
+                    self.isValidReferralCode = false
+                    self.referralValidationComplete = true
+                }
+                
+                return .failure(error)
+                
+            }
+            
         }
         
         private func checkNetworkName() {
@@ -331,6 +418,18 @@ extension CreateNetworkView {
                     if let authJwt, let authType {
                         args.authJwt = authJwt
                         args.authJwtType = authType
+                    }
+                    
+                    if self.isValidReferralCode {
+                        
+                        var err: NSError?
+                        
+                        let referralCodeId = SdkParseId(self.bonusReferralCode, &err)
+                        
+                        if err == nil {
+                            args.referralCode = referralCodeId
+                        }
+                        
                     }
                     
                     api.networkCreate(args, callback: callback)

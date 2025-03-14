@@ -20,15 +20,18 @@ struct SettingsView: View {
     
     var clientId: SdkId?
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
+    @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     init(
         api: SdkApi,
         clientId: SdkId?,
-        accountPreferencesViewModel: AccountPreferencesViewModel
+        accountPreferencesViewModel: AccountPreferencesViewModel,
+        referralLinkViewModel: ReferralLinkViewModel
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
         self.clientId = clientId
         self.accountPreferencesViewModel = accountPreferencesViewModel
+        self.referralLinkViewModel = referralLinkViewModel
     }
     
     var clientUrl: String {
@@ -149,6 +152,45 @@ struct SettingsView: View {
                     .cornerRadius(8)
 
                     Spacer().frame(height: 32)
+                    
+                    /**
+                     * Copy Referral Link
+                     */
+                    HStack {
+                        UrLabel(text: "Bonus referral code")
+                        
+                        Spacer()
+                    }
+                    
+                    Button(action: {
+                        if let referralCode = referralLinkViewModel.referralCode {
+                            
+                            copyToPasteboard(referralCode)
+                            
+                            snackbarManager.showSnackbar(message: "Bonus referral code copied to clipboard")
+                            
+                        }
+                    }) {
+                        HStack {
+                            Text(referralLinkViewModel.referralCode ?? "")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            Spacer()
+                            Image(systemName: "document.on.document")
+                        }
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .cornerRadius(8)
+
+                    Spacer().frame(height: 32)
+                    
                     
                     #if os(macOS)
                     

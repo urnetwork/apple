@@ -158,7 +158,27 @@ struct CreateNetworkView: View {
                             .font(themeManager.currentTheme.secondaryBodyFont)
                     }
                     
-                    Spacer().frame(height: 48)
+                    Spacer().frame(height: 24)
+                    
+                    HStack {
+                     
+                        if viewModel.isValidReferralCode {
+                            
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.urGreen)
+                            
+                            Text("Referral Bonus applied")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            
+                            Spacer()
+                        } else {
+                            Text("")
+                        }
+                        
+                    }
+                    
+                    Spacer().frame(height: 24)
                     
                     UrButton(
                         text: "Continue",
@@ -191,13 +211,94 @@ struct CreateNetworkView: View {
                         isProcessing: viewModel.isCreatingNetwork
                     )
                     
+                    Spacer().frame(height: 32)
+                    
+                    Button(action: {
+                        // viewModel.setPresentAddBonusSheet(true)
+                        viewModel.isPresentedAddBonusSheet = true
+                    }) {
+                        
+                        HStack {
+                         
+                            Text((!viewModel.bonusReferralCode.isEmpty) ? "Edit referral code" : "Add referral code")
+                                .foregroundColor(themeManager.currentTheme.textFaintColor)
+                                .font(
+                                    themeManager.currentTheme.toolbarTitleFont.bold()
+                                )
+                            
+                        }
+                            
+                    }
+                    
                 }
                 .padding()
+                .sheet(isPresented: $viewModel.isPresentedAddBonusSheet) {
+                
+                    VStack {
+                        
+                        HStack {
+                            Text("Add referral code to earn extra rewards")
+                                .font(themeManager.currentTheme.toolbarTitleFont)
+                            
+                            Spacer()
+                        }
+                        
+                        Spacer().frame(height: 32)
+                        
+                        UrTextField(
+                            text: $viewModel.bonusReferralCode,
+                            label: "Bonus referral code",
+                            placeholder: "Enter a bonus referral code",
+                            supportingText: (!viewModel.isValidatingReferralCode && !viewModel.isValidReferralCode && !viewModel.bonusReferralCode.isEmpty && viewModel.referralValidationComplete) ? "This code is not valid" : "",
+                            isEnabled: !viewModel.isValidatingReferralCode,
+                            submitLabel: .done,
+                            onSubmit: {
+                                Task {
+                                    let result = await viewModel.validateReferralCode()
+                                    self.handleValidateReferralResult(result)
+                                }
+                            }
+                        )
+                        
+                        Spacer().frame(height: 32)
+                        
+                        UrButton(
+                            text: "Apply bonus",
+                        
+                            action: {
+                                Task {
+                                    let result = await viewModel.validateReferralCode()
+                                    self.handleValidateReferralResult(result)
+                                }
+                            },
+                            enabled: !viewModel.isValidatingReferralCode && !viewModel.bonusReferralCode.isEmpty,
+                            isProcessing: viewModel.isValidatingReferralCode
+                        )
+                        
+                    }
+                    .padding()
+                    .presentationDetents([.height(264)])
+                    
+                }
                 .frame(minHeight: geometry.size.height)
                 .frame(maxWidth: 400)
                 .frame(maxWidth: .infinity)
             }
         }
+    }
+    
+    private func handleValidateReferralResult(_ result: Result<Bool, Error>) {
+        
+        switch result {
+            case .success(let isValid):
+            if (isValid) {
+                viewModel.isPresentedAddBonusSheet = false
+            }
+            case .failure(let error):
+                print("validate referral code error: \(error.localizedDescription)")
+            
+        }
+        
     }
     
     private func handleResult(_ result: LoginNetworkResult) async {

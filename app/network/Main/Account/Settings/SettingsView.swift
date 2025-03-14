@@ -352,9 +352,6 @@ struct SettingsView: View {
     }
 }
 
-
-// 01939fcd-cb11-6599-2545-22c6f4853644
-
 //#Preview {
 //    
 //    let themeManager = ThemeManager.shared

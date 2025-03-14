@@ -352,16 +352,16 @@ struct SettingsView: View {
     }
 }
 
-#Preview {
-    
-    let themeManager = ThemeManager.shared
-    let accountPreferenceViewModel = AccountPreferencesViewModel(api: SdkApi())
-    
-    SettingsView(
-        api: SdkApi(),
-        clientId: nil,
-        accountPreferencesViewModel: accountPreferenceViewModel
-    )
-    .environmentObject(themeManager)
-    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-}
+//#Preview {
+//    
+//    let themeManager = ThemeManager.shared
+//    let accountPreferenceViewModel = AccountPreferencesViewModel(api: SdkApi())
+//    
+//    SettingsView(
+//        api: SdkApi(),
+//        clientId: nil,
+//        accountPreferencesViewModel: accountPreferenceViewModel
+//    )
+//    .environmentObject(themeManager)
+//    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+//}

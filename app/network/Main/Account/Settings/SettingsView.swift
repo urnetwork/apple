@@ -352,16 +352,19 @@ struct SettingsView: View {
     }
 }
 
-#Preview {
-    
-    let themeManager = ThemeManager.shared
-    let accountPreferenceViewModel = AccountPreferencesViewModel(api: SdkApi())
-    
-    SettingsView(
-        api: SdkApi(),
-        clientId: nil,
-        accountPreferencesViewModel: accountPreferenceViewModel
-    )
-    .environmentObject(themeManager)
-    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-}
+
+// 01939fcd-cb11-6599-2545-22c6f4853644
+
+//#Preview {
+//    
+//    let themeManager = ThemeManager.shared
+//    let accountPreferenceViewModel = AccountPreferencesViewModel(api: SdkApi())
+//    
+//    SettingsView(
+//        api: SdkApi(),
+//        clientId: nil,
+//        accountPreferencesViewModel: accountPreferenceViewModel
+//    )
+//    .environmentObject(themeManager)
+//    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+//}

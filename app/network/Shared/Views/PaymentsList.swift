@@ -13,6 +13,12 @@ struct PaymentsList: View {
     @EnvironmentObject var themeManager: ThemeManager
     var payments: [SdkAccountPayment]
     
+    private var currentDateFormatted: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: Date())
+    }
+    
     var body: some View {
         
         VStack {
@@ -32,20 +38,33 @@ struct PaymentsList: View {
                     
                     HStack {
                         
-                        Image("ur.symbols.check.circle")
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                            .frame(width: 48, height: 48)
-                            .background(themeManager.currentTheme.tintedBackgroundBase)
-                            .clipShape(Circle())
+                        if payment.completed {
+                            Image("ur.symbols.check.circle")
+                                .frame(width: 48, height: 48)
+                                .background(themeManager.currentTheme.tintedBackgroundBase)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "timer")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .frame(width: 48, height: 48)
+                                .background(themeManager.currentTheme.tintedBackgroundBase)
+                                .clipShape(Circle())
+                        }
                         
                         Spacer().frame(width: 16)
                         
                         VStack {
                             
                             HStack {
-                                Text("+\(String(format: "%.2f", payment.tokenAmount)) USDC")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                if payment.completed {
+                                    Text("+\(String(format: "%.2f", payment.tokenAmount)) USDC")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textColor)
+                                } else {
+                                    Text("Pending: \(String(format: "%.2f", Double(payment.payoutByteCount) / 1_048_576)) MB provided")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                }
                                 
                                 Spacer()
                             }
@@ -57,7 +76,8 @@ struct PaymentsList: View {
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                                 } else {
-                                    Text("Pending")
+                                    // Text("Pending")
+                                    Text(currentDateFormatted)
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                                 }

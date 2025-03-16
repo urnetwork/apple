@@ -116,8 +116,8 @@ class VPNManager {
 //        self.close()
 //    }
     
-    func close() async {
-        await self.stopVpnTunnel()
+    func close() {
+        self.stopVpnTunnel()
         
         // UIApplication.shared.isIdleTimerDisabled = false
         self.setIdleTimerDisabled(false)
@@ -195,9 +195,7 @@ class VPNManager {
 
             self.setIdleTimerDisabled(false)
             
-            Task {
-                await self.stopVpnTunnel()
-            }
+            self.stopVpnTunnel()
             
         }
     }
@@ -294,46 +292,46 @@ class VPNManager {
 //                    return
 //                }
                 
-                // see https://forums.developer.apple.com/forums/thread/25928
-                tunnelManager.loadFromPreferences { error in
-                    if let _ = error {
+                do {
+                    try tunnelManager.connection.startVPNTunnel()
+                    print("[VPNManager]connection started")
+                    self.device.sync()
+                } catch let error as NSError {
 //                        self.tunnelRequestStatus = .none
-                        return
-                    }
-//                    if self.tunnelRequestStatus != .started {
+                    print("[VPNManager]Error starting VPN connection:")
+                    print("[VPNManager]Domain: \(error.domain)")
+                    print("[VPNManager]Code: \(error.code)")
+                    print("[VPNManager]Description: \(error.localizedDescription)")
+                    print("[VPNManager]User Info: \(error.userInfo)")
+                    
+                }
+                
+                
+                // see https://forums.developer.apple.com/forums/thread/25928
+//                tunnelManager.loadFromPreferences { error in
+//                    if let _ = error {
+////                        self.tunnelRequestStatus = .none
 //                        return
 //                    }
-                    
-
-                    do {
-                        try tunnelManager.connection.startVPNTunnel()
-                        print("[VPNManager]connection started")
-                        self.device.sync()
-                    } catch let error as NSError {
-//                        self.tunnelRequestStatus = .none
-                        print("[VPNManager]Error starting VPN connection:")
-                        print("[VPNManager]Domain: \(error.domain)")
-                        print("[VPNManager]Code: \(error.code)")
-                        print("[VPNManager]Description: \(error.localizedDescription)")
-                        print("[VPNManager]User Info: \(error.userInfo)")
-                        
-                    }
-                }
+////                    if self.tunnelRequestStatus != .started {
+////                        return
+////                    }
+//                    
+//
+//                   
+//                }
             }
         }
     }
     
-    private func stopVpnTunnel() async {
-        return await withCheckedContinuation { continuation in
-            NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+    private func stopVpnTunnel() {
+        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
                 if let error = error {
                     print("[VPNManager]error loading managers: \(error.localizedDescription)")
-                    continuation.resume()
                     return
                 }
                 
                 guard let tunnelManager = managers?.first else {
-                    continuation.resume()
                     return
                 }
                 
@@ -343,27 +341,20 @@ class VPNManager {
                 tunnelManager.saveToPreferences { error in
                     if let error = error {
                         print("[VPNManager]error saving preferences: \(error.localizedDescription)")
-                        continuation.resume()
                         return
                     }
                     
-                    tunnelManager.loadFromPreferences { error in
-                        if let error = error {
-                            print("[VPNManager]error loading preferences: \(error.localizedDescription)")
-                            continuation.resume()
-                            return
-                        }
-                        
-                        tunnelManager.connection.stopVPNTunnel()
-                        
-                        // Give a short delay to ensure the tunnel is fully stopped
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            continuation.resume()
-                        }
-                    }
+                    
+                    tunnelManager.connection.stopVPNTunnel()
+                    
+                    
+                    // Give a short delay to ensure the tunnel is fully stopped
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+//                        continuation.resume()
+//                    }
+                    
                 }
             }
-        }
     }
     
 }

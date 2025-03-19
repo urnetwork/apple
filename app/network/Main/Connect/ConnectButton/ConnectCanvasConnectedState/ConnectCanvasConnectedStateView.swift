@@ -13,15 +13,16 @@ struct ConnectCanvasConnectedStateView: View {
     
     var canvasWidth: CGFloat
     var isActive: Bool
-    var displayReconnectTunnel: Bool
+    // var displayReconnectTunnel: Bool
     
     @State private var animateCircles = false
     @State private var colors: [Color] = [.urCoral, .urGreen, .urLightBlue, .urLightYellow, .accent]
     @State private var circleOffsets: [(initial: CGSize, final: CGSize)]
     
-    @State private var warningOpacity: CGFloat = 0
-    
-    init(canvasWidth: CGFloat, isActive: Bool, displayReconnectTunnel: Bool) {
+    init(
+        canvasWidth: CGFloat,
+        isActive: Bool
+    ) {
         self.canvasWidth = canvasWidth
         
         
@@ -50,7 +51,7 @@ struct ConnectCanvasConnectedStateView: View {
         
         self.isActive = isActive
         
-        self.displayReconnectTunnel = displayReconnectTunnel
+        // self.displayReconnectTunnel = displayReconnectTunnel
     }
     
     var body: some View {
@@ -66,28 +67,6 @@ struct ConnectCanvasConnectedStateView: View {
                     )
             }
             
-            
-            if displayReconnectTunnel {
-                VStack {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 32))
-                        .foregroundColor(themeManager.currentTheme.textFaintColor)
-                        .opacity(warningOpacity)
-                }
-                .padding(.horizontal, 4)
-                .onAppear {
-                    // Delay the animation by 500ms
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            warningOpacity = 1
-                        }
-                    }
-                }
-                .onDisappear {
-                    warningOpacity = 0
-                }
-            }
-            
         }
         .frame(width: canvasWidth, height: canvasWidth)
         .clipped()
@@ -101,13 +80,6 @@ struct ConnectCanvasConnectedStateView: View {
             withAnimation(.easeInOut(duration: 1)) {
                 self.animateCircles = newValue
             }
-        }
-        .onChange(of: displayReconnectTunnel) { newValue in
-            
-            withAnimation(.easeInOut(duration: 1)) {
-                self.animateCircles = !newValue
-            }
-            
         }
         .onAppear {
             
@@ -132,8 +104,7 @@ struct ConnectCanvasConnectedStateView: View {
         
         ConnectCanvasConnectedStateView(
             canvasWidth: 256,
-            isActive: true,
-            displayReconnectTunnel: false
+            isActive: true
         )
         
         Image("GlobeMask")

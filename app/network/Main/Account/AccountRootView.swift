@@ -15,6 +15,7 @@ struct AccountRootView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+    @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     
     var navigate: (AccountNavigationPath) -> Void
     var logout: () -> Void
@@ -22,7 +23,7 @@ struct AccountRootView: View {
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     // @StateObject private var subscriptionManager = SubscriptionManager()
-    @StateObject private var subscriptionManager: AppStoreSubscriptionManager
+    // @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
@@ -32,14 +33,12 @@ struct AccountRootView: View {
         logout: @escaping () -> Void,
         api: SdkApi,
         referralLinkViewModel: ReferralLinkViewModel,
-        accountPaymentsViewModel: AccountPaymentsViewModel,
-        networkId: SdkId?
+        accountPaymentsViewModel: AccountPaymentsViewModel
     ) {
         self.navigate = navigate
         self.logout = logout
         self.api = api
         
-        _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
         self.referralLinkViewModel = referralLinkViewModel
         self.accountPaymentsViewModel = accountPaymentsViewModel
     }

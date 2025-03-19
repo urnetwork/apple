@@ -42,6 +42,9 @@ struct ContentView: View {
 
                 case .main:
                     if let device = deviceManager.device, let _ = deviceManager.vpnManager {
+                        
+                        let networkId = deviceManager.parsedJwt?.networkId
+                        
                         MainView(
                             api: api,
                             device: device,
@@ -58,7 +61,8 @@ struct ContentView: View {
                                 }
                                 
                             },
-                            welcomeAnimationComplete: $welcomeAnimationComplete
+                            welcomeAnimationComplete: $welcomeAnimationComplete,
+                            networkId: networkId
                         )
                         .opacity(opacity)
 

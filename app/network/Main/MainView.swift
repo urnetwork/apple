@@ -16,6 +16,7 @@ struct MainView: View {
     // var connectViewController: SdkConnectViewController?
     var welcomeAnimationComplete: Binding<Bool>
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+    @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -24,7 +25,8 @@ struct MainView: View {
         api: SdkApi,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void,
-        welcomeAnimationComplete: Binding<Bool>
+        welcomeAnimationComplete: Binding<Bool>,
+        networkId: SdkId?
     ) {
         self.api = api
         self.logout = logout
@@ -32,6 +34,7 @@ struct MainView: View {
 //        self.connectViewController = device.openConnectViewController()
         self.welcomeAnimationComplete = welcomeAnimationComplete
         _subscriptionBalanceViewModel = StateObject(wrappedValue: SubscriptionBalanceViewModel(api: api))
+        _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
     }
     
     var body: some View {
@@ -63,6 +66,7 @@ struct MainView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(subscriptionBalanceViewModel)
+        .environmentObject(subscriptionManager)
     }
 }
 

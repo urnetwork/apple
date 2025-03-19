@@ -59,8 +59,6 @@ struct AccountNavStackView: View {
     
     var body: some View {
         
-        let networkId = deviceManager.parsedJwt?.networkId
-        
         NavigationStack(
             path: $viewModel.navigationPath
         ) {
@@ -69,8 +67,7 @@ struct AccountNavStackView: View {
                 logout: logout,
                 api: api,
                 referralLinkViewModel: referralLinkViewModel,
-                accountPaymentsViewModel: accountPaymentsViewModel,
-                networkId: networkId
+                accountPaymentsViewModel: accountPaymentsViewModel
             )
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationDestination(for: AccountNavigationPath.self) { path in

@@ -126,6 +126,13 @@ class ConnectViewModel: ObservableObject {
      */
     @Published var tunnelConnected: Bool = false
     
+    /**
+     * Contract status
+     */
+    @Published private(set) var contractStatus: SdkContractStatus? = nil
+    
+    @Published var isPresentedUpgradeSheet: Bool = false
+    
     var api: SdkApi?
     var device: SdkDeviceRemote?
     var connectViewController: SdkConnectViewController?
@@ -143,6 +150,9 @@ class ConnectViewModel: ObservableObject {
         self.device = device
         self.selectedProvider = device.getConnectLocation()
         
+        /**
+         * Add tunnel listener
+         */
         self.device?.add(TunnelChangeListener { [weak self] tunnelStarted in
             guard let self = self else {
                 return
@@ -151,6 +161,18 @@ class ConnectViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.tunnelConnected = tunnelStarted
             }
+        })
+        
+        /**
+         * Add contract status listener for insufficient balance updates
+         */
+        device.add(ContractStatusChangeListener { [weak self] _ in
+            
+            guard let self = self else {
+                return
+            }
+            
+            self.updateContractStatus()
         })
         
         
@@ -211,6 +233,31 @@ class ConnectViewModel: ObservableObject {
         ))
     }
     
+}
+
+// MARK: Contract status
+extension ConnectViewModel {
+    func updateContractStatus() {
+        
+        guard let device = self.device else {
+            return
+        }
+        
+        if let contractStatus = device.getContractStatus() {
+            print("[DeviceManager][contract]insufficent=\(contractStatus.insufficientBalance) nopermission=\(contractStatus.noPermission) premium=\(contractStatus.premium)")
+        } else {
+            print("[DeviceManager][contract]no contract status")
+        }
+        
+        DispatchQueue.main.async {
+            self.contractStatus = device.getContractStatus()
+            
+            if (self.contractStatus?.insufficientBalance == true && self.connectionStatus != .disconnected) {
+                self.disconnect()
+            }
+            
+        }
+    }
 }
     
 

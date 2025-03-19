@@ -19,9 +19,18 @@ class SubscriptionBalanceViewModel: ObservableObject {
     let domain = "[SubscriptionBalanceViewModel]"
     
     @Published private(set) var isLoading: Bool = false
+
+    /**
+     * polling
+     */
+    @Published private(set) var isPolling: Bool = false
+    private var pollingTimer: Timer?
+    private var pollingInterval: TimeInterval = 5.0 // Default 5 seconds
     
-    // @Published private(set) var currentSubscription: SdkSubscription?
+    private var activeBalanceByteCount: Int64 = 0
+    
     @Published private(set) var currentPlan: Plan = .none
+    
     
     init(api: SdkApi? = nil) {
         self.api = api
@@ -70,6 +79,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 
+                self.activeBalanceByteCount = result.balanceByteCount
+                
                 if let currentSubscription = result.currentSubscription {
                  
                     if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
@@ -92,6 +103,52 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.isLoading = false
         }
         
+    }
+    
+    func startPolling(interval: TimeInterval = 5.0) {
+        
+        guard !isPolling else { return }
+        
+        self.pollingInterval = interval
+        self.isPolling = true
+        
+        // Perform initial fetch
+        Task {
+            await fetchSubscriptionBalance()
+            
+            if (self.isSupporterWithBalance()) {
+                stopPolling()
+                return
+            }
+            
+            // Set up timer for subsequent fetches
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                self.pollingTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    Task {
+                        await self.fetchSubscriptionBalance()
+                        
+                        if await (self.isSupporterWithBalance()) {
+                            await self.stopPolling()
+                        }
+                        
+                    }
+                }
+            }
+        }
+    }
+    
+    func isSupporterWithBalance() -> Bool {
+        return self.currentPlan == .supporter && self.activeBalanceByteCount > 0
+    }
+    
+    func stopPolling() {
+        pollingTimer?.invalidate()
+        pollingTimer = nil
+        isPolling = false
     }
     
 }

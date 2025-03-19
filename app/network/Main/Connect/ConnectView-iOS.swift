@@ -14,6 +14,8 @@ struct ConnectView_iOS: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @Environment(\.requestReview) private var requestReview
     
     @EnvironmentObject var connectViewModel: ConnectViewModel
@@ -70,6 +72,12 @@ struct ConnectView_iOS: View {
                 connectTunnel: {
                     deviceManager.vpnManager?.updateVpnService()
                 },
+                contractStatus: connectViewModel.contractStatus,
+                openUpgradeSheet: {
+                    connectViewModel.isPresentedUpgradeSheet = true
+                },
+                currentPlan: subscriptionBalanceViewModel.currentPlan,
+                isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                 tunnelConnected: $connectViewModel.tunnelConnected
             )
             
@@ -162,6 +170,10 @@ struct ConnectView_iOS: View {
                     let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
                 }
                 .onAppear {
+                    
+                    // refetch the contract status
+                    connectViewModel.updateContractStatus()
+                    
                     Task {
                         let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
                     }
@@ -171,6 +183,33 @@ struct ConnectView_iOS: View {
             .background(themeManager.currentTheme.backgroundColor)
             
             
+        }
+        // upgrade subscription
+        .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
+            UpgradeSubscriptionSheet(
+                subscriptionProduct: subscriptionManager.products.first,
+                purchase: { product in
+                    
+                    Task {
+                        do {
+                            try await subscriptionManager.purchase(
+                                product: product,
+                                onSuccess: {
+                                    connectViewModel.isPresentedUpgradeSheet = false
+                                    subscriptionBalanceViewModel.startPolling()
+                                }
+                            )
+    
+                        } catch(let error) {
+                            print("error making purchase: \(error)")
+                        }
+                        
+
+                    }
+
+                },
+                isPurchasing: subscriptionManager.isPurchasing
+            )
         }
         
         // upgrade guest account flow

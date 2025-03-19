@@ -56,7 +56,7 @@ class DeviceManager: ObservableObject {
             
             Task {
             
-                await self.vpnManager?.close()
+                self.vpnManager?.close()
                 self.vpnManager = nil
                 
                 if let device = device {

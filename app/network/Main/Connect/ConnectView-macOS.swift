@@ -14,6 +14,8 @@ struct ConnectView_macOS: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+    @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @Environment(\.requestReview) private var requestReview
     
     @EnvironmentObject var connectViewModel: ConnectViewModel
@@ -46,6 +48,12 @@ struct ConnectView_macOS: View {
                         connectTunnel: {
                             deviceManager.vpnManager?.updateVpnService()
                         },
+                        contractStatus: connectViewModel.contractStatus,
+                        openUpgradeSheet: {
+                            connectViewModel.isPresentedUpgradeSheet = true
+                        },
+                        currentPlan: subscriptionBalanceViewModel.currentPlan,
+                        isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                         tunnelConnected: $connectViewModel.tunnelConnected
                     )
                     .animation(.spring(duration: 0.3), value: isProviderTableVisible)
@@ -132,6 +140,35 @@ struct ConnectView_macOS: View {
             .animation(.spring(duration: 0.3), value: isProviderTableVisible)
             .frame(maxWidth: .infinity)
         }
+        
+        // upgrade subscription
+        .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
+            UpgradeSubscriptionSheet(
+                subscriptionProduct: subscriptionManager.products.first,
+                purchase: { product in
+                    
+                    Task {
+                        do {
+                            try await subscriptionManager.purchase(
+                                product: product,
+                                onSuccess: {
+                                    connectViewModel.isPresentedUpgradeSheet = false
+                                    subscriptionBalanceViewModel.startPolling()
+                                }
+                            )
+    
+                        } catch(let error) {
+                            print("error making purchase: \(error)")
+                        }
+                        
+
+                    }
+
+                },
+                isPurchasing: subscriptionManager.isPurchasing
+            )
+        }
+        
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button(action: {

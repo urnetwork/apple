@@ -35,6 +35,10 @@ struct MainTabView: View {
         self.api = api
         self.logout = logout
         self.device = device
+        
+        // todo: investigate why we need this?
+        // we're launching this in NetworkApp
+        // but without it, disconnect isn't triggered
         self.connectViewController = device.openConnectViewController()
         
         _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(

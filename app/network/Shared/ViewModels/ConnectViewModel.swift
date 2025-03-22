@@ -131,6 +131,10 @@ class ConnectViewModel: ObservableObject {
      */
     @Published private(set) var contractStatus: SdkContractStatus? = nil
     
+    /**
+     * Upgrade prompts
+     */
+    @Published var showUpgradeBanner = false
     @Published var isPresentedUpgradeSheet: Bool = false
     
     var api: SdkApi?

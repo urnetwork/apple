@@ -292,27 +292,31 @@ class VPNManager {
 //                    return
 //                }
                 
-                do {
-                    try tunnelManager.connection.startVPNTunnel()
-                    print("[VPNManager]connection started")
-                    self.device.sync()
-                } catch let error as NSError {
-//                        self.tunnelRequestStatus = .none
-                    print("[VPNManager]Error starting VPN connection:")
-                    print("[VPNManager]Domain: \(error.domain)")
-                    print("[VPNManager]Code: \(error.code)")
-                    print("[VPNManager]Description: \(error.localizedDescription)")
-                    print("[VPNManager]User Info: \(error.userInfo)")
-                    
-                }
+                
                 
                 
                 // see https://forums.developer.apple.com/forums/thread/25928
-//                tunnelManager.loadFromPreferences { error in
-//                    if let _ = error {
-////                        self.tunnelRequestStatus = .none
-//                        return
-//                    }
+                tunnelManager.loadFromPreferences { error in
+                    if let _ = error {
+                        ////                        self.tunnelRequestStatus = .none
+                        return
+                    }
+                    
+                    do {
+                        try tunnelManager.connection.startVPNTunnel()
+                        print("[VPNManager]connection started")
+                        self.device.sync()
+                    } catch let error as NSError {
+    //                        self.tunnelRequestStatus = .none
+                        print("[VPNManager]Error starting VPN connection:")
+                        print("[VPNManager]Domain: \(error.domain)")
+                        print("[VPNManager]Code: \(error.code)")
+                        print("[VPNManager]Description: \(error.localizedDescription)")
+                        print("[VPNManager]User Info: \(error.userInfo)")
+                        
+                    }
+                    
+                }
 ////                    if self.tunnelRequestStatus != .started {
 ////                        return
 ////                    }

@@ -432,6 +432,8 @@ private struct LoginInitialFormView: View {
             Spacer()
                 .frame(height: 24)
             
+#if os(iOS)
+            
             if !deviceExists {
                 // if a device exists, it means they are already in guest mode and trying to upgrade their account
                 // restrict access to create guest network from within authed guest network
@@ -453,6 +455,8 @@ private struct LoginInitialFormView: View {
                 }
                 
             }
+            
+#endif
             
         }
         .frame(maxWidth: 400)

@@ -62,14 +62,6 @@ struct FeedbackView: View {
                     .cornerRadius(8)
                     .focused($isFocused)
                     .foregroundColor(themeManager.currentTheme.textColor)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                isFocused = false
-                            }
-                        }
-                    }
                     
                     Spacer().frame(height: 16)
                     

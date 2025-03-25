@@ -7,302 +7,6 @@
     " " : {
       "shouldTranslate" : false
     },
-    " and " : {
-
-    },
-    " for direct support." : {
-
-    },
-    "[Discord](https://discord.com/invite/RUNZXMwPRK)" : {
-      "shouldTranslate" : false
-    },
-    "[join our Discord](https://discord.com/invite/RUNZXMwPRK)" : {
-
-    },
-    "[Privacy Policy](https://ur.io/privacy)" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[سياسة الخصوصية](https://ur.io/privacy)"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Datenschutzrichtlinie](https://ur.io/privacy)"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Πολιτική Απορρήτου](https://ur.io/privacy)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Privacy Policy](https://ur.io/privacy)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Política de privacidad](https://ur.io/privacy)"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Política de privacidad](https://ur.io/privacy)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Politique de confidentialité](https://ur.io/privacy)"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[מדיניות פרטיות](https://ur.io/privacy)"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[गोपनीयता नीति](https://ur.io/privacy)"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Kebijakan Privasi](https://ur.io/privacy)"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Politica sulla riservatezza](https://ur.io/privacy)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[プライバシーポリシー](https://ur.io/privacy)"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[개인정보 보호정책](https://ur.io/privacy)"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Polityka prywatności](https://ur.io/privacy)"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Política de Privacidade](https://ur.io/privacy)"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Política de Privacidade](https://ur.io/privacy)"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Политика конфиденциальности](https://ur.io/privacy)"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Integritetspolicy](https://ur.io/privacy)"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[นโยบายความเป็นส่วนตัว](https://ur.io/privacy)"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Політика конфіденційності](https://ur.io/privacy)"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Chính sách bảo mật](https://ur.io/privacy)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[隐私政策](https://ur.io/privacy)"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[隱私政策](https://ur.io/privacy)"
-          }
-        }
-      }
-    },
-    "[Terms and Services](https://ur.io/terms)" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[الشروط والخدمات](https://ur.io/terms)"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Geschäftsbedingungen](https://ur.io/terms)"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Όροι και Υπηρεσίες](https://ur.io/terms)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Terms and Services](https://ur.io/terms)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Términos y servicios](https://ur.io/terms)"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Términos y servicios](https://ur.io/terms)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Conditions et services](https://ur.io/terms)"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[תנאים ושירותים](https://ur.io/terms)"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[नियम और सेवाएं](https://ur.io/terms)"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Syarat dan Layanan](https://ur.io/terms)"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Termini e servizi](https://ur.io/terms)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[利用規約](https://ur.io/terms)"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[이용 약관](https://ur.io/terms)"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Warunki i usługi](https://ur.io/terms)"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Termos e Serviços](https://ur.io/terms)"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Termos e Serviços](https://ur.io/terms)"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Условия и услуги](https://ur.io/terms)"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Villkor och tjänster](https://ur.io/terms)"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[ข้อกำหนดและบริการ](https://ur.io/terms)"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Умови та послуги](https://ur.io/terms)"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Điều khoản và dịch vụ](https://ur.io/terms)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[条款和服务](https://ur.io/terms)"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[條款和服務](https://ur.io/terms)"
-          }
-        }
-      }
-    },
     "************" : {
       "shouldTranslate" : false
     },
@@ -2846,149 +2550,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已連接到 %d 個供應商"
-          }
-        }
-      }
-    },
-    "Connected wallets" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المحافظ المتصلة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbundene Wallets"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Συνδεδεμένα πορτοφόλια"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connected wallets"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carteras conectadas"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carteras conectadas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Portefeuilles connectés"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ארנקים מחוברים"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "कनेक्टेड वॉलेट"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dompet yang terhubung"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Portafogli connessi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "接続されたウォレット"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "연결된 지갑"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Połączone portfele"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carteiras conectadas"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carteiras conectadas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключенные кошельки"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anslutna plånböcker"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "กระเป๋าเงินที่เชื่อมต่อ"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Підключені гаманці"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ví được kết nối"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已连接的钱包"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已連接的錢包"
           }
         }
       }
@@ -6689,6 +6250,148 @@
         }
       }
     },
+    "How are we doing?" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كيف نؤدي عملنا؟"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie machen wir uns?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πώς τα πάμε;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How are we doing?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué tal lo estamos haciendo?"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Cómo lo estamos haciendo?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment nous débrouillons-nous ?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איך אנחנו עושים את זה?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हम कैसा कर रहे हैं?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bagaimana kinerja kami?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come stiamo andando?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私たちの取り組みはいかがですか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저희 서비스는 어떤가요?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jak sobie radzimy?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como estamos nos saindo?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como estamos a ir?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как мы справляемся?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hur går det för oss?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เราทำงานได้ดีแค่ไหน?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Як ми справляємось?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chúng tôi đang làm thế nào?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们做得怎么样？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們做得如何？"
+          }
+        }
+      }
+    },
     "I agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)" : {
       "localizations" : {
         "ar" : {
@@ -7115,8 +6818,147 @@
         }
       }
     },
-    "Join the community on " : {
-
+    "Join the community on [Discord](https://discord.com/invite/RUNZXMwPRK)" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انضم إلى المجتمع على [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt der Community auf [Discord](https://discord.com/invite/RUNZXMwPRK) bei"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συμμετοχή στην κοινότητα στο [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join the community on [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Únete a la comunidad en [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Únete a la comunidad en [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejoignez la communauté sur [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצטרף לקהילה ב-[Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Discord](https://discord.com/invite/RUNZXMwPRK) पर समुदाय से जुड़ें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bergabung dengan komunitas di [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unisciti alla community su [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Discord](https://discord.com/invite/RUNZXMwPRK)でコミュニティに参加"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Discord](https://discord.com/invite/RUNZXMwPRK)에서 커뮤니티에 참여하세요"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dołącz do społeczności na [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junte-se à comunidade no [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junte-se à comunidade no [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Присоединяйтесь к сообществу в [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gå med i gemenskapen på [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เข้าร่วมชุมชนบน [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приєднуйтесь до спільноти у [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tham gia cộng đồng trên [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 [Discord](https://discord.com/invite/RUNZXMwPRK) 上加入社区"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 [Discord](https://discord.com/invite/RUNZXMwPRK) 上加入社區"
+          }
+        }
+      }
     },
     "Join the movement" : {
       "localizations" : {
@@ -9675,149 +9517,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每兩週支付一次，並且需要達到最低金額才能收到付款。"
-          }
-        }
-      }
-    },
-    "Pending" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "قيد الانتظار"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ausstehend"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Σε εκκρεμότητα"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pending"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pendiente"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pendiente"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En attente"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ממתין"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "लंबित"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tertunda"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In sospeso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保留中"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보류 중"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oczekujące"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pendente"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pendente"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В ожидании"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Väntar"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "รอดำเนินการ"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очікується"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang chờ xử lý"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "待处理"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "待處理"
           }
         }
       }
@@ -12809,8 +12508,147 @@
         }
       }
     },
-    "Send us your feedback directly or " : {
-
+    "Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أرسل لنا ملاحظاتك مباشرة أو [انضم إلى Discord الخاص بنا](https://discord.com/invite/RUNZXMwPRK) للحصول على دعم مباشر."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senden Sie uns Ihr Feedback direkt oder [treten Sie unserem Discord bei](https://discord.com/invite/RUNZXMwPRK) für direkten Support."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Στείλτε μας τα σχόλιά σας απευθείας ή [εγγραφείτε στο Discord μας](https://discord.com/invite/RUNZXMwPRK) για άμεση υποστήριξη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envíanos tus comentarios directamente o [únete a nuestro Discord](https://discord.com/invite/RUNZXMwPRK) para obtener soporte directo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envíanos tus comentarios directamente o [únete a nuestro Discord](https://discord.com/invite/RUNZXMwPRK) para obtener soporte directo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyez-nous vos commentaires directement ou [rejoignez notre Discord](https://discord.com/invite/RUNZXMwPRK) pour un support direct."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלח לנו משוב ישירות או [הצטרף לדיסקורד שלנו](https://discord.com/invite/RUNZXMwPRK) לתמיכה ישירה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपनी प्रतिक्रिया सीधे हमें भेजें या सीधे सहायता के लिए [हमारे Discord से जुड़ें](https://discord.com/invite/RUNZXMwPRK)।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirimkan masukan Anda langsung atau [bergabunglah dengan Discord kami](https://discord.com/invite/RUNZXMwPRK) untuk dukungan langsung."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inviaci direttamente i tuoi feedback o [unisciti al nostro Discord](https://discord.com/invite/RUNZXMwPRK) per un supporto diretto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フィードバックを直接送信するか、直接サポートを受けるために[Discordに参加](https://discord.com/invite/RUNZXMwPRK)してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "직접 피드백을 보내거나 직접 지원을 받으려면 [Discord에 가입](https://discord.com/invite/RUNZXMwPRK)하세요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyślij nam swoją opinię bezpośrednio lub [dołącz do naszego Discorda](https://discord.com/invite/RUNZXMwPRK), aby uzyskać bezpośrednie wsparcie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envie seu feedback diretamente ou [junte-se ao nosso Discord](https://discord.com/invite/RUNZXMwPRK) para suporte direto."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envie-nos o seu feedback diretamente ou [junte-se ao nosso Discord](https://discord.com/invite/RUNZXMwPRK) para suporte direto."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправьте нам свой отзыв напрямую или [присоединитесь к нашему Discord](https://discord.com/invite/RUNZXMwPRK) для прямой поддержки."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skicka din feedback direkt till oss eller [gå med i vår Discord](https://discord.com/invite/RUNZXMwPRK) för direkt support."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ส่งความคิดเห็นของคุณให้เราโดยตรงหรือ[เข้าร่วม Discord ของเรา](https://discord.com/invite/RUNZXMwPRK) เพื่อรับการสนับสนุนโดยตรง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надішліть нам свій відгук безпосередньо або [приєднайтеся до нашого Discord](https://discord.com/invite/RUNZXMwPRK) для прямої підтримки."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gửi phản hồi của bạn trực tiếp cho chúng tôi hoặc [tham gia Discord của chúng tôi](https://discord.com/invite/RUNZXMwPRK) để được hỗ trợ trực tiếp."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接向我们发送反馈，或[加入我们的 Discord](https://discord.com/invite/RUNZXMwPRK) 获取直接支持。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接向我們發送反饋，或[加入我們的 Discord](https://discord.com/invite/RUNZXMwPRK) 獲取直接支持。"
+          }
+        }
+      }
     },
     "Settings" : {
       "localizations" : {

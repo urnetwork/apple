@@ -16,6 +16,7 @@ struct AccountRootView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @Environment(\.requestReview) private var requestReview
     
     var navigate: (AccountNavigationPath) -> Void
     var logout: () -> Void
@@ -220,9 +221,8 @@ struct AccountRootView: View {
                     
                 }
                 
-                // TODO: desktop will have a different app ID
                 Button(action: {
-                    openURL(URL(string: "https://apps.apple.com/app/6741000606?action=write-review")!)
+                    requestReview()
                 }) {
                     
                     VStack(spacing: 0) {

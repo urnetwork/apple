@@ -268,12 +268,9 @@ struct SettingsView: View {
                     Spacer().frame(height: 16)
                     
                     HStack {
-                        Text("Join the community on ")
+                        Text("Join the community on [Discord](https://discord.com/invite/RUNZXMwPRK)")
                             .font(themeManager.currentTheme.bodyFont)
                             .foregroundColor(themeManager.currentTheme.textColor)
-                        + Text("[Discord](https://discord.com/invite/RUNZXMwPRK)")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.accentColor)
                         
                         Spacer()
                         

@@ -31,17 +31,8 @@ struct GuestModeSheet: View {
             Spacer().frame(height: 24)
             
             UrSwitchToggle(isOn: $termsAgreed) {
-                Text("I agree to URnetwork's ")
+                Text("I agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)")
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                + Text("[Terms and Services](https://ur.io/terms)")
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                + Text(" and ")
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                + Text("[Privacy Policy](https://ur.io/privacy)")
-                    .foregroundColor(themeManager.currentTheme.textColor)
                     .font(themeManager.currentTheme.secondaryBodyFont)
             }
             

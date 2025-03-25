@@ -10,14 +10,8 @@
     " and " : {
 
     },
-    " for direct support." : {
-
-    },
     "[Discord](https://discord.com/invite/RUNZXMwPRK)" : {
       "shouldTranslate" : false
-    },
-    "[join our Discord](https://discord.com/invite/RUNZXMwPRK)" : {
-
     },
     "[Privacy Policy](https://ur.io/privacy)" : {
       "localizations" : {
@@ -4411,6 +4405,9 @@
         }
       }
     },
+    "Done" : {
+
+    },
     "Earnings" : {
       "localizations" : {
         "ar" : {
@@ -6688,6 +6685,12 @@
           }
         }
       }
+    },
+    "How are we doing?" : {
+
+    },
+    "I agree to URnetwork's " : {
+
     },
     "I agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)" : {
       "localizations" : {
@@ -12809,8 +12812,147 @@
         }
       }
     },
-    "Send us your feedback directly or " : {
-
+    "Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أرسل لنا ملاحظاتك مباشرة أو [انضم إلى Discord الخاص بنا](https://discord.com/invite/RUNZXMwPRK) للحصول على دعم مباشر."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senden Sie uns Ihr Feedback direkt oder [treten Sie unserem Discord bei](https://discord.com/invite/RUNZXMwPRK) für direkten Support."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Στείλτε μας τα σχόλιά σας απευθείας ή [εγγραφείτε στο Discord μας](https://discord.com/invite/RUNZXMwPRK) για άμεση υποστήριξη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envíanos tus comentarios directamente o [únete a nuestro Discord](https://discord.com/invite/RUNZXMwPRK) para obtener soporte directo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envíanos tus comentarios directamente o [únete a nuestro Discord](https://discord.com/invite/RUNZXMwPRK) para obtener soporte directo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyez-nous vos commentaires directement ou [rejoignez notre Discord](https://discord.com/invite/RUNZXMwPRK) pour un support direct."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלח לנו משוב ישירות או [הצטרף לדיסקורד שלנו](https://discord.com/invite/RUNZXMwPRK) לתמיכה ישירה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपनी प्रतिक्रिया सीधे हमें भेजें या सीधे सहायता के लिए [हमारे Discord से जुड़ें](https://discord.com/invite/RUNZXMwPRK)।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirimkan masukan Anda langsung atau [bergabunglah dengan Discord kami](https://discord.com/invite/RUNZXMwPRK) untuk dukungan langsung."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inviaci direttamente i tuoi feedback o [unisciti al nostro Discord](https://discord.com/invite/RUNZXMwPRK) per un supporto diretto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フィードバックを直接送信するか、直接サポートを受けるために[Discordに参加](https://discord.com/invite/RUNZXMwPRK)してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "직접 피드백을 보내거나 직접 지원을 받으려면 [Discord에 가입](https://discord.com/invite/RUNZXMwPRK)하세요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyślij nam swoją opinię bezpośrednio lub [dołącz do naszego Discorda](https://discord.com/invite/RUNZXMwPRK), aby uzyskać bezpośrednie wsparcie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envie seu feedback diretamente ou [junte-se ao nosso Discord](https://discord.com/invite/RUNZXMwPRK) para suporte direto."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envie-nos o seu feedback diretamente ou [junte-se ao nosso Discord](https://discord.com/invite/RUNZXMwPRK) para suporte direto."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправьте нам свой отзыв напрямую или [присоединитесь к нашему Discord](https://discord.com/invite/RUNZXMwPRK) для прямой поддержки."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skicka din feedback direkt till oss eller [gå med i vår Discord](https://discord.com/invite/RUNZXMwPRK) för direkt support."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ส่งความคิดเห็นของคุณให้เราโดยตรงหรือ[เข้าร่วม Discord ของเรา](https://discord.com/invite/RUNZXMwPRK) เพื่อรับการสนับสนุนโดยตรง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надішліть нам свій відгук безпосередньо або [приєднайтеся до нашого Discord](https://discord.com/invite/RUNZXMwPRK) для прямої підтримки."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gửi phản hồi của bạn trực tiếp cho chúng tôi hoặc [tham gia Discord của chúng tôi](https://discord.com/invite/RUNZXMwPRK) để được hỗ trợ trực tiếp."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接向我们发送反馈，或[加入我们的 Discord](https://discord.com/invite/RUNZXMwPRK) 获取直接支持。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接向我們發送反饋，或[加入我們的 Discord](https://discord.com/invite/RUNZXMwPRK) 獲取直接支持。"
+          }
+        }
+      }
     },
     "Settings" : {
       "localizations" : {

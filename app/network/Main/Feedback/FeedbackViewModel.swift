@@ -27,12 +27,17 @@ extension FeedbackView {
         
         @Published var feedback: String = ""
         @Published private(set) var isSending: Bool = false
+        @Published private(set) var starCount: Int? = nil
         let domain = "[FeedbackViewModel]"
         
         var api: SdkApi?
         
         init(api: SdkApi?) {
             self.api = api
+        }
+        
+        func setStarCount(_ starCount: Int) {
+            self.starCount = starCount
         }
         
         func sendFeedback() async -> Result<Void, Error> {

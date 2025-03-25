@@ -1865,6 +1865,148 @@
         }
       }
     },
+    "By subscribing, you agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بالاشتراك ، أنت توافق على [شروط خدمة] URnetwork (https://ur.io/terms) و [سياسة الخصوصية] (https://ur.io/privacy)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit dem Abonnieren stimmen Sie den [Nutzungsbedingungen](https://ur.io/terms) und der [Datenschutzrichtlinie](https://ur.io/privacy) von URnetwork zu."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Με την εγγραφή σας, συμφωνείτε με τους [Όρους και τις Υπηρεσίες](https://ur.io/terms) και την [Πολιτική Απορρήτου](https://ur.io/privacy) της URnetwork"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By subscribing, you agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al suscribirte, aceptas los [Términos y servicios](https://ur.io/terms) y la [Política de privacidad](https://ur.io/privacy) de URnetwork"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al suscribirte, aceptas los [Términos y servicios](https://ur.io/terms) y la [Política de privacidad](https://ur.io/privacy) de URnetwork"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En vous abonnant, vous acceptez les [Conditions d'utilisation](https://ur.io/terms) et la [Politique de confidentialité](https://ur.io/privacy) d'URnetwork"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "על ידי הרשמה כמנוי, אתה מסכים ל[תנאים והשירותים](https://ur.io/terms) ול[מדיניות הפרטיות](https://ur.io/privacy) של URnetwork"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सदस्यता लेने पर, आप URnetwork के [नियम और सेवाएँ](https://ur.io/terms) और [गोपनीयता नीति](https://ur.io/privacy) से सहमत हैं"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dengan berlangganan, Anda menyetujui [Persyaratan dan Layanan](https://ur.io/terms) dan [Kebijakan Privasi](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con l'iscrizione, accetti i [Termini di servizio](https://ur.io/terms) e l'[Informativa sulla privacy](https://ur.io/privacy) di URnetwork"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サブスクライブすると、URnetworkの[利用規約](https://ur.io/terms)および[プライバシーポリシー](https://ur.io/privacy)に同意したことになります"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "구독하면 URnetwork의 [이용약관](https://ur.io/terms) 및 [개인정보 보호정책](https://ur.io/privacy)에 동의하는 것입니다."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subskrybując, zgadzasz się na [Warunki świadczenia usług](https://ur.io/terms) i [Politykę prywatności](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao se inscrever, você concorda com os [Termos e Serviços](https://ur.io/terms) e a [Política de Privacidade](https://ur.io/privacy) do URnetwork"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao subscrever, concorda com os [Termos e Serviços](https://ur.io/terms) e a [Política de Privacidade](https://ur.io/privacy) da URnetwork"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подписываясь, вы соглашаетесь с [Условиями обслуживания](https://ur.io/terms) и [Политикой конфиденциальности](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Genom att prenumerera godkänner du URnetworks [Användarvillkor](https://ur.io/terms) och [Integritetspolicy](https://ur.io/privacy)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ในการสมัครสมาชิก แสดงว่าคุณยอมรับ [ข้อกำหนดในการให้บริการ](https://ur.io/terms) และ [นโยบายความเป็นส่วนตัว](https://ur.io/privacy) ของ URnetwork"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підписуючись, ви погоджуєтесь з [Умовами надання послуг](https://ur.io/terms) та [Політикою конфіденційності](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bằng cách đăng ký, bạn đồng ý với [Điều khoản và Dịch vụ](https://ur.io/terms) và [Chính sách Bảo mật](https://ur.io/privacy) của URnetwork"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "订阅即表示您同意 URnetwork 的[条款和服务](https://ur.io/terms)和[隐私政策](https://ur.io/privacy)"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訂閱即表示您同意 URnetwork 的[條款和服務](https://ur.io/terms)和[隱私政策](https://ur.io/privacy)"
+          }
+        }
+      }
+    },
     "Commitment issues?" : {
       "localizations" : {
         "ar" : {
@@ -6547,8 +6689,147 @@
         }
       }
     },
-    "I agree to URnetwork's " : {
-
+    "I agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أوافق على [شروط خدمة] URnetwork (https://ur.io/terms) و [سياسة الخصوصية] (https://ur.io/privacy)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich stimme den [Nutzungsbedingungen](https://ur.io/terms) und der [Datenschutzrichtlinie](https://ur.io/privacy) von URnetwork zu."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συμφωνώ με τους [Όρους και τις Υπηρεσίες](https://ur.io/terms) και την [Πολιτική Απορρήτου](https://ur.io/privacy) της URnetwork"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acepto los [Términos y servicios](https://ur.io/terms) y la [Política de privacidad](https://ur.io/privacy) de URnetwork"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acepto los [Términos y servicios](https://ur.io/terms) y la [Política de privacidad](https://ur.io/privacy) de URnetwork"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "J'accepte les [Conditions d'utilisation](https://ur.io/terms) et la [Politique de confidentialité](https://ur.io/privacy) d'URnetwork"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אני מסכים ל[תנאים והשירותים](https://ur.io/terms) ול[מדיניות הפרטיות](https://ur.io/privacy) של URnetwork"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मैं URnetwork के [नियम और सेवाएँ](https://ur.io/terms) और [गोपनीयता नीति](https://ur.io/privacy) से सहमत हूँ"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saya menyetujui [Persyaratan dan Layanan](https://ur.io/terms) dan [Kebijakan Privasi](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accetto i [Termini di servizio](https://ur.io/terms) e l'[Informativa sulla privacy](https://ur.io/privacy) di URnetwork"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetworkの[利用規約](https://ur.io/terms)および[プライバシーポリシー](https://ur.io/privacy)に同意します"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork의 [이용약관](https://ur.io/terms) 및 [개인정보 보호정책](https://ur.io/privacy)에 동의합니다."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zgadzam się na [Warunki świadczenia usług](https://ur.io/terms) i [Politykę prywatności](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eu concordo com os [Termos e Serviços](https://ur.io/terms) e a [Política de Privacidade](https://ur.io/privacy) do URnetwork"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concordo com os [Termos e Serviços](https://ur.io/terms) e a [Política de Privacidade](https://ur.io/privacy) da URnetwork"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я согласен с [Условиями обслуживания](https://ur.io/terms) и [Политикой конфиденциальности](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jag godkänner URnetworks [Användarvillkor](https://ur.io/terms) och [Integritetspolicy](https://ur.io/privacy)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ฉันยอมรับ[ข้อกำหนดในการให้บริการ](https://ur.io/terms) และ[นโยบายความเป็นส่วนตัว](https://ur.io/privacy) ของ URnetwork"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я погоджуюся з [Умовами надання послуг](https://ur.io/terms) та [Політикою конфіденційності](https://ur.io/privacy) URnetwork"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tôi đồng ý với [Điều khoản và Dịch vụ](https://ur.io/terms) và [Chính sách Bảo mật](https://ur.io/privacy) của URnetwork"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我同意 URnetwork 的[条款和服务](https://ur.io/terms)和[隐私政策](https://ur.io/privacy)"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我同意 URnetwork 的[條款和服務](https://ur.io/terms)和[隱私政策](https://ur.io/privacy)"
+          }
+        }
+      }
     },
     "Insufficient balance" : {
       "localizations" : {

@@ -63,3 +63,5 @@ fastlane/test_output
 
 **/.DS_Store
 
+app/build
+app/build.xcarchive

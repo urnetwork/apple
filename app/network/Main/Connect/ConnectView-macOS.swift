@@ -198,10 +198,6 @@ struct ConnectView_macOS: View {
                                 product: product,
                                 onSuccess: {
                                     subscriptionBalanceViewModel.startPolling()
-                                    
-                                    withAnimation {
-                                        subscriptionManager.setPurchaseSuccess(true)
-                                    }
                                 }
                             )
     

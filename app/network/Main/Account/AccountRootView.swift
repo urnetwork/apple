@@ -288,11 +288,6 @@ struct AccountRootView: View {
                                 product: product,
                                 onSuccess: {
                                     subscriptionBalanceViewModel.setCurrentPlan(.supporter)
-                                    
-                                    withAnimation {
-                                        subscriptionManager.setPurchaseSuccess(true)
-                                    }
-                                    
                                 }
                             )
     

@@ -28,7 +28,6 @@ struct UpgradeSubscriptionSheet: View {
                     dismiss: dismiss
                 )
                 .transition(.opacity)
-                // .animation(.easeIn(duration: 0.6), value: purchaseSuccess)
                 
             } else {
                 
@@ -116,7 +115,7 @@ struct UpgradeSubscriptionSheet: View {
             }
             
         }
-        .animation(.easeIn(duration: 0.4), value: purchaseSuccess)
+        .animation(.easeIn(duration: 0.25), value: purchaseSuccess)
             
     }
 }

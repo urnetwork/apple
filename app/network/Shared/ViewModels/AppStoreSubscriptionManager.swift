@@ -89,6 +89,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                     await transaction.finish()
                     
                     onPurchaseSuccess()
+                    setPurchaseSuccess(true)
                     
                 case .unverified( _, let error):
                     print("Purchase unverified: \(error)")

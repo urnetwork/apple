@@ -287,8 +287,6 @@ struct AccountRootView: View {
                             try await subscriptionManager.purchase(
                                 product: product,
                                 onSuccess: {
-                                    print("on success called")
-                                    viewModel.isPresentedUpgradeSheet = false
                                     subscriptionBalanceViewModel.setCurrentPlan(.supporter)
                                 }
                             )
@@ -296,12 +294,15 @@ struct AccountRootView: View {
                         } catch(let error) {
                             print("error making purchase: \(error)")
                         }
-                        
 
                     }
 
                 },
-                isPurchasing: subscriptionManager.isPurchasing
+                isPurchasing: subscriptionManager.isPurchasing,
+                purchaseSuccess: subscriptionManager.purchaseSuccess,
+                dismiss: {
+                    viewModel.isPresentedUpgradeSheet = false
+                }
             )
         }
         #if os(iOS)

@@ -16,6 +16,7 @@ import URnetworkSdk
 class AppStoreSubscriptionManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var isPurchasing: Bool = false
+    @Published private(set) var purchaseSuccess: Bool = false
     
     private var networkId: SdkId?
     var onPurchaseSuccess: () -> Void = {}
@@ -88,6 +89,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                     await transaction.finish()
                     
                     onPurchaseSuccess()
+                    setPurchaseSuccess(true)
                     
                 case .unverified( _, let error):
                     print("Purchase unverified: \(error)")
@@ -108,6 +110,10 @@ class AppStoreSubscriptionManager: ObservableObject {
             print("Purchase failed: \(error)")
             throw error
         }
+    }
+    
+    func setPurchaseSuccess(_ success: Bool) {
+        self.purchaseSuccess = success
     }
 
     private func logTransactionDetails(_ transaction: Transaction) {

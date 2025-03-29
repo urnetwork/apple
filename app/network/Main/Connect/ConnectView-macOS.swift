@@ -197,7 +197,6 @@ struct ConnectView_macOS: View {
                             try await subscriptionManager.purchase(
                                 product: product,
                                 onSuccess: {
-                                    connectViewModel.isPresentedUpgradeSheet = false
                                     subscriptionBalanceViewModel.startPolling()
                                 }
                             )
@@ -210,7 +209,11 @@ struct ConnectView_macOS: View {
                     }
 
                 },
-                isPurchasing: subscriptionManager.isPurchasing
+                isPurchasing: subscriptionManager.isPurchasing,
+                purchaseSuccess: subscriptionManager.purchaseSuccess,
+                dismiss: {
+                    connectViewModel.isPresentedUpgradeSheet = false
+                }
             )
         }
         

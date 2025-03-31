@@ -231,7 +231,7 @@
 				D1B95A4C2CEBDD6900542E0E /* Frameworks */,
 				D1B95A4D2CEBDD6900542E0E /* Resources */,
 				D1B95A912CEBE76400542E0E /* Embed Foundation Extensions */,
-				D1B95A922CEBE7D200542E0E /* ShellScript */,
+				D1B95A922CEBE7D200542E0E /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -447,9 +447,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "export BRINGYOUR_HOME=`realpath ../..`\nexport WARP_HOME=\"$BRINGYOUR_HOME\"\nexport WARP_VERSION_HOME=\"$BRINGYOUR_HOME/version\"\nexport WARP_VERSION=\"$MARKETING_VERSION\"\nexport PATH=\"$PATH:$BRINGYOUR_HOME/warp/warpctl/build/darwin/arm64\"\nexport PATH=\"$PATH:/usr/local/go/bin:$HOME/go/bin\"\ncd ../../sdk\nmake init build_apple\n";
+			shellScript = "export BRINGYOUR_HOME=`realpath ../..`\nexport WARP_HOME=\"$BRINGYOUR_HOME\"\nexport WARP_VERSION_HOME=\"$BRINGYOUR_HOME/version\"\nexport WARP_VERSION=\"$MARKETING_VERSION\"\nexport PATH=\"$PATH:$BRINGYOUR_HOME/warp/warpctl/build/darwin/arm64\"\nexport PATH=\"$PATH:/usr/local/go/bin:$HOME/go/bin\"\ncd ../../sdk/build\nmake init build_apple\n";
 		};
-		D1B95A922CEBE7D200542E0E /* ShellScript */ = {
+		D1B95A922CEBE7D200542E0E /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
 			files = (
@@ -458,13 +458,14 @@
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/bash;
-			shellScript = "export BRINGYOUR_HOME=`realpath ../..`\nexport WARP_HOME=\"$BRINGYOUR_HOME\"\nexport WARP_VERSION_HOME=\"$BRINGYOUR_HOME/version\"\nexport WARP_VERSION=\"$MARKETING_VERSION\"\nexport PATH=\"$PATH:$BRINGYOUR_HOME/warp/warpctl/build/darwin/arm64\"\nexport PATH=\"$PATH:/usr/local/go/bin:$HOME/go/bin\"\ncd ../../sdk\nmake init build_apple\n";
+			shellScript = "export BRINGYOUR_HOME=`realpath ../..`\nexport WARP_HOME=\"$BRINGYOUR_HOME\"\nexport WARP_VERSION_HOME=\"$BRINGYOUR_HOME/version\"\nexport WARP_VERSION=\"$MARKETING_VERSION\"\nexport PATH=\"$PATH:$BRINGYOUR_HOME/warp/warpctl/build/darwin/arm64\"\nexport PATH=\"$PATH:/usr/local/go/bin:$HOME/go/bin\"\ncd ../../sdk/build\nmake init build_apple\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

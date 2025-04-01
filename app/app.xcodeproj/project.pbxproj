@@ -231,7 +231,6 @@
 				D1B95A4C2CEBDD6900542E0E /* Frameworks */,
 				D1B95A4D2CEBDD6900542E0E /* Resources */,
 				D1B95A912CEBE76400542E0E /* Embed Foundation Extensions */,
-				D1B95A922CEBE7D200542E0E /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -304,7 +303,6 @@
 				D1B95A7D2CEBE76400542E0E /* Sources */,
 				D1B95A7E2CEBE76400542E0E /* Frameworks */,
 				D1B95A7F2CEBE76400542E0E /* Resources */,
-				D1829C1F2CEBEECB00920833 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -430,44 +428,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		D1829C1F2CEBEECB00920833 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/bash;
-			shellScript = "export WARP_VERSION=\"${MARKETING_VERSION}-${CURRENT_PROJECT_VERSION}\"\ncd ../../sdk/build\nmake init build_apple\n";
-		};
-		D1B95A922CEBE7D200542E0E /* Run Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/bash;
-			shellScript = "export WARP_VERSION=\"${MARKETING_VERSION}-${CURRENT_PROJECT_VERSION}\"\ncd ../../sdk/build\nmake init build_apple\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1783A0092D60111600024F80 /* Sources */ = {

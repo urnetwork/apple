@@ -11,8 +11,6 @@ import GoogleSignIn
 
 struct ContentView: View {
     
-    var api: SdkApi?
-    
     @StateObject var viewModel = ViewModel()
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectViewModel: ConnectViewModel

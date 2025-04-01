@@ -447,7 +447,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "export BRINGYOUR_HOME=`realpath ../..`\nexport WARP_HOME=\"$BRINGYOUR_HOME\"\nexport WARP_VERSION_HOME=\"$BRINGYOUR_HOME/version\"\nexport WARP_VERSION=\"$MARKETING_VERSION\"\nexport PATH=\"$PATH:$BRINGYOUR_HOME/warp/warpctl/build/darwin/arm64\"\nexport PATH=\"$PATH:/usr/local/go/bin:$HOME/go/bin\"\ncd ../../sdk/build\nmake init build_apple\n";
+			shellScript = "export WARP_VERSION=\"${MARKETING_VERSION}-${CURRENT_PROJECT_VERSION}\"\ncd ../../sdk/build\nmake init build_apple\n";
 		};
 		D1B95A922CEBE7D200542E0E /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -465,7 +465,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/bash;
-			shellScript = "export BRINGYOUR_HOME=`realpath ../..`\nexport WARP_HOME=\"$BRINGYOUR_HOME\"\nexport WARP_VERSION_HOME=\"$BRINGYOUR_HOME/version\"\nexport WARP_VERSION=\"$MARKETING_VERSION\"\nexport PATH=\"$PATH:$BRINGYOUR_HOME/warp/warpctl/build/darwin/arm64\"\nexport PATH=\"$PATH:/usr/local/go/bin:$HOME/go/bin\"\ncd ../../sdk/build\nmake init build_apple\n";
+			shellScript = "export WARP_VERSION=\"${MARKETING_VERSION}-${CURRENT_PROJECT_VERSION}\"\ncd ../../sdk/build\nmake init build_apple\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

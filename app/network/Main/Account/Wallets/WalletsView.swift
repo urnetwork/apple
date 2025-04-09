@@ -17,6 +17,7 @@ struct WalletsView: View {
     
     var navigate: (AccountNavigationPath) -> Void
     var api: SdkApi?
+    @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     @StateObject private var connectWalletProviderViewModel = ConnectWalletProviderViewModel()
@@ -35,7 +36,8 @@ struct WalletsView: View {
                         VStack {
                             
                             WalletsHeader(
-                                unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes
+                                unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                                referralLinkViewModel: referralLinkViewModel
                             )
                             
                             EmptyWalletsView(
@@ -58,7 +60,8 @@ struct WalletsView: View {
                     VStack {
                         
                         WalletsHeader(
-                            unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes
+                            unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                            referralLinkViewModel: referralLinkViewModel
                         )
                         
                         PopulatedWalletsView(
@@ -167,9 +170,10 @@ struct WalletsView: View {
         async let fetchWallets: Void = accountWalletsViewModel.fetchAccountWallets()
         async let fetchPayments: Void = accountPaymentsViewModel.fetchPayments()
         async let fetchTransferStats: Void = accountWalletsViewModel.fetchTransferStats()
+        async let fetchReferralLink: Void = referralLinkViewModel.fetchReferralLink()
         
         // Wait for all tasks to complete
-        (_, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats)
+        (_, _, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats, fetchReferralLink)
         
     }
 }
@@ -179,6 +183,9 @@ struct WalletsHeader: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var unpaidMegaBytes: String
+    // var totalReferrals: Int
+    @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
+    
     
     var body: some View {
         VStack {
@@ -193,7 +200,7 @@ struct WalletsHeader: View {
             
             Spacer().frame(height: 16)
             
-            VStack {
+            VStack(spacing: 0) {
                 HStack {
                     UrLabel(text: "Unpaid megabytes provided")
                     Spacer()
@@ -206,8 +213,30 @@ struct WalletsHeader: View {
                     
                     Spacer()
                 }
+                
+                Divider()
+                
+                Spacer().frame(height: 8)
+                
+                HStack {
+                    UrLabel(text: "Total referrals")
+                    Spacer()
+                }
+                
+                ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
+                    HStack {
+                        Text("\(referralLinkViewModel.totalReferrals)")
+                            .font(themeManager.currentTheme.titleCondensedFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        
+                        Spacer()
+                    }
+                }
+                
             }
-            .padding()
+            .padding(.top)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
             .frame(maxWidth: .infinity)
             .background(themeManager.currentTheme.tintedBackgroundBase)
             .cornerRadius(12)
@@ -228,13 +257,14 @@ struct WalletsHeader: View {
     
 }
 
-#Preview {
-    
-    let themeManager = ThemeManager.shared
-    
-    WalletsView(
-        navigate: {_ in}
-    )
-        .environmentObject(themeManager)
-        .background(themeManager.currentTheme.backgroundColor)
-}
+//#Preview {
+//    
+//    let themeManager = ThemeManager.shared
+//    
+//    WalletsView(
+//        navigate: {_ in},
+//        referralLinkViewModel: ReferralLinkViewModel()
+//    )
+//        .environmentObject(themeManager)
+//        .background(themeManager.currentTheme.backgroundColor)
+//}

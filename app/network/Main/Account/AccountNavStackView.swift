@@ -105,7 +105,8 @@ struct AccountNavStackView: View {
                 case .wallets:
                     WalletsView(
                         navigate: viewModel.navigate,
-                        api: api
+                        api: api,
+                        referralLinkViewModel: referralLinkViewModel
                     )
                         .toolbar {
                             ToolbarItem(placement: .principal) {

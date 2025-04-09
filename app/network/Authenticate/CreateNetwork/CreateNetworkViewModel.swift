@@ -152,14 +152,7 @@ extension CreateNetworkView {
                     
                     let args = SdkValidateReferralCodeArgs()
                     
-                    var err: NSError?
-                    
-                    args.referralCode = SdkParseId(self.bonusReferralCode, &err)
-                    
-                    if err != nil {
-                        continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Error parsing ID referral code"]))
-                        return
-                    }
+                    args.referralCode = self.bonusReferralCode
                     
                     api.validateReferralCode(args, callback: callback)
                     

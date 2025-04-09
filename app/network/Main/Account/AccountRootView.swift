@@ -21,6 +21,7 @@ struct AccountRootView: View {
     var navigate: (AccountNavigationPath) -> Void
     var logout: () -> Void
     var api: SdkApi
+    var networkName: String?
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     // @StateObject private var subscriptionManager = SubscriptionManager()
@@ -34,7 +35,8 @@ struct AccountRootView: View {
         logout: @escaping () -> Void,
         api: SdkApi,
         referralLinkViewModel: ReferralLinkViewModel,
-        accountPaymentsViewModel: AccountPaymentsViewModel
+        accountPaymentsViewModel: AccountPaymentsViewModel,
+        networkName: String?
     ) {
         self.navigate = navigate
         self.logout = logout
@@ -42,6 +44,7 @@ struct AccountRootView: View {
         
         self.referralLinkViewModel = referralLinkViewModel
         self.accountPaymentsViewModel = accountPaymentsViewModel
+        self.networkName = networkName
     }
     
     
@@ -62,6 +65,7 @@ struct AccountRootView: View {
                 AccountMenu(
                     isGuest: isGuest,
                     logout: logout,
+                    networkName: networkName,
                     isPresentedCreateAccount: $viewModel.isPresentedCreateAccount,
                     referralLinkViewModel: referralLinkViewModel
                 )

@@ -12,6 +12,7 @@ struct AccountMenu: View {
     
     var isGuest: Bool
     var logout: () -> Void
+    var networkName: String?
     @Binding var isPresentedCreateAccount: Bool
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
@@ -19,6 +20,18 @@ struct AccountMenu: View {
     var body: some View {
     
         Menu {
+            
+            Button(action: {}) {
+                HStack {
+                    Text(networkName ?? "Guest")
+                    Spacer()
+                    Image("ur.symbols.tab.account")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                }
+            }
+            
             
             if isGuest {
                 Button(action: {

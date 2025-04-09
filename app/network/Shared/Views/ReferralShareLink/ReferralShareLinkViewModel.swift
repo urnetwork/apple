@@ -13,6 +13,7 @@ import URnetworkSdk
 class ReferralLinkViewModel: ObservableObject {
     
     @Published private(set) var referralCode: String?
+    @Published private(set) var totalReferrals: Int = 0
     @Published private(set) var isLoading: Bool = false
     
     let domain = "ReferSheetViewModel"

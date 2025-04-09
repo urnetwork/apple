@@ -16,20 +16,19 @@ struct ProfileView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     
     var back: () -> Void
+    var networkName: String?
     var userAuth: String?
     
-    init(api: SdkApi, back: @escaping () -> Void, userAuth: String?) {
+    init(api: SdkApi, back: @escaping () -> Void, networkName: String?, userAuth: String?) {
         _viewModel = StateObject.init(wrappedValue: ViewModel(
             api: api
         ))
         self.back = back
         self.userAuth = userAuth
+        self.networkName = networkName
     }
     
     var body: some View {
-        
-        let parsedJwt = deviceManager.parsedJwt
-        let networkName = parsedJwt?.networkName ?? ""
         
         VStack {
          
@@ -50,7 +49,7 @@ struct ProfileView: View {
             }
             
             HStack {
-                Text(networkName)
+                Text(networkName ?? "")
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
                 
@@ -104,6 +103,7 @@ struct ProfileView: View {
     ProfileView(
         api: SdkApi(),
         back: {},
+        networkName: "hello_world",
         userAuth: "hello@ur.io"
     )
 }

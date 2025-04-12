@@ -192,6 +192,12 @@ struct ConnectView_macOS: View {
                 subscriptionProduct: subscriptionManager.products.first,
                 purchase: { product in
                     
+                    let initiallyConnected = deviceManager.device?.getConnected() ?? false
+                    
+                    if (initiallyConnected) {
+                        connectViewModel.disconnect()
+                    }
+                    
                     Task {
                         do {
                             try await subscriptionManager.purchase(
@@ -205,7 +211,10 @@ struct ConnectView_macOS: View {
                             print("error making purchase: \(error)")
                         }
                         
-
+                        if (initiallyConnected) {
+                            connectViewModel.connect()
+                        }
+                        
                     }
 
                 },

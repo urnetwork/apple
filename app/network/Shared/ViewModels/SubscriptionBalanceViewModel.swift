@@ -41,6 +41,12 @@ class SubscriptionBalanceViewModel: ObservableObject {
         
     }
     
+    private func setIsPolling(_ isPolling: Bool) {
+        DispatchQueue.main.async {
+            self.isPolling = isPolling
+        }
+    }
+    
     func setCurrentPlan(_ plan: Plan) {
         self.currentPlan = plan
     }
@@ -105,15 +111,22 @@ class SubscriptionBalanceViewModel: ObservableObject {
         
     }
     
+    func setPollingInterval(_ interval: TimeInterval) {
+        DispatchQueue.main.async {
+            self.pollingInterval = interval
+        }
+    }
+    
     func startPolling(interval: TimeInterval = 5.0) {
         
         guard !isPolling else { return }
         
-        self.pollingInterval = interval
-        self.isPolling = true
-        
         // Perform initial fetch
         Task {
+            
+            self.setPollingInterval(interval)
+            self.setIsPolling(true)
+            
             await fetchSubscriptionBalance()
             
             if (self.isSupporterWithBalance()) {
@@ -131,7 +144,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
                     Task {
                         await self.fetchSubscriptionBalance()
                         
-                        if await (self.isSupporterWithBalance()) {
+                        if (await self.isSupporterWithBalance()) {
                             await self.stopPolling()
                         }
                         

@@ -12,7 +12,6 @@ import URnetworkSdk
 /**
  * For creating a subscription with the App Store
  */
-@MainActor
 class AppStoreSubscriptionManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var isPurchasing: Bool = false
@@ -43,18 +42,25 @@ class AppStoreSubscriptionManager: ObservableObject {
             
             let storeProducts = try await Product.products(for: productIdentifiers)
             
-            self.products = storeProducts
+            await MainActor.run {
+                self.products = storeProducts
+            }
+            
             print("Retrieved products: \(storeProducts.count)")
         } catch {
             print("Failed to fetch products: \(error)")
         }
     }
     
+    @MainActor
+    private func setIsPurchasing(_ isPurchasing: Bool) async {
+        self.isPurchasing = isPurchasing
+    }
+    
     func purchase(product: Product, onSuccess: @escaping (() -> Void)) async throws {
         guard !isPurchasing else { return }
         
-        isPurchasing = true
-        defer { isPurchasing = false }
+        await setIsPurchasing(true)
         
         self.onPurchaseSuccess = onSuccess
         
@@ -89,7 +95,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                     await transaction.finish()
                     
                     onPurchaseSuccess()
-                    setPurchaseSuccess(true)
+                    await setPurchaseSuccess(true)
                     
                 case .unverified( _, let error):
                     print("Purchase unverified: \(error)")
@@ -108,10 +114,14 @@ class AppStoreSubscriptionManager: ObservableObject {
             }
         } catch {
             print("Purchase failed: \(error)")
+            await setIsPurchasing(false)
             throw error
         }
+        
+        await setIsPurchasing(false)
     }
     
+    @MainActor
     func setPurchaseSuccess(_ success: Bool) {
         self.purchaseSuccess = success
     }
@@ -138,7 +148,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                         print("✅ Verified transaction update: \(transaction.id)")
                         
                         // Log transaction details for debugging
-                        await self.logTransactionDetails(transaction)
+                        self.logTransactionDetails(transaction)
                         
                         // Finish the transaction
                         await transaction.finish()

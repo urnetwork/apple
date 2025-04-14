@@ -17,6 +17,7 @@ struct AccountRootView: View {
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @Environment(\.requestReview) private var requestReview
+    @EnvironmentObject var connectViewModel: ConnectViewModel
     
     var navigate: (AccountNavigationPath) -> Void
     var logout: () -> Void
@@ -286,6 +287,14 @@ struct AccountRootView: View {
                 subscriptionProduct: subscriptionManager.products.first,
                 purchase: { product in
                     
+                    let initiallyConnected = deviceManager.device?.getConnected() ?? false
+                    
+                    #if os(macOS)
+                    if (initiallyConnected) {
+                        connectViewModel.disconnect()
+                    }
+                    #endif
+                    
                     Task {
                         do {
                             try await subscriptionManager.purchase(
@@ -298,6 +307,12 @@ struct AccountRootView: View {
                         } catch(let error) {
                             print("error making purchase: \(error)")
                         }
+                        
+                        #if os(macOS)
+                        if (initiallyConnected) {
+                            connectViewModel.connect()
+                        }
+                        #endif
 
                     }
 

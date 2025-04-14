@@ -28,6 +28,7 @@ struct UpgradeSubscriptionSheet: View {
                     dismiss: dismiss
                 )
                 .transition(.opacity)
+                .frame(maxWidth: .infinity)
                 
             } else {
                 
@@ -111,10 +112,12 @@ struct UpgradeSubscriptionSheet: View {
                 }
                 .transition(.opacity)
                 .padding()
+                .frame(maxWidth: .infinity)
                 
             }
             
         }
+        .frame(maxWidth: .infinity)
         .animation(.easeIn(duration: 0.25), value: purchaseSuccess)
             
     }
@@ -131,8 +134,9 @@ struct UpgradePurchaseSuccessView: View {
             Image("UpgradeSuccessBackground")
                 .resizable()
                 .scaledToFill()
-                .frame(minWidth: 0)
-                .edgesIgnoringSafeArea(.all)
+                .frame(minWidth: 0, maxWidth: .infinity)
+                .clipped()
+                // .edgesIgnoringSafeArea(.all)
             
             VStack {
                          
@@ -181,8 +185,10 @@ struct UpgradePurchaseSuccessView: View {
                 .background(.urLightYellow)
                 .cornerRadius(12)
                 .padding()
+                .frame(maxWidth: .infinity)
                 
             }
+            .frame(maxWidth: .infinity)
             
         }
     }

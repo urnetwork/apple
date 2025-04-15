@@ -24,6 +24,12 @@ struct ConnectView_macOS: View {
     
     @State private var isProviderTableVisible: Bool = false
     
+    @StateObject private var providerListStore: ProviderListStore
+    
+    init(api: SdkApi) {
+        _providerListStore = StateObject(wrappedValue: ProviderListStore(api: api))
+    }
+    
     var body: some View {
          
         VStack {
@@ -140,31 +146,31 @@ struct ConnectView_macOS: View {
                         connectBestAvailable: {
                             connectViewModel.connectBestAvailable()
                         },
-                        providerCountries: connectViewModel.providerCountries,
-                        providerPromoted: connectViewModel.providerPromoted,
-                        providerDevices: connectViewModel.providerDevices,
-                        providerRegions: connectViewModel.providerRegions,
-                        providerCities: connectViewModel.providerCities,
-                        providerBestSearchMatches: connectViewModel.providerBestSearchMatches,
-                        searchQuery: $connectViewModel.searchQuery,
+                        providerCountries: providerListStore.providerCountries,
+                        providerPromoted: providerListStore.providerPromoted,
+                        providerDevices: providerListStore.providerDevices,
+                        providerRegions: providerListStore.providerRegions,
+                        providerCities: providerListStore.providerCities,
+                        providerBestSearchMatches: providerListStore.providerBestSearchMatches,
+                        searchQuery: $providerListStore.searchQuery,
                         refresh: {
                             Task {
-                                let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                                let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
                             }
                         },
-                        isLoading: connectViewModel.providersLoading
+                        isLoading: providerListStore.providersLoading
                     )
                     .frame(maxWidth: 260)
                     .frame(maxHeight: .infinity)
                     .searchable(
-                        text: $connectViewModel.searchQuery,
+                        text: $providerListStore.searchQuery,
                         prompt: "Search providers"
                     )
                     .toolbar {
                         ToolbarItem(placement: .automatic) {
                             Button(action: {
                                 Task {
-                                    let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                                    let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
                                 }
                             }) {
                                 Image(systemName: "arrow.clockwise")

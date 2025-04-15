@@ -102,7 +102,9 @@ struct MainNavigationSplitView: View {
             
             switch selectedTab {
             case .connect:
-                ConnectView_macOS()
+                ConnectView_macOS(
+                    api: api
+                )
             case .account:
                 AccountNavStackView(
                     api: api,

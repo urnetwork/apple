@@ -22,6 +22,8 @@ struct ConnectView_iOS: View {
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
+    @StateObject private var providerListStore: ProviderListStore
+    
     var logout: () -> Void
     var api: SdkApi
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
@@ -37,6 +39,8 @@ struct ConnectView_iOS: View {
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
+        
+        _providerListStore = StateObject(wrappedValue: ProviderListStore(api: api))
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -175,18 +179,18 @@ struct ConnectView_iOS: View {
                         connectViewModel.connectBestAvailable()
                         providerListSheetViewModel.isPresented = false
                     },
-                    providerCountries: connectViewModel.providerCountries,
-                    providerPromoted: connectViewModel.providerPromoted,
-                    providerDevices: connectViewModel.providerDevices,
-                    providerRegions: connectViewModel.providerRegions,
-                    providerCities: connectViewModel.providerCities,
-                    providerBestSearchMatches: connectViewModel.providerBestSearchMatches
+                    providerCountries: providerListStore.providerCountries,
+                    providerPromoted: providerListStore.providerPromoted,
+                    providerDevices: providerListStore.providerDevices,
+                    providerRegions: providerListStore.providerRegions,
+                    providerCities: providerListStore.providerCities,
+                    providerBestSearchMatches: providerListStore.providerBestSearchMatches
                 )
                 .navigationBarTitleDisplayMode(.inline)
     
     
                 .searchable(
-                    text: $connectViewModel.searchQuery,
+                    text: $providerListStore.searchQuery,
                     placement: .navigationBarDrawer(displayMode: .always),
                     prompt: "Search providers"
                 )
@@ -206,7 +210,7 @@ struct ConnectView_iOS: View {
                     }
                 }
                 .refreshable {
-                    let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                    let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
                 }
                 .onAppear {
                     
@@ -214,7 +218,7 @@ struct ConnectView_iOS: View {
                     connectViewModel.updateContractStatus()
                     
                     Task {
-                        let _ = await connectViewModel.filterLocations(connectViewModel.searchQuery)
+                        let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
                     }
                 }
     

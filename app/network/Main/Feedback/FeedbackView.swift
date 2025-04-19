@@ -97,7 +97,7 @@ struct FeedbackView: View {
                                 self.handleSendFeedbackResult(result)
                             }
                         },
-                        enabled: !viewModel.isSending && !viewModel.feedback.isEmpty
+                        enabled: !viewModel.isSending && (!viewModel.feedback.isEmpty || (viewModel.starCount ?? 0) > 0)
                     )
                 }
                 .padding()

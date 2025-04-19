@@ -48,7 +48,7 @@ extension FeedbackView {
             
             do {
                 
-                let result: SdkFeedbackSendResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                let _: SdkFeedbackSendResult = try await withCheckedThrowingContinuation { [weak self] continuation in
                     
                     guard let self = self else { return }
                     
@@ -72,6 +72,7 @@ extension FeedbackView {
                     let needs = SdkFeedbackSendNeeds()
                     needs.other = feedback
                     args.needs = needs
+                    args.starCount = starCount ?? 0
                     
                     api?.sendFeedback(args, callback: callback)
                     

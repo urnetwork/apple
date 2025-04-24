@@ -123,7 +123,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
         
-        self.reasserting = true
+//        self.reasserting = true
         
         
         // create new device with latest config
@@ -181,6 +181,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
         
+        
+        
         // load initial device settings
         // these will be in effect until the app connects and sets the user values
         device.setTunnelStarted(true)
@@ -191,9 +193,49 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         device.setProvideMode(localState.getProvideMode())
         device.setRouteLocal(localState.getRouteLocal())
         
+        // FIXME
+//        windowStatsChanged(device.windowStats())
+//        
+//        device.add(WindowStatsChangeListener { windowStats in
+//            windowStatsChanged(windowStats)
+//        })
+        
+        
+        
+    // Configure network settings
+    let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
+    
+    // IPv4 Configuration
+    let ipv4Settings = NEIPv4Settings(addresses: ["169.254.2.1"], subnetMasks: ["255.255.255.0"])
+    ipv4Settings.includedRoutes = [NEIPv4Route.default()]
+    networkSettings.ipv4Settings = ipv4Settings
+    
+    let ipv6Settings = NEIPv6Settings()
+    networkSettings.ipv6Settings = ipv6Settings
+    
+    // DNS Settings
+//        let dnsSettings = NEDNSSettings(servers: ["1.1.1.1", "9.9.9.9"])
+    // use settings from connect/net_http_doh
+    let dnsSettings = NEDNSOverHTTPSSettings()
+    dnsSettings.serverURL = URL(string: "https://1.1.1.1/dns-query")
+    networkSettings.dnsSettings = dnsSettings
+    
+    
+    // default URnetwork MTU
+    networkSettings.mtu = 1440
+        
+        
         
         let locationChangeSub = device.add(ConnectLocationChangeListener { location in
             try? localState.setConnectLocation(location)
+            
+            self.setTunnelNetworkSettings(networkSettings) { error in
+                if let error = error {
+                    self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
+                    return
+                }
+//                self.reasserting = false
+            }
         })
         let provideChangeSub = device.add(ProvideChangeListener { provideEnabled in
             var provideMode: Int
@@ -238,26 +280,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
             
-        // Configure network settings
-        let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
-        
-        // IPv4 Configuration
-        let ipv4Settings = NEIPv4Settings(addresses: ["169.254.2.1"], subnetMasks: ["255.255.255.0"])
-        ipv4Settings.includedRoutes = [NEIPv4Route.default()]
-        networkSettings.ipv4Settings = ipv4Settings
-        
-        let ipv6Settings = NEIPv6Settings()
-        networkSettings.ipv6Settings = ipv6Settings
-        
-        // DNS Settings
-//        let dnsSettings = NEDNSSettings(servers: ["1.1.1.1", "8.8.8.8"])
-        // use settings from connect/net_http_doh
-        let dnsSettings = NEDNSOverHTTPSSettings(servers: ["1.1.1.1", "9.9.9.9"])
-        dnsSettings.serverURL = URL(string: "https://1.1.1.1/dns-query")
-        networkSettings.dnsSettings = dnsSettings
-        
-        // default URnetwork MTU
-        networkSettings.mtu = 1440
         
         
         // see https://forums.developer.apple.com/forums/thread/661560
@@ -271,14 +293,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
             
             self.logger.info("[PacketTunnelProvider]network settings applied successfully")
-
+            
+//            self.reasserting = false
             readToDevice(packetFlow: self.packetFlow, device: device, close: close)
             
-            self.reasserting = false
+//            self.reasserting = false
             completionHandler(nil)
         }
     }
-   
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         logger.info("[PacketTunnelProvider]stop with reason: \(String(describing: reason))")
@@ -293,6 +315,26 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             handler(messageData)
         }
     }
+    
+//    func windowStatsChanged(windowStats) {
+//        let connected = 0 < COUNT
+//        if self.connected != connected {
+//            self.connected = connected
+//            if connected {
+//                // reset the dns
+//                self.setTunnelNetworkSettings(networkSettings) { _ in
+//                    self.reasserting = false
+//                }
+//            } else {
+//                self.reasserting = true
+//            }
+//        }
+//        if 0 < windowStats.connctedCount {
+//            self.reasserting = false
+//        } else {
+//            self.reasserting = true
+//        }
+//    }
 }
 
 

@@ -48,6 +48,22 @@ class DeviceManager: ObservableObject {
         }
     }
     
+    @Published var routeLocal: Bool = false {
+        didSet {
+            setRouteLocalInternal(routeLocal)
+        }
+    }
+
+    private func setRouteLocalInternal(_ value: Bool) {
+        do {
+            try asyncLocalState?.getLocalState()?.setRouteLocal(value)
+        } catch {
+            print("error setting route local: \(error)")
+        }
+
+        device?.setRouteLocal(value)
+    }
+    
     func setDevice(device: SdkDeviceRemote?) {
         
         if self.device != device {
@@ -62,6 +78,7 @@ class DeviceManager: ObservableObject {
                 if let device = device {
                     print("set device hit: device exists: resetting vpn manager")
                     self.provideWhileDisconnected = device.getProvideWhileDisconnected()
+                    self.routeLocal = device.getRouteLocal()
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
                 } else {
@@ -152,20 +169,6 @@ class DeviceManager: ObservableObject {
         } catch {
             parsedJwt = nil
         }
-    }
-    
-    var routeLocal: Bool {
-        return device?.getRouteLocal() ?? false
-    }
-    
-    func setRouteLocal(_ value: Bool) {
-        do {
-            try asyncLocalState?.getLocalState()?.setRouteLocal(value)
-        } catch {
-            print("error setting route local: \(error)")
-        }
-
-        device?.setRouteLocal(value)
     }
     
     func setCanShowRatingDialog(_ value: Bool) {

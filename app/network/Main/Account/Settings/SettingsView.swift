@@ -226,6 +226,14 @@ struct SettingsView: View {
                             .foregroundColor(themeManager.currentTheme.textColor)
                     }
                     
+                    Spacer().frame(height: 16)
+                    
+                    UrSwitchToggle(isOn: $deviceManager.routeLocal) {
+                        Text("Allow local traffic when disconnected")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                    }
+                    
                     Spacer().frame(height: 32)
                     
                     /**

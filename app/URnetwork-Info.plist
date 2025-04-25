@@ -7,7 +7,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.338638865390-94pb0u17nl6b4atog4rspn0ep3ktisp7</string>
+				<string>com.googleusercontent.apps.338638865390-tdgpupo59durdck5es80iukafh0or4uq</string>
 			</array>
 		</dict>
 		<dict>
@@ -22,7 +22,7 @@
 		</dict>
 	</array>
 	<key>GIDClientID</key>
-	<string>338638865390-94pb0u17nl6b4atog4rspn0ep3ktisp7.apps.googleusercontent.com</string>
+	<string>338638865390-tdgpupo59durdck5es80iukafh0or4uq.apps.googleusercontent.com</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 	<key>NEVPNConfiguration</key>

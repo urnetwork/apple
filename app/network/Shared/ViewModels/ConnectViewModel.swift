@@ -11,14 +11,16 @@ import SwiftUI
 import Combine
 
 private class GridListener: NSObject, SdkGridListenerProtocol {
-    private let callback: () -> Void
+    private let callback: () async -> Void
 
-    init(callback: @escaping () -> Void) {
+    init(callback: @escaping () async -> Void) {
         self.callback = callback
     }
     
     func gridChanged() {
-        callback()
+        Task {
+            await callback()
+        }
     }
 }
 
@@ -233,9 +235,8 @@ extension ConnectViewModel {
                 return
             }
             
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.updateGrid()
-                
             }
             
         }
@@ -243,7 +244,7 @@ extension ConnectViewModel {
         updateGrid()
     }
     
-    private func updateGrid() {
+    func updateGrid() {
            
        if let grid = self.connectViewController?.getGrid() {
            self.gridWidth = grid.getWidth()

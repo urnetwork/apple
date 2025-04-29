@@ -191,6 +191,9 @@ struct ConnectView_macOS: View {
             .animation(.spring(duration: 0.3), value: isProviderTableVisible)
             .frame(maxWidth: .infinity)
         }
+        .onAppear {
+            connectViewModel.updateGrid()
+        }
         
         // upgrade subscription
         .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {

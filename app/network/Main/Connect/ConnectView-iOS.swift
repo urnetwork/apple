@@ -142,6 +142,8 @@ struct ConnectView_iOS: View {
         }
         .onAppear {
             
+            connectViewModel.updateGrid()
+            
             /**
              * Create callback function for prompting rating
              */

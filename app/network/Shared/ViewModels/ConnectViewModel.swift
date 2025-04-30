@@ -135,6 +135,8 @@ class ConnectViewModel: ObservableObject {
             }
         })
         
+        self.refreshTunnelStatus()
+        
         /**
          * Add contract status listener for insufficient balance updates
          */
@@ -147,6 +149,10 @@ class ConnectViewModel: ObservableObject {
             self.updateContractStatus()
         })
         
+    }
+    
+    func refreshTunnelStatus() {
+        self.tunnelConnected = self.device?.getTunnelStarted() ?? false
     }
     
     /**

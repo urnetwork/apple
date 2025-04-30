@@ -143,6 +143,7 @@ struct ConnectView_iOS: View {
         .onAppear {
             
             connectViewModel.updateGrid()
+            connectViewModel.refreshTunnelStatus()
             
             /**
              * Create callback function for prompting rating

@@ -193,6 +193,7 @@ struct ConnectView_macOS: View {
         }
         .onAppear {
             connectViewModel.updateGrid()
+            connectViewModel.refreshTunnelStatus()
         }
         
         // upgrade subscription

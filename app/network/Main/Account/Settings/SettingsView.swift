@@ -299,6 +299,35 @@ struct SettingsView: View {
                         }
                     }
                     
+                    Spacer().frame(height: 32)
+                    
+                    HStack {
+                        UrLabel(text: "Earning multipliers")
+                        
+                        Spacer()
+                    }
+                    
+                    Spacer().frame(height: 8)
+                    
+                    HStack {
+                        Text("Claim Multiplier")
+                            .font(themeManager.currentTheme.bodyFont)
+                        Spacer()
+                        Button(action: {}) {
+                            Text("Coming soon")
+                        }
+                    }
+                    
+                    Spacer().frame(height: 4)
+                    
+                    HStack {
+                        Text("Connect a wallet with the Seeker Pre-Order Token")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        
+                        Spacer()
+                    }
+                    
                     Spacer().frame(height: 64)
                     
                     Button(role: .destructive, action: {

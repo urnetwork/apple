@@ -77,6 +77,35 @@ struct PopulatedWalletsView: View {
                 
                 Spacer().frame(height: 16)
                 
+                /**
+                 * Seeker holder
+                 */
+                HStack {
+                    Text("Claim Multiplier")
+                        .font(themeManager.currentTheme.bodyFont)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                    
+                HStack {
+                    Text("Connect a wallet with the Seeker Pre-Order Token")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                
+                Spacer().frame(height: 8)
+                
+                HStack {
+                    UrButton(text: "Verify Seeker Coming Soon", action: {}, enabled: false)
+                }
+                .padding(.horizontal, 16)
+                
+                Spacer().frame(height: 16)
+                
                 PaymentsList(
                     payments: accountPaymentsViewModel.payments
                 )

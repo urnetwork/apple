@@ -2419,7 +2419,7 @@
       }
     },
     "Connect a wallet with the Seeker Pre-Order Token" : {
-"localizations" : {
+      "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18168,7 +18168,7 @@
       }
     },
     "Verify Seeker Coming Soon" : {
-"localizations" : {
+      "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",

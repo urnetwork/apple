@@ -41,6 +41,24 @@ struct UpgradeSubscriptionSheet: View {
                         
                         if let product = subscriptionProduct {
                             
+                            
+                            #if os(macOS)
+                            
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    dismiss()
+                                }) {
+                                    Image(systemName: "xmark")
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            
+                            Spacer().frame(height: 8)
+                            
+                            #endif
+                            
                             HStack {
                                 
                                 Text("Become a")

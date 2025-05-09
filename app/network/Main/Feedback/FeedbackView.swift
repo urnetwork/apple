@@ -128,9 +128,7 @@ struct FeedbackView: View {
             
             snackbarManager.showSnackbar(message: "Sent! Thanks for your feedback.")
             
-            if viewModel.starCount == 5 {
-                requestReview()
-            }
+            requestReview()
             
             viewModel.setStarCount(0)
             

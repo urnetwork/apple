@@ -97,29 +97,6 @@ struct AuthSolanaWalletSheet: View {
                     /**
                      * Wallet connected
                      */
-//                    Button(action: {
-//                        
-//                        if  (connectWalletProviderViewModel.connectedWalletProvider == ConnectedWalletProvider.phantom) {
-//                            connectWalletProviderViewModel.signMessagePhantom(
-//                                message: connectWalletProviderViewModel.welcomeMessage
-//                            )
-//                        }
-//                        
-//                        if  (connectWalletProviderViewModel.connectedWalletProvider == ConnectedWalletProvider.solflare) {
-//                            connectWalletProviderViewModel.signMessageSolflare(
-//                                message: connectWalletProviderViewModel.welcomeMessage
-//                            )
-//                        }
-//                        
-//                    }) {
-//                        Text("Sign in")
-//                            .foregroundColor(.white)
-//                    }
-//                    .frame(height: 48)
-//                    .frame(maxWidth: .infinity)
-//                    .background(Color.urElectricBlue)
-//                    .clipShape(Capsule())
-                    
                     UrButton(
                         text: "Sign in with Solana",
                         action: {

@@ -17,6 +17,7 @@ struct ContentView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @StateObject private var snackbarManager = UrSnackbarManager()
+    @StateObject private var connectWalletProviderViewModel = ConnectWalletProviderViewModel()
     
     @State private var opacity: Double = 0.0
     
@@ -84,6 +85,7 @@ struct ContentView: View {
         .environmentObject(deviceManager)
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(snackbarManager)
+        .environmentObject(connectWalletProviderViewModel)
         .onReceive(deviceManager.$device) { device in
   
             updatePath()

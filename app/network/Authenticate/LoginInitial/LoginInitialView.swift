@@ -16,6 +16,7 @@ struct LoginInitialView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     @StateObject private var viewModel: ViewModel
     @State private var initialIsLandscape: Bool = false
     
@@ -69,7 +70,10 @@ struct LoginInitialView: View {
                             isValidUserAuth: viewModel.isValidUserAuth,
                             isCheckingUserAuth: viewModel.isCheckingUserAuth,
                             deviceExists: deviceExists,
-                            presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet
+                            presentSignInWithSolanaSheet: {
+                                viewModel.presentSigninWithSolanaSheet = true
+                            },
+                            presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet,
                         )
                         .frame(width: geometry.size.width / 2, alignment: .leading)
                         
@@ -92,6 +96,9 @@ struct LoginInitialView: View {
                             isValidUserAuth: viewModel.isValidUserAuth,
                             isCheckingUserAuth: viewModel.isCheckingUserAuth,
                             deviceExists: deviceExists,
+                            presentSignInWithSolanaSheet: {
+                                viewModel.presentSigninWithSolanaSheet = true
+                            },
                             presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet
                         )
                         
@@ -103,6 +110,13 @@ struct LoginInitialView: View {
                     
                 }
                 
+            }
+            .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
+                AuthSolanaWalletSheet(
+                    isSigningMessage: viewModel.isSigningMessage,
+                    setIsSigningMessage: viewModel.setIsSigningMessage
+                )
+                    .presentationDetents([.height(148)])
             }
             .sheet(isPresented: $viewModel.presentGuestNetworkSheet) {
                 
@@ -166,7 +180,51 @@ struct LoginInitialView: View {
             }
         }
         #endif
+        .onOpenURL { url in
+            connectWalletProviderViewModel
+                .handleDeepLink(
+                    url,
+                    onSignature: { signature in
+                        
+                        guard let pk = connectWalletProviderViewModel.connectedPublicKey else {
+                            snackbarManager.showSnackbar(message: "Couldn't parse public key, please try again later.")
+                            return
+                        }
+                        
+                        Task {
+                            await handleSolanaWalletResult(
+                                message: connectWalletProviderViewModel.welcomeMessage,
+                                signature: signature,
+                                publicKey: pk
+                            )
+                        }
+                        
+                    }
+                )
+        }
         
+    }
+    
+    private func handleSolanaWalletResult(message: String, signature: String, publicKey: String) async {
+        print("handleSolanaWalletResult")
+        let createArgsResult = viewModel.createSolanaAuthLoginArgs(message: message, signature: signature, publicKey: publicKey)
+        switch createArgsResult {
+        case .success(let args):
+            
+            if deviceManager.device != nil {
+                // fixme: upgrade from guest - handle solana login
+                snackbarManager.showSnackbar(message: "Upgrade guest from Solana coming soon.")
+            } else {
+                let result = await viewModel.authLogin(args: args)
+                await self.handleAuthLoginResult(result)
+                viewModel.presentSigninWithSolanaSheet = false
+                viewModel.setIsSigningMessage(false)
+            }
+        
+        case .failure(let error):
+            print("error create args result: \(error.localizedDescription)")
+            snackbarManager.showSnackbar(message: "There was an error logging in")
+        }
     }
     
     private func handleCreateGuestNetworkResult(_ result: LoginNetworkResult) async {
@@ -350,6 +408,7 @@ private struct LoginInitialFormView: View {
     var isValidUserAuth: Bool
     var isCheckingUserAuth: Bool
     var deviceExists: Bool
+    var presentSignInWithSolanaSheet: () -> Void
     // var isGuestMode: Bool
     
     @Binding var presentGuestNetworkSheet: Bool
@@ -426,7 +485,8 @@ private struct LoginInitialFormView: View {
             
             SSOButtons(
                 handleAppleLoginResult: handleAppleLoginResult,
-                handleGoogleSignInButton: handleGoogleSignInButton
+                handleGoogleSignInButton: handleGoogleSignInButton,
+                presentSignInWithSolanaSheet: presentSignInWithSolanaSheet
             )
             
             Spacer()
@@ -466,8 +526,11 @@ private struct LoginInitialFormView: View {
 #if os(iOS)
 private struct SSOButtons: View {
     
+    @EnvironmentObject var themeManager: ThemeManager
+    
     var handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
     var handleGoogleSignInButton: () async -> Void
+    var presentSignInWithSolanaSheet: () -> Void
 
     
     var body: some View {
@@ -493,6 +556,24 @@ private struct SSOButtons: View {
                 action: handleGoogleSignInButton
             )
             .buttonStyle(.plain)
+            
+            Spacer()
+                .frame(height: 24)
+            
+            Button(action: presentSignInWithSolanaSheet) {
+                HStack {
+                    Image("solana.gradient.logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24)
+                    Spacer().frame(width: 8)
+                    Text("Sign in with Solana")
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                }
+            }
+            
+            Spacer()
+                .frame(height: 24)
             
         }
         

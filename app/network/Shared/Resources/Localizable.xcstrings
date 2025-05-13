@@ -2421,6 +2421,148 @@
         }
       }
     },
+    "Connect a wallet" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ربط محفظة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde eine Wallet"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδέστε ένα πορτοφόλι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a wallet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una billetera"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una billetera"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connectez un portefeuille"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חבר ארנק"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक वॉलेट कनेक्ट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hubungkan dompet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega un wallet"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォレットを接続"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지갑 연결"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połącz portfel"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecte uma carteira"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecte uma carteira"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключите кошелек"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anslut en plånbok"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อกระเป๋าเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключіть гаманець"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối ví"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接钱包"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連接錢包"
+          }
+        }
+      }
+    },
     "Connect a wallet with the Seeker Pre-Order Token" : {
       "localizations" : {
         "ar" : {
@@ -4547,137 +4689,137 @@
       }
     },
     "Earning multipliers" : {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مضاعفات الأرباح"
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مضاعفات الأرباح"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verdienstmultiplikatoren"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verdienstmultiplikatoren"
           }
         },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Πολλαπλασιαστές κερδών"
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πολλαπλασιαστές κερδών"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Multiplicadores de ganancias"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multiplicadores de ganancias"
           }
         },
-        "es-419": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Multiplicadores de ganancias"
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multiplicadores de ganancias"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Multiplicateurs de gains"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multiplicateurs de gains"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מכפילי רווחים"
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מכפילי רווחים"
           }
         },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "अर्जन गुणक"
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अर्जन गुणक"
           }
         },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pengganda penghasilan"
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengganda penghasilan"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moltiplicatori di guadagno"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moltiplicatori di guadagno"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "収益倍率"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収益倍率"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "수익 승수"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "수익 승수"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mnożniki zarobków"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mnożniki zarobków"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Multiplicadores de ganhos"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multiplicadores de ganhos"
           }
         },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Multiplicadores de ganhos"
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multiplicadores de ganhos"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Множители заработка"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Множители заработка"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Intäktsmultiplikatorer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intäktsmultiplikatorer"
           }
         },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ตัวคูณรายได้"
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตัวคูณรายได้"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Множники заробітку"
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Множники заробітку"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hệ số nhân thu nhập"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hệ số nhân thu nhập"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收益倍增器"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收益倍增器"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收益倍增器"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收益倍增器"
           }
         }
       }
@@ -13928,6 +14070,148 @@
         }
       }
     },
+    "Sign in" : {
+"localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تسجيل الدخول"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Είσοδος"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sesión"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התחבר"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "साइन इन करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masuk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accedi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サインイン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그인"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaloguj się"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sessão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войти"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga in"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลงชื่อเข้าใช้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увійти"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng nhập"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登入"
+          }
+        }
+      }
+    },
     "Sign in with Google" : {
       "localizations" : {
         "ar" : {
@@ -14066,6 +14350,148 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 Google 登入"
+          }
+        }
+      }
+    },
+    "Sign in with Solana" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تسجيل الدخول باستخدام Solana"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Solana anmelden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύνδεση με Solana"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in with Solana"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sesión con Solana"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sesión con Solana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter avec Solana"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התחבר עם Solana"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana से साइन इन करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masuk dengan Solana"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accedi con Solana"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana でサインイン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana로 로그인"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaloguj się przez Solana"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrar com Solana"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sessão com Solana"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войти через Solana"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga in med Solana"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เข้าสู่ระบบด้วย Solana"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увійти через Solana"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng nhập bằng Solana"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Solana 登录"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Solana 登入"
           }
         }
       }

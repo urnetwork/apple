@@ -43,6 +43,10 @@ struct CreateNetworkView: View {
             authType = AuthType.google
         }
         
+        if authLoginArgs.walletAuth != nil {
+            authType = AuthType.solana
+        }
+        
         _viewModel = StateObject.init(wrappedValue: ViewModel(
             api: api,
             authType: authType
@@ -191,7 +195,8 @@ struct CreateNetworkView: View {
                                 : await viewModel.createNetwork(
                                     userAuth: userAuth,
                                     authJwt: authLoginArgs.authJwt,
-                                    authType: authLoginArgs.authJwtType
+                                    authType: authLoginArgs.authJwtType,
+                                    walletAuth: authLoginArgs.walletAuth
                                 )
                                 
                                 await handleResult(result)

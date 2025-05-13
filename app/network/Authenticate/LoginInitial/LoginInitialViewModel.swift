@@ -41,6 +41,16 @@ extension LoginInitialView {
         @Published private(set) var isCreatingGuestNetwork: Bool = false
         @Published var presentGuestNetworkSheet: Bool = false
         @Published var termsAgreed: Bool = false
+        @Published var presentSigninWithSolanaSheet: Bool = false
+        
+        /**
+         * Solana
+         */
+        @Published private(set) var isSigningMessage: Bool = false
+        
+        func setIsSigningMessage(_ isSigning: Bool) -> Void {
+            isSigningMessage = isSigning
+        }
         
         let termsLink = "https://ur.io/terms"
         
@@ -145,9 +155,7 @@ extension LoginInitialView {
                     
                 }
                 
-                DispatchQueue.main.async {
-                    self.setIsCheckingUserAuth(false)
-                }
+                self.setIsCheckingUserAuth(false)
                 
                 return result
                 
@@ -325,6 +333,24 @@ extension LoginInitialView.ViewModel {
         
     }
     
+}
+
+// MARK: Solana Sign in
+extension LoginInitialView.ViewModel {
+    func createSolanaAuthLoginArgs(message: String, signature: String, publicKey: String) -> Result<SdkAuthLoginArgs, Error> {
+        
+        let args = SdkAuthLoginArgs()
+        let walletAuth = SdkWalletAuthArgs()
+        walletAuth.blockchain = SdkSOL
+        walletAuth.message = message
+        walletAuth.signature = signature
+        walletAuth.publicKey = publicKey
+        
+        args.walletAuth = walletAuth
+        
+        return .success(args)
+        
+    }
 }
 
 private class AuthLoginCallback: SdkCallback<SdkAuthLoginResult, SdkAuthLoginCallbackProtocol>, SdkAuthLoginCallbackProtocol {

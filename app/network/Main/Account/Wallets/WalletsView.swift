@@ -14,13 +14,13 @@ struct WalletsView: View {
     @EnvironmentObject var accountPaymentsViewModel: AccountPaymentsViewModel
     @EnvironmentObject var accountWalletsViewModel: AccountWalletsViewModel
     @EnvironmentObject var payoutWalletViewModel: PayoutWalletViewModel
+    @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
     var navigate: (AccountNavigationPath) -> Void
     var api: SdkApi?
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     @StateObject private var viewModel: ViewModel = ViewModel()
-    @StateObject private var connectWalletProviderViewModel = ConnectWalletProviderViewModel()
     
     var body: some View {
         

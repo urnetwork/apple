@@ -31,6 +31,7 @@ enum AuthType {
     case password
     case apple
     case google
+    case solana
 }
 
 extension CreateNetworkView {
@@ -114,7 +115,7 @@ extension CreateNetworkView {
                                 // if auth type is password, check password length
                                 (authType == .password && password.count >= ViewModel.minPasswordLength)
                                 // otherwise, no need to check password length
-                                || (authType == .apple || authType == .google)
+                                || (authType == .apple || authType == .google || authType == .solana)
                             ) &&
                             termsAgreed
         }
@@ -341,7 +342,8 @@ extension CreateNetworkView {
         func createNetwork(
             userAuth: String?,
             authJwt: String?,
-            authType: String?
+            authType: String?,
+            walletAuth: SdkWalletAuthArgs?
         ) async -> LoginNetworkResult {
             
             if !formIsValid {
@@ -411,6 +413,10 @@ extension CreateNetworkView {
                     if let authJwt, let authType {
                         args.authJwt = authJwt
                         args.authJwtType = authType
+                    }
+                    
+                    if let walletAuth {
+                        args.walletAuth = walletAuth
                     }
                     
                     if self.isValidReferralCode {

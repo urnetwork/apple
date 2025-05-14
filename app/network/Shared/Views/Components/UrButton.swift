@@ -35,6 +35,7 @@ struct UrButton: View {
                 
                 if isProcessing {
                     ProgressView()
+                        .tint(.white)
                 } else {
                     Text(text)
                         .foregroundColor(foregroundColor)

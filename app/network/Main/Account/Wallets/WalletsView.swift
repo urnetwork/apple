@@ -66,7 +66,8 @@ struct WalletsView: View {
                         
                         PopulatedWalletsView(
                             navigate: navigate,
-                            presentConnectWalletSheet: $viewModel.presentConnectWalletSheet
+                            isSeekerOrSagaHolder: accountWalletsViewModel.isSeekerOrSagaHolder,
+                            presentConnectWalletSheet: $viewModel.presentConnectWalletSheet,
                         )
                     }
                     .frame(maxWidth: 600)

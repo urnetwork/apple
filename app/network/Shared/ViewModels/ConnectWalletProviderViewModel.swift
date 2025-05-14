@@ -28,6 +28,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
     var connectedWalletProvider: ConnectedWalletProvider? = nil
     
     let welcomeMessage = "Welcome to URnetwork"
+    let claimSeekerTokenMessage = "Claim point multiplier by holding Seeker Pre-order or Saga Genesis token"
     
     /**
      * Solflare
@@ -300,7 +301,6 @@ class ConnectWalletProviderViewModel: ObservableObject {
                     // Convert base58 signature to base64
                     if let signatureData = SdkDecodeBase58(json.signature, nil) {
                         let base64Signature = signatureData.base64EncodedString()
-                        print("Converted signature to base64: \(base64Signature.prefix(10))...")
                         
                         if let callback = onSignature {
                             callback(base64Signature)  // Send base64 signature to the callback

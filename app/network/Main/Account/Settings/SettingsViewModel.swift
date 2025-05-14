@@ -53,6 +53,16 @@ extension SettingsView {
         }
         #endif
         
+        /**
+         * Solana
+         */
+        @Published var presentSigninWithSolanaSheet: Bool = false
+        @Published private(set) var isSigningMessage: Bool = false
+        
+        func setIsSigningMessage(_ isSigning: Bool) -> Void {
+            isSigningMessage = isSigning
+        }
+        
         let domain = "SettingsViewModel"
         
         private func checkNotificationSettings() {

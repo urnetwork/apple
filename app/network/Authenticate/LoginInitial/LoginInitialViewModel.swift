@@ -41,11 +41,11 @@ extension LoginInitialView {
         @Published private(set) var isCreatingGuestNetwork: Bool = false
         @Published var presentGuestNetworkSheet: Bool = false
         @Published var termsAgreed: Bool = false
-        @Published var presentSigninWithSolanaSheet: Bool = false
         
         /**
          * Solana
          */
+        @Published var presentSigninWithSolanaSheet: Bool = false
         @Published private(set) var isSigningMessage: Bool = false
         
         func setIsSigningMessage(_ isSigning: Bool) -> Void {

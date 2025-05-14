@@ -54,6 +54,12 @@ class AccountWalletsViewModel: ObservableObject {
      */
     @Published var isCreatingWallet: Bool = false
     
+    /**
+     * Saga / Seeker token holder
+     */
+    @Published private(set) var isVerifyingSeekerOrSagaOwnership: Bool = false
+    @Published private(set) var isSeekerOrSagaHolder: Bool = false
+    
     var api: SdkApi?
     
     init(api: SdkApi?) {
@@ -122,6 +128,11 @@ class AccountWalletsViewModel: ObservableObject {
             
             if let wallet = wallet {
                 accountWallets.append(wallet)
+                
+                if (wallet.hasSeekerToken && !self.isSeekerOrSagaHolder) {
+                    self.isSeekerOrSagaHolder = true
+                }
+                
             }
         }
         
@@ -307,6 +318,73 @@ extension AccountWalletsViewModel {
     
 }
 
+// MARK: verify Seeker/Saga ownership
+extension AccountWalletsViewModel {
+    
+    func verifySeekerOrSagaOwnership(
+        publicKey: String,
+        message: String,
+        signature: String,
+    ) async -> Result<Bool, Error> {
+     
+        if (isVerifyingSeekerOrSagaOwnership) {
+            return .failure(SeekerSagaVerificationError.alreadyProcessing)
+        }
+        
+        isVerifyingSeekerOrSagaOwnership = true
+        
+        do {
+            
+            let result: SdkVerifySeekerNftHolderResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                
+                guard let self = self else { return }
+                
+                let callback = VerifySeekerNftHolderCallback { result, err in
+                    
+                    if let err = err {
+                        continuation.resume(throwing: err)
+                        return
+                    }
+                    
+                    guard let result = result else {
+                        continuation.resume(throwing: SeekerSagaVerificationError.invalidResult)
+                        return
+                    }
+                    
+                    continuation.resume(returning: result)
+                }
+                
+                let args = SdkVerifySeekerNftHolderArgs()
+                args.publicKey = publicKey
+                args.signature = signature
+                args.message = message
+                
+                
+                api?.verifySeekerHolder(args, callback: callback)
+            }
+            
+            isVerifyingSeekerOrSagaOwnership = false
+            
+            await self.fetchAccountWallets()
+            
+            return .success(result.success)
+            
+        } catch(let error) {
+            isVerifyingSeekerOrSagaOwnership = false
+            return .failure(error)
+        }
+        
+        
+    }
+    
+}
+
+private class VerifySeekerNftHolderCallback: SdkCallback<SdkVerifySeekerNftHolderResult, SdkVerifySeekerNftHolderCallbackProtocol>, SdkVerifySeekerNftHolderCallbackProtocol {
+    func result(_ result: SdkVerifySeekerNftHolderResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 private class CreateAccountWalletCallback: SdkCallback<SdkCreateAccountWalletResult, SdkCreateAccountWalletCallbackProtocol>, SdkCreateAccountWalletCallbackProtocol {
     func result(_ result: SdkCreateAccountWalletResult?, err: Error?) {
         handleResult(result, err: err)
@@ -321,6 +399,14 @@ private class ValidateAddressCallback: SdkCallback<SdkWalletValidateAddressResul
 
 enum CreateWalletError: Error {
     case isLoading
+    case invalidResult
     case invalidChain
     case invalidAddress
+}
+
+enum SeekerSagaVerificationError: Error {
+    case alreadyProcessing
+    case invalidResult
+    case invalidSignature
+    case unknown(String)
 }

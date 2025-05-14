@@ -112,11 +112,16 @@ struct LoginInitialView: View {
                 
             }
             .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
-                AuthSolanaWalletSheet(
+                
+                SolanaSignMessageSheet(
                     isSigningMessage: viewModel.isSigningMessage,
-                    setIsSigningMessage: viewModel.setIsSigningMessage
+                    setIsSigningMessage: viewModel.setIsSigningMessage,
+                    signButtonText: "Sign in with Solana",
+                    signButtonLabelText: "Sign in",
+                    message: connectWalletProviderViewModel.welcomeMessage
                 )
-                    .presentationDetents([.height(148)])
+                .presentationDetents([.height(148)])
+                
             }
             .sheet(isPresented: $viewModel.presentGuestNetworkSheet) {
                 

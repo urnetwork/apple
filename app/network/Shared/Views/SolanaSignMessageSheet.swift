@@ -1,23 +1,24 @@
 //
-//  AuthSolanaWalletSheet.swift
+//  SolanaSignMessageSheet.swift
 //  URnetwork
 //
-//  Created by Stuart Kuentzel on 2025/05/10.
+//  Created by Stuart Kuentzel on 2025/05/14.
 //
 
 import SwiftUI
 
-struct AuthSolanaWalletSheet: View {
+struct SolanaSignMessageSheet: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
-    // let verifyMessage = "Welcome to URnetwork"
     var isSigningMessage: Bool
     var setIsSigningMessage: (Bool) -> Void
+    var signButtonText: LocalizedStringKey
+    var signButtonLabelText: LocalizedStringKey
+    var message: String
     
     var body: some View {
-        
         VStack {
             
             if (connectWalletProviderViewModel.connectedPublicKey == nil) {
@@ -85,7 +86,8 @@ struct AuthSolanaWalletSheet: View {
             } else {
                 
                 HStack {
-                    Text("Sign in")
+                    // Text("Sign in")
+                    Text(signButtonLabelText)
                         .font(themeManager.currentTheme.toolbarTitleFont)
                     Spacer()
                 }
@@ -98,20 +100,23 @@ struct AuthSolanaWalletSheet: View {
                      * Wallet connected
                      */
                     UrButton(
-                        text: "Sign in with Solana",
+                        // text: "Sign in with Solana",
+                        text: signButtonText,
                         action: {
                             
                             setIsSigningMessage(true)
                             
                             if  (connectWalletProviderViewModel.connectedWalletProvider == ConnectedWalletProvider.phantom) {
                                 connectWalletProviderViewModel.signMessagePhantom(
-                                    message: connectWalletProviderViewModel.welcomeMessage
+                                    // message: connectWalletProviderViewModel.welcomeMessage
+                                    message: message
                                 )
                             }
     
                             if  (connectWalletProviderViewModel.connectedWalletProvider == ConnectedWalletProvider.solflare) {
                                 connectWalletProviderViewModel.signMessageSolflare(
-                                    message: connectWalletProviderViewModel.welcomeMessage
+                                    // message: connectWalletProviderViewModel.welcomeMessage
+                                    message: message
                                 )
                             }
                         },
@@ -123,17 +128,18 @@ struct AuthSolanaWalletSheet: View {
                 .padding(.horizontal, 16)
                 // .frame(maxWidth: .infinity)
                 
-                
             }
             
         }
-        
     }
 }
 
 #Preview {
-    AuthSolanaWalletSheet(
+    SolanaSignMessageSheet(
         isSigningMessage: false,
-        setIsSigningMessage: {_ in }
+        setIsSigningMessage: {_ in },
+        signButtonText: "Sign in with Solana",
+        signButtonLabelText: "Sign in",
+        message: "Welcome to URnetwork"
     )
 }

@@ -15,6 +15,7 @@ struct PopulatedWalletsView: View {
     @EnvironmentObject var payoutWalletViewModel: PayoutWalletViewModel
     
     var navigate: (AccountNavigationPath) -> Void
+    var isSeekerOrSagaHolder: Bool
     @Binding var presentConnectWalletSheet: Bool
     
     var body: some View {
@@ -77,34 +78,59 @@ struct PopulatedWalletsView: View {
                 
                 Spacer().frame(height: 16)
                 
-                /**
-                 * Seeker holder
-                 */
-//                HStack {
-//                    Text("Claim Multiplier")
-//                        .font(themeManager.currentTheme.bodyFont)
-//                    
-//                    Spacer()
-//                }
-//                .padding(.horizontal, 16)
-//                    
-//                HStack {
-//                    Text("Connect a wallet with the Seeker Pre-Order Token")
-//                        .font(themeManager.currentTheme.secondaryBodyFont)
-//                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-//                    
-//                    Spacer()
-//                }
-//                .padding(.horizontal, 16)
-//                
-//                Spacer().frame(height: 8)
-//                
-//                HStack {
-//                    UrButton(text: "Verify Seeker Coming Soon", action: {}, enabled: false)
-//                }
-//                .padding(.horizontal, 16)
-//                
-//                Spacer().frame(height: 16)
+                if (isSeekerOrSagaHolder) {
+                 
+                    /**
+                     * Seeker holder
+                     */
+//                    HStack {
+//                        Text("Claim Multiplier")
+//                            .font(themeManager.currentTheme.bodyFont)
+//                        
+//                        Spacer()
+//                    }
+//                    .padding(.horizontal, 16)
+                    
+                    HStack {
+                        Image("2x")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 32, height: 32)
+                        
+                        Spacer().frame(width: 16)
+                        
+                        VStack {
+                            
+                            HStack {
+                                Text("Seeker Token Verified!")
+                                    .font(themeManager.currentTheme.bodyFont)
+                                    
+                                
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Text("You're earning 2x points")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                
+                                Spacer()
+                            }
+
+                        }
+                        
+                        Spacer()
+                            
+                        
+                    }
+                    .padding()
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
+                    
+                    Spacer().frame(height: 16)
+                    
+                }
                 
                 PaymentsList(
                     payments: accountPaymentsViewModel.payments
@@ -204,6 +230,7 @@ private struct WalletListItem: View {
     
     PopulatedWalletsView(
         navigate: {_ in },
-        presentConnectWalletSheet: .constant(false)
+        isSeekerOrSagaHolder: true,
+        presentConnectWalletSheet: .constant(false),
     )
 }

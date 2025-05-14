@@ -17,21 +17,25 @@ struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
     var clientId: SdkId?
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
+    @ObservedObject var accountWalletsViewModel: AccountWalletsViewModel
     
     init(
         api: SdkApi,
         clientId: SdkId?,
         accountPreferencesViewModel: AccountPreferencesViewModel,
-        referralLinkViewModel: ReferralLinkViewModel
+        referralLinkViewModel: ReferralLinkViewModel,
+        accountWalletsViewModel: AccountWalletsViewModel
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
         self.clientId = clientId
         self.accountPreferencesViewModel = accountPreferencesViewModel
         self.referralLinkViewModel = referralLinkViewModel
+        self.accountWalletsViewModel = accountWalletsViewModel
     }
     
     var clientUrl: String {
@@ -310,12 +314,22 @@ struct SettingsView: View {
                     Spacer().frame(height: 8)
                     
                     HStack {
-                        Text("Claim Multiplier")
+                        Text("Claim multiplier")
                             .font(themeManager.currentTheme.bodyFont)
                         Spacer()
-                        Button(action: {}) {
-                            Text("Coming soon")
+                        
+                        if (accountWalletsViewModel.isSeekerOrSagaHolder) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.urGreen)
+                                .frame(width: 16)
+                        } else {
+                            Button(action: {
+                                viewModel.presentSigninWithSolanaSheet = true
+                            }) {
+                                Text("Verify")
+                            }
                         }
+                        
                     }
                     
                     Spacer().frame(height: 4)
@@ -362,6 +376,57 @@ struct SettingsView: View {
                 
             }
         }
+        .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
+            
+            SolanaSignMessageSheet(
+                isSigningMessage: viewModel.isSigningMessage,
+                setIsSigningMessage: viewModel.setIsSigningMessage,
+                signButtonText: "Confirm Seeker Token",
+                signButtonLabelText: "Claim multiplier",
+                message: connectWalletProviderViewModel.claimSeekerTokenMessage
+            )
+            .presentationDetents([.height(148)])
+        }
+        .onOpenURL { url in
+            connectWalletProviderViewModel
+                .handleDeepLink(
+                    url,
+                    onSignature: { signature in
+                        
+                        guard let pk = connectWalletProviderViewModel.connectedPublicKey else {
+                            snackbarManager.showSnackbar(message: "Couldn't parse public key, please try again later.")
+                            return
+                        }
+                        
+                        Task {
+                            await handleSolanaWalletSignature(
+                                message: connectWalletProviderViewModel.claimSeekerTokenMessage,
+                                signature: signature,
+                                publicKey: pk
+                            )
+                        }
+                        
+                    }
+                )
+        }
+    }
+    
+    private func handleSolanaWalletSignature(message: String, signature: String, publicKey: String) async {
+        
+        let result = await accountWalletsViewModel.verifySeekerOrSagaOwnership(
+            publicKey: publicKey,
+            message: message,
+            signature: signature
+        )
+        
+        switch result {
+        case .success:
+            snackbarManager.showSnackbar(message: "Successfully claimed multiplier!")
+            viewModel.presentSigninWithSolanaSheet = false
+        case .failure(let error):
+            snackbarManager.showSnackbar(message: "Sorry, there was an error claiming multiplier: \(error)")
+        }
+        
     }
     
     private func handleResult(_ result: Result<Void, Error>) {

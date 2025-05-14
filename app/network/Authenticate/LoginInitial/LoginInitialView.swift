@@ -586,9 +586,11 @@ private struct SSOButtons: View {
 }
 #elseif os(macOS)
 private struct SSOButtons: View {
+    @EnvironmentObject var themeManager: ThemeManager
     
     var handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
     var handleGoogleSignInButton: () async -> Void
+    var presentSignInWithSolanaSheet: () -> Void
 
     
     var body: some View {
@@ -615,6 +617,24 @@ private struct SSOButtons: View {
                 action: handleGoogleSignInButton
             )
             .buttonStyle(.plain)
+            
+//            Spacer()
+//                .frame(height: 24)
+            
+//            Button(action: presentSignInWithSolanaSheet) {
+//                HStack {
+//                    Image("solana.gradient.logo")
+//                        .resizable()
+//                        .scaledToFit()
+//                        .frame(width: 24)
+//                    Spacer().frame(width: 8)
+//                    Text("Sign in with Solana")
+//                        .foregroundColor(themeManager.currentTheme.textColor)
+//                }
+//            }
+//            
+//            Spacer()
+//                .frame(height: 24)
             
         }
         

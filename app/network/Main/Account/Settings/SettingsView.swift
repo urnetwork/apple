@@ -303,6 +303,8 @@ struct SettingsView: View {
                         }
                     }
                     
+                    #if os(iOS)
+                    
                     Spacer().frame(height: 32)
                     
                     HStack {
@@ -341,6 +343,8 @@ struct SettingsView: View {
                         
                         Spacer()
                     }
+                    
+                    #endif
                     
                     Spacer().frame(height: 64)
                     
@@ -383,7 +387,10 @@ struct SettingsView: View {
                 setIsSigningMessage: viewModel.setIsSigningMessage,
                 signButtonText: "Confirm Seeker Token",
                 signButtonLabelText: "Claim multiplier",
-                message: connectWalletProviderViewModel.claimSeekerTokenMessage
+                message: connectWalletProviderViewModel.claimSeekerTokenMessage,
+                dismiss: {
+                    viewModel.presentSigninWithSolanaSheet = false
+                }
             )
             .presentationDetents([.height(148)])
         }

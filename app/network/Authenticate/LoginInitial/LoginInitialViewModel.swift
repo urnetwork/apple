@@ -46,6 +46,11 @@ extension LoginInitialView {
          * Solana
          */
         @Published var presentSigninWithSolanaSheet: Bool = false
+        
+        func setPresentSigninWithSolanaSheet(_ present: Bool) -> Void {
+            presentSigninWithSolanaSheet = present
+        }
+        
         @Published private(set) var isSigningMessage: Bool = false
         
         func setIsSigningMessage(_ isSigning: Bool) -> Void {

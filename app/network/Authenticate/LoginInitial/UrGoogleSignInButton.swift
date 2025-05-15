@@ -30,15 +30,15 @@ struct UrGoogleSignInButton: View {
                 
                 Text("Sign in with Google")
                     .foregroundColor(themeManager.currentTheme.inverseTextColor)
-                        .font(
-                            Font.system(size: 19, weight: .medium)
-                        )
+                    .font(
+                        Font.system(size: 19, weight: .medium)
+                    )
                 
             }
             .frame(maxWidth: .infinity)
         }
         .frame(height: 48)
-        .background(Color.urLightBlue)
+        .background(.white)
         .clipShape(Capsule())
         
         #elseif os(macOS)
@@ -64,7 +64,7 @@ struct UrGoogleSignInButton: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: 30)
-        .background(Color.urLightBlue)
+        .background(.white)
         .cornerRadius(6)
         // .clipShape(Capsule())
         

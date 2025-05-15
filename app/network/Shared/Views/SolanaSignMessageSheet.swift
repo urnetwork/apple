@@ -17,6 +17,7 @@ struct SolanaSignMessageSheet: View {
     var signButtonText: LocalizedStringKey
     var signButtonLabelText: LocalizedStringKey
     var message: String
+    var dismiss: () -> Void
     
     var body: some View {
         VStack {
@@ -26,9 +27,19 @@ struct SolanaSignMessageSheet: View {
                 HStack {
                     Text("Connect a wallet")
                         .font(themeManager.currentTheme.toolbarTitleFont)
+                    
                     Spacer()
+                    
+                    #if os(macOS)
+                    Button(
+                        action: dismiss
+                    ) {
+                        Image(systemName: "xmark")
+                    }
+                    #endif
+                    
                 }
-                .padding(.horizontal, 16)
+                // .padding(.horizontal, 16)
                 
                 Spacer().frame(height: 16)
                 
@@ -58,6 +69,7 @@ struct SolanaSignMessageSheet: View {
                         }
                         
                     }
+                    .buttonStyle(.plain)
                     
                     Button(action: {
                         connectWalletProviderViewModel.connectSolflareWallet()
@@ -79,6 +91,7 @@ struct SolanaSignMessageSheet: View {
                         }
                         
                     }
+                    .buttonStyle(.plain)
                     
                     
                 }
@@ -91,7 +104,7 @@ struct SolanaSignMessageSheet: View {
                         .font(themeManager.currentTheme.toolbarTitleFont)
                     Spacer()
                 }
-                .padding(.horizontal, 16)
+                // .padding(.horizontal, 16)
                 
                 Spacer().frame(height: 16)
                 
@@ -100,7 +113,6 @@ struct SolanaSignMessageSheet: View {
                      * Wallet connected
                      */
                     UrButton(
-                        // text: "Sign in with Solana",
                         text: signButtonText,
                         action: {
                             
@@ -108,14 +120,12 @@ struct SolanaSignMessageSheet: View {
                             
                             if  (connectWalletProviderViewModel.connectedWalletProvider == ConnectedWalletProvider.phantom) {
                                 connectWalletProviderViewModel.signMessagePhantom(
-                                    // message: connectWalletProviderViewModel.welcomeMessage
                                     message: message
                                 )
                             }
     
                             if  (connectWalletProviderViewModel.connectedWalletProvider == ConnectedWalletProvider.solflare) {
                                 connectWalletProviderViewModel.signMessageSolflare(
-                                    // message: connectWalletProviderViewModel.welcomeMessage
                                     message: message
                                 )
                             }
@@ -125,12 +135,13 @@ struct SolanaSignMessageSheet: View {
                     )
                     
                 }
-                .padding(.horizontal, 16)
+                // .padding(.horizontal, 16)
                 // .frame(maxWidth: .infinity)
                 
             }
             
         }
+        .padding()
     }
 }
 
@@ -140,6 +151,7 @@ struct SolanaSignMessageSheet: View {
         setIsSigningMessage: {_ in },
         signButtonText: "Sign in with Solana",
         signButtonLabelText: "Sign in",
-        message: "Welcome to URnetwork"
+        message: "Welcome to URnetwork",
+        dismiss: {}
     )
 }

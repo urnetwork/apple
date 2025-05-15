@@ -118,9 +118,14 @@ struct LoginInitialView: View {
                     setIsSigningMessage: viewModel.setIsSigningMessage,
                     signButtonText: "Sign in with Solana",
                     signButtonLabelText: "Sign in",
-                    message: connectWalletProviderViewModel.welcomeMessage
+                    message: connectWalletProviderViewModel.welcomeMessage,
+                    dismiss: {
+                        viewModel.setPresentSigninWithSolanaSheet(false)
+                    }
                 )
+                #if os(iOS)
                 .presentationDetents([.height(148)])
+                #endif
                 
             }
             .sheet(isPresented: $viewModel.presentGuestNetworkSheet) {
@@ -570,12 +575,19 @@ private struct SSOButtons: View {
                     Image("solana.gradient.logo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 24)
+                        .frame(width: 16)
                     Spacer().frame(width: 8)
                     Text("Sign in with Solana")
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                        .font(
+                            Font.system(size: 19, weight: .medium)
+                        )
                 }
+                .frame(maxWidth: .infinity)
             }
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(Capsule())
             
             Spacer()
                 .frame(height: 24)
@@ -595,46 +607,62 @@ private struct SSOButtons: View {
     
     var body: some View {
         
-        HStack {
-        
-            SignInWithAppleButton(.signIn) { request in
-                request.requestedScopes = [.email]
-            } onCompletion: { result in
-                Task {
-                    await handleAppleLoginResult(result)
+        VStack {
+         
+            HStack {
+            
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.email]
+                } onCompletion: { result in
+                    Task {
+                        await handleAppleLoginResult(result)
+                    }
                 }
+                // .frame(height: 48)
+                .frame(maxWidth: .infinity)
+                // .clipShape(Capsule())
+                .signInWithAppleButtonStyle(.white)
+                .buttonStyle(.plain)
+                
+    //            Spacer()
+    //                .frame(height: 24)
+                
+                UrGoogleSignInButton(
+                    action: handleGoogleSignInButton
+                )
+                .buttonStyle(.plain)
+                
             }
-            // .frame(height: 48)
-            .frame(maxWidth: .infinity)
-            // .clipShape(Capsule())
-            .signInWithAppleButtonStyle(.white)
-            .buttonStyle(.plain)
             
 //            Spacer()
-//                .frame(height: 24)
-            
-            UrGoogleSignInButton(
-                action: handleGoogleSignInButton
-            )
-            .buttonStyle(.plain)
-            
-//            Spacer()
-//                .frame(height: 24)
-            
-//            Button(action: presentSignInWithSolanaSheet) {
-//                HStack {
-//                    Image("solana.gradient.logo")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 24)
-//                    Spacer().frame(width: 8)
-//                    Text("Sign in with Solana")
-//                        .foregroundColor(themeManager.currentTheme.textColor)
-//                }
-//            }
+//                .frame(height: 8)
 //            
-//            Spacer()
-//                .frame(height: 24)
+//            HStack {
+//                Button(action: presentSignInWithSolanaSheet) {
+//                    HStack {
+//                        Image("solana.gradient.logo")
+//                            .resizable()
+//                            .scaledToFit()
+//                            .frame(width: 16)
+//                        Spacer().frame(width: 8)
+//                        Text("Sign in with Solana")
+//                            .foregroundColor(themeManager.currentTheme.inverseTextColor)
+//                                .font(
+//                                    Font.system(size: 12, weight: .medium)
+//                                )
+//                    }
+//                }
+//                .frame(height: 30)
+//                .frame(maxWidth: .infinity)
+//                .background(.white)
+//                .cornerRadius(6)
+//                .buttonStyle(.plain)
+//                
+//                Spacer().frame(width: 8)
+//                
+//                Spacer().frame(maxWidth: .infinity)
+//            }
+//            .frame(maxWidth: .infinity)
             
         }
         

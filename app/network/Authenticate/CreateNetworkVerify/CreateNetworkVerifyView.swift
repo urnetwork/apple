@@ -24,6 +24,8 @@ struct CreateNetworkVerifyView: View {
     var backToRoot: () -> Void
     var handleSuccess: (_ jwt: String) async -> Void
     
+    var isEmail: Bool = true
+    
     init(
         userAuth: String,
         api: SdkApi,
@@ -33,6 +35,8 @@ struct CreateNetworkVerifyView: View {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api, userAuth: userAuth))
         self.backToRoot = backToRoot
         self.handleSuccess = handleSuccess
+        
+        self.isEmail = userAuth.isEmail()
     }
     
     var body: some View {
@@ -43,9 +47,13 @@ struct CreateNetworkVerifyView: View {
                 
                 VStack {
                     
-                    Text("You've got mail")
-                        .font(themeManager.currentTheme.titleFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                    HStack {
+                        Text(isEmail ? "You've got mail" : "Check your phone")
+                            .font(themeManager.currentTheme.titleFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        
+                        Spacer()
+                    }
                     
                     Spacer().frame(height: 32)
                     
@@ -251,7 +259,7 @@ struct CreateNetworkVerifyView: View {
 #Preview {
     ZStack {
         CreateNetworkVerifyView(
-            userAuth: "",
+            userAuth: "123456789",
             api: SdkApi(),
             backToRoot: {},
             handleSuccess: {_ in }

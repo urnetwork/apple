@@ -222,8 +222,14 @@ struct LoginInitialView: View {
         case .success(let args):
             
             if deviceManager.device != nil {
-                // fixme: upgrade from guest - handle solana login
-                snackbarManager.showSnackbar(message: "Upgrade guest from Solana coming soon.")
+                
+                let upgradeArgs = self.createUpgradeSolanaWalletArgs(args)
+                
+                let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: upgradeArgs)
+                
+                await self.handleAuthLoginResult(result)
+                
+                
             } else {
                 let result = await viewModel.authLogin(args: args)
                 await self.handleAuthLoginResult(result)
@@ -337,6 +343,12 @@ struct LoginInitialView: View {
             break
             
         }
+    }
+    
+    private func createUpgradeSolanaWalletArgs(_ args: SdkAuthLoginArgs) -> SdkUpgradeGuestExistingArgs {
+        let updateArgs = SdkUpgradeGuestExistingArgs()
+        updateArgs.walletAuth = args.walletAuth
+        return updateArgs
     }
     
     private func createUpgradeExistingSocialArgs(_ args: SdkAuthLoginArgs) -> SdkUpgradeGuestExistingArgs {

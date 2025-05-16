@@ -47,9 +47,13 @@ struct CreateNetworkVerifyView: View {
                 
                 VStack {
                     
-                    Text(isEmail ? "You've got mail" : "Check your phone")
-                        .font(themeManager.currentTheme.titleFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                    HStack {
+                        Text(isEmail ? "You've got mail" : "Check your phone")
+                            .font(themeManager.currentTheme.titleFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        
+                        Spacer()
+                    }
                     
                     Spacer().frame(height: 32)
                     
@@ -255,7 +259,7 @@ struct CreateNetworkVerifyView: View {
 #Preview {
     ZStack {
         CreateNetworkVerifyView(
-            userAuth: "",
+            userAuth: "123456789",
             api: SdkApi(),
             backToRoot: {},
             handleSuccess: {_ in }

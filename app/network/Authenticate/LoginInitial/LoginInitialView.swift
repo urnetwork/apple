@@ -228,6 +228,8 @@ struct LoginInitialView: View {
                 let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: upgradeArgs)
                 
                 await self.handleAuthLoginResult(result)
+                viewModel.presentSigninWithSolanaSheet = false
+                viewModel.setIsSigningMessage(false)
                 
                 
             } else {
@@ -314,9 +316,7 @@ struct LoginInitialView: View {
         switch authLoginResult {
             
         case .login(let authJwt):
-            
             await handleSuccess(authJwt)
-            
             break
             
         case .promptPassword(let loginResult):

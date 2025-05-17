@@ -69,9 +69,11 @@ class GuestUpgradeViewModel: ObservableObject {
                      * Navigate to create view
                      */
                     let authLoginArgs = SdkAuthLoginArgs()
+                    
                     authLoginArgs.authJwt = args.authJwt
                     authLoginArgs.authJwtType = args.authJwtType
                     authLoginArgs.userAuth = args.userAuth
+                    authLoginArgs.walletAuth = args.walletAuth
                     
 
                     continuation.resume(returning: .create(authLoginArgs))

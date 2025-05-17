@@ -66,9 +66,7 @@ extension LoginInitialView {
         }
         
         func authLogin(args: SdkAuthLoginArgs) async -> AuthLoginResult {
-            
-            print("inside auth login")
-            
+                        
             do {
                 let result: AuthLoginResult = try await withCheckedThrowingContinuation { [weak self] continuation in
                     

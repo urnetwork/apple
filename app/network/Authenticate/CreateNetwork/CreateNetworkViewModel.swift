@@ -252,7 +252,8 @@ extension CreateNetworkView {
         func upgradeGuestNetwork(
             userAuth: String?,
             authJwt: String?,
-            authType: String?
+            authType: String?,
+            walletAuth: SdkWalletAuthArgs?
         ) async -> LoginNetworkResult {
             
             if !formIsValid {
@@ -319,6 +320,10 @@ extension CreateNetworkView {
                     if let authJwt, let authType {
                         args.authJwt = authJwt
                         args.authJwtType = authType
+                    }
+                    
+                    if let walletAuth {
+                        args.walletAuth = walletAuth
                     }
                     
                     api.upgradeGuest(args, callback: callback)

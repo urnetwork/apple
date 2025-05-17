@@ -189,7 +189,8 @@ struct CreateNetworkView: View {
                                 ? await viewModel.upgradeGuestNetwork(
                                     userAuth: userAuth,
                                     authJwt: authLoginArgs.authJwt,
-                                    authType: authLoginArgs.authJwtType
+                                    authType: authLoginArgs.authJwtType,
+                                    walletAuth: authLoginArgs.walletAuth
                                 )
                                 // no device exists - create a new network
                                 : await viewModel.createNetwork(

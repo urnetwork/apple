@@ -7241,6 +7241,9 @@
         }
       }
     },
+    "Hello, World!" : {
+
+    },
     "Hide Provider List" : {
       "localizations" : {
         "ar" : {
@@ -8519,6 +8522,9 @@
           }
         }
       }
+    },
+    "Leaderboard" : {
+
     },
     "Loading..." : {
       "localizations" : {

@@ -177,6 +177,7 @@ extension LeaderboardView {
 
                         earners.append(
                             LeaderboardEntry(
+                                networkId: earner.networkId,
                                 networkName: earner.networkName,
                                 netProvided: self.formatByteSize(mib: earner.netMiBCount),
                                 rank: i,
@@ -204,8 +205,9 @@ extension LeaderboardView {
             formatter.maximumFractionDigits = 2
 
             // 1 GiB = 1024 MiB
-            if mib >= 1_048_576 {  // 1 PiB = 1024 TiB = 1,048,576 GiB
-                let pib = mib / 1_048_576
+            // if mib >= 1_048_576 {  // 1 PiB = 1024 TiB = 1,048,576 GiB
+            if mib >= 1024 * 1024 * 1024 {  // 1 PiB = 1024 TiB = 1,048,576 GiB
+                let pib = mib / (1024 * 1024 * 1024)
                 let formatted =
                     formatter.string(from: NSNumber(value: pib)) ?? String(format: "%.2f", pib)
                 return "\(formatted) PiB"
@@ -269,6 +271,8 @@ extension LeaderboardView {
                     api.setNetworkLeaderboardPublic(args, callback: callback)
 
                 }
+                
+                let _ = await self.getLeaderboard()
 
                 self.isSettingRankingVisibility = false
 
@@ -338,19 +342,35 @@ enum SetRankingVisibilityError: Error {
 }
 
 struct LeaderboardEntry: Identifiable {
+    /**
+     * This is used when passing LeaderboardEntry to lists/tables
+     * ID needs to be unique. We're not using networkId, because it's an empty string if the user has their network marked as private.
+     * Instead, we're using their rank, which is unique, from 0-99
+     */
     let id: String
+    
+    let networkId: String
     let networkName: String
     let netProvided: String
     let rank: String
+    let isPublic: Bool
 
-    init(networkName: String, netProvided: String, rank: Int, isPublic: Bool) {
+    init(
+        networkId: String,
+        networkName: String,
+        netProvided: String,
+        rank: Int,
+        isPublic: Bool
+    ) {
 
         self.id = "\(rank)"
+        self.networkId = networkId
         self.networkName =
             isPublic
             ? networkName
             : NSLocalizedString("Private Network", comment: "Network name when privacy is enabled")
         self.netProvided = netProvided
         self.rank = "\(rank + 1)"
+        self.isPublic = isPublic
     }
 }

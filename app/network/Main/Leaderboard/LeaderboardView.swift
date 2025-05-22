@@ -114,7 +114,8 @@ private struct LeaderboardViewPopulated: View {
             )
             
             LeaderboardTable(
-                leaderboardEntries: leaderboardEntries
+                leaderboardEntries: leaderboardEntries,
+                networkId: networkId
             )
             
         }
@@ -237,22 +238,42 @@ private struct LeaderboardTable: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     let tableData: [LeaderboardEntry]
+    let networkId: SdkId?
     
-    init(leaderboardEntries: [LeaderboardEntry]) {
+    init(leaderboardEntries: [LeaderboardEntry], networkId: SdkId?) {
         self.tableData = leaderboardEntries
+        self.networkId = networkId
     }
     
     var body: some View {
         
         Table(tableData) {
+            
             TableColumn("Rank") { row in
-                Text(row.rank)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                
+                HStack {
+                    if networkId?.idStr == row.networkId {
+                       Image(systemName: "star.fill")
+                           .resizable()
+                           .renderingMode(.template)
+                           .frame(width: 8, height: 8)
+                           .foregroundColor(.urYellow)
+                        
+                        Spacer().frame(width: 4)
+                       
+                    }
+                    
+                    Text("#\(row.rank)")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    
+                }
             }
-            .width(32)
+            .width(48)
             TableColumn("Name") { row in
                 Text(row.networkName)
-                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .foregroundColor(
+                        row.isPublic ? themeManager.currentTheme.textColor : themeManager.currentTheme.textMutedColor
+                    )
             }
             TableColumn("Data Provided") { row in
                 Text(row.netProvided)

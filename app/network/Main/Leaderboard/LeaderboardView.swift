@@ -219,56 +219,13 @@ private struct LeaderboardTable: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-//    #if os(iOS)
-//    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-//    private var isCompact: Bool { horizontalSizeClass == .compact }
-//    #else
-//    private let isCompact = false
-//    #endif
-    
-    // var leaderboardEntries: [SdkLeaderboardEarner]
-    // let tableData = Array(leaderboardEntries.enumerated())
-    // let tableData: [SdkLeaderboardEarner]
     let tableData: [LeaderboardEntry]
     
     init(leaderboardEntries: [LeaderboardEntry]) {
-        // self.leaderboardEntries = leaderboardEntries
-        // self.tableData = Array(leaderboardEntries)
         self.tableData = leaderboardEntries
     }
     
     var body: some View {
-        
-//        let rows = tableData.enumerated().map { index, entry in
-//            LeaderboardTableRow(
-//                networkName: entry.isPublic ? entry.networkName : "Private Network",
-//                netProvided: formatFileSize(mib: entry.netMiBCount),
-//                rank: index + 1
-//            )
-//        }
-        
-//        Table(tableData, id: \.offset) {
-//            TableColumn("Rank") { index, _ in
-//                Text("#\(index.offset + 1)")
-//                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-//            }
-//            .width(50)
-//            
-//            TableColumn("Network") { _, entry in
-//                if (entry.isPublic) {
-//                    Text(entry.networkName)
-//                } else {
-//                    Text("Private Network")
-//                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-//                }
-//            }
-//            
-//            TableColumn("Provided") { _, entry in
-//                Text(formatFileSize(mib: entry.netMiBCount))
-//                    .font(themeManager.currentTheme.bodyFont)
-//            }
-//            .width(120)
-//        }
         
         Table(tableData) {
             TableColumn("Rank") { row in
@@ -284,7 +241,6 @@ private struct LeaderboardTable: View {
                 Text(row.netProvided)
                     .foregroundColor(themeManager.currentTheme.textColor)
             }
-            // .width(120)
         }
     }
     

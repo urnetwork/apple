@@ -16,9 +16,6 @@
     "#%lld" : {
 
     },
-    "%@" : {
-
-    },
     "%@ USDC" : {
       "shouldTranslate" : false
     },
@@ -11648,8 +11645,9 @@
     "Please login to URnetwork to connect" : {
 
     },
-  "Private Network" : {
-      "localizations" : {
+    "Private Network" : {
+      "comment" : "Network name when privacy is enabled",
+            "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11783,7 +11781,7 @@
           }
         }
       }
-    }
+    },
     "Processing subscription balance..." : {
       "localizations" : {
         "ar" : {

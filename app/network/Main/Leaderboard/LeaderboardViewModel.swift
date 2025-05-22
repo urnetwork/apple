@@ -7,7 +7,6 @@
 import Foundation
 import URnetworkSdk
 import SwiftUI
-import Combine
 
 extension LeaderboardView {
     
@@ -16,12 +15,22 @@ extension LeaderboardView {
         
         private var api: SdkApi
         
-        @Published private(set) var networkRankingPublic: Bool = false
-        @Published private(set) var leaderboardEarners: [SdkLeaderboardEarner] = []
+        @Published var networkRankingPublic: Bool = false {
+            didSet {
+                Task {
+                    await setNetworkRankingPublic(networkRankingPublic)
+                }
+            }
+        }
+        
+        
+        @Published private(set) var leaderboardEarners: [LeaderboardEntry] = []
         
         @Published private(set) var networkRanking: SdkNetworkRanking? = nil
         @Published private(set) var isLoading: Bool = false
         @Published private(set) var isInitializing: Bool = true
+        
+        @Published private(set) var isSettingRankingVisibility: Bool = false
         
         init(api: SdkApi) {
             self.api = api
@@ -40,14 +49,12 @@ extension LeaderboardView {
             
             self.isLoading = true
             
-            // Use Swift concurrency to run both API calls in parallel
             async let rankingResult = getRanking()
             async let leaderboardResult = getLeaderboard()
             
             // Wait for both to complete
             let (ranking, leaderboard) = await (rankingResult, leaderboardResult)
             
-            // Handle results if needed
             switch (ranking, leaderboard) {
             case (.success, .success):
                 print("Both API calls completed successfully")
@@ -98,6 +105,10 @@ extension LeaderboardView {
                 }
                 
                 self.networkRanking = result.networkRanking
+                
+                if let leaderboardPublic = result.networkRanking?.leaderboardPublic {
+                    self.networkRankingPublic = leaderboardPublic
+                }
 
                 return .success(())
                 
@@ -144,7 +155,7 @@ extension LeaderboardView {
                     
                 }
                 
-                var earners: [SdkLeaderboardEarner] = []
+                var earners: [LeaderboardEntry] = []
                 
                 let n = result.earners?.len()
                 
@@ -156,7 +167,14 @@ extension LeaderboardView {
                     let earner = result.earners?.get(i)
                     
                     if let earner = earner {
-                        earners.append(earner)
+                        
+                        
+                        earners.append(LeaderboardEntry(
+                            networkName: earner.networkName,
+                            netProvided: self.formatFileSize(mib: earner.netMiBCount),
+                            rank: i,
+                            isPublic: earner.isPublic
+                        ))
                     }
                 }
                 
@@ -172,7 +190,87 @@ extension LeaderboardView {
             
         }
         
-        func setNetworkRankingPublic() {}
+        private func formatFileSize(mib: Float) -> String {
+            
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 2
+
+
+            // 1 GiB = 1024 MiB
+            if mib >= 1048576 { // 1 PiB = 1024 TiB = 1,048,576 GiB
+                let pib = mib / 1048576
+                let formatted = formatter.string(from: NSNumber(value: pib)) ?? String(format: "%.2f", pib)
+                return "\(formatted) PiB"
+            } else if mib >= 1024 * 1024 { // 1 TiB = 1024 GiB = 1,048,576 MiB
+                let tib = mib / (1024 * 1024)
+                let formatted = formatter.string(from: NSNumber(value: tib)) ?? String(format: "%.2f", tib)
+                return "\(formatted) TiB"
+            } else if mib >= 1024 { // 1 GiB = 1024 MiB
+                let gib = mib / 1024
+                let formatted = formatter.string(from: NSNumber(value: gib)) ?? String(format: "%.2f", gib)
+                return "\(formatted) GiB"
+            } else {
+                let formatted = formatter.string(from: NSNumber(value: mib)) ?? String(format: "%.2f", mib)
+                return "\(formatted) MiB"
+            }
+        }
+        
+        func setNetworkRankingPublic(_ isPublic: Bool) async -> Result<Void, Error> {
+            
+            if (self.isSettingRankingVisibility) {
+                return .failure(SetRankingVisibilityError.isLoading)
+            }
+            
+            self.isSettingRankingVisibility = true
+            
+            do {
+                
+                let _: SdkSetNetworkRankingPublicResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                    
+                    guard let self = self else { return }
+                    
+                    let callback = SetLeaderboardVisibilityCallback { result, err in
+                        
+                        if let err = err {
+                            continuation.resume(throwing: err)
+                            return
+                        }
+                        
+                        if let err = result?.error {
+                            continuation.resume(throwing: LeaderboardError.resultError(message: err.message))
+                            return
+                        }
+                        
+                        guard let result = result else {
+                            continuation.resume(throwing: LeaderboardError.resultEmpty)
+                            return
+                        }
+                        
+                        continuation.resume(returning: result)
+                        
+                    }
+                    
+                    let args = SdkSetNetworkRankingPublicArgs()
+                    args.isPublic = isPublic
+                    
+                    api.setNetworkLeaderboardPublic(args, callback: callback)
+                    
+                }
+                
+                self.isSettingRankingVisibility = false
+                
+                return .success(())
+                
+            } catch(let error) {
+                print("set ranking visibility error \(error)")
+                
+                self.isSettingRankingVisibility = false
+                
+                return .failure(error)
+            }
+            
+        }
         
     }
     
@@ -186,6 +284,12 @@ private class GetLeaderboardCallback: SdkCallback<SdkLeaderboardResult, SdkGetLe
 
 private class GetNetworkRankingCallback: SdkCallback<SdkGetNetworkRankingResult, SdkGetNetworkLeaderboardRankingCallbackProtocol>, SdkGetNetworkLeaderboardRankingCallbackProtocol {
     func result(_ result: SdkGetNetworkRankingResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class SetLeaderboardVisibilityCallback: SdkCallback<SdkSetNetworkRankingPublicResult, SdkSetNetworkLeaderboardPublicCallbackProtocol>, SdkSetNetworkLeaderboardPublicCallbackProtocol {
+    func result(_ result: SdkSetNetworkRankingPublicResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }
@@ -205,3 +309,27 @@ enum NetworkRankingError: Error {
     case unknown
 }
 
+enum SetRankingVisibilityError: Error {
+    case isLoading
+    case resultError(message: String)
+    case resultEmpty
+    case unknown
+}
+
+struct LeaderboardEntry: Identifiable {
+    let id: String
+    let networkName: String
+    let netProvided: String
+    let rank: String
+    // let isPublic: Bool
+    
+    init(networkName: String, netProvided: String, rank: Int, isPublic: Bool) {
+        
+        print("\(rank): \(networkName): \(netProvided) MiB")
+        
+        self.id = "\(rank)"
+        self.networkName = isPublic ? networkName : "Private Network"
+        self.netProvided = netProvided
+        self.rank = "\(rank)"
+    }
+}

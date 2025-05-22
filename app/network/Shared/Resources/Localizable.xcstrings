@@ -13,6 +13,12 @@
     "***%@" : {
 
     },
+    "#%lld" : {
+
+    },
+    "%@" : {
+
+    },
     "%@ USDC" : {
       "shouldTranslate" : false
     },
@@ -4403,6 +4409,12 @@
         }
       }
     },
+    "Current Ranking" : {
+
+    },
+    "Data Provided" : {
+
+    },
     "DEFAULT" : {
       "localizations" : {
         "ar" : {
@@ -4824,6 +4836,9 @@
       }
     },
     "Disconnect URnetwork VPN" : {
+
+    },
+    "Display network on leaderboard" : {
 
     },
     "Don't see it? " : {
@@ -7241,9 +7256,6 @@
         }
       }
     },
-    "Hello, World!" : {
-
-    },
     "Hide Provider List" : {
       "localizations" : {
         "ar" : {
@@ -8953,6 +8965,9 @@
         }
       }
     },
+    "Name" : {
+
+    },
     "Need more data, faster?" : {
       "localizations" : {
         "ar" : {
@@ -9094,6 +9109,9 @@
           }
         }
       }
+    },
+    "Net MiB Provided" : {
+
     },
     "Network earnings" : {
       "localizations" : {
@@ -11092,6 +11110,9 @@
     "Please login to URnetwork to connect" : {
 
     },
+    "Private Network" : {
+
+    },
     "Processing subscription balance..." : {
       "localizations" : {
         "ar" : {
@@ -11795,6 +11816,9 @@
           }
         }
       }
+    },
+    "Rank" : {
+
     },
     "Ready to connect" : {
       "localizations" : {

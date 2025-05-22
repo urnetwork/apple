@@ -106,6 +106,25 @@ struct MainTabView: View {
             .tag(1)
             
             /**
+             * Leaderboard View
+             */
+            LeaderboardView(
+                api: api
+            )
+            .background(themeManager.currentTheme.backgroundColor)
+            .tabItem {
+                VStack {
+                    
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    
+                    Text("Leaderboard")
+                        
+                }
+                .foregroundColor(themeManager.currentTheme.textColor)
+            }
+            .tag(2)
+            
+            /**
              * Feedback View
              */
             FeedbackView(
@@ -114,7 +133,7 @@ struct MainTabView: View {
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
                 VStack {
-                    Image(selectedTab == 2 ? "ur.symbols.tab.support.fill" : "ur.symbols.tab.support")
+                    Image(selectedTab == 3 ? "ur.symbols.tab.support.fill" : "ur.symbols.tab.support")
                         .renderingMode(.template)
                     
                     Text("Support")
@@ -122,7 +141,7 @@ struct MainTabView: View {
                 }
                 .foregroundColor(themeManager.currentTheme.textColor)
             }
-            .tag(2)
+            .tag(3)
                 
         }
         .opacity(opacity)

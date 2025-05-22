@@ -59,6 +59,7 @@ struct LeaderboardView: View {
 private struct LeaderboardViewPopulated: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var deviceManager: DeviceManager
     
     var leaderboardRank: Int
     var netProvidedFormatted: String
@@ -69,6 +70,8 @@ private struct LeaderboardViewPopulated: View {
     var isLoading: Bool
     
     var body: some View {
+        
+        let networkId = deviceManager.parsedJwt?.networkId
         
         #if os(iOS)
         
@@ -84,7 +87,11 @@ private struct LeaderboardViewPopulated: View {
             LazyVStack(spacing: 0) {
              
                 ForEach(Array(leaderboardEntries.enumerated()), id: \.offset) { index, entry in
-                    LeaderboardRow(leaderboardEntry: entry, rank: index + 1)
+                    LeaderboardRow(
+                        leaderboardEntry: entry,
+                        rank: index + 1,
+                        networkId: networkId
+                    )
                 }
                 
             }
@@ -191,6 +198,21 @@ private struct LeaderboardHeader: View {
                     
                     Spacer()
                 }
+                
+                Spacer().frame(height: 8)
+                
+                Divider()
+                    .background(themeManager.currentTheme.borderBaseColor)
+                
+                Spacer().frame(height: 16)
+                
+                UrSwitchToggle(
+                    isOn: rankingPublic,
+                    isEnabled: !isSettingRankingVisibility
+                ) {
+                    Text("Display network on leaderboard")
+                        .font(themeManager.currentTheme.bodyFont)
+                }
 
             }
             .padding()
@@ -200,14 +222,9 @@ private struct LeaderboardHeader: View {
             
             Spacer().frame(height: 16)
             
-            UrSwitchToggle(
-                isOn: rankingPublic,
-                isEnabled: !isSettingRankingVisibility
-            ) {
-                Text("Display network on leaderboard")
-                    .font(themeManager.currentTheme.bodyFont)
-            }
-            .padding(.horizontal, 8)
+            Text("The leaderboard is the sum of the last 4 payments. It is updated each payment cycle.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
                 
         }
         .padding()
@@ -250,25 +267,49 @@ private struct LeaderboardTable: View {
 private struct LeaderboardRow: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    // @EnvironmentObject var deviceManager: DeviceManager
     
     var leaderboardEntry: LeaderboardEntry
     var rank: Int
+    var networkId: SdkId?
     
     var body: some View {
+        
+//        let networkId = deviceManager.parsedJwt?.networkId
+        
         VStack(spacing: 0) {
             
             Divider()
          
             HStack {
                 
-                HStack {
+                HStack(spacing: 0) {
+                    
+                    HStack {
+                        if networkId?.idStr == leaderboardEntry.networkId {
+                           Image(systemName: "star.fill")
+                               .resizable()
+                               .renderingMode(.template)
+                               .frame(width: 8, height: 8)
+                               .foregroundColor(.urYellow)
+                           
+                        }
+                    }
+                    .frame(width: 8)
+                    .padding(.leading, 8)
+                    
                     Text("#\(rank)")
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                         .font(themeManager.currentTheme.bodyFont)
-                        .frame(width: 36)
+                        .frame(width: 42)
                     
                     Text(leaderboardEntry.networkName)
                         .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(
+                            leaderboardEntry.isPublic
+                            ? themeManager.currentTheme.textColor // public
+                            : themeManager.currentTheme.textMutedColor // private - muted color
+                        )
                     
                 }
                 
@@ -278,7 +319,7 @@ private struct LeaderboardRow: View {
                     .font(themeManager.currentTheme.bodyFont)
                 
             }
-            .padding(.horizontal, 16)
+            .padding(.trailing, 16)
             .padding(.vertical, 8)
             
         }

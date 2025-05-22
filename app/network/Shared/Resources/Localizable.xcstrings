@@ -9500,7 +9500,7 @@
         }
       }
     },
-"Name" : {
+    "Name" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11925,7 +11925,7 @@
     },
     "Private Network" : {
       "comment" : "Network name when privacy is enabled",
-            "localizations" : {
+      "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17451,6 +17451,148 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "感謝您與我們一起構建新互聯網"
+          }
+        }
+      }
+    },
+    "The leaderboard is the sum of the last 4 payments. It is updated each payment cycle." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لوحة المتصدرين هي مجموع آخر 4 مدفوعات. يتم تحديثها في كل دورة دفع."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Rangliste ist die Summe der letzten 4 Zahlungen. Sie wird mit jedem Zahlungszyklus aktualisiert."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο πίνακας κατάταξης είναι το άθροισμα των τελευταίων 4 πληρωμών. Ενημερώνεται σε κάθε κύκλο πληρωμών."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The leaderboard is the sum of the last 4 payments. It is updated each payment cycle."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tabla de clasificación es la suma de los últimos 4 pagos. Se actualiza en cada ciclo de pago."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tabla de clasificación es la suma de los últimos 4 pagos. Se actualiza en cada ciclo de pago."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le classement est la somme des 4 derniers paiements. Il est mis à jour à chaque cycle de paiement."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "טבלת המובילים היא סכום 4 התשלומים האחרונים. היא מתעדכנת בכל מחזור תשלומים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लीडरबोर्ड पिछले 4 भुगतानों का योग है. यह प्रत्येक भुगतान चक्र में अपडेट किया जाता है."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Papan peringkat adalah jumlah dari 4 pembayaran terakhir. Ini diperbarui setiap siklus pembayaran."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La classifica è la somma degli ultimi 4 pagamenti. Viene aggiornata ad ogni ciclo di pagamento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランキングボードは、過去 4 回の支払いの合計です。支払いサイクルごとに更新されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "리더보드는 최근 4번의 결제 합계입니다. 각 결제 주기마다 업데이트됩니다."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking to suma 4 ostatnich płatności. Jest aktualizowany w każdym cyklu płatności."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tabela de classificação é a soma dos últimos 4 pagamentos. Ela é atualizada a cada ciclo de pagamento."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tabela de classificação é a soma dos últimos 4 pagamentos. É atualizada a cada ciclo de pagamento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Таблица лидеров — это сумма последних 4 платежей. Она обновляется в каждом платежном цикле."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Topplistan är summan av de 4 senaste betalningarna. Den uppdateras vid varje betalningscykel."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลีดเดอร์บอร์ดคือผลรวมของการชำระเงิน 4 ครั้งล่าสุด โดยจะมีการอัปเดตในแต่ละรอบการชำระเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Таблиця лідерів — це сума останніх 4 платежів. Вона оновлюється в кожному платіжному циклі."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bảng xếp hạng là tổng của 4 khoản thanh toán gần nhất. Nó được cập nhật sau mỗi chu kỳ thanh toán."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排行榜是最近 4 次付款的总和。它会在每个付款周期更新。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排行榜是最近 4 次付款的總和。它會在每個付款週期更新。"
           }
         }
       }

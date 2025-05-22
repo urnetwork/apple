@@ -26,7 +26,11 @@ extension LeaderboardView {
         
         @Published private(set) var leaderboardEarners: [LeaderboardEntry] = []
         
-        @Published private(set) var networkRanking: SdkNetworkRanking? = nil
+        // @Published private(set) var networkRanking: SdkNetworkRanking? = nil
+        
+        @Published private(set) var networkRank: Int = 0
+        @Published private(set) var netProvidedFormatted: String = ""
+        
         @Published private(set) var isLoading: Bool = false
         @Published private(set) var isInitializing: Bool = true
         
@@ -104,10 +108,10 @@ extension LeaderboardView {
                     
                 }
                 
-                self.networkRanking = result.networkRanking
-                
-                if let leaderboardPublic = result.networkRanking?.leaderboardPublic {
-                    self.networkRankingPublic = leaderboardPublic
+                if let networkRanking = result.networkRanking {
+                    self.networkRankingPublic = networkRanking.leaderboardPublic
+                    self.networkRank = networkRanking.leaderboardRank
+                    self.netProvidedFormatted = self.formatByteSize(mib: networkRanking.netMiBCount)
                 }
 
                 return .success(())
@@ -171,7 +175,7 @@ extension LeaderboardView {
                         
                         earners.append(LeaderboardEntry(
                             networkName: earner.networkName,
-                            netProvided: self.formatFileSize(mib: earner.netMiBCount),
+                            netProvided: self.formatByteSize(mib: earner.netMiBCount),
                             rank: i,
                             isPublic: earner.isPublic
                         ))
@@ -190,7 +194,7 @@ extension LeaderboardView {
             
         }
         
-        private func formatFileSize(mib: Float) -> String {
+        private func formatByteSize(mib: Float) -> String {
             
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -321,15 +325,12 @@ struct LeaderboardEntry: Identifiable {
     let networkName: String
     let netProvided: String
     let rank: String
-    // let isPublic: Bool
     
     init(networkName: String, netProvided: String, rank: Int, isPublic: Bool) {
-        
-        print("\(rank): \(networkName): \(netProvided) MiB")
         
         self.id = "\(rank)"
         self.networkName = isPublic ? networkName : "Private Network"
         self.netProvided = netProvided
-        self.rank = "\(rank)"
+        self.rank = "\(rank + 1)"
     }
 }

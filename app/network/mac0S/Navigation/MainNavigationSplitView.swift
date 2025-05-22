@@ -11,6 +11,7 @@ import URnetworkSdk
 enum MainNavigationTab {
     case connect
     case account
+    case leaderboard
     case support
 }
 
@@ -26,6 +27,8 @@ struct MainNavigationSplitView: View {
     var logout: () -> Void
     
     var connectViewController: SdkConnectViewController?
+    
+    var iconWidth: CGFloat = 16
     
     // can probably pass this down from MainView
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
@@ -66,7 +69,9 @@ struct MainNavigationSplitView: View {
                 HStack {
 
                     Image(selectedTab == .connect ? "ur.symbols.tab.connect.fill" : "ur.symbols.tab.connect")
+                        .resizable()
                         .renderingMode(.template)
+                        .frame(width: iconWidth, height: iconWidth)
 
                     Text("Connect")
                     
@@ -77,7 +82,9 @@ struct MainNavigationSplitView: View {
                 HStack {
                     
                     Image(selectedTab == .account ? "ur.symbols.tab.account.fill" : "ur.symbols.tab.account")
+                        .resizable()
                         .renderingMode(.template)
+                        .frame(width: iconWidth, height: iconWidth)
                                             
                     Text("Account")
                     
@@ -87,8 +94,25 @@ struct MainNavigationSplitView: View {
                 
                 HStack {
                     
-                    Image(selectedTab == .support ? "ur.symbols.tab.support.fill" : "ur.symbols.tab.support")
+                    // Image(selectedTab == .leaderboard ? "ur.symbols.tab.account.fill" : "ur.symbols.tab.account")
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .resizable()
                         .renderingMode(.template)
+                        .frame(width: iconWidth, height: iconWidth)
+                        // .renderingMode(.template)
+                                            
+                    Text("Leaderboard")
+                    
+                }
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .tag(MainNavigationTab.leaderboard)
+                
+                HStack {
+                    
+                    Image(selectedTab == .support ? "ur.symbols.tab.support.fill" : "ur.symbols.tab.support")
+                        .resizable()
+                        .renderingMode(.template)
+                        .frame(width: iconWidth, height: iconWidth)
                     
                     Text("Support")
                     
@@ -114,6 +138,8 @@ struct MainNavigationSplitView: View {
                     networkUserViewModel: networkUserViewModel,
                     referralLinkViewModel: referralLinkViewModel
                 )
+            case .leaderboard:
+                LeaderboardView(api: api)
             case .support:
                 FeedbackView(
                     api: api

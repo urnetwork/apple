@@ -39,12 +39,13 @@ struct LeaderboardView: View {
                  */
                 
                 LeaderboardViewPopulated(
-                    leaderboardRank: viewModel.networkRanking?.leaderboardRank ?? 0,
-                    netMiBProvided: viewModel.networkRanking?.netMiBCount ?? 0,
+                    leaderboardRank: viewModel.networkRank,
+                    netProvidedFormatted: viewModel.netProvidedFormatted,
                     fetchLeaderboardData: viewModel.fetchLeaderboardData,
                     rankingPublic: $viewModel.networkRankingPublic,
                     leaderboardEntries: viewModel.leaderboardEarners,
-                    isSettingRankingVisibility: viewModel.isSettingRankingVisibility
+                    isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
+                    isLoading: viewModel.isLoading
                 )
                 
             }
@@ -60,89 +61,26 @@ private struct LeaderboardViewPopulated: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var leaderboardRank: Int
-    var netMiBProvided: Float
+    var netProvidedFormatted: String
     var fetchLeaderboardData: () async -> Void
     var rankingPublic: Binding<Bool>
     var leaderboardEntries: [LeaderboardEntry]
     var isSettingRankingVisibility: Bool
+    var isLoading: Bool
     
     var body: some View {
         
+        #if os(iOS)
+        
         ScrollView {
             
-            VStack{
-
-                HStack {
-                    Text("Leaderboard")
-                        .font(themeManager.currentTheme.titleFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                    
-                    Spacer()
-                }
-                
-                /**
-                 * Network Info
-                 */
-                VStack(spacing: 0) {
-                    HStack {
-                        Text("Current Ranking")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        Spacer()
-                    }
-                    
-                    HStack {
-                        Text(String(leaderboardRank))
-                            .font(themeManager.currentTheme.titleCondensedFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        
-                        Spacer()
-                    }
-                    
-                    Spacer().frame(height: 8)
-                    
-                    Divider()
-                        .background(themeManager.currentTheme.borderBaseColor)
-                    
-                    Spacer().frame(height: 16)
-                    
-                    HStack {
-                        Text("Net MiB Provided")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        Spacer()
-                    }
-                    
-                    HStack {
-                        Text(String(netMiBProvided))
-                            .font(themeManager.currentTheme.titleCondensedFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        
-                        
-                        Spacer()
-                    }
-
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(themeManager.currentTheme.tintedBackgroundBase)
-                .cornerRadius(12)
-                
-                Spacer().frame(height: 16)
-                
-                UrSwitchToggle(
-                    isOn: rankingPublic,
-                    isEnabled: !isSettingRankingVisibility
-                ) {
-                    Text("Display network on leaderboard")
-                        .font(themeManager.currentTheme.bodyFont)
-                }
-                .padding(.horizontal, 8)
-                    
-            }
-            .padding()
+            LeaderboardHeader(
+                leaderboardRank: leaderboardRank,
+                netProvidedFormatted: netProvidedFormatted,
+                rankingPublic: rankingPublic,
+                isSettingRankingVisibility: isSettingRankingVisibility
+            )
             
-            #if os(iOS)
             LazyVStack(spacing: 0) {
              
                 ForEach(Array(leaderboardEntries.enumerated()), id: \.offset) { index, entry in
@@ -150,20 +88,129 @@ private struct LeaderboardViewPopulated: View {
                 }
                 
             }
-            #endif
-            
-            #if os(macOS)
-            LeaderboardTable(
-                leaderboardEntries: leaderboardEntries
-            )
-            #endif
-            
             
         }
         .refreshable {
             await fetchLeaderboardData()
         }
         
+        
+        #elseif os(macOS)
+        
+        VStack {
+            
+            LeaderboardHeader(
+                leaderboardRank: leaderboardRank,
+                netProvidedFormatted: netProvidedFormatted,
+                rankingPublic: rankingPublic,
+                isSettingRankingVisibility: isSettingRankingVisibility
+            )
+            
+            LeaderboardTable(
+                leaderboardEntries: leaderboardEntries
+            )
+            
+        }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    Task {
+                        await fetchLeaderboardData()
+                    }
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isLoading)
+            }
+        }
+        
+        #endif
+        
+    }
+    
+}
+
+private struct LeaderboardHeader: View {
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    var leaderboardRank: Int
+    var netProvidedFormatted: String
+    var rankingPublic: Binding<Bool>
+    var isSettingRankingVisibility: Bool
+    
+    var body: some View {
+        VStack{
+
+            HStack {
+                Text("Leaderboard")
+                    .font(themeManager.currentTheme.titleFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                
+                Spacer()
+            }
+            
+            /**
+             * Network Info
+             */
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Current Ranking")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text("#\(leaderboardRank)")
+                        .font(themeManager.currentTheme.titleCondensedFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    Spacer()
+                }
+                
+                Spacer().frame(height: 8)
+                
+                Divider()
+                    .background(themeManager.currentTheme.borderBaseColor)
+                
+                Spacer().frame(height: 16)
+                
+                HStack {
+                    Text("Net Provided")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text(netProvidedFormatted)
+                        .font(themeManager.currentTheme.titleCondensedFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    
+                    Spacer()
+                }
+
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(themeManager.currentTheme.tintedBackgroundBase)
+            .cornerRadius(12)
+            
+            Spacer().frame(height: 16)
+            
+            UrSwitchToggle(
+                isOn: rankingPublic,
+                isEnabled: !isSettingRankingVisibility
+            ) {
+                Text("Display network on leaderboard")
+                    .font(themeManager.currentTheme.bodyFont)
+            }
+            .padding(.horizontal, 8)
+                
+        }
+        .padding()
     }
     
 }
@@ -228,7 +275,7 @@ private struct LeaderboardTable: View {
                 Text(row.rank)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
-            .width(50)
+            .width(32)
             TableColumn("Name") { row in
                 Text(row.networkName)
                     .foregroundColor(themeManager.currentTheme.textColor)
@@ -237,7 +284,7 @@ private struct LeaderboardTable: View {
                 Text(row.netProvided)
                     .foregroundColor(themeManager.currentTheme.textColor)
             }
-            .width(120)
+            // .width(120)
         }
     }
     

@@ -153,7 +153,7 @@ private struct LeaderboardHeader: View {
             HStack {
                 Text("Leaderboard")
                     .font(themeManager.currentTheme.titleFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .foregroundStyle(themeManager.currentTheme.textColor)
                 
                 Spacer()
             }
@@ -165,14 +165,14 @@ private struct LeaderboardHeader: View {
                 HStack {
                     Text("Current Ranking")
                         .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .foregroundStyle(themeManager.currentTheme.textMutedColor)
                     Spacer()
                 }
                 
                 HStack {
                     Text(leaderboardRank > 0 ? "#\(leaderboardRank)" : "-")
                         .font(themeManager.currentTheme.titleCondensedFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .foregroundStyle(themeManager.currentTheme.textColor)
                     
                     Spacer()
                 }
@@ -187,14 +187,14 @@ private struct LeaderboardHeader: View {
                 HStack {
                     Text("Net Provided")
                         .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .foregroundStyle(themeManager.currentTheme.textMutedColor)
                     Spacer()
                 }
                 
                 HStack {
                     Text(netProvidedFormatted)
                         .font(themeManager.currentTheme.titleCondensedFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .foregroundStyle(themeManager.currentTheme.textColor)
                     
                     
                     Spacer()
@@ -225,7 +225,7 @@ private struct LeaderboardHeader: View {
             
             Text("The leaderboard is the sum of the last 4 payments. It is updated each payment cycle.")
                 .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
         }
         .padding()
@@ -251,33 +251,43 @@ private struct LeaderboardTable: View {
             
             TableColumn("Rank") { row in
                 
+                let isNetworkRow = networkId?.idStr == row.networkId
+                
                 HStack {
-                    if networkId?.idStr == row.networkId {
-                       Image(systemName: "star.fill")
-                           .resizable()
-                           .renderingMode(.template)
-                           .frame(width: 8, height: 8)
-                           .foregroundColor(.urYellow)
-                        
-                        Spacer().frame(width: 4)
-                       
-                    }
-                    
+
                     Text("#\(row.rank)")
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .foregroundStyle(
+                            isNetworkRow
+                                ? .urGreen
+                                : themeManager.currentTheme.textMutedColor
+                        )
                     
                 }
             }
             .width(48)
             TableColumn("Name") { row in
+                
+                let isNetworkRow = networkId?.idStr == row.networkId
+                
                 Text(row.networkName)
-                    .foregroundColor(
-                        row.isPublic ? themeManager.currentTheme.textColor : themeManager.currentTheme.textMutedColor
+                    .foregroundStyle(
+                        isNetworkRow
+                        ? .urGreen // is your network, highlight
+                        : row.isPublic // check if is public
+                            ? themeManager.currentTheme.textColor // is public
+                            : themeManager.currentTheme.textMutedColor // is private - muted text color
                     )
             }
             TableColumn("Data Provided") { row in
+                
+                let isNetworkRow = networkId?.idStr == row.networkId
+                
                 Text(row.netProvided)
-                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .foregroundStyle(
+                        isNetworkRow
+                            ? .urGreen
+                            : themeManager.currentTheme.textColor
+                    )
             }
         }
     }
@@ -293,10 +303,18 @@ private struct LeaderboardRow: View {
     var leaderboardEntry: LeaderboardEntry
     var rank: Int
     var networkId: SdkId?
+    var isNetworkRow: Bool
+    
+    init(leaderboardEntry: LeaderboardEntry, rank: Int, networkId: SdkId?) {
+        self.leaderboardEntry = leaderboardEntry
+        self.rank = rank
+        self.networkId = networkId
+        
+        self.isNetworkRow = networkId?.idStr == leaderboardEntry.networkId
+    }
+    
     
     var body: some View {
-        
-//        let networkId = deviceManager.parsedJwt?.networkId
         
         VStack(spacing: 0) {
             
@@ -306,30 +324,23 @@ private struct LeaderboardRow: View {
                 
                 HStack(spacing: 0) {
                     
-                    HStack {
-                        if networkId?.idStr == leaderboardEntry.networkId {
-                           Image(systemName: "star.fill")
-                               .resizable()
-                               .renderingMode(.template)
-                               .frame(width: 8, height: 8)
-                               .foregroundColor(.urYellow)
-                           
-                        }
-                    }
-                    .frame(width: 8)
-                    .padding(.leading, 8)
-                    
                     Text("#\(rank)")
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .foregroundStyle(
+                            isNetworkRow
+                                ? .urGreen
+                                : themeManager.currentTheme.textMutedColor
+                        )
                         .font(themeManager.currentTheme.bodyFont)
                         .frame(width: 42)
                     
                     Text(leaderboardEntry.networkName)
                         .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(
-                            leaderboardEntry.isPublic
-                            ? themeManager.currentTheme.textColor // public
-                            : themeManager.currentTheme.textMutedColor // private - muted color
+                        .foregroundStyle(
+                            isNetworkRow
+                            ? .urGreen // is network, highlight
+                            : leaderboardEntry.isPublic // not your network, check if is public
+                                ? themeManager.currentTheme.textColor // public
+                                : themeManager.currentTheme.textMutedColor // private - muted color
                         )
                     
                 }
@@ -338,6 +349,11 @@ private struct LeaderboardRow: View {
                 
                 Text(leaderboardEntry.netProvided)
                     .font(themeManager.currentTheme.bodyFont)
+                    .foregroundStyle(
+                        isNetworkRow
+                            ? .urGreen
+                            : themeManager.currentTheme.textColor
+                    )
                 
             }
             .padding(.trailing, 16)

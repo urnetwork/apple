@@ -203,21 +203,25 @@ extension LeaderboardView {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             formatter.maximumFractionDigits = 2
+            
+            let pib: Float = 1024 * 1024 * 1024
+            let tib: Float = 1024 * 1024
+            let gib: Float = 1024
 
             // 1 GiB = 1024 MiB
             // if mib >= 1_048_576 {  // 1 PiB = 1024 TiB = 1,048,576 GiB
-            if mib >= 1024 * 1024 * 1024 {  // 1 PiB = 1024 TiB = 1,048,576 GiB
-                let pib = mib / (1024 * 1024 * 1024)
+            if mib >= pib {
+                let pib = mib / pib
                 let formatted =
                     formatter.string(from: NSNumber(value: pib)) ?? String(format: "%.2f", pib)
                 return "\(formatted) PiB"
-            } else if mib >= 1024 * 1024 {  // 1 TiB = 1024 GiB = 1,048,576 MiB
-                let tib = mib / (1024 * 1024)
+            } else if mib >= tib {  // 1 TiB = 1024 GiB = 1,048,576 MiB
+                let tib = mib / tib
                 let formatted =
                     formatter.string(from: NSNumber(value: tib)) ?? String(format: "%.2f", tib)
                 return "\(formatted) TiB"
-            } else if mib >= 1024 {  // 1 GiB = 1024 MiB
-                let gib = mib / 1024
+            } else if mib >= gib {  // 1 GiB = 1024 MiB
+                let gib = mib / gib
                 let formatted =
                     formatter.string(from: NSNumber(value: gib)) ?? String(format: "%.2f", gib)
                 return "\(formatted) GiB"

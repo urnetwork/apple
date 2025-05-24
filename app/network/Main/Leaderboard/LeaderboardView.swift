@@ -170,7 +170,7 @@ private struct LeaderboardHeader: View {
                 }
                 
                 HStack {
-                    Text("#\(leaderboardRank)")
+                    Text(leaderboardRank > 0 ? "#\(leaderboardRank)" : "-")
                         .font(themeManager.currentTheme.titleCondensedFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                     

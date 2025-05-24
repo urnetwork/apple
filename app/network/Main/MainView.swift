@@ -185,7 +185,7 @@ struct WelcomeAnimation: View {
                 .frame(maxWidth: 400)
                 .offset(y: welcomeOffset) // Apply the offset to move the VStack offscreen
                 .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
                         withAnimation(.easeInOut) {
                             welcomeOffset = 0 // Slide the VStack up onscreen
                         }

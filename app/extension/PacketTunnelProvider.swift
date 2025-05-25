@@ -245,7 +245,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         pathMonitor.start(queue: pathMonitorQueue)
         
+        let packetWriteLock = NSLock()
         let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, data in
+            packetWriteLock.lock()
+            defer { packetWriteLock.unlock() }
             switch ipVersion {
             case 4:
                 self.packetFlow.writePackets([data], withProtocols: [AF_INET as NSNumber])
@@ -267,7 +270,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             device.close()
         }
         
-        
+        Thread.setThreadPriority(1.0)
         readToDevice(packetFlow: self.packetFlow, device: device, close: close)
         completionHandler(nil)
     }
@@ -319,10 +322,10 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal, close:
     // see https://developer.apple.com/documentation/networkextension/nepackettunnelflow/readpackets(completionhandler:)
     // "Each call to this method results in a single execution of the completion handler"
     packetFlow.readPackets { packets, protocols in
-        if (packets.count == 0) {
-            // EOF
-            return
-        }
+//        if (packets.count == 0) {
+//            // EOF
+//            return
+//        }
         
         for packet in packets {
             device.sendPacket(packet, n: Int32(packet.count))

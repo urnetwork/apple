@@ -333,7 +333,7 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal, close:
 //        }
         
         for packet in packets {
-            device.sendPacket(packet, n: Int32(packet.count))
+            device.sendPacketNoCopy(packet, n: Int32(packet.count))
         }
         // note since `readPackets` is async this is not recursion on the call stack
         readToDevice(packetFlow: packetFlow, device: device, close: close)

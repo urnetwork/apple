@@ -249,11 +249,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, data in
             packetWriteLock.lock()
             defer { packetWriteLock.unlock() }
+            var dataCopy: Data!
+            data.withUnsafeBytes { body in
+                
+                dataCopy = Data(bytes: body, count: data.count)
+            }
             switch ipVersion {
             case 4:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET as NSNumber])
+                self.packetFlow.writePackets([dataCopy], withProtocols: [AF_INET as NSNumber])
             case 6:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET6 as NSNumber])
+                self.packetFlow.writePackets([dataCopy], withProtocols: [AF_INET6 as NSNumber])
             default:
                 // unknown version, drop
                 break

@@ -18,6 +18,8 @@ struct WalletsView: View {
     
     var navigate: (AccountNavigationPath) -> Void
     var api: SdkApi?
+    var netAccountPoints: Int
+    var fetchAccountPoints: () async -> Void
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     @StateObject private var viewModel: ViewModel = ViewModel()
@@ -37,7 +39,8 @@ struct WalletsView: View {
                             
                             WalletsHeader(
                                 unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
-                                referralLinkViewModel: referralLinkViewModel
+                                netAccountPoints: netAccountPoints,
+                                referralLinkViewModel: referralLinkViewModel,
                             )
                             
                             EmptyWalletsView(
@@ -61,6 +64,7 @@ struct WalletsView: View {
                         
                         WalletsHeader(
                             unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                            netAccountPoints: netAccountPoints,
                             referralLinkViewModel: referralLinkViewModel
                         )
                         
@@ -82,9 +86,10 @@ struct WalletsView: View {
             async let fetchWallets: Void = accountWalletsViewModel.fetchAccountWallets()
             async let fetchPayments: Void = accountPaymentsViewModel.fetchPayments()
             async let fetchTransferStats: Void = accountWalletsViewModel.fetchTransferStats()
+            async let fetchAccountPoints: Void = fetchAccountPoints()
             
             // Wait for all tasks to complete
-            (_, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats)
+            (_, _, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats, fetchAccountPoints)
         }
         .onReceive(connectWalletProviderViewModel.$connectedPublicKey) { walletAddress in
             
@@ -184,6 +189,7 @@ struct WalletsHeader: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var unpaidMegaBytes: String
+    var netAccountPoints: Int
     // var totalReferrals: Int
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -212,19 +218,42 @@ struct WalletsHeader: View {
                 Spacer().frame(height: 8)
                 
                 HStack {
-                    UrLabel(text: "Total referrals")
+                    
+                    VStack {
+                        HStack {
+                            UrLabel(text: "Total referrals")
+                            Spacer()
+                        }
+                        
+                        ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
+                            HStack {
+                                Text("\(referralLinkViewModel.totalReferrals)")
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                                Spacer()
+                            }
+                        }
+                    }
+                    
                     Spacer()
+                    
+                    VStack {
+                        HStack {
+                            UrLabel(text: "Total account points")
+                            Spacer()
+                        }
+                        HStack {
+                            Text("\(netAccountPoints)")
+                                .font(themeManager.currentTheme.titleCondensedFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            
+                            Spacer()
+                        }
+                    }
+                    
                 }
                 
-                ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
-                    HStack {
-                        Text("\(referralLinkViewModel.totalReferrals)")
-                            .font(themeManager.currentTheme.titleCondensedFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        
-                        Spacer()
-                    }
-                }
                 
             }
             .padding(.top)

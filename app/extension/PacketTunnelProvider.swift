@@ -247,13 +247,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
         let packetWriteLock = NSLock()
         let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, data in
+            let dataCopy = try! data.withUnsafeBytes<Data> { body in
+                return Data(bytes: body, count: data.count)
+            }
+            
             packetWriteLock.lock()
             defer { packetWriteLock.unlock() }
-            var dataCopy: Data!
-            data.withUnsafeBytes { body in
-                
-                dataCopy = Data(bytes: body, count: data.count)
-            }
+            
             switch ipVersion {
             case 4:
                 self.packetFlow.writePackets([dataCopy], withProtocols: [AF_INET as NSNumber])

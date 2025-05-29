@@ -247,13 +247,18 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
         let packetWriteLock = NSLock()
         let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, data in
+            let dataCopy = try! data.withUnsafeBytes<Data> { body in
+                return Data(bytes: body, count: data.count)
+            }
+            
             packetWriteLock.lock()
             defer { packetWriteLock.unlock() }
+            
             switch ipVersion {
             case 4:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET as NSNumber])
+                self.packetFlow.writePackets([dataCopy], withProtocols: [AF_INET as NSNumber])
             case 6:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET6 as NSNumber])
+                self.packetFlow.writePackets([dataCopy], withProtocols: [AF_INET6 as NSNumber])
             default:
                 // unknown version, drop
                 break
@@ -328,7 +333,7 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal, close:
 //        }
         
         for packet in packets {
-            device.sendPacket(packet, n: Int32(packet.count))
+            device.sendPacketNoCopy(packet, n: Int32(packet.count))
         }
         // note since `readPackets` is async this is not recursion on the call stack
         readToDevice(packetFlow: packetFlow, device: device, close: close)

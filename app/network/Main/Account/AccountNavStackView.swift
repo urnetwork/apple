@@ -17,6 +17,7 @@ struct AccountNavStackView: View {
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @StateObject var accountWalletsViewModel: AccountWalletsViewModel
     @StateObject var payoutWalletViewModel: PayoutWalletViewModel
+    @StateObject var accountPointsViewModel: AccountPointsViewModel
     
     @ObservedObject var networkUserViewModel: NetworkUserViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
@@ -48,6 +49,8 @@ struct AccountNavStackView: View {
                 api: api
             )
         )
+        
+        _accountPointsViewModel = StateObject.init(wrappedValue: AccountPointsViewModel(api: api))
         
         self.accountPaymentsViewModel = accountPaymentsViewModel
         self.networkUserViewModel = networkUserViewModel
@@ -112,7 +115,9 @@ struct AccountNavStackView: View {
                     WalletsView(
                         navigate: viewModel.navigate,
                         api: api,
-                        referralLinkViewModel: referralLinkViewModel
+                        netAccountPoints: accountPointsViewModel.netPoints,
+                        fetchAccountPoints: accountPointsViewModel.fetchAccountPoints,
+                        referralLinkViewModel: referralLinkViewModel,
                     )
                         .toolbar {
                             ToolbarItem(placement: .principal) {

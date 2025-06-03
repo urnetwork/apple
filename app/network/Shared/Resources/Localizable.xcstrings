@@ -11784,6 +11784,148 @@
         }
       }
     },
+    "Please install Phantom or Solflare to use this feature" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يرجى تثبيت Phantom أو Solflare لاستخدام هذه الميزة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte installiere Phantom oder Solflare, um diese Funktion zu nutzen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παρακαλώ εγκαταστήστε το Phantom ή το Solflare για να χρησιμοποιήσετε αυτήν τη λειτουργία"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please install Phantom or Solflare to use this feature"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, instala Phantom o Solflare para usar esta función"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, instala Phantom o Solflare para usar esta función"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez installer Phantom ou Solflare pour utiliser cette fonctionnalité"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אנא התקן את Phantom או Solflare כדי להשתמש בתכונה זו"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कृपया इस सुविधा का उपयोग करने के लिए Phantom या Solflare इंस्टॉल करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Silakan instal Phantom atau Solflare untuk menggunakan fitur ini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per favore, installa Phantom o Solflare per utilizzare questa funzionalità"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この機能を使用するにはPhantomまたはSolflareをインストールしてください"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기능을 사용하려면 Phantom 또는 Solflare를 설치하십시오"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zainstaluj Phantom lub Solflare, aby korzystać z tej funkcji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instale o Phantom ou Solflare para usar este recurso"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instale o Phantom ou Solflare para usar esta funcionalidade"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пожалуйста, установите Phantom или Solflare, чтобы использовать эту функцию"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vänligen installera Phantom eller Solflare för att använda denna funktion"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โปรดติดตั้ง Phantom หรือ Solflare เพื่อใช้คุณสมบัตินี้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Будь ласка, встановіть Phantom або Solflare, щоб використовувати цю функцію"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng cài đặt Phantom hoặc Solflare để sử dụng tính năng này"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请安装 Phantom 或 Solflare 以使用此功能"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請安裝 Phantom 或 Solflare 以使用此功能"
+          }
+        }
+      }
+    },
     "Please login to URnetwork" : {
       "localizations" : {
         "ar" : {

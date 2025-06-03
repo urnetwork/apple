@@ -433,6 +433,20 @@ class ConnectWalletProviderViewModel: ObservableObject {
         NSWorkspace.shared.open(url)
         #endif
     }
+    
+    func isWalletAppInstalled(_ walletType: ConnectedWalletProvider) -> Bool {
+        let scheme: String
+        switch walletType {
+        case .phantom:
+            scheme = "phantom://"
+        case .solflare:
+            scheme = "solflare://"
+        }
+        
+        guard let url = URL(string: scheme) else { return false }
+        return UIApplication.shared.canOpenURL(url)
+    }
+    
 }
 
 private struct ConnectApproveResponse: Codable {

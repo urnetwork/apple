@@ -12,6 +12,7 @@ import OSLog
 // see https://developer.apple.com/documentation/networkextension/nepackettunnelprovider
 // discussion on how the PacketTunnelProvider is excluded from the routes it sets up:
 // see https://forums.developer.apple.com/forums/thread/677180
+// note we do not use the df "ioloop" on ios - see https://developer.apple.com/forums/thread/13503
 class PacketTunnelProvider: NEPacketTunnelProvider {
     
     /**
@@ -275,7 +276,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         pathMonitor.start(queue: pathMonitorQueue)
         
         let packetWriteLock = NSLock()
-        let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, data in
+        let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, packet in
 //            let dataCopy = try! data.withUnsafeBytes<Data> { body in
 //                return Data(bytes: body, count: data.count)
 //            }
@@ -285,9 +286,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             
             switch ipVersion {
             case 4:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET as NSNumber])
+                self.packetFlow.writePackets([packet], withProtocols: [AF_INET as NSNumber])
             case 6:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET6 as NSNumber])
+                self.packetFlow.writePackets([packet], withProtocols: [AF_INET6 as NSNumber])
             default:
                 // unknown version, drop
                 break
@@ -361,8 +362,8 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal, close:
 //            return
 //        }
         
-        for p in packets {
-            device.sendPacket(p, n: Int32(p.count))
+        for packet in packets {
+            device.sendPacket(packet, n: Int32(packet.count))
         }
         // note since `readPackets` is async this is not recursion on the call stack
         readToDevice(packetFlow: packetFlow, device: device, close: close)

@@ -48,10 +48,12 @@ struct SolanaSignMessageSheet: View {
                  */
              
                 HStack(spacing: 12) {
-                    
-                    Button(action: {
-                        connectWalletProviderViewModel.connectPhantomWallet()
-                    }) {
+                     
+                    Button(
+                        action: {
+                            connectWalletProviderViewModel.connectPhantomWallet()
+                        },
+                    ) {
                         
                         VStack {
                             Image("phantom.white.logo")
@@ -70,6 +72,8 @@ struct SolanaSignMessageSheet: View {
                         
                     }
                     .buttonStyle(.plain)
+                    .disabled(!connectWalletProviderViewModel.isWalletAppInstalled(.phantom))
+                        
                     
                     Button(action: {
                         connectWalletProviderViewModel.connectSolflareWallet()
@@ -84,7 +88,7 @@ struct SolanaSignMessageSheet: View {
                                 .background(.urWhite)
                                 .cornerRadius(12)
                             
-
+                            
                             Text("Solflare")
                                 .font(themeManager.currentTheme.secondaryBodyFont)
                                 .foregroundColor(themeManager.currentTheme.textColor)
@@ -92,8 +96,21 @@ struct SolanaSignMessageSheet: View {
                         
                     }
                     .buttonStyle(.plain)
+                    .disabled(!connectWalletProviderViewModel.isWalletAppInstalled(.solflare))
                     
+                
+                }
+                
+                if (!connectWalletProviderViewModel.isWalletAppInstalled(.solflare) && !connectWalletProviderViewModel.isWalletAppInstalled(.phantom)) {
                     
+                    Spacer().frame(height: 12)
+                    
+                    HStack {
+                        Text("Please install Phantom or Solflare to use this feature")
+                            .font(themeManager.currentTheme.bodyFont)
+                        
+                        Spacer()
+                    }
                 }
                 
             } else {

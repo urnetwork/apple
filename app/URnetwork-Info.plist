@@ -23,6 +23,11 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>338638865390-tdgpupo59durdck5es80iukafh0or4uq.apps.googleusercontent.com</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>solflare</string>
+		<string>phantom</string>
+	</array>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 	<key>NEVPNConfiguration</key>

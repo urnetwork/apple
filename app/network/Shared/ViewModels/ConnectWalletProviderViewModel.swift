@@ -444,7 +444,15 @@ class ConnectWalletProviderViewModel: ObservableObject {
         }
         
         guard let url = URL(string: scheme) else { return false }
+        
+        #if canImport(UIKit)
         return UIApplication.shared.canOpenURL(url)
+        #elseif canImport(AppKit)
+        // On macOS, we check if any app can handle the URL scheme
+        return NSWorkspace.shared.urlForApplication(toOpen: url) != nil
+        #else
+        return false
+        #endif
     }
     
 }

@@ -86,15 +86,6 @@ class VPNManager {
             
             DispatchQueue.main.async {
                 self.updateTunnel()
-                
-                // note this makes it impossible to turn off the vpn from settings
-                // until it's possible to tell whether the tunnel ended from user preference or crash,
-                // we won't be able to support the settings without compromising reliability of the tunnel
-                if !tunnelStarted {
-                    // the tunnel stopped unexpectedly. Sync with state.
-//                    self.tunnelRequestStatus = .none
-                    self.updateVpnService()
-                }
             }
         })
         

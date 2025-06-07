@@ -425,15 +425,7 @@ extension CreateNetworkView {
                     }
                     
                     if self.isValidReferralCode {
-                        
-                        var err: NSError?
-                        
-                        let referralCodeId = SdkParseId(self.bonusReferralCode, &err)
-                        
-                        if err == nil {
-                            args.referralCode = referralCodeId
-                        }
-                        
+                        args.referralCode = self.bonusReferralCode
                     }
                     
                     api.networkCreate(args, callback: callback)

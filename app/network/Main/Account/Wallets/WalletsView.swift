@@ -82,9 +82,11 @@ struct WalletsView: View {
             async let fetchWallets: Void = accountWalletsViewModel.fetchAccountWallets()
             async let fetchPayments: Void = accountPaymentsViewModel.fetchPayments()
             async let fetchTransferStats: Void = accountWalletsViewModel.fetchTransferStats()
+            async let fetchReferralLink: Void = referralLinkViewModel.fetchReferralLink()
+            
             
             // Wait for all tasks to complete
-            (_, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats)
+            (_, _, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats, fetchReferralLink)
         }
         .onReceive(connectWalletProviderViewModel.$connectedPublicKey) { walletAddress in
             

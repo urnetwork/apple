@@ -198,28 +198,28 @@ struct SettingsView: View {
                     /**
                      * Update referral code
                      */
-                    HStack {
-                        UrLabel(text: "Referral network")
-                        
-                        Spacer()
-                    }
-                    
-                    Spacer().frame(height: 8)
-                    
-                    HStack {
-                        Text("pizzaparty")
-                            .font(themeManager.currentTheme.bodyFont)
-                        Spacer()
-                        
-                        Button(action: {
-                            viewModel.presentSigninWithSolanaSheet = true
-                        }) {
-                            Text("Update")
-                        }
-                        
-                    }
-                    
-                    Spacer().frame(height: 32)
+//                    HStack {
+//                        UrLabel(text: "Referral network")
+//                        
+//                        Spacer()
+//                    }
+//                    
+//                    Spacer().frame(height: 8)
+//                    
+//                    HStack {
+//                        Text("pizzaparty")
+//                            .font(themeManager.currentTheme.bodyFont)
+//                        Spacer()
+//                        
+//                        Button(action: {
+//                            viewModel.presentSigninWithSolanaSheet = true
+//                        }) {
+//                            Text("Update")
+//                        }
+//                        
+//                    }
+//                    
+//                    Spacer().frame(height: 32)
                     
                     
                     #if os(macOS)

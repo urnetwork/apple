@@ -27,6 +27,7 @@ extension SettingsView {
             #endif
             
             checkNotificationSettings()
+            fetchReferralNetwork()
             
         }
         
@@ -62,6 +63,11 @@ extension SettingsView {
         func setIsSigningMessage(_ isSigning: Bool) -> Void {
             isSigningMessage = isSigning
         }
+        
+        /**
+         * Referral network
+         */
+        @Published private(set) var referralNetwork: SdkReferralNetwork? = nil
         
         let domain = "SettingsViewModel"
         
@@ -156,6 +162,10 @@ extension SettingsView {
             
         }
         
+        func fetchReferralNetwork() {
+            
+        }
+        
         #if os(macOS)
         private func setLaunchAtStartup(_ enabled: Bool) {
             print("setLaunchAtStartup hit with enabled value: \(enabled)")
@@ -185,6 +195,12 @@ extension SettingsView {
 
 private class NetworkDeleteCallback: SdkCallback<SdkNetworkDeleteResult, SdkNetworkDeleteCallbackProtocol>, SdkNetworkDeleteCallbackProtocol {
     func result(_ result: SdkNetworkDeleteResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class GetReferralNetworkCallback: SdkCallback<SdkGetReferralNetworkResult, SdkGetReferralNetworkResultCallbackProtocol>, SdkGetReferralNetworkResultCallbackProtocol {
+    func result(_ result: SdkGetReferralNetworkResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

@@ -184,10 +184,12 @@ class AccountWalletsViewModel: ObservableObject {
             
             let unpaidBytes = result.unpaidBytesProvided
             
-            if Double(unpaidBytes) >= 1_073_741_824 { // 1 GB = 1,073,741,824 bytes
-                unpaidMegaBytes = String(format: "%.2f GB", Double(unpaidBytes) / 1_073_741_824)
+            if unpaidBytes >= 1_000_000_000 { // 1 GB = 1,000,000,000 bytes
+                let unpaidGigaBytes = unpaidBytes / 1_000_000_000
+                unpaidMegaBytes = String(format: "%.2f GB", unpaidGigaBytes)
             } else {
-                unpaidMegaBytes = String(format: "%.2f MB", Double(unpaidBytes) / 1_048_576)
+                let unpaidMegaBytesValue = unpaidBytes / 1_000_000
+                unpaidMegaBytes = String(format: "%.2f MB", unpaidMegaBytesValue)
             }
             
             isLoadingTransferStats = false

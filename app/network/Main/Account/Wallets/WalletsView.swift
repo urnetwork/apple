@@ -36,7 +36,7 @@ struct WalletsView: View {
                         VStack {
                             
                             WalletsHeader(
-                                unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                                unpaidMegaBytes: accountWalletsViewModel.unpaidDataFormatted,
                                 referralLinkViewModel: referralLinkViewModel
                             )
                             
@@ -60,7 +60,7 @@ struct WalletsView: View {
                     VStack {
                         
                         WalletsHeader(
-                            unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                            unpaidMegaBytes: accountWalletsViewModel.unpaidDataFormatted,
                             referralLinkViewModel: referralLinkViewModel
                         )
                         
@@ -197,7 +197,7 @@ struct WalletsHeader: View {
             
             VStack(spacing: 0) {
                 HStack {
-                    UrLabel(text: "Unpaid megabytes provided")
+                    UrLabel(text: "Unpaid data provided")
                     Spacer()
                 }
                 

@@ -27,6 +27,7 @@ extension SettingsView {
             #endif
             
             checkNotificationSettings()
+            fetchReferralNetwork()
             
         }
         
@@ -62,6 +63,11 @@ extension SettingsView {
         func setIsSigningMessage(_ isSigning: Bool) -> Void {
             isSigningMessage = isSigning
         }
+        
+        /**
+         * Referral network
+         */
+        @Published private(set) var referralNetwork: SdkReferralNetwork? = nil
         
         let domain = "SettingsViewModel"
         
@@ -153,6 +159,10 @@ extension SettingsView {
                 }
                 return .failure(error)
             }
+            
+        }
+        
+        func fetchReferralNetwork() {
             
         }
         

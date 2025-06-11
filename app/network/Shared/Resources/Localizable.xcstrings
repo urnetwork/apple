@@ -19011,147 +19011,147 @@
         }
       }
     },
-    "Unpaid megabytes provided" : {
-      "localizations" : {
+    "Unpaid data provided" : {
+    "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ميغابايت غير مدفوعة مقدمة"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "بيانات غير مدفوعة مقدمة"
+            }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unbezahlte bereitgestellte Megabytes"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Unbezahlte bereitgestellte Daten"
+            }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "απλήρωτα megabytes που παρασχέθηκαν"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "απλήρωτα δεδομένα που παρασχέθηκαν"
+            }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unpaid megabytes provided"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Unpaid data provided"
+            }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabytes proporcionados sin pagar"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Datos proporcionados sin pagar"
+            }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabytes proporcionados sin pagar"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Datos proporcionados sin pagar"
+            }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mégaoctets fournis non payés"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Données fournies non payées"
+            }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מגה-בייט שסופקו וטרם שולמו"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "נתונים שסופקו וטרם שולמו"
+            }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "प्रदान किए गए अवैतनिक मेगाबाइट"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "प्रदान किए गए अवैतनिक डेटा"
+            }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabyte yang disediakan belum dibayar"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Data yang disediakan belum dibayar"
+            }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabyte forniti non pagati"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dati forniti non pagati"
+            }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未払いの提供メガバイト"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "未払いの提供データ"
+            }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "제공된 미지급 메가바이트"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "제공된 미지급 데이터"
+            }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dostarczone nieopłacone megabajty"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dostarczone nieopłacone dane"
+            }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabytes fornecidos não pagos"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dados fornecidos não pagos"
+            }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabytes fornecidos não pagos"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dados fornecidos não pagos"
+            }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "неоплаченные предоставленные мегабайты"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "неоплаченные предоставленные данные"
+            }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obetalda megabyte tillhandahållna"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Obetalda data tillhandahållen"
+            }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เมกะไบต์ที่ให้บริการแต่ยังไม่ได้ชำระ"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "ข้อมูลที่ให้บริการแต่ยังไม่ได้ชำระ"
+            }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "неоплачені надані мегабайти"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "неоплачені надані дані"
+            }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Megabyte đã cung cấp chưa thanh toán"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dữ liệu đã cung cấp chưa thanh toán"
+            }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未支付的已提供MB数据"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "未支付的已提供数据"
+            }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未支付的已提供MB數據"
-          }
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "未支付的已提供數據"
+            }
         }
-      }
+    }
     },
     "Update password" : {
       "localizations" : {

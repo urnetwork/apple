@@ -199,12 +199,6 @@ private class NetworkDeleteCallback: SdkCallback<SdkNetworkDeleteResult, SdkNetw
     }
 }
 
-private class GetReferralNetworkCallback: SdkCallback<SdkGetReferralNetworkResult, SdkGetReferralNetworkResultCallbackProtocol>, SdkGetReferralNetworkResultCallbackProtocol {
-    func result(_ result: SdkGetReferralNetworkResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
 enum NetworkDeleteError: Error {
     case inProgress
     case resultInvalid

@@ -19,6 +19,8 @@ extension SettingsView {
         
         var api: SdkApi
         
+        @Published var presentUpdateReferralNetworkSheet: Bool = false
+        
         init(api: SdkApi) {
             self.api = api
             
@@ -27,6 +29,10 @@ extension SettingsView {
             #endif
             
             checkNotificationSettings()
+            
+            Task {
+                await fetchReferralNetwork()
+            }
             
         }
         
@@ -62,6 +68,11 @@ extension SettingsView {
         func setIsSigningMessage(_ isSigning: Bool) -> Void {
             isSigningMessage = isSigning
         }
+        
+        /**
+         * Referral network
+         */
+        @Published private(set) var referralNetwork: SdkReferralNetwork? = nil
         
         let domain = "SettingsViewModel"
         
@@ -156,6 +167,48 @@ extension SettingsView {
             
         }
         
+        func fetchReferralNetwork() async {
+            
+            do {
+
+                let result: SdkGetReferralNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+
+                    guard let self = self else { return }
+
+                    let callback = GetNetworkReferralCallback { result, err in
+
+                        if let err = err {
+                            continuation.resume(throwing: err)
+                            return
+                        }
+
+                        guard let result = result else {
+                            continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "TransferStatsCallback result is nil"]))
+                            return
+                        }
+
+                        continuation.resume(returning: result)
+                    }
+
+                    api.getReferralNetwork(callback)
+
+                }
+                
+                if result.error != nil {
+                    print("fetch referral network result.error: \(String(describing: result.error?.message))")
+                    self.referralNetwork = nil
+                    return
+                }
+
+                self.referralNetwork = result.network
+
+            } catch(let error) {
+                print("\(domain) Error fetching transfer stats: \(error)")
+                // isLoadingTransferStats = false
+            }
+            
+        }
+        
         #if os(macOS)
         private func setLaunchAtStartup(_ enabled: Bool) {
             print("setLaunchAtStartup hit with enabled value: \(enabled)")
@@ -185,6 +238,12 @@ extension SettingsView {
 
 private class NetworkDeleteCallback: SdkCallback<SdkNetworkDeleteResult, SdkNetworkDeleteCallbackProtocol>, SdkNetworkDeleteCallbackProtocol {
     func result(_ result: SdkNetworkDeleteResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class GetNetworkReferralCallback: SdkCallback<SdkGetReferralNetworkResult, SdkGetReferralNetworkCallbackProtocol>, SdkGetReferralNetworkCallbackProtocol {
+    func result(_ result: SdkGetReferralNetworkResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

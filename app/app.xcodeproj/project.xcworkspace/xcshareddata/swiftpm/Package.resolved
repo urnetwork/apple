@@ -1,5 +1,5 @@
 {
-  "originHash" : "2752996b62ebf403bcb061769de8e68fd39ff1fc2e07960f7d8cf937a61d9411",
+  "originHash" : "9e0efd3eeadb7c81e591260ecfb0de8e9c356fd22ed9e66164379a2502ec5604",
   "pins" : [
     {
       "identity" : "app-check",
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleUtilities.git",
       "state" : {
-        "revision" : "53156c7ec267db846e6b64c9f4c4e31ba4cf75eb",
-        "version" : "8.0.2"
+        "revision" : "60da361632d0de02786f709bdc0c4df340f7613e",
+        "version" : "8.1.0"
       }
     },
     {

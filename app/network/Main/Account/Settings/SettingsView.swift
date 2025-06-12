@@ -24,6 +24,8 @@ struct SettingsView: View {
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountWalletsViewModel: AccountWalletsViewModel
     
+    var api: SdkApi
+    
     init(
         api: SdkApi,
         clientId: SdkId?,
@@ -36,6 +38,7 @@ struct SettingsView: View {
         self.accountPreferencesViewModel = accountPreferencesViewModel
         self.referralLinkViewModel = referralLinkViewModel
         self.accountWalletsViewModel = accountWalletsViewModel
+        self.api = api
     }
     
     var clientUrl: String {
@@ -193,6 +196,32 @@ struct SettingsView: View {
                     .background(themeManager.currentTheme.tintedBackgroundBase)
                     .cornerRadius(8)
 
+                    Spacer().frame(height: 32)
+                    
+                    /**
+                     * Update referral code
+                     */
+                    HStack {
+                        UrLabel(text: "Referral network")
+                        
+                        Spacer()
+                    }
+                    
+                    Spacer().frame(height: 8)
+                    
+                    HStack {
+                        Text(viewModel.referralNetwork?.name ?? "None")
+                            .font(themeManager.currentTheme.bodyFont)
+                        Spacer()
+                        
+                        Button(action: {
+                            viewModel.presentUpdateReferralNetworkSheet = true
+                        }) {
+                            Text("Update")
+                        }
+                        
+                    }
+                    
                     Spacer().frame(height: 32)
                     
                     
@@ -415,6 +444,25 @@ struct SettingsView: View {
                         
                     }
                 )
+        }
+        .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
+            UpdateReferralNetworkSheet(
+                api: api,
+                onSuccess: {
+                    Task {
+                        await viewModel.fetchReferralNetwork()
+                    }
+                    viewModel.presentUpdateReferralNetworkSheet = false
+                },
+                dismiss: {
+                    viewModel.presentUpdateReferralNetworkSheet = false
+                },
+                referralNetwork: viewModel.referralNetwork
+            )
+            #if os(iOS)
+            .presentationDetents([.height(268)])
+            .presentationDragIndicator(.visible)
+            #endif
         }
     }
     

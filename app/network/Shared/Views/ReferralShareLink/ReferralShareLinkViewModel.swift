@@ -16,7 +16,7 @@ class ReferralLinkViewModel: ObservableObject {
     @Published private(set) var totalReferrals: Int = 0
     @Published private(set) var isLoading: Bool = false
     
-    let domain = "ReferSheetViewModel"
+    let domain = "ReferralLinkViewModel"
     
     let api: SdkApi?
     
@@ -68,11 +68,11 @@ class ReferralLinkViewModel: ObservableObject {
                 api?.getNetworkReferralCode(callback)
             }
             
-            DispatchQueue.main.async {
-                self.referralCode = result.referralCode
-                self.totalReferrals = result.totalReferrals
-                self.isLoading = false
-            }
+            
+            self.referralCode = result.referralCode
+            self.totalReferrals = result.totalReferrals
+            self.isLoading = false
+            
             
         } catch(let error) {
             self.isLoading = false

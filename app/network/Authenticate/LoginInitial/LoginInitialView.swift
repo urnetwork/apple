@@ -124,7 +124,7 @@ struct LoginInitialView: View {
                     }
                 )
                 #if os(iOS)
-                .presentationDetents([.height(148)])
+                .presentationDetents([.height(216)])
                 #endif
                 
             }

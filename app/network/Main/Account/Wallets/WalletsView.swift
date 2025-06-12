@@ -38,7 +38,7 @@ struct WalletsView: View {
                         VStack {
                             
                             WalletsHeader(
-                                unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                                unpaidMegaBytes: accountWalletsViewModel.unpaidDataFormatted,
                                 netAccountPoints: netAccountPoints,
                                 referralLinkViewModel: referralLinkViewModel,
                             )
@@ -63,7 +63,7 @@ struct WalletsView: View {
                     VStack {
                         
                         WalletsHeader(
-                            unpaidMegaBytes: accountWalletsViewModel.unpaidMegaBytes,
+                            unpaidMegaBytes: accountWalletsViewModel.unpaidDataFormatted,
                             netAccountPoints: netAccountPoints,
                             referralLinkViewModel: referralLinkViewModel
                         )
@@ -87,9 +87,11 @@ struct WalletsView: View {
             async let fetchPayments: Void = accountPaymentsViewModel.fetchPayments()
             async let fetchTransferStats: Void = accountWalletsViewModel.fetchTransferStats()
             async let fetchAccountPoints: Void = fetchAccountPoints()
+            async let fetchReferralLink: Void = referralLinkViewModel.fetchReferralLink()
             
             // Wait for all tasks to complete
-            (_, _, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats, fetchAccountPoints)
+            (_, _, _, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats, fetchAccountPoints, fetchReferralLink)
+
         }
         .onReceive(connectWalletProviderViewModel.$connectedPublicKey) { walletAddress in
             
@@ -201,7 +203,7 @@ struct WalletsHeader: View {
             
             VStack(spacing: 0) {
                 HStack {
-                    UrLabel(text: "Unpaid megabytes provided")
+                    UrLabel(text: "Unpaid data provided")
                     Spacer()
                 }
                 

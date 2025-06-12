@@ -12,6 +12,7 @@ import OSLog
 // see https://developer.apple.com/documentation/networkextension/nepackettunnelprovider
 // discussion on how the PacketTunnelProvider is excluded from the routes it sets up:
 // see https://forums.developer.apple.com/forums/thread/677180
+// note we do not use the df "ioloop" on ios - see https://developer.apple.com/forums/thread/13503
 class PacketTunnelProvider: NEPacketTunnelProvider {
     
     /**
@@ -199,8 +200,27 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         device.setProvideMode(localState.getProvideMode())
         device.setRouteLocal(localState.getRouteLocal())
         
+        let setLocal = {
+            if device.getConnectLocation() == nil {
+                // reset to local if available
+                self.setTunnelNetworkSettings(self.networkSettings()) { error in
+                    if let error = error {
+                        self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
+                        return
+                    }
+                    self.reasserting = device.getConnectLocation() != nil
+                }
+            }
+        }
+        
         let locationChangeSub = device.add(ConnectLocationChangeListener { location in
             try? localState.setConnectLocation(location)
+            
+            if location == nil {
+                DispatchQueue.main.async {
+                    setLocal()
+                }
+            }
         })
         let provideChangeSub = device.add(ProvideChangeListener { provideEnabled in
             var provideMode: Int
@@ -210,6 +230,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 provideMode = SdkProvideModeNone
             }
             try? localState.setProvideMode(provideMode)
+            
+            if provideEnabled {
+                DispatchQueue.main.async {
+                    setLocal()
+                }
+            }
         })
         let routeLocalChangeSub = device.add(RouteLocalChangeListener { routeLocal in
             try? localState.setRouteLocal(routeLocal)
@@ -223,7 +249,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 if self.connected != connected {
                     self.connected = connected
                     if !connected {
-                        self.reasserting = true
+                        if device.getConnectLocation() == nil {
+                            setLocal()
+                        } else {
+                            self.reasserting = true
+                        }
                     } else {
                         self.setTunnelNetworkSettings(self.networkSettings()) { error in
                             if let error = error {
@@ -246,14 +276,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         pathMonitor.start(queue: pathMonitorQueue)
         
         let packetWriteLock = NSLock()
-        let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, data in
+        let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, packet in
+//            let dataCopy = try! data.withUnsafeBytes<Data> { body in
+//                return Data(bytes: body, count: data.count)
+//            }
+            
             packetWriteLock.lock()
             defer { packetWriteLock.unlock() }
+            
             switch ipVersion {
             case 4:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET as NSNumber])
+                self.packetFlow.writePackets([packet], withProtocols: [AF_INET as NSNumber])
             case 6:
-                self.packetFlow.writePackets([data], withProtocols: [AF_INET6 as NSNumber])
+                self.packetFlow.writePackets([packet], withProtocols: [AF_INET6 as NSNumber])
             default:
                 // unknown version, drop
                 break

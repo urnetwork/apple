@@ -6510,6 +6510,148 @@
         }
       }
     },
+    "Enter network referral code" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "أدخل رمز الإحالة للشبكة"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Netzwerk-Empfehlungscode eingeben"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Εισαγάγετε τον κωδικό παραπομπής δικτύου"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Enter network referral code"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ingrese el código de referencia de la red"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ingrese el código de referencia de la red"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Entrez le code de parrainage du réseau"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "הזן קוד הפניה של הרשת"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "नेटवर्क रेफ़रल कोड दर्ज करें"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Masukkan kode referensi jaringan"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Inserisci il codice di riferimento della rete"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ネットワーク紹介コードを入力"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "네트워크 추천 코드를 입력하세요"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Wprowadź kod polecenia sieci"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Insira o código de indicação da rede"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Introduza o código de referência da rede"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Введите реферальный код сети"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ange nätverksreferenskod"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ป้อนรหัสผู้อ้างอิงของเครือข่าย"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Введіть реферальний код мережі"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Nhập mã giới thiệu mạng"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "输入网络推荐码"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "輸入網絡推薦碼"
+                }
+            }
+        }
+    },
     "Enter URnetwork" : {
       "localizations" : {
         "ar" : {
@@ -8225,6 +8367,148 @@
           }
         }
       }
+    },
+    "Invalid referral code. Please try again." : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "رمز الإحالة غير صالح. يرجى المحاولة مرة أخرى."
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ungültiger Empfehlungscode. Bitte versuchen Sie es erneut."
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Μη έγκυρος κωδικός παραπομπής. Παρακαλώ δοκιμάστε ξανά."
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Invalid referral code. Please try again."
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Código de referencia no válido. Por favor, inténtalo de nuevo."
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Código de referencia no válido. Por favor, inténtalo de nuevo."
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Code de parrainage invalide. Veuillez réessayer."
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "קוד הפניה לא חוקי. אנא נסה שוב."
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "अमान्य रेफ़रल कोड। कृपया पुन: प्रयास करें।"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Kode referensi tidak valid. Silakan coba lagi."
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Codice di riferimento non valido. Per favore riprova."
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "無効な紹介コードです。もう一度お試しください。"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "유효하지 않은 추천 코드입니다. 다시 시도해 주세요."
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Nieprawidłowy kod polecający. Spróbuj ponownie."
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Código de indicação inválido. Por favor, tente novamente."
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Código de referência inválido. Por favor, tente novamente."
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Недействительный реферальный код. Пожалуйста, попробуйте еще раз."
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ogiltig referenskod. Försök igen."
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "รหัสผู้อ้างอิงไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Недійсний реферальний код. Будь ласка, спробуйте ще раз."
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Mã giới thiệu không hợp lệ. Vui lòng thử lại."
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "推荐码无效。请再试一次。"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "推薦碼無效。請再試一次。"
+                }
+            }
+        }
     },
     "It's nice to see you again" : {
       "localizations" : {
@@ -13768,6 +14052,148 @@
         }
       }
     },
+    "Referral network" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "شبكة الإحالة"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Empfehlungsnetzwerk"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Δίκτυο παραπομπών"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Referral network"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Red de referidos"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Red de referidos"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Réseau de parrainage"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "רשת הפניות"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "रेफ़रल नेटवर्क"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Jaringan referensi"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Rete di riferimento"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "リファラルネットワーク"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "추천 네트워크"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Sieć poleceń"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Rede de indicações"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Rede de recomendações"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Реферальная сеть"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Referensnätverk"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "เครือข่ายผู้อ้างอิง"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Реферальна мережа"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Mạng giới thiệu"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "推荐网络"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "推薦網絡"
+                }
+            }
+        }
+    },
     "Remove wallet" : {
       "localizations" : {
         "ar" : {
@@ -16327,6 +16753,148 @@
     },
     "Solflare" : {
       "shouldTranslate" : false
+    },
+    "Something went wrong. Please try again later." : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقًا."
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Etwas ist schief gelaufen. Bitte versuchen Sie es später noch einmal."
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Κάτι πήγε στραβά. Παρακαλώ δοκιμάστε ξανά αργότερα."
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Something went wrong. Please try again later."
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Algo salió mal. Por favor, inténtalo de nuevo más tarde."
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Algo salió mal. Por favor, inténtalo de nuevo más tarde."
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Une erreur s'est produite. Veuillez réessayer plus tard."
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "משהו השתבש. אנא נסה שוב מאוחר יותר."
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "कुछ गलत हो गया। कृपया बाद में पुन: प्रयास करें।"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Terjadi kesalahan. Silakan coba lagi nanti."
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Qualcosa è andato storto. Per favore riprova più tardi."
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "問題が発生しました。後でもう一度お試しください。"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "문제가 발생했습니다. 나중에 다시 시도해 주세요."
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Coś poszło nie tak. Spróbuj ponownie później."
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Algo deu errado. Por favor, tente novamente mais tarde."
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Algo correu mal. Por favor, tente novamente mais tarde."
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Что-то пошло не так. Пожалуйста, попробуйте позже."
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Något gick fel. Försök igen senare."
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งในภายหลัง"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Щось пішло не так. Будь ласка, спробуйте пізніше."
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Đã xảy ra sự cố. Vui lòng thử lại sau."
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "出现问题。请稍后再试。"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "發生錯誤。請稍後再試。"
+                }
+            }
+        }
     },
     "Stay in touch" : {
       "localizations" : {
@@ -19012,146 +19580,288 @@
       }
     },
     "Unpaid data provided" : {
-    "localizations" : {
+      "localizations" : {
         "ar" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "بيانات غير مدفوعة مقدمة"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بيانات غير مدفوعة مقدمة"
+          }
         },
         "de" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Unbezahlte bereitgestellte Daten"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbezahlte bereitgestellte Daten"
+          }
         },
         "el" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "απλήρωτα δεδομένα που παρασχέθηκαν"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "απλήρωτα δεδομένα που παρασχέθηκαν"
+          }
         },
         "en" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Unpaid data provided"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpaid data provided"
+          }
         },
         "es" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Datos proporcionados sin pagar"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos proporcionados sin pagar"
+          }
         },
         "es-419" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Datos proporcionados sin pagar"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos proporcionados sin pagar"
+          }
         },
         "fr" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Données fournies non payées"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données fournies non payées"
+          }
         },
         "he" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "נתונים שסופקו וטרם שולמו"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נתונים שסופקו וטרם שולמו"
+          }
         },
         "hi" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "प्रदान किए गए अवैतनिक डेटा"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रदान किए गए अवैतनिक डेटा"
+          }
         },
         "id" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Data yang disediakan belum dibayar"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data yang disediakan belum dibayar"
+          }
         },
         "it" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Dati forniti non pagati"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dati forniti non pagati"
+          }
         },
         "ja" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "未払いの提供データ"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未払いの提供データ"
+          }
         },
         "ko" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "제공된 미지급 데이터"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제공된 미지급 데이터"
+          }
         },
         "pl" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Dostarczone nieopłacone dane"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostarczone nieopłacone dane"
+          }
         },
         "pt-BR" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Dados fornecidos não pagos"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dados fornecidos não pagos"
+          }
         },
         "pt-PT" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Dados fornecidos não pagos"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dados fornecidos não pagos"
+          }
         },
         "ru" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "неоплаченные предоставленные данные"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "неоплаченные предоставленные данные"
+          }
         },
         "sv" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Obetalda data tillhandahållen"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obetalda data tillhandahållen"
+          }
         },
         "th" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "ข้อมูลที่ให้บริการแต่ยังไม่ได้ชำระ"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ข้อมูลที่ให้บริการแต่ยังไม่ได้ชำระ"
+          }
         },
         "uk" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "неоплачені надані дані"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "неоплачені надані дані"
+          }
         },
         "vi" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "Dữ liệu đã cung cấp chưa thanh toán"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu đã cung cấp chưa thanh toán"
+          }
         },
         "zh-Hans" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "未支付的已提供数据"
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未支付的已提供数据"
+          }
         },
         "zh-HK" : {
-            "stringUnit" : {
-                "state" : "translated",
-                "value" : "未支付的已提供數據"
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未支付的已提供數據"
+          }
+        }
+      }
+    },
+    "Update" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "تحديث"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Aktualisieren"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ενημέρωση"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Update"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Actualizar"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Actualizar"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Mettre à jour"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "עדכן"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "अपडेट करें"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Perbarui"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Aggiorna"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "更新"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "업데이트"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Aktualizuj"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Atualizar"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Atualizar"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Обновить"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Uppdatera"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "อัปเดต"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Оновити"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Cập nhật"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "更新"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "更新"
+                }
             }
         }
-    }
     },
     "Update password" : {
       "localizations" : {
@@ -19294,6 +20004,148 @@
           }
         }
       }
+    },
+    "Update referral network" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "تحديث شبكة الإحالة"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Empfehlungsnetzwerk aktualisieren"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ενημέρωση δικτύου παραπομπών"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Update referral network"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Actualizar red de referidos"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Actualizar red de referidos"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Mettre à jour le réseau de parrainage"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "עדכן רשת הפניות"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "रेफ़रल नेटवर्क अपडेट करें"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Perbarui jaringan referensi"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Aggiorna rete di riferimento"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "リファラルネットワークを更新"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "추천 네트워크 업데이트"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Zaktualizuj sieć poleceń"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Atualizar rede de indicações"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Atualizar rede de recomendações"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Обновить реферальную сеть"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Uppdatera referensnätverk"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "อัปเดตเครือข่ายผู้อ้างอิง"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Оновити реферальну мережу"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Cập nhật mạng giới thiệu"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "更新推荐网络"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "更新推薦網絡"
+                }
+            }
+        }
     },
     "Upgrade" : {
       "localizations" : {

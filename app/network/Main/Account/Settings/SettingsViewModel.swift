@@ -196,11 +196,11 @@ extension SettingsView {
                 
                 if result.error != nil {
                     print("fetch referral network result.error: \(String(describing: result.error?.message))")
+                    self.referralNetwork = nil
                     return
                 }
 
                 self.referralNetwork = result.network
-                
 
             } catch(let error) {
                 print("\(domain) Error fetching transfer stats: \(error)")

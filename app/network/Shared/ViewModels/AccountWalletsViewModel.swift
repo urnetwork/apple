@@ -184,6 +184,7 @@ class AccountWalletsViewModel: ObservableObject {
 
             let unpaidBytes = result.unpaidBytesProvided
 
+
             if unpaidBytes >= 1_000_000_000 {
                 let unpaidGigaBytes = Double(unpaidBytes) / 1_000_000_000.0
                 unpaidDataFormatted = String(format: "%.2f GB", unpaidGigaBytes)

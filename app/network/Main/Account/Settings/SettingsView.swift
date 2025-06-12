@@ -456,10 +456,11 @@ struct SettingsView: View {
                 },
                 dismiss: {
                     viewModel.presentUpdateReferralNetworkSheet = false
-                }
+                },
+                referralNetwork: viewModel.referralNetwork
             )
             #if os(iOS)
-            .presentationDetents([.height(240)])
+            .presentationDetents([.height(268)])
             .presentationDragIndicator(.visible)
             #endif
         }

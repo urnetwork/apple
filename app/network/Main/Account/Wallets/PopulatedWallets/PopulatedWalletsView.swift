@@ -16,6 +16,10 @@ struct PopulatedWalletsView: View {
     
     var navigate: (AccountNavigationPath) -> Void
     var isSeekerOrSagaHolder: Bool
+    var netPoints: Double
+    var payoutPoints: Double
+    var referralPoints: Double
+    var multiplierPoints: Double
     @Binding var presentConnectWalletSheet: Bool
     
     var body: some View {
@@ -77,6 +81,105 @@ struct PopulatedWalletsView: View {
                 }
                 
                 Spacer().frame(height: 16)
+                
+                HStack {
+                    Text("Account points")
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .font(themeManager.currentTheme.bodyFont)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                
+                VStack(spacing: 0) {
+                    
+                    HStack {
+                        Text("Points breakdown")
+                            .font(themeManager.currentTheme.toolbarTitleFont)
+                        Spacer()
+                    }
+                    
+                    Spacer().frame(height: 12)
+                    
+                    HStack {
+                        
+                        VStack {
+                            HStack {
+                                UrLabel(text: "Payout")
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Text(String(format: "%.0f", payoutPoints))
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                                Spacer()
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        VStack {
+                            HStack {
+                                UrLabel(text: "Seeker")
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Text(String(format: "%.0f", multiplierPoints))
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                                Spacer()
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        VStack {
+                            HStack {
+                                UrLabel(text: "Referral")
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Text(String(format: "%.0f", referralPoints))
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                                Spacer()
+                            }
+                        }
+                        
+                    }
+                    
+                    Spacer().frame(height: 8)
+                    
+                    Divider()
+                    
+                    Spacer().frame(height: 8)
+                    
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(String(format: "%.0f", netPoints))
+                            .font(themeManager.currentTheme.titleCondensedFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        Text("net points earned")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                        Spacer()
+                    }
+                    
+                    
+                }
+                .padding()
+                // .frame(maxWidth: .infinity)
+                .background(themeManager.currentTheme.tintedBackgroundBase)
+                .cornerRadius(12)
+                .padding()
+                
+                
+                
                 
                 if (isSeekerOrSagaHolder) {
                  
@@ -226,11 +329,12 @@ private struct WalletListItem: View {
     
 }
 
-#Preview {
-    
-    PopulatedWalletsView(
-        navigate: {_ in },
-        isSeekerOrSagaHolder: true,
-        presentConnectWalletSheet: .constant(false),
-    )
-}
+//#Preview {
+//    
+//    PopulatedWalletsView(
+//        navigate: {_ in },
+//        isSeekerOrSagaHolder: true,
+//        netAccountPoints: 12,
+//        presentConnectWalletSheet: .constant(false),
+//    )
+//}

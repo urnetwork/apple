@@ -19,12 +19,6 @@ extension AccountNavStackView {
     
     class ViewModel: ObservableObject {
         
-//        var api: SdkBringYourApi
-//        
-//        init(api: SdkBringYourApi) {
-//            self.api = api
-//        }
-        
         @Published var navigationPath: [AccountNavigationPath] = []
         
         func navigate(_ path: AccountNavigationPath) {

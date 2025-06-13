@@ -13,7 +13,12 @@ class AccountPointsViewModel: ObservableObject {
     
     var api: SdkApi?
     @Published private(set) var accountPoints: [SdkAccountPoint] = []
-    @Published private(set) var netPoints: Int = 0
+    
+    @Published private(set) var netPoints: Double = 0
+    @Published private(set) var payoutPoints: Double = 0
+    @Published private(set) var multiplierPoints: Double = 0
+    @Published private(set) var referralPoints: Double = 0
+    
     private(set) var isLoading: Bool = false
     
     
@@ -61,7 +66,10 @@ class AccountPointsViewModel: ObservableObject {
             
             let n = result.accountPoints?.len()
             
-            var netPoints = 0
+            var netPoints = 0.0
+            var payoutPoints = 0.0
+            var multiplierPoints = 0.0
+            var referralPoints = 0.0
             var accountPoints: [SdkAccountPoint] = []
             
             guard let n = n else {
@@ -73,13 +81,36 @@ class AccountPointsViewModel: ObservableObject {
                 let accountPoint = result.accountPoints?.get(i)
 
                 if let accountPoint = accountPoint {
-                    netPoints += accountPoint.pointValue
+                    
+                    let pointValue = SdkNanoPointsToPoints(accountPoint.pointValue)
+                    
+                    netPoints += pointValue
                     accountPoints.append(accountPoint)
+                    
+                    if let event = AccountPointEvent(rawValue: accountPoint.event) {
+                        
+                        switch event {
+                            case .payout:
+                                payoutPoints += pointValue
+                            case .payoutLinkedAccount:
+                                referralPoints += pointValue
+                            case .payoutMultiplier:
+                                multiplierPoints += pointValue
+                        }
+                        
+                    } else {
+                        print("Invalid event string: \(accountPoint.event)")
+                    }
+                    
                 }
             }
             
             self.accountPoints = accountPoints
             self.netPoints = netPoints
+            
+            self.payoutPoints = payoutPoints
+            self.referralPoints = referralPoints
+            self.multiplierPoints = multiplierPoints
             
             self.isLoading = false
             
@@ -102,4 +133,10 @@ enum GetAccountPointsError: Error {
     case resultError(message: String)
     case resultEmpty
     case unknown
+}
+
+enum AccountPointEvent: String {
+    case payout = "payout"
+    case payoutLinkedAccount = "payout_linked_account"
+    case payoutMultiplier = "payout_multiplier"
 }

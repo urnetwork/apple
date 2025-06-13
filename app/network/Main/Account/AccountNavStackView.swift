@@ -68,6 +68,7 @@ struct AccountNavStackView: View {
         NavigationStack(
             path: $viewModel.navigationPath
         ) {
+            
             AccountRootView(
                 navigate: viewModel.navigate,
                 logout: logout,
@@ -105,10 +106,10 @@ struct AccountNavStackView: View {
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .toolbar {
-                         ToolbarItem(placement: .principal) {
-                             Text("Settings")
-                                 .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                         }
+                        ToolbarItem(placement: .principal) {
+                            Text("Settings")
+                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
+                        }
                     }
                     
                 case .wallets:
@@ -116,24 +117,27 @@ struct AccountNavStackView: View {
                         navigate: viewModel.navigate,
                         api: api,
                         netAccountPoints: accountPointsViewModel.netPoints,
+                        payoutPoints: accountPointsViewModel.payoutPoints,
+                        multiplierPoints: accountPointsViewModel.multiplierPoints,
+                        referralPoints: accountPointsViewModel.referralPoints,
                         fetchAccountPoints: accountPointsViewModel.fetchAccountPoints,
                         referralLinkViewModel: referralLinkViewModel,
                     )
-                        .toolbar {
-                            ToolbarItem(placement: .principal) {
-                                Text("Payout Wallets")
-                                    .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                            }
+                    .toolbar {
+                        ToolbarItem(placement: .principal) {
+                            Text("Payout Wallets")
+                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
                         }
-                        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                        .environmentObject(accountPaymentsViewModel)
-                        .environmentObject(accountWalletsViewModel)
-                        .environmentObject(payoutWalletViewModel)
+                    }
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+                    .environmentObject(accountPaymentsViewModel)
+                    .environmentObject(accountWalletsViewModel)
+                    .environmentObject(payoutWalletViewModel)
                     
                 case .wallet(let wallet):
                     
                     let payments = accountPaymentsViewModel.filterPaymentsByWalletId(wallet.walletId)
-                
+                    
                     WalletView(
                         wallet: wallet,
                         payoutWalletId: payoutWalletViewModel.payoutWalletId,
@@ -141,16 +145,15 @@ struct AccountNavStackView: View {
                         promptRemoveWallet: accountWalletsViewModel.promptRemoveWallet,
                         fetchPayments: accountPaymentsViewModel.fetchPayments
                     )
-                        .toolbar {
-                            ToolbarItem(placement: .principal) {
-                                Text("\(wallet.blockchain) Wallet")
-                                    .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                            }
+                    .toolbar {
+                        ToolbarItem(placement: .principal) {
+                            Text("\(wallet.blockchain) Wallet")
+                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
                         }
-                        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                        .environmentObject(accountPaymentsViewModel)
-                        .environmentObject(payoutWalletViewModel)
-                
+                    }
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+                    .environmentObject(accountPaymentsViewModel)
+                    .environmentObject(payoutWalletViewModel)
                 }
             }
         }

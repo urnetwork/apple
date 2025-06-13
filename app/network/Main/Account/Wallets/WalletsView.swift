@@ -18,7 +18,10 @@ struct WalletsView: View {
     
     var navigate: (AccountNavigationPath) -> Void
     var api: SdkApi?
-    var netAccountPoints: Int
+    var netAccountPoints: Double
+    var payoutPoints: Double
+    var multiplierPoints: Double
+    var referralPoints: Double
     var fetchAccountPoints: () async -> Void
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -40,6 +43,9 @@ struct WalletsView: View {
                             WalletsHeader(
                                 unpaidMegaBytes: accountWalletsViewModel.unpaidDataFormatted,
                                 netAccountPoints: netAccountPoints,
+                                payoutPoints: payoutPoints,
+                                multiplierPoints: multiplierPoints,
+                                referralPoints: referralPoints,
                                 referralLinkViewModel: referralLinkViewModel,
                             )
                             
@@ -65,12 +71,19 @@ struct WalletsView: View {
                         WalletsHeader(
                             unpaidMegaBytes: accountWalletsViewModel.unpaidDataFormatted,
                             netAccountPoints: netAccountPoints,
+                            payoutPoints: payoutPoints,
+                            multiplierPoints: multiplierPoints,
+                            referralPoints: referralPoints,
                             referralLinkViewModel: referralLinkViewModel
                         )
                         
                         PopulatedWalletsView(
                             navigate: navigate,
                             isSeekerOrSagaHolder: accountWalletsViewModel.isSeekerOrSagaHolder,
+                            netPoints: netAccountPoints,
+                            payoutPoints: payoutPoints,
+                            referralPoints: referralPoints,
+                            multiplierPoints: multiplierPoints,
                             presentConnectWalletSheet: $viewModel.presentConnectWalletSheet,
                         )
                     }
@@ -191,7 +204,10 @@ struct WalletsHeader: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var unpaidMegaBytes: String
-    var netAccountPoints: Int
+    var netAccountPoints: Double
+    var payoutPoints: Double
+    var multiplierPoints: Double
+    var referralPoints: Double
     // var totalReferrals: Int
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -202,17 +218,26 @@ struct WalletsHeader: View {
             Spacer().frame(height: 16)
             
             VStack(spacing: 0) {
-                HStack {
-                    UrLabel(text: "Unpaid data provided")
-                    Spacer()
-                }
                 
                 HStack {
-                    Text(unpaidMegaBytes)
-                        .font(themeManager.currentTheme.titleCondensedFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    VStack {
+                        HStack {
+                            UrLabel(text: "Unpaid data provided")
+                            Spacer()
+                        }
+                        
+                        HStack {
+                            Text(unpaidMegaBytes)
+                                .font(themeManager.currentTheme.titleCondensedFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            
+                            Spacer()
+                        }
+                    }
                     
                     Spacer()
+                    
                 }
                 
                 Divider()
@@ -220,7 +245,7 @@ struct WalletsHeader: View {
                 Spacer().frame(height: 8)
                 
                 HStack {
-                    
+                 
                     VStack {
                         HStack {
                             UrLabel(text: "Total referrals")
@@ -240,21 +265,60 @@ struct WalletsHeader: View {
                     
                     Spacer()
                     
-                    VStack {
-                        HStack {
-                            UrLabel(text: "Total account points")
-                            Spacer()
-                        }
-                        HStack {
-                            Text("\(netAccountPoints)")
-                                .font(themeManager.currentTheme.titleCondensedFont)
-                                .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                            Spacer()
-                        }
-                    }
-                    
                 }
+                
+                
+//                HStack {
+//                    VStack {
+//                        HStack {
+//                            UrLabel(text: "Payout points")
+//                            Spacer()
+//                        }
+//                        
+//                        HStack {
+//                            Text("\(payoutPoints)")
+//                                .font(themeManager.currentTheme.titleCondensedFont)
+//                                .foregroundColor(themeManager.currentTheme.textColor)
+//                            
+//                            Spacer()
+//                        }
+//                    }
+//                    
+//                    Spacer()
+//                    
+//                    VStack {
+//                        HStack {
+//                            UrLabel(text: "Multiplier points")
+//                            Spacer()
+//                        }
+//                        
+//                        HStack {
+//                            Text("\(multiplierPoints)")
+//                                .font(themeManager.currentTheme.titleCondensedFont)
+//                                .foregroundColor(themeManager.currentTheme.textColor)
+//                            
+//                            Spacer()
+//                        }
+//                    }
+//                    
+//                }
+//                
+//                HStack {
+//                    VStack {
+//                        HStack {
+//                            UrLabel(text: "Referral points")
+//                            Spacer()
+//                        }
+//                        
+//                        HStack {
+//                            Text("\(referralPoints)")
+//                                .font(themeManager.currentTheme.titleCondensedFont)
+//                                .foregroundColor(themeManager.currentTheme.textColor)
+//                            
+//                            Spacer()
+//                        }
+//                    }
+//                }
                 
                 
             }
@@ -274,6 +338,11 @@ struct WalletsHeader: View {
                 
                 Spacer()
             }
+            
+            Spacer().frame(height: 8)
+            
+
+            
             
         }
         .padding(.horizontal)

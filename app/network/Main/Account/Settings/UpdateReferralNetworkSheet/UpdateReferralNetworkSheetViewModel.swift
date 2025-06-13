@@ -104,7 +104,7 @@ extension UpdateReferralNetworkSheet {
 
             do {
 
-                let result: SdkUnlinkReferralNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                let _: SdkUnlinkReferralNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
 
                     guard let self = self else { return }
 

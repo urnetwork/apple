@@ -48,13 +48,10 @@ struct ConnectView_iOS: View {
     
     var body: some View {
         
-        // let isGuest = deviceManager.parsedJwt?.guestMode ?? true
-        
         VStack {
             
-            HStack {
-                            
-                if subscriptionBalanceViewModel.currentPlan != .supporter {
+            if connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
+                HStack {
                     Text("Need more data, faster?")
                         .font(themeManager.currentTheme.bodyFont)
                     
@@ -63,11 +60,9 @@ struct ConnectView_iOS: View {
                     Button(action: {
                         connectViewModel.isPresentedUpgradeSheet = true
                     }) {
-                     
                         Text("Upgrade Now")
                             .font(themeManager.currentTheme.bodyFont)
                             .fontWeight(.bold)
-                        
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
@@ -76,28 +71,11 @@ struct ConnectView_iOS: View {
                             .stroke(.accent, lineWidth: 1)
                     )
                 }
-                
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(subscriptionBalanceViewModel.currentPlan != .supporter ? .urElectricBlue : .clear)
-            .opacity(connectViewModel.showUpgradeBanner ? 1 : 0)
-            .animation(.easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner)
-            .onChange(of: connectViewModel.connectionStatus) { newValue in
-                if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
-                    // Show the banner after 10 seconds when connected
-                    Task {
-                        try? await Task.sleep(for: .seconds(10))
-                        withAnimation {
-                            connectViewModel.showUpgradeBanner = true
-                        }
-                    }
-                } else if newValue != .connected {
-                    // Hide the banner when disconnected
-                    withAnimation {
-                        connectViewModel.showUpgradeBanner = false
-                    }
-                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(.urElectricBlue)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner)
             }
             
             Spacer()
@@ -139,6 +117,22 @@ struct ConnectView_iOS: View {
             
             Spacer().frame(height: 16)
             
+        }
+        .onChange(of: connectViewModel.connectionStatus) { newValue in
+            if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
+                // Show the banner after 10 seconds when connected
+                Task {
+                    try? await Task.sleep(for: .seconds(10))
+                    withAnimation {
+                        connectViewModel.showUpgradeBanner = true
+                    }
+                }
+            } else if newValue != .connected {
+                // Hide the banner when disconnected
+                withAnimation {
+                    connectViewModel.showUpgradeBanner = false
+                }
+            }
         }
         .onAppear {
             

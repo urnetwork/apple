@@ -12,6 +12,7 @@ struct PaymentsList: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     var payments: [SdkAccountPayment]
+    var navigate: (AccountNavigationPath) -> Void
     
     private var currentDateFormatted: String {
         let formatter = DateFormatter()

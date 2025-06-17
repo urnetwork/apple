@@ -236,7 +236,8 @@ struct PopulatedWalletsView: View {
                 }
                 
                 PaymentsList(
-                    payments: accountPaymentsViewModel.payments
+                    payments: accountPaymentsViewModel.payments,
+                    navigate: navigate
                 )
                 .padding()
                 

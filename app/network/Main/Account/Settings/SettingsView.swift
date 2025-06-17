@@ -332,6 +332,21 @@ struct SettingsView: View {
                         }
                     }
                     
+                    Spacer().frame(height: 32)
+                    
+                    HStack {
+                        UrLabel(text: "Version and Build info")
+                        
+                        Spacer()
+                    }
+                    
+                    HStack {
+                        Text(BuildInfoHelper.versionAndBuild)
+                            .font(themeManager.currentTheme.bodyFont)
+                        
+                        Spacer()
+                    }
+                    
                     #if os(iOS)
                     
                     Spacer().frame(height: 32)

@@ -21,6 +21,8 @@ extension SettingsView {
         
         @Published var presentUpdateReferralNetworkSheet: Bool = false
         
+        @Published var version: String = ""
+        
         init(api: SdkApi) {
             self.api = api
             
@@ -33,6 +35,8 @@ extension SettingsView {
             Task {
                 await fetchReferralNetwork()
             }
+            
+            self.version = Sdk.version()
             
         }
         

@@ -341,7 +341,7 @@ struct SettingsView: View {
                     }
                     
                     HStack {
-                        Text(viewModel.version)
+                        Text(viewModel.version.isEmpty ? "0.0.0" : viewModel.version)
                             .font(themeManager.currentTheme.bodyFont)
                         
                         Spacer()

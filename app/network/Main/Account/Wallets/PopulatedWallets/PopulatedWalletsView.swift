@@ -120,23 +120,6 @@ struct PopulatedWalletsView: View {
 
                         Spacer()
 
-//                        VStack {
-//                            HStack {
-//                                UrLabel(text: "Seeker")
-//                                Spacer()
-//                            }
-//
-//                            HStack {
-//                                Text(multiplierPoints.formatted(.number.grouping(.automatic)))
-//                                    .font(themeManager.currentTheme.titleCondensedFont)
-//                                    .foregroundColor(themeManager.currentTheme.textColor)
-//
-//                                Spacer()
-//                            }
-//                        }
-//
-//                        Spacer()
-
                         VStack {
                             HStack {
                                 UrLabel(text: "Referral")
@@ -241,55 +224,9 @@ struct PopulatedWalletsView: View {
 
                 }
                 .padding()
-                // .frame(maxWidth: .infinity)
                 .background(themeManager.currentTheme.tintedBackgroundBase)
                 .cornerRadius(12)
                 .padding()
-
-//                if isSeekerOrSagaHolder {
-//
-//                    /**
-//                     * Seeker holder
-//                     */
-//
-//                    HStack {
-//                        Image("2x")
-//                            .resizable()
-//                            .scaledToFill()
-//                            .frame(width: 32, height: 32)
-//
-//                        Spacer().frame(width: 16)
-//
-//                        VStack {
-//
-//                            HStack {
-//                                Text("Seeker Token Verified!")
-//                                    .font(themeManager.currentTheme.bodyFont)
-//
-//                                Spacer()
-//                            }
-//
-//                            HStack {
-//                                Text("You're earning 2x points")
-//                                    .font(themeManager.currentTheme.secondaryBodyFont)
-//                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-//
-//                                Spacer()
-//                            }
-//
-//                        }
-//
-//                        Spacer()
-//
-//                    }
-//                    .padding()
-//                    .background(themeManager.currentTheme.tintedBackgroundBase)
-//                    .cornerRadius(12)
-//                    .padding(.horizontal, 16)
-//
-//                    Spacer().frame(height: 16)
-//
-//                }
 
                 PaymentsList(
                     payments: accountPaymentsViewModel.payments

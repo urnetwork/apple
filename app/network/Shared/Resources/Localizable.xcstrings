@@ -182,8 +182,14 @@
     "%lld" : {
 
     },
+    "+%@" : {
+        "shouldTranslate" : false
+    },
     "+%@ USDC" : {
       "shouldTranslate" : false
+    },
+    "0" : {
+        "shouldTranslate" : false
     },
     "Account" : {
       "localizations" : {
@@ -10503,147 +10509,147 @@
         }
       }
     },
-    "net points earned" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "صافي النقاط المكتسبة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Netto verdiente Punkte"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Καθαροί πόντοι που κερδήθηκαν"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "net points earned"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "puntos netos ganados"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "puntos netos ganados"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "points nets gagnés"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נקודות נטו שהושגו"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "कुल अर्जित अंक"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "poin bersih yang diperoleh"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "punti netti guadagnati"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "獲得した純ポイント"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "순획득 포인트"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "uzyskane punkty netto"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pontos líquidos ganhos"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pontos líquidos ganhos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "заработанные чистые баллы"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "nettopoäng intjänade"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "แต้มสุทธิที่ได้รับ"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "чисті зароблені бали"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "điểm ròng đã kiếm được"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "净赚积分"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "淨賺積分"
-          }
+    "Net points earned" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "صافي النقاط المكتسبة"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Netto verdiente Punkte"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Καθαροί πόντοι που κερδήθηκαν"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Net points earned"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Puntos netos ganados"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Puntos netos ganados"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Points nets gagnés"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "נקודות נטו שהושגו"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "कुल अर्जित अंक"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Poin bersih yang diperoleh"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Punti netti guadagnati"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "獲得した純ポイント"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "순획득 포인트"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Uzyskane punkty netto"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Pontos líquidos ganhos"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Pontos líquidos ganhos"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Заработанные чистые баллы"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Nettopoäng intjänade"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "แต้มสุทธิที่ได้รับ"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Чисті зароблені бали"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Điểm ròng đã kiếm được"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "净赚积分"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "淨賺積分"
+                }
+            }
         }
-      }
     },
     "Net Provided" : {
       "localizations" : {
@@ -15191,6 +15197,148 @@
         }
       }
     },
+    "Reliability" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "الموثوقية"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Zuverlässigkeit"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Αξιοπιστία"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Reliability"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Fiabilidad"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Fiabilidad"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Fiabilité"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "אמינות"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "विश्वसनीयता"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Keandalan"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Affidabilità"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "信頼性"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "신뢰성"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Niezawodność"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Confiabilidade"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Confiabilidade"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Надежность"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Tillförlitlighet"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ความน่าเชื่อถือ"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Надійність"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Độ tin cậy"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "可靠性"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "可靠性"
+                }
+            }
+        }
+    },
     "Remove wallet" : {
       "localizations" : {
         "ar" : {
@@ -15901,9 +16049,6 @@
           }
         }
       }
-    },
-    "Seeker" : {
-
     },
     "Seeker Token Verified!" : {
       "localizations" : {

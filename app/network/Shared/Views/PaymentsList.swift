@@ -19,6 +19,7 @@ struct PaymentsList: View {
         formatter.dateFormat = "MMM d"
         return formatter.string(from: Date())
     }
+
     
     var body: some View {
         
@@ -34,8 +35,11 @@ struct PaymentsList: View {
                     
                     Spacer()
                 }
+                .padding(.horizontal)
                 
                 ForEach(payments, id: \.paymentId) { payment in
+                    
+                    Divider()
                     
                     HStack {
                         
@@ -62,7 +66,7 @@ struct PaymentsList: View {
                                         .font(themeManager.currentTheme.bodyFont)
                                         .foregroundColor(themeManager.currentTheme.textColor)
                                 } else {
-                                    Text("Pending: \(String(format: "%.2f", Double(payment.payoutByteCount) / 1_048_576)) MB provided")
+                                    Text("Pending: \(String(format: "%.2f", Double(payment.payoutByteCount) / 1_000_000)) MB provided")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                                 }
@@ -73,11 +77,11 @@ struct PaymentsList: View {
                             
                             HStack {
                                 if let completeTime = payment.completeTime {
+                                    
                                     Text(completeTime.format("Jan 2"))
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                                 } else {
-                                    // Text("Pending")
                                     Text(currentDateFormatted)
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
@@ -90,10 +94,18 @@ struct PaymentsList: View {
                         
                         Spacer()
                         
-                        Text("***\(payment.walletAddress.suffix(6))")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
+                        Image("ur.symbols.caret.right")
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                         
+//                        Text("***\(payment.walletAddress.suffix(6))")
+//                            .font(themeManager.currentTheme.secondaryBodyFont)
+//                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        
+                    }
+                    .padding(.horizontal)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        navigate(.payout(payment: payment, accountPoint: nil))
                     }
                     
                 }
@@ -107,6 +119,7 @@ struct PaymentsList: View {
 
 #Preview {
     PaymentsList(
-        payments: []
+        payments: [],
+        navigate: {_ in},
     )
 }

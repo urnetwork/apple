@@ -549,6 +549,7 @@ private struct LoginInitialFormView: View {
 private struct SSOButtons: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
     var handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
     var handleGoogleSignInButton: () async -> Void
@@ -582,27 +583,34 @@ private struct SSOButtons: View {
             Spacer()
                 .frame(height: 24)
             
-            Button(action: presentSignInWithSolanaSheet) {
-                HStack {
-                    Image("solana.gradient.logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 16)
-                    Spacer().frame(width: 8)
-                    Text("Sign in with Solana")
-                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
-                        .font(
-                            Font.system(size: 19, weight: .medium)
-                        )
+            // check if either .phantom or solflare are installed
+            if (connectWalletProviderViewModel.isWalletAppInstalled(.phantom)
+                || connectWalletProviderViewModel.isWalletAppInstalled(.solflare)
+            ) {
+             
+                Button(action: presentSignInWithSolanaSheet) {
+                    HStack {
+                        Image("solana.gradient.logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16)
+                        Spacer().frame(width: 8)
+                        Text("Sign in with Solana")
+                            .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                            .font(
+                                Font.system(size: 19, weight: .medium)
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(.white)
+                .clipShape(Capsule())
+                
+                Spacer()
+                    .frame(height: 24)
+                
             }
-            .frame(height: 48)
-            .background(.white)
-            .clipShape(Capsule())
-            
-            Spacer()
-                .frame(height: 24)
             
         }
         

@@ -182,8 +182,14 @@
     "%lld" : {
 
     },
+    "+%@" : {
+        "shouldTranslate" : false
+    },
     "+%@ USDC" : {
       "shouldTranslate" : false
+    },
+    "0" : {
+        "shouldTranslate" : false
     },
     "Account" : {
       "localizations" : {
@@ -328,146 +334,146 @@
       }
     },
     "Account points" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "نقاط الحساب"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Kontopunkte"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Πόντοι λογαριασμού"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Account points"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Puntos de cuenta"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Puntos de cuenta"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Points du compte"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "נקודות חשבון"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "खाता अंक"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Poin akun"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Punti account"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "アカウントポイント"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "계정 포인트"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Punkty konta"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pontos da conta"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pontos da conta"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Баллы аккаунта"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Kontopoäng"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "คะแนนบัญชี"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Бали акаунта"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Điểm tài khoản"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "账户积分"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "帳戶積分"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نقاط الحساب"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontopunkte"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πόντοι λογαριασμού"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account points"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntos de cuenta"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntos de cuenta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points du compte"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נקודות חשבון"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खाता अंक"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poin akun"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punti account"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウントポイント"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계정 포인트"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punkty konta"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pontos da conta"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pontos da conta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Баллы аккаунта"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontopoäng"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คะแนนบัญชี"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бали акаунта"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điểm tài khoản"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "账户积分"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帳戶積分"
+          }
         }
+      }
     },
     "Add referral code" : {
       "localizations" : {
@@ -10503,7 +10509,7 @@
         }
       }
     },
-    "net points earned" : {
+    "Net points earned" : {
         "localizations" : {
             "ar" : {
                 "stringUnit" : {
@@ -10526,25 +10532,25 @@
             "en" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "net points earned"
+                    "value" : "Net points earned"
                 }
             },
             "es" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "puntos netos ganados"
+                    "value" : "Puntos netos ganados"
                 }
             },
             "es-419" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "puntos netos ganados"
+                    "value" : "Puntos netos ganados"
                 }
             },
             "fr" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "points nets gagnés"
+                    "value" : "Points nets gagnés"
                 }
             },
             "he" : {
@@ -10562,13 +10568,13 @@
             "id" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "poin bersih yang diperoleh"
+                    "value" : "Poin bersih yang diperoleh"
                 }
             },
             "it" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "punti netti guadagnati"
+                    "value" : "Punti netti guadagnati"
                 }
             },
             "ja" : {
@@ -10586,31 +10592,31 @@
             "pl" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "uzyskane punkty netto"
+                    "value" : "Uzyskane punkty netto"
                 }
             },
             "pt-BR" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "pontos líquidos ganhos"
+                    "value" : "Pontos líquidos ganhos"
                 }
             },
             "pt-PT" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "pontos líquidos ganhos"
+                    "value" : "Pontos líquidos ganhos"
                 }
             },
             "ru" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "заработанные чистые баллы"
+                    "value" : "Заработанные чистые баллы"
                 }
             },
             "sv" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "nettopoäng intjänade"
+                    "value" : "Nettopoäng intjänade"
                 }
             },
             "th" : {
@@ -10622,13 +10628,13 @@
             "uk" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "чисті зароблені бали"
+                    "value" : "Чисті зароблені бали"
                 }
             },
             "vi" : {
                 "stringUnit" : {
                     "state" : "translated",
-                    "value" : "điểm ròng đã kiếm được"
+                    "value" : "Điểm ròng đã kiếm được"
                 }
             },
             "zh-Hans" : {
@@ -12069,146 +12075,146 @@
       }
     },
     "Payout" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "دفع"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Auszahlung"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Πληρωμή"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Payout"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pago"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pago"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Paiement"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "תשלום"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "भुगतान"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pembayaran"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "支払い"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "지급"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Wypłata"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Выплата"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Utbetalning"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "การจ่ายเงิน"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Виплата"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Thanh toán"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "支付"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "支付"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دفع"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auszahlung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πληρωμή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paiement"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תשלום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "भुगतान"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支払い"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지급"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wypłata"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выплата"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utbetalning"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การจ่ายเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виплата"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanh toán"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支付"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支付"
+          }
         }
+      }
     },
     "Payout Wallets" : {
       "localizations" : {
@@ -13069,146 +13075,146 @@
 
     },
     "Points breakdown" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "تفصيل النقاط"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Punkteübersicht"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Ανάλυση πόντων"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Points breakdown"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Desglose de puntos"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Desglose de puntos"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Répartition des points"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "פירוט נקודות"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "अंक विवरण"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Rincian poin"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Dettaglio punti"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "ポイントの内訳"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "포인트 내역"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Podział punktów"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Detalhamento de pontos"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Detalhe dos pontos"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Разбивка баллов"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Poängfördelning"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "รายละเอียดคะแนน"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Розподіл балів"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Phân tích điểm"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "积分明细"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "積分明細"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تفصيل النقاط"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punkteübersicht"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ανάλυση πόντων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points breakdown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desglose de puntos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desglose de puntos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répartition des points"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פירוט נקודות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अंक विवरण"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rincian poin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dettaglio punti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポイントの内訳"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "포인트 내역"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podział punktów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalhamento de pontos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalhe dos pontos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разбивка баллов"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poängfördelning"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รายละเอียดคะแนน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розподіл балів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phân tích điểm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "积分明细"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "積分明細"
+          }
         }
+      }
     },
     "Private Network" : {
       "comment" : "Network name when privacy is enabled",
@@ -14766,146 +14772,146 @@
       "shouldTranslate" : false
     },
     "Referral" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "إحالة"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Empfehlung"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Παραπομπή"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Referral"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Referencia"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Referencia"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Parrainage"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "הפניה"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "रेफ़रल"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Referensi"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Referenza"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "紹介"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "추천"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Polecenie"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Indicação"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Indicação"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Реферал"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Rekommendation"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "การแนะนำ"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Реферал"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Giới thiệu"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "推荐"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "推薦"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إحالة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empfehlung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παραπομπή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referral"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referencia"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referencia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parrainage"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפניה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "रेफ़रल"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referensi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referenza"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "紹介"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추천"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polecenie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indicação"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indicação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реферал"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rekommendation"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การแนะนำ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реферал"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giới thiệu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推薦"
+          }
         }
+      }
     },
     "Referral Bonus applied" : {
       "localizations" : {
@@ -15190,6 +15196,148 @@
           }
         }
       }
+    },
+    "Reliability" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "الموثوقية"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Zuverlässigkeit"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Αξιοπιστία"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Reliability"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Fiabilidad"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Fiabilidad"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Fiabilité"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "אמינות"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "विश्वसनीयता"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Keandalan"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Affidabilità"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "信頼性"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "신뢰성"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Niezawodność"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Confiabilidade"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Confiabilidade"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Надежность"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Tillförlitlighet"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ความน่าเชื่อถือ"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Надійність"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Độ tin cậy"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "可靠性"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "可靠性"
+                }
+            }
+        }
     },
     "Remove wallet" : {
       "localizations" : {
@@ -15901,9 +16049,6 @@
           }
         }
       }
-    },
-    "Seeker" : {
-
     },
     "Seeker Token Verified!" : {
       "localizations" : {
@@ -22838,6 +22983,9 @@
           }
         }
       }
+    },
+    "Version and Build info" : {
+
     },
     "VPN tunnel disconnected 😓" : {
       "localizations" : {

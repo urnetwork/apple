@@ -36,7 +36,7 @@ extension SettingsView {
                 await fetchReferralNetwork()
             }
             
-            self.version = Sdk.version()
+            self.version = SdkVersion
             
         }
         

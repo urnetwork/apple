@@ -31,6 +31,38 @@ class AccountPointsViewModel: ObservableObject {
         
     }
     
+    func netPointsByPaymentId(_ paymentId: SdkId?) -> Double {
+
+        accountPoints
+            .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
+            .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
+        
+    }
+    
+    func payoutPointsByPaymentId(_ paymentId: SdkId?) -> Double {
+        
+        accountPoints
+            .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
+            .filter { $0.event == AccountPointEvent.payout.rawValue }
+            .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
+    }
+    
+    func referralPointsByPaymentId(_ paymentId: SdkId?) -> Double {
+        
+        accountPoints
+            .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
+            .filter { $0.event == AccountPointEvent.payoutLinkedAccount.rawValue }
+            .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
+    }
+    
+    func multiplierPointsByPaymentId(_ paymentId: SdkId?) -> Double {
+        
+        accountPoints
+            .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
+            .filter { $0.event == AccountPointEvent.payoutMultiplier.rawValue }
+            .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
+    }
+    
     func fetchAccountPoints() async {
         
         if (isLoading) {

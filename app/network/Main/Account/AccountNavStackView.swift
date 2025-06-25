@@ -140,6 +140,7 @@ struct AccountNavStackView: View {
                     
                     WalletView(
                         wallet: wallet,
+                        navigate: viewModel.navigate,
                         payoutWalletId: payoutWalletViewModel.payoutWalletId,
                         payments: payments,
                         promptRemoveWallet: accountWalletsViewModel.promptRemoveWallet,
@@ -154,7 +155,31 @@ struct AccountNavStackView: View {
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .environmentObject(accountPaymentsViewModel)
                     .environmentObject(payoutWalletViewModel)
+                    
+                    
+                case .payout(let payment, let accountPoint):
+                    
+                    let toolbarTitle = if let completeTime = payment.completeTime {
+                        "+\(String(format: "%.2f", payment.tokenAmount)) \(payment.tokenType) (\(completeTime.format("Jan 2, 2006")))"
+                    } else {
+                        "Pending payout"
+                    }
+                    
+                    PayoutItemView(
+                        navigate: viewModel.navigate,
+                        payment: payment,
+                        accountPointsViewModel: accountPointsViewModel,
+                        isMultiplierTokenHolder: accountWalletsViewModel.isSeekerOrSagaHolder
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .principal) {
+                            Text(toolbarTitle)
+                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
+                        }
+                    }
+                    
                 }
+                
             }
         }
         .confirmationDialog(

@@ -15,6 +15,7 @@ struct WalletView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     
     var wallet: SdkAccountWallet
+    var navigate: (AccountNavigationPath) -> Void
     let isPayoutWallet: Bool
     let payments: [SdkAccountPayment]
     let promptRemoveWallet: (SdkId) -> Void
@@ -33,6 +34,7 @@ struct WalletView: View {
     
     init(
         wallet: SdkAccountWallet,
+        navigate: @escaping (AccountNavigationPath) -> Void,
         payoutWalletId: SdkId?,
         payments: [SdkAccountPayment],
         promptRemoveWallet: @escaping (SdkId) -> Void,
@@ -43,6 +45,7 @@ struct WalletView: View {
         self.payments = payments
         self.promptRemoveWallet = promptRemoveWallet
         self.fetchPayments = fetchPayments
+        self.navigate = navigate
     }
     
     var body: some View {
@@ -125,7 +128,8 @@ struct WalletView: View {
                  * Payouts list
                  */
                 PaymentsList(
-                    payments: payments
+                    payments: payments,
+                    navigate: navigate
                 )
                 
                 Spacer()
@@ -172,6 +176,7 @@ struct WalletView: View {
 #Preview {
     WalletView(
         wallet: SdkAccountWallet(),
+        navigate: {_ in},
         payoutWalletId: nil,
         payments: [],
         promptRemoveWallet: {_ in},

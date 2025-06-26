@@ -14,7 +14,7 @@
       "shouldTranslate" : false
     },
     "***%@" : {
-
+      "shouldTranslate" : false
     },
     "#%@" : {
 
@@ -26,155 +26,175 @@
 
     },
     "%@ Payout" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ دفع"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ Auszahlung"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ Πληρωμή"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ Payout"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pago de %@"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pago de %@"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Paiement %@"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ תשלום"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ भुगतान"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pembayaran %@"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento %@"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ 支払い"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ 지급"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Wypłata %@"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento de %@"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento de %@"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Выплата %@"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ utbetalning"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "การจ่ายเงิน %@"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Виплата %@"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Thanh toán %@"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ 支付"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%@ 支付"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ دفع"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Vyplatit"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Auszahlung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Πληρωμή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Payout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago de %@"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago de %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paiement %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ תשלום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ भुगतान"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 支払い"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 지급"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wypłata %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento de %@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento de %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выплата %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ utbetalning"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การจ่ายเงิน %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виплата %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanh toán %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 支付"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 支付"
+          }
         }
+      }
     },
     "%@ USDC" : {
       "shouldTranslate" : false
     },
     "%@ wallet" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ peněženky"
+          }
+        }
+      }
     },
     "%@ Wallet" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Peněženka"
+          }
+        }
+      }
     },
     "%@/month" : {
       "localizations" : {
@@ -182,6 +202,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@/الشهر"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@/měsíc"
           }
         },
         "de" : {
@@ -319,13 +345,26 @@
       }
     },
     "%d providers" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d poskytovatelů"
+          }
+        }
+      }
     },
     "%lf" : {
-
+      "shouldTranslate" : false
     },
     "%lf %@" : {
       "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
@@ -335,7 +374,7 @@
       }
     },
     "%lld" : {
-
+      "shouldTranslate" : false
     },
     "+%@" : {
       "shouldTranslate" : false
@@ -352,6 +391,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "الحساب"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Účet"
           }
         },
         "de" : {
@@ -496,6 +541,12 @@
             "value" : "نقاط الحساب"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Body na účtě"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -636,6 +687,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أضف رمز الإحالة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidání doporučujícího kódu"
           }
         },
         "de" : {
@@ -780,6 +837,12 @@
             "value" : "أضف رمز الإحالة لكسب مكافآت إضافية"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidáním kódu pro doporučení získáte další odměny"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -922,6 +985,12 @@
             "value" : "كل المحتوى في العالم من URnetwork"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veškerý obsah na světě od URnetwork"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1056,6 +1125,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "السماح بحركة المرور المحلية عند قطع الاتصال"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Povolit lokální traffic (např. 192.168.1.25 atd.) když jste odpojeni"
           }
         },
         "de" : {
@@ -1193,146 +1268,152 @@
       }
     },
     "Amount" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "المبلغ"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Betrag"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Ποσό"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Amount"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Cantidad"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Cantidad"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Montant"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "סכום"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "राशि"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Jumlah"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Importo"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "金額"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "금액"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Kwota"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Valor"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Valor"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Сумма"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Belopp"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "จำนวนเงิน"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Сума"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Số tiền"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "金额"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "金額"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المبلغ"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Částka"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betrag"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ποσό"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cantidad"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cantidad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montant"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סכום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "राशि"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jumlah"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金額"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "금액"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kwota"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valor"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сумма"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belopp"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "จำนวนเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сума"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số tiền"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金额"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金額"
+          }
         }
+      }
     },
     "Apply bonus" : {
       "localizations" : {
@@ -1340,6 +1421,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تطبيق المكافأة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Použít bonus"
           }
         },
         "de" : {
@@ -1484,6 +1571,12 @@
             "value" : "هل أنت متأكد من رغبتك في حذف حسابك؟"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opravdu chcete svůj účet odstranit?"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1626,6 +1719,12 @@
             "value" : "هل أنت متأكد أنك تريد إزالة هذه المحفظة؟"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opravdu chcete tuto peněženku odstranit?"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1762,6 +1861,12 @@
             "value" : "مزودي الخدمة المتاحين"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostupní poskytovatelé"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1891,7 +1996,14 @@
       }
     },
     "Become a" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Staň se"
+          }
+        }
+      }
     },
     "Best available provider" : {
       "localizations" : {
@@ -1899,6 +2011,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أفضل مزود متاح"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nejlepší dostupný poskytovatel"
           }
         },
         "de" : {
@@ -2035,6 +2153,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "رمز الإحالة المكافأة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonusový referral kód"
           }
         },
         "de" : {
@@ -2179,6 +2303,12 @@
             "value" : "بالاشتراك ، أنت توافق على [شروط خدمة] URnetwork (https://ur.io/terms) و [سياسة الخصوصية] (https://ur.io/privacy)"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlášením k odběru souhlasíte s [Podmínkami a službami](https://ur.io/terms) a [Zásadami ochrany osobních údajů](https://ur.io/privacy) společnosti URnetwork."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2319,6 +2449,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إلغاء"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrušit"
           }
         },
         "de" : {
@@ -2463,6 +2599,12 @@
             "value" : "تحقق من هاتفك"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkontrolujte telefon"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2603,6 +2745,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "مضاعف المطالبة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyzvedni si znásobovač"
           }
         },
         "de" : {
@@ -2747,6 +2895,12 @@
             "value" : "إغلاق"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zavřít"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2887,6 +3041,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "متردد في الالتزام؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problémy se závazky?"
           }
         },
         "de" : {
@@ -3031,6 +3191,12 @@
             "value" : "تأكيد رمز Seeker"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potvrďte Seeker Token"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3173,6 +3339,12 @@
             "value" : "اتصال"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojit"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3307,6 +3479,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ربط محفظة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojit peněženku"
           }
         },
         "de" : {
@@ -3451,6 +3629,12 @@
             "value" : "ربط محفظة برمز طلب Seeker المسبق"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojit peněženku s Seeker Pre-Order tokenem"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3593,6 +3777,12 @@
             "value" : "ربط المحفظة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojit externí, či nepodporovanou peněženku"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3728,7 +3918,14 @@
       }
     },
     "Connect URnetwork VPN" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojit se k URnetwork VPN"
+          }
+        }
+      }
     },
     "Connect Wallet" : {
       "localizations" : {
@@ -3736,6 +3933,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ربط المحفظة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojit peněženku"
           }
         },
         "de" : {
@@ -3880,6 +4083,12 @@
             "value" : "متصل"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojeno"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4014,6 +4223,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "متصل بـ %d من مقدمي الخدمة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojeno k %d poskytovatelům"
           }
         },
         "de" : {
@@ -4158,6 +4373,12 @@
             "value" : "جارٍ الاتصال بمزودي الخدمة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojování k poskytovatelům"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4298,6 +4519,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "الاتصالات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojení"
           }
         },
         "de" : {
@@ -4442,6 +4669,12 @@
             "value" : "استمر"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokračovat"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4582,6 +4815,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إنشاء حساب"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvořit si účet"
           }
         },
         "de" : {
@@ -4726,6 +4965,12 @@
             "value" : "إنشاء حساب"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvořit účet"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4866,6 +5111,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إنشاء حساب"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvořte si účet"
           }
         },
         "de" : {
@@ -5010,6 +5261,12 @@
             "value" : "الترتيب الحالي"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuální ranking"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5144,6 +5401,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "شبكة الإحالة الحالية"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuální referral sít"
           }
         },
         "de" : {
@@ -5288,6 +5551,12 @@
             "value" : "البيانات المقدمة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poskytnuté data"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5422,6 +5691,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "افتراضي"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
           }
         },
         "de" : {
@@ -5566,6 +5841,12 @@
             "value" : "حذف الحساب"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vymazat účet"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5708,6 +5989,12 @@
             "value" : "قطع الاتصال"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpojit"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5837,7 +6124,14 @@
       }
     },
     "Disconnect URnetwork VPN" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpojit se od URnetwork VPN"
+          }
+        }
+      }
     },
     "Display network on leaderboard" : {
       "localizations" : {
@@ -5845,6 +6139,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "عرض الشبكة على لوحة المتصدرين"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit síť na hřebříčku"
           }
         },
         "de" : {
@@ -5982,6 +6282,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "لا تراه؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nevidíte to?"
           }
         },
         "de" : {
@@ -6126,6 +6432,12 @@
             "value" : "مضاعفات الأرباح"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Násobiče výdělků"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6260,6 +6572,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "الأرباح"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výdělky"
           }
         },
         "de" : {
@@ -6404,6 +6722,12 @@
             "value" : "تحرير رمز الإحالة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upravit referral kód"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6546,6 +6870,12 @@
             "value" : "البريد الإلكتروني أو رقم الهاتف"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email nebo telefonní číslo"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6680,6 +7010,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أدخل"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter"
           }
         },
         "de" : {
@@ -6824,6 +7160,12 @@
             "value" : "أدخل رمز الإحالة المكافأة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložte bonusový referral kód"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6964,6 +7306,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أدخل اسمًا لشبكتك"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložte jméno pro vaší sít"
           }
         },
         "de" : {
@@ -7108,6 +7456,12 @@
             "value" : "أدخل عنوان محفظة Solana أو Matic USDC"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložte adresu peněženky USDC na Solana či Polygon/Matic síťi/blockchainu"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7248,6 +7602,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أدخل رمز الإحالة للشبكة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadejte síťový referenční kód"
           }
         },
         "de" : {
@@ -7392,6 +7752,12 @@
             "value" : "أدخل URnetwork"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vkročte do URnetwork"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7532,6 +7898,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أدخل عنوان المحفظة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložte adresu peněženky"
           }
         },
         "de" : {
@@ -7676,6 +8048,12 @@
             "value" : "أدخل رقم هاتفك أو بريدك الإلكتروني"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložte vaše telefonní číslo nebo email"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7811,13 +8189,34 @@
       }
     },
     "Error connecting to URnetwork" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chyba při připojování k síti URnetwork"
+          }
+        }
+      }
     },
     "Failed to connect" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se připojit"
+          }
+        }
+      }
     },
     "Failed to connect URnetwork" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se připojit síť URnetwork"
+          }
+        }
+      }
     },
     "Feedback" : {
       "localizations" : {
@@ -7825,6 +8224,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ملاحظات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odezva"
           }
         },
         "de" : {
@@ -7969,6 +8374,12 @@
             "value" : "هل نسيت كلمة المرور؟"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapomněli jste své heslo?"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8109,6 +8520,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "مجاني"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zdarma"
           }
         },
         "de" : {
@@ -8253,6 +8670,12 @@
             "value" : "ابقى على تواصل"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spojte se s námi"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8388,7 +8811,14 @@
       }
     },
     "Get started" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Začněte"
+          }
+        }
+      }
     },
     "Guest" : {
       "localizations" : {
@@ -8396,6 +8826,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ضيف"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host"
           }
         },
         "de" : {
@@ -8540,6 +8976,12 @@
             "value" : "إخفاء قائمة المزودين"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skrýt seznam poskytovatelů"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8680,6 +9122,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "كيف نؤدي عملنا؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jak se nám daří?"
           }
         },
         "de" : {
@@ -8824,6 +9272,12 @@
             "value" : "أوافق على [شروط خدمة] URnetwork (https://ur.io/terms) و [سياسة الخصوصية] (https://ur.io/privacy)"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Souhlasím s [Podmínkami a službami](https://ur.io/terms) a [Zásadami ochrany osobních údajů](https://ur.io/privacy) společnosti URnetwork."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8964,6 +9418,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "رصيد غير كاف"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedostatečný zůstatek"
           }
         },
         "de" : {
@@ -9108,6 +9568,12 @@
             "value" : "رمز الإحالة غير صالح. يرجى المحاولة مرة أخرى."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neplatný referral kód. Prosím, zkuste to znovu."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9248,6 +9714,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "من الجميل رؤيتك مرة أخرى"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rád vás opět vidím"
           }
         },
         "de" : {
@@ -9392,6 +9864,12 @@
             "value" : "انضم إلى المجتمع على [Discord](https://discord.com/invite/RUNZXMwPRK)"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojte se ke komunitě na [Discord](https://discord.com/invite/RUNZXMwPRK)"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9532,6 +10010,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "انضم إلى الحركة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojte se k hnutí"
           }
         },
         "de" : {
@@ -9677,6 +10161,12 @@
             "value" : "انضم إلى URnetwork"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojte se k URnetwork"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9817,6 +10307,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تشغيل URnetwork عند بدء النظام"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spuštění URnetwork při spuštění systému"
           }
         },
         "de" : {
@@ -9961,6 +10457,12 @@
             "value" : "لوحة المتصدرين"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hřebříček"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10101,6 +10603,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "جارٍ التحميل..."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Načítání..."
           }
         },
         "de" : {
@@ -10245,6 +10753,12 @@
             "value" : "تعيين كافتراضي"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvořit výchozí nastavení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10379,155 +10893,18 @@
         }
       }
     },
-    "More connections help our community stay anonymous (and help you earn!)" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المزيد من الاتصالات تساعد مجتمعنا على البقاء مجهولاً (وتساعدك على الكسب!)"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mehr Verbindungen helfen unserer Gemeinschaft anonym zu bleiben (und helfen Ihnen, Geld zu verdienen!)"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Περισσότερες συνδέσεις βοηθούν την κοινότητά μας να παραμείνει ανώνυμη (και σας βοηθούν να κερδίσετε!)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More connections help our community stay anonymous (and help you earn!)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Más conexiones ayudan a nuestra comunidad a mantenerse anónima (¡y te ayudan a ganar!)"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Más conexiones ayudan a nuestra comunidad a mantenerse anónima (¡y te ayudan a ganar!)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus de connexions aident notre communauté à rester anonyme (et vous aident à gagner de l'argent !)"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "יותר חיבורים עוזרים לקהילה שלנו להישאר אנונימית (ועוזרים לך להרוויח!)"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अधिक कनेक्शन हमारे समुदाय को गुमनाम रहने में मदद करते हैं (और आपको कमाने में मदद करते हैं!)"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lebih banyak koneksi membantu komunitas kami tetap anonim (dan membantu Anda menghasilkan!)"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Più connessioni aiutano la nostra comunità a rimanere anonima (e ti aiutano a guadagnare!)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "より多くの接続がコミュニティの匿名性を保つのに役立ちます（そしてあなたが稼ぐのを助けます！）"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "더 많은 연결이 우리 커뮤니티가 익명으로 유지되도록 돕습니다 (그리고 당신이 돈을 버는 데 도움이 됩니다!)"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Więcej połączeń pomaga naszej społeczności pozostać anonimową (i pomaga ci zarabiać!)"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mais conexões ajudam nossa comunidade a permanecer anônima (e ajudam você a ganhar!)"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mais conexões ajudam nossa comunidade a permanecer anônima (e ajudam você a ganhar!)"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Больше подключений помогают нашему сообществу оставаться анонимным (и помогают вам зарабатывать!)"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fler anslutningar hjälper vårt samhälle att förbli anonymt (och hjälper dig att tjäna pengar!)"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "การเชื่อมต่อเพิ่มเติมช่วยให้ชุมชนของเราไม่เปิดเผยตัวตน (และช่วยให้คุณได้รับเงิน!)"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Більше підключень допомагають нашій спільноті залишатися анонімною (і допомагають вам заробляти!)"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhiều kết nối hơn giúp cộng đồng của chúng tôi ẩn danh (và giúp bạn kiếm tiền!)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更多连接帮助我们的社区保持匿名（并帮助您赚钱！）"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更多連接幫助我們的社區保持匿名（並幫助您賺錢！）"
-          }
-        }
-      }
-    },
     "Name" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "اسم"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jméno"
           }
         },
         "de" : {
@@ -10672,6 +11049,12 @@
             "value" : "هل تحتاج إلى المزيد من البيانات وبسرعة أكبر؟"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potřebujete více dat, rychlejších?"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10812,6 +11195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "صافي النقاط المكتسبة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Získané \"net\" body"
           }
         },
         "de" : {
@@ -10956,6 +11345,12 @@
             "value" : "صافي البيانات المقدمة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poskytnuto"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11096,6 +11491,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أرباح الشبكة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výnosy ze sítě"
           }
         },
         "de" : {
@@ -11240,6 +11641,12 @@
             "value" : "اسم الشبكة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jméno sítě"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11380,6 +11787,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "يجب أن تكون أسماء الشبكات مكونة من 6 أحرف أو أكثر"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jméno sítě musí být delší než 6 písmen a čísel"
           }
         },
         "de" : {
@@ -11524,6 +11937,12 @@
             "value" : "رائع! اسم الشبكة هذا متاح"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pěkně! Todle jméno sítě je dostupné."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11664,6 +12083,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "عمل جيد."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pěkně uděláno."
           }
         },
         "de" : {
@@ -11808,6 +12233,12 @@
             "value" : "الإشعارات"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifikace"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11943,7 +12374,15 @@
       }
     },
     "or" : {
-      "comment" : "Referring to the two options 'Get started' *or* 'Login with Apple'"
+      "comment" : "Referring to the two options 'Get started' *or* 'Login with Apple'",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nebo"
+          }
+        }
+      }
     },
     "Other" : {
       "localizations" : {
@@ -11951,6 +12390,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "آخر"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jiné"
           }
         },
         "de" : {
@@ -12095,6 +12540,12 @@
             "value" : "كلمة المرور"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heslo"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12237,6 +12688,12 @@
             "value" : "يجب أن تكون كلمة المرور مكونة من 12 حرفًا على الأقل"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heslo musí být minimálně 12 znaků dlouhé"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12372,146 +12829,152 @@
       }
     },
     "Payment Pending" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "الدفع معلق"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Zahlung ausstehend"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Εκκρεμεί πληρωμή"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Payment Pending"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pago pendiente"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pago pendiente"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Paiement en attente"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "התשלום ממתין"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "भुगतान लंबित है"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pembayaran tertunda"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento in sospeso"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "支払い保留中"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "결제 대기 중"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Płatność oczekuje"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento pendente"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Pagamento pendente"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Ожидание оплаты"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Betalning väntar"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "การชำระเงินรอดำเนินการ"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Очікується оплата"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Thanh toán đang chờ xử lý"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "付款待处理"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "付款待處理"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الدفع معلق"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čekající platba"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zahlung ausstehend"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εκκρεμεί πληρωμή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment Pending"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago pendiente"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago pendiente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paiement en attente"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התשלום ממתין"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "भुगतान लंबित है"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran tertunda"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento in sospeso"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支払い保留中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "결제 대기 중"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Płatność oczekuje"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento pendente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento pendente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ожидание оплаты"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betalning väntar"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การชำระเงินรอดำเนินการ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очікується оплата"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanh toán đang chờ xử lý"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "付款待处理"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "付款待處理"
+          }
         }
+      }
     },
     "Payout" : {
       "localizations" : {
@@ -12519,6 +12982,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "دفع"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výplata"
           }
         },
         "de" : {
@@ -12663,6 +13132,12 @@
             "value" : "محافظ الدفع"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výplatní peněženky"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12803,6 +13278,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تحدث المدفوعات كل أسبوعين، وتتطلب حدًا أدنى لتلقي الدفع."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výplaty probíhají každé dva týdny a pro jejich získání je třeba minimální částka."
           }
         },
         "de" : {
@@ -12947,6 +13428,12 @@
             "value" : "قيد الانتظار: تم توفير %@ ميغابايت"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čekající: %@ MB poskytnuto"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13082,6 +13569,14 @@
       }
     },
     "Phantom" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phantom"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "Plan" : {
@@ -13090,6 +13585,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "الخطة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plán"
           }
         },
         "de" : {
@@ -13234,6 +13735,12 @@
             "value" : "يرجى تثبيت Phantom أو Solflare لاستخدام هذه الميزة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prosím nainstalujte peněženku/y Phantom či Solflare pro použité této featury."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13376,6 +13883,12 @@
             "value" : "يرجى تسجيل الدخول إلى URnetwork"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prosím přihlašte se do URnetwork"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13511,7 +14024,14 @@
       }
     },
     "Please login to URnetwork to connect" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro připojení se přihlaste do URnetwork"
+          }
+        }
+      }
     },
     "Points breakdown" : {
       "localizations" : {
@@ -13519,6 +14039,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تفصيل النقاط"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozdělení bodů"
           }
         },
         "de" : {
@@ -13664,6 +14190,12 @@
             "value" : "شبكة خاصة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soukromá sít"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13798,6 +14330,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "جارٍ معالجة رصيد الاشتراك..."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zpracování zůstatku předplatného..."
           }
         },
         "de" : {
@@ -13942,6 +14480,12 @@
             "value" : "الملف الشخصي"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profil"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14082,6 +14626,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "التوفير أثناء قطع الاتصال"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poskytuj když je zařízení odpojeno"
           }
         },
         "de" : {
@@ -14226,6 +14776,12 @@
             "value" : "جاري التوفير"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poskytování"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14360,6 +14916,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إغلاق URnetwork"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opustit URnetwork"
           }
         },
         "de" : {
@@ -14504,6 +15066,12 @@
             "value" : "مرتبة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozice"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14644,6 +15212,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "جاهز للاتصال"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připraveno k připojení"
           }
         },
         "de" : {
@@ -14788,6 +15362,12 @@
             "value" : "تلقي إشعارات الاتصال"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přijímání oznámení o připojení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14930,6 +15510,12 @@
             "value" : "إعادة الاتصال"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přepojení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15064,150 +15650,15 @@
         }
       }
     },
-    "Refer and earn" : {
-      "extractionState" : "stale",
+    "Refer friends" : {
       "localizations" : {
-        "ar" : {
+        "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أحِل واربح"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empfehlen und verdienen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Παραπέμψτε και κερδίστε"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Refer and earn"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recomienda y gana"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recomienda y gana"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Parrainez et gagnez"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הפנה והרוויח"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "रेफर करें और कमाएं"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Referensikan dan dapatkan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invita e guadagna"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "紹介して稼ぐ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추천하고 벌기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Poleć i zarabiaj"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Indique e ganhe"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Indique e ganhe"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Приглашайте и зарабатывайте"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rekommendera och tjäna"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "แนะนำและรับรายได้"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запрошуйте та заробляйте"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Giới thiệu và kiếm tiền"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推荐赚钱"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推薦賺錢"
+            "value" : "Doporučte přátele"
           }
         }
-      }
-    },
-    "Refer friends" : {
+      },
       "shouldTranslate" : false
     },
     "Referral" : {
@@ -15216,6 +15667,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إحالة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referral"
           }
         },
         "de" : {
@@ -15360,6 +15817,12 @@
             "value" : "تم تطبيق مكافأة الإحالة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uplatnění bonusu za doporučení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15500,6 +15963,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "شبكة الإحالة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Síť doporučení"
           }
         },
         "de" : {
@@ -15644,6 +16113,12 @@
             "value" : "الموثوقية"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spolehlivost"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15786,6 +16261,12 @@
             "value" : "إزالة المحفظة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odstranit peněženku"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15926,6 +16407,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إعادة إرسال الرمز"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opětovné odeslání kódu"
           }
         },
         "de" : {
@@ -16071,6 +16558,12 @@
             "value" : "إعادة تعيينه"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obnovte jej."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16211,6 +16704,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تقييم URnetwork"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohodnoďte URnetwork"
           }
         },
         "de" : {
@@ -16355,6 +16854,12 @@
             "value" : "البحث عن مزودي الخدمة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhledání poskytovatelů"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16495,6 +17000,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تم التحقق من رمز Seeker!"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seeker Token ověřen!"
           }
         },
         "de" : {
@@ -16639,6 +17150,12 @@
             "value" : "إرسال"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odeslat"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16779,6 +17296,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أرسل لي تحديثات المنتج"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zasílejte mi aktualizace produktů"
           }
         },
         "de" : {
@@ -16923,6 +17446,12 @@
             "value" : "إرسال رابط إعادة التعيين"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odeslat odkaz na obnovení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17063,6 +17592,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أرسل لنا ملاحظاتك مباشرة أو [انضم إلى Discord الخاص بنا](https://discord.com/invite/RUNZXMwPRK) للحصول على دعم مباشر."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pošlete nám svou zpětnou vazbu přímo nebo [se připojte k našemu Discordu](https://discord.com/invite/RUNZXMwPRK) pro přímou podporu."
           }
         },
         "de" : {
@@ -17207,6 +17742,12 @@
             "value" : "الإعدادات"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17347,6 +17888,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "مشاركة URnetwork"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sdílet URnetwork"
           }
         },
         "de" : {
@@ -17491,6 +18038,12 @@
             "value" : "إظهار"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukázat"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17631,6 +18184,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إظهار قائمة المزودين"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit seznam poskytovatelů"
           }
         },
         "de" : {
@@ -17775,6 +18334,12 @@
             "value" : "تسجيل الدخول"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17915,6 +18480,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تسجيل الدخول باستخدام Google"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se pomocí Google"
           }
         },
         "de" : {
@@ -18059,6 +18630,12 @@
             "value" : "تسجيل الدخول باستخدام Solana"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se pomocí Solana"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18201,6 +18778,12 @@
             "value" : "تسجيل الخروج"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásit se"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18336,6 +18919,14 @@
       }
     },
     "Solflare" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solflare"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "Something went wrong. Please try again later." : {
@@ -18344,6 +18935,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقًا."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Něco se pokazilo. Zkuste to prosím později."
           }
         },
         "de" : {
@@ -18488,6 +19085,12 @@
             "value" : "ابق على تواصل"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zůstaňte v kontaktu"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18630,6 +19233,12 @@
             "value" : "ادخل إلى الإنترنت كما ينبغي أن يكون."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vstupte na internet, jak má být."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18764,6 +19373,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "اشترك للإصلاح"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidejte se k Premium pro opravení"
           }
         },
         "de" : {
@@ -18908,6 +19523,12 @@
             "value" : "الدعم"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podpora"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19048,6 +19669,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ادعمنا في بناء نوع جديد من الشبكات التي تعطي بدلاً من أن تأخذ."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podpořte nás v budování nového typu sítě, která dává, místo aby brala."
           }
         },
         "de" : {
@@ -19192,6 +19819,12 @@
             "value" : "داعم"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podporovatel"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19327,7 +19960,14 @@
       }
     },
     "System" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systém"
+          }
+        }
+      }
     },
     "Tap to connect" : {
       "localizations" : {
@@ -19335,6 +19975,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "انقر للاتصال"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klepnutím se připojíte"
           }
         },
         "de" : {
@@ -19479,6 +20125,12 @@
             "value" : "أخبرنا من أنت حقاً. أدخل الرمز الذي أرسلناه إليك للتحقق من هويتك."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Řekněte nám, kdo skutečně jste. Zadejte kód, který jsme vám zaslali k ověření vaší totožnosti."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19619,6 +20271,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "شكراً لمساعدتك في بناء الإنترنت الجديد معنا"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Děkujeme, že s námi budujete nový internet"
           }
         },
         "de" : {
@@ -19763,6 +20421,12 @@
             "value" : "لوحة المتصدرين هي مجموع آخر 4 مدفوعات. يتم تحديثها في كل دورة دفع."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žebříček je součtem posledních 4 plateb. Je aktualizován každý platební cyklus."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19903,6 +20567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "حدث خطأ أثناء التحقق من اسم الشبكة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Při kontrole názvu sítě došlo k chybě"
           }
         },
         "de" : {
@@ -20047,6 +20717,12 @@
             "value" : "هذه المحافظ غير مرتبطة أو متحكم بها من قبل URnetwork. سنقوم بإرسال الأرباح إلى المحفظة المتصلة."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tyto peněženky nejsou přidružené ani kontrolované společností URnetwork. Výdělky budeme posílat do připojené peněženky."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20175,6 +20851,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "هذا الرمز غير صالح"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento kód není platný"
           }
         },
         "de" : {
@@ -20319,6 +21001,12 @@
             "value" : "اسم الشبكة مستخدم بالفعل"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento název sítě je již obsazen"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20459,6 +21147,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "للبدء في الكسب، قم بربط محفظة Solana الخاصة بك مع URnetwork."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chcete-li začít vydělávat, připojte svou peněženku Solana k síti URnetwork."
           }
         },
         "de" : {
@@ -20603,6 +21297,12 @@
             "value" : "إجمالي المدفوعات"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "celkové výplaty"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20745,6 +21445,12 @@
             "value" : "إجمالي الإحالات"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Celkový počet doporučení"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20880,146 +21586,152 @@
       }
     },
     "Transaction" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "المعاملة"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transaktion"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Συναλλαγή"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transaction"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transacción"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transacción"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transaction"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "עסקה"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "लेन-देन"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transaksi"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transazione"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "トランザクション"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "트랜잭션"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transakcja"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transação"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transação"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Транзакция"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Transaktion"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "ธุรกรรม"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Транзакція"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Giao dịch"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "交易"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "交易"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المعاملة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transakce"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transaktion"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συναλλαγή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transaction"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transacción"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transacción"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transaction"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עסקה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लेन-देन"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transaksi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transazione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トランザクション"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "트랜잭션"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transakcja"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transação"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Транзакция"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transaktion"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ธุรกรรม"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Транзакція"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao dịch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "交易"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "交易"
+          }
         }
+      }
     },
     "Try guest mode" : {
       "localizations" : {
@@ -21027,6 +21739,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "جرب وضع الضيف"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyzkoušejte režim hosta"
           }
         },
         "de" : {
@@ -21171,6 +21889,12 @@
             "value" : "جرب وضع الضيف"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyzkoušejte režim pro hosty"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21311,6 +22035,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "إلغاء الربط"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpojení"
           }
         },
         "de" : {
@@ -21455,6 +22185,12 @@
             "value" : "إلغاء ربط شبكة الإحالة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpojit referral síť"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21595,6 +22331,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "بيانات غير مدفوعة مقدمة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poskytnuté neproplacené data"
           }
         },
         "de" : {
@@ -21739,6 +22481,12 @@
             "value" : "تحديث"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizace"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21879,6 +22627,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تحديث كلمة المرور"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizace hesla"
           }
         },
         "de" : {
@@ -22023,6 +22777,12 @@
             "value" : "تحديث شبكة الإحالة"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizace referral sítě"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22163,6 +22923,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ترقية"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade"
           }
         },
         "de" : {
@@ -22307,6 +23073,12 @@
             "value" : "الترقية الآن"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgradujte nyní"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22442,10 +23214,25 @@
       }
     },
     "URid" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URid"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "URnetwork is disconnected" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork je odpojen"
+          }
+        }
+      }
     },
     "URnetwork Referral Code" : {
       "localizations" : {
@@ -22453,6 +23240,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "رمز إحالة URnetwork"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork Referral kód"
           }
         },
         "de" : {
@@ -22597,6 +23390,12 @@
             "value" : "حالة URnetwork"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status URnetwork"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22726,7 +23525,14 @@
       }
     },
     "URnetwork System Menu" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systémové menu URnetwork"
+          }
+        }
+      }
     },
     "URnetwork VPN already started" : {
       "localizations" : {
@@ -22734,6 +23540,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "URnetwork VPN قد بدأ بالفعل"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN již byla spuštěna"
           }
         },
         "de" : {
@@ -22872,6 +23684,12 @@
             "value" : "URnetwork VPN غير متصل"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN odpojena"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23008,6 +23826,12 @@
             "value" : "تم تشغيل URnetwork VPN"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork VPN zahájena"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23137,6 +23961,14 @@
       }
     },
     "USDC" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "USDC addresses on Solana and Polygon are currently supported" : {
@@ -23145,6 +23977,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "عناوين USDC على Solana و Polygon مدعومة حالياً"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nyní jsou podporovány USDC adresy na blockchainech/networks Solana a Polygon"
           }
         },
         "de" : {
@@ -23289,6 +24127,12 @@
             "value" : "عنوان محفظة USDC"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresa peněženky USDC"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23431,6 +24275,12 @@
             "value" : "تحقق"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ověřit"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23566,7 +24416,14 @@
       }
     },
     "Version and Build info" : {
-
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informace o verzi a sestavení"
+          }
+        }
+      }
     },
     "VPN tunnel disconnected 😓" : {
       "localizations" : {
@@ -23574,6 +24431,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "تم قطع اتصال نفق VPN 😓"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunel VPN odpojen 😓"
           }
         },
         "de" : {
@@ -23711,146 +24574,152 @@
       }
     },
     "Wallet Address" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "عنوان المحفظة"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Wallet-Adresse"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Διεύθυνση πορτοφολιού"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Wallet Address"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Dirección de la billetera"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Dirección de la billetera"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Adresse du portefeuille"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "כתובת ארנק"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "वॉलेट पता"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Alamat dompet"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Indirizzo del portafoglio"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "ウォレットアドレス"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "지갑 주소"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Adres portfela"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Endereço da carteira"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Endereço da carteira"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Адрес кошелька"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Plånboksadress"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "ที่อยู่กระเป๋าเงิน"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Адреса гаманця"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Địa chỉ ví"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "钱包地址"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "錢包地址"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عنوان المحفظة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresa peněženky"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallet-Adresse"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διεύθυνση πορτοφολιού"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallet Address"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de la billetera"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de la billetera"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse du portefeuille"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתובת ארנק"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "वॉलेट पता"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat dompet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indirizzo del portafoglio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォレットアドレス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지갑 주소"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres portfela"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço da carteira"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço da carteira"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес кошелька"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plånboksadress"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่กระเป๋าเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адреса гаманця"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ ví"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "钱包地址"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錢包地址"
+          }
         }
+      }
     },
     "Wallets" : {
       "localizations" : {
@@ -23858,6 +24727,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "المحافظ"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penězěnky"
           }
         },
         "de" : {
@@ -24002,6 +24877,12 @@
             "value" : "عند إلغاء ربط شبكة الإحالة الخاصة بك، لن تتمكن بعد الآن من كسب النقاط من %@."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Když odpojíte svou referral síť, nebudete moci získavat body z %@."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24142,6 +25023,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "قد تحتاج إلى التحقق من مجلد البريد المزعج أو إلغاء حظر no-reply@ur.io"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Možná budete muset zkontrolovat složku spamu nebo odblokovat no-reply@ur.io."
           }
         },
         "de" : {
@@ -24286,6 +25173,12 @@
             "value" : "أنت تشارك مع الآخرين، ونحن نشارك معك. اكسب حصة من العائدات عندما تقدم البيانات للآخرين في الشبكة."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vy sdílíte s ostatními, my s vámi. Získejte podíl na příjmech, když poskytnete data ostatním v síti."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24426,6 +25319,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ستحصل على سرعات أعلى، وأولوية الوصول إلى الميزات الجديدة مثل تدابير مكافحة الرقابة القوية والتحكم في البيانات."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odemknete ještě vyšší rychlosti a získáte první právo na nové funkce, jako jsou robustní opatření proti cenzuře a kontrola dat."
           }
         },
         "de" : {
@@ -24570,6 +25469,12 @@
             "value" : "أنت تكسب نقاط مضاعفة 2x"
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Získáváte dvakrát více (2x) bodů"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24712,6 +25617,12 @@
             "value" : "أنت مشترك مميز."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jste prémium."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24852,6 +25763,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "لديك بريد جديد"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostali jste poštu"
           }
         },
         "de" : {

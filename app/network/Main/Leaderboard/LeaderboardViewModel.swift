@@ -181,7 +181,8 @@ extension LeaderboardView {
                                 networkName: earner.networkName,
                                 netProvided: self.formatByteSize(mib: earner.netMiBCount),
                                 rank: i,
-                                isPublic: earner.isPublic
+                                isPublic: earner.isPublic,
+                                containsProfanity: earner.containsProfanity
                             ))
                     }
                 }
@@ -364,15 +365,19 @@ struct LeaderboardEntry: Identifiable {
         networkName: String,
         netProvided: String,
         rank: Int,
-        isPublic: Bool
+        isPublic: Bool,
+        containsProfanity: Bool
     ) {
 
         self.id = "\(rank)"
         self.networkId = networkId
-        self.networkName =
-            isPublic
-            ? networkName
-            : NSLocalizedString("Private Network", comment: "Network name when privacy is enabled")
+
+        self.networkName = !isPublic
+            ? NSLocalizedString("Private Network", comment: "Network name when privacy is enabled")
+            : containsProfanity
+                ? String(networkName.prefix(1)) + String(repeating: "*", count: networkName.count - 2) + String(networkName.suffix(1))
+                : networkName
+        
         self.netProvided = netProvided
         self.rank = "\(rank + 1)"
         self.isPublic = isPublic

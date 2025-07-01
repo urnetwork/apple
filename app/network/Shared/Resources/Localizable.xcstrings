@@ -13272,150 +13272,144 @@
         }
       }
     },
-    "Payouts occur every two weeks, and require a minimum amount to receive a payout." : {
+    "Payouts occur every week, and require a minimum amount to receive a payout." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحدث المدفوعات كل أسبوعين، وتتطلب حدًا أدنى لتلقي الدفع."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Výplaty probíhají každé dva týdny a pro jejich získání je třeba minimální částka."
+            "value" : "تحدث عمليات الدفع كل أسبوع، وتتطلب حدًا أدنى من المبلغ لتلقي الدفع."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auszahlungen erfolgen alle zwei Wochen und erfordern einen Mindestbetrag, um eine Auszahlung zu erhalten."
+            "value" : "Auszahlungen erfolgen jede Woche und erfordern einen Mindestbetrag, um eine Auszahlung zu erhalten."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Οι πληρωμές πραγματοποιούνται κάθε δύο εβδομάδες και απαιτούν ένα ελάχιστο ποσό για να λάβετε πληρωμή."
+            "value" : "Οι πληρωμές πραγματοποιούνται κάθε εβδομάδα και απαιτείται ένα ελάχιστο ποσό για να λάβετε πληρωμή."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Payouts occur every two weeks, and require a minimum amount to receive a payout."
+            "value" : "Payouts occur every week, and require a minimum amount to receive a payout."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los pagos se realizan cada dos semanas y requieren una cantidad mínima para recibir un pago."
+            "value" : "Los pagos se realizan cada semana y requieren una cantidad mínima para recibir un pago."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los pagos se realizan cada dos semanas y requieren una cantidad mínima para recibir un pago."
+            "value" : "Los pagos se realizan cada semana y requieren una cantidad mínima para recibir un pago."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les paiements ont lieu toutes les deux semaines et nécessitent un montant minimum pour recevoir un paiement."
+            "value" : "Les paiements ont lieu chaque semaine et nécessitent un montant minimum pour recevoir un paiement."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "התשלומים מתבצעים כל שבועיים ודורשים סכום מינימלי לקבלת תשלום."
+            "value" : "התשלומים מתבצעים בכל שבוע ודורשים סכום מינימלי לקבלת תשלום."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "भुगतान हर दो सप्ताह में होते हैं, और भुगतान प्राप्त करने के लिए न्यूनतम राशि की आवश्यकता होती है।"
+            "value" : "भुगतान हर सप्ताह होते हैं, और भुगतान प्राप्त करने के लिए न्यूनतम राशि आवश्यक है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pembayaran terjadi setiap dua minggu, dan memerlukan jumlah minimum untuk menerima pembayaran."
+            "value" : "Pembayaran dilakukan setiap minggu, dan memerlukan jumlah minimum untuk menerima pembayaran."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I pagamenti avvengono ogni due settimane e richiedono un importo minimo per ricevere un pagamento."
+            "value" : "I pagamenti avvengono ogni settimana e richiedono un importo minimo per ricevere un pagamento."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支払いは2週間ごとに行われ、支払いを受けるには最低金額が必要です。"
+            "value" : "支払いは毎週行われ、支払いを受け取るには最低金額が必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "지급은 2주마다 이루어지며, 지급을 받기 위해서는 최소 금액이 필요합니다."
+            "value" : "지급은 매주 이루어지며, 지급을 받으려면 최소 금액이 필요합니다."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wypłaty odbywają się co dwa tygodnie i wymagają minimalnej kwoty, aby otrzymać wypłatę."
+            "value" : "Wypłaty odbywają się co tydzień i wymagają minimalnej kwoty do otrzymania wypłaty."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os pagamentos ocorrem a cada duas semanas e exigem um valor mínimo para receber um pagamento."
+            "value" : "Os pagamentos ocorrem toda semana e exigem um valor mínimo para receber um pagamento."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os pagamentos ocorrem a cada duas semanas e exigem um valor mínimo para receber um pagamento."
+            "value" : "Os pagamentos ocorrem todas as semanas e exigem um valor mínimo para receber um pagamento."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выплаты происходят каждые две недели и требуют минимальной суммы для получения выплаты."
+            "value" : "Выплаты происходят каждую неделю и требуют минимальной суммы для получения выплаты."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utbetalningar sker varannan vecka och kräver ett minimibelopp för att få en utbetalning."
+            "value" : "Utbetalningar sker varje vecka och kräver ett minimibelopp för att få en utbetalning."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "การจ่ายเงินเกิดขึ้นทุกสองสัปดาห์ และต้องใช้จำนวนเงินขั้นต่ำในการรับการจ่ายเงิน"
+            "value" : "การจ่ายเงินเกิดขึ้นทุกสัปดาห์ และต้องมีจำนวนเงินขั้นต่ำเพื่อรับการจ่ายเงิน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Виплати здійснюються кожні два тижні і вимагають мінімальної суми для отримання виплати."
+            "value" : "Виплати відбуваються щотижня і вимагають мінімальної суми для отримання виплати."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thanh toán diễn ra hai tuần một lần và yêu cầu số tiền tối thiểu để nhận thanh toán."
+            "value" : "Thanh toán diễn ra hàng tuần và yêu cầu số tiền tối thiểu để nhận được thanh toán."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每两周支付一次，并且需要达到最低金额才能收到付款。"
+            "value" : "每周都会进行支付，并且需要达到最低金额才能收到支付。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每兩週支付一次，並且需要達到最低金額才能收到付款。"
+            "value" : "每週都會進行支付，並且需要達到最低金額才能收到支付。"
           }
         }
       }

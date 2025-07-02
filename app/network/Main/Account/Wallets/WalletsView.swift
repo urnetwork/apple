@@ -267,60 +267,6 @@ struct WalletsHeader: View {
                     
                 }
                 
-                
-//                HStack {
-//                    VStack {
-//                        HStack {
-//                            UrLabel(text: "Payout points")
-//                            Spacer()
-//                        }
-//                        
-//                        HStack {
-//                            Text("\(payoutPoints)")
-//                                .font(themeManager.currentTheme.titleCondensedFont)
-//                                .foregroundColor(themeManager.currentTheme.textColor)
-//                            
-//                            Spacer()
-//                        }
-//                    }
-//                    
-//                    Spacer()
-//                    
-//                    VStack {
-//                        HStack {
-//                            UrLabel(text: "Multiplier points")
-//                            Spacer()
-//                        }
-//                        
-//                        HStack {
-//                            Text("\(multiplierPoints)")
-//                                .font(themeManager.currentTheme.titleCondensedFont)
-//                                .foregroundColor(themeManager.currentTheme.textColor)
-//                            
-//                            Spacer()
-//                        }
-//                    }
-//                    
-//                }
-//                
-//                HStack {
-//                    VStack {
-//                        HStack {
-//                            UrLabel(text: "Referral points")
-//                            Spacer()
-//                        }
-//                        
-//                        HStack {
-//                            Text("\(referralPoints)")
-//                                .font(themeManager.currentTheme.titleCondensedFont)
-//                                .foregroundColor(themeManager.currentTheme.textColor)
-//                            
-//                            Spacer()
-//                        }
-//                    }
-//                }
-                
-                
             }
             .padding(.top)
             .padding(.horizontal)

@@ -120,7 +120,14 @@ class ConnectViewModel: ObservableObject {
         self.updateConnectionStatus()
         
         self.device = device
+        
+        // if a user was connected and quit the app, it will reconnect this location
         self.selectedProvider = device.getConnectLocation()
+        
+        // if a user had selected a location, but wasn't connected, it will re-select that location
+        if (self.selectedProvider == nil) {
+            self.selectedProvider = device.getDefaultLocation()
+        }
         
         /**
          * Add tunnel listener

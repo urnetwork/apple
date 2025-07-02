@@ -375,6 +375,7 @@ extension DeviceManager {
 //                let instanceId = localState.getInstanceId()
                 let routeLocal = localState.getRouteLocal()
                 let connectLocation = localState.getConnectLocation()
+                let defaultLocation = localState.getDefaultLocation()
                 let canShowRatingDialog = localState.getCanShowRatingDialog()
                 let provideWhileDisconnected = localState.getProvideWhileDisconnected()
                 let provideMode = provideWhileDisconnected ? SdkProvideModePublic : localState.getProvideMode()
@@ -437,9 +438,10 @@ extension DeviceManager {
                     device.setConnectLocation(connectLocation)
                 }
                 
-//                DispatchQueue.main.async {
-                    self.setDevice(device: device)
-//                }
+                // default location is used to persist non-connected location on app restart
+                device.setDefaultLocation(defaultLocation)
+                
+                self.setDevice(device: device)
                 
             } else {
                 print("local state is nil")

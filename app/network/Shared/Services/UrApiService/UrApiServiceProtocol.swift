@@ -1,0 +1,19 @@
+//
+//  UrApiServiceProtocol.swift
+//  URnetwork
+//
+//  Created by Stuart Kuentzel on 7/5/25.
+//
+
+import Foundation
+import URnetworkSdk
+
+protocol UrApiServiceProtocol {
+    
+    /**
+     * Leaderboard
+     */
+    func getLeaderboard() async throws -> [LeaderboardEntry]
+    func setNetworkRankingPublic(_ isPublic: Bool) async throws -> Void
+    func getLeaderboardRanking() async throws -> SdkGetNetworkRankingResult
+}

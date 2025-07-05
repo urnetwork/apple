@@ -14,8 +14,8 @@ struct LeaderboardView: View {
     
     @StateObject private var viewModel: ViewModel
     
-    init(api: SdkApi) {
-        _viewModel = .init(wrappedValue: .init(api: api))
+    init(api: UrApiServiceProtocol) {
+        _viewModel = .init(wrappedValue: .init(apiService: api))
     }
     
     var body: some View {
@@ -365,5 +365,5 @@ private struct LeaderboardRow: View {
 }
 
 //#Preview {
-//    LeaderboardView()
+//    LeaderboardView(api: MockUrApiService())
 //}

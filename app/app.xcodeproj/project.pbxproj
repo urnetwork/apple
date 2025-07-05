@@ -77,6 +77,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		17F8BA782E18EEF300B600BE /* Exceptions for "network" folder in "networkTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/Services/UrApiService/MockUrApiService.swift,
+			);
+			target = D1B95A5F2CEBDD6A00542E0E /* networkTests */;
+		};
 		D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -94,6 +101,9 @@
 		};
 		D1B95A512CEBDD6900542E0E /* network */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				17F8BA782E18EEF300B600BE /* Exceptions for "network" folder in "networkTests" target */,
+			);
 			path = network;
 			sourceTree = "<group>";
 		};

@@ -12,6 +12,7 @@ import URnetworkSdk
 struct MainTabView: View {
     
     var api: SdkApi
+    var urApiService: UrApiServiceProtocol
     var device: SdkDeviceRemote
     var logout: () -> Void
     var connectViewController: SdkConnectViewController?
@@ -29,10 +30,12 @@ struct MainTabView: View {
     
     init(
         api: SdkApi,
+        urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void
     ) {
         self.api = api
+        self.urApiService = urApiService
         self.logout = logout
         self.device = device
         
@@ -109,7 +112,7 @@ struct MainTabView: View {
              * Leaderboard View
              */
             LeaderboardView(
-                api: api
+                api: urApiService
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {

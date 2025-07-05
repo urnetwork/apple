@@ -145,7 +145,7 @@ struct MainNavigationSplitView: View {
                 LeaderboardView(api: urApiService)
             case .support:
                 FeedbackView(
-                    api: api
+                    urApiService: urApiService
                 )
                 .background(themeManager.currentTheme.backgroundColor)
                 .tabItem {

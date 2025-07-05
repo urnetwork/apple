@@ -16,4 +16,9 @@ protocol UrApiServiceProtocol {
     func getLeaderboard() async throws -> [LeaderboardEntry]
     func setNetworkRankingPublic(_ isPublic: Bool) async throws -> Void
     func getLeaderboardRanking() async throws -> SdkGetNetworkRankingResult
+    
+    /**
+     * Feedback
+     */
+    func sendFeedback(feedback: String, starCount: Int) async throws -> SdkFeedbackSendResult
 }

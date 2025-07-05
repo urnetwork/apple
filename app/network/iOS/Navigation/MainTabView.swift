@@ -131,7 +131,7 @@ struct MainTabView: View {
              * Feedback View
              */
             FeedbackView(
-                api: api
+                urApiService: urApiService
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {

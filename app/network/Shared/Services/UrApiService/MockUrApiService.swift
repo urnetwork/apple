@@ -21,4 +21,8 @@ class MockUrApiService: UrApiServiceProtocol {
         return
     }
     
+    func sendFeedback(feedback: String, starCount: Int) async throws -> SdkFeedbackSendResult {
+        return SdkFeedbackSendResult()
+    }
+    
 }

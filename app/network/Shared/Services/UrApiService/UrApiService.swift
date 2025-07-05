@@ -28,6 +28,7 @@ extension UrApiService {
         let args = SdkGetLeaderboardArgs()
         
         let result: SdkLeaderboardResult = try await withCheckedThrowingContinuation { continuation in
+            
             let callback = GetLeaderboardCallback { result, err in
                 if let err = err {
                     continuation.resume(throwing: err)
@@ -84,9 +85,7 @@ extension UrApiService {
      */
     func setNetworkRankingPublic(_ isPublic: Bool) async throws {
         
-        let _: SdkSetNetworkRankingPublicResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-
-            guard let self = self else { return }
+        let _: SdkSetNetworkRankingPublicResult = try await withCheckedThrowingContinuation { continuation in
 
             let callback = SetLeaderboardVisibilityCallback { result, err in
 
@@ -123,10 +122,7 @@ extension UrApiService {
      */
     func getLeaderboardRanking() async throws -> SdkGetNetworkRankingResult {
         
-        return try await withCheckedThrowingContinuation {
-            [weak self] continuation in
-
-            guard let self = self else { return }
+        return try await withCheckedThrowingContinuation { continuation in
 
             let callback = GetNetworkRankingCallback { result, err in
 
@@ -152,6 +148,44 @@ extension UrApiService {
 
             api.getNetworkLeaderboardRanking(callback)
 
+        }
+    }
+    
+}
+
+// MARK - feedback
+extension UrApiService {
+    
+    func sendFeedback(
+        feedback: String,
+        starCount: Int
+    ) async throws -> SdkFeedbackSendResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = SendFeedbackCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result else {
+                    continuation.resume(throwing: SendFeedbackError.emptyResult)
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            let args = SdkFeedbackSendArgs()
+            let needs = SdkFeedbackSendNeeds()
+            needs.other = feedback
+            args.needs = needs
+            args.starCount = starCount
+            
+            api.sendFeedback(args, callback: callback)
+            
         }
     }
     
@@ -188,6 +222,12 @@ private class GetNetworkRankingCallback: SdkCallback<
     }
 }
 
+private class SendFeedbackCallback: SdkCallback<SdkFeedbackSendResult, SdkSendFeedbackCallbackProtocol>, SdkSendFeedbackCallbackProtocol {
+    func result(_ result: SdkFeedbackSendResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 /**
  * Error enums
  */
@@ -212,3 +252,10 @@ enum SetRankingVisibilityError: Error {
     case resultEmpty
     case unknown
 }
+
+enum SendFeedbackError: Error {
+    case isSending
+    case emptyResult
+    case invalidArgs
+}
+

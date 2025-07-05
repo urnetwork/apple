@@ -16,9 +16,9 @@ struct FeedbackView: View {
     @Environment(\.requestReview) private var requestReview
     @FocusState private var isFocused: Bool
     
-    init(api: SdkApi?) {
+    init(urApiService: UrApiServiceProtocol) {
         _viewModel = StateObject.init(wrappedValue: ViewModel(
-            api: api
+            urApiService: urApiService
         ))
     }
     
@@ -140,7 +140,7 @@ struct FeedbackView: View {
 
 #Preview {
     FeedbackView(
-        api: nil
+        urApiService: MockUrApiService()
     )
     .environmentObject(ThemeManager.shared)
 }

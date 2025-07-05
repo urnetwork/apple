@@ -21,4 +21,10 @@ protocol UrApiServiceProtocol {
      * Feedback
      */
     func sendFeedback(feedback: String, starCount: Int) async throws -> SdkFeedbackSendResult
+    
+    /**
+     * Provider list
+     */
+    func searchProviders(_ query: String) async throws -> SdkFilteredLocations
+    func getAllProviders() async throws -> SdkFilteredLocations
 }

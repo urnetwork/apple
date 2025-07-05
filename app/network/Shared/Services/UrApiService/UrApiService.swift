@@ -191,6 +191,73 @@ extension UrApiService {
     
 }
 
+// MARK - provider list calls
+extension UrApiService {
+    
+    /**
+     * Search providers
+     */
+    func searchProviders(_ query: String) async throws -> SdkFilteredLocations {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = FindLocationsCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                let filteredLocations = SdkGetFilteredLocationsFromResult(result, query)
+                
+                guard let filteredLocations = filteredLocations else {
+                    continuation.resume(throwing: FetchProvidersError.noProvidersFound)
+                    return
+                }
+                
+                continuation.resume(returning: filteredLocations)
+                
+            }
+            
+            let args = SdkFindLocationsArgs()
+            args.query = query
+
+            api.findProviderLocations(args, callback: callback)
+        }
+    }
+    
+    /**
+     * Get all providers
+     */
+    func getAllProviders() async throws -> SdkFilteredLocations {
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
+            
+            guard let self = self else { return }
+            
+            let callback = FindLocationsCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                let filter = ""
+                let filteredLocations = SdkGetFilteredLocationsFromResult(result, filter)
+                
+                guard let filteredLocations = filteredLocations else {
+                    continuation.resume(throwing: FetchProvidersError.noProvidersFound)
+                    return
+                }
+                
+                continuation.resume(returning: filteredLocations)
+                
+            }
+            
+            api.getProviderLocations(callback)
+            
+        }
+    }
+}
+
 
 /**
  * Callback classes
@@ -228,6 +295,12 @@ private class SendFeedbackCallback: SdkCallback<SdkFeedbackSendResult, SdkSendFe
     }
 }
 
+private class FindLocationsCallback: SdkCallback<SdkFindLocationsResult, SdkFindLocationsCallbackProtocol>, SdkFindLocationsCallbackProtocol {
+    func result(_ result: SdkFindLocationsResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 /**
  * Error enums
  */
@@ -257,5 +330,9 @@ enum SendFeedbackError: Error {
     case isSending
     case emptyResult
     case invalidArgs
+}
+
+enum FetchProvidersError: Error {
+    case noProvidersFound
 }
 

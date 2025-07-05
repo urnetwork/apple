@@ -35,10 +35,12 @@ public final class ProviderListStore: ObservableObject {
     @Published var searchQuery: String = ""
     private var lastQuery: String?
     
-    private var api: SdkApi?
+    private var currentSearchTask: Task<Void, Never>?
     
-    init(api: SdkApi) {
-        self.api = api
+    private var urApiService: UrApiServiceProtocol
+    
+    init(urApiService: UrApiServiceProtocol) {
+        self.urApiService = urApiService
         
         $searchQuery
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
@@ -76,42 +78,13 @@ public final class ProviderListStore: ObservableObject {
     private func searchProviders(_ query: String) async -> Result<Void, Error> {
         
         do {
+            if Task.isCancelled { return .success(()) }
             
-            providersLoading = true
+            let result = try await self.urApiService.searchProviders(query)
             
-            let result: SdkFilteredLocations = try await withCheckedThrowingContinuation { [weak self] continuation in
-                
-                guard let self = self else { return }
-                
-                let callback = FindLocationsCallback { result, err in
-                    
-                    if let err = err {
-                        continuation.resume(throwing: err)
-                        return
-                    }
-                    
-                    let filteredLocations = SdkGetFilteredLocationsFromResult(result, query)
-                    
-                    guard let filteredLocations = filteredLocations else {
-                        continuation.resume(throwing: FetchProvidersError.noProvidersFound)
-                        return
-                    }
-                    
-                    continuation.resume(returning: filteredLocations)
-                    
-                }
-                
-                let args = SdkFindLocationsArgs()
-                args.query = query
-                
-                if let api = self.api {
-                    api.findProviderLocations(args, callback: callback)
-                }
+            if !Task.isCancelled {
+                self.handleLocations(result)
             }
-            
-            self.handleLocations(result)
-            
-            providersLoading = false
             
             return .success(())
             
@@ -155,34 +128,36 @@ public final class ProviderListStore: ObservableObject {
             
             providersLoading = true
             
-            let result: SdkFilteredLocations = try await withCheckedThrowingContinuation { [weak self] continuation in
-                
-                guard let self = self else { return }
-                
-                let callback = FindLocationsCallback { result, err in
-                    
-                    if let err = err {
-                        continuation.resume(throwing: err)
-                        return
-                    }
-                    
-                    let filter = ""
-                    let filteredLocations = SdkGetFilteredLocationsFromResult(result, filter)
-                    
-                    guard let filteredLocations = filteredLocations else {
-                        continuation.resume(throwing: FetchProvidersError.noProvidersFound)
-                        return
-                    }
-                    
-                    continuation.resume(returning: filteredLocations)
-                    
-                }
-                
-                if let api = self.api {
-                    api.getProviderLocations(callback)
-                }
-    
-            }
+//            let result: SdkFilteredLocations = try await withCheckedThrowingContinuation { [weak self] continuation in
+//                
+//                guard let self = self else { return }
+//                
+//                let callback = FindLocationsCallback { result, err in
+//                    
+//                    if let err = err {
+//                        continuation.resume(throwing: err)
+//                        return
+//                    }
+//                    
+//                    let filter = ""
+//                    let filteredLocations = SdkGetFilteredLocationsFromResult(result, filter)
+//                    
+//                    guard let filteredLocations = filteredLocations else {
+//                        continuation.resume(throwing: FetchProvidersError.noProvidersFound)
+//                        return
+//                    }
+//                    
+//                    continuation.resume(returning: filteredLocations)
+//                    
+//                }
+//                
+//                if let api = self.api {
+//                    api.getProviderLocations(callback)
+//                }
+//    
+//            }
+            
+            let result = try await urApiService.getAllProviders()
             
             self.handleLocations(result)
             
@@ -201,23 +176,21 @@ public final class ProviderListStore: ObservableObject {
     
     private func performSearch(_ query: String) {
         if query != self.lastQuery {
-         
-            Task {
-                let _ = await filterLocations(query)
-                self.lastQuery = query
-            }
+            // Cancel any previous search task
+            currentSearchTask?.cancel()
             
+            providersLoading = true
+            
+            // Create a new search task
+            currentSearchTask = Task {
+                
+                let _ = await filterLocations(query)
+                if !Task.isCancelled {
+                    self.lastQuery = query
+                    providersLoading = false
+                }
+            }
         }
     }
     
-}
-
-private class FindLocationsCallback: SdkCallback<SdkFindLocationsResult, SdkFindLocationsCallbackProtocol>, SdkFindLocationsCallbackProtocol {
-    func result(_ result: SdkFindLocationsResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
-enum FetchProvidersError: Error {
-    case noProvidersFound
 }

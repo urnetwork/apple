@@ -25,4 +25,12 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkFeedbackSendResult()
     }
     
+    func getAllProviders() async throws -> SdkFilteredLocations {
+        return SdkFilteredLocations()
+    }
+    
+    func searchProviders(_ query: String) async throws -> SdkFilteredLocations {
+        return SdkFilteredLocations()
+    }
+    
 }

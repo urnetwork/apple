@@ -65,6 +65,7 @@ struct MainTabView: View {
              */
             ConnectView_iOS(
                 api: api,
+                urApiService: urApiService,
                 logout: logout,
                 device: device,
                 providerListSheetViewModel: providerListSheetViewModel,

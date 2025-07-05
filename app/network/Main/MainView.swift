@@ -10,8 +10,9 @@ import URnetworkSdk
 
 struct MainView: View {
     
-    var api: SdkApi
-    var device: SdkDeviceRemote
+    let api: SdkApi
+    let urApiService: UrApiServiceProtocol
+    let device: SdkDeviceRemote
     var logout: () -> Void
     // var connectViewController: SdkConnectViewController?
     var welcomeAnimationComplete: Binding<Bool>
@@ -31,6 +32,7 @@ struct MainView: View {
         self.api = api
         self.logout = logout
         self.device = device
+        self.urApiService = UrApiService(api: api)
 //        self.connectViewController = device.openConnectViewController()
         self.welcomeAnimationComplete = welcomeAnimationComplete
         _subscriptionBalanceViewModel = StateObject(wrappedValue: SubscriptionBalanceViewModel(api: api))
@@ -50,12 +52,14 @@ struct MainView: View {
                 #if os(iOS)
                 MainTabView(
                     api: api,
+                    urApiService: urApiService,
                     device: device,
                     logout: self.logout
                 )
                 #elseif os(macOS)
                 MainNavigationSplitView(
                     api: api,
+                    urApiService: urApiService,
                     device: device,
                     logout: self.logout
                 )

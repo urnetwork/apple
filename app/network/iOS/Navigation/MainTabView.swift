@@ -12,6 +12,7 @@ import URnetworkSdk
 struct MainTabView: View {
     
     var api: SdkApi
+    var urApiService: UrApiServiceProtocol
     var device: SdkDeviceRemote
     var logout: () -> Void
     var connectViewController: SdkConnectViewController?
@@ -29,10 +30,12 @@ struct MainTabView: View {
     
     init(
         api: SdkApi,
+        urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void
     ) {
         self.api = api
+        self.urApiService = urApiService
         self.logout = logout
         self.device = device
         
@@ -62,6 +65,7 @@ struct MainTabView: View {
              */
             ConnectView_iOS(
                 api: api,
+                urApiService: urApiService,
                 logout: logout,
                 device: device,
                 providerListSheetViewModel: providerListSheetViewModel,
@@ -109,7 +113,7 @@ struct MainTabView: View {
              * Leaderboard View
              */
             LeaderboardView(
-                api: api
+                api: urApiService
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
@@ -128,7 +132,7 @@ struct MainTabView: View {
              * Feedback View
              */
             FeedbackView(
-                api: api
+                urApiService: urApiService
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {

@@ -26,8 +26,8 @@ import URnetworkSdk
 
         @StateObject private var providerListStore: ProviderListStore
 
-        init(api: SdkApi) {
-            _providerListStore = StateObject(wrappedValue: ProviderListStore(api: api))
+        init(urApiService: UrApiServiceProtocol) {
+            _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
         }
 
         var body: some View {

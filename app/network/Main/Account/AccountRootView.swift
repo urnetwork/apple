@@ -393,7 +393,7 @@ struct AccountRootView: View {
 
 private struct AccountNavLink: View {
     
-    var name: String
+    var name: LocalizedStringKey
     var iconPath: String
     var action: () -> Void
     

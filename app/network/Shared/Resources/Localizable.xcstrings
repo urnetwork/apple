@@ -24567,6 +24567,148 @@
         }
       }
     },
+    "Wallet" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "محفظة"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Wallet"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Πορτοφόλι"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Wallet"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Billetera"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Billetera"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Portefeuille"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ארנק"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "वॉलेट"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Dompet"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Portafoglio"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ウォレット"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "지갑"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Portfel"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Carteira"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Carteira"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Кошелек"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Plånbok"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "กระเป๋าเงิน"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Гаманець"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ví"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "钱包"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "錢包"
+                }
+            }
+        }
+    },
     "Wallet Address" : {
       "localizations" : {
         "ar" : {

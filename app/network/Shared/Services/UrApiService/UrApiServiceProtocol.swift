@@ -27,4 +27,10 @@ protocol UrApiServiceProtocol {
      */
     func searchProviders(_ query: String) async throws -> SdkFilteredLocations
     func getAllProviders() async throws -> SdkFilteredLocations
+    
+    /**
+     * Authentication
+     */
+    func authLogin(_ args: SdkAuthLoginArgs) async throws -> AuthLoginResult
+    func createNetwork(_ args: SdkNetworkCreateArgs) async throws -> LoginNetworkResult
 }

@@ -33,4 +33,12 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkFilteredLocations()
     }
     
+    func authLogin(_ args: SdkAuthLoginArgs) async throws -> AuthLoginResult {
+        return AuthLoginResult.failure(LoginError.appleLoginFailed)
+    }
+    
+    func createNetwork(_ args: SdkNetworkCreateArgs) async throws -> LoginNetworkResult {
+        return LoginNetworkResult.failure(LoginError.appleLoginFailed)
+    }
+    
 }

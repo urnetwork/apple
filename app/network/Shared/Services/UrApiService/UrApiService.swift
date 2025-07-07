@@ -258,6 +258,133 @@ extension UrApiService {
     }
 }
 
+// MARK - authentication
+extension UrApiService {
+    
+    func authLogin(_ args: SdkAuthLoginArgs) async throws -> AuthLoginResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = AuthLoginCallback { result, error in
+                
+                if let error {
+
+                    continuation.resume(throwing: error)
+                    
+                    return
+                }
+                
+                guard let result else {
+                    
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No result found"]))
+                    
+                    return
+                }
+                
+                if let resultError = result.error {
+                    
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "result.error exists \(resultError.message)"]))
+                    
+                    return
+                }
+                
+                // JWT exists, proceed to authenticate network
+                if let jwt = result.network?.byJwt {
+                    continuation.resume(returning: .login(jwt))
+                    return
+                }
+                
+                // user auth requires password
+                if let authAllowed = result.authAllowed {
+                    
+                    if authAllowed.contains("password") {
+                        
+                        /**
+                         * Login
+                         */
+                        continuation.resume(returning: .promptPassword(result))
+                        
+                    } else {
+                        
+                        /**
+                         * Trying to login with the wrong account
+                         * ie email is used with google, but trying that same email with apple
+                         */
+                        
+                        var acceptedAuthMethods: [String] = []
+
+                        // loop authAllowed
+                        for i in 0..<authAllowed.len() {
+                            acceptedAuthMethods.append(authAllowed.get(i))
+                        }
+
+                        guard acceptedAuthMethods.isEmpty else {
+
+                            let errMessage = "Please login with one of: \(acceptedAuthMethods.joined(separator: ", "))."
+
+                            continuation.resume(returning: .incorrectAuth(errMessage))
+
+                            return
+                        }
+                        
+                    }
+                    
+                    return
+                    
+                }
+                               
+                /**
+                 * Create new network
+                 */
+                continuation.resume(returning: .create(args))
+                
+            }
+            
+            api.authLogin(args, callback: callback)
+
+        }
+    }
+    
+    func createNetwork(_ args: SdkNetworkCreateArgs) async throws -> LoginNetworkResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = NetworkCreateCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                if let result = result {
+                    
+                    if let resultError = result.error {
+
+                        continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                        
+                        return
+                        
+                    }
+                    
+                    if let network = result.network {
+                        
+                        continuation.resume(returning: .successWithJwt(network.byJwt))
+                        return
+                        
+                    } else {
+                        continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "No network object found in result"]))
+                        return
+                    }
+                    
+                }
+                
+            }
+            
+            api.networkCreate(args, callback: callback)
+            
+        }
+    }
+    
+}
+
 
 /**
  * Callback classes
@@ -301,6 +428,12 @@ private class FindLocationsCallback: SdkCallback<SdkFindLocationsResult, SdkFind
     }
 }
 
+private class AuthLoginCallback: SdkCallback<SdkAuthLoginResult, SdkAuthLoginCallbackProtocol>, SdkAuthLoginCallbackProtocol {
+    func result(_ result: SdkAuthLoginResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 /**
  * Error enums
  */
@@ -335,4 +468,14 @@ enum SendFeedbackError: Error {
 enum FetchProvidersError: Error {
     case noProvidersFound
 }
+
+enum LoginError: Error {
+    case appleLoginFailed
+    case googleLoginFailed
+    case googleNoResult
+    case googleNoIdToken
+    case inProgress
+    case incorrectAuth(_ authAllowed: String)
+}
+
 

@@ -17,11 +17,13 @@ struct LoginNavigationView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var api: SdkApi
+    let urApiService: UrApiServiceProtocol
     var cancel: (() -> Void)? = nil
     var handleSuccess: (_ jwt: String) async -> Void
     
     init(api: SdkApi, cancel: (() -> Void)? = nil, handleSuccess: @escaping (_ jwt: String) async -> Void) {
         self.api = api
+        self.urApiService = UrApiService(api: api)
         self.cancel = cancel
         self.handleSuccess = handleSuccess
         _guestUpgradeViewModel = StateObject(wrappedValue: GuestUpgradeViewModel(api: api))
@@ -32,7 +34,7 @@ struct LoginNavigationView: View {
             path: $viewModel.navigationPath
         ) {
             LoginInitialView(
-                api: api,
+                urApiService: urApiService,
                 navigate: viewModel.navigate,
                 cancel: cancel,
                 handleSuccess: handleSuccess,

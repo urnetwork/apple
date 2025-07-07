@@ -22,19 +22,18 @@ struct LoginInitialView: View {
     
     @ObservedObject var guestUpgradeViewModel: GuestUpgradeViewModel
     
-    var api: SdkApi?
-    var navigate: (LoginInitialNavigationPath) -> Void
-    var cancel: (() -> Void)?
-    var handleSuccess: (_ jwt: String) async -> Void
+    let navigate: (LoginInitialNavigationPath) -> Void
+    let cancel: (() -> Void)?
+    let handleSuccess: (_ jwt: String) async -> Void
     
     init(
-        api: SdkApi?,
+        urApiService: UrApiServiceProtocol,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
         cancel: (() -> Void)? = nil,
         handleSuccess: @escaping (_ jwt: String) async -> Void,
         guestUpgradeViewModel: GuestUpgradeViewModel
     ) {
-        _viewModel = StateObject(wrappedValue: ViewModel(api: api))
+        _viewModel = StateObject(wrappedValue: ViewModel(urApiService: urApiService))
         self.navigate = navigate
         self.cancel = cancel
         self.handleSuccess = handleSuccess

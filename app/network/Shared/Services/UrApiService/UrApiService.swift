@@ -349,10 +349,7 @@ extension UrApiService {
             
             let callback = NetworkCreateCallback { result, err in
                 
-                print("inside network create callback")
-                
                 if let err = err {
-                    print("network create callback error: \(err)")
                     continuation.resume(throwing: err)
                     return
                 }
@@ -367,9 +364,12 @@ extension UrApiService {
                         
                     }
                     
+                    if result.verificationRequired != nil {
+                        continuation.resume(returning: .successWithVerificationRequired)
+                        return
+                    }
+                    
                     if let network = result.network {
-                        
-                        print("network exists, jwt is: \(network.byJwt)")
                         
                         continuation.resume(returning: .successWithJwt(network.byJwt))
                         return

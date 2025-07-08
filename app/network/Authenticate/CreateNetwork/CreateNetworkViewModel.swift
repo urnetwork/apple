@@ -128,11 +128,10 @@ extension CreateNetworkView {
                 return .success(result.isValid)
                 
             } catch(let error) {
-                DispatchQueue.main.async {
-                    self.isValidatingReferralCode = false
-                    self.isValidReferralCode = false
-                    self.referralValidationComplete = true
-                }
+                
+                self.isValidatingReferralCode = false
+                self.isValidReferralCode = false
+                self.referralValidationComplete = true
                 
                 return .failure(error)
                 
@@ -247,9 +246,7 @@ extension CreateNetworkView {
                 
                 let result = try await urApiService.upgradeGuest(args)
                 
-                DispatchQueue.main.async {
-                    self.isCreatingNetwork = false
-                }
+                self.isCreatingNetwork = false
                 
                 return result
                 

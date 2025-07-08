@@ -364,6 +364,11 @@ extension UrApiService {
                         
                     }
                     
+                    if result.verificationRequired != nil {
+                        continuation.resume(returning: .successWithVerificationRequired)
+                        return
+                    }
+                    
                     if let network = result.network {
                         
                         continuation.resume(returning: .successWithJwt(network.byJwt))
@@ -379,6 +384,83 @@ extension UrApiService {
             }
             
             api.networkCreate(args, callback: callback)
+            
+        }
+    }
+    
+    func upgradeGuest(_ args: SdkUpgradeGuestArgs) async throws -> LoginNetworkResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = UpgradeGuestCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                if let result = result {
+                    
+                    if let resultError = result.error {
+
+                        continuation.resume(throwing: UrApiError.resultError(message: resultError.message))
+                        
+                        return
+                        
+                    }
+                    
+                    if result.verificationRequired != nil {
+                        continuation.resume(returning: .successWithVerificationRequired)
+                        return
+                    }
+                    
+                    if let network = result.network {
+                        
+                        continuation.resume(returning: .successWithJwt(network.byJwt))
+                        return
+                        
+                    } else {
+                        continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "No network found in result"]))
+                        return
+                    }
+                    
+                }
+                
+            }
+            
+            api.upgradeGuest(args, callback: callback)
+            
+        }
+    }
+    
+}
+
+// MARK - referral code
+extension UrApiService {
+    
+    func validateReferralCode(_ code: String) async throws -> SdkValidateReferralCodeResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = ValidateReferralCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: UrApiError.resultEmpty)
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            let args = SdkValidateReferralCodeArgs()
+            
+            args.referralCode = code
+            
+            api.validateReferralCode(args, callback: callback)
             
         }
     }
@@ -434,9 +516,29 @@ private class AuthLoginCallback: SdkCallback<SdkAuthLoginResult, SdkAuthLoginCal
     }
 }
 
+private class ValidateReferralCallback: SdkCallback<SdkValidateReferralCodeResult, SdkValidateReferralCodeCallbackProtocol>, SdkValidateReferralCodeCallbackProtocol {
+    func result(_ result: SdkValidateReferralCodeResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class UpgradeGuestCallback: SdkCallback<SdkUpgradeGuestResult, SdkUpgradeGuestCallbackProtocol>, SdkUpgradeGuestCallbackProtocol {
+    func result(_ result: SdkUpgradeGuestResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 /**
  * Error enums
  */
+
+// general errors
+enum UrApiError: Error {
+    case resultEmpty
+    case resultError(message: String)
+}
+
+
 enum LeaderboardError: Error {
     case isLoading
     case resultError(message: String)
@@ -476,6 +578,12 @@ enum LoginError: Error {
     case googleNoIdToken
     case inProgress
     case incorrectAuth(_ authAllowed: String)
+}
+
+enum LoginNetworkResult {
+    case successWithJwt(String)
+    case successWithVerificationRequired
+    case failure(Error)
 }
 
 

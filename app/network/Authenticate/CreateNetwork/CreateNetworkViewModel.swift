@@ -15,18 +15,6 @@ private class NetworkCheckCallback: SdkCallback<SdkNetworkCheckResult, SdkNetwor
     }
 }
 
-private class UpgradeGuestCallback: SdkCallback<SdkUpgradeGuestResult, SdkUpgradeGuestCallbackProtocol>, SdkUpgradeGuestCallbackProtocol {
-    func result(_ result: SdkUpgradeGuestResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
-private class ValidateReferralCallback: SdkCallback<SdkValidateReferralCodeResult, SdkValidateReferralCodeCallbackProtocol>, SdkValidateReferralCodeCallbackProtocol {
-    func result(_ result: SdkValidateReferralCodeResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
 enum AuthType {
     case password
     case apple
@@ -39,7 +27,7 @@ extension CreateNetworkView {
     @MainActor
     class ViewModel: ObservableObject {
         
-        private var api: SdkApi
+        private let urApiService: UrApiServiceProtocol
         private var networkNameValidationVc: SdkNetworkNameValidationViewController?
         private static let networkNameTooShort: LocalizedStringKey = "Network names must be 6 characters or more"
         private static let networkNameUnavailable: LocalizedStringKey = "This network name is already taken"
@@ -50,8 +38,8 @@ extension CreateNetworkView {
         
         private var authType: AuthType
         
-        init(api: SdkApi, authType: AuthType) {
-            self.api = api
+        init(api: SdkApi, urApiService: UrApiServiceProtocol, authType: AuthType) {
+            self.urApiService = urApiService
             self.authType = authType
             
             networkNameValidationVc = SdkNetworkNameValidationViewController(api)
@@ -131,49 +119,19 @@ extension CreateNetworkView {
             
             do {
                 
-                let result: SdkValidateReferralCodeResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                let result = try await urApiService.validateReferralCode(bonusReferralCode)
                     
-                    guard let self = self else { return }
-                    
-                    let callback = ValidateReferralCallback { result, err in
-                        
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        guard let result = result else {
-                            continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "No validate referral code result is nil"]))
-                            return
-                        }
-                        
-                        continuation.resume(returning: result)
-                        
-                    }
-                    
-                    let args = SdkValidateReferralCodeArgs()
-                    
-                    args.referralCode = self.bonusReferralCode
-                    
-                    api.validateReferralCode(args, callback: callback)
-                    
-                }
-                
-                DispatchQueue.main.async {
-                    
-                    self.isValidReferralCode = result.isValid
-                    self.isValidatingReferralCode = false
-                    self.referralValidationComplete = true
-                }
+                self.isValidReferralCode = result.isValid
+                self.isValidatingReferralCode = false
+                self.referralValidationComplete = true
                 
                 return .success(result.isValid)
                 
             } catch(let error) {
-                DispatchQueue.main.async {
-                    self.isValidatingReferralCode = false
-                    self.isValidReferralCode = false
-                    self.referralValidationComplete = true
-                }
+                
+                self.isValidatingReferralCode = false
+                self.isValidReferralCode = false
+                self.referralValidationComplete = true
                 
                 return .failure(error)
                 
@@ -269,70 +227,26 @@ extension CreateNetworkView {
             
             do {
                 
-                let result: LoginNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                    
-                    guard let self = self else { return }
-                    
-                    let callback = UpgradeGuestCallback { result, err in
-                        
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        if let result = result {
-                            
-                            if let resultError = result.error {
+                let args = SdkUpgradeGuestArgs()
+                args.networkName = networkName.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                                continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
-                                
-                                return
-                                
-                            }
-                            
-                            if result.verificationRequired != nil {
-                                continuation.resume(returning: .successWithVerificationRequired)
-                                return
-                            }
-                            
-                            if let network = result.network {
-                                
-                                continuation.resume(returning: .successWithJwt(network.byJwt))
-                                return
-                                
-                            } else {
-                                continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "No network found in result"]))
-                                return
-                            }
-                            
-                        }
-                        
-                    }
-                    
-                    let args = SdkUpgradeGuestArgs()
-                    args.networkName = networkName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    
-                    if let userAuth = userAuth {
-                        args.userAuth = userAuth
-                        args.password = password
-                    }
-                    
-                    if let authJwt, let authType {
-                        args.authJwt = authJwt
-                        args.authJwtType = authType
-                    }
-                    
-                    if let walletAuth {
-                        args.walletAuth = walletAuth
-                    }
-                    
-                    api.upgradeGuest(args, callback: callback)
-                    
+                if let userAuth = userAuth {
+                    args.userAuth = userAuth
+                    args.password = password
+                }
+
+                if let authJwt, let authType {
+                    args.authJwt = authJwt
+                    args.authJwtType = authType
+                }
+
+                if let walletAuth {
+                    args.walletAuth = walletAuth
                 }
                 
-                DispatchQueue.main.async {
-                    self.isCreatingNetwork = false
-                }
+                let result = try await urApiService.upgradeGuest(args)
+                
+                self.isCreatingNetwork = false
                 
                 return result
                 
@@ -363,80 +277,33 @@ extension CreateNetworkView {
             
             do {
                 
-                let result: LoginNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                    
-                    guard let self = self else { return }
-                    
-                    let callback = NetworkCreateCallback { result, err in
-                        
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        if let result = result {
-                            
-                            if let resultError = result.error {
+                let args = SdkNetworkCreateArgs()
+                args.userName = ""
+                args.networkName = networkName.trimmingCharacters(in: .whitespacesAndNewlines)
+                args.terms = termsAgreed
+                args.verifyOtpNumeric = true
 
-                                continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
-                                
-                                return
-                                
-                            }
-                            
-                            if result.verificationRequired != nil {
-                                continuation.resume(returning: .successWithVerificationRequired)
-                                return
-                            }
-                            
-                            if let network = result.network {
-                                
-                                continuation.resume(returning: .successWithJwt(network.byJwt))
-                                return
-                                
-                            } else {
-                                continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "No network object found in result"]))
-                                return
-                            }
-                            
-                        }
-                        
-                    }
-                    
-                    let args = SdkNetworkCreateArgs()
-                    args.userName = ""
-                    args.networkName = networkName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    args.terms = termsAgreed
-                    args.verifyOtpNumeric = true
-                    
-                    
-                    if let userAuth = userAuth {
-                        args.userAuth = userAuth
-                        args.password = password
-                    }
-                    
-                    if let authJwt, let authType {
-                        args.authJwt = authJwt
-                        args.authJwtType = authType
-                    }
-                    
-                    if let walletAuth {
-                        args.walletAuth = walletAuth
-                    }
-                    
-                    if self.isValidReferralCode {
-                        args.referralCode = self.bonusReferralCode
-                    }
-                    
-                    api.networkCreate(args, callback: callback)
-                    
+
+                if let userAuth = userAuth {
+                    args.userAuth = userAuth
+                    args.password = password
+                }
+
+                if let authJwt, let authType {
+                    args.authJwt = authJwt
+                    args.authJwtType = authType
+                }
+
+                if let walletAuth {
+                    args.walletAuth = walletAuth
+                }
+
+                if self.isValidReferralCode {
+                    args.referralCode = self.bonusReferralCode
                 }
                 
-//                DispatchQueue.main.async {
-//                    self.isCreatingNetwork = false
-//                }
+                return try await urApiService.createNetwork(args)
                 
-                return result
                 
             } catch {
                 

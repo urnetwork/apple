@@ -30,7 +30,8 @@ struct CreateNetworkView: View {
         authLoginArgs: SdkAuthLoginArgs,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
         handleSuccess: @escaping (_ jwt: String) async -> Void,
-        api: SdkApi
+        api: SdkApi,
+        urApiService: UrApiServiceProtocol
     ) {
         
         var authType: AuthType = .password
@@ -49,6 +50,7 @@ struct CreateNetworkView: View {
         
         _viewModel = StateObject.init(wrappedValue: ViewModel(
             api: api,
+            urApiService: urApiService,
             authType: authType
         ))
         
@@ -299,13 +301,16 @@ struct CreateNetworkView: View {
     }
     
     private func handleResult(_ result: LoginNetworkResult) async {
+        print("CreateNetworkView handleResult")
         switch result {
             
         case .successWithJwt(let jwt):
+            print("success with jwt: \(jwt)")
             await handleSuccess(jwt)
             break
         case .successWithVerificationRequired:
             if let userAuth = userAuth {
+                print("navigate to verify with userauth: \(userAuth)")
                 navigate(.verify(userAuth))
             } else {
                 print("CreateNetworkView: successWithVerificationRequired: userAuth is nil")
@@ -320,15 +325,15 @@ struct CreateNetworkView: View {
     
 }
 
-#Preview {
-    ZStack {
-        CreateNetworkView(
-            authLoginArgs: SdkAuthLoginArgs(),
-            navigate: {_ in },
-            handleSuccess: {_ in },
-            api: SdkApi()
-        )
-    }
-    .environmentObject(ThemeManager.shared)
-    .background(ThemeManager.shared.currentTheme.backgroundColor)
-}
+//#Preview {
+//    ZStack {
+//        CreateNetworkView(
+//            authLoginArgs: SdkAuthLoginArgs(),
+//            navigate: {_ in },
+//            handleSuccess: {_ in },
+//            api: SdkApi()
+//        )
+//    }
+//    .environmentObject(ThemeManager.shared)
+//    .background(ThemeManager.shared.currentTheme.backgroundColor)
+//}

@@ -57,7 +57,8 @@ struct LoginNavigationView: View {
                             authLoginArgs: authLoginArgs,
                             navigate: viewModel.navigate,
                             handleSuccess: handleSuccess,
-                            api: api
+                            api: api,
+                            urApiService: urApiService
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     case .verify(let userAuth):

@@ -23,6 +23,7 @@ struct MainNavigationSplitView: View {
     @State private var selectedTab: MainNavigationTab = .connect
     
     var api: SdkApi
+    let urApiService: UrApiServiceProtocol
     var device: SdkDeviceRemote
     var logout: () -> Void
     
@@ -39,10 +40,12 @@ struct MainNavigationSplitView: View {
     
     init(
         api: SdkApi,
+        urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void
     ) {
         self.api = api
+        self.urApiService = urApiService
         self.logout = logout
         self.device = device
         
@@ -127,7 +130,7 @@ struct MainNavigationSplitView: View {
             switch selectedTab {
             case .connect:
                 ConnectView_macOS(
-                    api: api
+                    urApiService: urApiService
                 )
             case .account:
                 AccountNavStackView(
@@ -139,10 +142,10 @@ struct MainNavigationSplitView: View {
                     referralLinkViewModel: referralLinkViewModel
                 )
             case .leaderboard:
-                LeaderboardView(api: api)
+                LeaderboardView(api: urApiService)
             case .support:
                 FeedbackView(
-                    api: api
+                    urApiService: urApiService
                 )
                 .background(themeManager.currentTheme.backgroundColor)
                 .tabItem {

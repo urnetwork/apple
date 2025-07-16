@@ -16,7 +16,7 @@ extension LoginInitialView {
     @MainActor
     class ViewModel: ObservableObject {
         
-        private var api: SdkApi?
+        private var urApiService: UrApiServiceProtocol
         
         @Published var userAuth: String = "" {
             didSet {
@@ -61,102 +61,14 @@ extension LoginInitialView {
         
         let domain = "LoginInitialViewModel"
         
-        init(api: SdkApi?) {
-            self.api = api
+        init(urApiService: UrApiServiceProtocol) {
+            self.urApiService = urApiService
         }
         
         func authLogin(args: SdkAuthLoginArgs) async -> AuthLoginResult {
                         
             do {
-                let result: AuthLoginResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                    
-                    guard let self = self else { return }
-                    
-                    let callback = AuthLoginCallback { [weak self] result, error in
-                        
-                        guard let self = self else { return }
-                        
-                        if let error {
-
-                            continuation.resume(throwing: error)
-                            
-                            return
-                        }
-                        
-                        guard let result else {
-                            
-                            continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "No result found"]))
-                            
-                            return
-                        }
-                        
-                        if let resultError = result.error {
-                            
-                            continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "result.error exists \(resultError.message)"]))
-                            
-                            return
-                        }
-                        
-                        // JWT exists, proceed to authenticate network
-                        if let jwt = result.network?.byJwt {
-                            continuation.resume(returning: .login(jwt))
-                            return
-                        }
-                        
-                        // user auth requires password
-                        if let authAllowed = result.authAllowed {
-                            
-                            if authAllowed.contains("password") {
-                                
-                                /**
-                                 * Login
-                                 */
-                                continuation.resume(returning: .promptPassword(result))
-                                
-                            } else {
-                                
-                                /**
-                                 * Trying to login with the wrong account
-                                 * ie email is used with google, but trying that same email with apple
-                                 */
-                                
-                                var acceptedAuthMethods: [String] = []
-    
-                                // loop authAllowed
-                                for i in 0..<authAllowed.len() {
-                                    acceptedAuthMethods.append(authAllowed.get(i))
-                                }
-    
-                                guard acceptedAuthMethods.isEmpty else {
-    
-                                    let errMessage = "Please login with one of: \(acceptedAuthMethods.joined(separator: ", "))."
-    
-                                    continuation.resume(returning: .incorrectAuth(errMessage))
-    
-                                    return
-                                }
-                                
-                            }
-                            
-                            return
-                            
-                        }
-                                       
-                        /**
-                         * Create new network
-                         */
-                        continuation.resume(returning: .create(args))
-                        
-                    }
-                    
-                    if let api = api {
-                        api.authLogin(args, callback: callback)
-                    } else {
-                        print("no api found")
-                    }
-        
-                    
-                }
+                let result = try await urApiService.authLogin(args)
                 
                 self.setIsCheckingUserAuth(false)
                 
@@ -277,53 +189,14 @@ extension LoginInitialView.ViewModel {
         
         do {
             
-            let result: LoginNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                
-                guard let self = self else { return }
-                
-                let callback = NetworkCreateCallback { result, err in
-                    
-                    if let err = err {
-                        continuation.resume(throwing: err)
-                        return
-                    }
-                    
-                    if let result = result {
-                        
-                        if let resultError = result.error {
-
-                            continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
-                            
-                            return
-                            
-                        }
-                        
-                        if let network = result.network {
-                            print("result.network exists! good to go")
-                            
-                            continuation.resume(returning: .successWithJwt(network.byJwt))
-                            return
-                            
-                        } else {
-                            continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "No network object found in result"]))
-                            return
-                        }
-                        
-                    }
-                    
-                }
-                
-                let args = SdkNetworkCreateArgs()
-                args.terms = true
-                args.guestMode = true
-                
-                api?.networkCreate(args, callback: callback)
-                
-            }
+            let args = SdkNetworkCreateArgs()
+            args.terms = true
+            args.guestMode = true
             
-            DispatchQueue.main.async {
-                self.isCreatingGuestNetwork = false
-            }
+            let result = try await urApiService.createNetwork(args)
+            
+            self.isCreatingGuestNetwork = false
+            
             
             return result
             
@@ -354,20 +227,5 @@ extension LoginInitialView.ViewModel {
         return .success(args)
         
     }
-}
-
-private class AuthLoginCallback: SdkCallback<SdkAuthLoginResult, SdkAuthLoginCallbackProtocol>, SdkAuthLoginCallbackProtocol {
-    func result(_ result: SdkAuthLoginResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
-enum LoginError: Error {
-    case appleLoginFailed
-    case googleLoginFailed
-    case googleNoResult
-    case googleNoIdToken
-    case inProgress
-    case incorrectAuth(_ authAllowed: String)
 }
 

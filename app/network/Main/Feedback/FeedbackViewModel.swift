@@ -8,18 +8,6 @@
 import Foundation
 import URnetworkSdk
 
-enum SendFeedbackError: Error {
-    case isSending
-    case emptyResult
-    case invalidArgs
-}
-
-private class SendFeedbackCallback: SdkCallback<SdkFeedbackSendResult, SdkSendFeedbackCallbackProtocol>, SdkSendFeedbackCallbackProtocol {
-    func result(_ result: SdkFeedbackSendResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
 extension FeedbackView {
     
     @MainActor
@@ -30,10 +18,10 @@ extension FeedbackView {
         @Published private(set) var starCount: Int? = nil
         let domain = "[FeedbackViewModel]"
         
-        var api: SdkApi?
+        var urApiService: UrApiServiceProtocol
         
-        init(api: SdkApi?) {
-            self.api = api
+        init(urApiService: UrApiServiceProtocol) {
+            self.urApiService = urApiService
         }
         
         func setStarCount(_ starCount: Int) {
@@ -45,46 +33,21 @@ extension FeedbackView {
             if isSending {
                 return .failure(SendFeedbackError.isSending)
             }
+            self.isSending = true
             
             do {
                 
-                let _: SdkFeedbackSendResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                    
-                    guard let self = self else { return }
-                    
-                    let callback = SendFeedbackCallback { result, err in
-                        
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        guard let result else {
-                            continuation.resume(throwing: SendFeedbackError.emptyResult)
-                            return
-                        }
-                        
-                        continuation.resume(returning: result)
-                        
-                    }
-                    
-                    let args = SdkFeedbackSendArgs()
-                    let needs = SdkFeedbackSendNeeds()
-                    needs.other = feedback
-                    args.needs = needs
-                    args.starCount = starCount ?? 0
-                    
-                    api?.sendFeedback(args, callback: callback)
-                    
-                }
+                let _ = try await urApiService.sendFeedback(feedback: self.feedback, starCount: self.starCount ?? 0)
                 
-                feedback = ""
+                self.feedback = ""
+                self.isSending = false
                 
                 return .success(())
                 
                 
             } catch(let error) {
                 print("\(domain) Error sending feedback: \(error)")
+                self.isSending = false
                 return .failure(error)
             }
             

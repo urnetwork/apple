@@ -30,6 +30,7 @@ struct ConnectView_iOS: View {
     
     init(
         api: SdkApi,
+        urApiService: UrApiServiceProtocol,
         logout: @escaping () -> Void,
         device: SdkDeviceRemote?,
         providerListSheetViewModel: ProviderListSheetViewModel,
@@ -40,7 +41,7 @@ struct ConnectView_iOS: View {
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
         
-        _providerListStore = StateObject(wrappedValue: ProviderListStore(api: api))
+        _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -176,6 +177,7 @@ struct ConnectView_iOS: View {
                         connectViewModel.connectBestAvailable()
                         providerListSheetViewModel.isPresented = false
                     },
+                    isLoading: providerListStore.providersLoading,
                     providerCountries: providerListStore.providerCountries,
                     providerPromoted: providerListStore.providerPromoted,
                     providerDevices: providerListStore.providerDevices,

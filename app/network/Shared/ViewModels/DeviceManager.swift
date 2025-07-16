@@ -439,7 +439,9 @@ extension DeviceManager {
                 }
                 
                 // default location is used to persist non-connected location on app restart
-                device.setDefaultLocation(defaultLocation)
+                if (defaultLocation != nil) {
+                    device.setDefaultLocation(defaultLocation)
+                }
                 
                 self.setDevice(device: device)
                 

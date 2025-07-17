@@ -36,7 +36,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ Vyplatit"
+            "value" : "Výplata z %@"
           }
         },
         "de" : {
@@ -2158,7 +2158,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bonusový referral kód"
+            "value" : "Bonusový referální kód"
           }
         },
         "de" : {
@@ -5406,7 +5406,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktuální referral sít"
+            "value" : "Aktuální referální sít"
           }
         },
         "de" : {
@@ -6144,7 +6144,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zobrazit síť na hřebříčku"
+            "value" : "Zobrazit síť na žebříčku"
           }
         },
         "de" : {
@@ -6725,7 +6725,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upravit referral kód"
+            "value" : "Upravit referální kód"
           }
         },
         "de" : {
@@ -7163,7 +7163,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte bonusový referral kód"
+            "value" : "Vložte bonusový referální kód"
           }
         },
         "de" : {
@@ -9571,7 +9571,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neplatný referral kód. Prosím, zkuste to znovu."
+            "value" : "Neplatný referální kód. Prosím, zkuste to znovu."
           }
         },
         "de" : {
@@ -10460,7 +10460,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hřebříček"
+            "value" : "Žebříček"
           }
         },
         "de" : {
@@ -22182,7 +22182,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Odpojit referral síť"
+            "value" : "Odpojit referální síť"
           }
         },
         "de" : {
@@ -22774,7 +22774,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktualizace referral sítě"
+            "value" : "Aktualizace referální sítě"
           }
         },
         "de" : {
@@ -23239,7 +23239,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork Referral kód"
+            "value" : "URnetwork referální kód"
           }
         },
         "de" : {
@@ -23823,7 +23823,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork VPN zahájena"
+            "value" : "URnetwork VPN zapnutá"
           }
         },
         "de" : {
@@ -23976,7 +23976,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nyní jsou podporovány USDC adresy na blockchainech/networks Solana a Polygon"
+            "value" : "Nyní jsou podporovány USDC adresy na Solana a Polygon blockchainech"
           }
         },
         "de" : {
@@ -24581,6 +24581,12 @@
                     "value" : "Wallet"
                 }
             },
+            "cs" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Peněženka"
+                }
+            }
             "el" : {
                 "stringUnit" : {
                     "state" : "translated",
@@ -25016,7 +25022,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Když odpojíte svou referral síť, nebudete moci získavat body z %@."
+            "value" : "Když odpojíte svou referální síť, nebudete moci získavat body z %@."
           }
         },
         "de" : {

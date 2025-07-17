@@ -17,6 +17,7 @@ struct ProviderListSheetView: View {
     var connect: (SdkConnectLocation) -> Void
     var connectBestAvailable: () -> Void
     var isLoading: Bool
+    var isRefreshing: Bool
     
     /**
      * Provider lists
@@ -34,7 +35,7 @@ struct ProviderListSheetView: View {
     
     var body: some View {
         
-        if isLoading {
+        if isLoading && !isRefreshing {
             
             VStack(alignment: .center) {
                 Spacer()
@@ -181,6 +182,7 @@ struct ProviderListSheetView: View {
             connect: {_ in },
             connectBestAvailable: {},
             isLoading: false,
+            isRefreshing: false,
             providerCountries: providerCountries,
             providerPromoted: [],
             providerDevices: [],

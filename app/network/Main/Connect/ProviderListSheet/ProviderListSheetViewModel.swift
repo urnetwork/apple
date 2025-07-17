@@ -12,5 +12,10 @@ import SwiftUI
 class ProviderListSheetViewModel: ObservableObject {
 
     @Published var isPresented: Bool = false
+    @Published private(set) var isRefreshing: Bool = false
+    
+    func setIsRefreshing(_ isRefreshing: Bool) {
+        self.isRefreshing = isRefreshing
+    }
     
 }

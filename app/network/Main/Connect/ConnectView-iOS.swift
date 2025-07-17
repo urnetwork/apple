@@ -178,6 +178,7 @@ struct ConnectView_iOS: View {
                         providerListSheetViewModel.isPresented = false
                     },
                     isLoading: providerListStore.providersLoading,
+                    isRefreshing: providerListSheetViewModel.isRefreshing,
                     providerCountries: providerListStore.providerCountries,
                     providerPromoted: providerListStore.providerPromoted,
                     providerDevices: providerListStore.providerDevices,
@@ -209,7 +210,9 @@ struct ConnectView_iOS: View {
                     }
                 }
                 .refreshable {
+                    providerListSheetViewModel.setIsRefreshing(true)
                     let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
+                    providerListSheetViewModel.setIsRefreshing(false)
                 }
                 .onAppear {
                     

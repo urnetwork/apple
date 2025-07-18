@@ -42,11 +42,6 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var vpnManager: VPNManager? = nil
     
-//    @Published var provideWhileDisconnected: Bool = false {
-//        didSet {
-//            handleProvideWhileDisconnectedUpdate(provideWhileDisconnected)
-//        }
-//    }
     
     @Published var provideControlMode: ProvideControlMode = ProvideControlMode.Auto {
         didSet {
@@ -88,8 +83,6 @@ class DeviceManager: ObservableObject {
                         self.provideControlMode = provideControlMode
                     }
                     
-                    // self.provideWhileDisconnected = device.getProvideWhileDisconnected()
-                    // self.provideControlMode = ProvideControlMode(from: device.getProvideControlMode())
                     self.routeLocal = device.getRouteLocal()
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
@@ -108,23 +101,6 @@ class DeviceManager: ObservableObject {
     }
     
     @Published private(set) var deviceInitialized: Bool = false
-    
-//    private func handleProvideWhileDisconnectedUpdate(_ canProvideWhileDisconnected: Bool) {
-//        device?.setProvideWhileDisconnected(canProvideWhileDisconnected)
-//        
-//        if let localState = asyncLocalState?.getLocalState() {
-//            
-//            do {
-//                try localState.setProvideWhileDisconnected(canProvideWhileDisconnected)
-//            } catch(let error) {
-//                print("[\(domain)] Error setting provide while disconnected: \(error)")
-//            }
-//            
-//        } else {
-//            print("[\(domain)] No local state found when updating provide while disconnected")
-//        }
-//        
-//    }
     
     private func handleProvideControlModeUpdate(_ mode: ProvideControlMode) {
         device?.setProvideControlMode(mode.rawValue)
@@ -219,16 +195,6 @@ class DeviceManager: ObservableObject {
         
         device?.setCanRefer(value)
     }
-    
-//    func setProvideWhileDisconnected(_ value: Bool) {
-//        do {
-//            try asyncLocalState?.getLocalState()?.setProvideWhileDisconnected(value)
-//        } catch {
-//            print("error setting provide while disconnected: \(error)")
-//        }
-//        
-//        device?.setProvideWhileDisconnected(value)
-//    }
     
     func setProvideControlMode(_ value: ProvideControlMode) {
         do {

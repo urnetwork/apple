@@ -150,7 +150,7 @@ struct SettingsForm_iOS: View {
                         selection: $deviceManager.provideControlMode
                     ) {
                         ForEach(ProvideControlMode.allCases) { mode in
-                            Text(mode.rawValue.capitalized)
+                            Text(provideControlModeLabel(mode))
                                 .font(themeManager.currentTheme.bodyFont)
                                 
                         }

@@ -1275,6 +1275,12 @@
                     "value" : "دائمًا"
                 }
             },
+            "cs" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Vždy"
+                }
+            },
             "de" : {
                 "stringUnit" : {
                     "state" : "translated",
@@ -2002,6 +2008,12 @@
                 "stringUnit" : {
                     "state" : "translated",
                     "value" : "تلقائي"
+                }
+            },
+            "cs" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Automaticky"
                 }
             },
             "de" : {
@@ -12504,6 +12516,12 @@
                 "stringUnit" : {
                     "state" : "translated",
                     "value" : "أبدًا"
+                }
+            },
+            "cs" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Nikdy"
                 }
             },
             "de" : {

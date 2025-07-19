@@ -5543,6 +5543,148 @@
         }
       }
     },
+    "Danger" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خطر"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gefahr"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κίνδυνος"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danger"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peligro"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peligro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danger"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סכנה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खतरा"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bahaya"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pericolo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "危険"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "위험"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niebezpieczeństwo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perigo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perigo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Опасность"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fara"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อันตราย"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Небезпека"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nguy hiểm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "危险"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "危險"
+          }
+        }
+      }
+    },
     "Data Provided" : {
       "localizations" : {
         "ar" : {
@@ -8661,6 +8803,148 @@
           }
         }
       }
+    },
+    "General" : {
+        "localizations" : {
+            "ar" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "عام"
+                }
+            },
+            "de" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Allgemein"
+                }
+            },
+            "el" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Γενικά"
+                }
+            },
+            "en" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "General"
+                }
+            },
+            "es" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "General"
+                }
+            },
+            "es-419" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "General"
+                }
+            },
+            "fr" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Général"
+                }
+            },
+            "he" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "כללי"
+                }
+            },
+            "hi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "सामान्य"
+                }
+            },
+            "id" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Umum"
+                }
+            },
+            "it" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Generale"
+                }
+            },
+            "ja" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "一般"
+                }
+            },
+            "ko" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "일반"
+                }
+            },
+            "pl" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Ogólne"
+                }
+            },
+            "pt-BR" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Geral"
+                }
+            },
+            "pt-PT" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Geral"
+                }
+            },
+            "ru" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Общие"
+                }
+            },
+            "sv" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Allmänt"
+                }
+            },
+            "th" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "ทั่วไป"
+                }
+            },
+            "uk" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Загальні"
+                }
+            },
+            "vi" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "Chung"
+                }
+            },
+            "zh-Hans" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "常规"
+                }
+            },
+            "zh-HK" : {
+                "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "一般"
+                }
+            }
+        }
     },
     "Get in touch" : {
       "localizations" : {
@@ -14614,150 +14898,144 @@
         }
       }
     },
-    "Provide while disconnected" : {
+    "Provide mode" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "التوفير أثناء قطع الاتصال"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Poskytuj když je zařízení odpojeno"
+            "value" : "وضع التوفير"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bereitstellen im getrennten Zustand"
+            "value" : "Bereitstellungsmodus"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Παροχή ενώ είστε αποσυνδεδεμένοι"
+            "value" : "Λειτουργία παροχής"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Provide while disconnected"
+            "value" : "Provide mode"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Proveer mientras está desconectado"
+            "value" : "Modo de provisión"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Proveer mientras está desconectado"
+            "value" : "Modo de provisión"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fournir en étant déconnecté"
+            "value" : "Mode de fourniture"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ספק בזמן מנותק"
+            "value" : "מצב אספקה"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "डिस्कनेक्ट होने पर भी प्रदान करें"
+            "value" : "प्रदान मोड"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sediakan saat terputus"
+            "value" : "Mode penyediaan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fornisci mentre sei disconnesso"
+            "value" : "Modalità di fornitura"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "切断中も提供"
+            "value" : "提供モード"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "연결 해제 시 제공"
+            "value" : "제공 모드"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Udostępniaj podczas rozłączenia"
+            "value" : "Tryb udostępniania"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fornecer enquanto desconectado"
+            "value" : "Modo de fornecimento"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fornecer enquanto desconectado"
+            "value" : "Modo de fornecimento"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Предоставлять при отключении"
+            "value" : "Режим предоставления"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tillhandahåll medan frånkopplad"
+            "value" : "Tillhandahållandeläge"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ให้บริการขณะตัดการเชื่อมต่อ"
+            "value" : "โหมดการให้บริการ"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Надавати під час відключення"
+            "value" : "Режим надання"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cung cấp khi ngắt kết nối"
+            "value" : "Chế độ cung cấp"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "断线时提供"
+            "value" : "提供模式"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "斷線時提供"
+            "value" : "提供模式"
           }
         }
       }
@@ -24568,152 +24846,152 @@
       }
     },
     "Wallet" : {
-        "localizations" : {
-            "ar" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "محفظة"
-                }
-            },
-            "de" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Wallet"
-                }
-            },
-            "cs" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Peněženka"
-                }
-            },
-            "el" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Πορτοφόλι"
-                }
-            },
-            "en" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Wallet"
-                }
-            },
-            "es" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Billetera"
-                }
-            },
-            "es-419" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Billetera"
-                }
-            },
-            "fr" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Portefeuille"
-                }
-            },
-            "he" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "ארנק"
-                }
-            },
-            "hi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "वॉलेट"
-                }
-            },
-            "id" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Dompet"
-                }
-            },
-            "it" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Portafoglio"
-                }
-            },
-            "ja" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "ウォレット"
-                }
-            },
-            "ko" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "지갑"
-                }
-            },
-            "pl" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Portfel"
-                }
-            },
-            "pt-BR" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Carteira"
-                }
-            },
-            "pt-PT" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Carteira"
-                }
-            },
-            "ru" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Кошелек"
-                }
-            },
-            "sv" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Plånbok"
-                }
-            },
-            "th" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "กระเป๋าเงิน"
-                }
-            },
-            "uk" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Гаманець"
-                }
-            },
-            "vi" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "Ví"
-                }
-            },
-            "zh-Hans" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "钱包"
-                }
-            },
-            "zh-HK" : {
-                "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "錢包"
-                }
-            }
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "محفظة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peněženka"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallet"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πορτοφόλι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Billetera"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Billetera"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portefeuille"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ארנק"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "वॉलेट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dompet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portafoglio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォレット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지갑"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portfel"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carteira"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carteira"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кошелек"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plånbok"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กระเป๋าเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Гаманець"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ví"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "钱包"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錢包"
+          }
         }
+      }
     },
     "Wallet Address" : {
       "localizations" : {

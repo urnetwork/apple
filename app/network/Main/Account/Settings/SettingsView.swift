@@ -47,438 +47,152 @@ struct SettingsView: View {
     }
     
     var body: some View {
-        
-        GeometryReader { geometry in
-            
-            ScrollView(.vertical) {
-                
-                VStack {
-                    
-//                    HStack {
-//                        Text("Settings")
-//                            .font(themeManager.currentTheme.titleFont)
-//                            .foregroundColor(themeManager.currentTheme.textColor)
-//                        
-//                        Spacer()
-//                    }
-//                    
-//                    Spacer().frame(height: 64)
-  
-                    // TODO: add this back in for subscription
-//                    HStack {
-//                        UrLabel(text: "Plan")
-//                        
-//                        Spacer()
-//                    }
-//                    
-//                    HStack {
-//                        
-//                        Text("URnetwork Member")
-//                            .font(themeManager.currentTheme.bodyFont)
-//                            .foregroundColor(themeManager.currentTheme.textColor)
-//                        
-//                        
-//                        Spacer()
-//                        Button(action: {}) {
-//                            Text("Change")
-//                        }
-//                        
-//                    }
-//                    
-//                    Spacer().frame(height: 32)
-                    
-                    HStack {
-                        UrLabel(text: "URid")
-                        
-                        Spacer()
-                    }
-                    
-                    /**
-                     * Copy URid
-                     */
-                    // TODO: copy URid
-                    Button(action: {
-                        if let clientId = clientId?.idStr {
-                            
-                            copyToPasteboard(clientId)
-                            
-                            snackbarManager.showSnackbar(message: "URid copied to clipboard")
-                        }
-                    }) {
-                        HStack {
-                            Text(clientId?.idStr ?? "")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                            Spacer()
-                            Image(systemName: "document.on.document")
-                        }
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .cornerRadius(8)
-                    
-                    Spacer().frame(height: 32)
-                    
-                    /**
-                     * Copy URnetwork link
-                     */
-                    HStack {
-                        UrLabel(text: "Share URnetwork")
-                        
-                        Spacer()
-                    }
-                    
-                    Button(action: {
-                        if let clientId = clientId?.idStr {
-                            
-                            copyToPasteboard("https://ur.io/c?\(clientId)")
-                            
-                            snackbarManager.showSnackbar(message: "URnetwork link copied to clipboard")
-                            
-                        }
-                    }) {
-                        HStack {
-                            Text(clientUrl)
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                            Spacer()
-                            Image(systemName: "document.on.document")
-                        }
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .cornerRadius(8)
 
-                    Spacer().frame(height: 32)
-                    
-                    /**
-                     * Copy Referral Link
-                     */
-                    HStack {
-                        UrLabel(text: "Bonus referral code")
-                        
-                        Spacer()
-                    }
-                    
-                    Button(action: {
-                        if let referralCode = referralLinkViewModel.referralCode {
-                            
-                            copyToPasteboard(referralCode)
-                            
-                            snackbarManager.showSnackbar(message: "Bonus referral code copied to clipboard")
-                            
-                        }
-                    }) {
-                        HStack {
-                            Text(referralLinkViewModel.referralCode ?? "")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                            Spacer()
-                            Image(systemName: "document.on.document")
-                        }
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .cornerRadius(8)
-
-                    Spacer().frame(height: 32)
-                    
-                    /**
-                     * Update referral code
-                     */
-                    HStack {
-                        UrLabel(text: "Referral network")
-                        
-                        Spacer()
-                    }
-                    
-                    Spacer().frame(height: 8)
-                    
-                    HStack {
-                        Text(viewModel.referralNetwork?.name ?? "None")
-                            .font(themeManager.currentTheme.bodyFont)
-                        Spacer()
-                        
-                        Button(action: {
-                            viewModel.presentUpdateReferralNetworkSheet = true
-                        }) {
-                            Text("Update")
-                        }
-                        
-                    }
-                    
-                    Spacer().frame(height: 32)
-                    
-                    
-                    #if os(macOS)
-                    
-                    HStack {
-                        UrLabel(text: "System")
-                        
-                        Spacer()
-                    }
-                    
-                    UrSwitchToggle(isOn: $viewModel.launchAtStartupEnabled) {
-                        Text("Launch URnetwork on system startup")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                    }
-                    
-                    Spacer().frame(height: 32)
-                    
-                    #endif
-                    
-                    
-                    /**
-                     * Connections
-                     */
-                    HStack {
-                        UrLabel(text: "Connections")
-                        
-                        Spacer()
-                    }
-                    
-                    UrSwitchToggle(isOn: $deviceManager.provideWhileDisconnected) {
-                        Text("Provide while disconnected")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                    }
-                    
-                    Spacer().frame(height: 16)
-                    
-                    UrSwitchToggle(isOn: $deviceManager.routeLocal) {
-                        Text("Allow local traffic when disconnected")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                    }
-                    
-                    Spacer().frame(height: 32)
-                    
-                    /**
-                     * Notifications
-                     */
-                    
-                    HStack {
-                        UrLabel(text: "Notifications")
-                        
-                        Spacer()
-                    }
-                    
-                    // TODO: this should be a different UI element
-                    // once notifications are enabled, they cannot revoke them through our UI
-                    UrSwitchToggle(isOn: $viewModel.canReceiveNotifications) {
-                        Text("Receive connection notifications")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        
-                    }
-                    
-                    Spacer().frame(height: 32)
-                    
-                    HStack {
-                        UrLabel(text: "Stay in touch")
-                        
-                        Spacer()
-                    }
-                    
-                    UrSwitchToggle(
-                        isOn: $accountPreferencesViewModel.canReceiveProductUpdates,
-                        isEnabled: !accountPreferencesViewModel.isUpdatingAccountPreferences
-                    ) {
-                        Text("Send me product updates")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        
-                    }
-                    
-                    Spacer().frame(height: 16)
-                    
-                    HStack {
-                        Text("Join the community on [Discord](https://discord.com/invite/RUNZXMwPRK)")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            if let url = URL(string: "https://discord.com/invite/RUNZXMwPRK") {
-                                
-                                #if canImport(UIKit)
-                                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                                #elseif canImport(AppKit)
-                                NSWorkspace.shared.open(url)
-                                #endif
-                                
-                                
-                            }
-                        }) {
-                            Image(systemName: "arrow.forward")
-                                .foregroundColor(themeManager.currentTheme.textColor)
-                        }
-                    }
-                    
-                    Spacer().frame(height: 32)
-                    
-                    HStack {
-                        UrLabel(text: "Version and Build info")
-                        
-                        Spacer()
-                    }
-                    
-                    HStack {
-                        Text(viewModel.version.isEmpty ? "0.0.0" : viewModel.version)
-                            .font(themeManager.currentTheme.bodyFont)
-                        
-                        Spacer()
-                    }
-                    
-                    #if os(iOS)
-                    
-                    Spacer().frame(height: 32)
-                    
-                    HStack {
-                        UrLabel(text: "Earning multipliers")
-                        
-                        Spacer()
-                    }
-                    
-                    Spacer().frame(height: 8)
-                    
-                    HStack {
-                        Text("Claim multiplier")
-                            .font(themeManager.currentTheme.bodyFont)
-                        Spacer()
-                        
-                        if (accountWalletsViewModel.isSeekerOrSagaHolder) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.urGreen)
-                                .frame(width: 16)
-                        } else {
-                            Button(action: {
-                                viewModel.presentSigninWithSolanaSheet = true
-                            }) {
-                                Text("Verify")
-                            }
-                        }
-                        
-                    }
-                    
-                    Spacer().frame(height: 4)
-                    
-                    HStack {
-                        Text("Connect a wallet with the Seeker Pre-Order Token")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        
-                        Spacer()
-                    }
-                    
-                    #endif
-                    
-                    Spacer().frame(height: 64)
-                    
-                    Button(role: .destructive, action: {
-                        viewModel.isPresentedDeleteAccountConfirmation = true
-                    }) {
-                        Text("Delete account")
-                    }
-                    
-                    Spacer().frame(height: 12)
-                    
-                }
-                .padding()
-                .frame(maxWidth: 600)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .frame(minHeight: geometry.size.height)
-                // .frame(maxWidth: .infinity)
-                
-                
-            }
-        }
-        .confirmationDialog(
-            "Are you sure you want to delete your account?",
-            isPresented: $viewModel.isPresentedDeleteAccountConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Delete account", role: .destructive) {
-                
-                Task {
-                    let result = await viewModel.deleteAccount()
-                    self.handleResult(result)
-                }
-                
-            }
-        }
-        .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
-            
-            SolanaSignMessageSheet(
-                isSigningMessage: viewModel.isSigningMessage,
-                setIsSigningMessage: viewModel.setIsSigningMessage,
-                signButtonText: "Confirm Seeker Token",
-                signButtonLabelText: "Claim multiplier",
-                message: connectWalletProviderViewModel.claimSeekerTokenMessage,
-                dismiss: {
-                    viewModel.presentSigninWithSolanaSheet = false
-                }
+        #if os(iOS)
+            SettingsForm_iOS(
+                clientId: clientId,
+                clientUrl: clientUrl,
+                referralCode: referralLinkViewModel.referralCode,
+                referralNetworkName: viewModel.referralNetwork?.name,
+                version: viewModel.version,
+                isUpdatingAccountPreferences: accountPreferencesViewModel.isUpdatingAccountPreferences,
+                isSeekerOrSagaHolder: accountWalletsViewModel.isSeekerOrSagaHolder,
+                copyToPasteboard: copyToPasteboard,
+                presentUpdateReferralNetworkSheet: {
+                    viewModel.presentUpdateReferralNetworkSheet = true
+                },
+                presentSigninWithSolanaSheet: {
+                    viewModel.presentSigninWithSolanaSheet = true
+                },
+                presentDeleteAccountConfirmation: {
+                    viewModel.isPresentedDeleteAccountConfirmation = true
+                },
+                canReceiveNotifications: $viewModel.canReceiveNotifications,
+                canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates
             )
-            .presentationDetents([.height(148)])
-        }
-        .onOpenURL { url in
-            connectWalletProviderViewModel
-                .handleDeepLink(
-                    url,
-                    onSignature: { signature in
-                        
-                        guard let pk = connectWalletProviderViewModel.connectedPublicKey else {
-                            snackbarManager.showSnackbar(message: "Couldn't parse public key, please try again later.")
-                            return
-                        }
-                        
-                        Task {
-                            await handleSolanaWalletSignature(
-                                message: connectWalletProviderViewModel.claimSeekerTokenMessage,
-                                signature: signature,
-                                publicKey: pk
-                            )
-                        }
-                        
+            .confirmationDialog(
+                "Are you sure you want to delete your account?",
+                isPresented: $viewModel.isPresentedDeleteAccountConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete account", role: .destructive) {
+                    
+                    Task {
+                        let result = await viewModel.deleteAccount()
+                        self.handleResult(result)
+                    }
+                    
+                }
+            }
+            .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
+                
+                SolanaSignMessageSheet(
+                    isSigningMessage: viewModel.isSigningMessage,
+                    setIsSigningMessage: viewModel.setIsSigningMessage,
+                    signButtonText: "Confirm Seeker Token",
+                    signButtonLabelText: "Claim multiplier",
+                    message: connectWalletProviderViewModel.claimSeekerTokenMessage,
+                    dismiss: {
+                        viewModel.presentSigninWithSolanaSheet = false
                     }
                 )
-        }
-        .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
-            UpdateReferralNetworkSheet(
-                api: api,
-                onSuccess: {
-                    Task {
-                        await viewModel.fetchReferralNetwork()
-                    }
-                    viewModel.presentUpdateReferralNetworkSheet = false
+                .presentationDetents([.height(148)])
+            }
+            .onOpenURL { url in
+                connectWalletProviderViewModel
+                    .handleDeepLink(
+                        url,
+                        onSignature: { signature in
+                            
+                            guard let pk = connectWalletProviderViewModel.connectedPublicKey else {
+                                snackbarManager.showSnackbar(message: "Couldn't parse public key, please try again later.")
+                                return
+                            }
+                            
+                            Task {
+                                await handleSolanaWalletSignature(
+                                    message: connectWalletProviderViewModel.claimSeekerTokenMessage,
+                                    signature: signature,
+                                    publicKey: pk
+                                )
+                            }
+                            
+                        }
+                    )
+            }
+            .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
+                UpdateReferralNetworkSheet(
+                    api: api,
+                    onSuccess: {
+                        Task {
+                            await viewModel.fetchReferralNetwork()
+                        }
+                        viewModel.presentUpdateReferralNetworkSheet = false
+                    },
+                    dismiss: {
+                        viewModel.presentUpdateReferralNetworkSheet = false
+                    },
+                    referralNetwork: viewModel.referralNetwork
+                )
+                .presentationDetents([.height(268)])
+                .presentationDragIndicator(.visible)
+            }
+        
+        #elseif os(macOS)
+            SettingsForm_macOS(
+                clientId: clientId,
+                clientUrl: clientUrl,
+                referralCode: referralLinkViewModel.referralCode,
+                referralNetworkName: viewModel.referralNetwork?.name,
+                version: viewModel.version,
+                isUpdatingAccountPreferences: accountPreferencesViewModel.isUpdatingAccountPreferences,
+                isSeekerOrSagaHolder: accountWalletsViewModel.isSeekerOrSagaHolder,
+                copyToPasteboard: copyToPasteboard,
+                presentUpdateReferralNetworkSheet: {
+                    viewModel.presentUpdateReferralNetworkSheet = true
                 },
-                dismiss: {
-                    viewModel.presentUpdateReferralNetworkSheet = false
+                presentSigninWithSolanaSheet: {
+                    viewModel.presentSigninWithSolanaSheet = true
                 },
-                referralNetwork: viewModel.referralNetwork
+                presentDeleteAccountConfirmation: {
+                    viewModel.isPresentedDeleteAccountConfirmation = true
+                },
+                canReceiveNotifications: $viewModel.canReceiveNotifications,
+                canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
+                launchAtStartupEnabled: $viewModel.launchAtStartupEnabled
             )
-            #if os(iOS)
-            .presentationDetents([.height(268)])
-            .presentationDragIndicator(.visible)
-            #endif
-        }
+            .confirmationDialog(
+                "Are you sure you want to delete your account?",
+                isPresented: $viewModel.isPresentedDeleteAccountConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete account", role: .destructive) {
+                    
+                    Task {
+                        let result = await viewModel.deleteAccount()
+                        self.handleResult(result)
+                    }
+                    
+                }
+            }
+            .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
+                UpdateReferralNetworkSheet(
+                    api: api,
+                    onSuccess: {
+                        Task {
+                            await viewModel.fetchReferralNetwork()
+                        }
+                        viewModel.presentUpdateReferralNetworkSheet = false
+                    },
+                    dismiss: {
+                        viewModel.presentUpdateReferralNetworkSheet = false
+                    },
+                    referralNetwork: viewModel.referralNetwork
+                )
+            }
+        
+        #endif
+        
     }
     
     private func handleSolanaWalletSignature(message: String, signature: String, publicKey: String) async {

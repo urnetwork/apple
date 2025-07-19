@@ -42,9 +42,10 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var vpnManager: VPNManager? = nil
     
-    @Published var provideWhileDisconnected: Bool = false {
+    
+    @Published var provideControlMode: ProvideControlMode = ProvideControlMode.Auto {
         didSet {
-            handleProvideWhileDisconnectedUpdate(provideWhileDisconnected)
+            handleProvideControlModeUpdate(provideControlMode)
         }
     }
     
@@ -77,12 +78,16 @@ class DeviceManager: ObservableObject {
                 
                 if let device = device {
                     print("set device hit: device exists: resetting vpn manager")
-                    self.provideWhileDisconnected = device.getProvideWhileDisconnected()
+                    
+                    if let provideControlMode = ProvideControlMode(rawValue: device.getProvideControlMode()) {
+                        self.provideControlMode = provideControlMode
+                    }
+                    
                     self.routeLocal = device.getRouteLocal()
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
                 } else {
-                    self.provideWhileDisconnected = false
+                    self.provideControlMode = ProvideControlMode.Auto
                     self.deviceInitialized = false
                 }
                 
@@ -97,19 +102,19 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var deviceInitialized: Bool = false
     
-    private func handleProvideWhileDisconnectedUpdate(_ canProvideWhileDisconnected: Bool) {
-        device?.setProvideWhileDisconnected(canProvideWhileDisconnected)
+    private func handleProvideControlModeUpdate(_ mode: ProvideControlMode) {
+        device?.setProvideControlMode(mode.rawValue)
         
         if let localState = asyncLocalState?.getLocalState() {
             
             do {
-                try localState.setProvideWhileDisconnected(canProvideWhileDisconnected)
+                try localState.setProvideControlMode(mode.rawValue)
             } catch(let error) {
-                print("[\(domain)] Error setting provide while disconnected: \(error)")
+                print("[\(domain)] Error setting provide control mode: \(error)")
             }
             
         } else {
-            print("[\(domain)] No local state found when updating provide while disconnected")
+            print("[\(domain)] No local state found when updating provide control mode")
         }
         
     }
@@ -191,14 +196,14 @@ class DeviceManager: ObservableObject {
         device?.setCanRefer(value)
     }
     
-    func setProvideWhileDisconnected(_ value: Bool) {
+    func setProvideControlMode(_ value: ProvideControlMode) {
         do {
-            try asyncLocalState?.getLocalState()?.setProvideWhileDisconnected(value)
+            try asyncLocalState?.getLocalState()?.setProvideControlMode(value.rawValue)
         } catch {
             print("error setting provide while disconnected: \(error)")
         }
         
-        device?.setProvideWhileDisconnected(value)
+        device?.setProvideControlMode(value.rawValue)
     }
     
     func setVpnInterfaceWhileOffline(_ value: Bool) {
@@ -377,8 +382,12 @@ extension DeviceManager {
                 let connectLocation = localState.getConnectLocation()
                 let defaultLocation = localState.getDefaultLocation()
                 let canShowRatingDialog = localState.getCanShowRatingDialog()
-                let provideWhileDisconnected = localState.getProvideWhileDisconnected()
-                let provideMode = provideWhileDisconnected ? SdkProvideModePublic : localState.getProvideMode()
+                // let provideWhileDisconnected = localState.getProvideWhileDisconnected()
+                
+                let provideControlModeStr = localState.getProvideControlMode()
+                let provideControlMode = ProvideControlMode(rawValue: provideControlModeStr)
+                
+                let provideMode = provideControlMode == ProvideControlMode.Always ? SdkProvideModePublic : localState.getProvideMode()
                 let canRefer = localState.getCanRefer()
                 // note ios does not allow VPN interface while offline, due to the existing interface conditions
                 // ignore `vpnInterfaceWhileOffline`
@@ -425,7 +434,8 @@ extension DeviceManager {
                 device.setRouteLocal(routeLocal)
                 device.setProvideMode(provideMode)
                 device.setCanShowRatingDialog(canShowRatingDialog)
-                device.setProvideWhileDisconnected(provideWhileDisconnected)
+                // device.setProvideWhileDisconnected(provideWhileDisconnected)
+                device.setProvideControlMode(provideControlMode?.rawValue ?? ProvideControlMode.Auto.rawValue)
                 device.setCanRefer(canRefer)
                 
                 // only set the location if the current location is not already equivalent

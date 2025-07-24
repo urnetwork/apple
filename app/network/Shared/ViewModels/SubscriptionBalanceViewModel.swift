@@ -86,6 +86,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
             DispatchQueue.main.async {
                 
                 self.activeBalanceByteCount = result.balanceByteCount
+                print("active balance byte count is: \(self.activeBalanceByteCount)")
                 
                 if let currentSubscription = result.currentSubscription {
                  

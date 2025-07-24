@@ -118,6 +118,10 @@ struct ConnectView_iOS: View {
             
             Spacer().frame(height: 16)
             
+            UsageBar()
+            
+            Spacer().frame(height: 16)
+            
         }
         .onChange(of: connectViewModel.connectionStatus) { newValue in
             if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {

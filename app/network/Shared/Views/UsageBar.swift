@@ -20,36 +20,106 @@ struct UsageBar: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    let data: [DailyDataUsage] = [
-        .init(name: "Used", bytes: 20),
-        .init(name: "Pending", bytes: 10),
-        .init(name: "Available", bytes: 70),
-    ]
+//    let data: [DailyDataUsage] = [
+//        .init(name: "Used", bytes: 20),
+//        .init(name: "Pending", bytes: 10),
+//        .init(name: "Available", bytes: 70),
+//    ]
+    
+    let data: [DailyDataUsage]
+    let totalBytes: Int
+    
+    init(availableByteCount: Int, pendingByteCount: Int, usedByteCount: Int) {
+        self.data = [
+            .init(name: "Used", bytes: usedByteCount),
+            .init(name: "Pending", bytes: pendingByteCount),
+            .init(name: "Available", bytes: availableByteCount),
+        ]
+        self.totalBytes = availableByteCount + pendingByteCount + usedByteCount
+    }
+    
+    func minNonZeroValue(_ bytes: Int) -> Int {
+        
+        let minVal = Double(self.totalBytes) * 0.015 // enforce 1.5% so it shows up in the bar
+        
+        if bytes == 0 {
+            // if empty, don't display the bar at all
+            return 0
+        } else if bytes < Int(minVal) {
+            // ensure it takes up min % of bar
+            return Int(minVal)
+        } else {
+            // larger than min value, display as is
+            return bytes
+        }
+        
+    }
+    
+    func getCornerRadii(_ index: Int) -> RectangleCornerRadii {
+        
+        
+        // check if bar is full bar
+        // is full bar, round everything
+        if self.data[index].bytes == self.totalBytes {
+            return RectangleCornerRadii(
+                topLeading: cornerRadius,
+                bottomLeading: cornerRadius,
+                bottomTrailing: cornerRadius,
+                topTrailing: cornerRadius
+            )
+        }
+        
+        
+        // handle leading
+        if index == 0 {
+            // we already checked it's not a full bar
+            // round only leading
+            return RectangleCornerRadii(
+                topLeading: cornerRadius,
+                bottomLeading: cornerRadius,
+                bottomTrailing: 0,
+                topTrailing: 0
+            )
+            
+        }
+        
+        // handle trailing
+        if index == (data.count - 1) {
+            // not a full bar
+            // round only trailing
+            return RectangleCornerRadii(
+                topLeading: 0,
+                bottomLeading: 0,
+                bottomTrailing: cornerRadius,
+                topTrailing: cornerRadius
+            )
+        
+        }
+        
+        // handle pending
+        return RectangleCornerRadii(
+            topLeading: self.data[0].bytes == 0 ? cornerRadius : 0, // round if used is 0
+            bottomLeading: self.data[0].bytes == 0 ? cornerRadius : 0, // round if used is 0
+            bottomTrailing: self.data[data.count - 1].bytes == 0 ? cornerRadius : 0, // round if available is 0
+            topTrailing: self.data[data.count - 1].bytes == 0 ? cornerRadius : 0, // round if available is 0
+        )
+        
+    }
     
     let cornerRadius: CGFloat = 12
-
-
     
     var body: some View {
         
         ZStack {
             Chart(data.indices, id: \.self) { index in // Get the Production values.
-                
-                let isFirst = index == 0
-                let isLast = index == (data.count - 1)
-                
+                   
                 BarMark(
-                    x: .value("Data", data[index].bytes)
+                    x: .value("Data", self.minNonZeroValue(data[index].bytes))
                 )
                 .foregroundStyle(by: .value("Name", data[index].name))
                 .clipShape(
                     UnevenRoundedRectangle(
-                        cornerRadii: RectangleCornerRadii(
-                            topLeading: isFirst ? cornerRadius : 0,
-                            bottomLeading: isFirst ? cornerRadius : 0,
-                            bottomTrailing: isLast ? cornerRadius : 0,
-                            topTrailing: isLast ? cornerRadius : 0
-                        )
+                        cornerRadii: getCornerRadii(index)
                     )
                 )
 //                .annotation(position: .bottom) {
@@ -74,11 +144,14 @@ struct UsageBar: View {
                 "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
             ])
         }
-        .padding(.horizontal)
         
     }
 }
 
 #Preview {
-    UsageBar()
+    UsageBar(
+        availableByteCount: 70,
+        pendingByteCount: 10,
+        usedByteCount: 20
+    )
 }

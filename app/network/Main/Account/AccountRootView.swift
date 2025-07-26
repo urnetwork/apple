@@ -25,8 +25,6 @@ struct AccountRootView: View {
     var networkName: String?
     
     @StateObject private var viewModel: ViewModel = ViewModel()
-    // @StateObject private var subscriptionManager = SubscriptionManager()
-    // @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
@@ -53,7 +51,7 @@ struct AccountRootView: View {
         
         let isGuest = deviceManager.parsedJwt?.guestMode ?? true
 
-        VStack {
+        ScrollView {
             
             HStack {
                 Text("Account")
@@ -119,6 +117,14 @@ struct AccountRootView: View {
                     }
                     
                 }
+                
+                Spacer().frame(height: 8)
+                
+                UsageBar(
+                    availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                    pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                    usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount
+                )
                 
                 Divider()
                     .background(themeManager.currentTheme.borderBaseColor)
@@ -271,12 +277,12 @@ struct AccountRootView: View {
             }
             
         }
+        .refreshable {
+            await subscriptionBalanceViewModel.fetchSubscriptionBalance()
+        }
         .padding()
         .frame(maxWidth: 600)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-//        .onChange(of: deviceManager.device) {
-//            viewModel.isPresentedCreateAccount = false
-//        }
         .onAppear {
             Task {
                 await subscriptionBalanceViewModel.fetchSubscriptionBalance()

@@ -32,10 +32,14 @@ struct MainView: View {
         self.api = api
         self.logout = logout
         self.device = device
-        self.urApiService = UrApiService(api: api)
-//        self.connectViewController = device.openConnectViewController()
+        let urApiService = UrApiService(api: api)
+        self.urApiService = urApiService
         self.welcomeAnimationComplete = welcomeAnimationComplete
-        _subscriptionBalanceViewModel = StateObject(wrappedValue: SubscriptionBalanceViewModel(api: api))
+        _subscriptionBalanceViewModel = StateObject(
+            wrappedValue: SubscriptionBalanceViewModel(
+                urApiService: urApiService
+            )
+        )
         _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
     }
     

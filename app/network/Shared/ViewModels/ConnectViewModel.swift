@@ -104,6 +104,7 @@ class ConnectViewModel: ObservableObject {
      */
     @Published var showUpgradeBanner = false
     @Published var isPresentedUpgradeSheet: Bool = false
+    var upgradeBannerTask: Task<Void, Never>? = nil
     
     private var api: SdkApi?
     var device: SdkDeviceRemote?

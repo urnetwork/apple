@@ -1486,7 +1486,7 @@
             }
           }
         }
-
+      
     },
     "Amount" : {
       "localizations" : {
@@ -2242,13 +2242,13 @@
                 "stringUnit" : {
                     "state" : "translated",
                     "value" : "自動"
-        }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto"
-          }
+                }
+            },
+            "nl" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Auto"
+              }
             }
         }
     },
@@ -6251,6 +6251,9 @@
           }
         }
       }
+    },
+    "Data" : {
+
     },
     "Data Provided" : {
       "localizations" : {

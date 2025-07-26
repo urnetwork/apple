@@ -467,6 +467,36 @@ extension UrApiService {
     
 }
 
+// MARK - subscription calls
+extension UrApiService {
+    
+    func fetchSubscriptionBalance() async throws -> SdkSubscriptionBalanceResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = GetSubscriptionBalanceCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "GetSubscriptionBalanceCallback result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            api.subscriptionBalance(callback)
+        }
+        
+    }
+    
+}
+
 
 /**
  * Callback classes
@@ -527,6 +557,14 @@ private class UpgradeGuestCallback: SdkCallback<SdkUpgradeGuestResult, SdkUpgrad
         handleResult(result, err: err)
     }
 }
+
+private class GetSubscriptionBalanceCallback: SdkCallback<SdkSubscriptionBalanceResult, SdkSubscriptionBalanceCallbackProtocol>, SdkSubscriptionBalanceCallbackProtocol {
+    
+    func result(_ result: SdkSubscriptionBalanceResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 
 /**
  * Error enums

@@ -15,7 +15,7 @@ import URnetworkSdk
 @MainActor
 class SubscriptionBalanceViewModel: ObservableObject {
     
-    private var api: SdkApi?
+    private let urApiService: UrApiServiceProtocol
     let domain = "[SubscriptionBalanceViewModel]"
     
     @Published private(set) var isLoading: Bool = false
@@ -27,13 +27,15 @@ class SubscriptionBalanceViewModel: ObservableObject {
     private var pollingTimer: Timer?
     private var pollingInterval: TimeInterval = 5.0 // Default 5 seconds
     
-    private var activeBalanceByteCount: Int64 = 0
+    @Published private(set) var usedBalanceByteCount: Int = 0
+    @Published private(set) var pendingByteCount: Int = 0
+    @Published private(set) var availableByteCount: Int = 0
     
     @Published private(set) var currentPlan: Plan = .none
     
     
-    init(api: SdkApi? = nil) {
-        self.api = api
+    init(urApiService: UrApiServiceProtocol) {
+        self.urApiService = urApiService
         
         Task {
             await fetchSubscriptionBalance()
@@ -59,50 +61,26 @@ class SubscriptionBalanceViewModel: ObservableObject {
         
         do {
             
-            let result: SdkSubscriptionBalanceResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                
-                guard let self = self else { return }
-                
-                let callback = GetSubscriptionBalanceCallback { result, err in
-                    
-                    if let err = err {
-                        continuation.resume(throwing: err)
-                        return
-                    }
-                    
-                    guard let result = result else {
-                        continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "GetSubscriptionBalanceCallback result is nil"]))
-                        return
-                    }
-                    
-                    continuation.resume(returning: result)
-                    
-                }
-                
-                api?.subscriptionBalance(callback)
-            }
+            let result = try await urApiService.fetchSubscriptionBalance()
             
+            self.availableByteCount = Int(result.balanceByteCount)
+            self.pendingByteCount = Int(result.openTransferByteCount)
+            self.usedBalanceByteCount = Int(result.startBalanceByteCount) - self.availableByteCount - self.pendingByteCount
             
-            DispatchQueue.main.async {
-                
-                self.activeBalanceByteCount = result.balanceByteCount
-                
-                if let currentSubscription = result.currentSubscription {
-                 
-                    if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
-                        self.setCurrentPlan(validPlan)
-                    } else {
-                        self.setCurrentPlan(.none)
-                    }
-                    
+            if let currentSubscription = result.currentSubscription {
+             
+                if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
+                    self.setCurrentPlan(validPlan)
                 } else {
                     self.setCurrentPlan(.none)
                 }
                 
-                print("current plan is: \(self.currentPlan)")
-                
-                self.isLoading = false
+            } else {
+                self.setCurrentPlan(.none)
             }
+            
+            self.isLoading = false
+            
             
         } catch(let error) {
             print("\(domain) error fetching payouts \(error)")
@@ -155,7 +133,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     }
     
     func isSupporterWithBalance() -> Bool {
-        return self.currentPlan == .supporter && self.activeBalanceByteCount > 0
+        return self.currentPlan == .supporter && self.availableByteCount > 0
     }
     
     func stopPolling() {
@@ -169,11 +147,4 @@ class SubscriptionBalanceViewModel: ObservableObject {
 enum Plan: String {
     case supporter = "supporter"
     case none = "none"
-}
-
-private class GetSubscriptionBalanceCallback: SdkCallback<SdkSubscriptionBalanceResult, SdkSubscriptionBalanceCallbackProtocol>, SdkSubscriptionBalanceCallbackProtocol {
-    
-    func result(_ result: SdkSubscriptionBalanceResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
 }

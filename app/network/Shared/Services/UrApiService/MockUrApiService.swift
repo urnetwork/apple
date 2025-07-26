@@ -49,4 +49,8 @@ class MockUrApiService: UrApiServiceProtocol {
         return LoginNetworkResult.failure(LoginError.appleLoginFailed)
     }
     
+    func fetchSubscriptionBalance() async throws -> SdkSubscriptionBalanceResult {
+        return SdkSubscriptionBalanceResult()
+    }
+    
 }

@@ -120,12 +120,21 @@ struct ConnectView_iOS: View {
             
         }
         .onChange(of: connectViewModel.connectionStatus) { newValue in
+            
+            // Cancel any existing banner task
+            connectViewModel.upgradeBannerTask?.cancel()
+            connectViewModel.upgradeBannerTask = nil
+            
             if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
                 // Show the banner after 10 seconds when connected
-                Task {
+                connectViewModel.upgradeBannerTask = Task {
                     try? await Task.sleep(for: .seconds(10))
-                    withAnimation {
-                        connectViewModel.showUpgradeBanner = true
+                    // Check if the task was not cancelled before showing the banner
+                    guard !Task.isCancelled else { return }
+                    await MainActor.run {
+                        withAnimation {
+                            connectViewModel.showUpgradeBanner = true
+                        }
                     }
                 }
             } else if newValue != .connected {

@@ -67,11 +67,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.pendingByteCount = Int(result.openTransferByteCount)
             self.usedBalanceByteCount = Int(result.startBalanceByteCount) - self.availableByteCount - self.pendingByteCount
             
-            print("used balance byte count is: \(self.usedBalanceByteCount)")
-            print("start balance byte count is: \(result.startBalanceByteCount)")
-            print("pending balance byte count is: \(self.pendingByteCount)")
-            print( "available byte count is: \(self.availableByteCount)")
-            
             if let currentSubscription = result.currentSubscription {
              
                 if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
@@ -83,8 +78,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
             } else {
                 self.setCurrentPlan(.none)
             }
-            
-            print("current plan is: \(self.currentPlan)")
             
             self.isLoading = false
             
@@ -155,10 +148,3 @@ enum Plan: String {
     case supporter = "supporter"
     case none = "none"
 }
-
-//private class GetSubscriptionBalanceCallback: SdkCallback<SdkSubscriptionBalanceResult, SdkSubscriptionBalanceCallbackProtocol>, SdkSubscriptionBalanceCallbackProtocol {
-//    
-//    func result(_ result: SdkSubscriptionBalanceResult?, err: Error?) {
-//        handleResult(result, err: err)
-//    }
-//}

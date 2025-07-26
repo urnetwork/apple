@@ -20,12 +20,6 @@ struct UsageBar: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-//    let data: [DailyDataUsage] = [
-//        .init(name: "Used", bytes: 20),
-//        .init(name: "Pending", bytes: 10),
-//        .init(name: "Available", bytes: 70),
-//    ]
-    
     let data: [DailyDataUsage]
     let totalBytes: Int
     
@@ -122,22 +116,8 @@ struct UsageBar: View {
                         cornerRadii: getCornerRadii(index)
                     )
                 )
-//                .annotation(position: .bottom) {
-//                    // Display the actual bytes directly below each bar segment
-//                    Text("\(data[index].bytes)%")
-//                        .font(.caption)
-//                        .foregroundColor(.primary)
-//                }
                 
             }
-//            .chartXAxis {
-//                // Custom axis that only shows the used bytes value
-//                AxisMarks(position: .bottom) {
-//                    AxisValueLabel {
-//                        Text(ByteCountFormatter().string(fromByteCount: usedBytes))
-//                    }
-//                }
-//            }
             .chartXAxis(.hidden)
             .frame(height: 32)
             .chartForegroundStyleScale([

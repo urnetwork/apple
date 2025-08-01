@@ -135,6 +135,7 @@ struct MainNavigationSplitView: View {
             case .account:
                 AccountNavStackView(
                     api: api,
+                    urApiService: urApiService,
                     device: device,
                     logout: logout,
                     accountPaymentsViewModel: accountPaymentsViewModel,

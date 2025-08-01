@@ -26,6 +26,7 @@ struct SettingsForm_macOS: View {
     let presentUpdateReferralNetworkSheet: () -> Void
     let presentSigninWithSolanaSheet: () -> Void
     let presentDeleteAccountConfirmation: () -> Void
+    let navigate: (AccountNavigationPath) -> Void
     
     @Binding var canReceiveNotifications: Bool
     @Binding var canReceiveProductUpdates: Bool

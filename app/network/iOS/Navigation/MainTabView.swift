@@ -90,6 +90,7 @@ struct MainTabView: View {
              */
             AccountNavStackView(
                 api: api,
+                urApiService: urApiService,
                 device: device,
                 logout: logout,
                 accountPaymentsViewModel: accountPaymentsViewModel,

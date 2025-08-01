@@ -40,4 +40,11 @@ protocol UrApiServiceProtocol {
      * Subscription
      */
     func fetchSubscriptionBalance() async throws -> SdkSubscriptionBalanceResult
+    
+    /**
+     * Network Block locations
+     */
+    func blockLocation(_ locationId: SdkId) async throws -> SdkNetworkBlockLocationResult
+    func unblockLocation(_ locationId: SdkId) async throws -> SdkNetworkUnblockLocationResult
+    func getBlockedLocations() async throws -> SdkGetNetworkBlockedLocationsResult
 }

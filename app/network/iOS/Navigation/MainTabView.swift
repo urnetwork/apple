@@ -24,6 +24,8 @@ struct MainTabView: View {
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     
+    @ObservedObject var providerListStore: ProviderListStore
+    
     @EnvironmentObject var themeManager: ThemeManager
     
     @State private var selectedTab = 0
@@ -32,7 +34,8 @@ struct MainTabView: View {
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
-        logout: @escaping () -> Void
+        logout: @escaping () -> Void,
+        providerStore: ProviderListStore,
     ) {
         self.api = api
         self.urApiService = urApiService
@@ -43,6 +46,7 @@ struct MainTabView: View {
         // we're launching this in NetworkApp
         // but without it, disconnect isn't triggered
         self.connectViewController = device.openConnectViewController()
+        self.providerListStore = providerStore
         
         _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(
                 api: api
@@ -69,7 +73,8 @@ struct MainTabView: View {
                 logout: logout,
                 device: device,
                 providerListSheetViewModel: providerListSheetViewModel,
-                referralLinkViewModel: referralLinkViewModel
+                referralLinkViewModel: referralLinkViewModel,
+                providerStore: self.providerListStore
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
@@ -95,7 +100,8 @@ struct MainTabView: View {
                 logout: logout,
                 accountPaymentsViewModel: accountPaymentsViewModel,
                 networkUserViewModel: networkUserViewModel,
-                referralLinkViewModel: referralLinkViewModel
+                referralLinkViewModel: referralLinkViewModel,
+                providerCountries: providerListStore.providerCountries
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {

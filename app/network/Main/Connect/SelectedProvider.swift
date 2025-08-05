@@ -12,7 +12,7 @@ struct SelectedProvider: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     var selectedProvider: SdkConnectLocation?
-    var getProviderColor: (SdkConnectLocation) -> Color
+    // var getProviderColor: (SdkConnectLocation) -> Color
     
     var body: some View {
         HStack {
@@ -70,6 +70,5 @@ struct SelectedProvider: View {
 #Preview {
     SelectedProvider(
         selectedProvider: nil,
-        getProviderColor: { _ in .blue }
     )
 }

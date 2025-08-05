@@ -27,6 +27,7 @@ struct AccountNavStackView: View {
     var urApiService: UrApiServiceProtocol
     var device: SdkDeviceRemote
     var logout: () -> Void
+    let providerCountries: [SdkConnectLocation]
     
     init(
         api: SdkApi,
@@ -35,7 +36,8 @@ struct AccountNavStackView: View {
         logout: @escaping () -> Void,
         accountPaymentsViewModel: AccountPaymentsViewModel,
         networkUserViewModel: NetworkUserViewModel,
-        referralLinkViewModel: ReferralLinkViewModel
+        referralLinkViewModel: ReferralLinkViewModel,
+        providerCountries: [SdkConnectLocation]
     ) {
         self.api = api
         _accountPreferencesViewModel = StateObject.init(wrappedValue: AccountPreferencesViewModel(
@@ -61,6 +63,7 @@ struct AccountNavStackView: View {
         self.logout = logout
         self.referralLinkViewModel = referralLinkViewModel
         self.urApiService = urApiService
+        self.providerCountries = providerCountries
     }
     
     var body: some View {
@@ -106,7 +109,8 @@ struct AccountNavStackView: View {
                         accountPreferencesViewModel: accountPreferencesViewModel,
                         referralLinkViewModel: referralLinkViewModel,
                         accountWalletsViewModel: accountWalletsViewModel,
-                        navigate: viewModel.navigate
+                        navigate: viewModel.navigate,
+                        providerCountries: providerCountries,
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .toolbar {
@@ -184,7 +188,10 @@ struct AccountNavStackView: View {
                     
                 case .blockedLocations:
 
-                    BlockedLocationsView(api: urApiService)
+                    BlockedLocationsView(
+                        api: urApiService,
+                        countries: providerCountries
+                    )
                     
                 }
                 

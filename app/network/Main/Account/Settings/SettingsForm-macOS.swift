@@ -222,6 +222,21 @@ struct SettingsForm_macOS: View {
                                     .foregroundColor(themeManager.currentTheme.textColor)
                             }
                             
+                            Spacer().frame(height: 16)
+                            
+                            HStack {
+                                Text("Blocked locations")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    // .renderingMode(.)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                navigate(.blockedLocations)
+                                // navigate to blocked
+                            }
+                            
                             Spacer().frame(height: 32)
                             
                             /**

@@ -22,7 +22,7 @@ struct ConnectView_iOS: View {
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
-    @StateObject private var providerListStore: ProviderListStore
+    @ObservedObject private var providerListStore: ProviderListStore
     
     var logout: () -> Void
     var api: SdkApi
@@ -34,14 +34,16 @@ struct ConnectView_iOS: View {
         logout: @escaping () -> Void,
         device: SdkDeviceRemote?,
         providerListSheetViewModel: ProviderListSheetViewModel,
-        referralLinkViewModel: ReferralLinkViewModel
+        referralLinkViewModel: ReferralLinkViewModel,
+        providerStore: ProviderListStore
     ) {
         self.logout = logout
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
+        self.providerListStore = providerStore
         
-        _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
+        // _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -109,7 +111,6 @@ struct ConnectView_iOS: View {
                 
                 SelectedProvider(
                     selectedProvider: connectViewModel.selectedProvider,
-                    getProviderColor: connectViewModel.getProviderColor
                 )
                 
             }
@@ -196,8 +197,6 @@ struct ConnectView_iOS: View {
                     providerBestSearchMatches: providerListStore.providerBestSearchMatches
                 )
                 .navigationBarTitleDisplayMode(.inline)
-    
-    
                 .searchable(
                     text: $providerListStore.searchQuery,
                     placement: .navigationBarDrawer(displayMode: .always),

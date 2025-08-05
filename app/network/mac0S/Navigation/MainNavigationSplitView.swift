@@ -38,16 +38,20 @@ struct MainNavigationSplitView: View {
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     
+    @ObservedObject var providerListStore: ProviderListStore
+    
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
-        logout: @escaping () -> Void
+        logout: @escaping () -> Void,
+        providerListStore: ProviderListStore
     ) {
         self.api = api
         self.urApiService = urApiService
         self.logout = logout
         self.device = device
+        self.providerListStore = providerListStore
         
         // todo: investigate why we need this?
         // we're launching this in NetworkApp
@@ -130,7 +134,8 @@ struct MainNavigationSplitView: View {
             switch selectedTab {
             case .connect:
                 ConnectView_macOS(
-                    urApiService: urApiService
+                    urApiService: urApiService,
+                    providerStore: providerListStore
                 )
             case .account:
                 AccountNavStackView(
@@ -140,7 +145,8 @@ struct MainNavigationSplitView: View {
                     logout: logout,
                     accountPaymentsViewModel: accountPaymentsViewModel,
                     networkUserViewModel: networkUserViewModel,
-                    referralLinkViewModel: referralLinkViewModel
+                    referralLinkViewModel: referralLinkViewModel,
+                    providerCountries: providerListStore.providerCountries
                 )
             case .leaderboard:
                 LeaderboardView(api: urApiService)
@@ -160,9 +166,7 @@ struct MainNavigationSplitView: View {
                     .foregroundColor(themeManager.currentTheme.textColor)
                 }
             }
-            
         }
-        
     }
 }
 

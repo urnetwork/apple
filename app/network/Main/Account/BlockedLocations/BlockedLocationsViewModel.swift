@@ -22,14 +22,31 @@ extension BlockedLocationsView {
         @Published var processingErrorMsg: LocalizedStringKey? = nil
         @Published var blockedLocations: [SdkBlockedLocation] = []
         @Published private(set) var displayLocationSearch: Bool = false
+        
+        @Published var displayProviderSheet: Bool = false
+        @Published var searchCountry: String = "" {
+            didSet {
+                filterCountries(searchCountry)
+            }
+        }
+        
+        private let allCountries: [SdkConnectLocation]
+        @Published var availableCountries: [SdkConnectLocation]
 
         let blockLocationErrorMsg: LocalizedStringKey =
             "Blocked location could not be added. Please try again later."
         let unblockLocationErrorMsg: LocalizedStringKey =
             "Blocked location could not be removed. Please try again later."
 
-        init(api: UrApiServiceProtocol) {
+        init(
+            api: UrApiServiceProtocol,
+            countries: [SdkConnectLocation]
+        ) {
             self.api = api
+            
+            self.allCountries = countries.sorted{ $0.name < $1.name }
+            self.availableCountries = allCountries
+            
 
             Task {
                 await fetchBlockedLocations()
@@ -68,8 +85,9 @@ extension BlockedLocationsView {
                         }
                     }
                 }
-
-                self.blockedLocations = blockedLocations
+                
+                // sort by name
+                self.blockedLocations = blockedLocations.sorted { $0.locationName < $1.locationName }
 
                 isLoading = false
             } catch (let error) {
@@ -78,12 +96,42 @@ extension BlockedLocationsView {
             }
 
         }
-
-        func blockLocation(locationId: SdkId, locationName: String) async {
-
+        
+        func isBlocked(locationId: SdkId) -> Bool {
+            blockedLocations.contains(where: { (($0.locationId?.cmp(locationId)) == 0) == true })
+        }
+        
+        func blockLocation(locationId: SdkId?, locationName: String) {
+            
             if isProcessingLocation {
                 return
             }
+            
+            guard let locationId else {
+                return
+            }
+            
+            if (self.isBlocked(locationId: locationId)) {
+                return
+            }
+            
+            let newBlockedLocation = SdkBlockedLocation()
+            newBlockedLocation.locationName = locationName
+            newBlockedLocation.locationId = locationId
+            
+            
+            var blockedLocations = self.blockedLocations
+            blockedLocations.append(newBlockedLocation)
+            
+            self.blockedLocations = blockedLocations.sorted { $0.locationName < $1.locationName }
+            
+            Task {
+                await blockLocation(locationId: locationId, locationName: locationName)
+            }
+            
+        }
+
+        private func blockLocation(locationId: SdkId, locationName: String) async {
 
             isProcessingLocation = true
 
@@ -98,15 +146,10 @@ extension BlockedLocationsView {
                     return
                 }
 
-                let blockedLocation = SdkBlockedLocation()
-                blockedLocation.locationName = locationName
-                blockedLocation.locationId = locationId
-
-                self.blockedLocations.append(blockedLocation)
-
                 isProcessingLocation = false
             } catch (let error) {
                 print("error blocking location: \(error)")
+                self.blockedLocations.removeAll(where: { locationId.cmp($0.locationId) == 0 })
                 self.setProcessingError(blockLocationErrorMsg)
                 isProcessingLocation = false
             }
@@ -124,12 +167,6 @@ extension BlockedLocationsView {
 
         private func unblockLocation(_ locationId: SdkId) async {
 
-            //            if isProcessingLocation {
-            //                return
-            //            }
-            //
-            //            isProcessingLocation = true
-
             do {
 
                 let result = try await api.unblockLocation(locationId)
@@ -139,17 +176,14 @@ extension BlockedLocationsView {
                         "unblock location result error: \(String(describing: result.error?.message))"
                     )
                     self.setProcessingError(unblockLocationErrorMsg)
-                    //                    isProcessingLocation = false
 
                     await self.fetchBlockedLocations()
                 }
 
-                //                isProcessingLocation = false
             } catch (let error) {
                 print("error unblocking location: \(error)")
                 await self.fetchBlockedLocations()
                 self.setProcessingError(unblockLocationErrorMsg)
-                //                isProcessingLocation = false
             }
         }
 
@@ -157,11 +191,26 @@ extension BlockedLocationsView {
             processingErrorMsg = msg
 
             // clear after 5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                self?.processingErrorMsg = nil
+            }
 
         }
 
         func setDisplayLocationSearch(_ display: Bool) {
             displayLocationSearch = display
+        }
+        
+        func filterCountries(_ text: String) {
+            
+            if text.isEmpty {
+                self.availableCountries = self.allCountries
+            } else {
+                self.availableCountries = self.allCountries.filter {
+                    $0.name.lowercased().contains(text.lowercased())
+                }
+            }
+            
         }
 
     }

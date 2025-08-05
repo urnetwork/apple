@@ -26,6 +26,7 @@ struct SettingsView: View {
     
     let api: SdkApi
     let navigate: (AccountNavigationPath) -> Void
+    let providerCountries: [SdkConnectLocation]
     
     init(
         api: SdkApi,
@@ -33,7 +34,8 @@ struct SettingsView: View {
         accountPreferencesViewModel: AccountPreferencesViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
         accountWalletsViewModel: AccountWalletsViewModel,
-        navigate: @escaping (AccountNavigationPath) -> Void
+        navigate: @escaping (AccountNavigationPath) -> Void,
+        providerCountries: [SdkConnectLocation]
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
         self.clientId = clientId
@@ -42,6 +44,7 @@ struct SettingsView: View {
         self.accountWalletsViewModel = accountWalletsViewModel
         self.api = api
         self.navigate = navigate
+        self.providerCountries = providerCountries
     }
     
     var clientUrl: String {

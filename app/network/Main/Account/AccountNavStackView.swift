@@ -24,16 +24,20 @@ struct AccountNavStackView: View {
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     var api: SdkApi
+    var urApiService: UrApiServiceProtocol
     var device: SdkDeviceRemote
     var logout: () -> Void
+    let providerCountries: [SdkConnectLocation]
     
     init(
         api: SdkApi,
+        urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void,
         accountPaymentsViewModel: AccountPaymentsViewModel,
         networkUserViewModel: NetworkUserViewModel,
-        referralLinkViewModel: ReferralLinkViewModel
+        referralLinkViewModel: ReferralLinkViewModel,
+        providerCountries: [SdkConnectLocation]
     ) {
         self.api = api
         _accountPreferencesViewModel = StateObject.init(wrappedValue: AccountPreferencesViewModel(
@@ -58,6 +62,8 @@ struct AccountNavStackView: View {
         self.device = device
         self.logout = logout
         self.referralLinkViewModel = referralLinkViewModel
+        self.urApiService = urApiService
+        self.providerCountries = providerCountries
     }
     
     var body: some View {
@@ -102,7 +108,9 @@ struct AccountNavStackView: View {
                         clientId: device.getClientId(),
                         accountPreferencesViewModel: accountPreferencesViewModel,
                         referralLinkViewModel: referralLinkViewModel,
-                        accountWalletsViewModel: accountWalletsViewModel
+                        accountWalletsViewModel: accountWalletsViewModel,
+                        navigate: viewModel.navigate,
+                        providerCountries: providerCountries,
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .toolbar {
@@ -177,6 +185,13 @@ struct AccountNavStackView: View {
                                 .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
                         }
                     }
+                    
+                case .blockedLocations:
+
+                    BlockedLocationsView(
+                        api: urApiService,
+                        countries: providerCountries
+                    )
                     
                 }
                 

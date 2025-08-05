@@ -53,4 +53,16 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkSubscriptionBalanceResult()
     }
     
+    func blockLocation(_ locationId: SdkId) async throws -> SdkNetworkBlockLocationResult {
+        return SdkNetworkBlockLocationResult()
+    }
+    
+    func unblockLocation(_ locationId: SdkId) async throws -> SdkNetworkUnblockLocationResult {
+        return SdkNetworkUnblockLocationResult()
+    }
+    
+    func getBlockedLocations() async throws -> SdkGetNetworkBlockedLocationsResult {
+        return SdkGetNetworkBlockedLocationsResult()
+    }
+    
 }

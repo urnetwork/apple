@@ -26,6 +26,7 @@ struct SettingsForm_iOS: View {
     let presentUpdateReferralNetworkSheet: () -> Void
     let presentSigninWithSolanaSheet: () -> Void
     let presentDeleteAccountConfirmation: () -> Void
+    let navigate: (AccountNavigationPath) -> Void
     
     @Binding var canReceiveNotifications: Bool
     @Binding var canReceiveProductUpdates: Bool
@@ -167,6 +168,20 @@ struct SettingsForm_iOS: View {
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                 }
+                
+                HStack {
+                    Text("Blocked locations")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        // .renderingMode(.)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.blockedLocations)
+                    // navigate to blocked
+                }
+                
                 
             }
             

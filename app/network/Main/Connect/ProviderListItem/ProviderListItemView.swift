@@ -20,18 +20,16 @@ struct ProviderListItemView: View {
     
     #if os(iOS)
     let padding: CGFloat = 16
-    let circleWidth: CGFloat = 40
+//    let circleWidth: CGFloat = 40
     #elseif os(macOS)
     let padding: CGFloat = 0
-    let circleWidth: CGFloat = 30
+//    let circleWidth: CGFloat = 30
     #endif
     
     var body: some View {
         HStack {
             
-            Circle()
-                .frame(width: circleWidth, height: circleWidth)
-                .foregroundColor(color)
+            ProviderColorCircle(color)
             
             Spacer().frame(width: 16)
             

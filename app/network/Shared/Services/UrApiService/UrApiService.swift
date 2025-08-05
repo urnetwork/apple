@@ -497,6 +497,92 @@ extension UrApiService {
     
 }
 
+// MARK - blocking locations
+extension UrApiService {
+    
+    func blockLocation(_ locationId: SdkId) async throws -> SdkNetworkBlockLocationResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = BlockLocationCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "BlockLocationCallback result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            let args = SdkNetworkBlockLocationArgs()
+            args.locationId = locationId
+            
+            api.networkBlockLocation(args, callback: callback)
+        }
+        
+    }
+    
+    func unblockLocation(_ locationId: SdkId) async throws -> SdkNetworkUnblockLocationResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = UnblockLocationCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "UnblockLocationCallback result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            let args = SdkNetworkUnblockLocationArgs()
+            args.locationId = locationId
+            
+            api.networkUnblockLocation(args, callback: callback)
+        }
+        
+    }
+    
+    func getBlockedLocations() async throws -> SdkGetNetworkBlockedLocationsResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = GetNetworkBlockedLocationsCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "UnblockLocationCallback result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            api.getNetworkBlockedLocations(callback)
+        }
+        
+    }
+    
+}
+
 
 /**
  * Callback classes
@@ -561,6 +647,27 @@ private class UpgradeGuestCallback: SdkCallback<SdkUpgradeGuestResult, SdkUpgrad
 private class GetSubscriptionBalanceCallback: SdkCallback<SdkSubscriptionBalanceResult, SdkSubscriptionBalanceCallbackProtocol>, SdkSubscriptionBalanceCallbackProtocol {
     
     func result(_ result: SdkSubscriptionBalanceResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class BlockLocationCallback: SdkCallback<SdkNetworkBlockLocationResult, SdkNetworkBlockLocationCallbackProtocol>, SdkNetworkBlockLocationCallbackProtocol {
+    
+    func result(_ result: SdkNetworkBlockLocationResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class UnblockLocationCallback: SdkCallback<SdkNetworkUnblockLocationResult, SdkNetworkUnblockLocationCallbackProtocol>, SdkNetworkUnblockLocationCallbackProtocol {
+    
+    func result(_ result: SdkNetworkUnblockLocationResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class GetNetworkBlockedLocationsCallback: SdkCallback<SdkGetNetworkBlockedLocationsResult, SdkGetNetworkBlockedLocationsCallbackProtocol>, SdkGetNetworkBlockedLocationsCallbackProtocol {
+    
+    func result(_ result: SdkGetNetworkBlockedLocationsResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

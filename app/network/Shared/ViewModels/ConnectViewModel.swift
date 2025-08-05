@@ -206,11 +206,11 @@ class ConnectViewModel: ObservableObject {
         connectViewController?.add(listener)
     }
     
-    func getProviderColor(_ provider: SdkConnectLocation) -> Color {
-        return Color(hex: SdkGetColorHex(
-            provider.locationType == SdkLocationTypeCountry ? provider.countryCode : provider.connectLocationId?.string()
-        ))
-    }
+//    func getProviderColor(_ provider: SdkConnectLocation) -> Color {
+//        return Color(hex: SdkGetColorHex(
+//            provider.locationType == SdkLocationTypeCountry ? provider.countryCode : provider.connectLocationId?.string()
+//        ))
+//    }
     
 }
 

@@ -24,14 +24,18 @@ struct SettingsView: View {
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountWalletsViewModel: AccountWalletsViewModel
     
-    var api: SdkApi
+    let api: SdkApi
+    let navigate: (AccountNavigationPath) -> Void
+    let providerCountries: [SdkConnectLocation]
     
     init(
         api: SdkApi,
         clientId: SdkId?,
         accountPreferencesViewModel: AccountPreferencesViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
-        accountWalletsViewModel: AccountWalletsViewModel
+        accountWalletsViewModel: AccountWalletsViewModel,
+        navigate: @escaping (AccountNavigationPath) -> Void,
+        providerCountries: [SdkConnectLocation]
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
         self.clientId = clientId
@@ -39,6 +43,8 @@ struct SettingsView: View {
         self.referralLinkViewModel = referralLinkViewModel
         self.accountWalletsViewModel = accountWalletsViewModel
         self.api = api
+        self.navigate = navigate
+        self.providerCountries = providerCountries
     }
     
     var clientUrl: String {
@@ -67,8 +73,9 @@ struct SettingsView: View {
                 presentDeleteAccountConfirmation: {
                     viewModel.isPresentedDeleteAccountConfirmation = true
                 },
+                navigate: navigate,
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
-                canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates
+                canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
             )
             .confirmationDialog(
                 "Are you sure you want to delete your account?",
@@ -157,6 +164,7 @@ struct SettingsView: View {
                 presentDeleteAccountConfirmation: {
                     viewModel.isPresentedDeleteAccountConfirmation = true
                 },
+                navigate: navigate,
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
                 canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
                 launchAtStartupEnabled: $viewModel.launchAtStartupEnabled

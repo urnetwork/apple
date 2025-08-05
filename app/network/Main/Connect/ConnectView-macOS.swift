@@ -24,10 +24,13 @@ import URnetworkSdk
 
         @State private var isProviderTableVisible: Bool = false
 
-        @StateObject private var providerListStore: ProviderListStore
+        @ObservedObject private var providerListStore: ProviderListStore
 
-        init(urApiService: UrApiServiceProtocol) {
-            _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
+        init(
+            urApiService: UrApiServiceProtocol,
+            providerStore: ProviderListStore
+        ) {
+            self.providerListStore = providerStore
         }
 
         var body: some View {
@@ -104,8 +107,7 @@ import URnetworkSdk
                                 }
                             ) {
                                 SelectedProvider(
-                                    selectedProvider: connectViewModel.selectedProvider,
-                                    getProviderColor: connectViewModel.getProviderColor
+                                    selectedProvider: connectViewModel.selectedProvider
                                 )
                             }
                             .buttonStyle(.plain)

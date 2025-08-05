@@ -18,6 +18,7 @@ struct MainView: View {
     var welcomeAnimationComplete: Binding<Bool>
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
+    @StateObject private var providerListStore: ProviderListStore
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -41,6 +42,7 @@ struct MainView: View {
             )
         )
         _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
+        _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
     }
     
     var body: some View {
@@ -58,14 +60,16 @@ struct MainView: View {
                     api: api,
                     urApiService: urApiService,
                     device: device,
-                    logout: self.logout
+                    logout: self.logout,
+                    providerStore: providerListStore
                 )
                 #elseif os(macOS)
                 MainNavigationSplitView(
                     api: api,
                     urApiService: urApiService,
                     device: device,
-                    logout: self.logout
+                    logout: self.logout,
+                    providerListStore: providerListStore
                 )
                 #endif
             }

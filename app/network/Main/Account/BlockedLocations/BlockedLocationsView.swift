@@ -138,7 +138,8 @@ struct BlockedLocationsView: View {
                     viewModel.displayProviderSheet = false
                     viewModel.blockLocation(
                         locationId: provider.connectLocationId?.locationId,
-                        locationName: provider.name
+                        locationName: provider.name,
+                        countryCode: provider.countryCode
                     )
                     viewModel.searchCountry = ""
                 }
@@ -156,7 +157,8 @@ struct BlockedLocationsView: View {
                         viewModel.displayProviderSheet = false
                         viewModel.blockLocation(
                             locationId: provider.connectLocationId?.locationId,
-                            locationName: provider.name
+                            locationName: provider.name,
+                            countryCode: provider.countryCode
                         )
                         viewModel.searchCountry = ""
                     }

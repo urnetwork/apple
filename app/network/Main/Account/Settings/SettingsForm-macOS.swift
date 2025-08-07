@@ -228,7 +228,6 @@ struct SettingsForm_macOS: View {
                                 Text("Blocked locations")
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    // .renderingMode(.)
                                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                             }
                             .contentShape(Rectangle())

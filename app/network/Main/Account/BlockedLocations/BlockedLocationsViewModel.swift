@@ -101,7 +101,11 @@ extension BlockedLocationsView {
             blockedLocations.contains(where: { (($0.locationId?.cmp(locationId)) == 0) == true })
         }
         
-        func blockLocation(locationId: SdkId?, locationName: String) {
+        func blockLocation(
+            locationId: SdkId?,
+            locationName: String,
+            countryCode: String
+        ) {
             
             if isProcessingLocation {
                 return
@@ -118,6 +122,8 @@ extension BlockedLocationsView {
             let newBlockedLocation = SdkBlockedLocation()
             newBlockedLocation.locationName = locationName
             newBlockedLocation.locationId = locationId
+            newBlockedLocation.locationType = SdkLocationTypeCountry
+            newBlockedLocation.countryCode = countryCode
             
             
             var blockedLocations = self.blockedLocations

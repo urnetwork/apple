@@ -298,6 +298,13 @@ struct SettingsForm_macOS: View {
                                 }
                             }
                             
+                            Spacer().frame(height: 16)
+                            
+                            /**
+                             * DePIN Hub Link
+                             */
+                            DePinHubSettingsLinkRow()
+                            
                             Spacer().frame(height: 32)
                             
                             HStack {

@@ -210,6 +210,9 @@ struct SettingsForm_iOS: View {
                     
                 }
                 
+                /**
+                 * Discord Link
+                 */
                 HStack {
                     Text("Join the community on [Discord](https://discord.com/invite/RUNZXMwPRK)")
                         .font(themeManager.currentTheme.bodyFont)
@@ -227,9 +230,16 @@ struct SettingsForm_iOS: View {
                         }
                     }) {
                         Image(systemName: "arrow.forward")
-                            .foregroundColor(themeManager.currentTheme.textColor)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
                     }
                 }
+                
+                /**
+                 * DePIN Hub Link
+                 */
+                
+                DePinHubSettingsLinkRow()
+                
             }
             
             Section("General") {

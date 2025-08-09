@@ -26425,6 +26425,160 @@
         }
       }
     },
+    "Verified project on [DePIN Hub](https://depinhub.io/projects/urnetwork)" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشروع موثق على [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ověřený projekt na [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifiziertes Projekt auf [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επαληθευμένο έργο στο [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verified project on [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proyecto verificado en [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proyecto verificado en [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projet vérifié sur [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרויקט מאומת ב-[DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[DePIN Hub](https://depinhub.io/projects/urnetwork) पर सत्यापित परियोजना"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proyek terverifikasi di [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progetto verificato su [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[DePIN Hub](https://depinhub.io/projects/urnetwork)で認証されたプロジェクト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[DePIN Hub](https://depinhub.io/projects/urnetwork)에서 인증된 프로젝트"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geverifieerd project op [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zweryfikowany projekt na [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projeto verificado no [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projeto verificado no [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверенный проект на [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifierat projekt på [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โครงการที่ได้รับการยืนยันบน [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірений проект на [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dự án đã xác minh trên [DePIN Hub](https://depinhub.io/projects/urnetwork)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 [DePIN Hub](https://depinhub.io/projects/urnetwork) 上已验证的项目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 [DePIN Hub](https://depinhub.io/projects/urnetwork) 上已驗證的項目"
+          }
+        }
+      }
+    },
     "Verify" : {
       "localizations" : {
         "ar" : {

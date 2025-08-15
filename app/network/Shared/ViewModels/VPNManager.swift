@@ -8,6 +8,7 @@
 import Foundation
 import NetworkExtension
 import URnetworkSdk
+import Network
 
 #if canImport(UIKit)
 import UIKit
@@ -44,10 +45,14 @@ class VPNManager {
     
     var contractStatusSub: SdkSubProtocol?
     
+    let monitor = NWPathMonitor()
+    let queue = DispatchQueue(label: "NetworkMonitor")
+    
     
     init(device: SdkDeviceRemote) {
         print("[VPNManager]init")
         self.device = device
+        self.monitor.start(queue: queue)
         
         self.routeLocalSub = device.add(RouteLocalChangeListener { [weak self] routeLocal in
             DispatchQueue.main.async {
@@ -158,31 +163,53 @@ class VPNManager {
         }
     }
     
+    private func allowProvideOnCurrentNetwork(
+        _ provideNetworkMode: ProvideNetworkMode,
+    ) -> Bool {
+        
+        if (!monitor.currentPath.isExpensive) {
+            // is not cell or personal hotspot
+            // should be able to provide
+            print("monitor.currentPath is \(monitor.currentPath.availableInterfaces)")
+            return true
+        } else {
+            
+            // only allow providing on cell if provideNetworkMode == .All
+            if provideNetworkMode == .All {
+                print("monitor.currentPath is expensive and provideNetworkMode == .All")
+                return true
+            } else {
+                print("monitor.currentPath is expensive and provideNetworkMode != .All")
+            }
+            
+        }
+        
+        return false
+    }
+    
     
     func updateVpnService() {
         let provideEnabled = device.getProvideEnabled()
         let providePaused = device.getProvidePaused()
         let connectEnabled = device.getConnectEnabled()
         let routeLocal = device.getRouteLocal()
+        let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) ?? .WiFi
+        let allowProvideOnCurrentNetwork = allowProvideOnCurrentNetwork(provideNetworkMode)
         
-        if (provideEnabled || connectEnabled || !routeLocal) {
+        print("provideEnabled is: \(provideEnabled)")
+        print("allow provide on current network: \(allowProvideOnCurrentNetwork)")
+        print("connect enabled: \(connectEnabled)")
+        print("routeLocal is: \(routeLocal)")
+        
+        if ( (provideEnabled && allowProvideOnCurrentNetwork) || connectEnabled || !routeLocal) {
             print("[VPNManager]start")
-            
-            // see https://developer.apple.com/documentation/uikit/uiapplication/isidletimerdisabled
-//            if providePaused {
-//                UIApplication.shared.isIdleTimerDisabled = false
-//            } else {
-//                UIApplication.shared.isIdleTimerDisabled = true
-//            }
             
             setIdleTimerDisabled(providePaused ? false : true)
             
             self.startVpnTunnel()
             
-            
         } else {
             print("[VPNManager]stop")
-            
 
             self.setIdleTimerDisabled(false)
             
@@ -192,6 +219,7 @@ class VPNManager {
     }
     
     private func setIdleTimerDisabled(_ disabled: Bool) {
+        // see https://developer.apple.com/documentation/uikit/uiapplication/isidletimerdisabled
         #if canImport(UIKit)
         UIApplication.shared.isIdleTimerDisabled = disabled
         #elseif canImport(AppKit)

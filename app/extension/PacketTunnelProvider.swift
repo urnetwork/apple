@@ -28,6 +28,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var device: SdkDeviceLocal?
     private var memoryPressureSource: DispatchSourceMemoryPressure?
     private var connected: Bool = false
+    private var canProvideCell: Bool = false
 
     
     override init() {
@@ -268,10 +269,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         })
         
+        let provideNetworkModeChangeSub = device.add( ProvideNetworkModeChangeListener { mode in
+            self.logger.info( "[PacketTunnelProvider] mode changed: \(String(describing: mode))")
+            self.canProvideCell = mode == "all"
+        })
+        
         let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
         let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
         pathMonitor.pathUpdateHandler = { path in
-            device.setProvidePaused(!canProvideOnNetwork(path: path))
+            device.setProvidePaused(!canProvideOnNetwork(path: path, canProvideOnCell: self.canProvideCell))
         }
         pathMonitor.start(queue: pathMonitorQueue)
         
@@ -302,6 +308,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             provideChangeSub?.close()
             locationChangeSub?.close()
             windowStatusChangeSub?.close()
+            provideNetworkModeChangeSub?.close()
             device.close()
         }
         
@@ -440,16 +447,31 @@ private class WindowStatusChangeListener: NSObject, SdkWindowStatusChangeListene
     }
 }
 
+private class ProvideNetworkModeChangeListener: NSObject, SdkProvideNetworkModeChangeListenerProtocol {
+    
+    private let c: (_ mode: String?) -> Void
+    
+    init(c: @escaping (_ mode: String?) -> Void) {
+        self.c = c
+    }
+    
+    func provideNetworkModeChanged(_ provideNetworkMode: String?) {
+        c(provideNetworkMode)
+    }
+    
+}
 
 
 
-func canProvideOnNetwork(path: Network.NWPath) ->  Bool {
+func canProvideOnNetwork(path: Network.NWPath, canProvideOnCell: Bool) ->  Bool {
     // TODO it seems like iOS 16,17 have more issues than 18, but the root cause is unknown
     if #available(iOS 18, macOS 15, *) {
         if path.isExpensive || path.isConstrained {
             return false
         } else if let primaryInterface = path.availableInterfaces.first {
             switch primaryInterface.type {
+            case .cellular:
+                return canProvideOnCell
             case .wifi, .wiredEthernet:
                 return true
             default:

@@ -128,6 +128,7 @@ struct AccountNavStackView: View {
                         payoutPoints: accountPointsViewModel.payoutPoints,
                         multiplierPoints: accountPointsViewModel.multiplierPoints,
                         referralPoints: accountPointsViewModel.referralPoints,
+                        reliabilityPoints: accountPointsViewModel.reliabilityPoints,
                         fetchAccountPoints: accountPointsViewModel.fetchAccountPoints,
                         referralLinkViewModel: referralLinkViewModel,
                     )

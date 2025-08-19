@@ -22,6 +22,7 @@ struct WalletsView: View {
     var payoutPoints: Double
     var multiplierPoints: Double
     var referralPoints: Double
+    var reliabilityPoints: Double
     var fetchAccountPoints: () async -> Void
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -84,6 +85,7 @@ struct WalletsView: View {
                             payoutPoints: payoutPoints,
                             referralPoints: referralPoints,
                             multiplierPoints: multiplierPoints,
+                            reliabilityPoints: reliabilityPoints,
                             presentConnectWalletSheet: $viewModel.presentConnectWalletSheet,
                         )
                     }

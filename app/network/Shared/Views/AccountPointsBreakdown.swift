@@ -16,6 +16,7 @@ struct AccountPointsBreakdown: View {
     var payoutPoints: Double
     var referralPoints: Double
     var multiplierPoints: Double
+    var reliabilityPoints: Double
     
     var body: some View {
         
@@ -72,7 +73,7 @@ struct AccountPointsBreakdown: View {
                     }
 
                     HStack {
-                        Text("0")
+                        Text(reliabilityPoints.formatted(.number.grouping(.automatic)))
                             .font(themeManager.currentTheme.titleCondensedFont)
                             .foregroundColor(themeManager.currentTheme.textColor)
 

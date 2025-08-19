@@ -37,9 +37,10 @@ struct PayoutItemView: View {
             AccountPointsBreakdown(
                 isSeekerOrSagaHolder: isMultiplierTokenHolder,
                 netPoints: accountPointsViewModel.netPointsByPaymentId(payment.paymentId),
-                payoutPoints: accountPointsViewModel.payoutPointsByPaymentId(payment.paymentId),
-                referralPoints: accountPointsViewModel.referralPointsByPaymentId(payment.paymentId),
-                multiplierPoints: accountPointsViewModel.multiplierPointsByPaymentId(payment.paymentId)
+                payoutPoints: accountPointsViewModel.sumEventPointsByPaymentId(event: AccountPointEvent.payout, paymentId: payment.paymentId),
+                referralPoints: accountPointsViewModel.sumEventPointsByPaymentId(event: AccountPointEvent.payoutLinkedAccount, paymentId: payment.paymentId),
+                multiplierPoints: accountPointsViewModel.sumEventPointsByPaymentId(event: AccountPointEvent.payoutMultiplier, paymentId: payment.paymentId),
+                reliabilityPoints: accountPointsViewModel.sumEventPointsByPaymentId(event: AccountPointEvent.payoutReliability, paymentId: payment.paymentId),
             )
             
             Spacer().frame(height: 24)

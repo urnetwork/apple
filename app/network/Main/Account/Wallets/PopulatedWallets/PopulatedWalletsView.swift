@@ -20,6 +20,7 @@ struct PopulatedWalletsView: View {
     var payoutPoints: Double
     var referralPoints: Double
     var multiplierPoints: Double
+    var reliabilityPoints: Double
     @Binding var presentConnectWalletSheet: Bool
 
     var body: some View {
@@ -96,7 +97,8 @@ struct PopulatedWalletsView: View {
                     netPoints: netPoints,
                     payoutPoints: payoutPoints,
                     referralPoints: referralPoints,
-                    multiplierPoints: multiplierPoints
+                    multiplierPoints: multiplierPoints,
+                    reliabilityPoints: reliabilityPoints
                 )
                 .padding()
 

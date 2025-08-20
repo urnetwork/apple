@@ -52,17 +52,14 @@ struct AuthCodeCreate: View {
                 viewModel.isPresented = false
             }
         } message: { authCode in
-            VStack {
-//                Text("Auth Code")
-//                    .font(themeManager.currentTheme.bodyFont)
-                Text(
-                    """
-                    Auth Code \n
-                    \(authCode.prefix(6))...\(authCode.suffix(6))
-                    """)
-//                Text("This code will expire in 5 minutes.")
-//                    .font(themeManager.currentTheme.secondaryBodyFont)
-            }
+            
+            Text(
+                """
+                Auth Code \n
+                \(authCode.prefix(6))...\(authCode.suffix(6))
+                """
+            )
+            
         }
         
     }

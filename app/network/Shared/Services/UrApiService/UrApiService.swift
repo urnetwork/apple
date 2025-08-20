@@ -432,6 +432,44 @@ extension UrApiService {
         }
     }
     
+    func createAuthCode() async throws -> SdkAuthCodeCreateResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = AuthCodeCreateCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "No result found in callback"]))
+                    return
+                }
+                
+                if result.error != nil {
+                    print("createAuthCode.error result is \(String(describing: result.error?.message))")
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Error in result"]))
+                    return
+                    
+                }
+                
+                print("createAuthCode result is \(result)")
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            let args = SdkAuthCodeCreateArgs()
+            args.durationMinutes = 5
+            args.uses = 1
+
+            api.authCodeCreate(args, callback: callback)
+            
+        }
+    }
+    
 }
 
 // MARK - referral code
@@ -668,6 +706,13 @@ private class UnblockLocationCallback: SdkCallback<SdkNetworkUnblockLocationResu
 private class GetNetworkBlockedLocationsCallback: SdkCallback<SdkGetNetworkBlockedLocationsResult, SdkGetNetworkBlockedLocationsCallbackProtocol>, SdkGetNetworkBlockedLocationsCallbackProtocol {
     
     func result(_ result: SdkGetNetworkBlockedLocationsResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthCodeCreateCallback: SdkCallback<SdkAuthCodeCreateResult, SdkAuthCodeCreateCallbackProtocol>, SdkAuthCodeCreateCallbackProtocol {
+    
+    func result(_ result: SdkAuthCodeCreateResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

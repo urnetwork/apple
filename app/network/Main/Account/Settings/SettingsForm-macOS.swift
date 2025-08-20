@@ -15,6 +15,7 @@ struct SettingsForm_macOS: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
     
+    let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
     let clientUrl: String;
     let referralCode: String?;
@@ -187,6 +188,38 @@ struct SettingsForm_macOS: View {
                                 Text("Launch URnetwork on system startup")
                                     .font(themeManager.currentTheme.bodyFont)
                                     .foregroundColor(themeManager.currentTheme.textColor)
+                            }
+                            
+                            Spacer().frame(height: 32)
+                            
+                            
+                            HStack {
+                                UrLabel(text: "Authentication")
+                                
+                                Spacer()
+                            }
+                            
+                            VStack {
+                                HStack {
+                                    Text("Auth code")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                    
+                                    Spacer()
+                                    
+                                    AuthCodeCreate(
+                                        api: urApiService,
+                                        copyToPasteboard: copyToPasteboard
+                                    )
+                                    
+                                }
+                                
+                                HStack {
+                                    Text("Created auth codes expire after 5 minutes")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    
+                                    Spacer()
+                                }
                             }
                             
                             Spacer().frame(height: 32)

@@ -280,7 +280,7 @@ struct WalletsHeader: View {
             Spacer().frame(height: 8)
             
             HStack {
-                Text("Payouts occur every week, and require a minimum amount to receive a payout.")
+                Text("Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                 

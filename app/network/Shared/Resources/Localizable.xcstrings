@@ -15726,150 +15726,156 @@
         }
       }
     },
-    "Payouts occur every week, and require a minimum amount to receive a payout." : {
+    "Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحدث عمليات الدفع كل أسبوع، وتتطلب حدًا أدنى من المبلغ لتلقي الدفع."
+            "value" : "تحدث عمليات الدفع كل يوم أحد الساعة 00:00 بتوقيت UTC، وتتطلب تحقيق حد أدنى من USDC."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výplaty probíhají každou neděli ve 00:00 UTC a vyžadují splnění minimálního USDC limitu."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auszahlungen erfolgen jede Woche und erfordern einen Mindestbetrag, um eine Auszahlung zu erhalten."
+            "value" : "Auszahlungen erfolgen jeden Sonntag um 00:00 UTC und erfordern das Erreichen eines Mindest-USDC-Schwellenwerts."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Οι πληρωμές πραγματοποιούνται κάθε εβδομάδα και απαιτείται ένα ελάχιστο ποσό για να λάβετε πληρωμή."
+            "value" : "Οι πληρωμές πραγματοποιούνται κάθε Κυριακή στις 00:00 UTC και απαιτούν την επίτευξη ενός ελάχιστου ορίου USDC."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Payouts occur every week, and require a minimum amount to receive a payout."
+            "value" : "Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los pagos se realizan cada semana y requieren una cantidad mínima para recibir un pago."
+            "value" : "Los pagos se realizan cada domingo a las 00:00 UTC y requieren cumplir con un umbral mínimo de USDC."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los pagos se realizan cada semana y requieren una cantidad mínima para recibir un pago."
+            "value" : "Los pagos se realizan cada domingo a las 00:00 UTC y requieren cumplir con un umbral mínimo de USDC."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les paiements ont lieu chaque semaine et nécessitent un montant minimum pour recevoir un paiement."
+            "value" : "Les paiements ont lieu chaque dimanche à 00:00 UTC et nécessitent de respecter un seuil minimum de USDC."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "התשלומים מתבצעים בכל שבוע ודורשים סכום מינימלי לקבלת תשלום."
+            "value" : "התשלומים מתבצעים בכל יום ראשון בשעה 00:00 UTC ודורשים עמידה בסף מינימלי של USDC."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "भुगतान हर सप्ताह होते हैं, और भुगतान प्राप्त करने के लिए न्यूनतम राशि आवश्यक है।"
+            "value" : "भुगतान हर रविवार 00:00 UTC पर होते हैं, और न्यूनतम USDC सीमा पूरी करना आवश्यक है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pembayaran dilakukan setiap minggu, dan memerlukan jumlah minimum untuk menerima pembayaran."
+            "value" : "Pembayaran dilakukan setiap hari Minggu pukul 00:00 UTC dan memerlukan pencapaian ambang minimum USDC."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I pagamenti avvengono ogni settimana e richiedono un importo minimo per ricevere un pagamento."
+            "value" : "I pagamenti avvengono ogni domenica alle 00:00 UTC e richiedono il raggiungimento di una soglia minima di USDC."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支払いは毎週行われ、支払いを受け取るには最低金額が必要です。"
+            "value" : "支払いは毎週日曜日の00:00 UTCに行われ、最低USDCしきい値の達成が必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "지급은 매주 이루어지며, 지급을 받으려면 최소 금액이 필요합니다."
+            "value" : "지급은 매주 일요일 00:00 UTC에 이루어지며, 최소 USDC 기준을 충족해야 합니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uitbetalingen vinden wekelijks plaats en vereisen een minimumbedrag om uitbetaald te worden."
+            "value" : "Uitbetalingen vinden elke zondag om 00:00 UTC plaats en vereisen het behalen van een minimale USDC-drempel."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wypłaty odbywają się co tydzień i wymagają minimalnej kwoty do otrzymania wypłaty."
+            "value" : "Wypłaty odbywają się w każdą niedzielę o 00:00 UTC i wymagają spełnienia minimalnego progu USDC."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os pagamentos ocorrem toda semana e exigem um valor mínimo para receber um pagamento."
+            "value" : "Os pagamentos ocorrem todo domingo às 00:00 UTC e exigem atingir um limite mínimo de USDC."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os pagamentos ocorrem todas as semanas e exigem um valor mínimo para receber um pagamento."
+            "value" : "Os pagamentos ocorrem todos os domingos às 00:00 UTC e exigem atingir um limite mínimo de USDC."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выплаты происходят каждую неделю и требуют минимальной суммы для получения выплаты."
+            "value" : "Выплаты происходят каждое воскресенье в 00:00 UTC и требуют достижения минимального порога USDC."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utbetalningar sker varje vecka och kräver ett minimibelopp för att få en utbetalning."
+            "value" : "Utbetalningar sker varje söndag kl. 00:00 UTC och kräver att en minsta USDC-gräns uppnås."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "การจ่ายเงินเกิดขึ้นทุกสัปดาห์ และต้องมีจำนวนเงินขั้นต่ำเพื่อรับการจ่ายเงิน"
+            "value" : "การจ่ายเงินเกิดขึ้นทุกวันอาทิตย์เวลา 00:00 UTC และต้องมีเกณฑ์ขั้นต่ำ USDC"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Виплати відбуваються щотижня і вимагають мінімальної суми для отримання виплати."
+            "value" : "Виплати відбуваються щонеділі о 00:00 UTC і вимагають досягнення мінімального порогу USDC."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thanh toán diễn ra hàng tuần và yêu cầu số tiền tối thiểu để nhận được thanh toán."
+            "value" : "Thanh toán diễn ra vào mỗi Chủ Nhật lúc 00:00 UTC và yêu cầu đạt ngưỡng USDC tối thiểu."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每周都会进行支付，并且需要达到最低金额才能收到支付。"
+            "value" : "每周日 00:00 UTC 进行支付，并且需要达到最低 USDC 门槛。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每週都會進行支付，並且需要達到最低金額才能收到支付。"
+            "value" : "每週日 00:00 UTC 進行支付，並且需要達到最低 USDC 門檻。"
           }
         }
       }

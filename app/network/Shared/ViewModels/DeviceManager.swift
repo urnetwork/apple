@@ -8,6 +8,7 @@
 import Foundation
 import URnetworkSdk
 import Combine
+import Network
 
 #if canImport(UIKit)
 import UIKit
@@ -65,6 +66,28 @@ class DeviceManager: ObservableObject {
         device?.setRouteLocal(value)
     }
     
+    @Published var allowProvidingCell: Bool = false {
+        didSet {
+            updateAllowProvidingCell(allowProvidingCell)
+        }
+    }
+
+    private func updateAllowProvidingCell(_ allow: Bool) {
+        #if os(iOS)
+        let mode = allow ? SdkProvideNetworkModeAll : SdkProvideNetworkModeWiFi
+        
+        do {
+            try asyncLocalState?.getLocalState()?.setProvideNetworkMode(mode)
+        } catch {
+            print("error setting route local: \(error)")
+        }
+        
+        device?.setProvideNetworkMode(mode)
+        
+        vpnManager?.updateVpnService()
+        #endif
+    }
+    
     func setDevice(device: SdkDeviceRemote?) {
         
         if self.device != device {
@@ -83,12 +106,17 @@ class DeviceManager: ObservableObject {
                         self.provideControlMode = provideControlMode
                     }
                     
+                    if let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) {
+                        self.allowProvidingCell = provideNetworkMode == .All
+                    }
+                    
                     self.routeLocal = device.getRouteLocal()
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
                 } else {
                     self.provideControlMode = ProvideControlMode.Auto
                     self.deviceInitialized = false
+                    self.allowProvidingCell = false
                 }
                 
             }
@@ -387,6 +415,9 @@ extension DeviceManager {
                 let provideControlModeStr = localState.getProvideControlMode()
                 let provideControlMode = ProvideControlMode(rawValue: provideControlModeStr)
                 
+                let provideNetworkModeStr = localState.getProvideNetworkMode()
+                let provideNetworkMode = ProvideNetworkMode(rawValue: provideNetworkModeStr)
+                
                 let provideMode = provideControlMode == ProvideControlMode.Always ? SdkProvideModePublic : localState.getProvideMode()
                 let canRefer = localState.getCanRefer()
                 // note ios does not allow VPN interface while offline, due to the existing interface conditions
@@ -436,6 +467,7 @@ extension DeviceManager {
                 device.setCanShowRatingDialog(canShowRatingDialog)
                 // device.setProvideWhileDisconnected(provideWhileDisconnected)
                 device.setProvideControlMode(provideControlMode?.rawValue ?? ProvideControlMode.Auto.rawValue)
+                device.setProvideNetworkMode(provideNetworkMode?.rawValue ?? ProvideNetworkMode.WiFi.rawValue)
                 device.setCanRefer(canRefer)
                 
                 // only set the location if the current location is not already equivalent

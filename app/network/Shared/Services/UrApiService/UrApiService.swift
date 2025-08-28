@@ -621,6 +621,69 @@ extension UrApiService {
     
 }
 
+// MARK: network reliability
+extension UrApiService {
+    
+    func getNetworkReliability() async throws -> SdkGetNetworkReliabilityResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = GetNetworkReliabilityCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "getNetworkReliability result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            api.getNetworkReliability(callback)
+        }
+        
+    }
+    
+}
+
+// MARK: wallet
+extension UrApiService {
+    
+    func validateWalletAddress(address: String, chain: String) async throws -> Bool {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+
+            let callback = ValidateAddressCallback { result, err in
+
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "validateWalletAddress result is nil"]))
+                    return
+                }
+
+                continuation.resume(returning: result.valid)
+            }
+
+            let args = SdkWalletValidateAddressArgs()
+            args.address = address
+            args.chain = chain
+
+            api.walletValidateAddress(args, callback: callback)
+        }
+        
+    }
+    
+}
+
 
 /**
  * Callback classes
@@ -716,6 +779,20 @@ private class AuthCodeCreateCallback: SdkCallback<SdkAuthCodeCreateResult, SdkAu
         handleResult(result, err: err)
     }
 }
+
+private class GetNetworkReliabilityCallback: SdkCallback<SdkGetNetworkReliabilityResult, SdkGetNetworkReliabilityCallbackProtocol>, SdkGetNetworkReliabilityCallbackProtocol {
+    
+    func result(_ result: SdkGetNetworkReliabilityResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class ValidateAddressCallback: SdkCallback<SdkWalletValidateAddressResult, SdkWalletValidateAddressCallbackProtocol>, SdkWalletValidateAddressCallbackProtocol {
+    func result(_ result: SdkWalletValidateAddressResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 
 
 /**

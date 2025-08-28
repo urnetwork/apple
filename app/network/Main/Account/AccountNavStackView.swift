@@ -124,7 +124,7 @@ struct AccountNavStackView: View {
                 case .wallets:
                     WalletsView(
                         navigate: viewModel.navigate,
-                        api: api,
+                        api: urApiService,
                         netAccountPoints: accountPointsViewModel.netPoints,
                         payoutPoints: accountPointsViewModel.payoutPoints,
                         multiplierPoints: accountPointsViewModel.multiplierPoints,

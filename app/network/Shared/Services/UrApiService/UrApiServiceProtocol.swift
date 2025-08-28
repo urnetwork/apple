@@ -48,4 +48,14 @@ protocol UrApiServiceProtocol {
     func blockLocation(_ locationId: SdkId) async throws -> SdkNetworkBlockLocationResult
     func unblockLocation(_ locationId: SdkId) async throws -> SdkNetworkUnblockLocationResult
     func getBlockedLocations() async throws -> SdkGetNetworkBlockedLocationsResult
+    
+    /**
+     * Network reliability
+     */
+    func getNetworkReliability() async throws -> SdkGetNetworkReliabilityResult
+    
+    /**
+     * Wallet
+     */
+    func validateWalletAddress(address: String, chain: String) async throws -> Bool
 }

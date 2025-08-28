@@ -22,15 +22,11 @@ struct NetworkReliabilityView: View {
     
     init(reliabilityWindow: SdkReliabilityWindow?) {
         
+        mean = reliabilityWindow?.meanReliabilityWeight ?? 0
+        
         if let reliabilityWeightsList = reliabilityWindow?.reliabilityWeights {
-            
-            let reliabilityWeightsArr = floatListToArray(reliabilityWeightsList)
-            let sum = reliabilityWeightsArr.reduce(0, +)
-            mean = sum / Double(reliabilityWeightsArr.count)
-            
-            reliabilityWeights = reliabilityWeightsArr.enumerated()
+            reliabilityWeights = floatListToArray(reliabilityWeightsList).enumerated()
         } else {
-            mean = 0
             reliabilityWeights = [Double]().enumerated()
         }
         

@@ -162,6 +162,8 @@ struct CountryMultiplierList: View {
     
     var countryMultipliers: [SdkCountryMultiplier]
     
+    let highlightThreshold = 2.0
+    
     var body: some View {
         VStack() {
             
@@ -186,11 +188,13 @@ struct CountryMultiplierList: View {
                 HStack {
                     Text(countryMultiplier.country)
                         .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(countryMultiplier.reliabilityMultiplier >= highlightThreshold ? .urGreen: .primary)
                     
                     Spacer()
                     
                     Text(String(format: "x%.2f%", countryMultiplier.reliabilityMultiplier))
                         .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(countryMultiplier.reliabilityMultiplier >= highlightThreshold ? .urGreen: .primary)
                 }
                 
             }

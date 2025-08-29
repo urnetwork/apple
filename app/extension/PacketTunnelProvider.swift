@@ -240,31 +240,41 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let routeLocalChangeSub = device.add(RouteLocalChangeListener { routeLocal in
             try? localState.setRouteLocal(routeLocal)
         })
-        let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
-            DispatchQueue.main.async {
-                var connected = false
-                if let windowStatus = windowStatus {
-                    connected = 0 < windowStatus.providerStateAdded
-                }
-                if self.connected != connected {
-                    self.connected = connected
-                    if !connected {
-                        if device.getConnectLocation() == nil {
-                            setLocal()
-                        } else {
-                            self.reasserting = true
-                        }
+        let updateWindowStatus = { (windowStatus: SdkWindowStatus?) in
+            var connected = false
+            if let windowStatus = windowStatus {
+                connected = 0 < windowStatus.providerStateAdded
+            }
+            if self.connected != connected {
+                self.connected = connected
+                if !connected {
+                    if device.getConnectLocation() == nil {
+                        setLocal()
                     } else {
+                        self.reasserting = true
                         self.setTunnelNetworkSettings(self.networkSettings()) { error in
                             if let error = error {
                                 self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                                 return
                             }
-                            self.reasserting = false
                         }
-        //                self.reasserting = false
                     }
+                } else {
+                    self.setTunnelNetworkSettings(self.networkSettings()) { error in
+                        if let error = error {
+                            self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
+                            return
+                        }
+                        self.reasserting = false
+                    }
+    //                self.reasserting = false
                 }
+            }
+        }
+        updateWindowStatus(device.getWindowStatus())
+        let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
+            DispatchQueue.main.async {
+                updateWindowStatus(windowStatus)
             }
         })
         

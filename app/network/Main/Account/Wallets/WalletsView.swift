@@ -22,6 +22,7 @@ struct WalletsView: View {
     var payoutPoints: Double
     var multiplierPoints: Double
     var referralPoints: Double
+    var reliabilityPoints: Double
     var fetchAccountPoints: () async -> Void
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -84,6 +85,7 @@ struct WalletsView: View {
                             payoutPoints: payoutPoints,
                             referralPoints: referralPoints,
                             multiplierPoints: multiplierPoints,
+                            reliabilityPoints: reliabilityPoints,
                             presentConnectWalletSheet: $viewModel.presentConnectWalletSheet,
                         )
                     }
@@ -278,7 +280,7 @@ struct WalletsHeader: View {
             Spacer().frame(height: 8)
             
             HStack {
-                Text("Payouts occur every week, and require a minimum amount to receive a payout.")
+                Text("Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                 

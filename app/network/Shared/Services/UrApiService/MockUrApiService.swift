@@ -65,4 +65,8 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkGetNetworkBlockedLocationsResult()
     }
     
+    func createAuthCode() async throws -> SdkAuthCodeCreateResult {
+        return SdkAuthCodeCreateResult()
+    }
+    
 }

@@ -15,6 +15,7 @@ struct SettingsForm_iOS: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
     
+    let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
     let clientUrl: String;
     let referralCode: String?;
@@ -138,6 +139,35 @@ struct SettingsForm_iOS: View {
                 }
             }
             
+            Section("Authentication") {
+                /**
+                 * Update referral code
+                 */
+                VStack {
+                    HStack {
+                        Text("Auth code")
+                            .font(themeManager.currentTheme.bodyFont)
+                        
+                        Spacer()
+                        
+                        AuthCodeCreate(
+                            api: urApiService,
+                            copyToPasteboard: copyToPasteboard
+                        )
+                        
+                    }
+                    
+                    HStack {
+                        Text("Created auth codes expire after 5 minutes")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        
+                        Spacer()
+                    }
+                }
+                
+            }
+            
             
             Section("Connections") {
             
@@ -177,6 +207,7 @@ struct SettingsForm_iOS: View {
                 
                 HStack {
                     Text("Blocked locations")
+                        .font(themeManager.currentTheme.bodyFont)
                     Spacer()
                     Image(systemName: "chevron.right")
                         // .renderingMode(.)

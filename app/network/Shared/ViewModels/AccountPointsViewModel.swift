@@ -18,6 +18,7 @@ class AccountPointsViewModel: ObservableObject {
     @Published private(set) var payoutPoints: Double = 0
     @Published private(set) var multiplierPoints: Double = 0
     @Published private(set) var referralPoints: Double = 0
+    @Published private(set) var reliabilityPoints: Double = 0
     
     private(set) var isLoading: Bool = false
     
@@ -32,36 +33,19 @@ class AccountPointsViewModel: ObservableObject {
     }
     
     func netPointsByPaymentId(_ paymentId: SdkId?) -> Double {
-
         accountPoints
             .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
-            .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
-        
-    }
-    
-    func payoutPointsByPaymentId(_ paymentId: SdkId?) -> Double {
-        
-        accountPoints
-            .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
-            .filter { $0.event == AccountPointEvent.payout.rawValue }
             .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
     }
     
-    func referralPointsByPaymentId(_ paymentId: SdkId?) -> Double {
-        
+    // for example, all reliability points for this payment
+    func sumEventPointsByPaymentId(event: AccountPointEvent, paymentId: SdkId?) -> Double {
         accountPoints
             .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
-            .filter { $0.event == AccountPointEvent.payoutLinkedAccount.rawValue }
+            .filter { $0.event == event.rawValue }
             .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
     }
     
-    func multiplierPointsByPaymentId(_ paymentId: SdkId?) -> Double {
-        
-        accountPoints
-            .filter { $0.accountPaymentId?.cmp(paymentId) == 0}
-            .filter { $0.event == AccountPointEvent.payoutMultiplier.rawValue }
-            .reduce(into: 0) { $0 += SdkNanoPointsToPoints($1.pointValue) }
-    }
     
     func fetchAccountPoints() async {
         
@@ -102,6 +86,7 @@ class AccountPointsViewModel: ObservableObject {
             var payoutPoints = 0.0
             var multiplierPoints = 0.0
             var referralPoints = 0.0
+            var reliabilityPoints = 0.0
             var accountPoints: [SdkAccountPoint] = []
             
             guard let n = n else {
@@ -128,6 +113,8 @@ class AccountPointsViewModel: ObservableObject {
                                 referralPoints += pointValue
                             case .payoutMultiplier:
                                 multiplierPoints += pointValue
+                            case .payoutReliability:
+                                reliabilityPoints += pointValue
                         }
                         
                     } else {
@@ -143,6 +130,7 @@ class AccountPointsViewModel: ObservableObject {
             self.payoutPoints = payoutPoints
             self.referralPoints = referralPoints
             self.multiplierPoints = multiplierPoints
+            self.reliabilityPoints = reliabilityPoints
             
             self.isLoading = false
             
@@ -171,4 +159,5 @@ enum AccountPointEvent: String {
     case payout = "payout"
     case payoutLinkedAccount = "payout_linked_account"
     case payoutMultiplier = "payout_multiplier"
+    case payoutReliability = "payout_reliability"
 }

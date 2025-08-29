@@ -105,6 +105,7 @@ struct AccountNavStackView: View {
                 case .settings:
                     SettingsView(
                         api: api,
+                        urApiService: urApiService,
                         clientId: device.getClientId(),
                         accountPreferencesViewModel: accountPreferencesViewModel,
                         referralLinkViewModel: referralLinkViewModel,
@@ -128,6 +129,7 @@ struct AccountNavStackView: View {
                         payoutPoints: accountPointsViewModel.payoutPoints,
                         multiplierPoints: accountPointsViewModel.multiplierPoints,
                         referralPoints: accountPointsViewModel.referralPoints,
+                        reliabilityPoints: accountPointsViewModel.reliabilityPoints,
                         fetchAccountPoints: accountPointsViewModel.fetchAccountPoints,
                         referralLinkViewModel: referralLinkViewModel,
                     )

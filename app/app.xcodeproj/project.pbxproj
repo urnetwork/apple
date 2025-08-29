@@ -14,6 +14,8 @@
 		17A25D3E2D5C702200507C75 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */; platformFilter = ios; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D1829C242CEBF0E300920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C232CEBF0E300920833 /* URnetworkSdk */; };
+		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
+		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -68,6 +70,8 @@
 		175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		1783A00D2D60111600024F80 /* URnetworkLaunchHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = URnetworkLaunchHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		178F47EA2CEDA80A00CD9C3D /* URnetwork-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "URnetwork-Info.plist"; sourceTree = "<group>"; };
+		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
+		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D1B95A4F2CEBDD6900542E0E /* URnetwork.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetwork.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A602CEBDD6A00542E0E /* networkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -141,6 +145,7 @@
 			files = (
 				17041CF92D026BE4003F4D5A /* GoogleSignInSwift in Frameworks */,
 				D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */,
+				D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */,
 				17041CF72D026BE4003F4D5A /* GoogleSignIn in Frameworks */,
 				175DEFB62D6DAB7700A9BD36 /* StoreKit.framework in Frameworks */,
 			);
@@ -165,6 +170,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D1829C242CEBF0E300920833 /* URnetworkSdk in Frameworks */,
+				D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */,
 				1728CF992D1691F100050EC5 /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -202,6 +208,8 @@
 		D1B95A822CEBE76400542E0E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D10517542E5CD4CD002D73A5 /* libresolv.tbd */,
+				D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */,
 				175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */,
 				D1B95A832CEBE76400542E0E /* NetworkExtension.framework */,
 			);

@@ -278,12 +278,24 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         })
         
+        
+        let updatePath = { (path: Network.NWPath) in
+            let canProvideOnCell = self.device?.getProvideNetworkMode() == "all"
+            device.setProvidePaused(!canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell))
+        }
+        
         let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
         let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
         pathMonitor.pathUpdateHandler = { path in
-            device.setProvidePaused(!canProvideOnNetwork(path: path))
+            updatePath(path)
         }
         pathMonitor.start(queue: pathMonitorQueue)
+        let provideNetworkModeChangeSub = device.add( ProvideNetworkModeChangeListener { mode in
+            DispatchQueue.main.async {
+                updatePath(pathMonitor.currentPath)
+            }
+        })
+        
         
         let packetWriteLock = NSLock()
         let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, packet in
@@ -312,6 +324,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             provideChangeSub?.close()
             locationChangeSub?.close()
             windowStatusChangeSub?.close()
+            provideNetworkModeChangeSub?.close()
             device.close()
         }
         
@@ -450,25 +463,32 @@ private class WindowStatusChangeListener: NSObject, SdkWindowStatusChangeListene
     }
 }
 
+private class ProvideNetworkModeChangeListener: NSObject, SdkProvideNetworkModeChangeListenerProtocol {
+    
+    private let c: (_ mode: String?) -> Void
+    
+    init(c: @escaping (_ mode: String?) -> Void) {
+        self.c = c
+    }
+    
+    func provideNetworkModeChanged(_ provideNetworkMode: String?) {
+        c(provideNetworkMode)
+    }
+    
+}
 
 
 
-func canProvideOnNetwork(path: Network.NWPath) ->  Bool {
+func canProvideOnNetwork(path: Network.NWPath, canProvideOnCell: Bool) ->  Bool {
     // TODO it seems like iOS 16,17 have more issues than 18, but the root cause is unknown
     if #available(iOS 18, macOS 15, *) {
-        if path.isExpensive || path.isConstrained {
-            return false
-        } else if let primaryInterface = path.availableInterfaces.first {
-            switch primaryInterface.type {
-            case .wifi, .wiredEthernet:
-                return true
-            default:
-                return false
-            }
-        } else {
-            // no interfaces
-            return false
+        if path.usesInterfaceType(.wifi) || path.usesInterfaceType(.wiredEthernet) {
+            return true
         }
+        if path.usesInterfaceType(.cellular) {
+            return canProvideOnCell
+        }
+        return false
     } else {
         // not enough memory in the extension
         // see memory notes at top

@@ -193,6 +193,12 @@ struct SettingsForm_iOS: View {
                     
                 }
                 
+                UrSwitchToggle(isOn: $deviceManager.allowProvidingCell) {
+                    Text("Allow providing on cellular network")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                }
+                
                 UrSwitchToggle(isOn: $deviceManager.routeLocal) {
                     Text("Allow local traffic when disconnected")
                         .font(themeManager.currentTheme.bodyFont)

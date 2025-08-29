@@ -21,6 +21,7 @@ struct PopulatedWalletsView: View {
     var referralPoints: Double
     var multiplierPoints: Double
     var reliabilityPoints: Double
+    var networkReliabilityWindow: SdkReliabilityWindow?
     @Binding var presentConnectWalletSheet: Bool
 
     var body: some View {
@@ -101,6 +102,21 @@ struct PopulatedWalletsView: View {
                     reliabilityPoints: reliabilityPoints
                 )
                 .padding()
+                
+                HStack {
+                    Text("Reliability")
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .font(themeManager.currentTheme.bodyFont)
+
+                    Spacer()
+                }
+                .padding(.horizontal)
+                
+                NetworkReliabilityView(
+                    reliabilityWindow: networkReliabilityWindow
+                )
+                .padding()
+                
 
                 PaymentsList(
                     payments: accountPaymentsViewModel.payments,

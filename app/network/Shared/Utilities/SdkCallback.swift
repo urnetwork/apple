@@ -15,8 +15,6 @@ class SdkCallback<ResultType, ProtocolType>: NSObject where ProtocolType: AnyObj
     }
     
     func handleResult(_ result: ResultType?, err: Error?) {
-        // DispatchQueue.main.async {
             self.completion(result, err)
-        // }
     }
 }

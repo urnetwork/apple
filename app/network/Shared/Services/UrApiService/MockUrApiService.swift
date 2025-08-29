@@ -69,4 +69,12 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkAuthCodeCreateResult()
     }
     
+    func getNetworkReliability() async throws -> SdkGetNetworkReliabilityResult {
+        return SdkGetNetworkReliabilityResult()
+    }
+    
+    func validateWalletAddress(address: String, chain: String) async throws -> Bool {
+        return true
+    }
+    
 }

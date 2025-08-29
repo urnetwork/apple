@@ -24,13 +24,13 @@ extension EnterWalletAddressView {
         @Published var chain = WalletChain.invalid
         @Published var isValidWalletAddress: Bool = false
         
-        private var api: SdkApi?
+        private var api: UrApiServiceProtocol
         private var cancellables = Set<AnyCancellable>()
         private var debounceTimer: AnyCancellable?
         
         let domain = "[ConnectExternalWalletSheetViewModel]"
         
-        init(api: SdkApi?) {
+        init(api: UrApiServiceProtocol) {
             self.api = api
             
             // when wallet address changes
@@ -83,32 +83,8 @@ extension EnterWalletAddressView {
             }
     
             do {
-    
-                let isValid: Bool = try await withCheckedThrowingContinuation { [weak self] continuation in
-    
-                    guard let self = self else { return }
-    
-                    let callback = ValidateAddressCallback { result, err in
-    
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-    
-                        guard let result = result else {
-                            continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "SdkCreateAccountWalletResult result is nil"]))
-                            return
-                        }
-    
-                        continuation.resume(returning: result.valid)
-                    }
-    
-                    let args = SdkWalletValidateAddressArgs()
-                    args.address = address
-                    args.chain = chain
-    
-                    api?.walletValidateAddress(args, callback: callback)
-                }
+                
+                let isValid = try await api.validateWalletAddress(address: address, chain: chain)
     
                 return .success(isValid)
     
@@ -123,8 +99,3 @@ extension EnterWalletAddressView {
     
 }
 
-private class ValidateAddressCallback: SdkCallback<SdkWalletValidateAddressResult, SdkWalletValidateAddressCallbackProtocol>, SdkWalletValidateAddressCallbackProtocol {
-    func result(_ result: SdkWalletValidateAddressResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}

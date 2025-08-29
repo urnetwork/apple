@@ -17,7 +17,7 @@ struct WalletsView: View {
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
     var navigate: (AccountNavigationPath) -> Void
-    var api: SdkApi?
+    var api: UrApiServiceProtocol
     var netAccountPoints: Double
     var payoutPoints: Double
     var multiplierPoints: Double
@@ -26,7 +26,33 @@ struct WalletsView: View {
     var fetchAccountPoints: () async -> Void
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
-    @StateObject private var viewModel: ViewModel = ViewModel()
+    @StateObject private var viewModel: ViewModel
+    @StateObject private var networkReliabilityStore: NetworkReliabilityStore
+    
+    init(
+        navigate: @escaping (AccountNavigationPath) -> Void,
+        api: UrApiServiceProtocol,
+        netAccountPoints: Double,
+        payoutPoints: Double,
+        multiplierPoints: Double,
+        referralPoints: Double,
+        reliabilityPoints: Double,
+        fetchAccountPoints: @escaping () async -> Void,
+        referralLinkViewModel: ReferralLinkViewModel,
+    ) {
+
+        self.navigate = navigate
+        self.api = api
+        self.netAccountPoints = netAccountPoints
+        self.payoutPoints = payoutPoints
+        self.multiplierPoints = multiplierPoints
+        self.referralPoints = referralPoints
+        self.reliabilityPoints = reliabilityPoints
+        self.fetchAccountPoints = fetchAccountPoints
+        self.referralLinkViewModel = referralLinkViewModel
+        _viewModel = StateObject(wrappedValue: ViewModel())
+        _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: api))
+    }
     
     var body: some View {
         
@@ -86,7 +112,8 @@ struct WalletsView: View {
                             referralPoints: referralPoints,
                             multiplierPoints: multiplierPoints,
                             reliabilityPoints: reliabilityPoints,
-                            presentConnectWalletSheet: $viewModel.presentConnectWalletSheet,
+                            networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
+                            presentConnectWalletSheet: $viewModel.presentConnectWalletSheet
                         )
                     }
                     .frame(maxWidth: 600)
@@ -103,9 +130,17 @@ struct WalletsView: View {
             async let fetchTransferStats: Void = accountWalletsViewModel.fetchTransferStats()
             async let fetchAccountPoints: Void = fetchAccountPoints()
             async let fetchReferralLink: Void = referralLinkViewModel.fetchReferralLink()
+            async let fetchNetworkReliability: Void = networkReliabilityStore.getNetworkReliability()
             
             // Wait for all tasks to complete
-            (_, _, _, _, _) = await (fetchWallets, fetchPayments, fetchTransferStats, fetchAccountPoints, fetchReferralLink)
+            (_, _, _, _, _, _) = await (
+                fetchWallets,
+                fetchPayments,
+                fetchTransferStats,
+                fetchAccountPoints,
+                fetchReferralLink,
+                fetchNetworkReliability
+            )
 
         }
         .onReceive(connectWalletProviderViewModel.$connectedPublicKey) { walletAddress in

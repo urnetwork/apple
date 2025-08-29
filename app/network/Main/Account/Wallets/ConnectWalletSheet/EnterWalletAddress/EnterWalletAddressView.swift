@@ -17,7 +17,7 @@ struct EnterWalletAddressView: View {
     var onSuccess: () -> Void
     
     init(
-        onSuccess: @escaping () -> Void, api: SdkApi?
+        onSuccess: @escaping () -> Void, api: UrApiServiceProtocol
     ) {
         self.onSuccess = onSuccess
         self._viewModel = StateObject(wrappedValue: ViewModel(api: api))

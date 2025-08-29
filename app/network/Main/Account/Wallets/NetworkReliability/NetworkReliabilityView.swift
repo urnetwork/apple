@@ -14,10 +14,13 @@ struct NetworkReliabilityView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var reliabilityWindow: SdkReliabilityWindow?
+    
     let reliabilityWeights: EnumeratedSequence<[Double]>
 //    let clientCounts: EnumeratedSequence<[Int]>
     let totalClientCounts: EnumeratedSequence<[Int]>
     let mean: Double
+    let countryMultipliers: [SdkCountryMultiplier]
+    let reliabilityAverage: EnumeratedSequence<[Double]>
     
     
     init(reliabilityWindow: SdkReliabilityWindow?) {
@@ -25,10 +28,24 @@ struct NetworkReliabilityView: View {
         mean = reliabilityWindow?.meanReliabilityWeight ?? 0
         
         if let reliabilityWeightsList = reliabilityWindow?.reliabilityWeights {
+            
+            /**
+             * Populate average weights array
+             */
+            var averageWeightsArr: [Double] = []
+            
+            for i in 0..<reliabilityWeightsList.len() {
+                averageWeightsArr.append(mean)
+            }
+            
+            reliabilityAverage = averageWeightsArr.enumerated()
+            
             reliabilityWeights = floatListToArray(reliabilityWeightsList).enumerated()
         } else {
+            reliabilityAverage = [Double]().enumerated()
             reliabilityWeights = [Double]().enumerated()
         }
+        
         
 //        if let clientCountsList = reliabilityWindow?.clientCounts {
 //            clientCounts = intListToArray(clientCountsList).enumerated()
@@ -47,17 +64,23 @@ struct NetworkReliabilityView: View {
         if let countryMultipliers = reliabilityWindow?.countryMultipliers {
             
             let n = countryMultipliers.len()
-            print("countryMultipliers n is: \(n)")
+            var arr: [SdkCountryMultiplier] = []
             
             for i in 0..<n {
                 
                 guard let cm = countryMultipliers.get(i) else { continue }
                 
-                print("\(i): \(String(describing: cm.country)): \(String(describing: cm.reliabilityMultiplier))")
+                if (cm.reliabilityMultiplier > 1.0) {
+                    arr.append(cm)
+                }
                 
             }
             
+            self.countryMultipliers = arr
             
+            
+        } else {
+            self.countryMultipliers = []
         }
         
     }
@@ -80,6 +103,15 @@ struct NetworkReliabilityView: View {
             
             Chart {
                 
+                ForEach(Array(reliabilityAverage), id: \.self.element) { index, avg in
+                    LineMark(
+                        x: .value("", index),
+                        y: .value("Average Reliability", avg)
+                    )
+                    .foregroundStyle(by: .value("key", "Average Reliability"))
+                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3])) // Dashed line
+                }
+                
                 ForEach(Array(totalClientCounts), id: \.self.element) { index, counts in
                     LineMark(
                         x: .value("", index),
@@ -87,14 +119,6 @@ struct NetworkReliabilityView: View {
                     )
                     .foregroundStyle(by: .value("key", "Total Clients"))
                 }
-                
-//                ForEach(Array(clientCounts), id: \.self.element) { index, counts in
-//                    LineMark(
-//                        x: .value("", index),
-//                        y: .value("Client Counts", counts),
-//                    )
-//                    .foregroundStyle(by: .value("key", "Active Clients"))
-//                }
                 
                 ForEach(Array(reliabilityWeights), id: \.self.element) { index, weight in
                     
@@ -109,13 +133,69 @@ struct NetworkReliabilityView: View {
             .chartXAxis(.hidden)
             .chartForegroundStyleScale([
                 "Reliability Weight": .urPink.opacity(0.6),
-                "Total Clients": .urGreen
+                "Total Clients": .urGreen,
+                "Average Reliability": themeManager.currentTheme.textMutedColor
             ])
+            
+            if countryMultipliers.count > 0 {
+                
+                Spacer().frame(height: 12)
+             
+                Divider()
+                
+                Spacer().frame(height: 12)
+                
+                CountryMultiplierList(countryMultipliers: countryMultipliers)
+                
+            }
             
         }
         .padding()
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+}
+
+struct CountryMultiplierList: View {
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    var countryMultipliers: [SdkCountryMultiplier]
+    
+    var body: some View {
+        VStack() {
+            
+            HStack {
+                Text("Country multipliers")
+                    .font(themeManager.currentTheme.toolbarTitleFont)
+                Spacer()
+            }
+            
+            Spacer().frame(height: 12)
+            
+            HStack {
+                UrLabel(text: "Country")
+                Spacer()
+                UrLabel(text: "Multiplier")
+            }
+            
+            ForEach(countryMultipliers, id: \.countryLocationId) { countryMultiplier in
+                
+                Spacer().frame(height: 4)
+                
+                HStack {
+                    Text(countryMultiplier.country)
+                        .font(themeManager.currentTheme.bodyFont)
+                    
+                    Spacer()
+                    
+                    Text(String(format: "x%.2f%", countryMultiplier.reliabilityMultiplier))
+                        .font(themeManager.currentTheme.bodyFont)
+                }
+                
+            }
+            
+        }
     }
 }
 

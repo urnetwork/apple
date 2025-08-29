@@ -37,10 +37,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
         if #available(iOS 16, macOS 13, *) {
             // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18
-            // the binary and go runtime take about 30mib of that, leaving at most about 20mib for the sdk and tunnel provider
+            // the binary and go runtime take about 20mib of that, leaving at most about 30mib for the sdk and tunnel provider
             // since the limit is a soft limit, take ~80% of the available for the SDK
             // see https://forums.developer.apple.com/forums/thread/73148?page=2
-            SdkSetMemoryLimit(16 * 1024 * 1024)
+            SdkSetMemoryLimit(24 * 1024 * 1024)
         } else {
             // note provider is also disabled for these
             SdkSetMemoryLimit(4 * 1024 * 1024)
@@ -73,7 +73,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         logger.info("[PacketTunnelProvider]start")
         
         guard let providerConfiguration = (protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration else {
-            logger.info( "[PacketTunnelProvider]start failed - no providerConfiguration")
+            logger.error( "[PacketTunnelProvider]start failed - no providerConfiguration")
             completionHandler(nil)
             return
         }
@@ -278,12 +278,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         })
         
-        
         let updatePath = { (path: Network.NWPath) in
-            let canProvideOnCell = self.device?.getProvideNetworkMode() == "all"
-            device.setProvidePaused(!canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell))
+            let canProvideOnCell = device.getProvideNetworkMode() == "all"
+            let canProvideOnNetwork = canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell)
+            self.logger.info("[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) provide=\(canProvideOnNetwork)")
+            device.setProvidePaused(!canProvideOnNetwork)
         }
-        
         let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
         let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
         pathMonitor.pathUpdateHandler = { path in

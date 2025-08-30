@@ -78,6 +78,8 @@ struct SettingsView: View {
                     viewModel.isPresentedDeleteAccountConfirmation = true
                 },
                 navigate: navigate,
+                provideEnabled: deviceManager.provideEnabled,
+                providePaused: deviceManager.providePaused,
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
                 canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
             )
@@ -170,6 +172,8 @@ struct SettingsView: View {
                     viewModel.isPresentedDeleteAccountConfirmation = true
                 },
                 navigate: navigate,
+                provideEnabled: deviceManager.provideEnabled,
+                providePaused: deviceManager.providePaused,
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
                 canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
                 launchAtStartupEnabled: $viewModel.launchAtStartupEnabled

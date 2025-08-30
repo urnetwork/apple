@@ -37,7 +37,13 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var device: SdkDeviceRemote? = nil {
         didSet {
+            setupDeviceListeners()
             updateParsedJwt()
+            
+            if let device = self.device {
+                self.providePaused = device.getProvidePaused()
+                self.provideEnabled = device.getProvideEnabled()
+            }
         }
     }
     
@@ -71,6 +77,12 @@ class DeviceManager: ObservableObject {
             updateAllowProvidingCell(allowProvidingCell)
         }
     }
+    
+    @Published private(set) var provideEnabled: Bool = false
+    @Published private(set) var providePaused: Bool = false
+    
+    private var deviceProvideSub: SdkSubProtocol?
+    private var deviceProvidePausedSub: SdkSubProtocol?
 
     private func updateAllowProvidingCell(_ allow: Bool) {
         #if os(iOS)
@@ -91,6 +103,9 @@ class DeviceManager: ObservableObject {
     func setDevice(device: SdkDeviceRemote?) {
         
         if self.device != device {
+            
+            cleanupDeviceListeners()
+            
             self.device?.close()
             self.device = device
             
@@ -125,6 +140,7 @@ class DeviceManager: ObservableObject {
     }
     
     func clearDevice() {
+        cleanupDeviceListeners()
         setDevice(device: nil)
     }
     
@@ -505,15 +521,49 @@ extension DeviceManager {
     }
     
     // TODO: add device listeners
-//    private func setupDeviceListeners() {
-//        
-//        if let device = device {
-//            
-//            // device.add(<#T##listener: (any SdkRouteLocalChangeListenerProtocol)?##(any SdkRouteLocalChangeListenerProtocol)?#>)
-//            
-//        }
-//        
-//    }
+    private func setupDeviceListeners() {
+        
+        guard let device = self.device else {
+            return
+        }
+        
+        self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] providePaused in
+            
+            guard let self = self else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                
+                self.providePaused = device.getProvidePaused()
+                self.vpnManager?.updateVpnService()
+                
+            }
+        })
+        
+        self.deviceProvideSub = device.add(ProvideChangeListener { [weak self] provideEnabled in
+            
+            guard let self = self else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                
+                self.provideEnabled = device.getProvideEnabled()
+                self.vpnManager?.updateVpnService()
+                
+            }
+        })
+        
+    }
+    
+    private func cleanupDeviceListeners() {
+        deviceProvideSub?.close()
+        deviceProvideSub = nil
+        
+        deviceProvidePausedSub?.close()
+        deviceProvidePausedSub = nil
+    }
     
 }
 
@@ -709,5 +759,47 @@ private class ProvideSecretKeysListener: NSObject, SdkProvideSecretKeysListenerP
         DispatchQueue.main.async {
             self.c(provideSecretKeysList)
         }
+    }
+}
+
+private class ProvideEnabledListener: NSObject, SdkProvideSecretKeysListenerProtocol {
+    
+    private let c: (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void
+
+    init(c: @escaping (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void) {
+        self.c = c
+    }
+    
+    func provideSecretKeysChanged(_ provideSecretKeysList: SdkProvideSecretKeyList?) {
+        
+        DispatchQueue.main.async {
+            self.c(provideSecretKeysList)
+        }
+    }
+}
+
+private class ProvideChangeListener: NSObject, SdkProvideChangeListenerProtocol {
+    
+    private let c: (_ provideEnabled: Bool) -> Void
+
+    init(c: @escaping (_ provideEnabled: Bool) -> Void) {
+        self.c = c
+    }
+    
+    func provideChanged(_ provideEnabled: Bool) {
+        c(provideEnabled)
+    }
+}
+
+private class ProvidePausedChangeListener: NSObject, SdkProvidePausedChangeListenerProtocol {
+    
+    private let c: (_ providePaused: Bool) -> Void
+
+    init(c: @escaping (_ providePaused: Bool) -> Void) {
+        self.c = c
+    }
+    
+    func providePausedChanged(_ providePaused: Bool) {
+        c(providePaused)
     }
 }

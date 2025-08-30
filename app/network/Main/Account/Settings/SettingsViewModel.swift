@@ -131,7 +131,7 @@ extension SettingsView {
                 
             do {
                 
-                let result: SdkNetworkDeleteResult = try await withCheckedThrowingContinuation { [weak self] continuation in
+                let _: SdkNetworkDeleteResult = try await withCheckedThrowingContinuation { [weak self] continuation in
                 
                     guard let self = self else { return }
                     

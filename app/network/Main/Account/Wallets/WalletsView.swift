@@ -101,7 +101,8 @@ struct WalletsView: View {
                             payoutPoints: payoutPoints,
                             multiplierPoints: multiplierPoints,
                             referralPoints: referralPoints,
-                            referralLinkViewModel: referralLinkViewModel
+                            networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
+                            referralLinkViewModel: referralLinkViewModel,
                         )
                         
                         PopulatedWalletsView(
@@ -112,7 +113,7 @@ struct WalletsView: View {
                             referralPoints: referralPoints,
                             multiplierPoints: multiplierPoints,
                             reliabilityPoints: reliabilityPoints,
-                            networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
+                            // networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
                             presentConnectWalletSheet: $viewModel.presentConnectWalletSheet
                         )
                     }
@@ -245,6 +246,7 @@ struct WalletsHeader: View {
     var payoutPoints: Double
     var multiplierPoints: Double
     var referralPoints: Double
+    var networkReliabilityWindow: SdkReliabilityWindow?
     // var totalReferrals: Int
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -303,6 +305,14 @@ struct WalletsHeader: View {
                     Spacer()
                     
                 }
+                
+                Divider()
+                
+                Spacer().frame(height: 8)
+                
+                NetworkReliabilityView(
+                    reliabilityWindow: networkReliabilityWindow
+                )
                 
             }
             .padding(.top)

@@ -94,7 +94,7 @@ struct NetworkReliabilityView: View {
             }
             
             HStack {
-                Text(reliabilityWindow == nil ? "-" : String(format: "%.2f%%", mean * 100))
+                Text(reliabilityWindow == nil ? "-" : String(format: "%.2f%", mean))
                     .font(themeManager.currentTheme.titleCondensedFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
 

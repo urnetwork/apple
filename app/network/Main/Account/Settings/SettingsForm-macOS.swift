@@ -28,10 +28,22 @@ struct SettingsForm_macOS: View {
     let presentSigninWithSolanaSheet: () -> Void
     let presentDeleteAccountConfirmation: () -> Void
     let navigate: (AccountNavigationPath) -> Void
+    let provideEnabled: Bool
+    let providePaused: Bool
     
     @Binding var canReceiveNotifications: Bool
     @Binding var canReceiveProductUpdates: Bool
     @Binding var launchAtStartupEnabled: Bool
+    
+    var provideIndicatorColor: Color {
+        if !provideEnabled {
+            return .urCoral
+        } else if providePaused {
+            return .urYellow
+        } else {
+            return .urGreen
+        }
+    }
     
     var body: some View {
         
@@ -242,8 +254,17 @@ struct SettingsForm_macOS: View {
                                         
                                 }
                             } label: {
-                                Text("Provide mode")
-                                    .font(themeManager.currentTheme.bodyFont)
+                                
+                                HStack {
+                                    Circle()
+                                        .frame(width: 8, height: 8)
+                                        .foregroundColor(provideIndicatorColor)
+                                    
+                                    
+                                    Text("Provide mode")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                }
+                                
                             }
                             .accentColor(themeManager.currentTheme.textColor)
                             

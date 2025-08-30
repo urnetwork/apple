@@ -31,10 +31,6 @@ class VPNManager {
     
     private var routeLocalSub: SdkSubProtocol?
     
-    private var deviceProvideSub: SdkSubProtocol?
-    
-    private var deviceProvidePausedSub: SdkSubProtocol?
-    
     private var deviceOfflineSub: SdkSubProtocol?
     
     private var deviceConnectSub: SdkSubProtocol?
@@ -59,19 +55,7 @@ class VPNManager {
                 self?.updateVpnService()
             }
         })
-        
-        self.deviceProvideSub = device.add(ProvideChangeListener { [weak self] provideEnabled in
-            DispatchQueue.main.async {
-                self?.updateVpnService()
-            }
-        })
-        
-        self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] providePaused in
-            DispatchQueue.main.async {
-                self?.updateVpnService()
-            }
-        })
-        
+             
         self.deviceOfflineSub = device.add(OfflineChangeListener { [weak self] offline, vpnInterfaceWhileOffline in
             DispatchQueue.main.async {
                 self?.updateVpnService()
@@ -120,12 +104,6 @@ class VPNManager {
         
         self.routeLocalSub?.close()
         self.routeLocalSub = nil
-        
-        self.deviceProvideSub?.close()
-        self.deviceProvideSub = nil
-        
-        self.deviceProvidePausedSub?.close()
-        self.deviceProvidePausedSub = nil
         
         self.deviceOfflineSub?.close()
         self.deviceOfflineSub = nil
@@ -393,32 +371,6 @@ private class RouteLocalChangeListener: NSObject, SdkRouteLocalChangeListenerPro
     
     func routeLocalChanged(_ routeLocal: Bool) {
         c(routeLocal)
-    }
-}
-
-private class ProvideChangeListener: NSObject, SdkProvideChangeListenerProtocol {
-    
-    private let c: (_ provideEnabled: Bool) -> Void
-
-    init(c: @escaping (_ provideEnabled: Bool) -> Void) {
-        self.c = c
-    }
-    
-    func provideChanged(_ provideEnabled: Bool) {
-        c(provideEnabled)
-    }
-}
-
-private class ProvidePausedChangeListener: NSObject, SdkProvidePausedChangeListenerProtocol {
-    
-    private let c: (_ providePaused: Bool) -> Void
-
-    init(c: @escaping (_ providePaused: Bool) -> Void) {
-        self.c = c
-    }
-    
-    func providePausedChanged(_ providePaused: Bool) {
-        c(providePaused)
     }
 }
 

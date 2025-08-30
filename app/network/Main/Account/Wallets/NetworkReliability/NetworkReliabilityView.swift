@@ -16,8 +16,8 @@ struct NetworkReliabilityView: View {
     var reliabilityWindow: SdkReliabilityWindow?
     
     let reliabilityWeights: EnumeratedSequence<[Double]>
-//    let clientCounts: EnumeratedSequence<[Int]>
-    let totalClientCounts: EnumeratedSequence<[Int]>
+    let clientCounts: EnumeratedSequence<[Int]>
+//    let totalClientCounts: EnumeratedSequence<[Int]>
     let mean: Double
     let countryMultipliers: [SdkCountryMultiplier]
     let reliabilityAverage: EnumeratedSequence<[Double]>
@@ -34,7 +34,7 @@ struct NetworkReliabilityView: View {
              */
             var averageWeightsArr: [Double] = []
             
-            for i in 0..<reliabilityWeightsList.len() {
+            for _ in 0..<reliabilityWeightsList.len() {
                 averageWeightsArr.append(mean)
             }
             
@@ -47,19 +47,17 @@ struct NetworkReliabilityView: View {
         }
         
         
-//        if let clientCountsList = reliabilityWindow?.clientCounts {
-//            clientCounts = intListToArray(clientCountsList).enumerated()
-//            print("intListToArray(clientCountsList): \(intListToArray(clientCountsList))")
-//        } else {
-//            print("clientCounts is empty")
-//            clientCounts = [Int]().enumerated()
-//        }
-        
-        if let totalCountList = reliabilityWindow?.totalClientCounts {
-            totalClientCounts = intListToArray(totalCountList).enumerated()
+        if let clientCountsList = reliabilityWindow?.clientCounts {
+            clientCounts = intListToArray(clientCountsList).enumerated()
         } else {
-            totalClientCounts = [Int]().enumerated()
+            clientCounts = [Int]().enumerated()
         }
+        
+//        if let totalCountList = reliabilityWindow?.totalClientCounts {
+//            totalClientCounts = intListToArray(totalCountList).enumerated()
+//        } else {
+//            totalClientCounts = [Int]().enumerated()
+//        }
         
         if let countryMultipliers = reliabilityWindow?.countryMultipliers {
             
@@ -83,6 +81,8 @@ struct NetworkReliabilityView: View {
             self.countryMultipliers = []
         }
         
+        self.reliabilityWindow = reliabilityWindow
+        
     }
     
     var body: some View {
@@ -94,7 +94,7 @@ struct NetworkReliabilityView: View {
             }
             
             HStack {
-                Text(String(format: "%.2f%%", mean * 100))
+                Text(reliabilityWindow == nil ? "-" : String(format: "%.2f%%", mean * 100))
                     .font(themeManager.currentTheme.titleCondensedFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
 
@@ -112,12 +112,12 @@ struct NetworkReliabilityView: View {
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3])) // Dashed line
                 }
                 
-                ForEach(Array(totalClientCounts), id: \.self.element) { index, counts in
+                ForEach(Array(clientCounts), id: \.self.element) { index, counts in
                     LineMark(
                         x: .value("", index),
-                        y: .value("Total Clients", counts),
+                        y: .value("Clients", counts),
                     )
-                    .foregroundStyle(by: .value("key", "Total Clients"))
+                    .foregroundStyle(by: .value("key", "Clients"))
                 }
                 
                 ForEach(Array(reliabilityWeights), id: \.self.element) { index, weight in
@@ -133,7 +133,7 @@ struct NetworkReliabilityView: View {
             .chartXAxis(.hidden)
             .chartForegroundStyleScale([
                 "Reliability Weight": .urPink.opacity(0.6),
-                "Total Clients": .urGreen,
+                "Clients": .urGreen,
                 "Average Reliability": themeManager.currentTheme.textMutedColor
             ])
             
@@ -150,9 +150,7 @@ struct NetworkReliabilityView: View {
             }
             
         }
-        .padding()
-        .background(themeManager.currentTheme.tintedBackgroundBase)
-        .cornerRadius(12)
+        .padding(.bottom)
     }
 }
 

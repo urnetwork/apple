@@ -39,6 +39,9 @@ class VPNManager {
     
     private var tunnelSub: SdkSubProtocol?
     
+    private var deviceProvideSub: SdkSubProtocol?
+    private var deviceProvidePausedSub: SdkSubProtocol?
+    
     var contractStatusSub: SdkSubProtocol?
     
     let monitor = NWPathMonitor()
@@ -50,37 +53,45 @@ class VPNManager {
         self.device = device
         self.monitor.start(queue: queue)
         
-        self.routeLocalSub = device.add(RouteLocalChangeListener { [weak self] routeLocal in
+        self.routeLocalSub = device.add(RouteLocalChangeListener { [weak self] _ in
             DispatchQueue.main.async {
                 self?.updateVpnService()
             }
         })
              
-        self.deviceOfflineSub = device.add(OfflineChangeListener { [weak self] offline, vpnInterfaceWhileOffline in
+        self.deviceOfflineSub = device.add(OfflineChangeListener { [weak self] _, _ in
             DispatchQueue.main.async {
                 self?.updateVpnService()
             }
         })
         
-        self.deviceConnectSub = device.add(ConnectChangeListener { [weak self] connectEnabled in
+        self.deviceConnectSub = device.add(ConnectChangeListener { [weak self] _ in
             DispatchQueue.main.async {
                 self?.updateVpnService()
             }
         })
         
-        self.tunnelSub = device.add(TunnelChangeListener { [weak self] tunnelStarted in
-            guard let self = self else {
-                return
-            }
-            
+        self.tunnelSub = device.add(TunnelChangeListener { [weak self] _ in
             DispatchQueue.main.async {
-                self.updateTunnel()
+                self?.updateTunnel()
             }
         })
         
         self.contractStatusSub = device.add(ContractStatusChangeListener { [weak self] _ in
             DispatchQueue.main.async {
                 self?.updateContractStatus()
+            }
+        })
+        
+        self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.updateVpnService()
+            }
+        })
+        
+        self.deviceProvideSub = device.add(ProvideChangeListener { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.updateVpnService()
             }
         })
         
@@ -119,6 +130,12 @@ class VPNManager {
         
         self.contractStatusSub?.close()
         self.contractStatusSub = nil
+        
+        self.deviceProvideSub?.close()
+        self.deviceProvideSub = nil
+        
+        self.deviceProvidePausedSub?.close()
+        self.deviceProvidePausedSub = nil
     }
     
     
@@ -168,21 +185,19 @@ class VPNManager {
     
     func updateVpnService() {
         let provideEnabled = device.getProvideEnabled()
-        let providePaused = device.getProvidePaused()
         let connectEnabled = device.getConnectEnabled()
         let routeLocal = device.getRouteLocal()
-        let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) ?? .WiFi
-        let allowProvideOnCurrentNetwork = allowProvideOnCurrentNetwork(provideNetworkMode)
+        let providePaused = device.getProvidePaused()
         
         print("provideEnabled is: \(provideEnabled)")
-        print("allow provide on current network: \(allowProvideOnCurrentNetwork)")
         print("connect enabled: \(connectEnabled)")
         print("routeLocal is: \(routeLocal)")
         
-        if ( (provideEnabled && allowProvideOnCurrentNetwork) || connectEnabled || !routeLocal) {
+        if ( provideEnabled || connectEnabled || !routeLocal) {
             print("[VPNManager]start")
             
-            setIdleTimerDisabled(providePaused ? false : true)
+            // if provide paused, keep the vpn on but do not keep the locks
+            setIdleTimerDisabled(!providePaused)
             
             self.startVpnTunnel()
             
@@ -413,4 +428,28 @@ private class RemoteChangeListener: NSObject, SdkRemoteChangeListenerProtocol {
     }
 }
 
+private class ProvideChangeListener: NSObject, SdkProvideChangeListenerProtocol {
+    
+    private let c: (_ provideEnabled: Bool) -> Void
 
+    init(c: @escaping (_ provideEnabled: Bool) -> Void) {
+        self.c = c
+    }
+    
+    func provideChanged(_ provideEnabled: Bool) {
+        c(provideEnabled)
+    }
+}
+
+private class ProvidePausedChangeListener: NSObject, SdkProvidePausedChangeListenerProtocol {
+    
+    private let c: (_ providePaused: Bool) -> Void
+
+    init(c: @escaping (_ providePaused: Bool) -> Void) {
+        self.c = c
+    }
+    
+    func providePausedChanged(_ providePaused: Bool) {
+        c(providePaused)
+    }
+}

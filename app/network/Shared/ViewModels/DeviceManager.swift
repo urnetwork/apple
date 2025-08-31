@@ -95,8 +95,6 @@ class DeviceManager: ObservableObject {
         }
         
         device?.setProvideNetworkMode(mode)
-        
-        vpnManager?.updateVpnService()
         #endif
     }
     
@@ -125,7 +123,6 @@ class DeviceManager: ObservableObject {
                         self.allowProvidingCell = provideNetworkMode == .All
                     }
                     
-                    self.routeLocal = device.getRouteLocal()
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
                 } else {
@@ -140,7 +137,6 @@ class DeviceManager: ObservableObject {
     }
     
     func clearDevice() {
-        cleanupDeviceListeners()
         setDevice(device: nil)
     }
     
@@ -520,41 +516,35 @@ extension DeviceManager {
         return nil
     }
     
-    // TODO: add device listeners
     private func setupDeviceListeners() {
-        
         guard let device = self.device else {
             return
         }
         
+        self.cleanupDeviceListeners()
+        
         self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] providePaused in
-            
             guard let self = self else {
                 return
             }
             
             DispatchQueue.main.async {
-                
                 self.providePaused = device.getProvidePaused()
-                self.vpnManager?.updateVpnService()
-                
             }
         })
         
         self.deviceProvideSub = device.add(ProvideChangeListener { [weak self] provideEnabled in
-            
             guard let self = self else {
                 return
             }
             
             DispatchQueue.main.async {
-                
                 self.provideEnabled = device.getProvideEnabled()
-                self.vpnManager?.updateVpnService()
-                
             }
         })
         
+        self.provideEnabled = device.getProvideEnabled()
+        self.providePaused = device.getProvidePaused()
     }
     
     private func cleanupDeviceListeners() {
@@ -747,22 +737,6 @@ extension DeviceManager {
 
 
 private class ProvideSecretKeysListener: NSObject, SdkProvideSecretKeysListenerProtocol {
-    
-    private let c: (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void
-
-    init(c: @escaping (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void) {
-        self.c = c
-    }
-    
-    func provideSecretKeysChanged(_ provideSecretKeysList: SdkProvideSecretKeyList?) {
-        
-        DispatchQueue.main.async {
-            self.c(provideSecretKeysList)
-        }
-    }
-}
-
-private class ProvideEnabledListener: NSObject, SdkProvideSecretKeysListenerProtocol {
     
     private let c: (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void
 

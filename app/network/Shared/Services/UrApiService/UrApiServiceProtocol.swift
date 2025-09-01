@@ -58,4 +58,12 @@ protocol UrApiServiceProtocol {
      * Wallet
      */
     func validateWalletAddress(address: String, chain: String) async throws -> Bool
+    
+    /**
+     * Settings
+     */
+    func deleteAccount() async throws -> SdkNetworkDeleteResult
+    func getReferralNetwork() async throws -> SdkGetReferralNetworkResult
+    func setNetworkReferral(_ referralCode: String) async throws -> SdkSetNetworkReferralResult
+    func unlinkReferralNetwork() async throws -> SdkUnlinkReferralNetworkResult
 }

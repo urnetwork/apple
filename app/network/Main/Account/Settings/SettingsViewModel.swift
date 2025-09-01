@@ -17,13 +17,13 @@ extension SettingsView {
     @MainActor
     class ViewModel: ObservableObject {
         
-        var api: SdkApi
+        let api: UrApiServiceProtocol
         
         @Published var presentUpdateReferralNetworkSheet: Bool = false
         
         @Published var version: String = ""
         
-        init(api: SdkApi) {
+        init(api: UrApiServiceProtocol) {
             self.api = api
             
             #if os(macOS)
@@ -125,39 +125,13 @@ extension SettingsView {
                 return .failure(NetworkDeleteError.inProgress)
             }
             
-            DispatchQueue.main.async {
-                self.isDeletingNetwork = true
-            }
+            self.isDeletingNetwork = true
                 
             do {
-                
-                let _: SdkNetworkDeleteResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-                
-                    guard let self = self else { return }
-                    
-                    let callback = NetworkDeleteCallback { result, err in
-                        
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        guard let result = result else {
-                            continuation.resume(throwing: SendPasswordResetLinkError.resultInvalid)
-                            return
-                        }
-                        
-                        continuation.resume(returning: result)
-                        
-                    }
-                    
-                    api.networkDelete(callback)
-                    
-                }
                    
-                DispatchQueue.main.async {
-                    self.isDeletingNetwork = false
-                }
+                let _ = try await api.deleteAccount()
+                
+                self.isDeletingNetwork = false
                 
                 return .success(())
                 
@@ -175,28 +149,7 @@ extension SettingsView {
             
             do {
 
-                let result: SdkGetReferralNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-
-                    guard let self = self else { return }
-
-                    let callback = GetNetworkReferralCallback { result, err in
-
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-
-                        guard let result = result else {
-                            continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "TransferStatsCallback result is nil"]))
-                            return
-                        }
-
-                        continuation.resume(returning: result)
-                    }
-
-                    api.getReferralNetwork(callback)
-
-                }
+                let result = try await api.getReferralNetwork()
                 
                 if result.error != nil {
                     print("fetch referral network result.error: \(String(describing: result.error?.message))")
@@ -238,21 +191,4 @@ extension SettingsView {
         
     }
     
-}
-
-private class NetworkDeleteCallback: SdkCallback<SdkNetworkDeleteResult, SdkNetworkDeleteCallbackProtocol>, SdkNetworkDeleteCallbackProtocol {
-    func result(_ result: SdkNetworkDeleteResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
-private class GetNetworkReferralCallback: SdkCallback<SdkGetReferralNetworkResult, SdkGetReferralNetworkCallbackProtocol>, SdkGetReferralNetworkCallbackProtocol {
-    func result(_ result: SdkGetReferralNetworkResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
-enum NetworkDeleteError: Error {
-    case inProgress
-    case resultInvalid
 }

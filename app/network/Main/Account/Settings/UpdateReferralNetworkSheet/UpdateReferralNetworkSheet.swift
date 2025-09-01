@@ -18,7 +18,7 @@ struct UpdateReferralNetworkSheet: View {
     var referralNetwork: SdkReferralNetwork?
 
     init(
-        api: SdkApi,
+        api: UrApiServiceProtocol,
         onSuccess: @escaping () -> Void,
         dismiss: @escaping () -> Void,
         referralNetwork: SdkReferralNetwork?

@@ -104,8 +104,7 @@ struct AccountNavStackView: View {
                     
                 case .settings:
                     SettingsView(
-                        api: api,
-                        urApiService: urApiService,
+                        api: urApiService,
                         clientId: device.getClientId(),
                         accountPreferencesViewModel: accountPreferencesViewModel,
                         referralLinkViewModel: referralLinkViewModel,

@@ -77,4 +77,20 @@ class MockUrApiService: UrApiServiceProtocol {
         return true
     }
     
+    func deleteAccount() async throws -> SdkNetworkDeleteResult {
+        return SdkNetworkDeleteResult()
+    }
+    
+    func getReferralNetwork() async throws -> SdkGetReferralNetworkResult {
+        return SdkGetReferralNetworkResult()
+    }
+    
+    func setNetworkReferral(_ referralCode: String) async throws -> SdkSetNetworkReferralResult {
+        SdkSetNetworkReferralResult()
+    }
+    
+    func unlinkReferralNetwork() async throws -> SdkUnlinkReferralNetworkResult {
+        return SdkUnlinkReferralNetworkResult()
+    }
+    
 }

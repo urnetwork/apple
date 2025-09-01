@@ -24,14 +24,12 @@ struct SettingsView: View {
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountWalletsViewModel: AccountWalletsViewModel
     
-    let api: SdkApi
-    let urApiService: UrApiServiceProtocol
+    let api: UrApiServiceProtocol
     let navigate: (AccountNavigationPath) -> Void
     let providerCountries: [SdkConnectLocation]
     
     init(
-        api: SdkApi, // todo: deprecrate this in favor of urApiService
-        urApiService: UrApiServiceProtocol,
+        api: UrApiServiceProtocol,
         clientId: SdkId?,
         accountPreferencesViewModel: AccountPreferencesViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
@@ -44,10 +42,9 @@ struct SettingsView: View {
         self.accountPreferencesViewModel = accountPreferencesViewModel
         self.referralLinkViewModel = referralLinkViewModel
         self.accountWalletsViewModel = accountWalletsViewModel
-        self.api = api
         self.navigate = navigate
         self.providerCountries = providerCountries
-        self.urApiService = urApiService
+        self.api = api
     }
     
     var clientUrl: String {
@@ -59,7 +56,7 @@ struct SettingsView: View {
 
         #if os(iOS)
             SettingsForm_iOS(
-                urApiService: urApiService,
+                urApiService: api,
                 clientId: clientId,
                 clientUrl: clientUrl,
                 referralCode: referralLinkViewModel.referralCode,
@@ -153,7 +150,7 @@ struct SettingsView: View {
         
         #elseif os(macOS)
             SettingsForm_macOS(
-                urApiService: urApiService,
+                urApiService: api,
                 clientId: clientId,
                 clientUrl: clientUrl,
                 referralCode: referralLinkViewModel.referralCode,

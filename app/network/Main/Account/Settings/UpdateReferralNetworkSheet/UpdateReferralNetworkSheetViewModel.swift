@@ -24,9 +24,9 @@ extension UpdateReferralNetworkSheet {
         
         @Published var isUnlinkingReferralNetwork: Bool = false
         
-        var api: SdkApi
+        var api: UrApiServiceProtocol
         
-        init(api: SdkApi) {
+        init(api: UrApiServiceProtocol) {
             self.api = api
         }
         
@@ -44,31 +44,7 @@ extension UpdateReferralNetworkSheet {
 
             do {
 
-                let result: SdkSetNetworkReferralResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-
-                    guard let self = self else { return }
-
-                    let callback = UpdateReferralNetworkCallback { result, err in
-
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-
-                        guard let result = result else {
-                            continuation.resume(throwing: NSError(domain: "UpdateReferralNetworkViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "SdkSetNetworkReferralResult result is nil"]))
-                            return
-                        }
-
-                        continuation.resume(returning: result)
-                    }
-                    
-                    let args = SdkSetNetworkReferralArgs()
-                    args.referralCode = self.referralCode
-
-                    api.setNetworkReferral(args, callback: callback)
-
-                }
+                let result = try await api.setNetworkReferral(self.referralCode)
                 
                 if result.error != nil {
                     self.codeInputSupportingText = "Invalid referral code. Please try again."
@@ -103,29 +79,8 @@ extension UpdateReferralNetworkSheet {
             self.codeInputSupportingText = ""
 
             do {
-
-                let _: SdkUnlinkReferralNetworkResult = try await withCheckedThrowingContinuation { [weak self] continuation in
-
-                    guard let self = self else { return }
-
-                    let callback = UnlinkReferralNetworkCallback { result, err in
-
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-
-                        guard let result = result else {
-                            continuation.resume(throwing: NSError(domain: "UpdateReferralNetworkViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "SdkUnlinkReferralNetworkResult result is nil"]))
-                            return
-                        }
-
-                        continuation.resume(returning: result)
-                    }
-                    
-                    api.unlinkReferralNetwork(callback)
-
-                }
+                
+                let _ = try await api.unlinkReferralNetwork()
 
                 isUnlinkingReferralNetwork = false
                 
@@ -140,24 +95,6 @@ extension UpdateReferralNetworkSheet {
             
         }
         
-    }
-    
-    private class UpdateReferralNetworkCallback: SdkCallback<SdkSetNetworkReferralResult, SdkSetNetworkReferralCallbackProtocol>, SdkSetNetworkReferralCallbackProtocol {
-        func result(_ result: SdkSetNetworkReferralResult?, err: Error?) {
-            handleResult(result, err: err)
-        }
-    }
-    
-    private class UnlinkReferralNetworkCallback: SdkCallback<SdkUnlinkReferralNetworkResult, SdkUnlinkReferralNetworkCallbackProtocol>, SdkUnlinkReferralNetworkCallbackProtocol {
-        func result(_ result: SdkUnlinkReferralNetworkResult?, err: Error?) {
-            handleResult(result, err: err)
-        }
-    }
-    
-    enum UpdateReferralNetworkError: Error {
-        case inProgress
-        case resultInvalid
-        case unknown
     }
     
 }

@@ -12,6 +12,8 @@ class UrApiService: UrApiServiceProtocol {
     
     private let api: SdkApi
     
+    let domain = "UrApiService"
+    
     init(api: SdkApi) {
         self.api = api
     }
@@ -621,6 +623,112 @@ extension UrApiService {
     
 }
 
+// MARK: Settings
+extension UrApiService {
+    
+    func deleteAccount() async throws -> SdkNetworkDeleteResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = NetworkDeleteCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: SendPasswordResetLinkError.resultInvalid)
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            api.networkDelete(callback)
+            
+        }
+        
+    }
+    
+    func getReferralNetwork() async throws -> SdkGetReferralNetworkResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+
+            let callback = GetNetworkReferralCallback { result, err in
+
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "getReferralNetwork result is nil"]))
+                    return
+                }
+
+                continuation.resume(returning: result)
+            }
+
+            api.getReferralNetwork(callback)
+
+        }
+    }
+    
+    func setNetworkReferral(_ referralCode: String) async throws -> SdkSetNetworkReferralResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+
+            let callback = UpdateReferralNetworkCallback { result, err in
+
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: self.domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "SdkSetNetworkReferralResult result is nil"]))
+                    return
+                }
+
+                continuation.resume(returning: result)
+            }
+            
+            let args = SdkSetNetworkReferralArgs()
+            args.referralCode = referralCode
+
+            api.setNetworkReferral(args, callback: callback)
+
+        }
+        
+    }
+    
+    func unlinkReferralNetwork() async throws -> SdkUnlinkReferralNetworkResult {
+        return try await withCheckedThrowingContinuation { continuation in
+
+            let callback = UnlinkReferralNetworkCallback { result, err in
+
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UpdateReferralNetworkViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "SdkUnlinkReferralNetworkResult result is nil"]))
+                    return
+                }
+
+                continuation.resume(returning: result)
+            }
+            
+            api.unlinkReferralNetwork(callback)
+
+        }
+    }
+    
+}
+
 // MARK: network reliability
 extension UrApiService {
     
@@ -793,7 +901,29 @@ private class ValidateAddressCallback: SdkCallback<SdkWalletValidateAddressResul
     }
 }
 
+private class NetworkDeleteCallback: SdkCallback<SdkNetworkDeleteResult, SdkNetworkDeleteCallbackProtocol>, SdkNetworkDeleteCallbackProtocol {
+    func result(_ result: SdkNetworkDeleteResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
 
+private class GetNetworkReferralCallback: SdkCallback<SdkGetReferralNetworkResult, SdkGetReferralNetworkCallbackProtocol>, SdkGetReferralNetworkCallbackProtocol {
+    func result(_ result: SdkGetReferralNetworkResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class UpdateReferralNetworkCallback: SdkCallback<SdkSetNetworkReferralResult, SdkSetNetworkReferralCallbackProtocol>, SdkSetNetworkReferralCallbackProtocol {
+    func result(_ result: SdkSetNetworkReferralResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class UnlinkReferralNetworkCallback: SdkCallback<SdkUnlinkReferralNetworkResult, SdkUnlinkReferralNetworkCallbackProtocol>, SdkUnlinkReferralNetworkCallbackProtocol {
+    func result(_ result: SdkUnlinkReferralNetworkResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
 
 /**
  * Error enums
@@ -851,6 +981,17 @@ enum LoginNetworkResult {
     case successWithJwt(String)
     case successWithVerificationRequired
     case failure(Error)
+}
+
+enum NetworkDeleteError: Error {
+    case inProgress
+    case resultInvalid
+}
+
+enum UpdateReferralNetworkError: Error {
+    case inProgress
+    case resultInvalid
+    case unknown
 }
 
 

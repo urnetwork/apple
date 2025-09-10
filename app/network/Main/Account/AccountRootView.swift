@@ -72,6 +72,7 @@ struct AccountRootView: View {
                 
             }
             .frame(height: 32)
+            .padding()
             // .padding(.vertical, 12)
             
             Spacer().frame(height: 16)
@@ -163,6 +164,7 @@ struct AccountRootView: View {
             .frame(maxWidth: .infinity)
             .background(themeManager.currentTheme.tintedBackgroundBase)
             .cornerRadius(12)
+            .padding(.horizontal)
             
             Spacer().frame(height: 16)
             
@@ -224,6 +226,7 @@ struct AccountRootView: View {
                             
                         }
                         .padding(.vertical, 8)
+                        .padding(.horizontal)
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)
@@ -256,6 +259,7 @@ struct AccountRootView: View {
                             
                         }
                         .padding(.vertical, 8)
+                        .padding(.horizontal)
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)
@@ -300,6 +304,7 @@ struct AccountRootView: View {
                             
                         }
                         .padding(.vertical, 8)
+                        .padding(.horizontal)
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)
@@ -310,6 +315,12 @@ struct AccountRootView: View {
                 }
                 .buttonStyle(.plain)
                 
+                /**
+                 * URnode Carousel
+                 */
+                URNodeCarousel()
+                
+                Spacer().frame(height: 16)
             }
             
             Spacer()
@@ -327,7 +338,7 @@ struct AccountRootView: View {
         .refreshable {
             await subscriptionBalanceViewModel.fetchSubscriptionBalance()
         }
-        .padding()
+//        .padding()
         .frame(maxWidth: 600)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
@@ -473,8 +484,8 @@ private struct AccountNavLink: View {
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                     
                 }
-                // .contentShape(Rectangle())
                 .padding(.vertical, 8)
+                .padding(.horizontal)
                 
                 Divider()
                     .background(themeManager.currentTheme.borderBaseColor)

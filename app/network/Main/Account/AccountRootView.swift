@@ -232,6 +232,9 @@ struct AccountRootView: View {
                     
                 }
                 
+                /**
+                 * Review
+                 */
                 Button(action: {
                     requestReview()
                 }) {
@@ -246,6 +249,50 @@ struct AccountRootView: View {
                             Spacer().frame(width: 16)
                             
                             Text("Review URnetwork")
+                                .font(themeManager.currentTheme.bodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            
+                            Spacer()
+                            
+                        }
+                        .padding(.vertical, 8)
+                        
+                        Divider()
+                            .background(themeManager.currentTheme.borderBaseColor)
+                        
+                    }
+                    .contentShape(Rectangle())
+                    
+                }
+                .buttonStyle(.plain)
+                
+                /**
+                 * Check IP
+                 */
+                Button(action: {
+                    if let url = URL(string: "https://ur.io/ip") {
+                        
+                        #if canImport(UIKit)
+                        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        #endif
+                        
+                        #if canImport(AppKit)
+                        NSWorkspace.shared.open(url)
+                        #endif
+                        
+                    }
+                }) {
+                    
+                    VStack(spacing: 0) {
+                        HStack {
+                            
+                            Image(systemName: "dot.scope")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .frame(width: 24)
+                            
+                            Spacer().frame(width: 16)
+                            
+                            Text("Check my IP")
                                 .font(themeManager.currentTheme.bodyFont)
                                 .foregroundColor(themeManager.currentTheme.textColor)
                             

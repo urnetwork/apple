@@ -72,6 +72,7 @@ struct AccountRootView: View {
                 
             }
             .frame(height: 32)
+            .padding()
             // .padding(.vertical, 12)
             
             Spacer().frame(height: 16)
@@ -163,6 +164,7 @@ struct AccountRootView: View {
             .frame(maxWidth: .infinity)
             .background(themeManager.currentTheme.tintedBackgroundBase)
             .cornerRadius(12)
+            .padding(.horizontal)
             
             Spacer().frame(height: 16)
             
@@ -224,6 +226,7 @@ struct AccountRootView: View {
                             
                         }
                         .padding(.vertical, 8)
+                        .padding(.horizontal)
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)
@@ -232,6 +235,9 @@ struct AccountRootView: View {
                     
                 }
                 
+                /**
+                 * Review
+                 */
                 Button(action: {
                     requestReview()
                 }) {
@@ -253,6 +259,7 @@ struct AccountRootView: View {
                             
                         }
                         .padding(.vertical, 8)
+                        .padding(.horizontal)
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)
@@ -263,6 +270,57 @@ struct AccountRootView: View {
                 }
                 .buttonStyle(.plain)
                 
+                /**
+                 * Check IP
+                 */
+                Button(action: {
+                    if let url = URL(string: "https://ur.io/ip") {
+                        
+                        #if canImport(UIKit)
+                        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        #endif
+                        
+                        #if canImport(AppKit)
+                        NSWorkspace.shared.open(url)
+                        #endif
+                        
+                    }
+                }) {
+                    
+                    VStack(spacing: 0) {
+                        HStack {
+                            
+                            Image(systemName: "dot.scope")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .frame(width: 24)
+                            
+                            Spacer().frame(width: 16)
+                            
+                            Text("Check my IP")
+                                .font(themeManager.currentTheme.bodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            
+                            Spacer()
+                            
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal)
+                        
+                        Divider()
+                            .background(themeManager.currentTheme.borderBaseColor)
+                        
+                    }
+                    .contentShape(Rectangle())
+                    
+                }
+                .buttonStyle(.plain)
+                
+                /**
+                 * URnode Carousel
+                 */
+                URNodeCarousel()
+                
+                Spacer().frame(height: 16)
             }
             
             Spacer()
@@ -280,7 +338,7 @@ struct AccountRootView: View {
         .refreshable {
             await subscriptionBalanceViewModel.fetchSubscriptionBalance()
         }
-        .padding()
+//        .padding()
         .frame(maxWidth: 600)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
@@ -426,8 +484,8 @@ private struct AccountNavLink: View {
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                     
                 }
-                // .contentShape(Rectangle())
                 .padding(.vertical, 8)
+                .padding(.horizontal)
                 
                 Divider()
                     .background(themeManager.currentTheme.borderBaseColor)

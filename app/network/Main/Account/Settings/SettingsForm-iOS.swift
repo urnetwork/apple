@@ -288,7 +288,7 @@ struct SettingsForm_iOS: View {
                             
                         }
                     }) {
-                        Image(systemName: "arrow.forward")
+                        Image(systemName: "arrow.up.right.square")
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                     }
                 }
@@ -345,6 +345,26 @@ struct SettingsForm_iOS: View {
                         Spacer()
                     }
                     
+                }
+                
+                /**
+                 * Learn more about Solana Seeker x URnetwork collab
+                 */
+                HStack {
+                    Text("Learn more about the multiplier")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        if let url = URL(string: "https://ur.io/seeker") {
+                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        }
+                    }) {
+                        Image(systemName: "arrow.up.right.square")
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
                 }
                 
             }

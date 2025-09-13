@@ -44,7 +44,7 @@ struct DePinHubSettingsLinkRow: View {
                     
                 }
             }) {
-                Image(systemName: "arrow.forward")
+                Image(systemName: "arrow.up.right.square")
                 #if os(iOS)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                 #endif

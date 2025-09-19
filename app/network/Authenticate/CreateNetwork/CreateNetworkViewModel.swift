@@ -7,7 +7,7 @@
 
 import Foundation
 import URnetworkSdk
-import SwiftUICore
+import SwiftUI
 
 private class NetworkCheckCallback: SdkCallback<SdkNetworkCheckResult, SdkNetworkCheckCallbackProtocol>, SdkNetworkCheckCallbackProtocol {
     func result(_ result: SdkNetworkCheckResult?, err: Error?) {

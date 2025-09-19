@@ -16,7 +16,6 @@ struct AccountRootView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
-    @Environment(\.requestReview) private var requestReview
     @EnvironmentObject var connectViewModel: ConnectViewModel
     
     var navigate: (AccountNavigationPath) -> Void
@@ -28,6 +27,20 @@ struct AccountRootView: View {
     
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
+    
+    private let urnetworkAppStoreID = "6741000606"
+    
+    private func appStoreWriteReviewURL(appID: String) -> URL? {
+        #if os(iOS)
+        // Opens App Store app directly on iOS
+        return URL(string: "itms-apps://itunes.apple.com/app/id\(appID)?action=write-review")
+        #elseif os(macOS)
+        // Opens Mac App Store directly on macOS
+        return URL(string: "macappstore://itunes.apple.com/app/id\(appID)?action=write-review")
+        #else
+        return nil
+        #endif
+    }
     
     init(
         navigate: @escaping (AccountNavigationPath) -> Void,
@@ -239,7 +252,9 @@ struct AccountRootView: View {
                  * Review
                  */
                 Button(action: {
-                    requestReview()
+                    if let url = appStoreWriteReviewURL(appID: urnetworkAppStoreID) {
+                        openURL(url)
+                    }
                 }) {
                     
                     VStack(spacing: 0) {

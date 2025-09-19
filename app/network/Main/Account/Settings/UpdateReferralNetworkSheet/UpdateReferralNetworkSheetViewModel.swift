@@ -7,7 +7,7 @@
 
 import Foundation
 import URnetworkSdk
-import SwiftUICore
+import SwiftUI
 
 extension UpdateReferralNetworkSheet {
     

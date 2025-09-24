@@ -14,7 +14,6 @@ struct SelectedProvider: View {
     
     let selectedProvider: SdkConnectLocation?
     let openSelectProvider: () -> Void
-    // var getProviderColor: (SdkConnectLocation) -> Color
     
     var body: some View {
         HStack {
@@ -65,19 +64,16 @@ struct SelectedProvider: View {
                 
             }
             
-//            Spacer().frame(width: 8)
-            
             Spacer()
             
             Button(action: openSelectProvider) {
                 Text("Change")
-                    .foregroundStyle(.urElectricBlue)
+                    .foregroundStyle(.urWhite)
                     .font(themeManager.currentTheme.bodyFont)
             }
             
         }
         .padding(.vertical, 8)
-//        .padding(.horizontal, 16)
     }
 }
 

@@ -113,20 +113,6 @@ struct ConnectView_iOS: View {
                     
                     Spacer()
                     
-                    //                Button(action: {
-                    //                    providerListSheetViewModel.isPresented = true
-                    //                }) {
-                    //
-                    //                    SelectedProvider(
-                    //                        selectedProvider: connectViewModel.selectedProvider,
-                    //                    )
-                    //
-                    //                }
-                    //                .background(themeManager.currentTheme.tintedBackgroundBase)
-                    //                .clipShape(.capsule)
-                    //
-                    //                Spacer().frame(height: 16)
-                    
                 }
                 .onChange(of: connectViewModel.connectionStatus) { newValue in
                     
@@ -198,17 +184,8 @@ struct ConnectView_iOS: View {
                     
                     Color.clear
                         .frame(height: geometry.size.height - 184)
-                    
-//                    GeometryReader { scrollGeometry in
-//                        
-////                        VStack(spacing: 0) {
-//                        
-//                        Rectangle()
-//                            .fill(themeManager.currentTheme.tintedBackgroundBase)
-//                            .colorMultiply(Color(white: 0.8))
-//                            .frame(height: max(0, geometry.size.height - scrollGeometry.size.height))
-                            
-                    ConnectContent(
+
+                    ConnectActions(
                         connect: connectViewModel.connect,
                         disconnect: connectViewModel.disconnect,
                         connectionStatus: connectViewModel.connectionStatus,
@@ -226,25 +203,9 @@ struct ConnectView_iOS: View {
                         pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                         usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount
                     )
-//                    .padding(.horizontal)
-                    
-//                    Rectangle()
-//                        .fill(themeManager.currentTheme.tintedBackgroundBase)
-//                        .colorMultiply(Color(white: 0.8))
-//                        .frame(height: 200) // Fixed height for bounce area
-                        
-
-//                        }
-//                    }
                     
                 }
                 .scrollIndicators(.hidden)
-
-                
-                
-                //                .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                    .defaultScrollAnchor(.bottom)
-                //                .offset(y: 100)
                 
             }
             .sheet(isPresented: $providerListSheetViewModel.isPresented) {
@@ -397,224 +358,6 @@ struct ConnectView_iOS: View {
     
 }
 
-struct ConnectContent: View {
-    
-    let connect: () -> Void
-    let disconnect: () -> Void
-    let connectionStatus: ConnectionStatus?
-    let selectedProvider: SdkConnectLocation?
-    let setIsPresented: (Bool) -> Void
-    let displayReconnectTunnel: Bool
-    let reconnectTunnel: (() -> Void)?
-    let contractStatus: SdkContractStatus?
-    let windowCurrentSize: Int32
-    let currentPlan: Plan
-    let isPollingSubscriptionBalance: Bool
-    let availableByteCount: Int
-    let pendingByteCount: Int
-    let usedByteCount: Int
-    
-    @EnvironmentObject var themeManager: ThemeManager
-    
-    var body: some View {
-            
-            VStack {
-                
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.secondary.opacity(0.3))
-                    .frame(width: 36, height: 4)
-                    .padding(.top, 8)
-                
-                Spacer().frame(height: 16)
-                
-                VStack {
-                    
-//                    HStack {
-//                     
-//                        ConnectStatusIndicator(
-//                            connectionStatus: connectionStatus,
-//                            displayReconnectTunnel: displayReconnectTunnel,
-//                            contractStatus: contractStatus,
-//                            windowCurrentSize: windowCurrentSize,
-//                            isPollingSubscriptionBalance: isPollingSubscriptionBalance,
-//                            currentPlan: currentPlan
-//                        )
-//                        
-//                        Spacer()
-//                        
-//                    }
-                    
-                    /**
-                     * Upgrade and participate flows
-                     */
-                    if (currentPlan != .supporter) {
-                        
-                        VStack {
-                            
-                            UrButton(text: "Upgrade plan", action: {})
-                            
-                            HStack {
-                                Text("Get unlimited access to the full network and features on all platforms.")
-                                    .font(themeManager.currentTheme.secondaryBodyFont)
-                                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
-                            }
-                        }
-                        .padding()
-                        .background(
-                            themeManager.currentTheme.tintedBackgroundBase,
-                        )
-                        .cornerRadius(12)
-                        
-                        Spacer().frame(height: 16)
-                        
-                        VStack {
-                            
-                            HStack {
-                                Text("Data usage")
-                                    .font(themeManager.currentTheme.toolbarTitleFont)
-                                
-                                Spacer()
-                            }
-                            
-                            UsageBar(
-                                availableByteCount: availableByteCount,
-                                pendingByteCount: pendingByteCount,
-                                usedByteCount: usedByteCount
-                            )
-                            
-                            Spacer().frame(height: 24)
-                            
-                            HStack {
-                                Text("Need more data?")
-                                Spacer()
-                            }
-                            
-//                            UrButton(text: "Upgrade plan", action: {})
-//                            
-//                            Spacer().frame(height: 12)
-//                            
-//                            Text("or")
-//                            
-//                            Spacer().frame(height: 12)
-                            
-                            UrButton(text: "Participate", action: {})
-                            
-                        }
-                        .padding()
-                        .background(
-                            themeManager.currentTheme.tintedBackgroundBase,
-                        )
-                        .cornerRadius(12)
-                        
-                        Spacer().frame(height: 16)
-                    }
-                    
-                 
-                    /**
-                     * Connect button
-                     */
-                    VStack {
-                     
-                        HStack {
-                        
-                            Button(action: {
-                                setIsPresented(true)
-                            }) {
-                                
-                                SelectedProvider(
-                                    selectedProvider: selectedProvider,
-                                    openSelectProvider: {setIsPresented(true)}
-                                )
-                                
-                            }
-                            
-                            Spacer()
-                        }
-                        
-                        // todo - handle insufficient balance
-                        
-                        //                if (contractStatus?.insufficientBalance == true && currentPlan != .supporter && !isPollingSubscriptionBalance) {
-                        //
-                        //                    UrButton(
-                        //                        text: "Subscribe to fix",
-                        //                        action: {
-                        //                            openUpgradeSheet()
-                        //                            // connectTunnel()
-                        //                        },
-                        //                        style: .outlineSecondary
-                        //                    )
-                        //
-                        //                }
-                        
-                        
-                        if (connectionStatus == .disconnected) {
-                            HStack {
-                                UrButton(text: "Connect", action: connect)
-                            }
-                        }
-                        
-                        if (connectionStatus != .disconnected && !displayReconnectTunnel) {
-                            UrButton(text: "Disconnect", action: disconnect)
-                        }
-                        
-                        if displayReconnectTunnel {
-                            UrButton(
-                                text: "Reconnect",
-                                action: reconnectTunnel ?? {},
-                            )
-                        }
-                        
-    //                        .frame(maxWidth: .infinity)
-                        
-                    }
-                    .padding()
-                    .background(
-                        themeManager.currentTheme.tintedBackgroundBase,
-                    )
-                    .cornerRadius(12)
-    //                    .border(Color(.secondarySystemBackground), width: 1)
-                    
-//                    Spacer().frame(height: 16)
-                    
-                }
-                
-                Spacer().frame(height: 16)
-                
-//                ForEach(0..<100) { _ in
-//                    HStack {
-//                        Text("Hello world")
-//                    }
-//                    .frame(maxWidth: .infinity)
-//                }
-            }
-            
-            .padding(.horizontal)
-            .padding(.bottom)
-//                .background(.ultraThinMaterial)
-//                 .background(themeManager.currentTheme.tintedBackgroundBase.opacity(0.75))
-            .background(
-                Rectangle()
-                    .fill(themeManager.currentTheme.tintedBackgroundBase)
-                    .colorMultiply(Color(white: 0.8))
-//                        .brightness(-0.2)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-//            .overlay(
-//                Rectangle()
-//                    .fill(Color.black.opacity(0.1))
-//                    .frame(height: 8)
-//                    .blur(radius: 6)
-//                    .offset(y: -4),
-//                alignment: .top
-//            )
-        
-//            .shadow(radius: 10, y: -2)
-//            .frame(maxWidth: .infinity, maxHeight: .infinity)
-//            .offset(y: 200)
-//            .padding(.bottom, 100)
-    }
-    
-}
 
 //#Preview {
 //    ConnectView_iOS()

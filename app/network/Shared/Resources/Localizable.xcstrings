@@ -1190,7 +1190,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Povolit lokální traffic (např. 192.168.1.25 atd.) když jste odpojeni"
+            "value" : "Povolit lokální traffic, když jste odpojeni (Kill Switch)"
           }
         },
         "de" : {
@@ -4286,7 +4286,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyzvedni si znásobovač"
+            "value" : "Vyzvedni si násobič"
           }
         },
         "de" : {
@@ -4748,7 +4748,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Problémy se závazky?"
+            "value" : "Problémy s přihlášením, či s registrací?"
           }
         },
         "de" : {
@@ -4902,7 +4902,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Potvrďte Seeker Token"
+            "value" : "Potvrď, že vlastníš Seeker Token"
           }
         },
         "de" : {
@@ -6902,7 +6902,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Násobitele zemí"
+            "value" : "Násobiče zemí"
           }
         },
         "de" : {
@@ -7512,7 +7512,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vytvořte si účet"
+            "value" : "Vytvoř si účet"
           }
         },
         "de" : {
@@ -7820,7 +7820,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktuální ranking"
+            "value" : "Aktuální umístění"
           }
         },
         "de" : {
@@ -7968,7 +7968,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktuální referální sít"
+            "value" : "Aktuální referální síť"
           }
         },
         "de" : {
@@ -8256,15 +8256,15 @@
             "state" : "translated",
             "value" : "危險"
           }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nebezpečí"
+          }
         }
       }
     },
-    "Data" : {
-
-    },
-    "Data Provided" : {
-      "localizations" : {
-        "ar" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "البيانات المقدمة"
@@ -8421,7 +8421,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : ""
+            "value" : "DEFAULT"
           }
         },
         "de" : {
@@ -9045,7 +9045,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nevidíte to?"
+            "value" : "Nevidíš to?"
           }
         },
         "de" : {
@@ -9957,7 +9957,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte bonusový referální kód"
+            "value" : "Vlož bonusový referální kód"
           }
         },
         "de" : {
@@ -10111,7 +10111,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte jméno pro vaší sít"
+            "value" : "Vlož jméno pro vaší sít"
           }
         },
         "de" : {
@@ -10265,7 +10265,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte adresu peněženky USDC na Solana či Polygon/Matic síťi/blockchainu"
+            "value" : "Vlož adresu peněženky USDC na Solana či Polygon/Matic síťi/blockchainu"
           }
         },
         "de" : {
@@ -10419,7 +10419,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zadejte síťový referenční kód"
+            "value" : "Zadej síťový referenční kód"
           }
         },
         "de" : {
@@ -10573,7 +10573,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vkročte do URnetwork"
+            "value" : "Vkroč do URnetwork"
           }
         },
         "de" : {
@@ -10727,7 +10727,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte adresu peněženky"
+            "value" : "Vlož adresu peněženky"
           }
         },
         "de" : {
@@ -10881,7 +10881,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte vaše telefonní číslo nebo email"
+            "value" : "Vlož vaše telefonní číslo nebo email"
           }
         },
         "de" : {
@@ -11237,7 +11237,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zapomněli jste své heslo?"
+            "value" : "Zapomněl/a jste své heslo?"
           }
         },
         "de" : {
@@ -11679,21 +11679,21 @@
             "state" : "translated",
             "value" : "一般"
           }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obecné"
+          }
         }
       }
     },
-    "Get in touch" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ابقى على تواصل"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spojte se s námi"
+            "value" : "Spoj se s námi"
           }
         },
         "de" : {
@@ -14177,7 +14177,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Násobitel"
+            "value" : "Násobič"
           }
         },
         "de" : {
@@ -14479,7 +14479,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Potřebujete více dat, rychlejších?"
+            "value" : "Potřebujete více dat, rychlejších, nebo vyšší limit?"
           }
         },
         "de" : {
@@ -15249,7 +15249,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jméno sítě musí být delší než 6 písmen a čísel"
+            "value" : "Jméno sítě musí být delší než 6 písmen a/nebo čísel"
           }
         },
         "de" : {
@@ -17593,7 +17593,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prosím nainstalujte peněženku/y Phantom či Solflare pro použité této featury."
+            "value" : "Prosím nainstalujte peněženku/y Phantom či Solflare pro použití této funkce."
           }
         },
         "de" : {
@@ -17747,7 +17747,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prosím přihlašte se do URnetwork"
+            "value" : "Prosím, přihlaš se do URnetwork"
           }
         },
         "de" : {
@@ -17895,7 +17895,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro připojení se přihlaste do URnetwork"
+            "value" : "Pro připojení se přihlas do URnetwork"
           }
         },
         "nl" : {
@@ -18226,7 +18226,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soukromá sít"
+            "value" : "Soukromá síť"
           }
         },
         "de" : {
@@ -18816,15 +18816,15 @@
             "state" : "translated",
             "value" : "提供模式"
           }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Režim poskytování"
+          }
         }
       }
     },
-    "Providing" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "جاري التوفير"
           }
         },
         "cs" : {
@@ -22076,7 +22076,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pošlete nám svou zpětnou vazbu přímo nebo [se připojte k našemu Discordu](https://discord.com/invite/RUNZXMwPRK) pro přímou podporu."
+            "value" : "Pošli nám svou zpětnou vazbu přímo nebo [se připoj k našemu Discordu](https://discord.com/invite/RUNZXMwPRK) pro přímou podporu."
           }
         },
         "de" : {
@@ -23479,7 +23479,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Něco se pokazilo. Zkuste to prosím později."
+            "value" : "Něco se pokazilo. Zkus to prosím později."
           }
         },
         "de" : {
@@ -23633,7 +23633,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zůstaňte v kontaktu"
+            "value" : "Zůstaň v kontaktu"
           }
         },
         "de" : {
@@ -23935,7 +23935,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Přidejte se k Premium pro opravení"
+            "value" : "Předplaťte si Premium"
           }
         },
         "de" : {
@@ -28746,7 +28746,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nyní jsou podporovány USDC adresy na Solana a Polygon blockchainech"
+            "value" : "Nyní jsou podporovány USDC adresy na Solana a Polygon sítích"
           }
         },
         "de" : {

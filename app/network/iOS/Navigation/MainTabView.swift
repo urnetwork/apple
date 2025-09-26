@@ -28,6 +28,7 @@ struct MainTabView: View {
     @ObservedObject var providerListStore: ProviderListStore
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var snackbarManager: UrSnackbarManager
     
     @State private var selectedTab = 0
     @State private var displayIntroduction: Bool
@@ -184,15 +185,23 @@ struct MainTabView: View {
             }
         }.fullScreenCover(isPresented: $displayIntroduction) {
             
-//            Button(action: {displayIntroduction = false}) {
-//                Text("close")
-//            }
-            
-            IntroductionView(
-                close: {
-                    displayIntroduction = false
-                }
-            )
+            ZStack {
+             
+                IntroductionView(
+                    close: {
+                        displayIntroduction = false
+                    },
+                    totalReferrals: referralLinkViewModel.totalReferrals,
+                    referralCode: referralLinkViewModel.referralCode ?? "",
+                )
+                
+                UrSnackBar(
+                    message: snackbarManager.message,
+                    isVisible: snackbarManager.isVisible
+                )
+                .padding(.bottom, 50)
+                
+            }
             
         }
         

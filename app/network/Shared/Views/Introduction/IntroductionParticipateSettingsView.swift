@@ -13,6 +13,8 @@ struct IntroductionParticipateSettingsView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     
     let close: () -> Void
+    let totalReferrals: Int
+    let referralCode: String
     
     var body: some View {
         
@@ -91,7 +93,6 @@ struct IntroductionParticipateSettingsView: View {
                     
                     HStack {
                      
-                        // todo - cell mode settings
                         Toggle(isOn: $deviceManager.allowProvidingCell) {
                             Text("Allow providing on cellular network")
                                 .font(themeManager.currentTheme.bodyFont)
@@ -117,7 +118,11 @@ struct IntroductionParticipateSettingsView: View {
                     
                     Spacer().frame(height: 16)
                     
-                    NavigationLink(destination: ParticipateReferView(close: close)) {
+                    NavigationLink(destination: ParticipateReferView(
+                        close: close,
+                        totalReferrals: totalReferrals,
+                        referralCode: referralCode
+                    )) {
                         Text("Next Step")
                             .font(themeManager.currentTheme.toolbarTitleFont.bold())
                             .frame(maxWidth: .infinity)
@@ -144,6 +149,8 @@ struct IntroductionParticipateSettingsView: View {
 
 #Preview {
     IntroductionParticipateSettingsView(
-        close: {}
+        close: {},
+        totalReferrals: 4,
+        referralCode: "ABC123"
     )
 }

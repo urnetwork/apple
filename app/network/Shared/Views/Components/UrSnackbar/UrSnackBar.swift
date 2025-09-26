@@ -30,6 +30,7 @@ struct UrSnackBar: View {
                     .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                     .offset(y: isVisible ? 48 : 180)
                     .animation(.easeInOut(duration: 0.3), value: isVisible)
+                    .zIndex(10)
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)

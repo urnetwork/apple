@@ -10,8 +10,11 @@ import SwiftUI
 struct ParticipateReferView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var snackbarManager: UrSnackbarManager
     
     let close: () -> Void
+    let totalReferrals: Int
+    let referralCode: String
     
     var body: some View {
         
@@ -26,15 +29,40 @@ struct ParticipateReferView: View {
   
                 // todo - cap referrals + referral bar
                 
-//                VStack {
-//                 
-//                    // todo - refer bar
-//                    
-//                    Text("This bar in the app  also shows you how many referrals you have given.")
-//                    
-//                    Text("You have 5 referrals, and each referral gives you and the person you refer 30GiB data per month, for life.")
-//                    
-//                }
+                VStack(alignment: .leading) {
+                    
+                    HStack {
+                     
+                        Text("Referrals")
+                            .font(themeManager.currentTheme.toolbarTitleFont)
+                        
+                        Spacer()
+                        
+                        Text("\(totalReferrals)/5")
+                            .font(themeManager.currentTheme.toolbarTitleFont)
+                        
+                    }
+                 
+                    Spacer().frame(height: 8)
+                    
+                    ReferBar(referralCount: totalReferrals)
+                    
+                    Spacer().frame(height: 8)
+                    
+                    Text("This bar in the app  also shows you how many referrals you have given.")
+                        .font(themeManager.currentTheme.bodyFont)
+                    
+                    Spacer().frame(height: 4)
+                    
+                    Text("You have 5 referrals, and each referral gives you and the person you refer 30GiB data per month, for life.")
+                        .font(themeManager.currentTheme.bodyFont)
+                    
+                }
+                .padding()
+                .background(themeManager.currentTheme.tintedBackgroundBase)
+                .cornerRadius(16)
+                
+                Spacer().frame(height: 32)
                 
                 Text("Step 2")
                     .font(themeManager.currentTheme.titleCondensedFont)
@@ -44,16 +72,67 @@ struct ParticipateReferView: View {
                     Text("Refer some people and watch your free data go up.")
                         .font(themeManager.currentTheme.toolbarTitleFont)
                     
-                    Spacer().frame(height: 4)
+                    Spacer().frame(height: 16)
                     
-                    // move this to the refer bar when it's added
-                    Text("You have 5 referrals, and each referral gives you and the person you refer 30GiB data per month, for life.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                    UrLabel(text: "Bonus referral code")
+                    
+                    Button(action: {
+                        
+                        copyToPasteboard(referralCode)
+                        
+                        // snackbar not showing above fullScreenCover
+                        snackbarManager.showSnackbar(message: "Bonus referral code copied to clipboard")
+                            
+                    }) {
+                        HStack {
+                            Text(referralCode)
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            Spacer()
+                            Image(systemName: "document.on.document")
+                        }
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .background(
+                        Rectangle()
+                            .fill(themeManager.currentTheme.tintedBackgroundBase)
+                            .overlay(
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.1)) // lighten
+                                    .blendMode(.screen)
+                            )
+                    )
+                    .cornerRadius(8)
                     
                     Spacer().frame(height: 16)
                     
-                    UrButton(text: "Refer a friend", action: {})
+                    ShareLink(
+                        item: URL(string: "https://ur.io/app?bonus=\(referralCode)")!,
+                        subject: Text("URnetwork Referral Code"),
+                        message: Text("All the content in the world from URnetwork"))
+                    {
+                        Text("Refer a friend")
+                            .font(themeManager.currentTheme.toolbarTitleFont.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(.urElectricBlue)
+                            .cornerRadius(8)
+                            .contentShape(Rectangle())
+                            .foregroundStyle(themeManager.currentTheme.textColor)
+                    }
+//                    .disabled(referralLinkViewModel.isLoading)
+//                    .buttonStyle(.plain)
+//                    .contentShape(Rectangle())
+                    
+//                    UrButton(text: "Refer a friend", action: {
+//                        
+//                    })
                     
                     Spacer().frame(height: 16)
                     
@@ -85,10 +164,20 @@ struct ParticipateReferView: View {
                         
         }
     }
+    
+    private func copyToPasteboard(_ value: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = value
+        #elseif os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(value, forType: .string)
+        #endif
+    }
 }
 
-#Preview {
-    ParticipateReferView(
-        close: {}
-    )
-}
+//#Preview {
+//    ParticipateReferView(
+//        close: {}
+//    )
+//}

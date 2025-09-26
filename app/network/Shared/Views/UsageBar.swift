@@ -104,26 +104,24 @@ struct UsageBar: View {
     
     var body: some View {
         
-        ZStack {
-            Chart(data.indices, id: \.self) { index in // Get the Production values.
-                   
-                BarMark(
-                    x: .value("Data", self.minNonZeroValue(data[index].bytes))
+        Chart(data.indices, id: \.self) { index in
+               
+            BarMark(
+                x: .value("Data", self.minNonZeroValue(data[index].bytes))
+            )
+            .foregroundStyle(by: .value("Name", data[index].name))
+            .clipShape(
+                UnevenRoundedRectangle(
+                    cornerRadii: getCornerRadii(index)
                 )
-                .foregroundStyle(by: .value("Name", data[index].name))
-                .clipShape(
-                    UnevenRoundedRectangle(
-                        cornerRadii: getCornerRadii(index)
-                    )
-                )
-                
-            }
-            .chartXAxis(.hidden)
-            .frame(height: 32)
-            .chartForegroundStyleScale([
-                "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
-            ])
+            )
+            
         }
+        .chartXAxis(.hidden)
+        .frame(height: 32)
+        .chartForegroundStyleScale([
+            "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
+        ])
         
     }
 }

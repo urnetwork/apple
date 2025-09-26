@@ -11,11 +11,12 @@ import URnetworkSdk
 #if os(iOS)
 struct MainTabView: View {
     
-    var api: SdkApi
-    var urApiService: UrApiServiceProtocol
-    var device: SdkDeviceRemote
-    var logout: () -> Void
-    var connectViewController: SdkConnectViewController?
+    let api: SdkApi
+    let urApiService: UrApiServiceProtocol
+    let device: SdkDeviceRemote
+    let logout: () -> Void
+    let connectViewController: SdkConnectViewController?
+    let introductionComplete: Binding<Bool>
     
     @State private var opacity: Double = 0
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
@@ -29,6 +30,7 @@ struct MainTabView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     @State private var selectedTab = 0
+    @State private var displayIntroduction: Bool
     
     init(
         api: SdkApi,
@@ -36,6 +38,9 @@ struct MainTabView: View {
         device: SdkDeviceRemote,
         logout: @escaping () -> Void,
         providerStore: ProviderListStore,
+        introductionComplete: Binding<Bool>,
+        currentPlan: Plan?,
+        errorFetchingSubscriptionBalance: Bool
     ) {
         self.api = api
         self.urApiService = urApiService
@@ -56,6 +61,23 @@ struct MainTabView: View {
         _networkUserViewModel = StateObject(wrappedValue: NetworkUserViewModel(api: api))
         
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
+        
+        self.introductionComplete = introductionComplete
+        
+        /**
+         * Prompt introduction
+         */
+        if (currentPlan == .supporter || errorFetchingSubscriptionBalance) {
+            self.displayIntroduction = false
+        } else {
+            
+            if introductionComplete.wrappedValue {
+                self.displayIntroduction = false
+            } else {
+                self.displayIntroduction = true
+            }
+            
+        }
         
         setupTabBar()
     }
@@ -160,6 +182,18 @@ struct MainTabView: View {
             withAnimation(.easeOut(duration: 1.0)) {
                 opacity = 1
             }
+        }.fullScreenCover(isPresented: $displayIntroduction) {
+            
+//            Button(action: {displayIntroduction = false}) {
+//                Text("close")
+//            }
+            
+            IntroductionView(
+                close: {
+                    displayIntroduction = false
+                }
+            )
+            
         }
         
     }

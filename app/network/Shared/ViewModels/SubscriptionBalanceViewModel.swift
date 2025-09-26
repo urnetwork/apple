@@ -19,6 +19,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     let domain = "[SubscriptionBalanceViewModel]"
     
     @Published private(set) var isLoading: Bool = false
+    @Published private(set) var errorFetchingSubscriptionBalance: Bool = false
 
     /**
      * polling
@@ -55,9 +56,10 @@ class SubscriptionBalanceViewModel: ObservableObject {
     
     func fetchSubscriptionBalance() async {
         
-        if isLoading { return }
+        if self.isLoading { return }
         
-        isLoading = true
+        self.isLoading = true
+        self.errorFetchingSubscriptionBalance = false
         
         do {
             
@@ -85,6 +87,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
         } catch(let error) {
             print("\(domain) error fetching payouts \(error)")
             self.isLoading = false
+            self.errorFetchingSubscriptionBalance = true
         }
         
     }

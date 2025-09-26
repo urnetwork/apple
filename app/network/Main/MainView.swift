@@ -13,9 +13,11 @@ struct MainView: View {
     let api: SdkApi
     let urApiService: UrApiServiceProtocol
     let device: SdkDeviceRemote
-    var logout: () -> Void
+    let logout: () -> Void
     // var connectViewController: SdkConnectViewController?
-    var welcomeAnimationComplete: Binding<Bool>
+    let welcomeAnimationComplete: Binding<Bool>
+    let introductionComplete: Binding<Bool>
+    
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     @StateObject private var providerListStore: ProviderListStore
@@ -28,7 +30,8 @@ struct MainView: View {
         device: SdkDeviceRemote,
         logout: @escaping () -> Void,
         welcomeAnimationComplete: Binding<Bool>,
-        networkId: SdkId?
+        networkId: SdkId?,
+        introductionComplete: Binding<Bool>
     ) {
         self.api = api
         self.logout = logout
@@ -36,6 +39,7 @@ struct MainView: View {
         let urApiService = UrApiService(api: api)
         self.urApiService = urApiService
         self.welcomeAnimationComplete = welcomeAnimationComplete
+        self.introductionComplete = introductionComplete
         _subscriptionBalanceViewModel = StateObject(
             wrappedValue: SubscriptionBalanceViewModel(
                 urApiService: urApiService
@@ -52,7 +56,8 @@ struct MainView: View {
             switch welcomeAnimationComplete.wrappedValue {
                 case false:
                 WelcomeAnimation(
-                    welcomeAnimationComplete: self.welcomeAnimationComplete
+                    welcomeAnimationComplete: self.welcomeAnimationComplete,
+                    subscriptionBalanceLoading: self.subscriptionBalanceViewModel.isLoading
                 )
                 case true:
                 #if os(iOS)
@@ -61,7 +66,10 @@ struct MainView: View {
                     urApiService: urApiService,
                     device: device,
                     logout: self.logout,
-                    providerStore: providerListStore
+                    providerStore: providerListStore,
+                    introductionComplete: introductionComplete,
+                    currentPlan: subscriptionBalanceViewModel.currentPlan,
+                    errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance
                 )
                 #elseif os(macOS)
                 MainNavigationSplitView(
@@ -85,6 +93,9 @@ struct MainView: View {
 struct WelcomeAnimation: View {
     
     @Binding var welcomeAnimationComplete: Bool
+    let subscriptionBalanceLoading: Bool
+    
+    
     @State private var opacity: Double = 1
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -183,7 +194,9 @@ struct WelcomeAnimation: View {
                             action: {
                                 handleExit()
                             },
-                            style: .outlinePrimary
+                            style: .outlinePrimary,
+                            enabled: !subscriptionBalanceLoading,
+                            isProcessing: subscriptionBalanceLoading,
                         )
                         
                     }
@@ -259,7 +272,10 @@ struct WelcomeAnimation: View {
     let themeManager = ThemeManager.shared
     
     VStack {
-        WelcomeAnimation(welcomeAnimationComplete: .constant(false))
+        WelcomeAnimation(
+            welcomeAnimationComplete: .constant(false),
+            subscriptionBalanceLoading: false
+        )
     }
     .environmentObject(themeManager)
     .background(themeManager.currentTheme.backgroundColor)

@@ -34,16 +34,6 @@ struct SettingsForm_iOS: View {
     @Binding var canReceiveNotifications: Bool
     @Binding var canReceiveProductUpdates: Bool
     
-    var provideIndicatorColor: Color {
-        if !provideEnabled {
-            return .urCoral
-        } else if providePaused {
-            return .urYellow
-        } else {
-            return .urGreen
-        }
-    }
-    
     var body: some View {
         
         Form {
@@ -189,30 +179,7 @@ struct SettingsForm_iOS: View {
                  */
                 
                 HStack {
-                    
-                    Picker(
-                        selection: $deviceManager.provideControlMode
-                    ) {
-                        ForEach(ProvideControlMode.allCases) { mode in
-                            Text(provideControlModeLabel(mode))
-                                .font(themeManager.currentTheme.bodyFont)
-                                
-                        }
-                    } label: {
-                        
-                        HStack {
-                            
-                            Circle()
-                                .frame(width: 8, height: 8)
-                                .foregroundColor(provideIndicatorColor)
-                            
-                            Text("Provide mode")
-                                .font(themeManager.currentTheme.bodyFont)
-                            
-                        }
-                    }
-                    .accentColor(themeManager.currentTheme.textColor)
-                    
+                    ProvideControlPicker()
                 }
                 
                 UrSwitchToggle(isOn: $deviceManager.allowProvidingCell) {

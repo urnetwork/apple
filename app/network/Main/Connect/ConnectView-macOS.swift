@@ -25,6 +25,8 @@ import URnetworkSdk
         @State private var isProviderTableVisible: Bool = false
 
         @ObservedObject private var providerListStore: ProviderListStore
+        
+        @State var displayReconnectTunnel: Bool = false
 
         init(
             urApiService: UrApiServiceProtocol,
@@ -35,7 +37,7 @@ import URnetworkSdk
 
         var body: some View {
 
-            VStack {
+            ScrollView {
 
                 HStack(spacing: 0) {
 
@@ -96,26 +98,51 @@ import URnetworkSdk
                         )
                         .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                         .frame(maxHeight: .infinity)
+                        
+                        Spacer().frame(height: 24)
+                        
+                        ConnectActions(
+                            connect: connectViewModel.connect,
+                            disconnect: connectViewModel.disconnect,
+                            connectionStatus: connectViewModel.connectionStatus,
+                            selectedProvider: connectViewModel.selectedProvider,
+                            setIsPresented: { _ in
+                                self.isProviderTableVisible.toggle()
+                            },
+                            displayReconnectTunnel: displayReconnectTunnel,
+                            reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+                            contractStatus: connectViewModel.contractStatus,
+                            windowCurrentSize: connectViewModel.windowCurrentSize,
+                            currentPlan: subscriptionBalanceViewModel.currentPlan,
+                            isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount
+                        )
+                        
 
-                        HStack {
-
-                            Button(
-                                action: {
-                                    withAnimation(.spring(duration: 0.3)) {
-                                        self.isProviderTableVisible.toggle()
-                                    }
-                                }
-                            ) {
-                                SelectedProvider(
-                                    selectedProvider: connectViewModel.selectedProvider
-                                )
-                            }
-                            .buttonStyle(.plain)
-
-                        }
-                        .background(themeManager.currentTheme.tintedBackgroundBase)
-                        .clipShape(.capsule)
-                        .animation(.spring(duration: 0.3), value: isProviderTableVisible)
+//                        HStack {
+//
+////                            Button(
+////                                action: {
+////                                    withAnimation(.spring(duration: 0.3)) {
+////                                        self.isProviderTableVisible.toggle()
+////                                    }
+////                                }
+////                            ) {
+//                                SelectedProvider(
+//                                    selectedProvider: connectViewModel.selectedProvider,
+//                                    openSelectProvider: {
+//                                        self.isProviderTableVisible.toggle()
+//                                    }
+//                                )
+////                            }
+////                            .buttonStyle(.plain)
+//
+//                        }
+//                        .background(themeManager.currentTheme.tintedBackgroundBase)
+//                        .clipShape(.capsule)
+//                        .animation(.spring(duration: 0.3), value: isProviderTableVisible)
 
                         Spacer().frame(height: 32)
 
@@ -179,6 +206,12 @@ import URnetworkSdk
                 }
                 .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                 .frame(maxWidth: .infinity)
+            }
+            .onChange(of: connectViewModel.connectionStatus) { _ in
+                checkTunnelStatus()
+            }
+            .onChange(of: connectViewModel.tunnelConnected) { _ in
+                checkTunnelStatus()
             }
             .onChange(of: connectViewModel.connectionStatus) { newValue in
                 // Cancel any existing banner task
@@ -271,8 +304,18 @@ import URnetworkSdk
                     .cornerRadius(4)
                 }
             }
-
         }
+        
+        private func checkTunnelStatus() {
+            
+            if connectViewModel.connectionStatus == .connected && !connectViewModel.tunnelConnected {
+                self.displayReconnectTunnel = true
+            } else {
+                self.displayReconnectTunnel = false
+            }
+            
+        }
+        
     }
 
     struct ProviderTable: View {

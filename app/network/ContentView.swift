@@ -24,6 +24,7 @@ struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     @State var welcomeAnimationComplete: Bool = true
+    @State var introductionComplete: Bool = true
     
     var body: some View {
         ZStack {
@@ -55,7 +56,7 @@ struct ContentView: View {
                                     connectViewModel.disconnect()
                                     
                                     if let vpnManager = deviceManager.vpnManager {
-                                        await vpnManager.close()
+                                        vpnManager.close()
                                     }
                                     
                                     deviceManager.logout()
@@ -63,7 +64,8 @@ struct ContentView: View {
                                 
                             },
                             welcomeAnimationComplete: $welcomeAnimationComplete,
-                            networkId: networkId
+                            networkId: networkId,
+                            introductionComplete: $introductionComplete
                         )
                         .opacity(opacity)
 
@@ -113,7 +115,8 @@ struct ContentView: View {
     
     private func handleSuccessWithJwt(_ jwt: String) async {
         
-        welcomeAnimationComplete = false
+        self.welcomeAnimationComplete = false
+        self.introductionComplete = false
      
         let result = await deviceManager.authenticateNetworkClient(jwt)
         

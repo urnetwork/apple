@@ -174,7 +174,7 @@ struct IntroductionView: View {
                                 
                                 Spacer().frame(height: 16)
                                 
-                                NavigationLink(destination: IntroductionParticipateSettingsView(
+                                NavigationLink(destination: IntroductionUsageBar(
                                     close: close,
                                     totalReferrals: totalReferrals,
                                     referralCode: referralCode,

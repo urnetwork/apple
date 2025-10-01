@@ -15,11 +15,33 @@ class NetworkReliabilityStore: ObservableObject {
     @Published private(set) var isFetchingReliabilityWindow = false
     @Published private(set) var reliabilityWindow: SdkReliabilityWindow?
     
+    private var pollingTimer: Timer?
+    private var pollingInterval: TimeInterval = 60.0 // poll every minute
+    
     init(api: UrApiServiceProtocol) {
         self.api = api
         
+        startPolling()
+    }
+    
+    private func startPolling() {
         Task {
+            
             await getNetworkReliability()
+            
+            // Set up timer for subsequent fetches
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                // poll every minute
+                self.pollingTimer = Timer.scheduledTimer(withTimeInterval: pollingInterval, repeats: true) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    Task {
+                        await self.getNetworkReliability()
+                    }
+                }
+            }
         }
     }
     

@@ -22,38 +22,9 @@ struct IntroductionParticipateSettingsView: View {
         ScrollView {
          
             VStack(alignment: .leading) {
-                Text("Get URnetwork free for life by particpating")
-                    .font(themeManager.currentTheme.titleFont)
-                
-                Spacer().frame(height: 32)
-                
-                VStack(alignment: .leading) {
-                    
-                    Text("Data usage")
-                        .font(themeManager.currentTheme.toolbarTitleFont)
-                    
-                    Spacer().frame(height: 4)
-                 
-                    UsageBar(
-                        availableByteCount: 300,
-                        pendingByteCount: 25,
-                        usedByteCount: 100,
-                        meanReliabilityWeight: meanReliabilityWeight,
-                        totalReferrals: totalReferrals
-                    )
-                    
-                    Text("This bar in the app shows you how much free data you are earning from your provider. You can check in any time and adjust your settings to maximize your earnings.")
-                        .font(themeManager.currentTheme.bodyFont)
-                    
-                }
-                .padding()
-                .background(themeManager.currentTheme.tintedBackgroundBase)
-                .cornerRadius(16)
-                
-                Spacer().frame(height: 32)
                 
                 Text("Step 1")
-                    .font(themeManager.currentTheme.titleCondensedFont)
+                    .font(themeManager.currentTheme.titleFont)
                 
                 VStack(alignment: .leading) {
                     

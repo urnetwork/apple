@@ -22,10 +22,10 @@ struct ParticipateReferView: View {
          
             VStack(alignment: .leading) {
                 
-                Text("Refer friends")
+                Text("Step 2")
                     .font(themeManager.currentTheme.titleFont)
                 
-                Spacer().frame(height: 32)
+//                Spacer().frame(height: 32)
   
                 // todo - cap referrals + referral bar
                 
@@ -33,7 +33,7 @@ struct ParticipateReferView: View {
                     
                     HStack {
                      
-                        Text("Referrals")
+                        Text("Refer friends")
                             .font(themeManager.currentTheme.toolbarTitleFont)
                         
                         Spacer()
@@ -49,25 +49,27 @@ struct ParticipateReferView: View {
                     
                     Spacer().frame(height: 8)
                     
-                    Text("This bar in the app  also shows you how many referrals you have given.")
-                        .font(themeManager.currentTheme.bodyFont)
+//                    Text("This bar in the app  also shows you how many referrals you have given.")
+//                        .font(themeManager.currentTheme.bodyFont)
                     
                     Spacer().frame(height: 4)
                     
-                    Text("You have 5 referrals, and each referral gives you and the person you refer 30GiB data per month, for life.")
+//                    Text("You have 5 referrals, and each referral gives you and the person you refer 30GiB data per month, for life.")
+//                        .font(themeManager.currentTheme.bodyFont)
+                    
+                    
+                    Text("You get +30GiB / month")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Text("Your friend gets +30GiB / month")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Text("For life!")
                         .font(themeManager.currentTheme.bodyFont)
                     
-                }
-                .padding()
-                .background(themeManager.currentTheme.tintedBackgroundBase)
-                .cornerRadius(16)
-                
-                Spacer().frame(height: 32)
-                
-                Text("Step 2")
-                    .font(themeManager.currentTheme.titleCondensedFont)
-                
-                VStack(alignment: .leading) {
+                    Spacer().frame(height: 16)
+                    
+                    Divider()
+                    
+                    Spacer().frame(height: 16)
                     
                     Text("Refer some people and watch your free data go up.")
                         .font(themeManager.currentTheme.toolbarTitleFont)
@@ -131,7 +133,7 @@ struct ParticipateReferView: View {
 //                    .contentShape(Rectangle())
                     
 //                    UrButton(text: "Refer a friend", action: {
-//                        
+//
 //                    })
                     
                     Spacer().frame(height: 16)
@@ -150,6 +152,94 @@ struct ParticipateReferView: View {
                 .background(themeManager.currentTheme.tintedBackgroundBase)
                 .cornerRadius(16)
                 
+//                Spacer().frame(height: 32)
+//                
+////                Text("Step 2")
+////                    .font(themeManager.currentTheme.titleCondensedFont)
+//                
+//                VStack(alignment: .leading) {
+//                    
+//                    Text("Refer some people and watch your free data go up.")
+//                        .font(themeManager.currentTheme.toolbarTitleFont)
+//                    
+//                    Spacer().frame(height: 16)
+//                    
+//                    UrLabel(text: "Bonus referral code")
+//                    
+//                    Button(action: {
+//                        
+//                        copyToPasteboard(referralCode)
+//                        
+//                        // snackbar not showing above fullScreenCover
+//                        snackbarManager.showSnackbar(message: "Bonus referral code copied to clipboard")
+//                            
+//                    }) {
+//                        HStack {
+//                            Text(referralCode)
+//                                .font(themeManager.currentTheme.secondaryBodyFont)
+//                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+//                                .lineLimit(1)
+//                                .truncationMode(.tail)
+//                            Spacer()
+//                            Image(systemName: "document.on.document")
+//                        }
+//                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+//                        .padding(.vertical, 8)
+//                        .padding(.horizontal, 16)
+//                        .contentShape(Rectangle())
+//                    }
+//                    .buttonStyle(.plain)
+//                    .background(
+//                        Rectangle()
+//                            .fill(themeManager.currentTheme.tintedBackgroundBase)
+//                            .overlay(
+//                                Rectangle()
+//                                    .fill(Color.white.opacity(0.1)) // lighten
+//                                    .blendMode(.screen)
+//                            )
+//                    )
+//                    .cornerRadius(8)
+//                    
+//                    Spacer().frame(height: 16)
+//                    
+//                    ShareLink(
+//                        item: URL(string: "https://ur.io/app?bonus=\(referralCode)")!,
+//                        subject: Text("URnetwork Referral Code"),
+//                        message: Text("All the content in the world from URnetwork"))
+//                    {
+//                        Text("Refer a friend")
+//                            .font(themeManager.currentTheme.toolbarTitleFont.bold())
+//                            .frame(maxWidth: .infinity)
+//                            .padding()
+//                            .background(.urElectricBlue)
+//                            .cornerRadius(8)
+//                            .contentShape(Rectangle())
+//                            .foregroundStyle(themeManager.currentTheme.textColor)
+//                    }
+////                    .disabled(referralLinkViewModel.isLoading)
+////                    .buttonStyle(.plain)
+////                    .contentShape(Rectangle())
+//                    
+////                    UrButton(text: "Refer a friend", action: {
+////                        
+////                    })
+//                    
+//                    Spacer().frame(height: 16)
+//                    
+//                    Divider()
+//                    
+//                    Spacer().frame(height: 16)
+//                    
+//                    UrButton(text: "Get connected", action: {
+//                        close()
+//        //                dismiss()
+//                    })
+//                    
+//                }
+//                .padding()
+//                .background(themeManager.currentTheme.tintedBackgroundBase)
+//                .cornerRadius(16)
+//                
 //                Spacer().frame(height: 32)
 //                
 //                UrButton(text: "Get connected", action: {

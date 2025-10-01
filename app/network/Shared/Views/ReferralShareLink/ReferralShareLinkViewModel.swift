@@ -16,6 +16,9 @@ class ReferralLinkViewModel: ObservableObject {
     @Published private(set) var totalReferrals: Int = 0
     @Published private(set) var isLoading: Bool = false
     
+    private var pollingTimer: Timer?
+    private var pollingInterval: TimeInterval = 60.0 // poll every minute
+    
     let domain = "ReferralLinkViewModel"
     
     let api: SdkApi?
@@ -24,8 +27,27 @@ class ReferralLinkViewModel: ObservableObject {
         
         self.api = api
         
+        startPolling()
+    }
+    
+    private func startPolling() {
         Task {
-            await self.fetchReferralLink()
+            
+            await fetchReferralLink()
+            
+            // Set up timer for subsequent fetches
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                // poll every minute
+                self.pollingTimer = Timer.scheduledTimer(withTimeInterval: pollingInterval, repeats: true) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    Task {
+                        await self.fetchReferralLink()
+                    }
+                }
+            }
         }
     }
     

@@ -47,16 +47,14 @@ struct UsageBar: View {
         
         let minVal = Double(self.totalBytes) * 0.015 // enforce 1.5% so it shows up in the bar
         
-        if bytes == 0 {
-            // if empty, don't display the bar at all
-            return 0
-        } else if bytes < Int(minVal) {
+        if bytes < Int(minVal) {
             // ensure it takes up min % of bar
             return Int(minVal)
         } else {
             // larger than min value, display as is
             return bytes
         }
+
         
     }
     

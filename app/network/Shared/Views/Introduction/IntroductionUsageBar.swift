@@ -10,6 +10,7 @@ import SwiftUI
 struct IntroductionUsageBar: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     
     let close: () -> Void
     let totalReferrals: Int
@@ -22,10 +23,8 @@ struct IntroductionUsageBar: View {
             
             VStack(alignment: .leading) {
              
-                Text("Get URnetwork free for life by particpating")
+                Text("Get URnetwork free for life by participating")
                     .font(themeManager.currentTheme.titleFont)
-                
-//                Spacer().frame(height: 32)
                 
                 VStack(alignment: .leading) {
                     
@@ -35,10 +34,10 @@ struct IntroductionUsageBar: View {
                     Spacer().frame(height: 4)
                  
                     UsageBar(
-                        availableByteCount: 300,
-                        pendingByteCount: 25,
-                        usedByteCount: 100,
-                        meanReliabilityWeight: 0.2,
+                        availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                        pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                        meanReliabilityWeight: meanReliabilityWeight,
                         totalReferrals: totalReferrals
                     )
                     

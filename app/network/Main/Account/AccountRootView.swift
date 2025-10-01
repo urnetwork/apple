@@ -18,10 +18,11 @@ struct AccountRootView: View {
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var connectViewModel: ConnectViewModel
     
-    var navigate: (AccountNavigationPath) -> Void
-    var logout: () -> Void
-    var api: SdkApi
-    var networkName: String?
+    let navigate: (AccountNavigationPath) -> Void
+    let logout: () -> Void
+    let api: SdkApi
+    let networkName: String?
+    let meanReliabilityWeight: Double
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     
@@ -48,7 +49,8 @@ struct AccountRootView: View {
         api: SdkApi,
         referralLinkViewModel: ReferralLinkViewModel,
         accountPaymentsViewModel: AccountPaymentsViewModel,
-        networkName: String?
+        networkName: String?,
+        meanReliabilityWeight: Double
     ) {
         self.navigate = navigate
         self.logout = logout
@@ -57,6 +59,7 @@ struct AccountRootView: View {
         self.referralLinkViewModel = referralLinkViewModel
         self.accountPaymentsViewModel = accountPaymentsViewModel
         self.networkName = networkName
+        self.meanReliabilityWeight = meanReliabilityWeight
     }
     
     
@@ -137,7 +140,9 @@ struct AccountRootView: View {
                 UsageBar(
                     availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                     pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                    usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount
+                    usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                    meanReliabilityWeight: meanReliabilityWeight,
+                    totalReferrals: referralLinkViewModel.totalReferrals
                 )
                 
                 Divider()
@@ -363,7 +368,8 @@ struct AccountRootView: View {
         }
         .sheet(isPresented: $viewModel.isPresentedUpgradeSheet) {
             UpgradeSubscriptionSheet(
-                subscriptionProduct: subscriptionManager.products.first,
+                monthlyProduct: subscriptionManager.monthlySubscription,
+                yearlyProduct: subscriptionManager.yearlySubscription,
                 purchase: { product in
                     
                     let initiallyConnected = deviceManager.device?.getConnected() ?? false

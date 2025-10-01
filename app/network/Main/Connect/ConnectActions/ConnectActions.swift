@@ -24,6 +24,9 @@ struct ConnectActions: View {
     let availableByteCount: Int
     let pendingByteCount: Int
     let usedByteCount: Int
+    let promptMoreDataFlow: () -> Void
+    let meanReliabilityWeight: Double
+    let totalReferrals: Int
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -40,87 +43,6 @@ struct ConnectActions: View {
                 
                 VStack {
                     
-//                    HStack {
-//
-//                        ConnectStatusIndicator(
-//                            connectionStatus: connectionStatus,
-//                            displayReconnectTunnel: displayReconnectTunnel,
-//                            contractStatus: contractStatus,
-//                            windowCurrentSize: windowCurrentSize,
-//                            isPollingSubscriptionBalance: isPollingSubscriptionBalance,
-//                            currentPlan: currentPlan
-//                        )
-//
-//                        Spacer()
-//
-//                    }
-                    
-                    /**
-                     * Upgrade and participate flows
-                     */
-                    if (currentPlan != .supporter) {
-                        
-                        VStack {
-                            
-                            HStack {
-                                Text("Data usage")
-                                    .font(themeManager.currentTheme.toolbarTitleFont)
-                                
-                                Spacer()
-                            }
-                            
-                            UsageBar(
-                                availableByteCount: availableByteCount,
-                                pendingByteCount: pendingByteCount,
-                                usedByteCount: usedByteCount
-                            )
-                            
-                            Spacer().frame(height: 24)
-                            
-                            HStack {
-                                Text("Need more data?")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                Spacer()
-                            }
-                            
-                            UrButton(text: "Participate", action: {})
-                            
-                        }
-                        .padding()
-                        .background(
-                            themeManager.currentTheme.tintedBackgroundBase,
-                        )
-                        .cornerRadius(12)
-                        
-                        Spacer().frame(height: 16)
-                        
-                        VStack {
-                            
-                            HStack {
-                                Text("Become a subscriber")
-                                    .font(themeManager.currentTheme.toolbarTitleFont)
-                                
-                                Spacer()
-                            }
-                            
-                            UrButton(text: "Upgrade plan", action: {})
-                            
-                            HStack {
-                                Text("Get unlimited access to the full network and features on all platforms.")
-                                    .font(themeManager.currentTheme.secondaryBodyFont)
-                                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
-                            }
-                        }
-                        .padding()
-                        .background(
-                            themeManager.currentTheme.tintedBackgroundBase,
-                        )
-                        .cornerRadius(12)
-                        
-                        Spacer().frame(height: 16)
-                    }
-                    
-                 
                     /**
                      * Connect button
                      */
@@ -183,9 +105,46 @@ struct ConnectActions: View {
                     )
                     .cornerRadius(12)
                     
+                    Spacer().frame(height: 16)
+                    
+                    /**
+                     * Upgrade and participate flows
+                     */
+                    if (currentPlan != .supporter) {
+                        
+                        VStack {
+                            
+                            HStack {
+                                Text("Data usage")
+                                    .font(themeManager.currentTheme.toolbarTitleFont)
+                                
+                                Spacer()
+                            }
+                            
+                            UsageBar(
+                                availableByteCount: availableByteCount,
+                                pendingByteCount: pendingByteCount,
+                                usedByteCount: usedByteCount,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                totalReferrals: totalReferrals
+                            )
+                            
+                            Spacer().frame(height: 24)
+                            
+                            UrButton(text: "Get more data", action: {
+                                promptMoreDataFlow()
+                            })
+                            
+                        }
+                        .padding()
+                        .background(
+                            themeManager.currentTheme.tintedBackgroundBase,
+                        )
+                        .cornerRadius(12)
+                        
+                    }
+                    
                 }
-                
-                Spacer().frame(height: 16)
                 
             }
             

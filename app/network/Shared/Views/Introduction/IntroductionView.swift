@@ -18,10 +18,17 @@ struct IntroductionView: View {
     let close: () -> Void
     let totalReferrals: Int
     let referralCode: String
+    let meanReliabilityWeight: Double
     
-    private var product: Product? {
-        return subscriptionManager.products.first
+    private var monthlySubscription: Product? {
+        return subscriptionManager.monthlySubscription
     }
+    
+    private var yearlySubscription: Product? {
+        return subscriptionManager.yearlySubscription
+    }
+    
+    @State var selectedPaymentOption: PaymentOption = .yearly
     
     var body: some View {
         
@@ -64,50 +71,73 @@ struct IntroductionView: View {
                                 Text("Get unlimited access to the full network and features on all platforms")
                                     .font(themeManager.currentTheme.bodyFont)
                                 
-                                Spacer().frame(height: 16)
+                                Spacer().frame(height: 18)
                                 
-                                UrButton(text: "\(product?.displayPrice ?? "$5")/month", action: {
+                                if let monthly = monthlySubscription, let yearly = yearlySubscription {
                                     
-                                    guard let product = product else {
-                                        print("no product found")
-                                        return
-                                    }
+                                    ProductOptionCard(
+                                        title: "Monthly",
+                                        price: "\(monthly.displayPrice)/month",
+                                        select: {
+                                            selectedPaymentOption = .monthly
+                                        },
+                                        isSelected: selectedPaymentOption == .monthly
+                                    )
                                     
-                                    let initiallyConnected = deviceManager.device?.getConnected() ?? false
+                                    Spacer().frame(height: 18)
                                     
-                                    #if os(macOS)
-                                    if (initiallyConnected) {
-                                        connectViewModel.disconnect()
-                                    }
-                                    #endif
+                                    ProductOptionCard(
+                                        title: "Yearly",
+                                        price: "\(yearly.displayPrice)/year",
+                                        select: {
+                                            selectedPaymentOption = .yearly
+                                        },
+                                        isSelected: selectedPaymentOption == .yearly
+                                    )
                                     
-                                    Task {
-                                        do {
-                                            try await subscriptionManager.purchase(
-                                                product: product,
-                                                onSuccess: {
-                                                    subscriptionBalanceViewModel.setCurrentPlan(.supporter)
-                                                    // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
-                                                }
-                                            )
-                    
-                                        } catch(let error) {
-                                            print("error making purchase: \(error)")
+                                    Spacer().frame(height: 18)
+                                    
+                                    UrButton(text: "Join the movement", action: {
+                                        
+                                        let product = selectedPaymentOption == .monthly ? monthly : yearly
+                                        
+                                        let initiallyConnected = deviceManager.device?.getConnected() ?? false
+                                        
+#if os(macOS)
+                                        // purchase fails in mac app store if vpn is connected
+                                        if (initiallyConnected) {
+                                            connectViewModel.disconnect()
+                                        }
+#endif
+                                        
+                                        Task {
+                                            do {
+                                                try await subscriptionManager.purchase(
+                                                    product: product,
+                                                    onSuccess: {
+                                                        subscriptionBalanceViewModel.setCurrentPlan(.supporter)
+                                                    }
+                                                )
+                                                
+                                            } catch(let error) {
+                                                print("error making purchase: \(error)")
+                                            }
+                                            
+#if os(macOS)
+                                            if (initiallyConnected) {
+                                                connectViewModel.connect()
+                                            }
+#endif
+                                            
                                         }
                                         
-                                        #if os(macOS)
-                                        if (initiallyConnected) {
-                                            connectViewModel.connect()
-                                        }
-                                        #endif
-
-                                    }
-                                    
-                                    
-                                    
-                                })
-                                
-                                // todo - implement yearly
+                                        
+                                        
+                                    })
+                                } else {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                }
                                 
                             }
                             .padding()
@@ -147,9 +177,10 @@ struct IntroductionView: View {
                                 NavigationLink(destination: IntroductionParticipateSettingsView(
                                     close: close,
                                     totalReferrals: totalReferrals,
-                                    referralCode: referralCode
+                                    referralCode: referralCode,
+                                    meanReliabilityWeight: meanReliabilityWeight
                                 )) {
-                                    Text("Get connected")
+                                    Text("Participate")
                                         .font(themeManager.currentTheme.toolbarTitleFont.bold())
                                         .frame(maxWidth: .infinity)
                                         .padding()
@@ -169,6 +200,14 @@ struct IntroductionView: View {
                         }
                         .padding()
                     }
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button(action: close) {
+                                Image(systemName: "xmark")
+                            }
+                            .accessibilityLabel("Close")
+                        }
+                    }
                 }
                 
             }
@@ -184,5 +223,6 @@ struct IntroductionView: View {
         close: {},
         totalReferrals: 4,
         referralCode: "ABC123",
+        meanReliabilityWeight: 2.0
     )
 }

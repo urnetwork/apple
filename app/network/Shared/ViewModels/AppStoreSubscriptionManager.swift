@@ -12,8 +12,13 @@ import URnetworkSdk
 /**
  * For creating a subscription with the App Store
  */
+@MainActor
 class AppStoreSubscriptionManager: ObservableObject {
-    @Published var products: [Product] = []
+    // @Published var products: [Product] = []
+    
+    @Published var monthlySubscription: Product?
+    @Published var yearlySubscription: Product?
+    
     @Published var isPurchasing: Bool = false
     @Published private(set) var purchaseSuccess: Bool = false
     
@@ -38,13 +43,23 @@ class AppStoreSubscriptionManager: ObservableObject {
     
     func fetchProducts() async {
         do {
-            let productIdentifiers = ["supporter"]
+            let productIdentifiers = ["supporter", "supporter_yearly"]
             
             let storeProducts = try await Product.products(for: productIdentifiers)
             
-            await MainActor.run {
-                self.products = storeProducts
+            if let monthlySub = storeProducts.first(where: { $0.id == "supporter" }) {
+                self.monthlySubscription = monthlySub
+                print("monthly sub price is: \(monthlySub.displayPrice)")
             }
+            
+            if let yearlySub = storeProducts.first(where: { $0.id == "supporter_yearly" }) {
+                self.yearlySubscription = yearlySub
+                print("monthly sub price is: \(yearlySub.displayPrice)")
+            }
+            
+//            await MainActor.run {
+//                self.products = storeProducts
+//            }
             
             print("Retrieved products: \(storeProducts.count)")
         } catch {
@@ -95,7 +110,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                     await transaction.finish()
                     
                     onPurchaseSuccess()
-                    await setPurchaseSuccess(true)
+                    setPurchaseSuccess(true)
                     
                 case .unverified( _, let error):
                     print("Purchase unverified: \(error)")
@@ -148,7 +163,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                         print("✅ Verified transaction update: \(transaction.id)")
                         
                         // Log transaction details for debugging
-                        self.logTransactionDetails(transaction)
+                        await self.logTransactionDetails(transaction)
                         
                         // Finish the transaction
                         await transaction.finish()
@@ -163,8 +178,6 @@ class AppStoreSubscriptionManager: ObservableObject {
                     case .unverified(_, let error):
                         print("Unverified transaction: \(error.localizedDescription)")
                     }
-                } catch {
-                    print("Transaction listener error: \(error.localizedDescription)")
                 }
             }
         }

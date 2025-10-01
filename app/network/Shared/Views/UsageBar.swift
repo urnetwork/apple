@@ -22,14 +22,25 @@ struct UsageBar: View {
     
     let data: [DailyDataUsage]
     let totalBytes: Int
+    let meanReliabilityWeight: Double
+    let totalReferrals: Int
     
-    init(availableByteCount: Int, pendingByteCount: Int, usedByteCount: Int) {
+    init(
+        availableByteCount: Int,
+        pendingByteCount: Int,
+        usedByteCount: Int,
+        meanReliabilityWeight: Double,
+        totalReferrals: Int
+    ) {
         self.data = [
             .init(name: "Used", bytes: usedByteCount),
             .init(name: "Pending", bytes: pendingByteCount),
             .init(name: "Available", bytes: availableByteCount),
         ]
         self.totalBytes = availableByteCount + pendingByteCount + usedByteCount
+        
+        self.meanReliabilityWeight = meanReliabilityWeight
+        self.totalReferrals = totalReferrals
     }
     
     func minNonZeroValue(_ bytes: Int) -> Int {
@@ -104,24 +115,70 @@ struct UsageBar: View {
     
     var body: some View {
         
-        Chart(data.indices, id: \.self) { index in
-               
-            BarMark(
-                x: .value("Data", self.minNonZeroValue(data[index].bytes))
-            )
-            .foregroundStyle(by: .value("Name", data[index].name))
-            .clipShape(
-                UnevenRoundedRectangle(
-                    cornerRadii: getCornerRadii(index)
+        VStack(alignment: .leading) {
+         
+            Chart(data.indices, id: \.self) { index in
+                   
+                BarMark(
+                    x: .value("Data", self.minNonZeroValue(data[index].bytes))
                 )
-            )
+                .foregroundStyle(by: .value("Name", data[index].name))
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        cornerRadii: getCornerRadii(index)
+                    )
+                )
+                
+            }
+            .chartXAxis(.hidden)
+            .frame(height: 32)
+            .chartForegroundStyleScale([
+                "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
+            ])
+            
+            Spacer().frame(height: 8)
+            
+            HStack {
+                
+                Spacer()
+                
+                Text("64GiB / Day")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+            }
+
+            HStack {
+                
+                Text("Reliability: \(meanReliabilityWeight)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+                Spacer()
+             
+                Text("+\(meanReliabilityWeight * 100)GiB / Day")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+            }
+            
+            
+            HStack {
+                
+                Text("Total Referrals: \(totalReferrals)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+                Spacer()
+             
+                Text("+\(totalReferrals * 30)GiB / Month")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+                
+            }
             
         }
-        .chartXAxis(.hidden)
-        .frame(height: 32)
-        .chartForegroundStyleScale([
-            "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
-        ])
         
     }
 }
@@ -130,6 +187,8 @@ struct UsageBar: View {
     UsageBar(
         availableByteCount: 70,
         pendingByteCount: 10,
-        usedByteCount: 20
+        usedByteCount: 20,
+        meanReliabilityWeight: 0.2,
+        totalReferrals: 2
     )
 }

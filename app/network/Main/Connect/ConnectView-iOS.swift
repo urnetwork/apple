@@ -24,8 +24,10 @@ struct ConnectView_iOS: View {
     
     @ObservedObject private var providerListStore: ProviderListStore
     
-    var logout: () -> Void
-    var api: SdkApi
+    let logout: () -> Void
+    let api: SdkApi
+    let promptMoreDataFlow: () -> Void
+    let meanReliabilityWeight: Double
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
     
     @State var displayReconnectTunnel: Bool = false
@@ -37,13 +39,18 @@ struct ConnectView_iOS: View {
         device: SdkDeviceRemote?,
         providerListSheetViewModel: ProviderListSheetViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
-        providerStore: ProviderListStore
+        providerStore: ProviderListStore,
+        promptMoreDataFlow: @escaping () -> Void,
+        meanReliabilityWeight: Double
     ) {
         self.logout = logout
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
         self.providerListStore = providerStore
+        
+        self.promptMoreDataFlow = promptMoreDataFlow
+        self.meanReliabilityWeight = meanReliabilityWeight
         
         // _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
         
@@ -201,7 +208,10 @@ struct ConnectView_iOS: View {
                         isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                         availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                         pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount
+                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                        promptMoreDataFlow: promptMoreDataFlow,
+                        meanReliabilityWeight: meanReliabilityWeight,
+                        totalReferrals: referralLinkViewModel.totalReferrals
                     )
                     
                 }
@@ -275,7 +285,8 @@ struct ConnectView_iOS: View {
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 UpgradeSubscriptionSheet(
-                    subscriptionProduct: subscriptionManager.products.first,
+                    monthlyProduct: subscriptionManager.monthlySubscription,
+                    yearlyProduct: subscriptionManager.yearlySubscription,
                     purchase: { product in
                         
                         Task {

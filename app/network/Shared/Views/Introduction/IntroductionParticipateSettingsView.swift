@@ -15,6 +15,7 @@ struct IntroductionParticipateSettingsView: View {
     let close: () -> Void
     let totalReferrals: Int
     let referralCode: String
+    let meanReliabilityWeight: Double
     
     var body: some View {
         
@@ -33,7 +34,13 @@ struct IntroductionParticipateSettingsView: View {
                     
                     Spacer().frame(height: 4)
                  
-                    UsageBar(availableByteCount: 300, pendingByteCount: 25, usedByteCount: 100)
+                    UsageBar(
+                        availableByteCount: 300,
+                        pendingByteCount: 25,
+                        usedByteCount: 100,
+                        meanReliabilityWeight: meanReliabilityWeight,
+                        totalReferrals: totalReferrals
+                    )
                     
                     Text("This bar in the app shows you how much free data you are earning from your provider. You can check in any time and adjust your settings to maximize your earnings.")
                         .font(themeManager.currentTheme.bodyFont)
@@ -151,6 +158,7 @@ struct IntroductionParticipateSettingsView: View {
     IntroductionParticipateSettingsView(
         close: {},
         totalReferrals: 4,
-        referralCode: "ABC123"
+        referralCode: "ABC123",
+        meanReliabilityWeight: 0.2
     )
 }

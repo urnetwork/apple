@@ -16,18 +16,20 @@ struct WalletsView: View {
     @EnvironmentObject var payoutWalletViewModel: PayoutWalletViewModel
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
-    var navigate: (AccountNavigationPath) -> Void
-    var api: UrApiServiceProtocol
-    var netAccountPoints: Double
-    var payoutPoints: Double
-    var multiplierPoints: Double
-    var referralPoints: Double
-    var reliabilityPoints: Double
-    var fetchAccountPoints: () async -> Void
+    let navigate: (AccountNavigationPath) -> Void
+    let api: UrApiServiceProtocol
+    let netAccountPoints: Double
+    let payoutPoints: Double
+    let multiplierPoints: Double
+    let referralPoints: Double
+    let reliabilityPoints: Double
+    let fetchAccountPoints: () async -> Void
+    let networkReliabilityWindow: SdkReliabilityWindow?
+    let fetchNetworkReliability: () async -> Void
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     @StateObject private var viewModel: ViewModel
-    @StateObject private var networkReliabilityStore: NetworkReliabilityStore
+//    @StateObject private var networkReliabilityStore: NetworkReliabilityStore
     
     init(
         navigate: @escaping (AccountNavigationPath) -> Void,
@@ -38,6 +40,8 @@ struct WalletsView: View {
         referralPoints: Double,
         reliabilityPoints: Double,
         fetchAccountPoints: @escaping () async -> Void,
+        networkReliabilityWindow: SdkReliabilityWindow?,
+        fetchNetworkReliability: @escaping () async -> Void,
         referralLinkViewModel: ReferralLinkViewModel,
     ) {
 
@@ -50,8 +54,10 @@ struct WalletsView: View {
         self.reliabilityPoints = reliabilityPoints
         self.fetchAccountPoints = fetchAccountPoints
         self.referralLinkViewModel = referralLinkViewModel
+        self.networkReliabilityWindow = networkReliabilityWindow
+        self.fetchNetworkReliability = fetchNetworkReliability
         _viewModel = StateObject(wrappedValue: ViewModel())
-        _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: api))
+//        _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: api))
     }
     
     var body: some View {
@@ -101,7 +107,7 @@ struct WalletsView: View {
                             payoutPoints: payoutPoints,
                             multiplierPoints: multiplierPoints,
                             referralPoints: referralPoints,
-                            networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
+                            networkReliabilityWindow: networkReliabilityWindow,
                             referralLinkViewModel: referralLinkViewModel,
                         )
                         
@@ -131,7 +137,7 @@ struct WalletsView: View {
             async let fetchTransferStats: Void = accountWalletsViewModel.fetchTransferStats()
             async let fetchAccountPoints: Void = fetchAccountPoints()
             async let fetchReferralLink: Void = referralLinkViewModel.fetchReferralLink()
-            async let fetchNetworkReliability: Void = networkReliabilityStore.getNetworkReliability()
+            async let fetchNetworkReliability: Void = fetchNetworkReliability()
             
             // Wait for all tasks to complete
             (_, _, _, _, _, _) = await (

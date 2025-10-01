@@ -24,6 +24,7 @@ struct MainTabView: View {
     @StateObject var accountPaymentsViewModel: AccountPaymentsViewModel
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
+    @StateObject private var networkReliabilityStore: NetworkReliabilityStore
     
     @ObservedObject var providerListStore: ProviderListStore
     
@@ -63,6 +64,8 @@ struct MainTabView: View {
         
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
         
+        _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
+        
         self.introductionComplete = introductionComplete
         
         /**
@@ -97,7 +100,11 @@ struct MainTabView: View {
                 device: device,
                 providerListSheetViewModel: providerListSheetViewModel,
                 referralLinkViewModel: referralLinkViewModel,
-                providerStore: self.providerListStore
+                providerStore: self.providerListStore,
+                promptMoreDataFlow: {
+                    self.displayIntroduction = true
+                },
+                meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
@@ -124,7 +131,9 @@ struct MainTabView: View {
                 accountPaymentsViewModel: accountPaymentsViewModel,
                 networkUserViewModel: networkUserViewModel,
                 referralLinkViewModel: referralLinkViewModel,
-                providerCountries: providerListStore.providerCountries
+                providerCountries: providerListStore.providerCountries,
+                networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
+                fetchNetworkReliability: networkReliabilityStore.getNetworkReliability
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
@@ -193,6 +202,7 @@ struct MainTabView: View {
                     },
                     totalReferrals: referralLinkViewModel.totalReferrals,
                     referralCode: referralLinkViewModel.referralCode ?? "",
+                    meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0
                 )
                 
                 UrSnackBar(

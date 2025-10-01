@@ -24,9 +24,14 @@ class SubscriptionBalanceViewModel: ObservableObject {
     /**
      * polling
      */
+    // when the user has updated, we want to poll to check their balance + subscription have been bumped
     @Published private(set) var isPolling: Bool = false
     private var pollingTimer: Timer?
     private var pollingInterval: TimeInterval = 5.0 // Default 5 seconds
+    
+    // this is used primarily for the data usage bar
+    private var backgroundPollingTimer: Timer?
+    private var backgroundPollingInterval: TimeInterval = 30.0 // 30 seconds
     
     @Published private(set) var usedBalanceByteCount: Int = 0
     @Published private(set) var pendingByteCount: Int = 0
@@ -38,9 +43,12 @@ class SubscriptionBalanceViewModel: ObservableObject {
     init(urApiService: UrApiServiceProtocol) {
         self.urApiService = urApiService
         
-        Task {
-            await fetchSubscriptionBalance()
-        }
+//        Task {
+//            // await fetchSubscriptionBalance()
+//            startBackgroundPolling()
+//        }
+  
+        startBackgroundPolling()
         
     }
     
@@ -98,6 +106,36 @@ class SubscriptionBalanceViewModel: ObservableObject {
         }
     }
     
+    private func startBackgroundPolling() {
+        Task {
+            
+            await fetchSubscriptionBalance()
+            
+            if (self.isSupporterWithBalance()) {
+                stopPolling()
+                return
+            }
+            
+            // Set up timer for subsequent fetches
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                // poll every 30 seconds
+                self.backgroundPollingTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    Task {
+                        await self.fetchSubscriptionBalance()
+                        
+                        if (await self.isSupporterWithBalance()) {
+                            await self.stopPolling()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func startPolling(interval: TimeInterval = 5.0) {
         
         guard !isPolling else { return }
@@ -143,6 +181,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
         pollingTimer?.invalidate()
         pollingTimer = nil
         isPolling = false
+        backgroundPollingTimer?.invalidate()
+        backgroundPollingTimer = nil
     }
     
 }

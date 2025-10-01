@@ -14515,6 +14515,7 @@
       }
     },
     "Need more data, faster?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -27874,6 +27875,7 @@
       }
     },
     "Upgrade Now" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

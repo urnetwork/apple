@@ -21,6 +21,7 @@ struct MainNavigationSplitView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     @State private var selectedTab: MainNavigationTab = .connect
+    @State private var displayIntroduction: Bool
     
     var api: SdkApi
     let urApiService: UrApiServiceProtocol
@@ -39,6 +40,8 @@ struct MainNavigationSplitView: View {
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     
     @ObservedObject var providerListStore: ProviderListStore
+    
+    @StateObject private var networkReliabilityStore: NetworkReliabilityStore
     
     init(
         api: SdkApi,
@@ -66,6 +69,24 @@ struct MainNavigationSplitView: View {
         _networkUserViewModel = StateObject(wrappedValue: NetworkUserViewModel(api: api))
         
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
+        
+        _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
+        
+        /**
+         * Prompt introduction
+         */
+        self.displayIntroduction = false
+//        if (currentPlan == .supporter || errorFetchingSubscriptionBalance) {
+//            self.displayIntroduction = false
+//        } else {
+//            
+//            if introductionComplete.wrappedValue {
+//                self.displayIntroduction = false
+//            } else {
+//                self.displayIntroduction = true
+//            }
+//            
+//        }
     }
     
     var body: some View {
@@ -135,7 +156,10 @@ struct MainNavigationSplitView: View {
             case .connect:
                 ConnectView_macOS(
                     urApiService: urApiService,
-                    providerStore: providerListStore
+                    providerStore: providerListStore,
+                    promptMoreDataFlow: {},
+                    meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,
+                    totalReferrals: referralLinkViewModel.totalReferrals
                 )
             case .account:
                 AccountNavStackView(
@@ -146,7 +170,9 @@ struct MainNavigationSplitView: View {
                     accountPaymentsViewModel: accountPaymentsViewModel,
                     networkUserViewModel: networkUserViewModel,
                     referralLinkViewModel: referralLinkViewModel,
-                    providerCountries: providerListStore.providerCountries
+                    providerCountries: providerListStore.providerCountries,
+                    networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
+                    fetchNetworkReliability: networkReliabilityStore.getNetworkReliability,
                 )
             case .leaderboard:
                 LeaderboardView(api: urApiService)
@@ -167,6 +193,7 @@ struct MainNavigationSplitView: View {
                 }
             }
         }
+//        .fullScreenCover(isPresented: $displayIntroduction) {}
     }
 }
 

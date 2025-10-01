@@ -14,6 +14,7 @@ struct IntroductionView: View {
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+    @EnvironmentObject var connectViewModel: ConnectViewModel
     
     let close: () -> Void
     let totalReferrals: Int

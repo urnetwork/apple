@@ -120,9 +120,7 @@ struct UpgradeSubscriptionSheet: View {
                                     isSelected: selectedPaymentOption == .yearly
                                 )
                                 
-
-
-                                Spacer()
+                                Spacer().frame(minHeight: 18)
                                 
                                 VStack(alignment: .leading) {
                                     

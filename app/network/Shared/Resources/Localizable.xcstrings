@@ -26094,156 +26094,156 @@
         }
       }
     },
-    "Start 15 day free trial" : {
+    "Start 2 week free trial" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ابدأ تجربة مجانية لمدة 15 يومًا"
+            "value" : "ابدأ تجربة مجانية لمدة أسبوعين"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Začněte 15denní zkušební verzi zdarma"
+            "value" : "Začněte dvoutýdenní zkušební verzi zdarma"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beginnen Sie die 15-tägige kostenlose Testphase"
+            "value" : "Beginnen Sie die zweiwöchige kostenlose Testphase"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ξεκινήστε τη δωρεάν δοκιμή 15 ημερών"
+            "value" : "Ξεκινήστε τη δωρεάν δοκιμή δύο εβδομάδων"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start 15 day free trial"
+            "value" : "Start 2 week free trial"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comienza la prueba gratuita de 15 días"
+            "value" : "Comienza la prueba gratuita de 2 semanas"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comienza la prueba gratuita de 15 días"
+            "value" : "Comienza la prueba gratuita de 2 semanas"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Commencez l’essai gratuit de 15 jours"
+            "value" : "Commencez l’essai gratuit de 2 semaines"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "התחל ניסיון חינם ל-15 יום"
+            "value" : "התחל ניסיון חינם לשבועיים"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "15 दिन की मुफ्त ट्रायल शुरू करें"
+            "value" : "2 सप्ताह की मुफ्त ट्रायल शुरू करें"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mulai uji coba gratis 15 hari"
+            "value" : "Mulai uji coba gratis 2 minggu"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inizia la prova gratuita di 15 giorni"
+            "value" : "Inizia la prova gratuita di 2 settimane"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "15日間の無料トライアルを開始"
+            "value" : "2週間の無料トライアルを開始"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "15일 무료 체험 시작"
+            "value" : "2주 무료 체험 시작"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Begin 15 dagen gratis proefperiode"
+            "value" : "Begin 2 weken gratis proefperiode"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rozpocznij 15-dniowy bezpłatny okres próbny"
+            "value" : "Rozpocznij 2-tygodniowy bezpłatny okres próbny"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inicie o teste gratuito de 15 dias"
+            "value" : "Inicie o teste gratuito de 2 semanas"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inicie o teste gratuito de 15 dias"
+            "value" : "Inicie o teste gratuito de 2 semanas"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Начать 15-дневный бесплатный пробный период"
+            "value" : "Начать двухнедельный бесплатный пробный период"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Starta 15 dagars gratis provperiod"
+            "value" : "Starta 2 veckors gratis provperiod"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "เริ่มทดลองใช้งานฟรี 15 วัน"
+            "value" : "เริ่มทดลองใช้งานฟรี 2 สัปดาห์"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Почати 15-денний безкоштовний пробний період"
+            "value" : "Почати двотижневий безкоштовний пробний період"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bắt đầu dùng thử miễn phí 15 ngày"
+            "value" : "Bắt đầu dùng thử miễn phí 2 tuần"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始15天免费试用"
+            "value" : "开始2周免费试用"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "開始15天免費試用"
+            "value" : "開始2星期免費試用"
           }
         }
       }

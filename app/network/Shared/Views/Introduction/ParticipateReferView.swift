@@ -58,20 +58,16 @@ struct ParticipateReferView: View {
 //                        .font(themeManager.currentTheme.bodyFont)
                     
                     
-                    Text("You get +30GiB / month")
+                    Text(NSLocalizedString("You get +30GiB / month\nYour friend gets +30GiB / month\nFor life!", comment: "Referral bonus message"))
                         .font(themeManager.currentTheme.bodyFont)
-                    Text("Your friend gets +30GiB / month")
-                        .font(themeManager.currentTheme.bodyFont)
-                    Text("For life!")
-                        .font(themeManager.currentTheme.bodyFont)
-                    
+
                     Spacer().frame(height: 16)
                     
                     Divider()
                     
                     Spacer().frame(height: 16)
                     
-                    Text("Refer some people and watch your free data go up.")
+                    Text("Refer some friends and watch your free data go up.")
                         .font(themeManager.currentTheme.toolbarTitleFont)
                     
                     Spacer().frame(height: 16)
@@ -128,13 +124,6 @@ struct ParticipateReferView: View {
                             .contentShape(Rectangle())
                             .foregroundStyle(themeManager.currentTheme.textColor)
                     }
-//                    .disabled(referralLinkViewModel.isLoading)
-//                    .buttonStyle(.plain)
-//                    .contentShape(Rectangle())
-                    
-//                    UrButton(text: "Refer a friend", action: {
-//
-//                    })
                     
                     Spacer().frame(height: 16)
                     

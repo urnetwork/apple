@@ -22,30 +22,39 @@ struct UsageBar: View {
     
     let data: [DailyDataUsage]
     let totalBytes: Int
+    let meanReliabilityWeight: Double
+    let totalReferrals: Int
     
-    init(availableByteCount: Int, pendingByteCount: Int, usedByteCount: Int) {
+    init(
+        availableByteCount: Int,
+        pendingByteCount: Int,
+        usedByteCount: Int,
+        meanReliabilityWeight: Double,
+        totalReferrals: Int
+    ) {
         self.data = [
             .init(name: "Used", bytes: usedByteCount),
             .init(name: "Pending", bytes: pendingByteCount),
             .init(name: "Available", bytes: availableByteCount),
         ]
         self.totalBytes = availableByteCount + pendingByteCount + usedByteCount
+        
+        self.meanReliabilityWeight = meanReliabilityWeight
+        self.totalReferrals = totalReferrals
     }
     
     func minNonZeroValue(_ bytes: Int) -> Int {
         
         let minVal = Double(self.totalBytes) * 0.015 // enforce 1.5% so it shows up in the bar
         
-        if bytes == 0 {
-            // if empty, don't display the bar at all
-            return 0
-        } else if bytes < Int(minVal) {
+        if bytes < Int(minVal) {
             // ensure it takes up min % of bar
             return Int(minVal)
         } else {
             // larger than min value, display as is
             return bytes
         }
+
         
     }
     
@@ -104,8 +113,9 @@ struct UsageBar: View {
     
     var body: some View {
         
-        ZStack {
-            Chart(data.indices, id: \.self) { index in // Get the Production values.
+        VStack(alignment: .leading) {
+         
+            Chart(data.indices, id: \.self) { index in
                    
                 BarMark(
                     x: .value("Data", self.minNonZeroValue(data[index].bytes))
@@ -123,6 +133,49 @@ struct UsageBar: View {
             .chartForegroundStyleScale([
                 "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
             ])
+            
+            Spacer().frame(height: 8)
+            
+            HStack {
+                
+                Spacer()
+                
+                Text("64GiB / Day")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+            }
+
+            HStack {
+                
+                Text("Reliability: \(meanReliabilityWeight)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+                Spacer()
+             
+                Text("+\(meanReliabilityWeight * 100)GiB / Day")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+            }
+            
+            
+            HStack {
+                
+                Text("Total Referrals: \(totalReferrals)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+                Spacer()
+             
+                Text("+\(totalReferrals * 30)GiB / Month")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
+                
+            }
+            
         }
         
     }
@@ -132,6 +185,8 @@ struct UsageBar: View {
     UsageBar(
         availableByteCount: 70,
         pendingByteCount: 10,
-        usedByteCount: 20
+        usedByteCount: 20,
+        meanReliabilityWeight: 0.2,
+        totalReferrals: 2
     )
 }

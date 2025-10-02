@@ -14,7 +14,7 @@ struct PayoutItemView: View {
     
     var navigate: (AccountNavigationPath) -> Void
     var payment: SdkAccountPayment
-    var accountPointsViewModel: AccountPointsViewModel
+    var accountPointsViewModel: AccountPointsStore
     var isMultiplierTokenHolder: Bool
     
     var body: some View {

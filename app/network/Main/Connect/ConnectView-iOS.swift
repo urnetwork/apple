@@ -24,9 +24,13 @@ struct ConnectView_iOS: View {
     
     @ObservedObject private var providerListStore: ProviderListStore
     
-    var logout: () -> Void
-    var api: SdkApi
+    let logout: () -> Void
+    let api: SdkApi
+    let promptMoreDataFlow: () -> Void
+    let meanReliabilityWeight: Double
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
+    
+    @State var displayReconnectTunnel: Bool = false
     
     init(
         api: SdkApi,
@@ -35,13 +39,18 @@ struct ConnectView_iOS: View {
         device: SdkDeviceRemote?,
         providerListSheetViewModel: ProviderListSheetViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
-        providerStore: ProviderListStore
+        providerStore: ProviderListStore,
+        promptMoreDataFlow: @escaping () -> Void,
+        meanReliabilityWeight: Double
     ) {
         self.logout = logout
         self.api = api
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
         self.providerListStore = providerStore
+        
+        self.promptMoreDataFlow = promptMoreDataFlow
+        self.meanReliabilityWeight = meanReliabilityWeight
         
         // _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
         
@@ -51,238 +60,282 @@ struct ConnectView_iOS: View {
     
     var body: some View {
         
-        VStack {
+        GeometryReader { geometry in
             
-            if connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
-                HStack {
-                    Text("Need more data, faster?")
-                        .font(themeManager.currentTheme.bodyFont)
+            ZStack(alignment: .top) {
+                
+                VStack {
+                    
+                    //            if connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
+                    //                HStack {
+                    //                    Text("Need more data, faster?")
+                    //                        .font(themeManager.currentTheme.bodyFont)
+                    //
+                    //                    Spacer()
+                    //
+                    //                    Button(action: {
+                    //                        connectViewModel.isPresentedUpgradeSheet = true
+                    //                    }) {
+                    //                        Text("Upgrade Now")
+                    //                            .font(themeManager.currentTheme.bodyFont)
+                    //                            .fontWeight(.bold)
+                    //                    }
+                    //                    .padding(.horizontal, 12)
+                    //                    .padding(.vertical, 4)
+                    //                    .overlay(
+                    //                        RoundedRectangle(cornerRadius: 4)
+                    //                            .stroke(.accent, lineWidth: 1)
+                    //                    )
+                    //                }
+                    //                .padding()
+                    //                .frame(maxWidth: .infinity)
+                    //                .background(.urElectricBlue)
+                    //                .transition(.move(edge: .top).combined(with: .opacity))
+                    //                .animation(.easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner)
+                    //            }
+                    
+                    // Spacer()
+                    
+                    Spacer().frame(height: 32)
+                    
+                    ConnectButtonView(
+                        gridPoints:
+                            connectViewModel.gridPoints,
+                        gridWidth: connectViewModel.gridWidth,
+                        connectionStatus: connectViewModel.connectionStatus,
+                        windowCurrentSize: connectViewModel.windowCurrentSize,
+                        connect: connectViewModel.connect,
+                        disconnect: connectViewModel.disconnect,
+                        connectTunnel: {
+                            deviceManager.vpnManager?.updateVpnService()
+                        },
+                        contractStatus: connectViewModel.contractStatus,
+                        openUpgradeSheet: {
+                            connectViewModel.isPresentedUpgradeSheet = true
+                        },
+                        currentPlan: subscriptionBalanceViewModel.currentPlan,
+                        isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                        tunnelConnected: $connectViewModel.tunnelConnected
+                    )
                     
                     Spacer()
                     
-                    Button(action: {
-                        connectViewModel.isPresentedUpgradeSheet = true
-                    }) {
-                        Text("Upgrade Now")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .fontWeight(.bold)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.accent, lineWidth: 1)
-                    )
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(.urElectricBlue)
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .animation(.easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner)
-            }
-            
-            Spacer()
-            
-            ConnectButtonView(
-                gridPoints:
-                    connectViewModel.gridPoints,
-                gridWidth: connectViewModel.gridWidth,
-                connectionStatus: connectViewModel.connectionStatus,
-                windowCurrentSize: connectViewModel.windowCurrentSize,
-                connect: connectViewModel.connect,
-                disconnect: connectViewModel.disconnect,
-                connectTunnel: {
-                    deviceManager.vpnManager?.updateVpnService()
-                },
-                contractStatus: connectViewModel.contractStatus,
-                openUpgradeSheet: {
-                    connectViewModel.isPresentedUpgradeSheet = true
-                },
-                currentPlan: subscriptionBalanceViewModel.currentPlan,
-                isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
-                tunnelConnected: $connectViewModel.tunnelConnected
-            )
-            
-            Spacer()
-            
-            Button(action: {
-                providerListSheetViewModel.isPresented = true
-            }) {
-                
-                SelectedProvider(
-                    selectedProvider: connectViewModel.selectedProvider,
-                )
-                
-            }
-            .background(themeManager.currentTheme.tintedBackgroundBase)
-            .clipShape(.capsule)
-            
-            Spacer().frame(height: 16)
-            
-        }
-        .onChange(of: connectViewModel.connectionStatus) { newValue in
-            
-            // Cancel any existing banner task
-            connectViewModel.upgradeBannerTask?.cancel()
-            connectViewModel.upgradeBannerTask = nil
-            
-            if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
-                // Show the banner after 10 seconds when connected
-                connectViewModel.upgradeBannerTask = Task {
-                    try? await Task.sleep(for: .seconds(10))
-                    // Check if the task was not cancelled before showing the banner
-                    guard !Task.isCancelled else { return }
-                    await MainActor.run {
+                .onChange(of: connectViewModel.connectionStatus) { newValue in
+                    
+                    // Cancel any existing banner task
+                    connectViewModel.upgradeBannerTask?.cancel()
+                    connectViewModel.upgradeBannerTask = nil
+                    
+                    if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
+                        // Show the banner after 10 seconds when connected
+                        connectViewModel.upgradeBannerTask = Task {
+                            try? await Task.sleep(for: .seconds(10))
+                            // Check if the task was not cancelled before showing the banner
+                            guard !Task.isCancelled else { return }
+                            await MainActor.run {
+                                withAnimation {
+                                    connectViewModel.showUpgradeBanner = true
+                                }
+                            }
+                        }
+                    } else if newValue != .connected {
+                        // Hide the banner when disconnected
                         withAnimation {
-                            connectViewModel.showUpgradeBanner = true
+                            connectViewModel.showUpgradeBanner = false
                         }
                     }
-                }
-            } else if newValue != .connected {
-                // Hide the banner when disconnected
-                withAnimation {
-                    connectViewModel.showUpgradeBanner = false
-                }
-            }
-        }
-        .onAppear {
-            
-            connectViewModel.updateGrid()
-            connectViewModel.refreshTunnelStatus()
-            
-            /**
-             * Create callback function for prompting rating
-             */
-            connectViewModel.requestReview = {
-                Task {
-                    
-                    if let device = deviceManager.device {
-                        
-                        if device.getShouldShowRatingDialog() {
-                            device.setCanShowRatingDialog(false)
-                            try await Task.sleep(for: .seconds(2))
-                            requestReview()
-                        }
-                        
-                    }
-                    
-                }
-            }
-            
-        }
-        // .padding()
-        .frame(maxWidth: 600)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(isPresented: $providerListSheetViewModel.isPresented) {
-            
-            NavigationStack {
-    
-                ProviderListSheetView(
-                    selectedProvider: connectViewModel.selectedProvider,
-                    connect: { provider in
-                        connectViewModel.connect(provider)
-                        providerListSheetViewModel.isPresented = false
-                    },
-                    connectBestAvailable: {
-                        connectViewModel.connectBestAvailable()
-                        providerListSheetViewModel.isPresented = false
-                    },
-                    isLoading: providerListStore.providersLoading,
-                    isRefreshing: providerListSheetViewModel.isRefreshing,
-                    providerCountries: providerListStore.providerCountries,
-                    providerPromoted: providerListStore.providerPromoted,
-                    providerDevices: providerListStore.providerDevices,
-                    providerRegions: providerListStore.providerRegions,
-                    providerCities: providerListStore.providerCities,
-                    providerBestSearchMatches: providerListStore.providerBestSearchMatches
-                )
-                .navigationBarTitleDisplayMode(.inline)
-                .searchable(
-                    text: $providerListStore.searchQuery,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: "Search providers"
-                )
-                .toolbar {
-    
-                    ToolbarItem(placement: .principal) {
-                        Text("Available providers")
-                            .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                    }
-    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            providerListSheetViewModel.isPresented = false
-                        }) {
-                            Image(systemName: "xmark")
-                        }
-                    }
-                }
-                .refreshable {
-                    providerListSheetViewModel.setIsRefreshing(true)
-                    let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
-                    providerListSheetViewModel.setIsRefreshing(false)
                 }
                 .onAppear {
                     
-                    // refetch the contract status
-                    connectViewModel.updateContractStatus()
+                    connectViewModel.updateGrid()
+                    connectViewModel.refreshTunnelStatus()
                     
-                    Task {
-                        let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
-                    }
-                }
-    
-             }
-            .background(themeManager.currentTheme.backgroundColor)
-            
-            
-        }
-        // upgrade subscription
-        .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
-            UpgradeSubscriptionSheet(
-                subscriptionProduct: subscriptionManager.products.first,
-                purchase: { product in
-                    
-                    Task {
-                        do {
-                            try await subscriptionManager.purchase(
-                                product: product,
-                                onSuccess: {
-                                    subscriptionBalanceViewModel.startPolling()
+                    /**
+                     * Create callback function for prompting rating
+                     */
+                    connectViewModel.requestReview = {
+                        Task {
+                            
+                            if let device = deviceManager.device {
+                                
+                                if device.getShouldShowRatingDialog() {
+                                    device.setCanShowRatingDialog(false)
+                                    try await Task.sleep(for: .seconds(2))
+                                    requestReview()
                                 }
-                            )
-    
-                        } catch(let error) {
-                            print("error making purchase: \(error)")
+                                
+                            }
+                            
+                        }
+                    }
+                    
+                }
+                .frame(maxWidth: .infinity)
+                
+                
+                VStack {
+                    Spacer()
+                    
+                    Rectangle()
+                        .fill(themeManager.currentTheme.tintedBackgroundBase)
+                        .colorMultiply(Color(white: 0.8))
+                        .frame(height: 100) // Fixed height for bounce area
+                        .ignoresSafeArea()
+                }
+                .ignoresSafeArea()
+                
+                
+                
+                ScrollView {
+                    
+                    Color.clear
+                        .frame(height: geometry.size.height - 184)
+
+                    ConnectActions(
+                        connect: connectViewModel.connect,
+                        disconnect: connectViewModel.disconnect,
+                        connectionStatus: connectViewModel.connectionStatus,
+                        selectedProvider: connectViewModel.selectedProvider,
+                        setIsPresented: { present in
+                            providerListSheetViewModel.isPresented = present
+                        },
+                        displayReconnectTunnel: displayReconnectTunnel,
+                        reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+                        contractStatus: connectViewModel.contractStatus,
+                        windowCurrentSize: connectViewModel.windowCurrentSize,
+                        currentPlan: subscriptionBalanceViewModel.currentPlan,
+                        isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                        availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                        pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                        promptMoreDataFlow: promptMoreDataFlow,
+                        meanReliabilityWeight: meanReliabilityWeight,
+                        totalReferrals: referralLinkViewModel.totalReferrals
+                    )
+                    
+                }
+                .scrollIndicators(.hidden)
+                
+            }
+            .sheet(isPresented: $providerListSheetViewModel.isPresented) {
+                
+                NavigationStack {
+                    
+                    ProviderListSheetView(
+                        selectedProvider: connectViewModel.selectedProvider,
+                        connect: { provider in
+                            connectViewModel.connect(provider)
+                            providerListSheetViewModel.isPresented = false
+                        },
+                        connectBestAvailable: {
+                            connectViewModel.connectBestAvailable()
+                            providerListSheetViewModel.isPresented = false
+                        },
+                        isLoading: providerListStore.providersLoading,
+                        isRefreshing: providerListSheetViewModel.isRefreshing,
+                        providerCountries: providerListStore.providerCountries,
+                        providerPromoted: providerListStore.providerPromoted,
+                        providerDevices: providerListStore.providerDevices,
+                        providerRegions: providerListStore.providerRegions,
+                        providerCities: providerListStore.providerCities,
+                        providerBestSearchMatches: providerListStore.providerBestSearchMatches
+                    )
+                    .navigationBarTitleDisplayMode(.inline)
+                    .searchable(
+                        text: $providerListStore.searchQuery,
+                        placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: "Search providers"
+                    )
+                    .toolbar {
+                        
+                        ToolbarItem(placement: .principal) {
+                            Text("Available providers")
+                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
                         }
                         
-
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: {
+                                providerListSheetViewModel.isPresented = false
+                            }) {
+                                Image(systemName: "xmark")
+                            }
+                        }
                     }
-
-                },
-                isPurchasing: subscriptionManager.isPurchasing,
-                purchaseSuccess: subscriptionManager.purchaseSuccess,
-                dismiss: {
-                    connectViewModel.isPresentedUpgradeSheet = false
+                    .refreshable {
+                        providerListSheetViewModel.setIsRefreshing(true)
+                        let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
+                        providerListSheetViewModel.setIsRefreshing(false)
+                    }
+                    .onAppear {
+                        
+                        // refetch the contract status
+                        connectViewModel.updateContractStatus()
+                        
+                        Task {
+                            let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
+                        }
+                    }
+                    
                 }
-            )
-        }
-        
-        // upgrade guest account flow
-        .fullScreenCover(isPresented: $connectViewModel.isPresentedCreateAccount) {
-            LoginNavigationView(
-                api: api,
-                cancel: {
-                    connectViewModel.isPresentedCreateAccount = false
-                },
+                .background(themeManager.currentTheme.backgroundColor)
                 
-                handleSuccess: { jwt in
-                    Task {
-                        await handleSuccessWithJwt(jwt)
-                        connectViewModel.isPresentedCreateAccount = false
+                
+            }
+            // upgrade subscription
+            .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
+                UpgradeSubscriptionSheet(
+                    monthlyProduct: subscriptionManager.monthlySubscription,
+                    yearlyProduct: subscriptionManager.yearlySubscription,
+                    purchase: { product in
+                        
+                        Task {
+                            do {
+                                try await subscriptionManager.purchase(
+                                    product: product,
+                                    onSuccess: {
+                                        subscriptionBalanceViewModel.startPolling()
+                                    }
+                                )
+                                
+                            } catch(let error) {
+                                print("error making purchase: \(error)")
+                            }
+                            
+                            
+                        }
+                        
+                    },
+                    isPurchasing: subscriptionManager.isPurchasing,
+                    purchaseSuccess: subscriptionManager.purchaseSuccess,
+                    dismiss: {
+                        connectViewModel.isPresentedUpgradeSheet = false
                     }
-                }
-            )
+                )
+            }
+            
+            // upgrade guest account flow
+            .fullScreenCover(isPresented: $connectViewModel.isPresentedCreateAccount) {
+                LoginNavigationView(
+                    api: api,
+                    cancel: {
+                        connectViewModel.isPresentedCreateAccount = false
+                    },
+                    
+                    handleSuccess: { jwt in
+                        Task {
+                            await handleSuccessWithJwt(jwt)
+                            connectViewModel.isPresentedCreateAccount = false
+                        }
+                    }
+                )
+            }
+            .onChange(of: connectViewModel.connectionStatus) { _ in
+                checkTunnelStatus()
+            }
+            .onChange(of: connectViewModel.tunnelConnected) { _ in
+                checkTunnelStatus()
+            }
         }
         
     }
@@ -304,7 +357,18 @@ struct ConnectView_iOS: View {
         
     }
     
+    private func checkTunnelStatus() {
+        
+        if connectViewModel.connectionStatus == .connected && !connectViewModel.tunnelConnected {
+            self.displayReconnectTunnel = true
+        } else {
+            self.displayReconnectTunnel = false
+        }
+        
+    }
+    
 }
+
 
 //#Preview {
 //    ConnectView_iOS()

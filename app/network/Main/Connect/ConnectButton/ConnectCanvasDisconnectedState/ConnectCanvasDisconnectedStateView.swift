@@ -59,13 +59,13 @@ struct ConnectCanvasDisconnectedStateView: View {
                 .frame(width: 48, height: 48)
             
             
-            VStack {
-                Text("Tap to connect")
-                    .font(Font.custom("PP NeueBit", size: 20))
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                
-                Spacer().frame(height: 120)
-            }
+//            VStack {
+//                Text("Tap to connect")
+//                    .font(Font.custom("PP NeueBit", size: 20))
+//                    .foregroundColor(themeManager.currentTheme.textColor)
+//                
+//                Spacer().frame(height: 120)
+//            }
         }
         .frame(width: 120, height: 120)
         .onAppear {

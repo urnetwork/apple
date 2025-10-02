@@ -17,17 +17,19 @@ struct AccountNavStackView: View {
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @StateObject var accountWalletsViewModel: AccountWalletsViewModel
     @StateObject var payoutWalletViewModel: PayoutWalletViewModel
-    @StateObject var accountPointsViewModel: AccountPointsViewModel
+    @StateObject var accountPointsStore: AccountPointsStore
     
     @ObservedObject var networkUserViewModel: NetworkUserViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
-    var api: SdkApi
-    var urApiService: UrApiServiceProtocol
-    var device: SdkDeviceRemote
-    var logout: () -> Void
+    let api: SdkApi
+    let urApiService: UrApiServiceProtocol
+    let device: SdkDeviceRemote
+    let logout: () -> Void
     let providerCountries: [SdkConnectLocation]
+    let networkReliabilityWindow: SdkReliabilityWindow?
+    let fetchNetworkReliability: () async -> Void
     
     init(
         api: SdkApi,
@@ -37,7 +39,9 @@ struct AccountNavStackView: View {
         accountPaymentsViewModel: AccountPaymentsViewModel,
         networkUserViewModel: NetworkUserViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
-        providerCountries: [SdkConnectLocation]
+        providerCountries: [SdkConnectLocation],
+        networkReliabilityWindow: SdkReliabilityWindow?,
+        fetchNetworkReliability: @escaping () async -> Void
     ) {
         self.api = api
         _accountPreferencesViewModel = StateObject.init(wrappedValue: AccountPreferencesViewModel(
@@ -54,7 +58,7 @@ struct AccountNavStackView: View {
             )
         )
         
-        _accountPointsViewModel = StateObject.init(wrappedValue: AccountPointsViewModel(api: api))
+        _accountPointsStore = StateObject.init(wrappedValue: AccountPointsStore(api: api))
         
         self.accountPaymentsViewModel = accountPaymentsViewModel
         self.networkUserViewModel = networkUserViewModel
@@ -64,6 +68,8 @@ struct AccountNavStackView: View {
         self.referralLinkViewModel = referralLinkViewModel
         self.urApiService = urApiService
         self.providerCountries = providerCountries
+        self.networkReliabilityWindow = networkReliabilityWindow
+        self.fetchNetworkReliability = fetchNetworkReliability
     }
     
     var body: some View {
@@ -81,7 +87,8 @@ struct AccountNavStackView: View {
                 api: api,
                 referralLinkViewModel: referralLinkViewModel,
                 accountPaymentsViewModel: accountPaymentsViewModel,
-                networkName: networkName
+                networkName: networkName,
+                meanReliabilityWeight: networkReliabilityWindow?.meanReliabilityWeight ?? 0
             )
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationDestination(for: AccountNavigationPath.self) { path in
@@ -124,12 +131,14 @@ struct AccountNavStackView: View {
                     WalletsView(
                         navigate: viewModel.navigate,
                         api: urApiService,
-                        netAccountPoints: accountPointsViewModel.netPoints,
-                        payoutPoints: accountPointsViewModel.payoutPoints,
-                        multiplierPoints: accountPointsViewModel.multiplierPoints,
-                        referralPoints: accountPointsViewModel.referralPoints,
-                        reliabilityPoints: accountPointsViewModel.reliabilityPoints,
-                        fetchAccountPoints: accountPointsViewModel.fetchAccountPoints,
+                        netAccountPoints: accountPointsStore.netPoints,
+                        payoutPoints: accountPointsStore.payoutPoints,
+                        multiplierPoints: accountPointsStore.multiplierPoints,
+                        referralPoints: accountPointsStore.referralPoints,
+                        reliabilityPoints: accountPointsStore.reliabilityPoints,
+                        fetchAccountPoints: accountPointsStore.fetchAccountPoints,
+                        networkReliabilityWindow: networkReliabilityWindow,
+                        fetchNetworkReliability: fetchNetworkReliability,
                         referralLinkViewModel: referralLinkViewModel,
                     )
                     .toolbar {
@@ -177,7 +186,7 @@ struct AccountNavStackView: View {
                     PayoutItemView(
                         navigate: viewModel.navigate,
                         payment: payment,
-                        accountPointsViewModel: accountPointsViewModel,
+                        accountPointsViewModel: accountPointsStore,
                         isMultiplierTokenHolder: accountWalletsViewModel.isSeekerOrSagaHolder
                     )
                     .toolbar {

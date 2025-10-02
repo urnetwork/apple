@@ -11,8 +11,9 @@ import URnetworkSdk
 struct SelectedProvider: View {
     
     @EnvironmentObject var themeManager: ThemeManager
-    var selectedProvider: SdkConnectLocation?
-    // var getProviderColor: (SdkConnectLocation) -> Color
+    
+    let selectedProvider: SdkConnectLocation?
+    let openSelectProvider: () -> Void
     
     var body: some View {
         HStack {
@@ -31,6 +32,8 @@ struct SelectedProvider: View {
                     Text(selectedProvider.name)
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                     
                     if selectedProvider.providerCount > 0 {
     
@@ -55,20 +58,28 @@ struct SelectedProvider: View {
                     Text("Best available provider")
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                 }
                 
             }
             
-            Spacer().frame(width: 8)
+            Spacer()
+            
+            Button(action: openSelectProvider) {
+                Text("Change")
+                    .foregroundStyle(.urWhite)
+                    .font(themeManager.currentTheme.bodyFont)
+            }
             
         }
         .padding(.vertical, 8)
-        .padding(.horizontal, 16)
     }
 }
 
 #Preview {
     SelectedProvider(
         selectedProvider: nil,
+        openSelectProvider: {}
     )
 }

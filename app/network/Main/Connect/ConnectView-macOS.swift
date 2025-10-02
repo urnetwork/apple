@@ -25,70 +25,47 @@ import URnetworkSdk
         @State private var isProviderTableVisible: Bool = false
 
         @ObservedObject private var providerListStore: ProviderListStore
+        
+        @State var displayReconnectTunnel: Bool = false
+        
+        let promptMoreDataFlow: () -> Void
+        let meanReliabilityWeight: Double
+        let totalReferrals: Int
 
         init(
             urApiService: UrApiServiceProtocol,
-            providerStore: ProviderListStore
+            providerStore: ProviderListStore,
+            promptMoreDataFlow: @escaping () -> Void,
+            meanReliabilityWeight: Double,
+            totalReferrals: Int
         ) {
             self.providerListStore = providerStore
+            self.promptMoreDataFlow = promptMoreDataFlow
+            self.meanReliabilityWeight = meanReliabilityWeight
+            self.totalReferrals = totalReferrals
         }
 
         var body: some View {
 
-            VStack {
+            ScrollView {
 
                 HStack(spacing: 0) {
 
                     VStack {
 
-                        if connectViewModel.showUpgradeBanner
-                            && subscriptionBalanceViewModel.currentPlan != .supporter
-                        {
-                            HStack {
-                                Text("Need more data, faster?")
-                                    .font(themeManager.currentTheme.bodyFont)
-
-                                Spacer()
-
-                                Button(action: {
-                                    connectViewModel.isPresentedUpgradeSheet = true
-                                }) {
-                                    Text("Upgrade Now")
-                                        .font(themeManager.currentTheme.bodyFont)
-                                        .fontWeight(.bold)
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 4)
-
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(.urElectricBlue)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .animation(
-                                .easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner
-                            )
-                        }
-
                         ConnectButtonView(
-                            gridPoints:
-                                connectViewModel.gridPoints,
+                            gridPoints: connectViewModel.gridPoints,
                             gridWidth: connectViewModel.gridWidth,
                             connectionStatus: connectViewModel.connectionStatus,
                             windowCurrentSize: connectViewModel.windowCurrentSize,
-                            connect: {
-                                connectViewModel.connect()
-                                withAnimation(.spring(duration: 0.3)) {
-                                    isProviderTableVisible = false
-                                }
-                            },
+                            connect: connectViewModel.connect,
                             disconnect: connectViewModel.disconnect,
                             connectTunnel: {
                                 deviceManager.vpnManager?.updateVpnService()
                             },
                             contractStatus: connectViewModel.contractStatus,
                             openUpgradeSheet: {
-                                connectViewModel.isPresentedUpgradeSheet = true
+                                 connectViewModel.isPresentedUpgradeSheet = true
                             },
                             currentPlan: subscriptionBalanceViewModel.currentPlan,
                             isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
@@ -96,26 +73,33 @@ import URnetworkSdk
                         )
                         .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                         .frame(maxHeight: .infinity)
-
-                        HStack {
-
-                            Button(
-                                action: {
-                                    withAnimation(.spring(duration: 0.3)) {
-                                        self.isProviderTableVisible.toggle()
-                                    }
-                                }
-                            ) {
-                                SelectedProvider(
-                                    selectedProvider: connectViewModel.selectedProvider
-                                )
-                            }
-                            .buttonStyle(.plain)
-
-                        }
-                        .background(themeManager.currentTheme.tintedBackgroundBase)
-                        .clipShape(.capsule)
-                        .animation(.spring(duration: 0.3), value: isProviderTableVisible)
+                        
+                        Spacer().frame(height: 24)
+                        
+                        ConnectActions(
+                            connect: connectViewModel.connect,
+                            disconnect: connectViewModel.disconnect,
+                            connectionStatus: connectViewModel.connectionStatus,
+                            selectedProvider: connectViewModel.selectedProvider,
+                            setIsPresented: { present in
+                                isProviderTableVisible = true
+                            },
+                            displayReconnectTunnel: displayReconnectTunnel,
+                            reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+                            contractStatus: connectViewModel.contractStatus,
+                            windowCurrentSize: connectViewModel.windowCurrentSize,
+                            currentPlan: subscriptionBalanceViewModel.currentPlan,
+                            isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                            promptMoreDataFlow: {
+                                connectViewModel.isPresentedUpgradeSheet = true
+                            },
+                            meanReliabilityWeight: meanReliabilityWeight,
+                            totalReferrals: totalReferrals
+                        )
+                        .frame(maxWidth: 600)
 
                         Spacer().frame(height: 32)
 
@@ -180,6 +164,12 @@ import URnetworkSdk
                 .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                 .frame(maxWidth: .infinity)
             }
+            .onChange(of: connectViewModel.connectionStatus) { _ in
+                checkTunnelStatus()
+            }
+            .onChange(of: connectViewModel.tunnelConnected) { _ in
+                checkTunnelStatus()
+            }
             .onChange(of: connectViewModel.connectionStatus) { newValue in
                 // Cancel any existing banner task
                 connectViewModel.upgradeBannerTask?.cancel()
@@ -212,7 +202,8 @@ import URnetworkSdk
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 UpgradeSubscriptionSheet(
-                    subscriptionProduct: subscriptionManager.products.first,
+                    monthlyProduct: subscriptionManager.monthlySubscription,
+                    yearlyProduct: subscriptionManager.yearlySubscription,
                     purchase: { product in
 
                         let initiallyConnected = deviceManager.device?.getConnected() ?? false
@@ -271,8 +262,18 @@ import URnetworkSdk
                     .cornerRadius(4)
                 }
             }
-
         }
+        
+        private func checkTunnelStatus() {
+            
+            if connectViewModel.connectionStatus == .connected && !connectViewModel.tunnelConnected {
+                self.displayReconnectTunnel = true
+            } else {
+                self.displayReconnectTunnel = false
+            }
+            
+        }
+        
     }
 
     struct ProviderTable: View {

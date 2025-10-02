@@ -9,7 +9,7 @@ import Foundation
 import URnetworkSdk
 
 @MainActor
-class AccountPointsViewModel: ObservableObject {
+class AccountPointsStore: ObservableObject {
     
     var api: SdkApi?
     @Published private(set) var accountPoints: [SdkAccountPoint] = []

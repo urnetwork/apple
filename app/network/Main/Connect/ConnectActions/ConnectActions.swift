@@ -64,39 +64,41 @@ struct ConnectActions: View {
                             Spacer()
                         }
                         
-                        // todo - handle insufficient balance
-                        
-                        //                if (contractStatus?.insufficientBalance == true && currentPlan != .supporter && !isPollingSubscriptionBalance) {
-                        //
-                        //                    UrButton(
-                        //                        text: "Subscribe to fix",
-                        //                        action: {
-                        //                            openUpgradeSheet()
-                        //                            // connectTunnel()
-                        //                        },
-                        //                        style: .outlineSecondary
-                        //                    )
-                        //
-                        //                }
-                        
-                        
-                        if (connectionStatus == .disconnected) {
-                            HStack {
-                                UrButton(text: "Connect", action: connect)
-                            }
-                        }
-                        
-                        if (connectionStatus != .disconnected && !displayReconnectTunnel) {
-                            UrButton(text: "Disconnect", action: disconnect)
-                        }
-                        
-                        if displayReconnectTunnel {
+                        if (contractStatus?.insufficientBalance == true && currentPlan != .supporter && !isPollingSubscriptionBalance) {
+                            /**
+                             * out of balance
+                             * not a supporter
+                             */
+                            
                             UrButton(
-                                text: "Reconnect",
-                                action: reconnectTunnel ?? {},
+                                text: "Insufficient balance",
+                                action: {},
+                                enabled: false
                             )
+        
+                        } else {
+                            /**
+                             * sufficient balance
+                             */
+                         
+                            if (connectionStatus == .disconnected) {
+                                HStack {
+                                    UrButton(text: "Connect", action: connect)
+                                }
+                            }
+                            
+                            if (connectionStatus != .disconnected && !displayReconnectTunnel) {
+                                UrButton(text: "Disconnect", action: disconnect)
+                            }
+                            
+                            if displayReconnectTunnel {
+                                UrButton(
+                                    text: "Reconnect",
+                                    action: reconnectTunnel ?? {},
+                                )
+                            }
+                            
                         }
-
                         
                     }
                     .padding()

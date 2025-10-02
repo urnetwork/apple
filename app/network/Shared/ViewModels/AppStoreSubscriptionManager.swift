@@ -57,10 +57,6 @@ class AppStoreSubscriptionManager: ObservableObject {
                 print("monthly sub price is: \(yearlySub.displayPrice)")
             }
             
-//            await MainActor.run {
-//                self.products = storeProducts
-//            }
-            
             print("Retrieved products: \(storeProducts.count)")
         } catch {
             print("Failed to fetch products: \(error)")

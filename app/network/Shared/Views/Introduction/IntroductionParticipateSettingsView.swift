@@ -64,7 +64,7 @@ struct IntroductionParticipateSettingsView: View {
                     
                     Spacer().frame(height: 16)
                     
-                    Text("You can also allow the the provider to use cell network data, which works great if you have an unlimited plan.")
+                    Text("You can also allow the provider to use cell network data, which works great if you have an unlimited plan.")
                         .font(themeManager.currentTheme.bodyFont)
                     
                     Spacer().frame(height: 4)

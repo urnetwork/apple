@@ -101,8 +101,8 @@ struct UsageBar: View {
         
         // handle pending
         return RectangleCornerRadii(
-            topLeading: self.data[0].bytes == 0 ? cornerRadius : 0, // round if used is 0
-            bottomLeading: self.data[0].bytes == 0 ? cornerRadius : 0, // round if used is 0
+            topLeading: 0,
+            bottomLeading: 0,
             bottomTrailing: self.data[data.count - 1].bytes == 0 ? cornerRadius : 0, // round if available is 0
             topTrailing: self.data[data.count - 1].bytes == 0 ? cornerRadius : 0, // round if available is 0
         )

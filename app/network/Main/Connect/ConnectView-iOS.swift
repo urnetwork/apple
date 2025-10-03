@@ -94,9 +94,9 @@ struct ConnectView_iOS: View {
                     //                .animation(.easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner)
                     //            }
                     
-                    // Spacer()
+                     Spacer()
                     
-                    Spacer().frame(height: 32)
+//                    Spacer().frame(height: 32)
                     
                     ConnectButtonView(
                         gridPoints:
@@ -117,6 +117,8 @@ struct ConnectView_iOS: View {
                         isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                         tunnelConnected: $connectViewModel.tunnelConnected
                     )
+                    
+                    Spacer().frame(height: 112)
                     
                     Spacer()
                     

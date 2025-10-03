@@ -140,7 +140,7 @@ struct UsageBar: View {
                 
                 Spacer()
                 
-                Text("64GiB / Day")
+                Text("1 GiB/Day")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
@@ -154,7 +154,7 @@ struct UsageBar: View {
                 
                 Spacer()
              
-                Text("+\(meanReliabilityWeight * 100)GiB / Day")
+                Text("+\(meanReliabilityWeight * 100) GiB/Day")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
@@ -169,7 +169,7 @@ struct UsageBar: View {
                 
                 Spacer()
              
-                Text("+\(totalReferrals * 30)GiB / Month")
+                Text("+\(totalReferrals * 30) GiB/Month")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 

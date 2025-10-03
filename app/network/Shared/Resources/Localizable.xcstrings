@@ -416,310 +416,310 @@
     "+%@ USDC" : {
       "shouldTranslate" : false
     },
-    "+%lfGiB / Day" : {
+    "+%lf GiB/Day" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfغيغابايت / يوم"
+            "value" : "+%lf غيغابايت/يوم"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / den"
+            "value" : "+%lf GiB/den"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / Tag"
+            "value" : "+%lf GiB/Tag"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / ημέρα"
+            "value" : "+%lf GiB/ημέρα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / Day"
+            "value" : "+%lf GiB/Day"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / día"
+            "value" : "+%lf GiB/día"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / día"
+            "value" : "+%lf GiB/día"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGo / jour"
+            "value" : "+%lf Go/jour"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / יום"
+            "value" : "+%lf GiB/יום"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / दिन"
+            "value" : "+%lf GiB/दिन"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / hari"
+            "value" : "+%lf GiB/hari"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / giorno"
+            "value" : "+%lf GiB/giorno"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / 日"
+            "value" : "+%lf GiB/日"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / 일"
+            "value" : "+%lf GiB/일"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / dag"
+            "value" : "+%lf GiB/dag"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / dzień"
+            "value" : "+%lf GiB/dzień"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / dia"
+            "value" : "+%lf GiB/dia"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / dia"
+            "value" : "+%lf GiB/dia"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfГиБ / день"
+            "value" : "+%lf ГиБ/день"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / dag"
+            "value" : "+%lf GiB/dag"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / วัน"
+            "value" : "+%lf GiB/วัน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfГіБ / день"
+            "value" : "+%lf ГіБ/день"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / ngày"
+            "value" : "+%lf GiB/ngày"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / 天"
+            "value" : "+%lf GiB/天"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lfGiB / 日"
+            "value" : "+%lf GiB/日"
           }
         }
       }
     },
-    "+%lldGiB / Month" : {
+    "+%lld GiB/Month" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldغيغابايت / شهر"
+            "value" : "+%lld غيغابايت/شهر"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / měsíc"
+            "value" : "+%lld GiB/měsíc"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / Monat"
+            "value" : "+%lld GiB/Monat"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / μήνα"
+            "value" : "+%lld GiB/μήνα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / Month"
+            "value" : "+%lld GiB/Month"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / mes"
+            "value" : "+%lld GiB/mes"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / mes"
+            "value" : "+%lld GiB/mes"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGo / mois"
+            "value" : "+%lld Go/mois"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / חודש"
+            "value" : "+%lld GiB/חודש"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / माह"
+            "value" : "+%lld GiB/माह"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / bulan"
+            "value" : "+%lld GiB/bulan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / mese"
+            "value" : "+%lld GiB/mese"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / 月"
+            "value" : "+%lld GiB/月"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / 월"
+            "value" : "+%lld GiB/월"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / maand"
+            "value" : "+%lld GiB/maand"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / miesiąc"
+            "value" : "+%lld GiB/miesiąc"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / mês"
+            "value" : "+%lld GiB/mês"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / mês"
+            "value" : "+%lld GiB/mês"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldГиБ / месяц"
+            "value" : "+%lld ГиБ/месяц"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / månad"
+            "value" : "+%lld GiB/månad"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / เดือน"
+            "value" : "+%lld GiB/เดือน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldГіБ / місяць"
+            "value" : "+%lld ГіБ/місяць"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / tháng"
+            "value" : "+%lld GiB/tháng"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / 月"
+            "value" : "+%lld GiB/月"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lldGiB / 月"
+            "value" : "+%lld GiB/月"
           }
         }
       }
@@ -727,156 +727,156 @@
     "0" : {
       "shouldTranslate" : false
     },
-    "64GiB / Day" : {
+    "1 GiB/Day" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64غيغابايت / يوم"
+            "value" : "1 غيغابايت/يوم"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / den"
+            "value" : "1 GiB/den"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / Tag"
+            "value" : "1 GiB/Tag"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / ημέρα"
+            "value" : "1 GiB/ημέρα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / Day"
+            "value" : "1 GiB/Day"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / día"
+            "value" : "1 GiB/día"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / día"
+            "value" : "1 GiB/día"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64Go / jour"
+            "value" : "1 Go/jour"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / יום"
+            "value" : "1 GiB/יום"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / दिन"
+            "value" : "1 GiB/दिन"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / hari"
+            "value" : "1 GiB/hari"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / giorno"
+            "value" : "1 GiB/giorno"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / 日"
+            "value" : "1 GiB/日"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / 일"
+            "value" : "1 GiB/일"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / dag"
+            "value" : "1 GiB/dag"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / dzień"
+            "value" : "1 GiB/dzień"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / dia"
+            "value" : "1 GiB/dia"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / dia"
+            "value" : "1 GiB/dia"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64ГиБ / день"
+            "value" : "1 ГиБ/день"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / dag"
+            "value" : "1 GiB/dag"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / วัน"
+            "value" : "1 GiB/วัน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64ГіБ / день"
+            "value" : "1 ГіБ/день"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / ngày"
+            "value" : "1 GiB/ngày"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / 天"
+            "value" : "1 GiB/天"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "64GiB / 日"
+            "value" : "1 GiB/日"
           }
         }
       }

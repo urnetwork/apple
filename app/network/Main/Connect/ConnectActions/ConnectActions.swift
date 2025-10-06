@@ -46,29 +46,13 @@ struct ConnectActions: View {
                     /**
                      * Connect button
                      */
-                    VStack {
+                    VStack(alignment: .leading) {
                      
-                        HStack {
-                        
-//                            Button(action: {
-//                                setIsPresented(true)
-//                            }) {
-//                                
-//                                SelectedProvider(
-//                                    selectedProvider: selectedProvider,
-//                                    openSelectProvider: {setIsPresented(true)}
-//                                )
-//                                
-//                            }
-                            
-                            SelectedProvider(
-                                selectedProvider: selectedProvider,
-                                openSelectProvider: {setIsPresented(true)}
-                            )
-                            
-                            Spacer()
-                        }
-                        
+                        SelectedProvider(
+                            selectedProvider: selectedProvider,
+                            openSelectProvider: {setIsPresented(true)}
+                        )
+                    
                         if (contractStatus?.insufficientBalance == true && currentPlan != .supporter && !isPollingSubscriptionBalance) {
                             /**
                              * out of balance
@@ -151,12 +135,6 @@ struct ConnectActions: View {
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: totalReferrals
                             )
-                            
-//                            Spacer().frame(height: 24)
-//                            
-//                            UrButton(text: "Get more data", action: {
-//                                promptMoreDataFlow()
-//                            })
                             
                         }
                         .padding()

@@ -60,19 +60,6 @@ struct UsageBar: View {
     
     func getCornerRadii(_ index: Int) -> RectangleCornerRadii {
         
-        
-        // check if bar is full bar
-        // is full bar, round everything
-        if self.data[index].bytes == self.totalBytes {
-            return RectangleCornerRadii(
-                topLeading: cornerRadius,
-                bottomLeading: cornerRadius,
-                bottomTrailing: cornerRadius,
-                topTrailing: cornerRadius
-            )
-        }
-        
-        
         // handle leading
         if index == 0 {
             // we already checked it's not a full bar

@@ -68,8 +68,7 @@ struct SelectedProvider: View {
             
             Button(action: openSelectProvider) {
                 Text("Change")
-                    .foregroundStyle(.urWhite)
-                    .font(themeManager.currentTheme.bodyFont)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
             }
             
         }

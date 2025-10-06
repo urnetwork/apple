@@ -89,18 +89,14 @@ struct AccountRootView: View {
             }
             .frame(height: 32)
             .padding()
-            // .padding(.vertical, 12)
             
             Spacer().frame(height: 16)
             
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 
-                HStack {
-                    Text("Plan")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    Spacer()
-                }
+                Text("Plan")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
                 
                 HStack(alignment: .firstTextBaseline) {
                     

@@ -120,7 +120,7 @@ struct ConnectActions: View {
                                 Button(action: {
                                     promptMoreDataFlow()
                                 }) {
-                                    Text("Get more data")
+                                    Text("Get Pro")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                 }
                                 

@@ -64,16 +64,6 @@ struct IntroductionView: View {
                              */
                             VStack(alignment: .leading) {
                                 
-                                Text("Upgrade")
-                                    .font(themeManager.currentTheme.toolbarTitleFont)
-                                
-                                Spacer().frame(height: 4)
-                                
-                                Text("Get unlimited access to the full network and features on all platforms")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                
-                                Spacer().frame(height: 18)
-                                
                                 if let monthly = monthlySubscription, let yearly = yearlySubscription {
                                     
                                     ProductOptionCard(

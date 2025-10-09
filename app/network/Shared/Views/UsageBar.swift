@@ -24,6 +24,7 @@ struct UsageBar: View {
     let totalBytes: Int
     let meanReliabilityWeight: Double
     let totalReferrals: Int
+    let cappedReliabilityData: Double
     
     init(
         availableByteCount: Int,
@@ -41,6 +42,8 @@ struct UsageBar: View {
         
         self.meanReliabilityWeight = meanReliabilityWeight
         self.totalReferrals = totalReferrals
+        
+        cappedReliabilityData = min(meanReliabilityWeight * 100, 100)
     }
     
     func minNonZeroValue(_ bytes: Int) -> Int {
@@ -127,7 +130,7 @@ struct UsageBar: View {
                 
                 Spacer()
                 
-                Text("1 GiB/Day")
+                Text("10 GiB/Month")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
@@ -135,13 +138,13 @@ struct UsageBar: View {
 
             HStack {
                 
-                Text("Reliability: \(meanReliabilityWeight)")
+                Text("Reliability: \(String(format: "%.4f", meanReliabilityWeight))")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
                 Spacer()
              
-                Text("+\(meanReliabilityWeight * 100) GiB/Day")
+                Text("+\(String(format: "%.4f", cappedReliabilityData)) GiB/Day")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 

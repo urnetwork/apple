@@ -413,6 +413,160 @@
     "+%@" : {
       "shouldTranslate" : false
     },
+    "+%@ GiB/Day" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ غيغابايت/يوم"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/den"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/Tag"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/ημέρα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/Day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/día"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/día"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ Go/jour"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/יום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/दिन"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/hari"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/giorno"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/日"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/일"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/dag"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/dzień"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/dia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/dia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ ГиБ/день"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/dag"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/วัน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ ГіБ/день"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/ngày"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/天"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ GiB/日"
+          }
+        }
+      }
+    },
     "+%@ USDC" : {
       "shouldTranslate" : false
     },
@@ -727,156 +881,156 @@
     "0" : {
       "shouldTranslate" : false
     },
-    "1 GiB/Day" : {
+    "10 GiB/Month" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 غيغابايت/يوم"
+            "value" : "10 غيغابايت/شهر"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/den"
+            "value" : "10 GiB/měsíc"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/Tag"
+            "value" : "10 GiB/Monat"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/ημέρα"
+            "value" : "10 GiB/μήνα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/Day"
+            "value" : "10 GiB/Month"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/día"
+            "value" : "10 GiB/mes"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/día"
+            "value" : "10 GiB/mes"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 Go/jour"
+            "value" : "10 Go/mois"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/יום"
+            "value" : "10 GiB/חודש"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/दिन"
+            "value" : "10 GiB/माह"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/hari"
+            "value" : "10 GiB/bulan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/giorno"
+            "value" : "10 GiB/mese"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/日"
+            "value" : "10 GiB/月"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/일"
+            "value" : "10 GiB/월"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/dag"
+            "value" : "10 GiB/maand"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/dzień"
+            "value" : "10 GiB/miesiąc"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/dia"
+            "value" : "10 GiB/mês"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/dia"
+            "value" : "10 GiB/mês"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 ГиБ/день"
+            "value" : "10 ГиБ/месяц"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/dag"
+            "value" : "10 GiB/månad"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/วัน"
+            "value" : "10 GiB/เดือน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 ГіБ/день"
+            "value" : "10 ГіБ/місяць"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/ngày"
+            "value" : "10 GiB/tháng"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/天"
+            "value" : "10 GiB/月"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 GiB/日"
+            "value" : "10 GiB/月"
           }
         }
       }
@@ -12918,156 +13072,156 @@
         }
       }
     },
-    "Get more data" : {
+    "Get Pro" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "احصل على المزيد من البيانات"
+            "value" : "احصل على برو"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Získejte více dat"
+            "value" : "Získat Pro"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mehr Daten erhalten"
+            "value" : "Pro erhalten"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Αποκτήστε περισσότερα δεδομένα"
+            "value" : "Αποκτήστε Pro"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get more data"
+            "value" : "Get Pro"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obtén más datos"
+            "value" : "Obtener Pro"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obtén más datos"
+            "value" : "Obtener Pro"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obtenir plus de données"
+            "value" : "Obtenir Pro"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "קבל עוד נתונים"
+            "value" : "קבל Pro"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "अधिक डेटा प्राप्त करें"
+            "value" : "प्रो प्राप्त करें"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dapatkan lebih banyak data"
+            "value" : "Dapatkan Pro"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ottieni più dati"
+            "value" : "Ottieni Pro"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "データを追加取得"
+            "value" : "Proを取得"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데이터 더 받기"
+            "value" : "Pro 받기"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Meer data krijgen"
+            "value" : "Pro krijgen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uzyskaj więcej danych"
+            "value" : "Uzyskaj Pro"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obter mais dados"
+            "value" : "Obter Pro"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obter mais dados"
+            "value" : "Obter Pro"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Получить больше данных"
+            "value" : "Получить Pro"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Få mer data"
+            "value" : "Skaffa Pro"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "รับข้อมูลเพิ่มเติม"
+            "value" : "รับ Pro"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Отримати більше даних"
+            "value" : "Отримати Pro"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nhận thêm dữ liệu"
+            "value" : "Nhận Pro"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "获取更多数据"
+            "value" : "获取 Pro"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "獲取更多數據"
+            "value" : "獲取 Pro"
           }
         }
       }
@@ -13084,160 +13238,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aan de slag"
-          }
-        }
-      }
-    },
-    "Get unlimited access to the full network and features on all platforms" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "احصل على وصول غير محدود إلى الشبكة الكاملة وجميع الميزات على جميع المنصات"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Získejte neomezený přístup k celé síti a funkcím na všech platformách"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erhalte unbegrenzten Zugriff auf das gesamte Netzwerk und alle Funktionen auf allen Plattformen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Αποκτήστε απεριόριστη πρόσβαση σε όλο το δίκτυο και τις δυνατότητες σε όλες τις πλατφόρμες"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get unlimited access to the full network and features on all platforms"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obtén acceso ilimitado a toda la red y funciones en todas las plataformas"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obtén acceso ilimitado a toda la red y funciones en todas las plataformas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obtenez un accès illimité au réseau complet et à toutes les fonctionnalités sur toutes les plateformes"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קבל גישה בלתי מוגבלת לכל הרשת ולכל הפיצ'רים בכל הפלטפורמות"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "सभी प्लेटफ़ॉर्म पर पूरे नेटवर्क और सुविधाओं तक असीमित पहुँच प्राप्त करें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dapatkan akses tak terbatas ke seluruh jaringan dan fitur di semua platform"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ottieni accesso illimitato all'intera rete e alle funzionalità su tutte le piattaforme"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべてのプラットフォームでネットワーク全体と機能に無制限アクセス"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모든 플랫폼에서 전체 네트워크와 기능에 무제한 액세스"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Krijg onbeperkte toegang tot het volledige netwerk en alle functies op alle platforms"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uzyskaj nieograniczony dostęp do całej sieci i funkcji na wszystkich platformach"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tenha acesso ilimitado à rede completa e aos recursos em todas as plataformas"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tenha acesso ilimitado à rede completa e às funcionalidades em todas as plataformas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Получите неограниченный доступ ко всей сети и функциям на всех платформах"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Få obegränsad tillgång till hela nätverket och funktioner på alla plattformar"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เข้าถึงเครือข่ายและฟีเจอร์ทั้งหมดแบบไม่จำกัดบนทุกแพลตฟอร์ม"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отримайте необмежений доступ до всієї мережі та функцій на всіх платформах"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Truy cập không giới hạn vào toàn bộ mạng và tính năng trên mọi nền tảng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在所有平台上无限访问完整网络和全部功能"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在所有平台上無限存取完整網絡及所有功能"
           }
         }
       }
@@ -18031,161 +18031,6 @@
         }
       }
     },
-    "Participate in the network and get free access to the community edition." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "شارك في الشبكة واحصل على وصول مجاني إلى إصدار المجتمع."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zapojte se do sítě a získejte bezplatný přístup k komunitní edici."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nehmen Sie am Netzwerk teil und erhalten Sie kostenlosen Zugang zur Community Edition."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Συμμετέχετε στο δίκτυο και αποκτήστε δωρεάν πρόσβαση στην έκδοση κοινότητας."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participate in the network and get free access to the community edition."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participa en la red y obtén acceso gratuito a la edición comunitaria."
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participa en la red y obtén acceso gratuito a la edición comunitaria."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participez au réseau et obtenez un accès gratuit à l’édition communautaire."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השתתף ברשת וקבל גישה חינם למהדורת הקהילה."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "नेटवर्क में भाग लें और कम्युनिटी संस्करण तक मुफ्त पहुँच प्राप्त करें।"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Berpartisipasi di jaringan dan dapatkan akses gratis ke edisi komunitas."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partecipa alla rete e ottieni l’accesso gratuito all’edizione community."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ネットワークに参加して、コミュニティ版に無料でアクセスしましょう。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "네트워크에 참여하고 커뮤니티 에디션을 무료로 이용하세요."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neem deel aan het netwerk en krijg gratis toegang tot de community-editie."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weź udział w sieci i uzyskaj bezpłatny dostęp do edycji społecznościowej."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participe da rede e tenha acesso gratuito à edição comunitária."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participe na rede e tenha acesso gratuito à edição comunitária."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Участвуйте в сети и получите бесплатный доступ к версии для сообщества."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delta i nätverket och få gratis tillgång till community-utgåvan."
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เข้าร่วมเครือข่ายและรับสิทธิ์ใช้งานฉบับชุมชนฟรี"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Беріть участь у мережі та отримайте безкоштовний доступ до спільнотної версії."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tham gia mạng lưới và nhận quyền truy cập miễn phí vào phiên bản cộng đồng."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "参与网络，免费获得社区版访问权限。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "參與網絡，免費獲得社群版存取權限。"
-          }
-        }
-      }
-    },
     "Participate in the network and get free access to the communtiy edition." : {
 
     },
@@ -22842,6 +22687,160 @@
         }
       }
     },
+    "Reliability: %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الموثوقية: %@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spolehlivost: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuverlässigkeit: %@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αξιοπιστία: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reliability: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiabilidad: %@"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiabilidad: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiabilité : %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אמינות: %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "विश्वसनीयता: %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keandalan: %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affidabilità: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "信頼性: %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신뢰도: %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betrouwbaarheid: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niezawodność: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confiabilidade: %@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiabilidade: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надежность: %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillförlitlighet: %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ความน่าเชื่อถือ: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надійність: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Độ tin cậy: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可靠性：%@"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可靠性：%@"
+          }
+        }
+      }
+    },
     "Reliability: %lf" : {
       "localizations" : {
         "ar" : {
@@ -26858,161 +26857,6 @@
         }
       }
     },
-    "Subscribe to fix" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اشترك للإصلاح"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Přidejte se k Premium pro opravení"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnieren, um zu beheben"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εγγραφείτε για να διορθώσετε"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subscribe to fix"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suscríbete para solucionar"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suscríbete para solucionar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnez-vous pour corriger"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הירשם לתיקון"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ठीक करने के लिए सदस्यता लें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Berlangganan untuk memperbaiki"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Iscriviti per risolvere"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "サブスクライブして修正"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "구독하여 해결"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonneer om op te lossen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subskrybuj, aby naprawić"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assine para corrigir"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subscreva para corrigir"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подпишитесь, чтобы исправить"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prenumerera för att åtgärda"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "สมัครสมาชิกเพื่อแก้ไข"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Підпишіться, щоб виправити"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đăng ký để khắc phục"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "订阅以修复"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "訂閱以修復"
-          }
-        }
-      }
-    },
     "Support" : {
       "localizations" : {
         "ar" : {
@@ -30863,161 +30707,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "升級"
-          }
-        }
-      }
-    },
-    "Upgrade Now" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الترقية الآن"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upgradujte nyní"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jetzt upgraden"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Αναβάθμιση τώρα"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upgrade Now"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualizar ahora"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualizar ahora"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mettre à niveau maintenant"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שדרג עכשיו"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अभी अपग्रेड करें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tingkatkan Sekarang"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiorna ora"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今すぐアップグレード"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "지금 업그레이드"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upgrade Nu"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ulepsz teraz"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizar agora"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizar agora"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обновить сейчас"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uppgradera nu"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "อัปเกรดทันที"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оновити зараз"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nâng cấp ngay"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "立即升级"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "立即升級"
           }
         }
       }

@@ -18031,8 +18031,159 @@
         }
       }
     },
-    "Participate in the network and get free access to the communtiy edition." : {
-
+    "Participate in the network and get free access to the community edition." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شارك في الشبكة واحصل على وصول مجاني إلى إصدار المجتمع."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapojte se do sítě a získejte bezplatný přístup k komunitní edici."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nehmen Sie am Netzwerk teil und erhalten Sie kostenlosen Zugang zur Community Edition."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συμμετέχετε στο δίκτυο και αποκτήστε δωρεάν πρόσβαση στην έκδοση κοινότητας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participate in the network and get free access to the community edition."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participa en la red y obtén acceso gratuito a la edición comunitaria."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participa en la red y obtén acceso gratuito a la edición comunitaria."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participez au réseau et obtenez un accès gratuit à l’édition communautaire."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השתתף ברשת וקבל גישה חינם למהדורת הקהילה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "नेटवर्क में भाग लें और कम्युनिटी संस्करण तक मुफ्त पहुँच प्राप्त करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berpartisipasi di jaringan dan dapatkan akses gratis ke edisi komunitas."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partecipa alla rete e ottieni l’accesso gratuito all’edizione community."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ネットワークに参加して、コミュニティ版に無料でアクセスしましょう。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "네트워크에 참여하고 커뮤니티 에디션을 무료로 이용하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neem deel aan het netwerk en krijg gratis toegang tot de community-editie."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weź udział w sieci i uzyskaj bezpłatny dostęp do edycji społecznościowej."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participe da rede e tenha acesso gratuito à edição comunitária."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participe na rede e tenha acesso gratuito à edição comunitária."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Участвуйте в сети и получите бесплатный доступ к версии для сообщества."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delta i nätverket och få gratis tillgång till community-utgåvan."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เข้าร่วมเครือข่ายและรับสิทธิ์ใช้งานฉบับชุมชนฟรี"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Беріть участь у мережі та отримайте безкоштовний доступ до спільнотної версії."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tham gia mạng lưới và nhận quyền truy cập miễn phí vào phiên bản cộng đồng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参与网络，免费获得社区版访问权限。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "參與網絡，免費獲得社群版存取權限。"
+          }
+        }
+      }
     },
     "Password" : {
       "localizations" : {

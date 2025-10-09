@@ -153,7 +153,7 @@ struct IntroductionView: View {
                              */
                             VStack(alignment: .leading) {
                                 
-                                Text("Participate in the network and get free access to the communtiy edition.")
+                                Text("Participate in the network and get free access to the community edition.")
                                     // .font(themeManager.currentTheme.bodyFont)
                                     .font(themeManager.currentTheme.toolbarTitleFont)
                                 

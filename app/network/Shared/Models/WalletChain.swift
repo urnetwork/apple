@@ -9,6 +9,5 @@ import Foundation
 
 enum WalletChain: String {
     case sol = "SOL"
-    case matic = "MATIC"
     case invalid = "INVALID"
 }

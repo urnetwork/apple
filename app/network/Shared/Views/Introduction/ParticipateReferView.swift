@@ -58,7 +58,7 @@ struct ParticipateReferView: View {
 //                        .font(themeManager.currentTheme.bodyFont)
                     
                     
-                    Text(NSLocalizedString("You get +30GiB / month\nYour friend gets +30GiB / month\nFor life!", comment: "Referral bonus message"))
+                    Text(NSLocalizedString("You get +30 GiB/month\nYour friend gets +30 GiB/month\nFor life!", comment: "Referral bonus message"))
                         .font(themeManager.currentTheme.bodyFont)
 
                     Spacer().frame(height: 16)

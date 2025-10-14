@@ -11336,156 +11336,156 @@
         }
       }
     },
-    "Enter a Solana or Matic USDC wallet address" : {
+    "Enter a Solana USDC wallet address" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أدخل عنوان محفظة Solana أو Matic USDC"
+            "value" : "أدخل عنوان محفظة Solana USDC"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte adresu peněženky USDC na Solana či Polygon/Matic síťi/blockchainu"
+            "value" : "Zadejte adresu peněženky Solana USDC"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geben Sie eine Solana oder Matic USDC Wallet-Adresse ein"
+            "value" : "Geben Sie eine Solana USDC Wallet-Adresse ein"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εισάγετε μια διεύθυνση πορτοφολιού Solana ή Matic USDC"
+            "value" : "Εισαγάγετε μια διεύθυνση πορτοφολιού Solana USDC"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a Solana or Matic USDC wallet address"
+            "value" : "Enter a Solana USDC wallet address"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduce una dirección de monedero Solana o Matic USDC"
+            "value" : "Ingresa una dirección de billetera Solana USDC"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ingresa una dirección de billetera Solana o Matic USDC"
+            "value" : "Ingresa una dirección de billetera Solana USDC"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entrez une adresse de portefeuille Solana ou Matic USDC"
+            "value" : "Entrez une adresse de portefeuille Solana USDC"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הזן כתובת ארנק Solana או Matic USDC"
+            "value" : "הזן כתובת ארנק Solana USDC"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solana या Matic USDC वॉलेट पता दर्ज करें"
+            "value" : "Solana USDC वॉलेट पता दर्ज करें"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Masukkan alamat dompet Solana atau Matic USDC"
+            "value" : "Masukkan alamat dompet Solana USDC"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inserisci un indirizzo wallet Solana o Matic USDC"
+            "value" : "Inserisci un indirizzo wallet Solana USDC"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SolanaまたはMatic USDCウォレットアドレスを入力"
+            "value" : "Solana USDCウォレットアドレスを入力"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solana 또는 Matic USDC 월렛 주소를 입력하세요"
+            "value" : "Solana USDC 지갑 주소를 입력하세요"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voer een Solana of Matic USDC walletadres in"
+            "value" : "Voer een Solana USDC wallet-adres in"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wprowadź adres portfela Solana lub Matic USDC"
+            "value" : "Wprowadź adres portfela Solana USDC"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Digite um endereço de carteira Solana ou Matic USDC"
+            "value" : "Digite um endereço de carteira Solana USDC"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduza um endereço de carteira Solana ou Matic USDC"
+            "value" : "Introduza um endereço de carteira Solana USDC"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введите адрес кошелька Solana или Matic USDC"
+            "value" : "Введите адрес кошелька Solana USDC"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ange en Solana eller Matic USDC plånboksadress"
+            "value" : "Ange en Solana USDC-plånboksadress"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ป้อนที่อยู่กระเป๋าเงิน Solana หรือ Matic USDC"
+            "value" : "ป้อนที่อยู่กระเป๋าเงิน Solana USDC"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введіть адресу гаманця Solana або Matic USDC"
+            "value" : "Введіть адресу гаманця Solana USDC"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nhập địa chỉ ví Solana hoặc Matic USDC"
+            "value" : "Nhập địa chỉ ví Solana USDC"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入 Solana 或 Matic USDC 钱包地址"
+            "value" : "输入 Solana USDC 钱包地址"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸入 Solana 或 Matic USDC 錢包地址"
+            "value" : "輸入 Solana USDC 錢包地址"
           }
         }
       }
@@ -32127,156 +32127,156 @@
       },
       "shouldTranslate" : false
     },
-    "USDC addresses on Solana and Polygon are currently supported" : {
+    "USDC addresses on Solana are currently supported" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "عناوين USDC على Solana و Polygon مدعومة حالياً"
+            "value" : "عناوين USDC على Solana مدعومة حاليًا"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nyní jsou podporovány USDC adresy na Solana a Polygon blockchainech"
+            "value" : "Adresy USDC na Solaně jsou aktuálně podporovány"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC-Adressen auf Solana und Polygon werden derzeit unterstützt"
+            "value" : "USDC-Adressen auf Solana werden derzeit unterstützt"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Οι διευθύνσεις USDC στα Solana και Polygon υποστηρίζονται προς το παρόν"
+            "value" : "Οι διευθύνσεις USDC στο Solana υποστηρίζονται αυτήν τη στιγμή"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC addresses on Solana and Polygon are currently supported"
+            "value" : "USDC addresses on Solana are currently supported"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualmente se admiten direcciones USDC en Solana y Polygon"
+            "value" : "Actualmente se admiten direcciones USDC en Solana"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualmente se admiten direcciones USDC en Solana y Polygon"
+            "value" : "Actualmente se admiten direcciones USDC en Solana"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les adresses USDC sur Solana et Polygon sont actuellement prises en charge"
+            "value" : "Les adresses USDC sur Solana sont actuellement prises en charge"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כתובות USDC ב-Solana ו-Polygon נתמכות כעת"
+            "value" : "כתובות USDC ב-Solana נתמכות כרגע"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solana और Polygon पर USDC पते वर्तमान में समर्थित हैं"
+            "value" : "Solana पर USDC पते वर्तमान में समर्थित हैं"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alamat USDC di Solana dan Polygon saat ini didukung"
+            "value" : "Alamat USDC di Solana saat ini didukung"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gli indirizzi USDC su Solana e Polygon sono attualmente supportati"
+            "value" : "Gli indirizzi USDC su Solana sono attualmente supportati"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在、SolanaとPolygon上のUSDCアドレスがサポートされています"
+            "value" : "Solana上のUSDCアドレスは現在サポートされています"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "현재 Solana 및 Polygon의 USDC 주소가 지원됩니다"
+            "value" : "Solana의 USDC 주소가 현재 지원됩니다"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC addressen op Solana en Polygon worden momenteel ondersteund"
+            "value" : "USDC-adressen op Solana worden momenteel ondersteund"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adresy USDC w sieciach Solana i Polygon są obecnie obsługiwane"
+            "value" : "Adresy USDC na Solanie są obecnie obsługiwane"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Endereços USDC na Solana e Polygon são atualmente suportados"
+            "value" : "Endereços USDC na Solana são atualmente suportados"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os endereços USDC na Solana e Polygon são atualmente suportados"
+            "value" : "Endereços USDC na Solana são atualmente suportados"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В настоящее время поддерживаются адреса USDC в сетях Solana и Polygon"
+            "value" : "Адреса USDC в сети Solana в настоящее время поддерживаются"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC-adresser på Solana och Polygon stöds för närvarande"
+            "value" : "USDC-adresser på Solana stöds för närvarande"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "รองรับที่อยู่ USDC บน Solana และ Polygon ในขณะนี้"
+            "value" : "ขณะนี้รองรับที่อยู่ USDC บน Solana"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Наразі підтримуються адреси USDC у мережах Solana та Polygon"
+            "value" : "Адреси USDC у мережі Solana наразі підтримуються"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hiện đang hỗ trợ địa chỉ USDC trên Solana và Polygon"
+            "value" : "Hiện tại đã hỗ trợ địa chỉ USDC trên Solana"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前支持 Solana 和 Polygon 上的 USDC 地址"
+            "value" : "目前支持 Solana 上的 USDC 地址"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前支持 Solana 和 Polygon 上的 USDC 地址"
+            "value" : "現時支援 Solana 上的 USDC 地址"
           }
         }
       }
@@ -33991,157 +33991,157 @@
         }
       }
     },
-    "You get +30GiB / month\nYour friend gets +30GiB / month\nFor life!" : {
+    "You get +30 GiB/month\nYour friend gets +30 GiB/month\nFor life!" : {
       "comment" : "Referral bonus message",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحصل على +30غيغابايت / شهر\nيحصل صديقك على +30غيغابايت / شهر\nمدى الحياة!"
+            "value" : "تحصل على +30 غيغابايت/شهر\nيحصل صديقك على +30 غيغابايت/شهر\nمدى الحياة!"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Získáte +30GiB / měsíc\nVáš přítel získá +30GiB / měsíc\nNa celý život!"
+            "value" : "Získáte +30 GiB/měsíc\nVáš přítel získá +30 GiB/měsíc\nNa celý život!"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du erhältst +30GiB / Monat\nDein Freund erhält +30GiB / Monat\nFür immer!"
+            "value" : "Du erhältst +30 GiB/Monat\nDein Freund erhält +30 GiB/Monat\nFür immer!"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Παίρνεις +30GiB / μήνα\nΟ φίλος σου παίρνει +30GiB / μήνα\nΓια πάντα!"
+            "value" : "Παίρνεις +30 GiB/μήνα\nΟ φίλος σου παίρνει +30 GiB/μήνα\nΓια πάντα!"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You get +30GiB / month\nYour friend gets +30GiB / month\nFor life!"
+            "value" : "You get +30 GiB/month\nYour friend gets +30 GiB/month\nFor life!"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recibes +30GiB / mes\nTu amigo recibe +30GiB / mes\n¡De por vida!"
+            "value" : "Recibes +30 GiB/mes\nTu amigo recibe +30 GiB/mes\n¡De por vida!"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recibes +30GiB / mes\nTu amigo recibe +30GiB / mes\n¡De por vida!"
+            "value" : "Recibes +30 GiB/mes\nTu amigo recibe +30 GiB/mes\n¡De por vida!"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous recevez +30Go / mois\nVotre ami reçoit +30Go / mois\nÀ vie !"
+            "value" : "Vous recevez +30 Go/mois\nVotre ami reçoit +30 Go/mois\nÀ vie !"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "אתה מקבל +30GiB / חודש\nהחבר שלך מקבל +30GiB / חודש\nלכל החיים!"
+            "value" : "אתה מקבל +30 GiB/חודש\nהחבר שלך מקבל +30 GiB/חודש\nלכל החיים!"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "आपको मिलेगा +30GiB / माह\nआपके मित्र को मिलेगा +30GiB / माह\nजीवन भर के लिए!"
+            "value" : "आपको मिलेगा +30 GiB/माह\nआपके मित्र को मिलेगा +30 GiB/माह\nजीवन भर के लिए!"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anda mendapat +30GiB / bulan\nTeman Anda mendapat +30GiB / bulan\nSeumur hidup!"
+            "value" : "Anda mendapat +30 GiB/bulan\nTeman Anda mendapat +30 GiB/bulan\nSeumur hidup!"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ricevi +30GiB / mese\nIl tuo amico riceve +30GiB / mese\nPer sempre!"
+            "value" : "Ricevi +30 GiB/mese\nIl tuo amico riceve +30 GiB/mese\nPer sempre!"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたは+30GiB / 月を獲得\n友達も+30GiB / 月を獲得\n一生ずっと！"
+            "value" : "あなたは+30 GiB/月を獲得\n友達も+30 GiB/月を獲得\n一生ずっと！"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "당신은 +30GiB / 월을 받습니다\n친구도 +30GiB / 월을 받습니다\n평생 동안!"
+            "value" : "당신은 +30 GiB/월을 받습니다\n친구도 +30 GiB/월을 받습니다\n평생 동안!"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je krijgt +30GiB / maand\nJe vriend krijgt +30GiB / maand\nVoor altijd!"
+            "value" : "Je krijgt +30 GiB/maand\nJe vriend krijgt +30 GiB/maand\nVoor altijd!"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otrzymujesz +30GiB / miesiąc\nTwój znajomy otrzymuje +30GiB / miesiąc\nNa zawsze!"
+            "value" : "Otrzymujesz +30 GiB/miesiąc\nTwój znajomy otrzymuje +30 GiB/miesiąc\nNa zawsze!"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Você ganha +30GiB / mês\nSeu amigo ganha +30GiB / mês\nPara sempre!"
+            "value" : "Você ganha +30 GiB/mês\nSeu amigo ganha +30 GiB/mês\nPara sempre!"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recebe +30GiB / mês\nO seu amigo recebe +30GiB / mês\nPara sempre!"
+            "value" : "Recebe +30 GiB/mês\nO seu amigo recebe +30 GiB/mês\nPara sempre!"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы получаете +30ГиБ / месяц\nВаш друг получает +30ГиБ / месяц\nНавсегда!"
+            "value" : "Вы получаете +30 ГиБ/месяц\nВаш друг получает +30 ГиБ/месяц\nНавсегда!"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du får +30GiB / månad\nDin vän får +30GiB / månad\nFör alltid!"
+            "value" : "Du får +30 GiB/månad\nDin vän får +30 GiB/månad\nFör alltid!"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "คุณได้รับ +30GiB / เดือน\nเพื่อนของคุณได้รับ +30GiB / เดือน\nตลอดชีวิต!"
+            "value" : "คุณได้รับ +30 GiB/เดือน\nเพื่อนของคุณได้รับ +30 GiB/เดือน\nตลอดชีวิต!"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ви отримуєте +30ГіБ / місяць\nВаш друг отримує +30ГіБ / місяць\nНазавжди!"
+            "value" : "Ви отримуєте +30 ГіБ/місяць\nВаш друг отримує +30 ГіБ/місяць\nНазавжди!"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bạn nhận được +30GiB / tháng\nBạn của bạn nhận được +30GiB / tháng\nTrọn đời!"
+            "value" : "Bạn nhận được +30 GiB/tháng\nBạn của bạn nhận được +30 GiB/tháng\nTrọn đời!"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你每月获得+30GiB\n你的朋友每月获得+30GiB\n终身有效！"
+            "value" : "你每月获得+30 GiB\n你的朋友每月获得+30 GiB\n终身有效！"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你每月獲得+30GiB\n你的朋友每月獲得+30GiB\n永久有效！"
+            "value" : "你每月獲得+30 GiB\n你的朋友每月獲得+30 GiB\n永久有效！"
           }
         }
       }

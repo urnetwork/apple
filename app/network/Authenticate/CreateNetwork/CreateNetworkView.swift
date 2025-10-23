@@ -248,7 +248,8 @@ struct CreateNetworkView: View {
                             text: $viewModel.bonusReferralCode,
                             label: "Bonus referral code",
                             placeholder: "Enter a bonus referral code",
-                            supportingText: (!viewModel.isValidatingReferralCode && !viewModel.isValidReferralCode && !viewModel.bonusReferralCode.isEmpty && viewModel.referralValidationComplete) ? "This code is not valid" : "",
+//                            supportingText: (!viewModel.isValidatingReferralCode && !viewModel.isValidReferralCode && !viewModel.bonusReferralCode.isEmpty && viewModel.referralValidationComplete) ? "This code is not valid" : "",
+                            supportingText: viewModel.referralCodeInputSupportingText,
                             isEnabled: !viewModel.isValidatingReferralCode,
                             submitLabel: .done,
                             onSubmit: {
@@ -286,13 +287,14 @@ struct CreateNetworkView: View {
         }
     }
     
-    private func handleValidateReferralResult(_ result: Result<Bool, Error>) {
+    private func handleValidateReferralResult(_ result: Result<SdkValidateReferralCodeResult, Error>) {
         
         switch result {
-            case .success(let isValid):
-            if (isValid) {
+            case .success(let validationResult):
+            if (validationResult.isValid && !validationResult.isCapped) {
                 viewModel.isPresentedAddBonusSheet = false
             }
+            
             case .failure(let error):
                 print("validate referral code error: \(error.localizedDescription)")
             

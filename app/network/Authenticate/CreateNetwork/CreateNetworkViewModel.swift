@@ -57,6 +57,7 @@ extension CreateNetworkView {
         
         @Published private(set) var networkNameValidationState: ValidationState = .notChecked
         
+        @Published private(set) var referralCodeInputSupportingText: LocalizedStringKey = ""
         
         @Published var password: String = "" {
             didSet {
@@ -80,9 +81,12 @@ extension CreateNetworkView {
         
         @Published private(set) var isValidReferralCode: Bool = false
         
+        @Published private(set) var isCappedReferralCode: Bool = false
+        
         @Published var bonusReferralCode: String = "" {
             didSet {
                 self.isValidReferralCode = false
+                self.buildReferralInputSupportingText()
             }
         }
         
@@ -91,6 +95,26 @@ extension CreateNetworkView {
         
         private func setNetworkNameSupportingText(_ text: LocalizedStringKey) {
             networkNameSupportingText = text
+        }
+        
+        private func buildReferralInputSupportingText() {
+            
+            var msg: LocalizedStringKey = ""
+            
+            if !self.isValidatingReferralCode && !self.bonusReferralCode.isEmpty && self.referralValidationComplete {
+                
+                if (!self.isValidReferralCode) {
+                    msg = LocalizedStringKey("This code is not valid")
+                }
+                
+                if (self.isCappedReferralCode) {
+                    msg = LocalizedStringKey("This code has been used up")
+                }
+                
+            }
+            
+            
+            self.referralCodeInputSupportingText = msg
         }
         
         // for debouncing calls to check network name availability
@@ -108,7 +132,7 @@ extension CreateNetworkView {
                             termsAgreed
         }
         
-        func validateReferralCode() async -> Result<Bool, Error> {
+        func validateReferralCode() async -> Result<SdkValidateReferralCodeResult, Error> {
             
             if isValidatingReferralCode {
                 return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "already validating"]))
@@ -122,16 +146,21 @@ extension CreateNetworkView {
                 let result = try await urApiService.validateReferralCode(bonusReferralCode)
                     
                 self.isValidReferralCode = result.isValid
+                self.isCappedReferralCode = result.isCapped
                 self.isValidatingReferralCode = false
                 self.referralValidationComplete = true
                 
-                return .success(result.isValid)
+                self.buildReferralInputSupportingText()
+                
+                return .success(result)
                 
             } catch(let error) {
                 
                 self.isValidatingReferralCode = false
                 self.isValidReferralCode = false
                 self.referralValidationComplete = true
+                
+                self.buildReferralInputSupportingText()
                 
                 return .failure(error)
                 
@@ -298,7 +327,7 @@ extension CreateNetworkView {
                     args.walletAuth = walletAuth
                 }
 
-                if self.isValidReferralCode {
+                if self.isValidReferralCode && !self.isCappedReferralCode {
                     args.referralCode = self.bonusReferralCode
                 }
                 

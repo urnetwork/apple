@@ -289,10 +289,10 @@ class VPNManager {
             tunnelManager.protocolConfiguration = tunnelProtocol
             tunnelManager.localizedDescription = "URnetwork [\(networkSpace.getHostName()) \(networkSpace.getEnvName())]"
             tunnelManager.isEnabled = true
-            tunnelManager.isOnDemandEnabled = true
-            let connectRule = NEOnDemandRuleConnect()
-            connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
-            tunnelManager.onDemandRules = [connectRule]
+            tunnelManager.isOnDemandEnabled = false
+//            let connectRule = NEOnDemandRuleConnect()
+//            connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
+//            tunnelManager.onDemandRules = [connectRule]
             
             tunnelManager.saveToPreferences { error in
                 if let _ = error {

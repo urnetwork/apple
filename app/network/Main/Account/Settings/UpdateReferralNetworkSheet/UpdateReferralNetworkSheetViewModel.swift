@@ -49,6 +49,8 @@ extension UpdateReferralNetworkSheet {
                 if result.error != nil {
                     self.codeInputSupportingText = "Invalid referral code. Please try again."
                     print("fetch referral network result.error: \(String(describing: result.error?.message))")
+                    
+                    isUpdatingReferralNetwork = false
                     return .failure(UpdateReferralNetworkError.unknown)
                 }
 

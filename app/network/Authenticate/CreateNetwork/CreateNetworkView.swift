@@ -159,7 +159,7 @@ struct CreateNetworkView: View {
                     
                     HStack {
                      
-                        if viewModel.isValidReferralCode {
+                        if viewModel.isValidReferralCode && !viewModel.isCappedReferralCode {
                             
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.urGreen)

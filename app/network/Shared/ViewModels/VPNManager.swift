@@ -353,6 +353,7 @@ class VPNManager {
                 
                 tunnelManager.isEnabled = false
                 tunnelManager.isOnDemandEnabled = false
+                tunnelManager.onDemandRules = []
                 
                 tunnelManager.saveToPreferences { error in
                     if let error = error {

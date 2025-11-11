@@ -77,7 +77,11 @@ struct ConnectActions: View {
                             }
                             
                             if (connectionStatus != .disconnected && !displayReconnectTunnel) {
-                                UrButton(text: "Disconnect", action: disconnect)
+                                UrButton(
+                                    text: "Disconnect",
+                                    action: disconnect,
+                                    style: .outlineSecondary
+                                )
                             }
                             
                             if displayReconnectTunnel {

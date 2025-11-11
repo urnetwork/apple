@@ -58,7 +58,7 @@ struct UrButton: View {
         .background(backgroundColor)
         .cornerRadius(8)
         .overlay(
-            RoundedRectangle(cornerRadius: 100)
+            RoundedRectangle(cornerRadius: 8)
                 .stroke(borderColor, lineWidth: borderWidth)
         )
         .opacity(opacity)

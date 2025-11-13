@@ -108,7 +108,6 @@ struct FeedbackView: View {
                     isFocused = false
                 }
             }
-            .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         

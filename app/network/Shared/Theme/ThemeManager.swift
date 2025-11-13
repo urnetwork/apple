@@ -68,6 +68,7 @@ extension Theme {
         secondaryTitleFont: Font.custom("ABCGravity-Extended", size: 24),
         
         bodyFont: Font.custom("PPNeueMontreal-Regular", size: 14),
+        bodyFontLarge: Font.custom("PP NeueBit", size: 28).bold(),
         secondaryBodyFont: Font.custom("PPNeueMontreal-Regular", size: 12),
         toolbarTitleFont: Font.custom("PP NeueBit", size: 24)
     )

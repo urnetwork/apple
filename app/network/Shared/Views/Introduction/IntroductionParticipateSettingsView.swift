@@ -19,29 +19,29 @@ struct IntroductionParticipateSettingsView: View {
     
     var body: some View {
         
-        ScrollView {
-         
-            VStack(alignment: .leading) {
-                
-                Text("Step 1")
-                    .font(themeManager.currentTheme.titleFont)
+        GeometryReader { proxy in
+            
+            ScrollView {
                 
                 VStack(alignment: .leading) {
                     
-                    Text("A local provider will run when you are connected to the network. There are over 30k providers today, and we have zero known security or ISP incidents. We value the ability for people to participate without issues, and have built the protocol to put safety first. [Learn more at the protocol page](https://ur.io/protocol).")
-                        .font(themeManager.currentTheme.bodyFont)
+                    IntroIcon()
+                    
+                    Text("Reliability Settings")
+                        .font(themeManager.currentTheme.titleFont)
                     
                     Spacer().frame(height: 16)
                     
-                    Divider()
+                    Text("Adjust settings to maximize reliability. App runs in the background when connected and on Wi-Fi. Reliability is how many IPs you make continually available to the network")
+                        .font(themeManager.currentTheme.bodyFontLarge)
                     
-                    Spacer().frame(height: 16)
+                    Spacer().frame(height: 32)
                     
                     Text("You can adjust the setting to Always to fill the free data faster.")
                         .font(themeManager.currentTheme.bodyFont)
                     
                     Spacer().frame(height: 4)
-
+                    
                     HStack {
                         ProvideControlPicker()
                     }
@@ -58,11 +58,7 @@ struct IntroductionParticipateSettingsView: View {
                     )
                     .cornerRadius(8)
                     
-                    Spacer().frame(height: 16)
-                    
-                    Divider()
-                    
-                    Spacer().frame(height: 16)
+                    Spacer().frame(height: 32)
                     
                     Text("You can also allow the provider to use cell network data, which works great if you have an unlimited plan.")
                         .font(themeManager.currentTheme.bodyFont)
@@ -70,7 +66,7 @@ struct IntroductionParticipateSettingsView: View {
                     Spacer().frame(height: 4)
                     
                     HStack {
-                     
+                        
                         Toggle(isOn: $deviceManager.allowProvidingCell) {
                             Text("Allow providing on cellular network")
                                 .font(themeManager.currentTheme.bodyFont)
@@ -90,18 +86,14 @@ struct IntroductionParticipateSettingsView: View {
                     )
                     .cornerRadius(8)
                     
-                    Spacer().frame(height: 16)
-                    
-                    Divider()
-                    
-                    Spacer().frame(height: 16)
+                    Spacer()
                     
                     NavigationLink(destination: ParticipateReferView(
                         close: close,
                         totalReferrals: totalReferrals,
                         referralCode: referralCode
                     )) {
-                        Text("Next Step")
+                        Text("Continue")
                             .font(themeManager.currentTheme.toolbarTitleFont.bold())
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -111,16 +103,11 @@ struct IntroductionParticipateSettingsView: View {
                     }
                     .buttonStyle(.plain)
                     
-                    
                 }
                 .padding()
-                .background(themeManager.currentTheme.tintedBackgroundBase)
-                .cornerRadius(16)
+                .frame(minHeight: proxy.size.height)
                 
-                Spacer()
             }
-            .padding()
-            
         }
     }
 }

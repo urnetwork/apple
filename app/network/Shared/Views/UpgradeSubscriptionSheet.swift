@@ -12,7 +12,6 @@ struct UpgradeSubscriptionSheet: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    // var subscriptionProduct: Product?
     var monthlyProduct: Product?
     var yearlyProduct: Product?
     var purchase: (Product) -> Void
@@ -101,23 +100,25 @@ struct UpgradeSubscriptionSheet: View {
                                 Spacer().frame(height: 18)
                                 
                                 ProductOptionCard(
-                                    title: "Monthly",
-                                    price: "\(monthly.displayPrice)/month",
+                                    price: "\(yearly.displayPrice)/year",
                                     select: {
-                                        selectedPaymentOption = .monthly
+                                        selectedPaymentOption = .yearly
                                     },
-                                    isSelected: selectedPaymentOption == .monthly
+                                    isSelected: selectedPaymentOption == .yearly,
+                                    includesFreeTrial: true,
+                                    isMostPopular: true
                                 )
                                 
                                 Spacer().frame(height: 18)
                                 
                                 ProductOptionCard(
-                                    title: "Yearly",
-                                    price: "\(yearly.displayPrice)/year",
+                                    price: "\(monthly.displayPrice)/month",
                                     select: {
-                                        selectedPaymentOption = .yearly
+                                        selectedPaymentOption = .monthly
                                     },
-                                    isSelected: selectedPaymentOption == .yearly
+                                    isSelected: selectedPaymentOption == .monthly,
+                                    includesFreeTrial: false,
+                                    isMostPopular: false
                                 )
                                 
                                 Spacer().frame(minHeight: 18)
@@ -125,8 +126,6 @@ struct UpgradeSubscriptionSheet: View {
                                 VStack(alignment: .leading) {
                                     
                                     UrButton(text: "Join the movement", action: {
-                                        // subscriptionManager.purchase(product: product)
-                                        // purchase(product)
                                         if selectedPaymentOption == .monthly {
                                             purchase(monthly)
                                         } else {

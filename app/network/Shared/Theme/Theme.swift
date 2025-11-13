@@ -27,6 +27,7 @@ struct Theme {
     let titleCondensedFont: Font
     let secondaryTitleFont: Font
     let bodyFont: Font
+    let bodyFontLarge: Font
     let secondaryBodyFont: Font
     let toolbarTitleFont: Font
 }

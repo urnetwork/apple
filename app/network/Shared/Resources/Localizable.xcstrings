@@ -1035,156 +1035,156 @@
         }
       }
     },
-    "A local provider will run when you are connected to the network. There are over 30k providers today, and we have zero known security or ISP incidents. We value the ability for people to participate without issues, and have built the protocol to put safety first. [Learn more at the protocol page](https://ur.io/protocol)." : {
+    "100% open source and transparent" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "سيتم تشغيل مزود محلي عند اتصالك بالشبكة. يوجد أكثر من 30 ألف مزود اليوم، ولم نسجل أي حوادث أمنية أو مع مزودي خدمة الإنترنت. نحن نقدر قدرة الأشخاص على المشاركة دون مشاكل، وقد صممنا البروتوكول ليضع السلامة أولاً. [تعرف على المزيد في صفحة البروتوكول](https://ur.io/protocol)."
+            "value" : "مفتوح المصدر وشفاف بنسبة 100٪"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Místní poskytovatel bude spuštěn, když jste připojeni k síti. Dnes je k dispozici více než 30 000 poskytovatelů a nemáme žádné známé bezpečnostní nebo ISP incidenty. Oceňujeme možnost účasti bez problémů a protokol jsme navrhli s důrazem na bezpečnost. [Více informací na stránce protokolu](https://ur.io/protocol)."
+            "value" : "100% open source a transparentní"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ein lokaler Anbieter wird ausgeführt, wenn Sie mit dem Netzwerk verbunden sind. Es gibt heute über 30.000 Anbieter und keine bekannten Sicherheits- oder ISP-Vorfälle. Wir schätzen die Möglichkeit, dass Menschen ohne Probleme teilnehmen können, und haben das Protokoll mit Fokus auf Sicherheit entwickelt. [Erfahren Sie mehr auf der Protokollseite](https://ur.io/protocol)."
+            "value" : "100% Open Source und transparent"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ένας τοπικός πάροχος θα λειτουργεί όταν είστε συνδεδεμένοι στο δίκτυο. Υπάρχουν πάνω από 30.000 πάροχοι σήμερα και δεν έχουμε καταγράψει κανένα γνωστό περιστατικό ασφαλείας ή ISP. Εκτιμούμε τη δυνατότητα των ανθρώπων να συμμετέχουν χωρίς προβλήματα και έχουμε σχεδιάσει το πρωτόκολλο με προτεραιότητα την ασφάλεια. [Μάθετε περισσότερα στη σελίδα του πρωτοκόλλου](https://ur.io/protocol)."
+            "value" : "100% ανοιχτού κώδικα και διαφανές"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A local provider will run when you are connected to the network. There are over 30k providers today, and we have zero known security or ISP incidents. We value the ability for people to participate without issues, and have built the protocol to put safety first. [Learn more at the protocol page](https://ur.io/protocol)."
+            "value" : "100% open source and transparent"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un proveedor local se ejecutará cuando estés conectado a la red. Hoy hay más de 30,000 proveedores y no tenemos incidentes conocidos de seguridad o ISP. Valoramos la capacidad de las personas para participar sin problemas y hemos creado el protocolo priorizando la seguridad. [Más información en la página del protocolo](https://ur.io/protocol)."
+            "value" : "100% código abierto y transparente"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un proveedor local se ejecutará cuando estés conectado a la red. Hoy hay más de 30,000 proveedores y no tenemos incidentes conocidos de seguridad o ISP. Valoramos la capacidad de las personas para participar sin problemas y hemos creado el protocolo priorizando la seguridad. [Más información en la página del protocolo](https://ur.io/protocol)."
+            "value" : "100% código abierto y transparente"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un fournisseur local fonctionnera lorsque vous serez connecté au réseau. Il y a aujourd'hui plus de 30 000 fournisseurs et nous n'avons aucun incident de sécurité ou de FAI connu. Nous valorisons la possibilité pour chacun de participer sans problème et avons conçu le protocole en mettant la sécurité en priorité. [En savoir plus sur la page du protocole](https://ur.io/protocol)."
+            "value" : "100 % open source et transparent"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ספק מקומי יפעל כאשר אתה מחובר לרשת. כיום ישנם מעל 30,000 ספקים ואין לנו תקריות אבטחה או ספק אינטרנט ידועות. אנו מעריכים את היכולת של אנשים להשתתף ללא בעיות, ובנינו את הפרוטוקול תוך מתן עדיפות לבטיחות. [למידע נוסף בדף הפרוטוקול](https://ur.io/protocol)."
+            "value" : "100% קוד פתוח ושקוף"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "जब आप नेटवर्क से जुड़े होते हैं तो एक स्थानीय प्रदाता चलेगा। आज 30,000 से अधिक प्रदाता हैं, और हमारे पास कोई ज्ञात सुरक्षा या ISP घटना नहीं है। हम लोगों की बिना किसी समस्या के भागीदारी की क्षमता को महत्व देते हैं और सुरक्षा को प्राथमिकता देने के लिए प्रोटोकॉल बनाया है। [प्रोटोकॉल पेज पर और जानें](https://ur.io/protocol)।"
+            "value" : "100% ओपन सोर्स और पारदर्शी"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Penyedia lokal akan berjalan saat Anda terhubung ke jaringan. Saat ini ada lebih dari 30 ribu penyedia, dan kami tidak memiliki insiden keamanan atau ISP yang diketahui. Kami menghargai kemampuan orang untuk berpartisipasi tanpa masalah, dan telah membangun protokol dengan mengutamakan keamanan. [Pelajari lebih lanjut di halaman protokol](https://ur.io/protocol)."
+            "value" : "100% open source dan transparan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un provider locale verrà eseguito quando sei connesso alla rete. Oggi ci sono oltre 30.000 provider e non abbiamo registrato alcun incidente di sicurezza o ISP. Valorizziamo la possibilità per le persone di partecipare senza problemi e abbiamo costruito il protocollo mettendo la sicurezza al primo posto. [Scopri di più nella pagina del protocollo](https://ur.io/protocol)."
+            "value" : "100% open source e trasparente"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ネットワークに接続するとローカルプロバイダーが動作します。現在30,000以上のプロバイダーがあり、セキュリティやISPの問題は一切報告されていません。誰もが問題なく参加できることを重視し、安全性を最優先にプロトコルを構築しました。[プロトコルページで詳細を見る](https://ur.io/protocol)。"
+            "value" : "100%オープンソースで透明性があります"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "네트워크에 연결되면 로컬 공급자가 실행됩니다. 현재 3만 개 이상의 공급자가 있으며, 알려진 보안 또는 ISP 사고는 없습니다. 누구나 문제 없이 참여할 수 있는 능력을 중요하게 생각하며, 안전을 최우선으로 프로토콜을 구축했습니다. [프로토콜 페이지에서 자세히 알아보기](https://ur.io/protocol)."
+            "value" : "100% 오픈 소스 및 투명"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Een lokale provider wordt uitgevoerd wanneer je verbonden bent met het netwerk. Er zijn vandaag meer dan 30.000 providers en we hebben geen bekende beveiligings- of ISP-incidenten. We waarderen het dat mensen zonder problemen kunnen deelnemen en hebben het protocol ontworpen met veiligheid als prioriteit. [Lees meer op de protocolpagina](https://ur.io/protocol)."
+            "value" : "100% open source en transparant"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lokalny dostawca będzie działał, gdy będziesz podłączony do sieci. Obecnie jest ponad 30 000 dostawców i nie mamy żadnych znanych incydentów związanych z bezpieczeństwem lub ISP. Cenimy możliwość uczestnictwa bez problemów i stworzyliśmy protokół, stawiając bezpieczeństwo na pierwszym miejscu. [Dowiedz się więcej na stronie protokołu](https://ur.io/protocol)."
+            "value" : "100% otwarte oprogramowanie i przejrzystość"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um provedor local será executado quando você estiver conectado à rede. Hoje há mais de 30 mil provedores e não temos nenhum incidente conhecido de segurança ou ISP. Valorizamos a capacidade das pessoas de participar sem problemas e construímos o protocolo priorizando a segurança. [Saiba mais na página do protocolo](https://ur.io/protocol)."
+            "value" : "100% open source e transparente"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um fornecedor local será executado quando estiver ligado à rede. Existem atualmente mais de 30 mil fornecedores e não temos incidentes conhecidos de segurança ou ISP. Valorizamos a capacidade das pessoas de participar sem problemas e criámos o protocolo com a segurança em primeiro lugar. [Saiba mais na página do protocolo](https://ur.io/protocol)."
+            "value" : "100% open source e transparente"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Локальный провайдер будет работать, когда вы подключены к сети. Сегодня существует более 30 000 провайдеров, и у нас нет известных инцидентов безопасности или с интернет-провайдерами. Мы ценим возможность участия без проблем и создали протокол с приоритетом безопасности. [Подробнее на странице протокола](https://ur.io/protocol)."
+            "value" : "100% открытый исходный код и прозрачность"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En lokal leverantör körs när du är ansluten till nätverket. Det finns över 30 000 leverantörer idag och vi har inga kända säkerhets- eller ISP-incidenter. Vi värdesätter att människor kan delta utan problem och har byggt protokollet med säkerheten i fokus. [Läs mer på protokollsidan](https://ur.io/protocol)."
+            "value" : "100 % öppen källkod och transparent"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ผู้ให้บริการในพื้นที่จะทำงานเมื่อคุณเชื่อมต่อกับเครือข่าย ปัจจุบันมีผู้ให้บริการมากกว่า 30,000 ราย และเราไม่มีเหตุการณ์ด้านความปลอดภัยหรือ ISP ที่ทราบ เราให้ความสำคัญกับความสามารถในการเข้าร่วมโดยไม่มีปัญหา และได้สร้างโปรโตคอลโดยคำนึงถึงความปลอดภัยเป็นหลัก [ดูข้อมูลเพิ่มเติมที่หน้าข้อมูลโปรโตคอล](https://ur.io/protocol)."
+            "value" : "โอเพ่นซอร์สและโปร่งใส 100%"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Локальний провайдер працюватиме, коли ви підключені до мережі. Сьогодні існує понад 30 000 провайдерів, і у нас немає відомих інцидентів безпеки чи інцидентів з інтернет-провайдерами. Ми цінуємо можливість участі без проблем і створили протокол з пріоритетом безпеки. [Дізнайтеся більше на сторінці протоколу](https://ur.io/protocol)."
+            "value" : "100% відкритий код і прозорість"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nhà cung cấp địa phương sẽ chạy khi bạn kết nối mạng. Hiện có hơn 30.000 nhà cung cấp và chúng tôi không có sự cố bảo mật hoặc ISP nào được biết đến. Chúng tôi coi trọng khả năng mọi người tham gia mà không gặp vấn đề và đã xây dựng giao thức ưu tiên an toàn. [Tìm hiểu thêm tại trang giao thức](https://ur.io/protocol)."
+            "value" : "100% mã nguồn mở và minh bạch"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当您连接到网络时，本地提供者将运行。目前有超过3万个提供者，我们没有已知的安全或ISP事件。我们重视人们能够无障碍参与的能力，并将安全性作为协议设计的首要原则。[在协议页面了解更多](https://ur.io/protocol)。"
+            "value" : "100%开源且透明"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "當你連接到網絡時，本地供應商將會運行。現時有超過30,000個供應商，我們沒有已知的安全或ISP事故。我們重視讓大家能夠無障礙參與，並以安全為首要設計協議。[在協議頁面了解更多](https://ur.io/protocol)。"
+            "value" : "100%開源及透明"
           }
         }
       }
@@ -1801,6 +1801,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加推薦碼以獲取額外獎勵"
+          }
+        }
+      }
+    },
+    "Adjust settings to maximize reliability. App runs in the background when connected and on Wi-Fi. Reliability is how many IPs you make continually available to the network" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اضبط الإعدادات لتعظيم الموثوقية. يعمل التطبيق في الخلفية عند الاتصال وعند استخدام الواي فاي. الموثوقية هي عدد عناوين IP التي تجعلها متاحة باستمرار للشبكة."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upravte nastavení pro maximalizaci spolehlivosti. Aplikace běží na pozadí, když jste připojeni a na Wi-Fi. Spolehlivost znamená, kolik IP adres trvale zpřístupníte síti."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passen Sie die Einstellungen an, um die Zuverlässigkeit zu maximieren. Die App läuft im Hintergrund, wenn Sie verbunden sind und sich im WLAN befinden. Zuverlässigkeit bedeutet, wie viele IPs Sie dem Netzwerk kontinuierlich zur Verfügung stellen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ρυθμίστε τις ρυθμίσεις για μέγιστη αξιοπιστία. Η εφαρμογή λειτουργεί στο παρασκήνιο όταν είστε συνδεδεμένοι και σε Wi-Fi. Η αξιοπιστία είναι πόσες διευθύνσεις IP διαθέτετε συνεχώς στο δίκτυο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust settings to maximize reliability. App runs in the background when connected and on Wi-Fi. Reliability is how many IPs you make continually available to the network"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajusta la configuración para maximizar la fiabilidad. La app se ejecuta en segundo plano cuando está conectada y en Wi-Fi. La fiabilidad es cuántas IPs mantienes disponibles continuamente para la red."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajusta la configuración para maximizar la fiabilidad. La app se ejecuta en segundo plano cuando está conectada y en Wi-Fi. La fiabilidad es cuántas IPs mantienes disponibles continuamente para la red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustez les paramètres pour maximiser la fiabilité. L’application fonctionne en arrière-plan lorsque vous êtes connecté et en Wi-Fi. La fiabilité correspond au nombre d’IP que vous rendez continuellement disponibles pour le réseau."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאם את ההגדרות כדי למקסם את האמינות. האפליקציה פועלת ברקע כאשר מחוברים וב-Wi-Fi. אמינות היא כמה כתובות IP אתה משאיר זמינות ברצף לרשת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "विश्वसनीयता अधिकतम करने के लिए सेटिंग्स समायोजित करें। ऐप कनेक्टेड और वाई-फाई पर बैकग्राउंड में चलता है। विश्वसनीयता यह है कि आप कितनी IPs नेटवर्क के लिए लगातार उपलब्ध रखते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesuaikan pengaturan untuk memaksimalkan keandalan. Aplikasi berjalan di latar belakang saat terhubung dan menggunakan Wi-Fi. Keandalan adalah berapa banyak IP yang Anda buat tersedia terus-menerus untuk jaringan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regola le impostazioni per massimizzare l’affidabilità. L’app funziona in background quando è connessa e su Wi-Fi. L’affidabilità è il numero di IP che rendi continuamente disponibili alla rete."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "信頼性を最大化するために設定を調整してください。アプリは接続時やWi-Fi利用時にバックグラウンドで動作します。信頼性とは、ネットワークに継続的に提供するIPの数です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신뢰도를 극대화하려면 설정을 조정하세요. 앱은 연결되어 있고 Wi-Fi에 있을 때 백그라운드에서 실행됩니다. 신뢰도는 네트워크에 지속적으로 제공하는 IP의 수입니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de instellingen aan om de betrouwbaarheid te maximaliseren. De app draait op de achtergrond wanneer verbonden en op Wi-Fi. Betrouwbaarheid is hoeveel IP's je continu beschikbaar maakt voor het netwerk."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostosuj ustawienia, aby zmaksymalizować niezawodność. Aplikacja działa w tle, gdy jest połączona i korzysta z Wi-Fi. Niezawodność to liczba adresów IP, które stale udostępniasz sieci."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajuste as configurações para maximizar a confiabilidade. O app funciona em segundo plano quando conectado e no Wi-Fi. Confiabilidade é quantos IPs você mantém continuamente disponíveis para a rede."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajuste as definições para maximizar a fiabilidade. A aplicação funciona em segundo plano quando está ligada e em Wi-Fi. Fiabilidade é o número de IPs que mantém continuamente disponíveis para a rede."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройте параметры для максимальной надежности. Приложение работает в фоновом режиме при подключении и использовании Wi-Fi. Надежность — это количество IP-адресов, которые вы постоянно предоставляете сети."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Justera inställningarna för att maximera tillförlitligheten. Appen körs i bakgrunden när du är ansluten och på Wi-Fi. Tillförlitlighet är hur många IP-adresser du kontinuerligt gör tillgängliga för nätverket."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปรับการตั้งค่าเพื่อเพิ่มความน่าเชื่อถือ แอปจะทำงานในพื้นหลังเมื่อเชื่อมต่อและใช้ Wi-Fi ความน่าเชื่อถือคือจำนวน IP ที่คุณเปิดให้เครือข่ายใช้งานได้อย่างต่อเนื่อง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Налаштуйте параметри для максимальної надійності. Додаток працює у фоновому режимі, коли підключений і на Wi-Fi. Надійність — це кількість IP-адрес, які ви постійно надаєте мережі."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điều chỉnh cài đặt để tối đa hóa độ tin cậy. Ứng dụng chạy nền khi kết nối và dùng Wi-Fi. Độ tin cậy là số lượng IP bạn liên tục cung cấp cho mạng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整设置以最大化可靠性。应用在连接和使用 Wi-Fi 时会在后台运行。可靠性是指你持续为网络提供的 IP 数量。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調整設定以提升可靠性。應用程式在連接及使用 Wi-Fi 時會於背景運行。可靠性是你持續為網絡提供的 IP 數量。"
           }
         }
       }
@@ -4433,6 +4587,468 @@
         }
       }
     },
+    "Boost Your Bandwidth - Earn More Every Day" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عزّز عرض النطاق الترددي لديك - اربح المزيد كل يوم"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvyšte svou šířku pásma – vydělávejte více každý den"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steigern Sie Ihre Bandbreite – verdienen Sie jeden Tag mehr"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ενισχύστε το εύρος ζώνης σας - Κερδίστε περισσότερα κάθε μέρα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boost Your Bandwidth - Earn More Every Day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumenta tu ancho de banda - Gana más cada día"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumenta tu ancho de banda - Gana más cada día"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boostez votre bande passante - Gagnez plus chaque jour"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגבר את רוחב הפס שלך - תרוויח יותר כל יום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपना बैंडविड्थ बढ़ाएं - हर दिन अधिक कमाएँ"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tingkatkan bandwidth Anda - Dapatkan lebih banyak setiap hari"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumenta la tua larghezza di banda - Guadagna di più ogni giorno"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帯域幅を増やして毎日もっと稼ごう"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대역폭을 높이고 매일 더 많이 벌기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergroot je bandbreedte - Verdien elke dag meer"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwiększ swoje pasmo – zarabiaj więcej każdego dnia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumente sua largura de banda - Ganhe mais todo dia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumente a sua largura de banda - Ganhe mais todos os dias"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увеличьте свою пропускную способность — зарабатывайте больше каждый день"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öka din bandbredd – tjäna mer varje dag"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพิ่มแบนด์วิดท์ของคุณ - รับรายได้มากขึ้นทุกวัน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Збільшіть свою пропускну здатність — заробляйте більше щодня"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tăng băng thông của bạn - Kiếm nhiều hơn mỗi ngày"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提升你的带宽——每天赚更多"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提升你的頻寬 - 每天賺取更多"
+          }
+        }
+      }
+    },
+    "By default you get 10 GiB/month. Here's how you can earn extra bandwidth:" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بشكل افتراضي، تحصل على 10 غيغابايت/شهر. إليك كيف يمكنك كسب عرض نطاق إضافي:"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ve výchozím nastavení získáte 10 GiB/měsíc. Zde je návod, jak můžete získat další šířku pásma:"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standardmäßig erhalten Sie 10 GiB/Monat. So können Sie zusätzliche Bandbreite verdienen:"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Από προεπιλογή λαμβάνετε 10 GiB/μήνα. Δείτε πώς μπορείτε να κερδίσετε επιπλέον εύρος ζώνης:"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By default you get 10 GiB/month. Here's how you can earn extra bandwidth:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defecto recibes 10 GiB/mes. Así puedes ganar ancho de banda extra:"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defecto recibes 10 GiB/mes. Así puedes ganar ancho de banda extra:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Par défaut, vous obtenez 10 Go/mois. Voici comment gagner de la bande passante supplémentaire :"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כברירת מחדל תקבל 10 GiB/חודש. כך תוכל להרוויח רוחב פס נוסף:"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डिफ़ॉल्ट रूप से आपको 10 GiB/माह मिलता है। ऐसे आप अतिरिक्त बैंडविड्थ कमा सकते हैं:"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secara default Anda mendapatkan 10 GiB/bulan. Berikut cara mendapatkan bandwidth tambahan:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Di default ricevi 10 GiB/mese. Ecco come puoi guadagnare larghezza di banda extra:"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルトで毎月10 GiBが付与されます。追加の帯域幅を獲得する方法はこちら："
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본적으로 10 GiB/월을 받습니다. 추가 대역폭을 얻는 방법은 다음과 같습니다:"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standaard krijg je 10 GiB/maand. Zo kun je extra bandbreedte verdienen:"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domyślnie otrzymujesz 10 GiB/miesiąc. Oto jak możesz zdobyć dodatkowe pasmo:"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por padrão, você recebe 10 GiB/mês. Veja como ganhar largura de banda extra:"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defeito, recebe 10 GiB/mês. Veja como pode ganhar largura de banda extra:"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По умолчанию вы получаете 10 ГиБ/месяц. Вот как можно заработать дополнительную пропускную способность:"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Som standard får du 10 GiB/månad. Så här kan du tjäna extra bandbredd:"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โดยปกติคุณจะได้รับ 10 GiB/เดือน นี่คือวิธีรับแบนด์วิดท์เพิ่มเติม:"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "За замовчуванням ви отримуєте 10 ГіБ/місяць. Ось як можна отримати додаткову пропускну здатність:"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mặc định bạn nhận được 10 GiB/tháng. Đây là cách bạn có thể kiếm thêm băng thông:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认每月获得10 GiB。以下是赚取额外带宽的方法："
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設每月獲得10 GiB。以下是賺取額外頻寬的方法："
+          }
+        }
+      }
+    },
+    "By participating in the network and providing bandwidth you can earn rewards." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "من خلال المشاركة في الشبكة وتوفير عرض النطاق الترددي، يمكنك كسب المكافآت."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Účastí v síti a poskytováním šířky pásma můžete získat odměny."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durch die Teilnahme am Netzwerk und das Bereitstellen von Bandbreite können Sie Belohnungen verdienen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συμμετέχοντας στο δίκτυο και παρέχοντας εύρος ζώνης μπορείτε να κερδίσετε ανταμοιβές."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By participating in the network and providing bandwidth you can earn rewards."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al participar en la red y proporcionar ancho de banda puedes ganar recompensas."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al participar en la red y proporcionar ancho de banda puedes ganar recompensas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En participant au réseau et en fournissant de la bande passante, vous pouvez gagner des récompenses."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בהשתתפות ברשת ובמתן רוחב פס תוכל להרוויח תגמולים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "नेटवर्क में भाग लेकर और बैंडविड्थ प्रदान करके आप पुरस्कार कमा सकते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dengan berpartisipasi di jaringan dan menyediakan bandwidth, Anda dapat memperoleh hadiah."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partecipando alla rete e fornendo larghezza di banda puoi guadagnare ricompense."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ネットワークに参加して帯域幅を提供することで報酬を獲得できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "네트워크에 참여하고 대역폭을 제공하면 보상을 받을 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Door deel te nemen aan het netwerk en bandbreedte te leveren kun je beloningen verdienen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uczestnicząc w sieci i udostępniając przepustowość, możesz zdobywać nagrody."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao participar da rede e fornecer largura de banda, você pode ganhar recompensas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao participar na rede e fornecer largura de banda, pode ganhar recompensas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Участвуя в сети и предоставляя пропускную способность, вы можете получать награды."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Genom att delta i nätverket och tillhandahålla bandbredd kan du tjäna belöningar."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โดยเข้าร่วมเครือข่ายและให้แบนด์วิดท์ คุณสามารถรับรางวัลได้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Беріть участь у мережі та надавайте пропускну здатність, щоб отримувати винагороди."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tham gia mạng lưới và cung cấp băng thông, bạn có thể nhận phần thưởng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参与网络并提供带宽即可获得奖励。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "參與網絡並提供頻寬即可獲得獎勵。"
+          }
+        }
+      }
+    },
     "By subscribing, you agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)" : {
       "localizations" : {
         "ar" : {
@@ -5815,6 +6431,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "猶豫不決？"
+          }
+        }
+      }
+    },
+    "Community Edition" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إصدار المجتمع"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Komunitní edice"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community Edition"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Έκδοση κοινότητας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community Edition"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edición comunitaria"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edición comunitaria"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Édition communautaire"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מהדורת קהילה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कम्युनिटी संस्करण"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edisi Komunitas"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edizione Community"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コミュニティ版"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "커뮤니티 에디션"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community-editie"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edycja społecznościowa"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edição Comunitária"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edição Comunitária"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия для сообщества"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community Edition"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ฉบับชุมชน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Спільнотна версія"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phiên bản cộng đồng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "社区版"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "社群版"
           }
         }
       }
@@ -9334,160 +10104,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供的數據"
-          }
-        }
-      }
-    },
-    "Data usage" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استخدام البيانات"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Využití dat"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Datennutzung"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Χρήση δεδομένων"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Data usage"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uso de datos"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uso de datos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilisation des données"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שימוש בנתונים"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "डेटा उपयोग"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Penggunaan data"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilizzo dati"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "データ使用量"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "데이터 사용량"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Datagebruik"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zużycie danych"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uso de dados"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilização de dados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Использование данных"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dataanvändning"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "การใช้ข้อมูล"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Використання даних"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sử dụng dữ liệu"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "数据使用量"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "數據使用量"
           }
         }
       }
@@ -13242,160 +13858,6 @@
         }
       }
     },
-    "Get URnetwork free for life by participating" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "احصل على URnetwork مجانًا مدى الحياة من خلال المشاركة"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Získejte URnetwork zdarma na celý život účastí"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erhalte URnetwork lebenslang kostenlos durch Teilnahme"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Αποκτήστε το URnetwork δωρεάν για πάντα συμμετέχοντας"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get URnetwork free for life by participating"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obtén URnetwork gratis de por vida participando"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obtén URnetwork gratis de por vida participando"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obtenez URnetwork gratuit à vie en participant"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קבל את URnetwork בחינם לכל החיים על ידי השתתפות"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भाग लेकर URnetwork जीवनभर मुफ्त पाएं"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dapatkan URnetwork gratis seumur hidup dengan berpartisipasi"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ottieni URnetwork gratis a vita partecipando"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "参加することでURnetworkを一生無料で利用"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "참여하면 URnetwork를 평생 무료로 이용"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Krijg URnetwork gratis voor het leven door deel te nemen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uzyskaj URnetwork za darmo na całe życie, uczestnicząc"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tenha URnetwork grátis para sempre ao participar"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tenha URnetwork grátis para sempre ao participar"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Получите URnetwork бесплатно навсегда, участвуя"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Få URnetwork gratis för livet genom att delta"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "รับ URnetwork ฟรีตลอดชีพโดยเข้าร่วม"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отримайте URnetwork безкоштовно назавжди, беручи участь"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhận URnetwork miễn phí trọn đời bằng cách tham gia"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "参与即可终身免费使用URnetwork"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "參與即可終身免費使用URnetwork"
-          }
-        }
-      }
-    },
     "Guest" : {
       "localizations" : {
         "ar" : {
@@ -14008,6 +14470,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我同意 URnetwork 的[條款和服務](https://ur.io/terms)和[隱私政策](https://ur.io/privacy)"
+          }
+        }
+      }
+    },
+    "Includes 2 week free trial" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتضمن تجربة مجانية لمدة أسبوعين"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zahrnuje dvoutýdenní zkušební verzi zdarma"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enthält zweiwöchige kostenlose Testphase"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Περιλαμβάνει δωρεάν δοκιμή δύο εβδομάδων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Includes 2 week free trial"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incluye prueba gratuita de 2 semanas"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incluye prueba gratuita de 2 semanas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprend un essai gratuit de 2 semaines"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כולל ניסיון חינם לשבועיים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 सप्ताह की मुफ्त ट्रायल शामिल है"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termasuk uji coba gratis 2 minggu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include prova gratuita di 2 settimane"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2週間の無料トライアル付き"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2주 무료 체험 포함"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inclusief 2 weken gratis proefperiode"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zawiera 2-tygodniowy bezpłatny okres próbny"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inclui teste gratuito de 2 semanas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inclui teste gratuito de 2 semanas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включает двухнедельный бесплатный пробный период"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inkluderar 2 veckors gratis provperiod"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รวมทดลองใช้งานฟรี 2 สัปดาห์"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включає двотижневий безкоштовний пробний період"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bao gồm dùng thử miễn phí 2 tuần"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含2周免费试用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包括2星期免費試用"
           }
         }
       }
@@ -15556,6 +16172,160 @@
         }
       }
     },
+    "Lowest user/IP ratio to access content" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أقل نسبة مستخدمين/عنوان IP للوصول إلى المحتوى"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nejnižší poměr uživatelů na IP pro přístup k obsahu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niedrigstes Nutzer/IP-Verhältnis für den Zugriff auf Inhalte"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η χαμηλότερη αναλογία χρηστών/IP για πρόσβαση σε περιεχόμενο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lowest user/IP ratio to access content"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La menor proporción de usuarios/IP para acceder a contenido"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La menor proporción de usuarios/IP para acceder a contenido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le plus faible ratio utilisateur/IP pour accéder au contenu"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יחס המשתמשים/כתובת IP הנמוך ביותר לגישה לתוכן"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सामग्री तक पहुँचने के लिए सबसे कम उपयोगकर्ता/IP अनुपात"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rasio pengguna/IP terendah untuk mengakses konten"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il più basso rapporto utenti/IP per accedere ai contenuti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コンテンツにアクセスするための最も低いユーザー/IP比率"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "콘텐츠 접근을 위한 최저 사용자/IP 비율"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laagste gebruiker/IP-verhouding voor toegang tot content"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najniższy stosunek użytkowników do IP w dostępie do treści"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menor proporção de usuários/IP para acessar conteúdo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menor proporção de utilizadores/IP para aceder a conteúdo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самое низкое соотношение пользователей к IP для доступа к контенту"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lägsta användare/IP-kvot för att komma åt innehåll"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัตราส่วนผู้ใช้/IP ต่ำที่สุดสำหรับการเข้าถึงเนื้อหา"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Найнижче співвідношення користувачів до IP для доступу до контенту"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tỷ lệ người dùng/IP thấp nhất để truy cập nội dung"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低用户/IP比率访问内容"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低用戶/IP比率以存取內容"
+          }
+        }
+      }
+    },
     "Make default" : {
       "localizations" : {
         "ar" : {
@@ -15706,6 +16476,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設為默認"
+          }
+        }
+      }
+    },
+    "Most Popular" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأكثر شعبية"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nejoblíbenější"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Am beliebtesten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο δημοφιλές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most Popular"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más popular"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más popular"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le plus populaire"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפופולרי ביותר"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सबसे लोकप्रिय"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paling Populer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Più popolare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最も人気"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가장 인기 있음"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meest populair"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najpopularniejszy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais popular"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais popular"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самый популярный"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mest populär"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ได้รับความนิยมสูงสุด"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Найпопулярніший"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phổ biến nhất"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最受欢迎"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最受歡迎"
           }
         }
       }
@@ -16936,160 +17860,6 @@
         }
       }
     },
-    "Next Step" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الخطوة التالية"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Další krok"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nächster Schritt"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Επόμενο βήμα"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next Step"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siguiente paso"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siguiente paso"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Étape suivante"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השלב הבא"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अगला चरण"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Langkah berikutnya"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prossimo passo"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "次のステップ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다음 단계"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Volgende stap"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Następny krok"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próxima etapa"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo passo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Следующий шаг"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nästa steg"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ขั้นตอนถัดไป"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Наступний крок"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bước tiếp theo"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
-          }
-        }
-      }
-    },
     "Nice! This network name is available" : {
       "localizations" : {
         "ar" : {
@@ -17873,160 +18643,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "其他"
-          }
-        }
-      }
-    },
-    "Participate" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "شارك"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zúčastnit se"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Teilnehmen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Συμμετοχή"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participate"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participar"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participer"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השתתף"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भाग लें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Berpartisipasi"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partecipa"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "参加する"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "참여하기"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deelnemen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weź udział"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participar"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Participar"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Участвовать"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delta"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เข้าร่วม"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Взяти участь"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tham gia"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "参与"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "參與"
           }
         }
       }
@@ -21743,22 +22359,313 @@
         }
       }
     },
+    "Refer a friend = +30 GiB/Month" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أوصِ صديقًا = +30 غيغابايت/شهر"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doporučte přítele = +30 GiB/měsíc"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freund empfehlen = +30 GiB/Monat"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συστήστε έναν φίλο = +30 GiB/μήνα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refer a friend = +30 GiB/Month"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomienda a un amigo = +30 GiB/mes"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomienda a un amigo = +30 GiB/mes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parrainer un ami = +30 Go/mois"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המלץ על חבר = +30 GiB/חודש"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मित्र को रेफ़र करें = +30 GiB/माह"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referensikan teman = +30 GiB/bulan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invita un amico = +30 GiB/mese"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "友達を紹介 = +30 GiB/月"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "친구 추천 = +30 GiB/월"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vriend doorverwijzen = +30 GiB/maand"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poleć znajomego = +30 GiB/miesiąc"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indique um amigo = +30 GiB/mês"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomendar um amigo = +30 GiB/mês"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порекомендовать друга = +30 ГиБ/месяц"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tipsa en vän = +30 GiB/månad"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แนะนำเพื่อน = +30 GiB/เดือน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порекомендувати друга = +30 ГіБ/місяць"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giới thiệu bạn bè = +30 GiB/tháng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐朋友 = +30 GiB/月"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推薦朋友 = +30 GiB/月"
+          }
+        }
+      }
+    },
     "Refer friends" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أوصِ أصدقاء"
+          }
+        },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Doporučte přátele"
           }
         },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freunde empfehlen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συστήστε φίλους"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refer friends"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomienda amigos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomienda amigos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parrainer des amis"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המלץ על חברים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मित्रों को रेफ़र करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referensikan teman"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invita amici"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "友達を紹介"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "친구 추천"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vrienden uitnodigen"
+            "value" : "Vrienden doorverwijzen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poleć znajomych"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indique amigos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomendar amigos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пригласить друзей"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tipsa vänner"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แนะนำเพื่อน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запросити друзів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giới thiệu bạn bè"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐朋友"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推薦朋友"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Refer some friends and watch your free data go up." : {
       "localizations" : {
@@ -22680,6 +23587,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可靠性"
+          }
+        }
+      }
+    },
+    "Reliability Settings" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعدادات الموثوقية"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavení spolehlivosti"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuverlässigkeitseinstellungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ρυθμίσεις αξιοπιστίας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reliability Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuración de fiabilidad"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuración de fiabilidad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres de fiabilité"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגדרות אמינות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "विश्वसनीयता सेटिंग्स"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengaturan Keandalan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impostazioni di affidabilità"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "信頼性設定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신뢰도 설정"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betrouwbaarheidsinstellingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustawienia niezawodności"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações de confiabilidade"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definições de fiabilidade"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки надежности"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inställningar för tillförlitlighet"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การตั้งค่าความน่าเชื่อถือ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Налаштування надійності"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cài đặt độ tin cậy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可靠性设置"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可靠性設定"
           }
         }
       }
@@ -26398,6 +27459,160 @@
         }
       }
     },
+    "Stay connected daily = Earn up to 100 GiB/Day" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابق متصلاً يوميًا = اربح حتى 100 غيغابايت/يوم"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zůstaňte připojeni denně = Získejte až 100 GiB/den"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Täglich verbunden bleiben = Verdienen Sie bis zu 100 GiB/Tag"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μείνετε συνδεδεμένοι καθημερινά = Κερδίστε έως και 100 GiB/ημέρα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stay connected daily = Earn up to 100 GiB/Day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanece conectado diariamente = Gana hasta 100 GiB/día"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanece conectado diariamente = Gana hasta 100 GiB/día"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restez connecté chaque jour = Gagnez jusqu’à 100 Go/jour"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הישאר מחובר מדי יום = תרוויח עד 100 GiB/יום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "रोज़ाना जुड़े रहें = प्रति दिन 100 GiB तक कमाएँ"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tetap terhubung setiap hari = Dapatkan hingga 100 GiB/hari"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimani connesso ogni giorno = Guadagna fino a 100 GiB/giorno"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "毎日接続を維持 = 最大100 GiB/日を獲得"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "매일 연결 유지 = 하루 최대 100 GiB 획득"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blijf dagelijks verbonden = Verdien tot 100 GiB/dag"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozostań codziennie połączony = Zarabiaj do 100 GiB/dzień"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fique conectado diariamente = Ganhe até 100 GiB/dia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha-se ligado diariamente = Ganhe até 100 GiB/dia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оставайтесь на связи ежедневно = Зарабатывайте до 100 ГиБ/день"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Var ansluten dagligen = Tjäna upp till 100 GiB/dag"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อทุกวัน = รับสูงสุด 100 GiB/วัน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Залишайтеся на зв’язку щодня = Заробляйте до 100 ГіБ/день"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối hàng ngày = Kiếm tới 100 GiB/ngày"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日保持连接 = 每天赚取高达100 GiB"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每天保持連接 = 每日賺取高達100 GiB"
+          }
+        }
+      }
+    },
     "Stay in touch" : {
       "localizations" : {
         "ar" : {
@@ -26548,314 +27763,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保持聯繫"
-          }
-        }
-      }
-    },
-    "Step 1" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الخطوة 1"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Krok 1"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schritt 1"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Βήμα 1"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Step 1"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paso 1"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paso 1"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Étape 1"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שלב 1"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "चरण 1"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Langkah 1"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passo 1"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ステップ1"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1단계"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stap 1"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Krok 1"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Etapa 1"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passo 1"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Шаг 1"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steg 1"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ขั้นตอนที่ 1"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Крок 1"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bước 1"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第1步"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第1步"
-          }
-        }
-      }
-    },
-    "Step 2" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الخطوة 2"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Krok 2"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schritt 2"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Βήμα 2"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Step 2"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paso 2"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paso 2"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Étape 2"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שלב 2"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "चरण 2"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Langkah 2"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passo 2"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ステップ2"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2단계"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stap 2"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Krok 2"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Etapa 2"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passo 2"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Шаг 2"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steg 2"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ขั้นตอนที่ 2"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Крок 2"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bước 2"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第2步"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第2步"
           }
         }
       }
@@ -28244,160 +29151,6 @@
         }
       }
     },
-    "This bar in the app shows you how much free data you are earning from your provider. You can check in any time and adjust your settings to maximize your earnings." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يعرض لك هذا الشريط في التطبيق مقدار البيانات المجانية التي تكسبها من مزود الخدمة الخاص بك. يمكنك التحقق في أي وقت وضبط إعداداتك لزيادة أرباحك إلى الحد الأقصى."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tento pruh v aplikaci vám ukazuje, kolik bezplatných dat získáváte od svého poskytovatele. Můžete se kdykoli podívat a upravit nastavení, abyste maximalizovali své výdělky."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Leiste in der App zeigt Ihnen, wie viele kostenlose Daten Sie von Ihrem Anbieter erhalten. Sie können jederzeit nachsehen und Ihre Einstellungen anpassen, um Ihre Einnahmen zu maximieren."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Αυτή η γραμμή στην εφαρμογή σας δείχνει πόσα δωρεάν δεδομένα κερδίζετε από τον πάροχό σας. Μπορείτε να ελέγχετε οποιαδήποτε στιγμή και να προσαρμόζετε τις ρυθμίσεις σας για να μεγιστοποιήσετε τα κέρδη σας."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This bar in the app shows you how much free data you are earning from your provider. You can check in any time and adjust your settings to maximize your earnings."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta barra en la app te muestra cuántos datos gratis estás ganando de tu proveedor. Puedes consultar en cualquier momento y ajustar tus configuraciones para maximizar tus ganancias."
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta barra en la app te muestra cuántos datos gratis estás ganando de tu proveedor. Puedes consultar en cualquier momento y ajustar tus configuraciones para maximizar tus ganancias."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette barre dans l’application vous montre combien de données gratuites vous gagnez grâce à votre fournisseur. Vous pouvez vérifier à tout moment et ajuster vos paramètres pour maximiser vos gains."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הסרגל הזה באפליקציה מראה לך כמה נתונים חינמיים אתה מרוויח מהספק שלך. תוכל לבדוק בכל עת ולשנות את ההגדרות שלך כדי למקסם את הרווחים."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ऐप में यह बार आपको दिखाता है कि आप अपने प्रदाता से कितने मुफ्त डेटा कमा रहे हैं। आप कभी भी जांच सकते हैं और अपनी सेटिंग्स समायोजित कर सकते हैं ताकि अपनी कमाई अधिकतम कर सकें।"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bilah ini di aplikasi menunjukkan berapa banyak data gratis yang Anda dapatkan dari penyedia Anda. Anda dapat memeriksa kapan saja dan menyesuaikan pengaturan untuk memaksimalkan penghasilan Anda."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questa barra nell’app ti mostra quanta quantità di dati gratuiti stai guadagnando dal tuo provider. Puoi controllare in qualsiasi momento e regolare le impostazioni per massimizzare i tuoi guadagni."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アプリ内のこのバーは、プロバイダーからどれだけ無料データを獲得しているかを表示します。いつでも確認でき、設定を調整して獲得量を最大化できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "앱의 이 막대는 공급자로부터 얼마나 많은 무료 데이터를 얻고 있는지 보여줍니다. 언제든지 확인하고 설정을 조정하여 수익을 극대화할 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deze balk in de app laat zien hoeveel gratis data je van je provider verdient. Je kunt op elk moment kijken en je instellingen aanpassen om je verdiensten te maximaliseren."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ten pasek w aplikacji pokazuje, ile darmowych danych otrzymujesz od swojego dostawcy. Możesz sprawdzić to w dowolnym momencie i dostosować ustawienia, aby zmaksymalizować swoje zarobki."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta barra no app mostra quanto de dados grátis você está ganhando do seu provedor. Você pode conferir a qualquer momento e ajustar suas configurações para maximizar seus ganhos."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta barra na aplicação mostra-lhe quantos dados gratuitos está a ganhar do seu fornecedor. Pode verificar a qualquer momento e ajustar as suas definições para maximizar os seus ganhos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Эта панель в приложении показывает, сколько бесплатных данных вы получаете от своего провайдера. Вы можете проверить это в любое время и настроить параметры, чтобы максимизировать свой доход."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Denna stapel i appen visar hur mycket gratis data du tjänar från din leverantör. Du kan när som helst kontrollera och justera dina inställningar för att maximera din intjäning."
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "แถบนี้ในแอปจะแสดงให้คุณเห็นว่าคุณได้รับข้อมูลฟรีจากผู้ให้บริการมากแค่ไหน คุณสามารถตรวจสอบได้ทุกเมื่อและปรับการตั้งค่าเพื่อเพิ่มรายได้สูงสุด"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ця панель у додатку показує, скільки безкоштовних даних ви отримуєте від свого провайдера. Ви можете перевірити це будь-коли та налаштувати свої параметри, щоб максимізувати заробіток."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thanh này trong ứng dụng cho bạn biết bạn đang nhận được bao nhiêu dữ liệu miễn phí từ nhà cung cấp. Bạn có thể kiểm tra bất cứ lúc nào và điều chỉnh cài đặt để tối đa hóa phần thưởng."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用中的此条显示您从服务商获得了多少免费数据。您可以随时查看并调整设置以最大化收益。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "應用程式中的此條顯示你從供應商獲得了多少免費數據。你可以隨時查看並調整設定以最大化收益。"
-          }
-        }
-      }
-    },
     "This code has been used up" : {
       "localizations" : {
         "ar" : {
@@ -29626,6 +30379,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "交易"
+          }
+        }
+      }
+    },
+    "Trusted by over 100,000 private networks" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "موثوق به من قبل أكثر من 100,000 شبكة خاصة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Důvěřuje mu více než 100 000 soukromých sítí"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertraut von über 100.000 privaten Netzwerken"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμπιστεύεται από πάνω από 100.000 ιδιωτικά δίκτυα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trusted by over 100,000 private networks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confiado por más de 100,000 redes privadas"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confiado por más de 100,000 redes privadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fait confiance à plus de 100 000 réseaux privés"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נמצא באמון של מעל 100,000 רשתות פרטיות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100,000 से अधिक निजी नेटवर्क द्वारा विश्वसनीय"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dipercaya oleh lebih dari 100.000 jaringan pribadi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fidato da oltre 100.000 reti private"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10万以上のプライベートネットワークに信頼されています"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10만 개 이상의 프라이빗 네트워크에서 신뢰받음"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertrouwd door meer dan 100.000 privé-netwerken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaufany przez ponad 100 000 prywatnych sieci"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confiado por mais de 100.000 redes privadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confiado por mais de 100.000 redes privadas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доверяют более 100 000 частных сетей"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betrodd av över 100 000 privata nätverk"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ได้รับความไว้วางใจจากเครือข่ายส่วนตัวกว่า 100,000 เครือข่าย"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Довіряють понад 100 000 приватних мереж"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Được hơn 100.000 mạng riêng tin tưởng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "获得超过100,000个私人网络的信任"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "獲超過100,000個私人網絡信任"
           }
         }
       }
@@ -31043,310 +31950,310 @@
         }
       }
     },
-    "URnetwork is powered by a patented protocol that keeps everyone safe and secure." : {
+    "URnetwork is powered by a patented protocol\nthat keeps everyone safe and secure." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يعمل URnetwork ببروتوكول حاصل على براءة اختراع يحافظ على أمان الجميع وسلامتهم."
+            "value" : "يعمل URnetwork ببروتوكول حاصل على براءة اختراع\nيحافظ على أمان الجميع وسلامتهم."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork je poháněn patentovaným protokolem, který zajišťuje bezpečnost všech."
+            "value" : "URnetwork je poháněn patentovaným protokolem\nkterý zajišťuje bezpečnost všech."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork wird von einem patentierten Protokoll betrieben, das für die Sicherheit aller sorgt."
+            "value" : "URnetwork wird von einem patentierten Protokoll betrieben,\ndas für die Sicherheit aller sorgt."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Το URnetwork λειτουργεί με ένα κατοχυρωμένο πρωτόκολλο που διασφαλίζει την ασφάλεια όλων."
+            "value" : "Το URnetwork λειτουργεί με ένα κατοχυρωμένο πρωτόκολλο\nπου διασφαλίζει την ασφάλεια όλων."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork is powered by a patented protocol that keeps everyone safe and secure."
+            "value" : "URnetwork is powered by a patented protocol\nthat keeps everyone safe and secure."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork funciona con un protocolo patentado que mantiene a todos seguros y protegidos."
+            "value" : "URnetwork funciona con un protocolo patentado\nque mantiene a todos seguros y protegidos."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork funciona con un protocolo patentado que mantiene a todos seguros y protegidos."
+            "value" : "URnetwork funciona con un protocolo patentado\nque mantiene a todos seguros y protegidos."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork fonctionne grâce à un protocole breveté qui garantit la sécurité de tous."
+            "value" : "URnetwork fonctionne grâce à un protocole breveté\nqui garantit la sécurité de tous."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork מופעל על ידי פרוטוקול רשום שמבטיח שכולם יהיו בטוחים ומוגנים."
+            "value" : "URnetwork מופעל על ידי פרוטוקול רשום\nשמבטיח שכולם יהיו בטוחים ומוגנים."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork एक पेटेंटेड प्रोटोकॉल द्वारा संचालित है जो सभी को सुरक्षित और संरक्षित रखता है।"
+            "value" : "URnetwork एक पेटेंटेड प्रोटोकॉल द्वारा संचालित है\nजो सभी को सुरक्षित और संरक्षित रखता है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork didukung oleh protokol yang dipatenkan yang menjaga semua orang tetap aman dan terlindungi."
+            "value" : "URnetwork didukung oleh protokol yang dipatenkan\nyang menjaga semua orang tetap aman dan terlindungi."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork è alimentato da un protocollo brevettato che mantiene tutti al sicuro."
+            "value" : "URnetwork è alimentato da un protocollo brevettato\nche mantiene tutti al sicuro."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetworkは、すべての人の安全とセキュリティを守る特許取得済みプロトコルで動作しています。"
+            "value" : "URnetworkは特許取得済みプロトコルで動作しています\nすべての人の安全とセキュリティを守ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork는 모두의 안전과 보안을 지키는 특허받은 프로토콜로 운영됩니다."
+            "value" : "URnetwork는 특허받은 프로토콜로 운영됩니다\n모두의 안전과 보안을 지켜줍니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork wordt aangedreven door een gepatenteerd protocol dat iedereen veilig houdt."
+            "value" : "URnetwork wordt aangedreven door een gepatenteerd protocol\ndat iedereen veilig houdt."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork działa w oparciu o opatentowany protokół, który zapewnia bezpieczeństwo wszystkim."
+            "value" : "URnetwork działa w oparciu o opatentowany protokół\nktóry zapewnia bezpieczeństwo wszystkim."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork é alimentado por um protocolo patenteado que mantém todos seguros e protegidos."
+            "value" : "URnetwork é alimentado por um protocolo patenteado\nque mantém todos seguros e protegidos."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork é alimentado por um protocolo patenteado que mantém todos seguros e protegidos."
+            "value" : "URnetwork é alimentado por um protocolo patenteado\nque mantém todos seguros e protegidos."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork работает на запатентованном протоколе, который обеспечивает безопасность всех."
+            "value" : "URnetwork работает на запатентованном протоколе,\nкоторый обеспечивает безопасность всех."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork drivs av ett patenterat protokoll som håller alla säkra och trygga."
+            "value" : "URnetwork drivs av ett patenterat protokoll\nsom håller alla säkra och trygga."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork ขับเคลื่อนด้วยโปรโตคอลที่จดสิทธิบัตรซึ่งทำให้ทุกคนปลอดภัยและมั่นใจ"
+            "value" : "URnetwork ขับเคลื่อนด้วยโปรโตคอลที่จดสิทธิบัตร\nซึ่งทำให้ทุกคนปลอดภัยและมั่นใจ"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork працює на запатентованому протоколі, який забезпечує безпеку всіх."
+            "value" : "URnetwork працює на запатентованому протоколі\nякий забезпечує безпеку всіх."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork được vận hành bởi giao thức đã được cấp bằng sáng chế, giúp mọi người an toàn và bảo mật."
+            "value" : "URnetwork được vận hành bởi giao thức đã được cấp bằng sáng chế\ngiúp mọi người an toàn và bảo mật."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork由获得专利的协议驱动，保障每个人的安全。"
+            "value" : "URnetwork由获得专利的协议驱动\n保障每个人的安全。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork 由獲得專利的協議驅動，保障每個人的安全。"
+            "value" : "URnetwork 由獲得專利的協議驅動\n保障每個人的安全。"
           }
         }
       }
     },
-    "URnetwork is the most local and most private network on the planet. With over 20x usable cities of other leading VPNs, and 100x fewer users per IP address. Unlock all the fun in the world and all the privacy without compromises." : {
+    "URnetwork is the most local and most private network on the planet." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork هي الشبكة الأكثر محلية والأكثر خصوصية على الكوكب. مع أكثر من 20 ضعف عدد المدن المتاحة مقارنة بشبكات VPN الرائدة الأخرى، و100 ضعف عدد المستخدمين الأقل لكل عنوان IP. استمتع بكل المرح في العالم وكل الخصوصية بدون تنازلات."
+            "value" : "URnetwork هي الشبكة الأكثر محلية والأكثر خصوصية على الكوكب."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork je nejlokálnější a nejvíce soukromá síť na světě. Nabízí více než 20x více dostupných měst než jiné přední VPN a 100x méně uživatelů na jednu IP adresu. Odemkněte veškerou zábavu na světě a veškeré soukromí bez kompromisů."
+            "value" : "URnetwork je nejlokálnější a nejvíce soukromá síť na světě."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork ist das lokalste und privateste Netzwerk der Welt. Mit über 20-mal mehr nutzbaren Städten als andere führende VPNs und 100-mal weniger Nutzern pro IP-Adresse. Genieße alle Freuden der Welt und volle Privatsphäre – ohne Kompromisse."
+            "value" : "URnetwork ist das lokalste und privateste Netzwerk der Welt."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Το URnetwork είναι το πιο τοπικό και πιο ιδιωτικό δίκτυο στον πλανήτη. Με πάνω από 20 φορές περισσότερες διαθέσιμες πόλεις από άλλα κορυφαία VPN και 100 φορές λιγότερους χρήστες ανά διεύθυνση IP. Ξεκλειδώστε όλη τη διασκέδαση του κόσμου και όλη την ιδιωτικότητα χωρίς συμβιβασμούς."
+            "value" : "Το URnetwork είναι το πιο τοπικό και πιο ιδιωτικό δίκτυο στον πλανήτη."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork is the most local and most private network on the planet. With over 20x usable cities of other leading VPNs, and 100x fewer users per IP address. Unlock all the fun in the world and all the privacy without compromises."
+            "value" : "URnetwork is the most local and most private network on the planet."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork es la red más local y privada del planeta. Con más de 20 veces más ciudades disponibles que otros VPN líderes y 100 veces menos usuarios por dirección IP. Disfruta de toda la diversión y privacidad del mundo sin compromisos."
+            "value" : "URnetwork es la red más local y privada del planeta."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork es la red más local y privada del planeta. Con más de 20 veces más ciudades disponibles que otros VPN líderes y 100 veces menos usuarios por dirección IP. Disfruta de toda la diversión y privacidad del mundo sin compromisos."
+            "value" : "URnetwork es la red más local y privada del planeta."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork est le réseau le plus local et le plus privé au monde. Avec plus de 20 fois plus de villes utilisables que les autres VPN leaders, et 100 fois moins d’utilisateurs par adresse IP. Profitez de tout le plaisir du monde et de toute la confidentialité sans compromis."
+            "value" : "URnetwork est le réseau le plus local et le plus privé au monde."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork היא הרשת המקומית והפרטית ביותר בעולם. עם פי 20 יותר ערים זמינות מאשר שירותי VPN מובילים אחרים, ופי 100 פחות משתמשים לכל כתובת IP. פתח את כל הכיף בעולם ואת כל הפרטיות ללא פשרות."
+            "value" : "URnetwork היא הרשת המקומית והפרטית ביותר בעולם."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork ग्रह की सबसे स्थानीय और सबसे निजी नेटवर्क है। अन्य प्रमुख VPN की तुलना में 20 गुना अधिक उपलब्ध शहरों और प्रति IP पता 100 गुना कम उपयोगकर्ताओं के साथ। दुनिया भर की सारी मस्ती और सारी गोपनीयता बिना किसी समझौते के प्राप्त करें।"
+            "value" : "URnetwork ग्रह की सबसे स्थानीय और सबसे निजी नेटवर्क है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork adalah jaringan paling lokal dan paling privat di dunia. Dengan lebih dari 20x kota yang dapat digunakan dibanding VPN terkemuka lainnya, dan 100x lebih sedikit pengguna per alamat IP. Nikmati semua keseruan dan privasi di dunia tanpa kompromi."
+            "value" : "URnetwork adalah jaringan paling lokal dan paling privat di dunia."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork è la rete più locale e più privata al mondo. Con oltre 20 volte più città disponibili rispetto agli altri principali VPN e 100 volte meno utenti per indirizzo IP. Sblocca tutto il divertimento e la privacy del mondo senza compromessi."
+            "value" : "URnetwork è la rete più locale e più privata al mondo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetworkは、世界で最もローカルで最もプライベートなネットワークです。他の主要VPNの20倍以上の利用可能都市数、IPアドレスあたり100分の1のユーザー数。世界中の楽しみもプライバシーも、妥協せずに手に入れよう。"
+            "value" : "URnetworkは世界で最もローカルで最もプライベートなネットワークです。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork는 지구상에서 가장 지역적이고 가장 프라이빗한 네트워크입니다. 다른 주요 VPN보다 20배 더 많은 사용 가능한 도시와 IP 주소당 100배 더 적은 사용자. 세상의 모든 재미와 모든 프라이버시를 타협 없이 누리세요."
+            "value" : "URnetwork는 지구상에서 가장 지역적이고 가장 프라이빗한 네트워크입니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork is het meest lokale en meest privé netwerk ter wereld. Met meer dan 20x zoveel bruikbare steden als andere toonaangevende VPN’s en 100x minder gebruikers per IP-adres. Ontgrendel alle plezier en privacy in de wereld zonder compromissen."
+            "value" : "URnetwork is het meest lokale en meest privé netwerk ter wereld."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork to najbardziej lokalna i prywatna sieć na świecie. Ponad 20 razy więcej dostępnych miast niż inne czołowe VPN-y i 100 razy mniej użytkowników na jeden adres IP. Odblokuj całą zabawę i prywatność świata bez kompromisów."
+            "value" : "URnetwork to najbardziej lokalna i prywatna sieć na świecie."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork é a rede mais local e mais privada do planeta. Com mais de 20 vezes mais cidades utilizáveis que outros VPNs líderes e 100 vezes menos usuários por endereço IP. Desbloqueie toda a diversão e privacidade do mundo sem compromissos."
+            "value" : "URnetwork é a rede mais local e mais privada do planeta."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork é a rede mais local e mais privada do planeta. Com mais de 20 vezes mais cidades utilizáveis do que outros VPNs líderes e 100 vezes menos utilizadores por endereço IP. Desbloqueie toda a diversão e privacidade do mundo sem compromissos."
+            "value" : "URnetwork é a rede mais local e mais privada do planeta."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork — самая локальная и самая приватная сеть на планете. Более чем в 20 раз больше доступных городов, чем у других ведущих VPN, и в 100 раз меньше пользователей на один IP-адрес. Откройте для себя все удовольствия мира и всю приватность без компромиссов."
+            "value" : "URnetwork — самая локальная и самая приватная сеть на планете."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork är det mest lokala och mest privata nätverket på planeten. Med över 20 gånger fler användbara städer än andra ledande VPN-tjänster och 100 gånger färre användare per IP-adress. Lås upp all världens nöje och all integritet utan kompromisser."
+            "value" : "URnetwork är det mest lokala och mest privata nätverket på planeten."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork คือเครือข่ายที่เป็นท้องถิ่นและเป็นส่วนตัวมากที่สุดในโลก มีเมืองที่ใช้งานได้มากกว่า VPN ชั้นนำอื่น ๆ ถึง 20 เท่า และมีผู้ใช้งานต่อ IP น้อยกว่า 100 เท่า ปลดล็อกความสนุกและความเป็นส่วนตัวทั้งหมดในโลกโดยไม่ต้องประนีประนอม"
+            "value" : "URnetwork คือเครือข่ายที่เป็นท้องถิ่นและเป็นส่วนตัวมากที่สุดในโลก"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork — це найлокальніша та найприватніша мережа на планеті. Має у 20 разів більше доступних міст, ніж інші провідні VPN, і у 100 разів менше користувачів на одну IP-адресу. Відкрийте всі розваги світу та всю приватність без компромісів."
+            "value" : "URnetwork — це найлокальніша та найприватніша мережа на планеті."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork là mạng lưới địa phương và riêng tư nhất trên hành tinh. Có số lượng thành phố sử dụng được gấp 20 lần các VPN hàng đầu khác và số người dùng trên mỗi địa chỉ IP ít hơn 100 lần. Mở khóa mọi niềm vui và sự riêng tư trên thế giới mà không phải thỏa hiệp."
+            "value" : "URnetwork là mạng lưới địa phương và riêng tư nhất trên hành tinh."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork是全球最本地化、最私密的网络。拥有比其他主流VPN多20倍的可用城市，每个IP地址的用户数少100倍。尽享全球乐趣与隐私，无需妥协。"
+            "value" : "URnetwork是全球最本地化、最私密的网络。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork 是全球最本地化及最私密的網絡。擁有比其他主流 VPN 多 20 倍可用城市，每個 IP 地址的用戶少 100 倍。盡享世界所有樂趣及所有私隱，絕不妥協。"
+            "value" : "URnetwork 是全球最本地化及最私密的網絡。"
           }
         }
       }
@@ -33837,6 +34744,160 @@
         }
       }
     },
+    "When you refer a friend:" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عند توصيتك لصديق:"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Když doporučíte přítele:"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn Sie einen Freund empfehlen:"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όταν συστήνετε έναν φίλο:"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you refer a friend:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando recomiendas a un amigo:"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando recomiendas a un amigo:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lorsque vous parrainez un ami :"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כשאתה ממליץ על חבר:"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जब आप मित्र को रेफ़र करते हैं:"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat Anda mereferensikan teman:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando inviti un amico:"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "友達を紹介すると："
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "친구를 추천하면:"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wanneer je een vriend doorverwijst:"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gdy polecisz znajomego:"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando você indica um amigo:"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando recomenda um amigo:"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Когда вы рекомендуете друга:"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "När du tipsar en vän:"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อคุณแนะนำเพื่อน:"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Коли ви рекомендуєте друга:"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi bạn giới thiệu bạn bè:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当你推荐朋友时："
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當你推薦朋友時："
+          }
+        }
+      }
+    },
     "You can adjust the setting to Always to fill the free data faster." : {
       "localizations" : {
         "ar" : {
@@ -34145,157 +35206,156 @@
         }
       }
     },
-    "You get +30GiB / month\nYour friend gets +30GiB / month\nFor life!" : {
-      "comment" : "Referral bonus message",
+    "You get 30 GiB/month for life" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحصل على +30غيغابايت / شهر\nيحصل صديقك على +30غيغابايت / شهر\nمدى الحياة!"
+            "value" : "تحصل على 30 غيغابايت/شهر مدى الحياة"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Získáte +30GiB / měsíc\nVáš přítel získá +30GiB / měsíc\nNa celý život!"
+            "value" : "Získáte 30 GiB/měsíc na celý život"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du erhältst +30GiB / Monat\nDein Freund erhält +30GiB / Monat\nFür immer!"
+            "value" : "Du erhältst 30 GiB/Monat lebenslang"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Παίρνεις +30GiB / μήνα\nΟ φίλος σου παίρνει +30GiB / μήνα\nΓια πάντα!"
+            "value" : "Παίρνεις 30 GiB/μήνα για πάντα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You get +30GiB / month\nYour friend gets +30GiB / month\nFor life!"
+            "value" : "You get 30 GiB/month for life"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recibes +30GiB / mes\nTu amigo recibe +30GiB / mes\n¡De por vida!"
+            "value" : "Recibes 30 GiB/mes de por vida"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recibes +30GiB / mes\nTu amigo recibe +30GiB / mes\n¡De por vida!"
+            "value" : "Recibes 30 GiB/mes de por vida"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous recevez +30Go / mois\nVotre ami reçoit +30Go / mois\nÀ vie !"
+            "value" : "Vous recevez 30 Go/mois à vie"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "אתה מקבל +30GiB / חודש\nהחבר שלך מקבל +30GiB / חודש\nלכל החיים!"
+            "value" : "אתה מקבל 30 GiB/חודש לכל החיים"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "आपको मिलेगा +30GiB / माह\nआपके मित्र को मिलेगा +30GiB / माह\nजीवन भर के लिए!"
+            "value" : "आपको जीवनभर के लिए 30 GiB/माह मिलता है"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anda mendapat +30GiB / bulan\nTeman Anda mendapat +30GiB / bulan\nSeumur hidup!"
+            "value" : "Anda mendapat 30 GiB/bulan seumur hidup"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ricevi +30GiB / mese\nIl tuo amico riceve +30GiB / mese\nPer sempre!"
+            "value" : "Ricevi 30 GiB/mese per sempre"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたは+30GiB / 月を獲得\n友達も+30GiB / 月を獲得\n一生ずっと！"
+            "value" : "30 GiB/月を一生獲得"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "당신은 +30GiB / 월을 받습니다\n친구도 +30GiB / 월을 받습니다\n평생 동안!"
+            "value" : "평생 30 GiB/월을 받습니다"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je krijgt +30GiB / maand\nJe vriend krijgt +30GiB / maand\nVoor altijd!"
+            "value" : "Je krijgt 30 GiB/maand voor altijd"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otrzymujesz +30GiB / miesiąc\nTwój znajomy otrzymuje +30GiB / miesiąc\nNa zawsze!"
+            "value" : "Otrzymujesz 30 GiB/miesiąc na zawsze"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Você ganha +30GiB / mês\nSeu amigo ganha +30GiB / mês\nPara sempre!"
+            "value" : "Você ganha 30 GiB/mês para sempre"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recebe +30GiB / mês\nO seu amigo recebe +30GiB / mês\nPara sempre!"
+            "value" : "Recebe 30 GiB/mês para sempre"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы получаете +30ГиБ / месяц\nВаш друг получает +30ГиБ / месяц\nНавсегда!"
+            "value" : "Вы получаете 30 ГиБ/месяц навсегда"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du får +30GiB / månad\nDin vän får +30GiB / månad\nFör alltid!"
+            "value" : "Du får 30 GiB/månad för alltid"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "คุณได้รับ +30GiB / เดือน\nเพื่อนของคุณได้รับ +30GiB / เดือน\nตลอดชีวิต!"
+            "value" : "คุณได้รับ 30 GiB/เดือนตลอดชีวิต"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ви отримуєте +30ГіБ / місяць\nВаш друг отримує +30ГіБ / місяць\nНазавжди!"
+            "value" : "Ви отримуєте 30 ГіБ/місяць назавжди"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bạn nhận được +30GiB / tháng\nBạn của bạn nhận được +30GiB / tháng\nTrọn đời!"
+            "value" : "Bạn nhận được 30 GiB/tháng trọn đời"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你每月获得+30GiB\n你的朋友每月获得+30GiB\n终身有效！"
+            "value" : "你每月获得30 GiB，终身有效"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你每月獲得+30GiB\n你的朋友每月獲得+30GiB\n永久有效！"
+            "value" : "你每月獲得30 GiB，永久有效"
           }
         }
       }
@@ -35220,6 +36280,468 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你收到郵件了"
+          }
+        }
+      }
+    },
+    "Your friend gets 30 GiB/month for life" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحصل صديقك على 30 غيغابايت/شهر مدى الحياة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš přítel získá 30 GiB/měsíc na celý život"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Freund erhält 30 GiB/Monat lebenslang"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο φίλος σου παίρνει 30 GiB/μήνα για πάντα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your friend gets 30 GiB/month for life"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu amigo recibe 30 GiB/mes de por vida"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu amigo recibe 30 GiB/mes de por vida"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre ami reçoit 30 Go/mois à vie"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החבר שלך מקבל 30 GiB/חודש לכל החיים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके मित्र को जीवनभर के लिए 30 GiB/माह मिलता है"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teman Anda mendapat 30 GiB/bulan seumur hidup"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo amico riceve 30 GiB/mese per sempre"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "友達は30 GiB/月を一生獲得"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "친구도 평생 30 GiB/월을 받습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vriend krijgt 30 GiB/maand voor altijd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój znajomy otrzymuje 30 GiB/miesiąc na zawsze"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu amigo ganha 30 GiB/mês para sempre"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu amigo recebe 30 GiB/mês para sempre"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш друг получает 30 ГиБ/месяц навсегда"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din vän får 30 GiB/månad för alltid"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพื่อนของคุณได้รับ 30 GiB/เดือนตลอดชีวิต"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш друг отримує 30 ГіБ/місяць назавжди"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn của bạn nhận được 30 GiB/tháng trọn đời"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的朋友每月获得30 GiB，终身有效"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的朋友每月獲得30 GiB，永久有效"
+          }
+        }
+      }
+    },
+    "Your friends save too -- everyone wins." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أصدقاؤك يوفرون أيضًا -- الجميع يستفيد."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaši přátelé také ušetří -- všichni vyhrávají."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auch deine Freunde sparen – alle gewinnen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι φίλοι σου κερδίζουν επίσης -- όλοι βγαίνουν κερδισμένοι."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your friends save too -- everyone wins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus amigos también ahorran -- todos ganan."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus amigos también ahorran -- todos ganan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos amis économisent aussi -- tout le monde y gagne."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "גם החברים שלך חוסכים -- כולם מרוויחים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके मित्र भी बचत करते हैं -- सभी को लाभ होता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teman-teman Anda juga berhemat -- semua menang."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anche i tuoi amici risparmiano -- vincono tutti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "友達も節約できる -- みんなが得する。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "친구들도 절약해요 -- 모두가 이깁니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vrienden besparen ook -- iedereen wint."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoi znajomi też oszczędzają -- wszyscy wygrywają."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seus amigos também economizam -- todo mundo sai ganhando."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os seus amigos também poupam -- todos ganham."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваши друзья тоже экономят — выигрывают все."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dina vänner sparar också – alla vinner."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพื่อนของคุณก็ประหยัดได้ -- ทุกคนได้ประโยชน์"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваші друзі теж економлять — усі у виграші."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn bè của bạn cũng tiết kiệm -- ai cũng có lợi."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的朋友也能省钱——人人受益。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的朋友也能節省——人人受益。"
+          }
+        }
+      }
+    },
+    "Your referral link" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رابط الإحالة الخاص بك"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš doporučovací odkaz"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihr Empfehlungslink"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο σύνδεσμος παραπομπής σας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your referral link"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu enlace de referido"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu enlace de referido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre lien de parrainage"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור ההפניה שלך"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका रेफ़रल लिंक"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tautan referensi Anda"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo link di invito"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "あなたの紹介リンク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추천 링크"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw verwijzingslink"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój link polecający"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu link de indicação"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu link de referência"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша реферальная ссылка"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din rekommendationslänk"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลิงก์แนะนำของคุณ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваше реферальне посилання"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết giới thiệu của bạn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的推荐链接"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的推薦連結"
           }
         }
       }

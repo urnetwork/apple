@@ -52,12 +52,21 @@ struct IntroductionView: View {
                             Text("Welcome to URnetwork")
                                 .font(themeManager.currentTheme.titleFont)
                             
-                            Spacer().frame(height: 16)
+                            Spacer().frame(height: 8)
                             
-                            Text("URnetwork is the most local and most private network on the planet. With over 20x usable cities of other leading VPNs, and 100x fewer users per IP address. Unlock all the fun in the world and all the privacy without compromises.")
-                                .font(themeManager.currentTheme.bodyFont)
+                            Text("URnetwork is the most local and most private network on the planet.")
+                                .font(themeManager.currentTheme.bodyFontLarge)
                             
                             Spacer().frame(height: 32)
+                            
+                            // points
+                            IntroBulletPoint(text: "100% open source and transparent")
+                            
+                            IntroBulletPoint(text: "Lowest user/IP ratio to access content")
+                            
+                            IntroBulletPoint(text: "Trusted by over 100,000 private networks")
+                            
+                            Spacer().frame(height: 24)
                             
                             /**
                              * Upgrade prompt
@@ -67,23 +76,25 @@ struct IntroductionView: View {
                                 if let monthly = monthlySubscription, let yearly = yearlySubscription {
                                     
                                     ProductOptionCard(
-                                        title: "Monthly",
-                                        price: "\(monthly.displayPrice)/month",
+                                        price: "\(yearly.displayPrice) Annual (Save 33%)",
                                         select: {
-                                            selectedPaymentOption = .monthly
+                                            selectedPaymentOption = .yearly
                                         },
-                                        isSelected: selectedPaymentOption == .monthly
+                                        isSelected: selectedPaymentOption == .yearly,
+                                        includesFreeTrial: true,
+                                        isMostPopular: true
                                     )
                                     
                                     Spacer().frame(height: 18)
                                     
                                     ProductOptionCard(
-                                        title: "Yearly",
-                                        price: "\(yearly.displayPrice)/year",
+                                        price: "\(monthly.displayPrice)/month",
                                         select: {
-                                            selectedPaymentOption = .yearly
+                                            selectedPaymentOption = .monthly
                                         },
-                                        isSelected: selectedPaymentOption == .yearly
+                                        isSelected: selectedPaymentOption == .monthly,
+                                        includesFreeTrial: false,
+                                        isMostPopular: false
                                     )
                                     
                                     Spacer().frame(height: 18)
@@ -131,9 +142,6 @@ struct IntroductionView: View {
                                 }
                                 
                             }
-                            .padding()
-                            .background(themeManager.currentTheme.tintedBackgroundBase)
-                            .cornerRadius(16)
                             
                             Spacer().frame(height: 16)
                             
@@ -151,42 +159,49 @@ struct IntroductionView: View {
                             /**
                              * Participate prompt
                              */
-                            VStack(alignment: .leading) {
                                 
-                                Text("Participate in the network and get free access to the community edition.")
-                                    // .font(themeManager.currentTheme.bodyFont)
-                                    .font(themeManager.currentTheme.toolbarTitleFont)
-                                
-                                Spacer().frame(height: 4)
-                                
-                                Text("URnetwork is powered by a patented protocol that keeps everyone safe and secure.")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
-                                
-                                Spacer().frame(height: 16)
-                                
-                                NavigationLink(destination: IntroductionUsageBar(
-                                    close: close,
-                                    totalReferrals: totalReferrals,
-                                    referralCode: referralCode,
-                                    meanReliabilityWeight: meanReliabilityWeight
-                                )) {
-                                    Text("Participate")
-                                        .font(themeManager.currentTheme.toolbarTitleFont.bold())
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(.urElectricBlue)
-                                        .cornerRadius(8)
-                                        .contentShape(Rectangle())
+                            NavigationLink(destination: IntroductionUsageBar(
+                                close: close,
+                                totalReferrals: totalReferrals,
+                                referralCode: referralCode,
+                                meanReliabilityWeight: meanReliabilityWeight
+                            )) {
+                                VStack(alignment: .center) {
+                                    Text("Community Edition")
+                                        .font(themeManager.currentTheme.toolbarTitleFont)
+                                        .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                                    
+                                    Spacer().frame(height: 4)
+                                    
+                                    
+                                    Text("Participate in the network and get free access to the community edition.")
+                                        .font(Font.custom("PP NeueBit", size: 18).weight(.bold))
+                                        .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                                        .multilineTextAlignment(.center)
                                 }
-                                .buttonStyle(.plain)
-                                
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 16)
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(themeManager.currentTheme.textFaintColor, lineWidth: 1)
+                                )
                             }
-                            .padding()
-                            .background(themeManager.currentTheme.tintedBackgroundBase)
-                            .cornerRadius(16)
+                            .buttonStyle(.plain)
                             
                             
+                            Spacer().frame(height: 32)
+                            
+                            HStack(alignment: .center) {
+                                Text("""
+                                URnetwork is powered by a patented protocol
+                                that keeps everyone safe and secure.
+                                """)
+                                    .font(Font.custom("PP NeueBit", size: 22).weight(.bold))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+
                             Spacer()
                         }
                         .padding()

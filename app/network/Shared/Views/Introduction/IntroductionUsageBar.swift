@@ -19,20 +19,24 @@ struct IntroductionUsageBar: View {
     
     var body: some View {
         
-        ScrollView {
+        GeometryReader { proxy in
+        
+            ScrollView {
             
-            VStack(alignment: .leading) {
-             
-                Text("Get URnetwork free for life by participating")
-                    .font(themeManager.currentTheme.titleFont)
-                
                 VStack(alignment: .leading) {
                     
-                    Text("Data usage")
-                        .font(themeManager.currentTheme.toolbarTitleFont)
+                    IntroIcon()
                     
-                    Spacer().frame(height: 4)
-                 
+                    Text("Boost Your Bandwidth - Earn More Every Day")
+                        .font(themeManager.currentTheme.titleFont)
+                    
+                    Spacer().frame(height: 16)
+                    
+                    Text("By participating in the network and providing bandwidth you can earn rewards.")
+                        .font(themeManager.currentTheme.bodyFontLarge)
+                    
+                    Spacer().frame(height: 32)
+                    
                     UsageBar(
                         availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                         pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
@@ -41,42 +45,43 @@ struct IntroductionUsageBar: View {
                         totalReferrals: totalReferrals
                     )
                     
-                    Spacer().frame(height: 8)
+                    Spacer().frame(height: 32)
                     
-                    Text("This bar in the app shows you how much free data you are earning from your provider. You can check in any time and adjust your settings to maximize your earnings.")
+                    Text("By default you get 10 GiB/month. Here's how you can earn extra bandwidth:")
                         .font(themeManager.currentTheme.bodyFont)
                     
                     Spacer().frame(height: 16)
                     
-                    Divider()
+                    IntroBulletPoint(text: "Stay connected daily = Earn up to 100 GiB/Day")
                     
-                    Spacer().frame(height: 16)
+                    IntroBulletPoint(text: "Refer a friend = +30 GiB/Month")
                     
-                    NavigationLink(destination: IntroductionParticipateSettingsView(
-                        close: close,
-                        totalReferrals: totalReferrals,
-                        referralCode: referralCode,
-                        meanReliabilityWeight: meanReliabilityWeight
-                    )) {
-                        Text("Next Step")
-                            .font(themeManager.currentTheme.toolbarTitleFont.bold())
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.urElectricBlue)
-                            .cornerRadius(8)
-                            .contentShape(Rectangle())
+                    Spacer()
+                    
+                    VStack {
+                     
+                        NavigationLink(destination: IntroductionParticipateSettingsView(
+                            close: close,
+                            totalReferrals: totalReferrals,
+                            referralCode: referralCode,
+                            meanReliabilityWeight: meanReliabilityWeight
+                        )) {
+                            Text("Continue")
+                                .font(themeManager.currentTheme.toolbarTitleFont.bold())
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(.urElectricBlue)
+                                .cornerRadius(8)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        
                     }
-                    .buttonStyle(.plain)
                     
                 }
                 .padding()
-                .background(themeManager.currentTheme.tintedBackgroundBase)
-                .cornerRadius(16)
-                
-                Spacer()
-                
+                .frame(minHeight: proxy.size.height)
             }
-            .padding()
             
         }
         

@@ -209,6 +209,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         return
                     }
                     self.reasserting = device.getConnectLocation() != nil
+                    readToDevice(packetFlow: self.packetFlow, device: device)
                 }
             }
         }
@@ -257,6 +258,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                                 self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                                 return
                             }
+                            readToDevice(packetFlow: self.packetFlow, device: device)
                         }
                     }
                 } else {
@@ -266,6 +268,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             return
                         }
                         self.reasserting = false
+                        readToDevice(packetFlow: self.packetFlow, device: device)
                     }
     //                self.reasserting = false
                 }
@@ -328,8 +331,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             device.close()
         }
         
-        Thread.setThreadPriority(1.0)
-        readToDevice(packetFlow: self.packetFlow, device: device, close: close)
+//        Thread.setThreadPriority(1.0)
+        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
+            readToDevice(packetFlow: self.packetFlow, device: device)
+        }
         completionHandler(nil)
     }
     
@@ -373,7 +378,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 
-func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal, close: @escaping ()->Void) {
+func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal) {
     if device.getDone() {
         return
     }
@@ -389,7 +394,7 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal, close:
             device.sendPacket(packet, n: Int32(packet.count))
         }
         // note since `readPackets` is async this is not recursion on the call stack
-        readToDevice(packetFlow: packetFlow, device: device, close: close)
+        readToDevice(packetFlow: packetFlow, device: device)
     }
 }
 

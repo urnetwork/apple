@@ -6,9 +6,11 @@
 	<array>
 		<string>packet-tunnel-provider</string>
 		<string>dns-settings</string>
-		<string>content-filter-provider</string>
+		<string>url-filter-provider</string>
 		<string>dns-proxy</string>
 		<string>app-proxy-provider</string>
+		<string>content-filter-provider</string>
+		<string>relay</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>

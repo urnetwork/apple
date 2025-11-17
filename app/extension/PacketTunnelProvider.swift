@@ -297,14 +297,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         })
         
         
-        let packetWriteLock = NSLock()
+//        let packetWriteLock = NSLock()
         let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, packet in
 //            let dataCopy = try! data.withUnsafeBytes<Data> { body in
 //                return Data(bytes: body, count: data.count)
 //            }
             
-            packetWriteLock.lock()
-            defer { packetWriteLock.unlock() }
+//            packetWriteLock.lock()
+//            defer { packetWriteLock.unlock() }
             
             switch ipVersion {
             case 4:

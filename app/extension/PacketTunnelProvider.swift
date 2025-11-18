@@ -352,7 +352,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // DNS Settings
     //        let dnsSettings = NEDNSSettings(servers: ["1.1.1.1", "8.8.8.8", "9.9.9.9"])
         // use settings from connect/net_http_doh
-        let dnsSettings = NEDNSOverHTTPSSettings()
+        let dnsSettings = NEDNSOverHTTPSSettings(servers: ["1.1.1.1", "8.8.8.8", "9.9.9.9"])
         dnsSettings.serverURL = URL(string: "https://1.1.1.1/dns-query")
         networkSettings.dnsSettings = dnsSettings
         

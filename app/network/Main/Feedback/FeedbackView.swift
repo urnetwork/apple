@@ -26,30 +26,20 @@ struct FeedbackView: View {
         
         GeometryReader { geometry in
             ScrollView {
-                VStack {
-                    HStack {
-                        Text("Get in touch")
-                            .font(themeManager.currentTheme.titleFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        Spacer()
-                    }
-                    .frame(height: 32)
+                VStack(alignment: .leading) {
+                    
+                    Text("Get in touch")
+                        .font(themeManager.currentTheme.titleFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
                     
                     Spacer().frame(height: 64)
                     
-                    HStack {
-                        Text("Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support.")
-                        
-                        Spacer()
-                    }
-                    .foregroundColor(themeManager.currentTheme.textColor)
+                    Text("Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support.")
+                        .foregroundColor(themeManager.currentTheme.textColor)
                     
                     Spacer().frame(height: 32)
                     
-                    HStack {
-                        UrLabel(text: "Feedback")
-                        Spacer()
-                    }
+                    UrLabel(text: "Feedback")
                     
                     TextEditor(
                         text: $viewModel.feedback
@@ -65,15 +55,22 @@ struct FeedbackView: View {
                     
                     Spacer().frame(height: 16)
                     
-                    HStack {
-                        UrLabel(text: "How are we doing?")
-                        Spacer()
+                    Toggle(isOn: $viewModel.attachLogs) {
+                        Text("Attach logs to feedback (optional)")
+                            .font(themeManager.currentTheme.bodyFont)
                     }
+                    
+                    ExportLogsButton()
+                    
+                    Spacer().frame(height: 16)
+        
+                    
+                    UrLabel(text: "How are we doing?")
                     
                     Spacer().frame(height: 8)
                     
                     // Stars rating
-                    HStack {
+                    HStack(alignment: .center) {
                         ForEach(1...5, id: \.self) { index in
                             Spacer().frame(width: 8)
                             Image(systemName: index <= (viewModel.starCount ?? 0) ? "star.fill" : "star")
@@ -85,6 +82,7 @@ struct FeedbackView: View {
                             Spacer().frame(width: 8)
                         }
                     }
+                    .frame(maxWidth: .infinity)
                     
                     // This spacer will push the button to the bottom
                     Spacer(minLength: 20)

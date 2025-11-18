@@ -22,6 +22,8 @@ import AppKit
 //    case none
 //}
 
+let TunnelCheckTimeout: TimeInterval = 2
+
 @MainActor
 class VPNManager {
     
@@ -184,6 +186,10 @@ class VPNManager {
     
     
     func updateVpnService() {
+        updateVpnServiceWithReset(reset: false)
+    }
+    
+    func updateVpnServiceWithReset(reset: Bool) {
         let provideEnabled = device.getProvideEnabled()
         let connectEnabled = device.getConnectEnabled()
         let routeLocal = device.getRouteLocal()
@@ -199,7 +205,7 @@ class VPNManager {
             // if provide paused, keep the vpn on but do not keep the locks
             setIdleTimerDisabled(!providePaused)
             
-            self.startVpnTunnel()
+            self.startVpnTunnel(reset: reset)
             
         } else {
             print("[VPNManager]stop")
@@ -221,121 +227,114 @@ class VPNManager {
     }
     
     
-    private func startVpnTunnel() {
-//        if self.tunnelRequestStatus == .started {
-//            return
-//        }
-//        self.tunnelRequestStatus = .started
-        
+    private func startVpnTunnel(reset: Bool) {
         // Load all configurations first
         NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+            let device = self.device
+            
             if let error = error {
                 print("Error loading managers: \(error.localizedDescription)")
 //                self.tunnelRequestStatus = .none
                 return
             }
-//            if self.tunnelRequestStatus != .started {
-//                return
-//            }
-//            guard let self = self else {
-//                return
-//            }
-            
+
             // Use existing manager or create new one
             let tunnelManager = managers?.first ?? NETunnelProviderManager()
-
-            
-            guard let networkSpace = self.device.getNetworkSpace() else {
-                return
-            }
-            
-            var err: NSError?
-            let networkSpaceJson = networkSpace.toJson(&err)
-            if let err {
-                print("[VPNManager]error converting network space to json: \(err.localizedDescription)")
-                return
-            }
-            
-            let tunnelProtocol = NETunnelProviderProtocol()
-            // Use the same as remote address in PacketTunnelProvider
-            // value from connect resolvedHost
-            tunnelProtocol.serverAddress = networkSpace.getHostName()
-            tunnelProtocol.providerBundleIdentifier = "network.ur.extension"
-            tunnelProtocol.disconnectOnSleep = false
-            
-            // Note `includeAllNetworks` seems to break Facetime and mail sync
-            // FIXME figure out the best setting here
-            // see https://developer.apple.com/documentation/networkextension/nevpnprotocol/includeallnetworks
-//            tunnelProtocol.includeAllNetworks = true
-            
-            // this is needed for casting, etc.
-            tunnelProtocol.excludeLocalNetworks = true
-            tunnelProtocol.excludeCellularServices = true
-            tunnelProtocol.excludeAPNs = true
-            if #available(iOS 17.4, macOS 14.4, *) {
-                tunnelProtocol.excludeDeviceCommunication = true
-            }
-            
-//            tunnelProtocol.enforceRoutes = true
-            
-            tunnelProtocol.providerConfiguration = [
-                "by_jwt": self.device.getApi()?.getByJwt() as Any,
-                "rpc_public_key": "test",
-                "network_space": networkSpaceJson as Any,
-                "instance_id": self.device.getInstanceId()?.string() as Any,
-            ]
             
             
-            tunnelManager.protocolConfiguration = tunnelProtocol
-            tunnelManager.localizedDescription = "URnetwork [\(networkSpace.getHostName()) \(networkSpace.getEnvName())]"
-            tunnelManager.isEnabled = true
-            tunnelManager.isOnDemandEnabled = true
-            let connectRule = NEOnDemandRuleConnect()
-            connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
-            tunnelManager.onDemandRules = [connectRule]
-            
-            tunnelManager.saveToPreferences { error in
-                if let _ = error {
-                    // when changing locations quickly, another change might have intercepted this save
-//                    self.tunnelRequestStatus = .none
+            let startTunnel = {
+                guard let networkSpace = device.getNetworkSpace() else {
                     return
                 }
-//                if self.tunnelRequestStatus != .started {
-//                    return
-//                }
+                
+                var err: NSError?
+                let networkSpaceJson = networkSpace.toJson(&err)
+                if let err {
+                    print("[VPNManager]error converting network space to json: \(err.localizedDescription)")
+                    return
+                }
                 
                 
+                let tunnelProtocol = NETunnelProviderProtocol()
+                // Use the same as remote address in PacketTunnelProvider
+                // value from connect resolvedHost
+                tunnelProtocol.serverAddress = networkSpace.getHostName()
+                tunnelProtocol.providerBundleIdentifier = "network.ur.extension"
+                tunnelProtocol.disconnectOnSleep = false
                 
+                // Note `includeAllNetworks` seems to break Facetime and mail sync
+                // FIXME figure out the best setting here
+                // see https://developer.apple.com/documentation/networkextension/nevpnprotocol/includeallnetworks
+    //            tunnelProtocol.includeAllNetworks = true
                 
-                // see https://forums.developer.apple.com/forums/thread/25928
-                tunnelManager.loadFromPreferences { error in
+                // this is needed for casting, etc.
+                tunnelProtocol.excludeLocalNetworks = true
+                tunnelProtocol.excludeCellularServices = true
+                tunnelProtocol.excludeAPNs = true
+                if #available(iOS 17.4, macOS 14.4, *) {
+                    tunnelProtocol.excludeDeviceCommunication = true
+                }
+                
+    //            tunnelProtocol.enforceRoutes = true
+                
+                tunnelProtocol.providerConfiguration = [
+                    "by_jwt": device.getApi()?.getByJwt() as Any,
+                    "rpc_public_key": "test",
+                    "network_space": networkSpaceJson as Any,
+                    "instance_id": device.getInstanceId()?.string() as Any,
+                ]
+                
+                tunnelManager.protocolConfiguration = tunnelProtocol
+                tunnelManager.localizedDescription = "URnetwork [\(networkSpace.getHostName()) \(networkSpace.getEnvName())]"
+                tunnelManager.isEnabled = true
+                tunnelManager.isOnDemandEnabled = true
+                let connectRule = NEOnDemandRuleConnect()
+                connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
+                tunnelManager.onDemandRules = [connectRule]
+                
+                tunnelManager.saveToPreferences { error in
                     if let _ = error {
-                        ////                        self.tunnelRequestStatus = .none
+                        // when changing locations quickly, another change might have intercepted this save
                         return
                     }
                     
-                    do {
-                        try tunnelManager.connection.startVPNTunnel()
-                        print("[VPNManager]connection started")
-                        self.device.sync()
-                    } catch let error as NSError {
-    //                        self.tunnelRequestStatus = .none
-                        print("[VPNManager]Error starting VPN connection:")
-                        print("[VPNManager]Domain: \(error.domain)")
-                        print("[VPNManager]Code: \(error.code)")
-                        print("[VPNManager]Description: \(error.localizedDescription)")
-                        print("[VPNManager]User Info: \(error.userInfo)")
+                    // see https://forums.developer.apple.com/forums/thread/25928
+                    tunnelManager.loadFromPreferences { error in
+                        if let _ = error {
+                            return
+                        }
                         
+                        do {
+                            try tunnelManager.connection.startVPNTunnel()
+                            print("[VPNManager]connection started")
+                            device.sync()
+                            
+                            if !reset {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) {
+                                    if !device.getTunnelStarted() {
+                                        self.updateVpnServiceWithReset(reset: true)
+                                    }
+                                }
+                            }
+                        } catch let error as NSError {
+                            print("[VPNManager]Error starting VPN connection:")
+                            print("[VPNManager]Domain: \(error.domain)")
+                            print("[VPNManager]Code: \(error.code)")
+                            print("[VPNManager]Description: \(error.localizedDescription)")
+                            print("[VPNManager]User Info: \(error.userInfo)")
+                        }
                     }
-                    
                 }
-////                    if self.tunnelRequestStatus != .started {
-////                        return
-////                    }
-//                    
-//
-//                   
-//                }
+                
+            }
+            
+            if reset {
+                tunnelManager.removeFromPreferences() { _ in
+                    startTunnel()
+                }
+            } else {
+                // use a soft relaunch where the settings are updated but the configuration is left in place
+                startTunnel()
             }
         }
     }
@@ -361,15 +360,7 @@ class VPNManager {
                         return
                     }
                     
-                    
                     tunnelManager.connection.stopVPNTunnel()
-                    
-                    
-                    // Give a short delay to ensure the tunnel is fully stopped
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-//                        continuation.resume()
-//                    }
-                    
                 }
             }
     }

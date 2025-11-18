@@ -186,10 +186,10 @@ class VPNManager {
     
     
     func updateVpnService() {
-        updateVpnServiceWithReset(reset: false)
+        updateVpnServiceWithReset(index: 0, reset: false)
     }
     
-    func updateVpnServiceWithReset(reset: Bool) {
+    func updateVpnServiceWithReset(index: Int, reset: Bool) {
         let provideEnabled = device.getProvideEnabled()
         let connectEnabled = device.getConnectEnabled()
         let routeLocal = device.getRouteLocal()
@@ -205,7 +205,7 @@ class VPNManager {
             // if provide paused, keep the vpn on but do not keep the locks
             setIdleTimerDisabled(!providePaused)
             
-            self.startVpnTunnel(reset: reset)
+            self.startVpnTunnel(index: index, reset: reset)
             
         } else {
             print("[VPNManager]stop")
@@ -227,7 +227,7 @@ class VPNManager {
     }
     
     
-    private func startVpnTunnel(reset: Bool) {
+    private func startVpnTunnel(index: Int, reset: Bool) {
         // Load all configurations first
         NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
             let device = self.device
@@ -237,9 +237,22 @@ class VPNManager {
 //                self.tunnelRequestStatus = .none
                 return
             }
-
+            
+            
+            var tunnelManager: NETunnelProviderManager
+            var n: Int
             // Use existing manager or create new one
-            let tunnelManager = managers?.first ?? NETunnelProviderManager()
+            if let managers = managers {
+                n = managers.count
+                if index < n {
+                    tunnelManager = managers[index]
+                } else {
+                    tunnelManager = NETunnelProviderManager()
+                }
+            } else {
+                n = 0
+                tunnelManager = NETunnelProviderManager()
+            }
             
             
             let startTunnel = {
@@ -309,10 +322,14 @@ class VPNManager {
                             print("[VPNManager]connection started")
                             device.sync()
                             
-                            if !reset {
+                            if !reset || index+1<n {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) {
                                     if !device.getTunnelStarted() {
-                                        self.updateVpnServiceWithReset(reset: true)
+                                        if !reset {
+                                            self.updateVpnServiceWithReset(index: index, reset: true)
+                                        } else if index+1<n {
+                                            self.updateVpnServiceWithReset(index: index+1, reset: false)
+                                        }
                                     }
                                 }
                             }

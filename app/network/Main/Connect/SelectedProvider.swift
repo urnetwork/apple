@@ -73,6 +73,11 @@ struct SelectedProvider: View {
             
         }
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            openSelectProvider()
+        }
+        
     }
 }
 

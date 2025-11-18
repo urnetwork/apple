@@ -16,6 +16,8 @@ extension FeedbackView {
         @Published var feedback: String = ""
         @Published private(set) var isSending: Bool = false
         @Published private(set) var starCount: Int? = nil
+        @Published var attachLogs: Bool = false
+        
         let domain = "[FeedbackViewModel]"
         
         var urApiService: UrApiServiceProtocol

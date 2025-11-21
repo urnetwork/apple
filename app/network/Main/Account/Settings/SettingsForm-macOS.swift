@@ -270,8 +270,11 @@ struct SettingsForm_macOS: View {
                             
                             Spacer().frame(height: 16)
                             
-                            UrSwitchToggle(isOn: $deviceManager.routeLocal) {
-                                Text("Allow local traffic when disconnected")
+                            UrSwitchToggle(isOn: Binding(
+                                get: { !deviceManager.routeLocal },
+                                set: { deviceManager.routeLocal = !$0 }
+                            )) {
+                                Text("Kill switch")
                                     .font(themeManager.currentTheme.bodyFont)
                                     .foregroundColor(themeManager.currentTheme.textColor)
                             }

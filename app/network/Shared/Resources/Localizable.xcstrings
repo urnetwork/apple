@@ -15413,19 +15413,19 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nouzový vypínač"
+            "value" : "Kill switch"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kill Switch"
+            "value" : "Kill switch"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Διακόπτης ασφαλείας"
+            "value" : "Kill switch"
           }
         },
         "en" : {
@@ -15437,19 +15437,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interruptor de corte"
+            "value" : "Kill switch"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interruptor de corte"
+            "value" : "Kill switch"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interrupteur d’urgence"
+            "value" : "Kill switch"
           }
         },
         "he" : {
@@ -15497,19 +15497,19 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wyłącznik awaryjny"
+            "value" : "Kill switch"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interruptor de emergência"
+            "value" : "Kill switch"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interruptor de emergência"
+            "value" : "Kill switch"
           }
         },
         "ru" : {
@@ -15539,19 +15539,19 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Công tắc ngắt kết nối"
+            "value" : "Kill switch"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "断开开关"
+            "value" : "断开开关 (Kill switch)"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "斷線開關"
+            "value" : "斷線開關 (Kill switch)"
           }
         }
       }

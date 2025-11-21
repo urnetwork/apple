@@ -110,7 +110,7 @@ class VPNManager {
 //    }
     
     func close() {
-        self.stopVpnTunnel()
+//        self.stopVpnTunnel(index: 0, reset: true)
         
         // UIApplication.shared.isIdleTimerDisabled = false
         self.setIdleTimerDisabled(false)
@@ -212,7 +212,7 @@ class VPNManager {
 
             self.setIdleTimerDisabled(false)
             
-            self.stopVpnTunnel()
+            self.stopVpnTunnel(index: index, reset: reset)
             
         }
     }
@@ -229,15 +229,8 @@ class VPNManager {
     
     private func startVpnTunnel(index: Int, reset: Bool) {
         // Load all configurations first
-        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+        NETunnelProviderManager.loadAllFromPreferences { (managers, _) in
             let device = self.device
-            
-            if let error = error {
-                print("Error loading managers: \(error.localizedDescription)")
-//                self.tunnelRequestStatus = .none
-                return
-            }
-            
             
             var tunnelManager: NETunnelProviderManager
             var n: Int
@@ -356,30 +349,58 @@ class VPNManager {
         }
     }
     
-    private func stopVpnTunnel() {
-        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+    private func stopVpnTunnel(index: Int, reset: Bool) {
+        NETunnelProviderManager.loadAllFromPreferences { (managers, _) in
+            let device = self.device
+            
+            var tunnelManager: NETunnelProviderManager
+            var n: Int
+            // Use existing manager or create new one
+            if let managers = managers {
+                n = managers.count
+                if index < n {
+                    tunnelManager = managers[index]
+                } else {
+                    tunnelManager = NETunnelProviderManager()
+                }
+            } else {
+                n = 0
+                tunnelManager = NETunnelProviderManager()
+            }
+            
+            tunnelManager.isEnabled = false
+            tunnelManager.isOnDemandEnabled = false
+            tunnelManager.onDemandRules = []
+            
+            tunnelManager.saveToPreferences { error in
                 if let error = error {
-                    print("[VPNManager]error loading managers: \(error.localizedDescription)")
+                    print("[VPNManager]error saving preferences: \(error.localizedDescription)")
                     return
                 }
                 
-                guard let tunnelManager = managers?.first else {
-                    return
-                }
+                tunnelManager.connection.stopVPNTunnel()
                 
-                tunnelManager.isEnabled = false
-                tunnelManager.isOnDemandEnabled = false
-                tunnelManager.onDemandRules = []
-                
-                tunnelManager.saveToPreferences { error in
-                    if let error = error {
-                        print("[VPNManager]error saving preferences: \(error.localizedDescription)")
-                        return
+                let checkTunnel = {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) {
+                        if device.getTunnelStarted() {
+                            if !reset {
+                                self.updateVpnServiceWithReset(index: index, reset: true)
+                            } else if index+1<n {
+                                self.updateVpnServiceWithReset(index: index+1, reset: false)
+                            }
+                        }
                     }
-                    
-                    tunnelManager.connection.stopVPNTunnel()
+                }
+                
+                if reset {
+                    tunnelManager.removeFromPreferences() { _ in
+                        checkTunnel()
+                    }
+                } else if index+1<n {
+                    checkTunnel()
                 }
             }
+        }
     }
     
 }

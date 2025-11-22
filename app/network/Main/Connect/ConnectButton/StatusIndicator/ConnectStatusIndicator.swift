@@ -76,6 +76,26 @@ struct ConnectStatusIndicator: View {
                 .font(themeManager.currentTheme.bodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
             
+            if connectionStatus == .connecting || connectionStatus == .destinationSet {
+                AnimatedEllipsis()
+            }
+        }
+    }
+}
+
+struct AnimatedEllipsis: View {
+    @State private var dotCount = 0
+    private let timer = Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            Text("...")
+                .opacity(0)
+            Text(String(repeating: ".", count: dotCount))
+        }
+        .frame(width: 20, alignment: .leading)
+        .onReceive(timer) { _ in
+            dotCount = (dotCount + 1) % 4
         }
     }
 }
@@ -90,3 +110,4 @@ struct ConnectStatusIndicator: View {
         currentPlan: .none
     )
 }
+

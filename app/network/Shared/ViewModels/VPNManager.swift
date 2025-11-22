@@ -44,6 +44,9 @@ class VPNManager {
     private var deviceProvideSub: SdkSubProtocol?
     private var deviceProvidePausedSub: SdkSubProtocol?
     
+    private var tunnelStarted: Bool = false
+    private var tunnelInstance: Int = 0
+    
     var contractStatusSub: SdkSubProtocol?
     
     let monitor = NWPathMonitor()
@@ -228,8 +231,19 @@ class VPNManager {
     
     
     private func startVpnTunnel(index: Int, reset: Bool) {
+        if tunnelStarted {
+            return
+        }
+        tunnelStarted = true
+        self.tunnelInstance += 1
+        let tunnelInstance = self.tunnelInstance
+        
         // Load all configurations first
         NETunnelProviderManager.loadAllFromPreferences { (managers, _) in
+            if tunnelInstance != self.tunnelInstance {
+                return
+            }
+            
             let device = self.device
             
             var tunnelManager: NETunnelProviderManager
@@ -249,6 +263,10 @@ class VPNManager {
             
             
             let startTunnel = {
+                if tunnelInstance != self.tunnelInstance {
+                    return
+                }
+                
                 guard let networkSpace = device.getNetworkSpace() else {
                     return
                 }
@@ -304,9 +322,17 @@ class VPNManager {
                         return
                     }
                     
+                    if tunnelInstance != self.tunnelInstance {
+                        return
+                    }
+                    
                     // see https://forums.developer.apple.com/forums/thread/25928
                     tunnelManager.loadFromPreferences { error in
                         if let _ = error {
+                            return
+                        }
+                        
+                        if tunnelInstance != self.tunnelInstance {
                             return
                         }
                         
@@ -317,7 +343,7 @@ class VPNManager {
                             
                             if !reset || index+1<n {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) {
-                                    if !device.getTunnelStarted() {
+                                    if tunnelInstance == self.tunnelInstance && !device.getTunnelStarted() {
                                         if !reset {
                                             self.updateVpnServiceWithReset(index: index, reset: true)
                                         } else if index+1<n {
@@ -350,7 +376,18 @@ class VPNManager {
     }
     
     private func stopVpnTunnel(index: Int, reset: Bool) {
+        if !tunnelStarted {
+            return
+        }
+        tunnelStarted = false
+        self.tunnelInstance += 1
+        let tunnelInstance = self.tunnelInstance
+        
         NETunnelProviderManager.loadAllFromPreferences { (managers, _) in
+            if tunnelInstance == self.tunnelInstance {
+                return
+            }
+            
             let device = self.device
             
             var tunnelManager: NETunnelProviderManager
@@ -373,8 +410,7 @@ class VPNManager {
             tunnelManager.onDemandRules = []
             
             tunnelManager.saveToPreferences { error in
-                if let error = error {
-                    print("[VPNManager]error saving preferences: \(error.localizedDescription)")
+                if tunnelInstance == self.tunnelInstance {
                     return
                 }
                 
@@ -382,7 +418,7 @@ class VPNManager {
                 
                 let checkTunnel = {
                     DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) {
-                        if device.getTunnelStarted() {
+                        if tunnelInstance == self.tunnelInstance && device.getTunnelStarted() {
                             if !reset {
                                 self.updateVpnServiceWithReset(index: index, reset: true)
                             } else if index+1<n {

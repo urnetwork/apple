@@ -256,6 +256,10 @@ class DeviceManager: ObservableObject {
         device?.setVpnInterfaceWhileOffline(value)
     }
     
+    func uploadLogs(feedbackId: String) throws {
+        try device?.uploadLogs(feedbackId, callback: nil)
+    }
+    
 }
 
 private class NetworkSpaceUpdateCallback: NSObject, URnetworkSdk.SdkNetworkSpaceUpdateProtocol {
@@ -777,3 +781,4 @@ private class ProvidePausedChangeListener: NSObject, SdkProvidePausedChangeListe
         c(providePaused)
     }
 }
+

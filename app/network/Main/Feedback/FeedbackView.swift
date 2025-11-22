@@ -15,12 +15,15 @@ struct FeedbackView: View {
     @StateObject private var viewModel: ViewModel
     @Environment(\.requestReview) private var requestReview
     @FocusState private var isFocused: Bool
+    @EnvironmentObject var deviceManager: DeviceManager
     
     init(urApiService: UrApiServiceProtocol) {
         _viewModel = StateObject.init(wrappedValue: ViewModel(
             urApiService: urApiService
         ))
     }
+    
+    
     
     var body: some View {
         
@@ -111,7 +114,7 @@ struct FeedbackView: View {
         
     }
     
-    private func handleSendFeedbackResult(_ result: Result<Void, Error>) {
+    private func handleSendFeedbackResult(_ result: Result<SdkFeedbackSendResult, Error>) {
         
         
         #if canImport(UIKit)
@@ -120,7 +123,7 @@ struct FeedbackView: View {
         
         
         switch result {
-        case .success:
+        case .success(let result):
             
             // TODO: message sent overlay
             
@@ -130,6 +133,14 @@ struct FeedbackView: View {
             
             viewModel.setStarCount(0)
             
+            if viewModel.attachLogs, let feedbackIdStr = result.feedbackId?.idStr {
+                do {
+                    try deviceManager.uploadLogs(feedbackId: feedbackIdStr)
+                } catch(let err) {
+                    print("error uploading logs: \(err)")
+                }
+            }
+
         case .failure:
             snackbarManager.showSnackbar(message: "There was an error sending your feedback. Please try again later.")
         }

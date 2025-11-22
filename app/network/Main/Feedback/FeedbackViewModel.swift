@@ -26,11 +26,13 @@ extension FeedbackView {
             self.urApiService = urApiService
         }
         
+        
+        
         func setStarCount(_ starCount: Int) {
             self.starCount = starCount
         }
         
-        func sendFeedback() async -> Result<Void, Error> {
+        func sendFeedback() async -> Result<SdkFeedbackSendResult, Error> {
             
             if isSending {
                 return .failure(SendFeedbackError.isSending)
@@ -39,12 +41,12 @@ extension FeedbackView {
             
             do {
                 
-                let _ = try await urApiService.sendFeedback(feedback: self.feedback, starCount: self.starCount ?? 0)
+                let result = try await urApiService.sendFeedback(feedback: self.feedback, starCount: self.starCount ?? 0)
                 
                 self.feedback = ""
                 self.isSending = false
                 
-                return .success(())
+                return .success(result)
                 
                 
             } catch(let error) {

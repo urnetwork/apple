@@ -191,8 +191,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return
         }
         
-        
-        
+        // set glog dir
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        SdkSetLogDir(documentsURL?.path() ?? "", nil)
         
         // load initial device settings
         // these will be in effect until the app connects and sets the user values
@@ -515,3 +516,4 @@ func deviceModel() -> String? {
     }
     return modelCode
 }
+

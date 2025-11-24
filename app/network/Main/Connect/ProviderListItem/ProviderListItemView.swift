@@ -12,11 +12,13 @@ struct ProviderListItemView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    var name: String
-    var providerCount: Int32?
-    var color: Color
-    var isSelected: Bool
-    var connect: () -> Void
+    let name: String
+    let providerCount: Int32?
+    let color: Color
+    let isSelected: Bool
+    let connect: () -> Void
+    let isStable: Bool
+    let isStrongPrivacy: Bool
     
     #if os(iOS)
     let padding: CGFloat = 16
@@ -38,11 +40,18 @@ struct ProviderListItemView: View {
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
                 
-                if let providerCount = providerCount, providerCount > 0 {
+                if let providerCount = providerCount, providerCount > 0, isStable {
                     Text("\(providerCount) providers")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 }
+                
+                if (!isStable) {
+                    Text("Unstable providers. Internet may be unreliable.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                
             }
             
             Spacer()
@@ -74,7 +83,9 @@ struct ProviderListItemView: View {
             providerCount: 1000,
             color: Color (hex: "CC3363"),
             isSelected: true,
-            connect: {}
+            connect: {},
+            isStable: true,
+            isStrongPrivacy: true
         )
     }
     .environmentObject(themeManager)

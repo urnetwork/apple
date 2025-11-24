@@ -48,7 +48,9 @@ struct ProviderListGroup: View {
                     isSelected: false,
                     connect: {
                         connectBestAvailable()
-                    }
+                    },
+                    isStable: true,
+                    isStrongPrivacy: true // should this be true?
                 )
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
@@ -62,7 +64,9 @@ struct ProviderListGroup: View {
                     isSelected: selectedProvider != nil && selectedProvider?.connectLocationId?.cmp(provider.connectLocationId) == 0,
                     connect: {
                         connect(provider)
-                    }
+                    },
+                    isStable: provider.stable,
+                    isStrongPrivacy: provider.strongPrivacy
                 )
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)

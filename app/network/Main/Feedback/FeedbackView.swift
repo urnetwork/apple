@@ -63,7 +63,7 @@ struct FeedbackView: View {
                             .font(themeManager.currentTheme.bodyFont)
                     }
                     
-                    ExportLogsButton()
+//                    ExportLogsButton()
                     
                     Spacer().frame(height: 16)
         

@@ -9,10 +9,12 @@ import SwiftUI
 
 struct ProviderColorCircle: View {
     
-    var color: Color
+    let color: Color
+    let isStrongPrivacy: Bool
     
-    init(_ color: Color) {
+    init(color: Color, isStrongPrivacy: Bool) {
         self.color = color
+        self.isStrongPrivacy = isStrongPrivacy
     }
     
     #if os(iOS)
@@ -25,15 +27,27 @@ struct ProviderColorCircle: View {
     
     var body: some View {
         
-        Circle()
-            .frame(width: circleWidth, height: circleWidth)
-            .foregroundColor(color)
+        ZStack {
+         
+            Circle()
+                .frame(width: circleWidth, height: circleWidth)
+                .foregroundColor(color)
+            
+            if isStrongPrivacy {
+                Image("PrivacyGlasses")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            }
+            
+        }
+        .frame(width: circleWidth, height: circleWidth)
         
     }
 }
 
 #Preview {
     ProviderColorCircle(
-        .urCoral
+        color: .urCoral,
+        isStrongPrivacy: true
     )
 }

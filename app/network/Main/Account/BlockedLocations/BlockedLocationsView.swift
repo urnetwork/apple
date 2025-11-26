@@ -56,11 +56,14 @@ struct BlockedLocationsView: View {
                         ForEach(viewModel.blockedLocations, id: \.locationId) { location in
                             HStack {
                                 
-                                ProviderColorCircle(getProviderColor(
-                                    locationType: location.locationType,
-                                    countryCode: location.countryCode,
-                                    id: location.locationId?.idStr
-                                ))
+                                ProviderColorCircle(
+                                    color: getProviderColor(
+                                        locationType: location.locationType,
+                                        countryCode: location.countryCode,
+                                        id: location.locationId?.idStr
+                                    ),
+                                    isStrongPrivacy: false // todo - fix this
+                                )
                                 
                                 Spacer().frame(width: 16)
                                 

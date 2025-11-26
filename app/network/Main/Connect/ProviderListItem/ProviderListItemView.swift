@@ -31,7 +31,10 @@ struct ProviderListItemView: View {
     var body: some View {
         HStack {
             
-            ProviderColorCircle(color)
+            ProviderColorCircle(
+                color: color,
+                isStrongPrivacy: isStrongPrivacy
+            )
             
             Spacer().frame(width: 16)
             

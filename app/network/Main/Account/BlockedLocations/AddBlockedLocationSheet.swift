@@ -30,11 +30,12 @@ struct AddBlockedLocationSheet: View {
                     HStack {
                         
                         ProviderColorCircle(
-                            getProviderColor(
+                            color: getProviderColor(
                                 locationType: provider.locationType,
                                 countryCode: provider.countryCode,
                                 id: provider.connectLocationId?.locationId?.idStr
-                            )
+                            ),
+                            isStrongPrivacy: provider.strongPrivacy
                         )
                         
                         Spacer().frame(width: 16)

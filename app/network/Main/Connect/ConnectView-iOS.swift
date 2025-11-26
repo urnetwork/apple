@@ -237,7 +237,6 @@ struct ConnectView_iOS: View {
                         isLoading: providerListStore.providersLoading,
                         isRefreshing: providerListSheetViewModel.isRefreshing,
                         providerCountries: providerListStore.providerCountries,
-                        providerPromoted: providerListStore.providerPromoted,
                         providerDevices: providerListStore.providerDevices,
                         providerRegions: providerListStore.providerRegions,
                         providerCities: providerListStore.providerCities,

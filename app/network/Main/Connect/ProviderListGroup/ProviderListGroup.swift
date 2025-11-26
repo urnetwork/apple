@@ -12,12 +12,11 @@ struct ProviderListGroup: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    var groupName: String
-    var providers: [SdkConnectLocation]
-    var selectedProvider: SdkConnectLocation?
-    var connect: (SdkConnectLocation) -> Void
-    var connectBestAvailable: () -> Void = {}
-    var isPromotedLocations: Bool = false
+    let groupName: String
+    let providers: [SdkConnectLocation]
+    let selectedProvider: SdkConnectLocation?
+    let connect: (SdkConnectLocation) -> Void
+    let connectBestAvailable: () -> Void = {}
     
     #if os(iOS)
     let padding: CGFloat = 16
@@ -30,7 +29,6 @@ struct ProviderListGroup: View {
         Section(
             header: HStack {
                 Text(groupName)
-                    .textCase(nil) // for some reason, header text is all caps by default in swiftui
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
                 
@@ -39,22 +37,6 @@ struct ProviderListGroup: View {
                 .padding(.horizontal, padding)
                 .padding(.vertical, 8)
         ) {
-            
-            if isPromotedLocations {
-                ProviderListItemView(
-                    name: "Best available provider",
-                    providerCount: nil,
-                    color: Color.urCoral,
-                    isSelected: false,
-                    connect: {
-                        connectBestAvailable()
-                    },
-                    isStable: true,
-                    isStrongPrivacy: true // should this be true?
-                )
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-            }
             
             ForEach(providers, id: \.connectLocationId) { provider in
                 ProviderListItemView(

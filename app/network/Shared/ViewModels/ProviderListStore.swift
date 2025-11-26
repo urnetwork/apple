@@ -16,7 +16,6 @@ public final class ProviderListStore: ObservableObject {
      * Provider groups
      */
     @Published private(set) var providerCountries: [SdkConnectLocation] = []
-    @Published private(set) var providerPromoted: [SdkConnectLocation] = []
     @Published private(set) var providerDevices: [SdkConnectLocation] = []
     @Published private(set) var providerRegions: [SdkConnectLocation] = []
     @Published private(set) var providerCities: [SdkConnectLocation] = []
@@ -97,14 +96,12 @@ public final class ProviderListStore: ObservableObject {
     private func handleLocations(_ result: SdkFilteredLocations) {
         
         let countries = result.countries.flatMap { flattenConnectLocationList($0) } ?? []
-        let promoted = result.promoted.flatMap { flattenConnectLocationList($0) } ?? []
         let devices = result.devices.flatMap { flattenConnectLocationList($0) } ?? []
         let regions = result.regions.flatMap { flattenConnectLocationList($0) } ?? []
         let cities = result.cities.flatMap { flattenConnectLocationList($0) } ?? []
         let bestMatches = result.bestMatches.flatMap { flattenConnectLocationList($0) } ?? []
         
         self.providerCountries = countries
-        self.providerPromoted = promoted
         self.providerDevices = devices
         self.providerRegions = regions
         self.providerCities = cities

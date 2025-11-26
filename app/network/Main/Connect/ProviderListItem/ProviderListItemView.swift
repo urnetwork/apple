@@ -70,6 +70,7 @@ struct ProviderListItemView: View {
         .onTapGesture {
             connect()
         }
+        .listRowBackground(Color.clear)
     }
 }
 

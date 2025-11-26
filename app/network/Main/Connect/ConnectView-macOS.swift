@@ -118,7 +118,6 @@ import URnetworkSdk
                                 connectViewModel.connectBestAvailable()
                             },
                             providerCountries: providerListStore.providerCountries,
-                            providerPromoted: providerListStore.providerPromoted,
                             providerDevices: providerListStore.providerDevices,
                             providerRegions: providerListStore.providerRegions,
                             providerCities: providerListStore.providerCities,
@@ -279,24 +278,24 @@ import URnetworkSdk
     struct ProviderTable: View {
 
         @EnvironmentObject var themeManager: ThemeManager
-        var selectedProvider: SdkConnectLocation?
-        var connect: (SdkConnectLocation) -> Void
-        var connectBestAvailable: () -> Void
+        let selectedProvider: SdkConnectLocation?
+        let connect: (SdkConnectLocation) -> Void
+        let connectBestAvailable: () -> Void
 
         /**
          * Provider lists
          */
-        var providerCountries: [SdkConnectLocation]
-        var providerPromoted: [SdkConnectLocation]
-        var providerDevices: [SdkConnectLocation]
-        var providerRegions: [SdkConnectLocation]
-        var providerCities: [SdkConnectLocation]
-        var providerBestSearchMatches: [SdkConnectLocation]
+        let providerCountries: [SdkConnectLocation]
+        let providerDevices: [SdkConnectLocation]
+        let providerRegions: [SdkConnectLocation]
+        let providerCities: [SdkConnectLocation]
+        let providerBestSearchMatches: [SdkConnectLocation]
 
         @Binding var searchQuery: String
 
-        var refresh: () -> Void
-        var isLoading: Bool
+        let refresh: () -> Void
+        let isLoading: Bool
+        let padding: CGFloat = 0
 
         var body: some View {
 
@@ -307,6 +306,43 @@ import URnetworkSdk
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(32)
                 } else {
+                    
+                    /**
+                     * nothing is being searched, or results are empty
+                     * show "best available provider"
+                     */
+                    if providerBestSearchMatches.isEmpty {
+                        /**
+                         * best available provider
+                         */
+                        Section(
+                            header: HStack {
+                                Text("Promoted Locations")
+                                    .font(themeManager.currentTheme.bodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                                Spacer()
+                            }
+                                .padding(.horizontal, padding)
+                                .padding(.vertical, 8)
+                        ) {
+                            
+                            ProviderListItemView(
+                                name: "Best available provider",
+                                providerCount: nil,
+                                color: Color.urCoral,
+                                isSelected: false,
+                                connect: {
+                                    connectBestAvailable()
+                                },
+                                isStable: true,
+                                isStrongPrivacy: false
+                            )
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                        }
+                        
+                    }
 
                     if !providerBestSearchMatches.isEmpty {
                         ProviderListGroup(
@@ -314,17 +350,6 @@ import URnetworkSdk
                             providers: providerBestSearchMatches,
                             selectedProvider: selectedProvider,
                             connect: connect
-                        )
-                    }
-
-                    if !providerPromoted.isEmpty {
-                        ProviderListGroup(
-                            groupName: "Promoted Locations",
-                            providers: providerPromoted,
-                            selectedProvider: selectedProvider,
-                            connect: connect,
-                            connectBestAvailable: connectBestAvailable,
-                            isPromotedLocations: true
                         )
                     }
 

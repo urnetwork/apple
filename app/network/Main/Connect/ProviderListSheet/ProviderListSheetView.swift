@@ -13,25 +13,26 @@ struct ProviderListSheetView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    var selectedProvider: SdkConnectLocation?
-    var connect: (SdkConnectLocation) -> Void
-    var connectBestAvailable: () -> Void
-    var isLoading: Bool
-    var isRefreshing: Bool
+    let selectedProvider: SdkConnectLocation?
+    let connect: (SdkConnectLocation) -> Void
+    let connectBestAvailable: () -> Void
+    let isLoading: Bool
+    let isRefreshing: Bool
     
     /**
      * Provider lists
      */
-    var providerCountries: [SdkConnectLocation]
-    var providerPromoted: [SdkConnectLocation]
-    var providerDevices: [SdkConnectLocation]
-    var providerRegions: [SdkConnectLocation]
-    var providerCities: [SdkConnectLocation]
-    var providerBestSearchMatches: [SdkConnectLocation]
+    let providerCountries: [SdkConnectLocation]
+    let providerDevices: [SdkConnectLocation]
+    let providerRegions: [SdkConnectLocation]
+    let providerCities: [SdkConnectLocation]
+    let providerBestSearchMatches: [SdkConnectLocation]
     
-    /**
-     * Close sheet
-     */
+    #if os(iOS)
+    let padding: CGFloat = 16
+    #elseif os(macOS)
+    let padding: CGFloat = 0
+    #endif
     
     var body: some View {
         
@@ -50,23 +51,49 @@ struct ProviderListSheetView: View {
             
             List {
                 
+                /**
+                 * nothing is being searched, or results are empty
+                 * show "best available provider"
+                 */
+                if providerBestSearchMatches.isEmpty {
+                    /**
+                     * best available provider
+                     */
+                    Section(
+                        header: HStack {
+                            Text("Promoted Locations")
+                                .font(themeManager.currentTheme.bodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            
+                            Spacer()
+                        }
+                            .padding(.horizontal, padding)
+                            .padding(.vertical, 8)
+                    ) {
+                        
+                        ProviderListItemView(
+                            name: "Best available provider",
+                            providerCount: nil,
+                            color: Color.urCoral,
+                            isSelected: false,
+                            connect: {
+                                connectBestAvailable()
+                            },
+                            isStable: true,
+                            isStrongPrivacy: false
+                        )
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                    }
+                    
+                }
+                
                 if !providerBestSearchMatches.isEmpty {
                     ProviderListGroup(
                         groupName: "Best Search Matches",
                         providers: providerBestSearchMatches,
                         selectedProvider: selectedProvider,
                         connect: connect
-                    )
-                }
-                
-                if !providerPromoted.isEmpty {
-                    ProviderListGroup(
-                        groupName: "Promoted Locations",
-                        providers: providerPromoted,
-                        selectedProvider: selectedProvider,
-                        connect: connect,
-                        connectBestAvailable: connectBestAvailable,
-                        isPromotedLocations: true
                     )
                 }
                 
@@ -184,13 +211,10 @@ struct ProviderListSheetView: View {
             isLoading: false,
             isRefreshing: false,
             providerCountries: providerCountries,
-            providerPromoted: [],
             providerDevices: [],
             providerRegions: [],
             providerCities: providerCities,
             providerBestSearchMatches: []
-//            setIsPresented: {_ in },
-//            searchText: .constant("")
         )
     }
     .environmentObject(themeManager)

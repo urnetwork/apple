@@ -40,16 +40,20 @@ struct ProviderListItemView: View {
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
                 
-                if let providerCount = providerCount, providerCount > 0, isStable {
-                    Text("\(providerCount) providers")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                }
-                
-                if (!isStable) {
-                    Text("Unstable providers. Internet may be unreliable.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                HStack(spacing: 0) {
+                 
+                    if let providerCount = providerCount, providerCount > 0 {
+                        Text("\(providerCount) providers")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    
+                    if (!isStable) {
+                        Text("* (may be unstable)")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    
                 }
                 
             }

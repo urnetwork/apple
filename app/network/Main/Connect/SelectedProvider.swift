@@ -36,10 +36,17 @@ struct SelectedProvider: View {
                         .truncationMode(.tail)
                     
                     if selectedProvider.providerCount > 0 {
+                        
+                        HStack(spacing: 0) {
     
-                        Text("\(selectedProvider.providerCount) providers")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            Text("\(selectedProvider.providerCount) providers")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            
+                            // todo - unstable warning
+                            
+                        }
+    
                     }
     
                     

@@ -78,13 +78,13 @@ class VPNManager {
         
         self.tunnelSub = device.add(TunnelChangeListener { [weak self] _ in
             DispatchQueue.main.async {
-                self?.updateTunnel()
+//                self?.updateTunnel()
             }
         })
         
         self.contractStatusSub = device.add(ContractStatusChangeListener { [weak self] _ in
             DispatchQueue.main.async {
-                self?.updateContractStatus()
+//                self?.updateContractStatus()
             }
         })
         
@@ -100,8 +100,8 @@ class VPNManager {
             }
         })
         
-        updateTunnel()
-        updateContractStatus()
+//        updateTunnel()
+//        updateContractStatus()
         
         updateVpnService()
     }
@@ -150,18 +150,18 @@ class VPNManager {
     }
     
     
-    private func updateTunnel() {
-        let tunnelStarted = self.device.getTunnelStarted()
-        print("[VPNManager][tunnel]started=\(tunnelStarted)")
-    }
+//    private func updateTunnel() {
+//        let tunnelStarted = self.device.getTunnelStarted()
+//        print("[VPNManager][tunnel]started=\(tunnelStarted)")
+//    }
     
-    private func updateContractStatus() {
-        if let contractStatus = self.device.getContractStatus() {
-            print("[VPNManager][contract]insufficent=\(contractStatus.insufficientBalance) nopermission=\(contractStatus.noPermission) premium=\(contractStatus.premium)")
-        } else {
-            print("[VPNManager][contract]no contract status")
-        }
-    }
+//    private func updateContractStatus() {
+//        if let contractStatus = self.device.getContractStatus() {
+//            print("[VPNManager][contract]insufficent=\(contractStatus.insufficientBalance) nopermission=\(contractStatus.noPermission) premium=\(contractStatus.premium)")
+//        } else {
+//            print("[VPNManager][contract]no contract status")
+//        }
+//    }
     
     private func allowProvideOnCurrentNetwork(
         _ provideNetworkMode: ProvideNetworkMode,
@@ -239,8 +239,13 @@ class VPNManager {
         let tunnelInstance = self.tunnelInstance
         
         // Load all configurations first
-        NETunnelProviderManager.loadAllFromPreferences { (managers, _) in
+        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
             if tunnelInstance != self.tunnelInstance {
+                return
+            }
+            
+            if let _ = error {
+                self.updateVpnService()
                 return
             }
             
@@ -311,28 +316,29 @@ class VPNManager {
                 tunnelManager.protocolConfiguration = tunnelProtocol
                 tunnelManager.localizedDescription = "URnetwork [\(networkSpace.getHostName()) \(networkSpace.getEnvName())]"
                 tunnelManager.isEnabled = true
-//                tunnelManager.isOnDemandEnabled = true
-//                let connectRule = NEOnDemandRuleConnect()
-//                connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
-//                tunnelManager.onDemandRules = [connectRule]
+                tunnelManager.isOnDemandEnabled = true
+                let connectRule = NEOnDemandRuleConnect()
+                connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
+                tunnelManager.onDemandRules = [connectRule]
                 
                 tunnelManager.saveToPreferences { error in
-                    if let _ = error {
-                        // when changing locations quickly, another change might have intercepted this save
+                    if tunnelInstance != self.tunnelInstance {
                         return
                     }
                     
-                    if tunnelInstance != self.tunnelInstance {
+                    if let _ = error {
+                        self.updateVpnService()
                         return
                     }
                     
                     // see https://forums.developer.apple.com/forums/thread/25928
                     tunnelManager.loadFromPreferences { error in
-                        if let _ = error {
+                        if tunnelInstance != self.tunnelInstance {
                             return
                         }
                         
-                        if tunnelInstance != self.tunnelInstance {
+                        if let _ = error {
+                            self.updateVpnService()
                             return
                         }
                         
@@ -365,7 +371,16 @@ class VPNManager {
             }
             
             if reset {
-                tunnelManager.removeFromPreferences() { _ in
+                tunnelManager.removeFromPreferences() { error in
+                    if tunnelInstance != self.tunnelInstance {
+                        return
+                    }
+                    
+                    if let _ = error {
+                        self.updateVpnService()
+                        return
+                    }
+                    
                     startTunnel()
                 }
             } else {
@@ -383,8 +398,13 @@ class VPNManager {
         self.tunnelInstance += 1
         let tunnelInstance = self.tunnelInstance
         
-        NETunnelProviderManager.loadAllFromPreferences { (managers, _) in
-            if tunnelInstance == self.tunnelInstance {
+        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+            if tunnelInstance != self.tunnelInstance {
+                return
+            }
+            
+            if let _ = error {
+                self.updateVpnService()
                 return
             }
             
@@ -406,11 +426,16 @@ class VPNManager {
             }
             
             tunnelManager.isEnabled = false
-//            tunnelManager.isOnDemandEnabled = false
-//            tunnelManager.onDemandRules = []
+            tunnelManager.isOnDemandEnabled = false
+            tunnelManager.onDemandRules = nil
             
             tunnelManager.saveToPreferences { error in
-                if tunnelInstance == self.tunnelInstance {
+                if tunnelInstance != self.tunnelInstance {
+                    return
+                }
+                
+                if let _ = error {
+                    self.updateVpnService()
                     return
                 }
                 
@@ -429,7 +454,16 @@ class VPNManager {
                 }
                 
                 if reset {
-                    tunnelManager.removeFromPreferences() { _ in
+                    tunnelManager.removeFromPreferences() { error in
+                        if tunnelInstance != self.tunnelInstance {
+                            return
+                        }
+                        
+                        if let _ = error {
+                            self.updateVpnService()
+                            return
+                        }
+                        
                         checkTunnel()
                     }
                 } else if index+1<n {

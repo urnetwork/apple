@@ -99,7 +99,11 @@ struct IntroductionView: View {
                                     
                                     Spacer().frame(height: 18)
                                     
-                                    UrButton(text: "Start 2 week free trial", action: {
+                                    UrButton(
+                                        text: selectedPaymentOption == .monthly
+                                            ? "Join the movement"
+                                            : "Start 2 week free trial",
+                                        action: {
                                         
                                         let product = selectedPaymentOption == .monthly ? monthly : yearly
                                         

@@ -10,12 +10,6 @@ import SwiftUI
 struct ProviderColorCircle: View {
     
     let color: Color
-    let isStrongPrivacy: Bool
-    
-    init(color: Color, isStrongPrivacy: Bool) {
-        self.color = color
-        self.isStrongPrivacy = isStrongPrivacy
-    }
     
     #if os(iOS)
 //    let padding: CGFloat = 16
@@ -26,21 +20,10 @@ struct ProviderColorCircle: View {
     #endif
     
     var body: some View {
-        
-        ZStack {
-         
-            Circle()
-                .frame(width: circleWidth, height: circleWidth)
-                .foregroundColor(color)
-            
-            if isStrongPrivacy {
-                Image("PrivacyGlasses")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            }
-            
-        }
-        .frame(width: circleWidth, height: circleWidth)
+
+        Circle()
+            .frame(width: circleWidth, height: circleWidth)
+            .foregroundColor(color)
         
     }
 }
@@ -48,6 +31,5 @@ struct ProviderColorCircle: View {
 #Preview {
     ProviderColorCircle(
         color: .urCoral,
-        isStrongPrivacy: true
     )
 }

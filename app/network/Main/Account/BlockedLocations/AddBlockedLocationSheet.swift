@@ -35,7 +35,6 @@ struct AddBlockedLocationSheet: View {
                                 countryCode: provider.countryCode,
                                 id: provider.connectLocationId?.locationId?.idStr
                             ),
-                            isStrongPrivacy: provider.strongPrivacy
                         )
                         
                         Spacer().frame(width: 16)

@@ -80,7 +80,8 @@ struct ProviderListSheetView: View {
                                 connectBestAvailable()
                             },
                             isStable: true,
-                            isStrongPrivacy: false
+                            isStrongPrivacy: false,
+                            displayIcons: false
                         )
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)

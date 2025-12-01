@@ -62,7 +62,6 @@ struct BlockedLocationsView: View {
                                         countryCode: location.countryCode,
                                         id: location.locationId?.idStr
                                     ),
-                                    isStrongPrivacy: false // todo - fix this
                                 )
                                 
                                 Spacer().frame(width: 16)

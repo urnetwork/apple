@@ -19,6 +19,7 @@ struct ProviderListItemView: View {
     let connect: () -> Void
     let isStable: Bool
     let isStrongPrivacy: Bool
+    var displayIcons: Bool = true
     
     #if os(iOS)
     let padding: CGFloat = 16
@@ -33,7 +34,6 @@ struct ProviderListItemView: View {
             
             ProviderColorCircle(
                 color: color,
-                isStrongPrivacy: isStrongPrivacy
             )
             
             Spacer().frame(width: 16)
@@ -51,22 +51,50 @@ struct ProviderListItemView: View {
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                     }
                     
-                    if (!isStable) {
-                        Text("* (may be unstable)")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    }
-                    
                 }
                 
             }
             
             Spacer()
             
-            if isSelected {
+            HStack {
+                
+                if (!isStable) {
+                 
+                    /**
+                     * stability
+                     */
+                    Image("ur.symbols.unstable")
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundColor(isStable ? themeManager.currentTheme.textMutedColor : .urLightYellow)
+                        .frame(width: 20, height: 20)
+                        .clipped()
+                    
+                    
+                    Spacer().frame(width: 8)
+                    
+                }
+                
+                /**
+                 * strong privacy
+                 */
+                Image("ur.symbols.privacy")
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundColor(isStrongPrivacy ? .urGreen : themeManager.currentTheme.textMutedColor)
+                    .frame(width: 20, height: 20)
+                    .clipped()
+                
+                Spacer().frame(width: 16)
+                
                 Image(systemName: "checkmark")
-                    .foregroundColor(.blue)
+                    .foregroundColor(isSelected ? .urElectricBlue : .urBlack)
                     .font(.system(size: 20))
+            
+                
             }
             
         }

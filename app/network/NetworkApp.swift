@@ -242,6 +242,7 @@ struct NetworkApp: App {
             
             
         }
+        .defaultSize(width: 800, height: 600)
         #endif
     }
     

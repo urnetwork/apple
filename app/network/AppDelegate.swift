@@ -39,6 +39,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
+    var deviceManager: DeviceManager?
+    
     override init() {
         SdkSetMemoryLimit(64 * 1024 * 1024)
     }
@@ -47,6 +49,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         SdkFreeMemory()
     }
     
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if let deviceManager = self.deviceManager {
+            deviceManager.closeOnQuit { _ in
+                sender.reply(toApplicationShouldTerminate: true)
+            }
+            
+            return .terminateLater
+        } else {
+            return .terminateNow
+        }
+    }
 }
 
 #endif

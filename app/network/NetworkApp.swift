@@ -29,6 +29,12 @@ struct NetworkApp: App {
     
     @StateObject var connectViewModel = ConnectViewModel()
     
+    init() {
+        #if os(macOS)
+        appDelegate.deviceManager = deviceManager
+        #endif
+    }
+    
     func setupConnectViewModel(_ device: SdkDeviceRemote) {
         
         let connectViewController = device.openConnectViewController()
@@ -155,15 +161,9 @@ struct NetworkApp: App {
             #if os(macOS)
             CommandGroup(replacing: .appTermination) {
                 Button("Quit URnetwork") {
-                    
                     connectViewModel.disconnect()
                     
-                    Task {
-                        if let vpnManager = deviceManager.vpnManager {
-                            await vpnManager.close()
-                        }
-                        NSApplication.shared.terminate(nil)
-                    }
+                    NSApplication.shared.terminate(nil)
                 }
             }
             #endif
@@ -236,12 +236,7 @@ struct NetworkApp: App {
             Button("Quit URnetwork", action: {
                 connectViewModel.disconnect()
                 
-                Task {
-                    if let vpnManager = deviceManager.vpnManager {
-                        await vpnManager.close()
-                    }
-                    NSApplication.shared.terminate(nil)
-                }
+                NSApplication.shared.terminate(nil)
                 
             })
             
@@ -268,6 +263,7 @@ struct NetworkApp: App {
         NSApplication.shared.activate(ignoringOtherApps: true)
         isWindowVisible = true
     }
+    
     #endif
     
 }

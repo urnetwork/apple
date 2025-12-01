@@ -483,30 +483,26 @@ class VPNManager {
         self.tunnelInstance += 1
         
         NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
-            if let _ = error {
-                self.stopVpnTunnelOnQuitWithIndex(index: index, completion: completion)
+            if let error = error {
+                completion(error)
                 return
             }
             
             if let managers = managers {
                 let n = managers.count
-                var tunnelManager: NETunnelProviderManager
                 if index < n {
-                    tunnelManager = managers[index]
+                    let tunnelManager = managers[index]
+                    tunnelManager.removeFromPreferences() { _ in
+                        self.stopVpnTunnelOnQuitWithIndex(index: index+1, completion: completion)
+                    }
                 } else {
-                    tunnelManager = NETunnelProviderManager()
-                }
-                
-                tunnelManager.removeFromPreferences() { _ in
-                    self.stopVpnTunnelOnQuitWithIndex(index: index+1, completion: completion)
+                    completion(nil)
                 }
             } else {
                 completion(nil)
             }
         }
-        
     }
-    
 }
 
 

@@ -264,7 +264,11 @@ class DeviceManager: ObservableObject {
     func closeOnQuit(completion: @escaping (Error?) -> Void) {
         self.device?.close()
         
-        self.vpnManager?.stopVpnTunnelOnQuit(completion: completion)
+        if let vpnManager = self.vpnManager {
+            vpnManager.stopVpnTunnelOnQuit(completion: completion)
+        } else {
+            completion(nil)
+        }
     }
     
 }

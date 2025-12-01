@@ -72,21 +72,24 @@ struct ProviderListItemView: View {
                         .frame(width: 20, height: 20)
                         .clipped()
                     
-                    
-                    Spacer().frame(width: 8)
-                    
                 }
                 
-                /**
-                 * strong privacy
-                 */
-                Image("ur.symbols.privacy")
-                    .renderingMode(.template)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundColor(isStrongPrivacy ? .urGreen : themeManager.currentTheme.textMutedColor)
-                    .frame(width: 20, height: 20)
-                    .clipped()
+                if (isStrongPrivacy) {
+                    
+                    Spacer().frame(width: 8)
+                 
+                    /**
+                     * strong privacy
+                     */
+                    Image("ur.symbols.privacy")
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundColor(.urGreen)
+                        .frame(width: 20, height: 20)
+                        .clipped()
+                    
+                }
                 
                 Spacer().frame(width: 16)
                 

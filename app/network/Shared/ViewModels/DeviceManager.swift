@@ -260,6 +260,13 @@ class DeviceManager: ObservableObject {
         try device?.uploadLogs(feedbackId, callback: nil)
     }
     
+    
+    func closeOnQuit(completion: @escaping (Error?) -> Void) {
+        self.device?.close()
+        
+        self.vpnManager?.stopVpnTunnelOnQuit(completion: completion)
+    }
+    
 }
 
 private class NetworkSpaceUpdateCallback: NSObject, URnetworkSdk.SdkNetworkSpaceUpdateProtocol {

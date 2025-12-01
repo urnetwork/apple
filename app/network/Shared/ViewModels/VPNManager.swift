@@ -192,7 +192,7 @@ class VPNManager {
         updateVpnServiceWithReset(index: 0, reset: false)
     }
     
-    func updateVpnServiceWithReset(index: Int, reset: Bool) {
+    private func updateVpnServiceWithReset(index: Int, reset: Bool) {
         let provideEnabled = device.getProvideEnabled()
         let connectEnabled = device.getConnectEnabled()
         let routeLocal = device.getRouteLocal()
@@ -471,6 +471,40 @@ class VPNManager {
                 }
             }
         }
+    }
+    
+    
+    func stopVpnTunnelOnQuit(completion: @escaping (Error?) -> Void) {
+        // remove all vpn profiles
+        self.stopVpnTunnelOnQuitWithIndex(index: 0, completion: completion)
+    }
+    
+    private func stopVpnTunnelOnQuitWithIndex(index: Int, completion: @escaping (Error?) -> Void) {
+        self.tunnelInstance += 1
+        
+        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+            if let _ = error {
+                self.stopVpnTunnelOnQuitWithIndex(index: index, completion: completion)
+                return
+            }
+            
+            if let managers = managers {
+                let n = managers.count
+                var tunnelManager: NETunnelProviderManager
+                if index < n {
+                    tunnelManager = managers[index]
+                } else {
+                    tunnelManager = NETunnelProviderManager()
+                }
+                
+                tunnelManager.removeFromPreferences() { _ in
+                    self.stopVpnTunnelOnQuitWithIndex(index: index+1, completion: completion)
+                }
+            } else {
+                completion(nil)
+            }
+        }
+        
     }
     
 }

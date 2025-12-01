@@ -268,6 +268,16 @@ struct NetworkApp: App {
         NSApplication.shared.activate(ignoringOtherApps: true)
         isWindowVisible = true
     }
+    
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        
+        self.deviceManager.closeOnQuit { _ in
+            NSApplication.shared.reply(toApplicationShouldTerminate: true)
+        }
+        
+        return .terminateLater
+    }
+    
     #endif
     
 }

@@ -33,6 +33,18 @@ struct NetworkApp: App {
         #if os(macOS)
         appDelegate.deviceManager = deviceManager
         #endif
+        
+        #if os(iOS)
+        // for styling NavigationTitle
+        // todo - can probably be moved to top of app
+        UINavigationBar
+            .appearance()
+            .largeTitleTextAttributes = [.font : UIFont(name: "ABCGravity-Extended", size: 32)!]
+
+        UINavigationBar
+            .appearance()
+            .titleTextAttributes = [.font : UIFont(name: "PP NeueBit", size: 24)!]
+        #endif
     }
     
     func setupConnectViewModel(_ device: SdkDeviceRemote) {

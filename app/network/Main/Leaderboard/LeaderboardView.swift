@@ -18,17 +18,17 @@ struct LeaderboardView: View {
         _viewModel = .init(wrappedValue: .init(apiService: api))
         
         
-        #if os(iOS)
-        // for styling NavigationTitle
-        // todo - can probably be moved to top of app
-        UINavigationBar
-            .appearance()
-            .largeTitleTextAttributes = [.font : UIFont(name: "ABCGravity-Extended", size: 32)!]
-
-        UINavigationBar
-            .appearance()
-            .titleTextAttributes = [.font : UIFont(name: "PP NeueBit", size: 24)!]
-        #endif
+//        #if os(iOS)
+//        // for styling NavigationTitle
+//        // todo - can probably be moved to top of app
+//        UINavigationBar
+//            .appearance()
+//            .largeTitleTextAttributes = [.font : UIFont(name: "ABCGravity-Extended", size: 32)!]
+//
+//        UINavigationBar
+//            .appearance()
+//            .titleTextAttributes = [.font : UIFont(name: "PP NeueBit", size: 24)!]
+//        #endif
     }
     
     var body: some View {

@@ -70,287 +70,280 @@ struct AccountRootView: View {
         ScrollView {
             
             HStack {
-                Text("Account")
-                    .font(themeManager.currentTheme.titleFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
                 
-                Spacer()
-
-                #if os(iOS)
-                AccountMenu(
-                    isGuest: isGuest,
-                    logout: logout,
-                    networkName: networkName,
-                    isPresentedCreateAccount: $viewModel.isPresentedCreateAccount,
-                    referralLinkViewModel: referralLinkViewModel
-                )
-                #endif
-                
-            }
-            .frame(height: 32)
-            .padding()
-            
-            Spacer().frame(height: 16)
-            
-            VStack(alignment: .leading, spacing: 0) {
-                
-                Text("Plan")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                
-                HStack(alignment: .firstTextBaseline) {
+                Spacer(minLength: 0)
+             
+                VStack {
                     
-                    if (isGuest) {
-                        Text("Guest")
-                            .font(themeManager.currentTheme.titleCondensedFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                    } else {
-                     
-                        Text(subscriptionBalanceViewModel.currentPlan == .none ? "Free" : "Supporter")
-                            .font(themeManager.currentTheme.titleCondensedFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
+//                    Spacer().frame(height: 16)
+                 
+                    VStack(alignment: .leading, spacing: 0) {
                         
-                    }
-                    
-                    Spacer()
-  
-                    /**
-                     * Upgrade subscription button
-                     * if user is
-                     */
-                    if (subscriptionBalanceViewModel.currentPlan != .supporter && !isGuest) {
-                     
-                        Button(action: {
-                            viewModel.isPresentedUpgradeSheet = true
-                        }) {
-                            Text("Upgrade")
+                        Text("Plan")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        
+                        HStack(alignment: .firstTextBaseline) {
+                            
+                            if (isGuest) {
+                                Text("Guest")
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                            } else {
+                             
+                                Text(subscriptionBalanceViewModel.currentPlan == .none ? "Free" : "Supporter")
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                            }
+                            
+                            Spacer()
+          
+                            /**
+                             * Upgrade subscription button
+                             * if user is
+                             */
+                            if (subscriptionBalanceViewModel.currentPlan != .supporter && !isGuest) {
+                             
+                                Button(action: {
+                                    viewModel.isPresentedUpgradeSheet = true
+                                }) {
+                                    Text("Upgrade")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                        Spacer().frame(height: 8)
+                        
+                        UsageBar(
+                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                            meanReliabilityWeight: meanReliabilityWeight,
+                            totalReferrals: referralLinkViewModel.totalReferrals
+                        )
+                        
+                        Divider()
+                            .background(themeManager.currentTheme.borderBaseColor)
+                            .padding(.vertical, 16)
+                        
+                        HStack {
+                            Text("Network earnings")
                                 .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            Spacer()
+                        }
+                        
+                        HStack(alignment: .firstTextBaseline) {
+                            
+                            let totalPayouts = accountPaymentsViewModel.totalPayoutsUsdc
+                            
+                            Text(totalPayouts > 0 ? String(format: "%.4f", totalPayouts) : "0")
+                                .font(themeManager.currentTheme.titleCondensedFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            
+                            Text("USDC")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            
+                            Spacer()
+                            
                         }
                         
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .cornerRadius(12)
+                    .padding()
+//                    .padding(.horizontal)
                     
-                }
-                
-                Spacer().frame(height: 8)
-                
-                UsageBar(
-                    availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                    pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                    usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                    meanReliabilityWeight: meanReliabilityWeight,
-                    totalReferrals: referralLinkViewModel.totalReferrals
-                )
-                
-                Divider()
-                    .background(themeManager.currentTheme.borderBaseColor)
-                    .padding(.vertical, 16)
-                
-                HStack {
-                    Text("Network earnings")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+//                    Spacer().frame(height: 16)
+                    
+                    /**
+                     * Navigation items
+                     */
+                    VStack(spacing: 0) {
+                        AccountNavLink(
+                            name: "Profile",
+                            iconPath: "ur.symbols.user.circle",
+                            action: {
+                                
+                                if isGuest {
+                                    viewModel.isPresentedCreateAccount = true
+                                } else {
+                                    navigate(.profile)
+                                }
+                                
+                            }
+                        )
+                        AccountNavLink(
+                            name: "Settings",
+                            iconPath: "ur.symbols.sliders",
+                            action: {
+                                if isGuest {
+                                    viewModel.isPresentedCreateAccount = true
+                                } else {
+                                    navigate(.settings)
+                                }
+                            }
+                        )
+                        AccountNavLink(
+                            name: "Wallet",
+                            iconPath: "ur.symbols.wallet",
+                            action: {
+                                if isGuest {
+                                    viewModel.isPresentedCreateAccount = true
+                                } else {
+                                    navigate(.wallets)
+                                }
+                            }
+                        )
+                        
+                        ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
+                            
+                            VStack(spacing: 0) {
+                                HStack {
+                                    
+                                    Image("ur.symbols.heart")
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    
+                                    Spacer().frame(width: 16)
+                                    
+                                    Text("Refer friends")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textColor)
+                                    
+                                    Spacer()
+                                    
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal)
+                                
+                                Divider()
+                                    .background(themeManager.currentTheme.borderBaseColor)
+                                
+                            }
+                            
+                        }
+                        
+                        /**
+                         * Review
+                         */
+                        Button(action: {
+                            if let url = appStoreWriteReviewURL(appID: urnetworkAppStoreID) {
+                                openURL(url)
+                            }
+                        }) {
+                            
+                            VStack(spacing: 0) {
+                                HStack {
+                                    
+                                    Image(systemName: "pencil")
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                        .frame(width: 24)
+                                    
+                                    Spacer().frame(width: 16)
+                                    
+                                    Text("Review URnetwork")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textColor)
+                                    
+                                    Spacer()
+                                    
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal)
+                                
+                                Divider()
+                                    .background(themeManager.currentTheme.borderBaseColor)
+                                
+                            }
+                            .contentShape(Rectangle())
+                            
+                        }
+                        .buttonStyle(.plain)
+                        
+                        /**
+                         * Check IP
+                         */
+                        Button(action: {
+                            if let url = URL(string: "https://ur.io/ip") {
+                                
+                                #if canImport(UIKit)
+                                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                                #endif
+                                
+                                #if canImport(AppKit)
+                                NSWorkspace.shared.open(url)
+                                #endif
+                                
+                            }
+                        }) {
+                            
+                            VStack(spacing: 0) {
+                                HStack {
+                                    
+                                    Image(systemName: "dot.scope")
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                        .frame(width: 24)
+                                    
+                                    Spacer().frame(width: 16)
+                                    
+                                    Text("Check my IP")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textColor)
+                                    
+                                    Spacer()
+                                    
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal)
+                                
+                                Divider()
+                                    .background(themeManager.currentTheme.borderBaseColor)
+                                
+                            }
+                            .contentShape(Rectangle())
+                            
+                        }
+                        .buttonStyle(.plain)
+                        
+                        /**
+                         * URnode Carousel
+                         */
+                        URNodeCarousel()
+                        
+                        Spacer().frame(height: 16)
+                    }
+                    
                     Spacer()
-                }
-                
-                HStack(alignment: .firstTextBaseline) {
                     
-                    let totalPayouts = accountPaymentsViewModel.totalPayoutsUsdc
-                    
-                    Text(totalPayouts > 0 ? String(format: "%.4f", totalPayouts) : "0")
-                        .font(themeManager.currentTheme.titleCondensedFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                    
-                    Text("USDC")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    
-                    Spacer()
+                    if isGuest {
+                        UrButton(
+                            text: "Create an account",
+                            action: {
+                                viewModel.isPresentedCreateAccount = true
+                            }
+                        )
+                    }
                     
                 }
+                .frame(maxWidth: 600)
                 
+                Spacer(minLength: 0)
             }
-            .padding()
             .frame(maxWidth: .infinity)
-            .background(themeManager.currentTheme.tintedBackgroundBase)
-            .cornerRadius(12)
-            .padding(.horizontal)
-            
-            Spacer().frame(height: 16)
-            
-            /**
-             * Navigation items
-             */
-            VStack(spacing: 0) {
-                AccountNavLink(
-                    name: "Profile",
-                    iconPath: "ur.symbols.user.circle",
-                    action: {
-                        
-                        if isGuest {
-                            viewModel.isPresentedCreateAccount = true
-                        } else {
-                            navigate(.profile)
-                        }
-                        
-                    }
-                )
-                AccountNavLink(
-                    name: "Settings",
-                    iconPath: "ur.symbols.sliders",
-                    action: {
-                        if isGuest {
-                            viewModel.isPresentedCreateAccount = true
-                        } else {
-                            navigate(.settings)
-                        }
-                    }
-                )
-                AccountNavLink(
-                    name: "Wallet",
-                    iconPath: "ur.symbols.wallet",
-                    action: {
-                        if isGuest {
-                            viewModel.isPresentedCreateAccount = true
-                        } else {
-                            navigate(.wallets)
-                        }
-                    }
-                )
-                
-                ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
-                    
-                    VStack(spacing: 0) {
-                        HStack {
-                            
-                            Image("ur.symbols.heart")
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                            
-                            Spacer().frame(width: 16)
-                            
-                            Text("Refer friends")
-                                .font(themeManager.currentTheme.bodyFont)
-                                .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                            Spacer()
-                            
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal)
-                        
-                        Divider()
-                            .background(themeManager.currentTheme.borderBaseColor)
-                        
-                    }
-                    
-                }
-                
-                /**
-                 * Review
-                 */
-                Button(action: {
-                    if let url = appStoreWriteReviewURL(appID: urnetworkAppStoreID) {
-                        openURL(url)
-                    }
-                }) {
-                    
-                    VStack(spacing: 0) {
-                        HStack {
-                            
-                            Image(systemName: "pencil")
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .frame(width: 24)
-                            
-                            Spacer().frame(width: 16)
-                            
-                            Text("Review URnetwork")
-                                .font(themeManager.currentTheme.bodyFont)
-                                .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                            Spacer()
-                            
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal)
-                        
-                        Divider()
-                            .background(themeManager.currentTheme.borderBaseColor)
-                        
-                    }
-                    .contentShape(Rectangle())
-                    
-                }
-                .buttonStyle(.plain)
-                
-                /**
-                 * Check IP
-                 */
-                Button(action: {
-                    if let url = URL(string: "https://ur.io/ip") {
-                        
-                        #if canImport(UIKit)
-                        UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                        #endif
-                        
-                        #if canImport(AppKit)
-                        NSWorkspace.shared.open(url)
-                        #endif
-                        
-                    }
-                }) {
-                    
-                    VStack(spacing: 0) {
-                        HStack {
-                            
-                            Image(systemName: "dot.scope")
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .frame(width: 24)
-                            
-                            Spacer().frame(width: 16)
-                            
-                            Text("Check my IP")
-                                .font(themeManager.currentTheme.bodyFont)
-                                .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                            Spacer()
-                            
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal)
-                        
-                        Divider()
-                            .background(themeManager.currentTheme.borderBaseColor)
-                        
-                    }
-                    .contentShape(Rectangle())
-                    
-                }
-                .buttonStyle(.plain)
-                
-                /**
-                 * URnode Carousel
-                 */
-                URNodeCarousel()
-                
-                Spacer().frame(height: 16)
-            }
-            
-            Spacer()
-            
-            if isGuest {
-                UrButton(
-                    text: "Create an account",
-                    action: {
-                        viewModel.isPresentedCreateAccount = true
-                    }
-                )
-            }
             
         }
         .refreshable {
             await subscriptionBalanceViewModel.fetchSubscriptionBalance()
         }
 //        .padding()
-        .frame(maxWidth: 600)
+//        .frame(maxWidth: 600)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             Task {
@@ -415,6 +408,17 @@ struct AccountRootView: View {
                     }
                 }
             )
+        }
+        .toolbar {
+            ToolbarItem {
+                AccountMenu(
+                    isGuest: isGuest,
+                    logout: logout,
+                    networkName: networkName,
+                    isPresentedCreateAccount: $viewModel.isPresentedCreateAccount,
+                    referralLinkViewModel: referralLinkViewModel
+                )
+            }
         }
         #endif
         #if os(macOS)

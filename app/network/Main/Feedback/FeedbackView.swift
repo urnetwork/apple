@@ -23,93 +23,90 @@ struct FeedbackView: View {
         ))
     }
     
-    
-    
     var body: some View {
         
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading) {
-                    
-                    Text("Get in touch")
-                        .font(themeManager.currentTheme.titleFont)
+        NavigationStack {
+         
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        
+                        Text("Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support.")
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        
+                        Spacer().frame(height: 32)
+                        
+                        UrLabel(text: "Feedback")
+                        
+                        TextEditor(
+                            text: $viewModel.feedback
+                        )
+                        .padding(.horizontal, 4)
+                        .frame(height: 100)
+                        .disabled(viewModel.isSending)
+                        .scrollContentBackground(.hidden)
+                        .background(themeManager.currentTheme.tintedBackgroundBase)
+                        .cornerRadius(8)
+                        .focused($isFocused)
                         .foregroundColor(themeManager.currentTheme.textColor)
-                    
-                    Spacer().frame(height: 64)
-                    
-                    Text("Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support.")
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                    
-                    Spacer().frame(height: 32)
-                    
-                    UrLabel(text: "Feedback")
-                    
-                    TextEditor(
-                        text: $viewModel.feedback
-                    )
-                    .padding(.horizontal, 4)
-                    .frame(height: 100)
-                    .disabled(viewModel.isSending)
-                    .scrollContentBackground(.hidden)
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .cornerRadius(8)
-                    .focused($isFocused)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                    
-                    Spacer().frame(height: 16)
-                    
-                    Toggle(isOn: $viewModel.attachLogs) {
-                        Text("Attach logs to feedback (optional)")
-                            .font(themeManager.currentTheme.bodyFont)
-                    }
-                    
-//                    ExportLogsButton()
-                    
-                    Spacer().frame(height: 16)
-        
-                    
-                    UrLabel(text: "How are we doing?")
-                    
-                    Spacer().frame(height: 8)
-                    
-                    // Stars rating
-                    HStack(alignment: .center) {
-                        ForEach(1...5, id: \.self) { index in
-                            Spacer().frame(width: 8)
-                            Image(systemName: index <= (viewModel.starCount ?? 0) ? "star.fill" : "star")
-                                .foregroundColor(.urLightYellow)
-                                .font(.system(size: 32))
-                                .onTapGesture {
-                                    viewModel.setStarCount(index)
-                                }
-                            Spacer().frame(width: 8)
+                        
+                        Spacer().frame(height: 16)
+                        
+                        Toggle(isOn: $viewModel.attachLogs) {
+                            Text("Attach logs to feedback (optional)")
+                                .font(themeManager.currentTheme.bodyFont)
                         }
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    // This spacer will push the button to the bottom
-                    Spacer(minLength: 20)
-                    
-                    UrButton(
-                        text: "Send",
-                        action: {
-                            Task {
-                                let result = await viewModel.sendFeedback()
-                                self.handleSendFeedbackResult(result)
+                        
+    //                    ExportLogsButton()
+                        
+                        Spacer().frame(height: 16)
+            
+                        
+                        UrLabel(text: "How are we doing?")
+                        
+                        Spacer().frame(height: 8)
+                        
+                        // Stars rating
+                        HStack(alignment: .center) {
+                            ForEach(1...5, id: \.self) { index in
+                                Spacer().frame(width: 8)
+                                Image(systemName: index <= (viewModel.starCount ?? 0) ? "star.fill" : "star")
+                                    .foregroundColor(.urLightYellow)
+                                    .font(.system(size: 32))
+                                    .onTapGesture {
+                                        viewModel.setStarCount(index)
+                                    }
+                                Spacer().frame(width: 8)
                             }
-                        },
-                        enabled: !viewModel.isSending && (!viewModel.feedback.isEmpty || (viewModel.starCount ?? 0) > 0)
-                    )
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        // This spacer will push the button to the bottom
+                        Spacer(minLength: 20)
+                        
+                        UrButton(
+                            text: "Send",
+                            action: {
+                                Task {
+                                    let result = await viewModel.sendFeedback()
+                                    self.handleSendFeedbackResult(result)
+                                }
+                            },
+                            enabled: !viewModel.isSending && (!viewModel.feedback.isEmpty || (viewModel.starCount ?? 0) > 0)
+                        )
+                    }
+                    .padding()
+                    .frame(maxWidth: 600)
+                    .frame(minHeight: geometry.size.height)
+                    .onTapGesture {
+                        isFocused = false
+                    }
                 }
-                .padding()
-                .frame(maxWidth: 600)
-                .frame(minHeight: geometry.size.height)
-                .background(themeManager.currentTheme.backgroundColor)
-                .onTapGesture {
-                    isFocused = false
-                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(themeManager.currentTheme.backgroundColor)
+            .navigationTitle("Get in touch")
+            
         }
         
     }

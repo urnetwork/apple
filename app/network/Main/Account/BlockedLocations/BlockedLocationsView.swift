@@ -94,10 +94,6 @@ struct BlockedLocationsView: View {
                 
         }
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("Blocked Locations")
-                    .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-            }
             
             ToolbarItem(placement: .primaryAction) {
                 Button(action: {

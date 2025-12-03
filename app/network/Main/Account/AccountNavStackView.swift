@@ -90,6 +90,7 @@ struct AccountNavStackView: View {
                 networkName: networkName,
                 meanReliabilityWeight: networkReliabilityWindow?.meanReliabilityWeight ?? 0
             )
+            .navigationTitle("Account")
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationDestination(for: AccountNavigationPath.self) { path in
                 switch path {
@@ -102,12 +103,7 @@ struct AccountNavStackView: View {
                         userAuth: networkUserViewModel.networkUser?.userAuth
                     )
                     .background(themeManager.currentTheme.backgroundColor)
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text("Profile")
-                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                        }
-                    }
+                    .navigationTitle("Profile")
                     
                 case .settings:
                     SettingsView(
@@ -120,12 +116,7 @@ struct AccountNavStackView: View {
                         providerCountries: providerCountries,
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text("Settings")
-                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                        }
-                    }
+                    .navigationTitle("Settings")
                     
                 case .wallets:
                     WalletsView(
@@ -141,12 +132,7 @@ struct AccountNavStackView: View {
                         fetchNetworkReliability: fetchNetworkReliability,
                         referralLinkViewModel: referralLinkViewModel,
                     )
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text("Payout Wallets")
-                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                        }
-                    }
+                    .navigationTitle("Payout Wallets")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .environmentObject(accountPaymentsViewModel)
                     .environmentObject(accountWalletsViewModel)
@@ -164,18 +150,13 @@ struct AccountNavStackView: View {
                         promptRemoveWallet: accountWalletsViewModel.promptRemoveWallet,
                         fetchPayments: accountPaymentsViewModel.fetchPayments
                     )
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text("\(wallet.blockchain) Wallet")
-                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                        }
-                    }
+                    .navigationTitle("\(wallet.blockchain) Wallet")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .environmentObject(accountPaymentsViewModel)
                     .environmentObject(payoutWalletViewModel)
                     
                     
-                case .payout(let payment, let accountPoint):
+                case .payout(let payment, _):
                     
                     let toolbarTitle = if let completeTime = payment.completeTime {
                         "+\(String(format: "%.2f", payment.tokenAmount)) \(payment.tokenType) (\(completeTime.format("Jan 2, 2006")))"
@@ -189,12 +170,7 @@ struct AccountNavStackView: View {
                         accountPointsViewModel: accountPointsStore,
                         isMultiplierTokenHolder: accountWalletsViewModel.isSeekerOrSagaHolder
                     )
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text(toolbarTitle)
-                                .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
-                        }
-                    }
+                    .navigationTitle(toolbarTitle)
                     
                 case .blockedLocations:
 
@@ -202,6 +178,7 @@ struct AccountNavStackView: View {
                         api: urApiService,
                         countries: providerCountries
                     )
+                    .navigationTitle("Blocked Locations")
                     
                 }
                 

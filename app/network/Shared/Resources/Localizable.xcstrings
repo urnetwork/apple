@@ -9965,6 +9965,7 @@
 
     },
     "Data Provided" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21906,6 +21907,7 @@
       }
     },
     "Rank" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

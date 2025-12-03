@@ -16,43 +16,61 @@ struct LeaderboardView: View {
     
     init(api: UrApiServiceProtocol) {
         _viewModel = .init(wrappedValue: .init(apiService: api))
+        
+        
+        #if os(iOS)
+        // for styling NavigationTitle
+        // todo - can probably be moved to top of app
+        UINavigationBar
+            .appearance()
+            .largeTitleTextAttributes = [.font : UIFont(name: "ABCGravity-Extended", size: 32)!]
+
+        UINavigationBar
+            .appearance()
+            .titleTextAttributes = [.font : UIFont(name: "PP NeueBit", size: 24)!]
+        #endif
     }
     
     var body: some View {
         
-        Group {
-            
-            if (viewModel.isInitializing) {
-                /**
-                 * Initializing
-                 */
+        NavigationStack {
+         
+            Group {
                 
-                VStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
+                if (viewModel.isInitializing) {
+                    /**
+                     * Initializing
+                     */
+                    
+                    VStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                            
+                } else {
+                    /**
+                     * Leaderboard initialized
+                     */
+                    
+                    LeaderboardViewPopulated(
+                        leaderboardRank: viewModel.networkRank,
+                        netProvidedFormatted: viewModel.netProvidedFormatted,
+                        fetchLeaderboardData: viewModel.fetchLeaderboardData,
+                        rankingPublic: $viewModel.networkRankingPublic,
+                        leaderboardEntries: viewModel.leaderboardEarners,
+                        isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
+                        isLoading: viewModel.isLoading
+                    )
+                    
                 }
-                        
-            } else {
-                /**
-                 * Leaderboard initialized
-                 */
-                
-                LeaderboardViewPopulated(
-                    leaderboardRank: viewModel.networkRank,
-                    netProvidedFormatted: viewModel.netProvidedFormatted,
-                    fetchLeaderboardData: viewModel.fetchLeaderboardData,
-                    rankingPublic: $viewModel.networkRankingPublic,
-                    leaderboardEntries: viewModel.leaderboardEarners,
-                    isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
-                    isLoading: viewModel.isLoading
-                )
                 
             }
+            .frame(maxWidth: .infinity)
+            .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+            .navigationTitle("Leaderboard")
             
         }
-        .frame(maxWidth: .infinity)
-        
     }
 }
 
@@ -104,7 +122,7 @@ private struct LeaderboardViewPopulated: View {
         
         #elseif os(macOS)
         
-        VStack {
+        ScrollView {
             
             LeaderboardHeader(
                 leaderboardRank: leaderboardRank,
@@ -113,10 +131,17 @@ private struct LeaderboardViewPopulated: View {
                 isSettingRankingVisibility: isSettingRankingVisibility
             )
             
-            LeaderboardTable(
-                leaderboardEntries: leaderboardEntries,
-                networkId: networkId
-            )
+            LazyVStack(spacing: 0) {
+             
+                ForEach(Array(leaderboardEntries.enumerated()), id: \.offset) { index, entry in
+                    LeaderboardRow(
+                        leaderboardEntry: entry,
+                        rank: index + 1,
+                        networkId: networkId
+                    )
+                }
+                
+            }
             
         }
         .toolbar {
@@ -148,20 +173,12 @@ private struct LeaderboardHeader: View {
     var isSettingRankingVisibility: Bool
     
     var body: some View {
-        VStack{
-
-            HStack {
-                Text("Leaderboard")
-                    .font(themeManager.currentTheme.titleFont)
-                    .foregroundStyle(themeManager.currentTheme.textColor)
-                
-                Spacer()
-            }
+        VStack(alignment: .leading) {
             
             /**
              * Network Info
              */
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("Current Ranking")
                         .font(themeManager.currentTheme.secondaryBodyFont)
@@ -207,13 +224,11 @@ private struct LeaderboardHeader: View {
                 
                 Spacer().frame(height: 16)
                 
-                UrSwitchToggle(
-                    isOn: rankingPublic,
-                    isEnabled: !isSettingRankingVisibility
-                ) {
+                Toggle(isOn: rankingPublic) {
                     Text("Display network on leaderboard")
                         .font(themeManager.currentTheme.bodyFont)
                 }
+                .disabled(isSettingRankingVisibility)
 
             }
             .padding()
@@ -230,68 +245,6 @@ private struct LeaderboardHeader: View {
         }
         .padding()
     }
-    
-}
-
-private struct LeaderboardTable: View {
-    
-    @EnvironmentObject var themeManager: ThemeManager
-    
-    let tableData: [LeaderboardEntry]
-    let networkId: SdkId?
-    
-    init(leaderboardEntries: [LeaderboardEntry], networkId: SdkId?) {
-        self.tableData = leaderboardEntries
-        self.networkId = networkId
-    }
-    
-    var body: some View {
-        
-        Table(tableData) {
-            
-            TableColumn("Rank") { row in
-                
-                let isNetworkRow = networkId?.idStr == row.networkId
-                
-                HStack {
-
-                    Text("#\(row.rank)")
-                        .foregroundStyle(
-                            isNetworkRow
-                                ? .urGreen
-                                : themeManager.currentTheme.textMutedColor
-                        )
-                    
-                }
-            }
-            .width(48)
-            TableColumn("Name") { row in
-                
-                let isNetworkRow = networkId?.idStr == row.networkId
-                
-                Text(row.networkName)
-                    .foregroundStyle(
-                        isNetworkRow
-                        ? .urGreen // is your network, highlight
-                        : row.isPublic // check if is public
-                            ? themeManager.currentTheme.textColor // is public
-                            : themeManager.currentTheme.textMutedColor // is private - muted text color
-                    )
-            }
-            TableColumn("Data Provided") { row in
-                
-                let isNetworkRow = networkId?.idStr == row.networkId
-                
-                Text(row.netProvided)
-                    .foregroundStyle(
-                        isNetworkRow
-                            ? .urGreen
-                            : themeManager.currentTheme.textColor
-                    )
-            }
-        }
-    }
-    
     
 }
 

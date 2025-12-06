@@ -67,7 +67,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
         if self.isLoading { return }
         
         self.isLoading = true
-        self.errorFetchingSubscriptionBalance = false
         
         do {
             
@@ -90,6 +89,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
             }
             
             self.isLoading = false
+            self.errorFetchingSubscriptionBalance = false
             
             
         } catch(let error) {

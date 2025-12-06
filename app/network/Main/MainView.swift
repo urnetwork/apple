@@ -55,31 +55,50 @@ struct MainView: View {
          
             switch welcomeAnimationComplete.wrappedValue {
                 case false:
-                WelcomeAnimation(
-                    welcomeAnimationComplete: self.welcomeAnimationComplete,
-                    subscriptionBalanceLoading: self.subscriptionBalanceViewModel.isLoading
-                )
+                    WelcomeAnimation(
+                        welcomeAnimationComplete: self.welcomeAnimationComplete,
+                        subscriptionBalanceLoading: self.subscriptionBalanceViewModel.isLoading
+                    )
                 case true:
-                #if os(iOS)
-                MainTabView(
-                    api: api,
-                    urApiService: urApiService,
-                    device: device,
-                    logout: self.logout,
-                    providerStore: providerListStore,
-                    introductionComplete: introductionComplete,
-                    currentPlan: subscriptionBalanceViewModel.currentPlan,
-                    errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance
-                )
-                #elseif os(macOS)
-                MainNavigationSplitView(
-                    api: api,
-                    urApiService: urApiService,
-                    device: device,
-                    logout: self.logout,
-                    providerListStore: providerListStore
-                )
-                #endif
+                
+                    if (subscriptionBalanceViewModel.errorFetchingSubscriptionBalance) {
+                        
+                        ErrorLoadingSubscriptionBalanceView(
+                            reload: {
+                                Task {
+                                 
+                                    await subscriptionBalanceViewModel.fetchSubscriptionBalance()
+                                    
+                                }
+                            },
+                            isLoading: subscriptionBalanceViewModel.isLoading
+                        )
+                        
+                    } else {
+                    
+                        #if os(iOS)
+                        MainTabView(
+                            api: api,
+                            urApiService: urApiService,
+                            device: device,
+                            logout: self.logout,
+                            providerStore: providerListStore,
+                            introductionComplete: introductionComplete,
+                            currentPlan: subscriptionBalanceViewModel.currentPlan,
+                            errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance
+                        )
+                        #elseif os(macOS)
+                        MainNavigationSplitView(
+                            api: api,
+                            urApiService: urApiService,
+                            device: device,
+                            logout: self.logout,
+                            providerListStore: providerListStore
+                        )
+                        #endif
+                        
+                    }
+                
             }
             
         }
@@ -88,6 +107,68 @@ struct MainView: View {
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
     }
+}
+
+struct ErrorLoadingSubscriptionBalanceView: View {
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    let reload: () -> Void
+    let isLoading: Bool
+    
+    var body: some View {
+        
+        NavigationStack {
+            
+            VStack(alignment: .leading) {
+                
+                HStack(alignment: .center) {
+                 
+                    Image("ur.symbols.unstable")
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 64)
+                        .clipped()
+                    
+                }
+                .frame(maxWidth: .infinity)
+                
+                Spacer().frame(height: 64)
+                
+                Text(
+                    "Error loading your account plan."
+                )
+                .font(themeManager.currentTheme.secondaryTitleFont)
+                
+                
+                Text("Please try again.")
+                    .font(themeManager.currentTheme.bodyFont)
+                
+                Spacer().frame(height: 16)
+                
+                UrButton(
+                    text: "Retry",
+                    action: reload,
+                    enabled: !isLoading,
+                    isProcessing: isLoading
+                )
+                
+                Spacer().frame(height: 8)
+                
+                Text("If the problem persists, contact us at [support@ur.io](mailto:support@ur.io) or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(themeManager.currentTheme.backgroundColor)
+            
+        }
+
+    }
+    
 }
 
 struct WelcomeAnimation: View {

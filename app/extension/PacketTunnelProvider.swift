@@ -41,7 +41,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // since the limit is a soft limit, take ~80% of the available for the SDK
             // see https://forums.developer.apple.com/forums/thread/73148?page=2
             #if os(iOS)
-            SdkSetMemoryLimit(32 * 1024 * 1024)
+            SdkSetMemoryLimit(24 * 1024 * 1024)
             #else
             SdkSetMemoryLimit(64 * 1024 * 1024)
             #endif

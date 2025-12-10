@@ -94,7 +94,7 @@ struct ProviderListItemView: View {
                 Spacer().frame(width: 16)
                 
                 Image(systemName: "checkmark")
-                    .foregroundColor(isSelected ? .urElectricBlue : .urBlack)
+                    .foregroundColor(isSelected ? .urElectricBlue : .clear)
                     .font(.system(size: 20))
             
                 

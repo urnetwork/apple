@@ -116,8 +116,8 @@ class VPNManager {
     #if os(iOS)
     func scheduleBackgroundUpdate() {
        let request = BGAppRefreshTaskRequest(identifier: "ur.network.update-tunnel")
-       request.earliestBeginDate = Date(timeIntervalSinceNow: 1 * 60)
-            
+       request.earliestBeginDate = Date(timeIntervalSinceNow: 5 * 60)
+
        do {
           try BGTaskScheduler.shared.submit(request)
        } catch {

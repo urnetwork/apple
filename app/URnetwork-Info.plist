@@ -2,8 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
+	<key>ATSApplicationFontsPath</key>
+	<string>.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -25,13 +25,16 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>338638865390-tdgpupo59durdck5es80iukafh0or4uq.apps.googleusercontent.com</string>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).DisconnectIntent</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).ConnectIntent</string>
+	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>solflare</string>
 		<string>phantom</string>
 	</array>
-	<key>ATSApplicationFontsPath</key>
-	<string>.</string>
 	<key>NEVPNConfiguration</key>
 	<array>
 		<string>network.ur.extension</string>
@@ -41,6 +44,11 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>SMAppService</key>
+	<dict>
+		<key>LaunchHelperBundleIdentifier</key>
+		<string>network.ur.launch</string>
+	</dict>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PPNeueMontreal-Regular.ttf</string>
@@ -49,18 +57,9 @@
 		<string>ABCGravity-Extended.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
-	<array/>
-	<key>INIntentsSupported</key>
 	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER).DisconnectIntent</string>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER).ConnectIntent</string>
+		<string>fetch</string>
+		<string>processing</string>
 	</array>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>SMAppService</key>
-	<dict>
-		<key>LaunchHelperBundleIdentifier</key>
-		<string>network.ur.launch</string>
-	</dict>
 </dict>
 </plist>

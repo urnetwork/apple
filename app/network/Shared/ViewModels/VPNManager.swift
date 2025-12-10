@@ -9,6 +9,7 @@ import Foundation
 import NetworkExtension
 import URnetworkSdk
 import Network
+import BackgroundTasks
 
 #if canImport(UIKit)
 import UIKit
@@ -104,7 +105,32 @@ class VPNManager {
 //        updateContractStatus()
         
         updateVpnService()
+        
+        #if os(iOS)
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "ur.network.update-tunnel", using: nil) { task in
+             self.handleBackgroundUpdate(task: task as! BGAppRefreshTask)
+        }
+        #endif
     }
+    
+    #if os(iOS)
+    func scheduleBackgroundUpdate() {
+       let request = BGAppRefreshTaskRequest(identifier: "ur.network.update-tunnel")
+       request.earliestBeginDate = Date(timeIntervalSinceNow: 1 * 60)
+            
+       do {
+          try BGTaskScheduler.shared.submit(request)
+       } catch {
+          print("Could not schedule background update: \(error)")
+       }
+    }
+    
+    func handleBackgroundUpdate(task: BGAppRefreshTask) {
+        self.updateVpnService()
+    }
+    #endif
+    
+    
     
 //    deinit {
 //        print("VPN Manager deinit")
@@ -189,6 +215,9 @@ class VPNManager {
     
     
     func updateVpnService() {
+        #if os(iOS)
+        scheduleBackgroundUpdate()
+        #endif
         updateVpnServiceWithReset(index: 0, reset: false)
     }
     

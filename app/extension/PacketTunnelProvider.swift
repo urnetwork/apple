@@ -59,9 +59,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     //                SdkFreeMemory()
                     break
                 case DispatchSource.MemoryPressureEvent.warning:
-                    SdkFreeMemory()
+//                    SdkFreeMemory()
+                    break
                 case DispatchSource.MemoryPressureEvent.critical:
                     SdkFreeMemory()
+//                    break
                 default:
                     break
                 }

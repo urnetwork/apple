@@ -61,5 +61,9 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>ur.network.update-tunnel</string>
+	</array>
 </dict>
 </plist>

@@ -57,6 +57,13 @@ class VPNManager {
     init(device: SdkDeviceRemote) {
         print("[VPNManager]init")
         self.device = device
+        
+        #if os(iOS)
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "ur.network.update-tunnel", using: nil) { task in
+             self.handleBackgroundUpdate(task: task as! BGAppRefreshTask)
+        }
+        #endif
+        
         self.monitor.start(queue: queue)
         
         self.routeLocalSub = device.add(RouteLocalChangeListener { [weak self] _ in
@@ -105,12 +112,6 @@ class VPNManager {
 //        updateContractStatus()
         
         updateVpnService()
-        
-        #if os(iOS)
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: "ur.network.update-tunnel", using: nil) { task in
-             self.handleBackgroundUpdate(task: task as! BGAppRefreshTask)
-        }
-        #endif
     }
     
     #if os(iOS)

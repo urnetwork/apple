@@ -40,7 +40,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // the binary and go runtime take about 16mib of that
             // see https://forums.developer.apple.com/forums/thread/73148?page=2
             #if os(iOS)
-            SdkSetMemoryLimit(32 * 1024 * 1024)
+            SdkSetMemoryLimit(28 * 1024 * 1024)
             #else
             SdkSetMemoryLimit(64 * 1024 * 1024)
             #endif
@@ -56,11 +56,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             memoryPressureSource.setEventHandler {
                 switch memoryPressureSource.mask {
                 case DispatchSource.MemoryPressureEvent.normal:
-                    //                SdkFreeMemory()
-                    break
-                case DispatchSource.MemoryPressureEvent.warning:
 //                    SdkFreeMemory()
                     break
+                case DispatchSource.MemoryPressureEvent.warning:
+                    SdkFreeMemory()
+//                    break
                 case DispatchSource.MemoryPressureEvent.critical:
                     SdkFreeMemory()
 //                    break

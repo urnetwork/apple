@@ -4,6 +4,10 @@
 <dict>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>ur.network.update-tunnel</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -55,15 +59,6 @@
 		<string>PPNeueBit-Bold.ttf</string>
 		<string>ABCGravity-ExtraCondensed.otf</string>
 		<string>ABCGravity-Extended.otf</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>processing</string>
-	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>ur.network.update-tunnel</string>
 	</array>
 </dict>
 </plist>

@@ -84,17 +84,17 @@ class VPNManager {
             }
         })
         
-        self.tunnelSub = device.add(TunnelChangeListener { [weak self] _ in
-            DispatchQueue.main.async {
+//        self.tunnelSub = device.add(TunnelChangeListener { [weak self] _ in
+//            DispatchQueue.main.async {
 //                self?.updateTunnel()
-            }
-        })
+//            }
+//        })
         
-        self.contractStatusSub = device.add(ContractStatusChangeListener { [weak self] _ in
-            DispatchQueue.main.async {
+//        self.contractStatusSub = device.add(ContractStatusChangeListener { [weak self] _ in
+//            DispatchQueue.main.async {
 //                self?.updateContractStatus()
-            }
-        })
+//            }
+//        })
         
         self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] _ in
             DispatchQueue.main.async {
@@ -232,7 +232,7 @@ class VPNManager {
         print("connect enabled: \(connectEnabled)")
         print("routeLocal is: \(routeLocal)")
         
-        if ( provideEnabled || connectEnabled || !routeLocal) {
+        if (provideEnabled || connectEnabled || !routeLocal) {
             print("[VPNManager]start")
             
             // if provide paused, keep the vpn on but do not keep the locks
@@ -246,7 +246,6 @@ class VPNManager {
             self.setIdleTimerDisabled(false)
             
             self.stopVpnTunnel(index: index, reset: reset)
-            
         }
     }
     

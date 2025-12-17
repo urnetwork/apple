@@ -9,6 +9,8 @@ import NetworkExtension
 import URnetworkSdk
 import OSLog
 
+//import Atomics
+
 // see https://developer.apple.com/documentation/networkextension/nepackettunnelprovider
 // discussion on how the PacketTunnelProvider is excluded from the routes it sets up:
 // see https://forums.developer.apple.com/forums/thread/677180
@@ -219,6 +221,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         device.setProvideMode(localState.getProvideMode())
         device.setRouteLocal(localState.getRouteLocal())
         
+//        let packetContext = ManagedAtomic<Int>(0)
+        let startPacketFlow = {
+//            packetContext.wrappingIncrement(ordering: .relaxed)
+            readToDevice(
+                packetFlow: self.packetFlow,
+                device: device,
+            )
+        }
+        
         let setLocal = {
             if device.getConnectLocation() == nil {
                 // reset to local if available
@@ -229,6 +240,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     }
                     self.reasserting = device.getConnectLocation() != nil
 //                    readToDevice(packetFlow: self.packetFlow, device: device)
+                    startPacketFlow()
                 }
             }
         }
@@ -278,6 +290,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                                 return
                             }
 //                            readToDevice(packetFlow: self.packetFlow, device: device)
+                            startPacketFlow()
                         }
                     }
                 } else {
@@ -288,12 +301,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         }
                         self.reasserting = false
 //                        readToDevice(packetFlow: self.packetFlow, device: device)
+                        startPacketFlow()
                     }
     //                self.reasserting = false
                 }
             }
         }
-        updateWindowStatus(device.getWindowStatus())
         let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
             DispatchQueue.main.async {
                 updateWindowStatus(device.getWindowStatus())
@@ -347,14 +360,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             locationChangeSub?.close()
             windowStatusChangeSub?.close()
             provideNetworkModeChangeSub?.close()
+//            packetContext.wrappingIncrement(ordering: .relaxed)
             device.close()
         }
         
 //        Thread.setThreadPriority(1.0)
-//        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
-        readToDevice(packetFlow: self.packetFlow, device: device)
-        completionHandler(nil)
-//        }
+        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
+            startPacketFlow()
+            updateWindowStatus(device.getWindowStatus())
+            completionHandler(nil)
+        }
     }
     
     func networkSettings() -> NEPacketTunnelNetworkSettings {
@@ -402,6 +417,11 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal) {
 //    if device.getDone() {
 //        return
 //    }
+    
+//    if context.load(ordering: .relaxed) != instance {
+//        return
+//    }
+    
     // see https://developer.apple.com/documentation/networkextension/nepackettunnelflow/readpackets(completionhandler:)
     // "Each call to this method results in a single execution of the completion handler"
     packetFlow.readPackets { packets, protocols in
@@ -409,9 +429,7 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal) {
 //            // EOF
 //            return
 //        }
-        if device.getDone() {
-            return
-        }
+        
         
         for packet in packets {
             device.sendPacket(packet, n: Int32(packet.count))

@@ -121,6 +121,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             "instance_id": instanceId.string(),
         ]
         
+        
         if let device = self.device {
             if self.deviceConfiguration == deviceConfiguration && !device.getDone() {
                 // already running
@@ -227,7 +228,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         return
                     }
                     self.reasserting = device.getConnectLocation() != nil
-                    readToDevice(packetFlow: self.packetFlow, device: device)
+//                    readToDevice(packetFlow: self.packetFlow, device: device)
                 }
             }
         }
@@ -276,7 +277,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                                 self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                                 return
                             }
-                            readToDevice(packetFlow: self.packetFlow, device: device)
+//                            readToDevice(packetFlow: self.packetFlow, device: device)
                         }
                     }
                 } else {
@@ -286,7 +287,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             return
                         }
                         self.reasserting = false
-                        readToDevice(packetFlow: self.packetFlow, device: device)
+//                        readToDevice(packetFlow: self.packetFlow, device: device)
                     }
     //                self.reasserting = false
                 }
@@ -295,7 +296,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         updateWindowStatus(device.getWindowStatus())
         let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
             DispatchQueue.main.async {
-                updateWindowStatus(windowStatus)
+                updateWindowStatus(device.getWindowStatus())
             }
         })
         
@@ -350,10 +351,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
 //        Thread.setThreadPriority(1.0)
-        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
-            readToDevice(packetFlow: self.packetFlow, device: device)
-        }
+//        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
+        readToDevice(packetFlow: self.packetFlow, device: device)
         completionHandler(nil)
+//        }
     }
     
     func networkSettings() -> NEPacketTunnelNetworkSettings {
@@ -383,7 +384,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         logger.info("[PacketTunnelProvider]stop with reason: \(String(describing: reason))")
         
-        self.device?.cancel()
+        self.close?()
+        self.close = nil
         self.memoryPressureSource?.cancel()
         completionHandler()
     }
@@ -397,9 +399,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
 
 func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal) {
-    if device.getDone() {
-        return
-    }
+//    if device.getDone() {
+//        return
+//    }
     // see https://developer.apple.com/documentation/networkextension/nepackettunnelflow/readpackets(completionhandler:)
     // "Each call to this method results in a single execution of the completion handler"
     packetFlow.readPackets { packets, protocols in
@@ -407,6 +409,9 @@ func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal) {
 //            // EOF
 //            return
 //        }
+        if device.getDone() {
+            return
+        }
         
         for packet in packets {
             device.sendPacket(packet, n: Int32(packet.count))

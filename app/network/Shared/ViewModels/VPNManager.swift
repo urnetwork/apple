@@ -107,7 +107,9 @@ class VPNManager {
 //        updateTunnel()
 //        updateContractStatus()
         
-        updateVpnService()
+        DispatchQueue.main.async {
+            self.updateVpnService()
+        }
     }
     
     #if os(iOS)

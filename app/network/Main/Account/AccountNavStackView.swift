@@ -30,6 +30,7 @@ struct AccountNavStackView: View {
     let providerCountries: [SdkConnectLocation]
     let networkReliabilityWindow: SdkReliabilityWindow?
     let fetchNetworkReliability: () async -> Void
+    let isPro: Bool
     
     init(
         api: SdkApi,
@@ -41,7 +42,8 @@ struct AccountNavStackView: View {
         referralLinkViewModel: ReferralLinkViewModel,
         providerCountries: [SdkConnectLocation],
         networkReliabilityWindow: SdkReliabilityWindow?,
-        fetchNetworkReliability: @escaping () async -> Void
+        fetchNetworkReliability: @escaping () async -> Void,
+        isPro: Bool
     ) {
         self.api = api
         _accountPreferencesViewModel = StateObject.init(wrappedValue: AccountPreferencesViewModel(
@@ -70,6 +72,7 @@ struct AccountNavStackView: View {
         self.providerCountries = providerCountries
         self.networkReliabilityWindow = networkReliabilityWindow
         self.fetchNetworkReliability = fetchNetworkReliability
+        self.isPro = isPro
     }
     
     var body: some View {
@@ -88,7 +91,8 @@ struct AccountNavStackView: View {
                 referralLinkViewModel: referralLinkViewModel,
                 accountPaymentsViewModel: accountPaymentsViewModel,
                 networkName: networkName,
-                meanReliabilityWeight: networkReliabilityWindow?.meanReliabilityWeight ?? 0
+                meanReliabilityWeight: networkReliabilityWindow?.meanReliabilityWeight ?? 0,
+                isPro: isPro
             )
             .navigationTitle("Account")
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())

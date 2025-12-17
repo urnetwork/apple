@@ -23,6 +23,7 @@ struct AccountRootView: View {
     let api: SdkApi
     let networkName: String?
     let meanReliabilityWeight: Double
+    let isPro: Bool
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     
@@ -50,7 +51,8 @@ struct AccountRootView: View {
         referralLinkViewModel: ReferralLinkViewModel,
         accountPaymentsViewModel: AccountPaymentsViewModel,
         networkName: String?,
-        meanReliabilityWeight: Double
+        meanReliabilityWeight: Double,
+        isPro: Bool
     ) {
         self.navigate = navigate
         self.logout = logout
@@ -60,6 +62,7 @@ struct AccountRootView: View {
         self.accountPaymentsViewModel = accountPaymentsViewModel
         self.networkName = networkName
         self.meanReliabilityWeight = meanReliabilityWeight
+        self.isPro = isPro
     }
     
     
@@ -91,7 +94,7 @@ struct AccountRootView: View {
                                     .foregroundColor(themeManager.currentTheme.textColor)
                             } else {
                              
-                                Text(subscriptionBalanceViewModel.currentPlan == .none ? "Free" : "Supporter")
+                                Text(isPro ? "Free" : "Supporter")
                                     .font(themeManager.currentTheme.titleCondensedFont)
                                     .foregroundColor(themeManager.currentTheme.textColor)
                                 
@@ -103,7 +106,7 @@ struct AccountRootView: View {
                              * Upgrade subscription button
                              * if user is
                              */
-                            if (subscriptionBalanceViewModel.currentPlan != .supporter && !isGuest) {
+                            if (!isPro && !isGuest) {
                              
                                 Button(action: {
                                     viewModel.isPresentedUpgradeSheet = true
@@ -118,13 +121,20 @@ struct AccountRootView: View {
                         
                         Spacer().frame(height: 8)
                         
-                        UsageBar(
-                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                            meanReliabilityWeight: meanReliabilityWeight,
-                            totalReferrals: referralLinkViewModel.totalReferrals
-                        )
+                        if (!isPro) {
+                            /**
+                             * only display usage bar to users with basic plans
+                             */
+                            
+                            UsageBar(
+                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                totalReferrals: referralLinkViewModel.totalReferrals
+                            )
+                            
+                        }
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)
@@ -369,7 +379,8 @@ struct AccountRootView: View {
                             try await subscriptionManager.purchase(
                                 product: product,
                                 onSuccess: {
-                                    subscriptionBalanceViewModel.setCurrentPlan(.supporter)
+                                    subscriptionBalanceViewModel.startPolling()
+                                    // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
                                 }
                             )
     

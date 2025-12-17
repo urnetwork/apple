@@ -37,19 +37,25 @@ class SubscriptionBalanceViewModel: ObservableObject {
     @Published private(set) var pendingByteCount: Int = 0
     @Published private(set) var availableByteCount: Int = 0
     
-    @Published private(set) var currentPlan: Plan = .none
+    private let refreshJwt: () -> Void
+    private let isPro: Bool
+//    @Published private(set) var currentPlan: Plan = .none
     
     
-    init(urApiService: UrApiServiceProtocol) {
+    init(
+        urApiService: UrApiServiceProtocol,
+        isPro: Bool,
+        refreshJwt: @escaping () -> Void
+    ) {
         self.urApiService = urApiService
         
-//        Task {
-//            // await fetchSubscriptionBalance()
-//            startBackgroundPolling()
-//        }
-  
-        startBackgroundPolling()
+        self.refreshJwt = refreshJwt
+        self.isPro = isPro
         
+        if (!isPro) {
+            startBackgroundPolling()
+        }
+
     }
     
     private func setIsPolling(_ isPolling: Bool) {
@@ -58,9 +64,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
         }
     }
     
-    func setCurrentPlan(_ plan: Plan) {
-        self.currentPlan = plan
-    }
+//    func setCurrentPlan(_ plan: Plan) {
+//        self.currentPlan = plan
+//    }
     
     func fetchSubscriptionBalance() async {
         
@@ -77,16 +83,29 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.usedBalanceByteCount = Int(result.startBalanceByteCount) - self.availableByteCount - self.pendingByteCount
             
             if let currentSubscription = result.currentSubscription {
-             
-                if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
-                    self.setCurrentPlan(validPlan)
-                } else {
-                    self.setCurrentPlan(.none)
-                }
+  
+//                guard let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) else {
+//                    return
+//                }
                 
-            } else {
-                self.setCurrentPlan(.none)
+                if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
+                    
+                    
+                    if validPlan == .supporter && !self.isPro
+                        || validPlan == .none && self.isPro
+                    {
+                        refreshJwt()
+                    }
+                    
+                }
+//                else {
+//                    self.setCurrentPlan(.none)
+//                }
+                
             }
+//            else {
+//                self.setCurrentPlan(.none)
+//            }
             
             self.isLoading = false
             self.errorFetchingSubscriptionBalance = false
@@ -174,7 +193,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     }
     
     func isSupporterWithBalance() -> Bool {
-        return self.currentPlan == .supporter && self.availableByteCount > 0
+        return isPro && self.availableByteCount > 0
     }
     
     func stopPolling() {

@@ -31,18 +31,21 @@ import URnetworkSdk
         let promptMoreDataFlow: () -> Void
         let meanReliabilityWeight: Double
         let totalReferrals: Int
+        let isPro: Bool
 
         init(
             urApiService: UrApiServiceProtocol,
             providerStore: ProviderListStore,
             promptMoreDataFlow: @escaping () -> Void,
             meanReliabilityWeight: Double,
-            totalReferrals: Int
+            totalReferrals: Int,
+            isPro: Bool
         ) {
             self.providerListStore = providerStore
             self.promptMoreDataFlow = promptMoreDataFlow
             self.meanReliabilityWeight = meanReliabilityWeight
             self.totalReferrals = totalReferrals
+            self.isPro = isPro
         }
 
         var body: some View {
@@ -67,9 +70,9 @@ import URnetworkSdk
                             openUpgradeSheet: {
                                  connectViewModel.isPresentedUpgradeSheet = true
                             },
-                            currentPlan: subscriptionBalanceViewModel.currentPlan,
+                            currentPlan: isPro ? .supporter : .none,
                             isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
-                            tunnelConnected: $connectViewModel.tunnelConnected
+                            tunnelConnected: $connectViewModel.tunnelConnected,
                         )
                         .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                         .frame(maxHeight: .infinity)
@@ -88,7 +91,6 @@ import URnetworkSdk
                             reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
                             contractStatus: connectViewModel.contractStatus,
                             windowCurrentSize: connectViewModel.windowCurrentSize,
-                            currentPlan: subscriptionBalanceViewModel.currentPlan,
                             isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                             availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                             pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
@@ -97,7 +99,8 @@ import URnetworkSdk
                                 connectViewModel.isPresentedUpgradeSheet = true
                             },
                             meanReliabilityWeight: meanReliabilityWeight,
-                            totalReferrals: totalReferrals
+                            totalReferrals: totalReferrals,
+                            isPro: isPro
                         )
                         .frame(maxWidth: 600)
 
@@ -174,7 +177,7 @@ import URnetworkSdk
                 connectViewModel.upgradeBannerTask?.cancel()
                 connectViewModel.upgradeBannerTask = nil
                 
-                if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
+                if newValue == .connected && !connectViewModel.showUpgradeBanner && !isPro {
                     // Show the banner after 10 seconds when connected
                     connectViewModel.upgradeBannerTask = Task {
                         try? await Task.sleep(for: .seconds(10))

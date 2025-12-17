@@ -140,9 +140,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.connected = false
         self.reasserting = true
         
-        if let close = self.close {
-            close()
-        }
+        self.close?()
         self.close = nil
         
         self.deviceConfiguration = deviceConfiguration

@@ -6,7 +6,7 @@
 	<string>.</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>ur.network.update-tunnel</string>
+		<string>network.ur.update-tunnel</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>

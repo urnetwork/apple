@@ -58,15 +58,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         if let memoryPressureSource = memoryPressureSource {
             memoryPressureSource.setEventHandler {
                 switch memoryPressureSource.mask {
-                case DispatchSource.MemoryPressureEvent.normal:
-//                    SdkFreeMemory()
-                    break
-                case DispatchSource.MemoryPressureEvent.warning:
+                case DispatchSource.MemoryPressureEvent.warning, DispatchSource.MemoryPressureEvent.critical:
                     SdkFreeMemory()
-//                    break
-                case DispatchSource.MemoryPressureEvent.critical:
-                    SdkFreeMemory()
-//                    break
                 default:
                     break
                 }

@@ -47,7 +47,7 @@ class VPNManager {
     private var deviceProvideSub: SdkSubProtocol?
     private var deviceProvidePausedSub: SdkSubProtocol?
     
-    private var tunnelStarted: Bool = false
+//    private var tunnelStarted: Bool = false
     private var tunnelInstance: Int = 0
     
     var contractStatusSub: SdkSubProtocol?
@@ -258,10 +258,10 @@ class VPNManager {
     
     
     private func startVpnTunnel(index: Int, reset: Bool) {
-        if tunnelStarted {
-            return
-        }
-        tunnelStarted = true
+//        if tunnelStarted {
+//            return
+//        }
+//        tunnelStarted = true
         self.tunnelInstance += 1
         let tunnelInstance = self.tunnelInstance
         
@@ -272,7 +272,7 @@ class VPNManager {
             }
             
             if let _ = error {
-                self.updateVpnService()
+//                self.updateVpnService()
                 return
             }
             
@@ -354,7 +354,7 @@ class VPNManager {
                     }
                     
                     if let _ = error {
-                        self.updateVpnService()
+//                        self.updateVpnService()
                         return
                     }
                     
@@ -365,7 +365,7 @@ class VPNManager {
                         }
                         
                         if let _ = error {
-                            self.updateVpnService()
+//                            self.updateVpnService()
                             return
                         }
                         
@@ -404,7 +404,7 @@ class VPNManager {
                     }
                     
                     if let _ = error {
-                        self.updateVpnService()
+//                        self.updateVpnService()
                         return
                     }
                     
@@ -418,10 +418,10 @@ class VPNManager {
     }
     
     private func stopVpnTunnel(index: Int, reset: Bool) {
-        if !tunnelStarted {
-            return
-        }
-        tunnelStarted = false
+//        if !tunnelStarted {
+//            return
+//        }
+//        tunnelStarted = false
         self.tunnelInstance += 1
         let tunnelInstance = self.tunnelInstance
         
@@ -431,7 +431,7 @@ class VPNManager {
             }
             
             if let _ = error {
-                self.updateVpnService()
+//                self.updateVpnService()
                 return
             }
             
@@ -462,7 +462,7 @@ class VPNManager {
                 }
                 
                 if let _ = error {
-                    self.updateVpnService()
+//                    self.updateVpnService()
                     return
                 }
                 
@@ -487,7 +487,7 @@ class VPNManager {
                         }
                         
                         if let _ = error {
-                            self.updateVpnService()
+//                            self.updateVpnService()
                             return
                         }
                         

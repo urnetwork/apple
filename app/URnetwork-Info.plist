@@ -60,5 +60,9 @@
 		<string>ABCGravity-ExtraCondensed.otf</string>
 		<string>ABCGravity-Extended.otf</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>

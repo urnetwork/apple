@@ -12,11 +12,7 @@
 	<array>
 		<string>allow-vpn</string>
 	</array>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
-	<key>com.apple.security.network.server</key>
+	<key>com.apple.developer.sustained-execution</key>
 	<true/>
 </dict>
 </plist>

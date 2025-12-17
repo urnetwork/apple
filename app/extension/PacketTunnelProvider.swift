@@ -26,6 +26,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     
     private var deviceConfiguration: [String: String]?
     private var device: SdkDeviceLocal?
+    private var close: (() -> Void)?
     private var memoryPressureSource: DispatchSourceMemoryPressure?
     private var connected: Bool = false
 
@@ -139,8 +140,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.connected = false
         self.reasserting = true
         
-        self.device?.cancel()
-        self.device = nil
+        if let close = self.close {
+            close()
+        }
+        self.close = nil
         
         self.deviceConfiguration = deviceConfiguration
         
@@ -337,7 +340,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         })
         
-        let close = {
+        self.close = {
             packetReceiverSub?.close()
             pathMonitor.cancel()
             routeLocalChangeSub?.close()

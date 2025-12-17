@@ -59,9 +59,9 @@ class VPNManager {
         self.device = device
         
         #if os(iOS)
-//        BGTaskScheduler.shared.register(forTaskWithIdentifier: "ur.network.update-tunnel", using: nil) { task in
-//             self.handleBackgroundUpdate(task: task as! BGAppRefreshTask)
-//        }
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "ur.network.update-tunnel", using: nil) { task in
+             self.handleBackgroundUpdate(task: task)
+        }
         #endif
         
         self.monitor.start(queue: queue)
@@ -116,17 +116,17 @@ class VPNManager {
     
     #if os(iOS)
     func scheduleBackgroundUpdate() {
-//       let request = BGAppRefreshTaskRequest(identifier: "ur.network.update-tunnel")
-//       request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
-//
-//       do {
-//          try BGTaskScheduler.shared.submit(request)
-//       } catch {
-//          print("Could not schedule background update: \(error)")
-//       }
+       let request = BGAppRefreshTaskRequest(identifier: "ur.network.update-tunnel")
+       request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+
+       do {
+          try BGTaskScheduler.shared.submit(request)
+       } catch {
+          print("Could not schedule background update: \(error)")
+       }
     }
     
-    func handleBackgroundUpdate(task: BGAppRefreshTask) {
+    func handleBackgroundUpdate(task: BGTask) {
 //        self.updateVpnService()
     }
     #endif

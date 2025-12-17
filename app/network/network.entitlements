@@ -10,8 +10,6 @@
 	</array>
 	<key>com.apple.developer.aps-environment</key>
 	<string>development</string>
-	<key>com.apple.developer.kernel.increased-memory-limit</key>
-	<true/>
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
 		<string>dns-settings</string>
@@ -22,11 +20,5 @@
 	<array>
 		<string>allow-vpn</string>
 	</array>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
-	<key>com.apple.security.network.server</key>
-	<true/>
 </dict>
 </plist>

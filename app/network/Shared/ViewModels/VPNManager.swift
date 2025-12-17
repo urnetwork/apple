@@ -9,7 +9,9 @@ import Foundation
 import NetworkExtension
 import URnetworkSdk
 import Network
+#if os(iOS)
 import BackgroundTasks
+#endif
 
 #if canImport(UIKit)
 import UIKit
@@ -57,12 +59,6 @@ class VPNManager {
     init(device: SdkDeviceRemote) {
         print("[VPNManager]init")
         self.device = device
-        
-        #if os(iOS)
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: "network.ur.update-tunnel", using: nil) { task in
-             self.handleBackgroundUpdate(task: task)
-        }
-        #endif
         
         self.monitor.start(queue: queue)
         

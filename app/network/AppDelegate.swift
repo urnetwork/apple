@@ -12,11 +12,15 @@ import UIKit
 import AppKit
 #endif
 import URnetworkSdk
+#if os(iOS)
+import BackgroundTasks
+#endif
 
 #if os(iOS)
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
+    var deviceManager: DeviceManager?
     
     override init() {
         SdkSetMemoryLimit(64 * 1024 * 1024)
@@ -28,6 +32,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } else {
             return .portrait
         }
+    }
+    
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+    ) -> Bool {
+        #if os(iOS)
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "network.ur.update-tunnel", using: nil) { task in
+            self.deviceManager?.vpnManager?.handleBackgroundUpdate(task: task)
+        }
+        #endif
+        return true
     }
     
     func applicationDidReceiveMemoryWarning(_ application: UIApplication) {

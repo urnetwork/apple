@@ -30,9 +30,7 @@ struct NetworkApp: App {
     @StateObject var connectViewModel = ConnectViewModel()
     
     init() {
-        #if os(macOS)
         appDelegate.deviceManager = deviceManager
-        #endif
         
         #if os(iOS)
         // for styling NavigationTitle

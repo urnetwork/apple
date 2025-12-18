@@ -162,6 +162,9 @@ struct NetworkApp: App {
             #endif
             
         }
+        #if os(macOS)
+        .defaultSize(CGSize(width: 1024, height: 768))
+        #endif
         .commands {
             
             /**
@@ -252,7 +255,6 @@ struct NetworkApp: App {
             
             
         }
-        .defaultSize(width: 800, height: 600)
         #endif
     }
     

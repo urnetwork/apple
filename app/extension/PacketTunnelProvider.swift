@@ -215,13 +215,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         device.setRouteLocal(localState.getRouteLocal())
         
 //        let packetContext = ManagedAtomic<Int>(0)
-        let startPacketFlow = {
-//            packetContext.wrappingIncrement(ordering: .relaxed)
-            readToDevice(
-                packetFlow: self.packetFlow,
-                device: device,
-            )
-        }
+//        let startPacketFlow = {
+////            packetContext.wrappingIncrement(ordering: .relaxed)
+//            self.readToDevice()
+//        }
         
         let setLocal = {
             if device.getConnectLocation() == nil {
@@ -233,7 +230,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     }
                     self.reasserting = device.getConnectLocation() != nil
 //                    readToDevice(packetFlow: self.packetFlow, device: device)
-                    startPacketFlow()
+                    self.readToDevice()
                 }
             }
         }
@@ -283,7 +280,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                                 return
                             }
 //                            readToDevice(packetFlow: self.packetFlow, device: device)
-                            startPacketFlow()
+//                            startPacketFlow()
+                            self.readToDevice()
                         }
                     }
                 } else {
@@ -294,7 +292,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         }
                         self.reasserting = false
 //                        readToDevice(packetFlow: self.packetFlow, device: device)
-                        startPacketFlow()
+//                        startPacketFlow()
+                        self.readToDevice()
                     }
     //                self.reasserting = false
                 }
@@ -359,7 +358,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
 //        Thread.setThreadPriority(1.0)
         self.setTunnelNetworkSettings(self.networkSettings()) { _ in
-            startPacketFlow()
+//            startPacketFlow()
+            self.readToDevice()
             updateWindowStatus(device.getWindowStatus())
             completionHandler(nil)
         }
@@ -403,34 +403,37 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             handler(messageData)
         }
     }
-}
-
-
-func readToDevice(packetFlow: NEPacketTunnelFlow, device: SdkDeviceLocal) {
-//    if device.getDone() {
-//        return
-//    }
     
-//    if context.load(ordering: .relaxed) != instance {
-//        return
-//    }
     
-    // see https://developer.apple.com/documentation/networkextension/nepackettunnelflow/readpackets(completionhandler:)
-    // "Each call to this method results in a single execution of the completion handler"
-    packetFlow.readPackets { packets, protocols in
-//        if (packets.count == 0) {
-//            // EOF
-//            return
-//        }
+    private func readToDevice() {
+    //    if device.getDone() {
+    //        return
+    //    }
         
+    //    if context.load(ordering: .relaxed) != instance {
+    //        return
+    //    }
         
-        for packet in packets {
-            device.sendPacket(packet, n: Int32(packet.count))
+        // see https://developer.apple.com/documentation/networkextension/nepackettunnelflow/readpackets(completionhandler:)
+        // "Each call to this method results in a single execution of the completion handler"
+        self.packetFlow.readPackets { packets, protocols in
+    //        if (packets.count == 0) {
+    //            // EOF
+    //            return
+    //        }
+            if let device = self.device {
+                for packet in packets {
+                    device.sendPacket(packet, n: Int32(packet.count))
+                }
+            }
+            // note since `readPackets` is async this is not recursion on the call stack
+            self.readToDevice()
         }
-        // note since `readPackets` is async this is not recursion on the call stack
-        readToDevice(packetFlow: packetFlow, device: device)
     }
+
 }
+
+
 
 
 private class PacketReceiver: NSObject, SdkReceivePacketProtocol {

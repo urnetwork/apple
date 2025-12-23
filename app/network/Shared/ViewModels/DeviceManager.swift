@@ -546,6 +546,9 @@ extension DeviceManager {
             return
         }
         
+        
+        print("setup device listeners")
+        
         self.cleanupDeviceListeners()
         
         self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] providePaused in
@@ -580,7 +583,6 @@ extension DeviceManager {
                 self.updateParsedJwt()
             }
             
-            
         })
         
         self.provideEnabled = device.getProvideEnabled()
@@ -593,6 +595,9 @@ extension DeviceManager {
         
         deviceProvidePausedSub?.close()
         deviceProvidePausedSub = nil
+        
+        deviceJwtRefreshSub?.close()
+        deviceJwtRefreshSub = nil
     }
     
 }

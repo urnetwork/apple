@@ -94,7 +94,7 @@ struct AccountRootView: View {
                                     .foregroundColor(themeManager.currentTheme.textColor)
                             } else {
                              
-                                Text(isPro ? "Free" : "Supporter")
+                                Text(isPro ? "Supporter" : "Free")
                                     .font(themeManager.currentTheme.titleCondensedFont)
                                     .foregroundColor(themeManager.currentTheme.textColor)
                                 
@@ -119,9 +119,10 @@ struct AccountRootView: View {
                             
                         }
                         
-                        Spacer().frame(height: 8)
-                        
                         if (!isPro) {
+                            
+                            Spacer().frame(height: 8)
+                            
                             /**
                              * only display usage bar to users with basic plans
                              */

@@ -38,7 +38,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     @Published private(set) var availableByteCount: Int = 0
     
     private let refreshJwt: () -> Void
-    private let isPro: Bool
+    private var isPro: Bool
 //    @Published private(set) var currentPlan: Plan = .none
     
     
@@ -58,6 +58,24 @@ class SubscriptionBalanceViewModel: ObservableObject {
 
     }
     
+    func updateIsPro(_ isPro: Bool) {
+        
+        print("updating is pro in SubscriptionBalanceViewModel")
+        
+        guard isPro != self.isPro else { return }
+        self.isPro = isPro
+
+        // If user becomes Pro, stop background polling; if they revert, start it
+        if isPro {
+            print("stopping polling from updateIsPro")
+            stopPolling()
+        } else {
+            print("start background polling from updateIsPro")
+            startBackgroundPolling()
+        }
+        
+    }
+    
     private func setIsPolling(_ isPolling: Bool) {
         DispatchQueue.main.async {
             self.isPolling = isPolling
@@ -69,6 +87,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
 //    }
     
     func fetchSubscriptionBalance() async {
+        
+        print("fetchSubscriptionBalance hit. isLoading? \(self.isLoading)")
         
         if self.isLoading { return }
         
@@ -89,6 +109,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
 //                }
                 
                 if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
+                    
+                    print("current plan is: \(validPlan)")
                     
                     
                     if validPlan == .supporter && !self.isPro
@@ -157,6 +179,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
     
     func startPolling(interval: TimeInterval = 5.0) {
         
+        print("start polling hit. isPolling? \(isPolling)")
+        
         guard !isPolling else { return }
         
         // Perform initial fetch
@@ -166,6 +190,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.setIsPolling(true)
             
             await fetchSubscriptionBalance()
+            
+            print("fetch subscription balance complete.")
             
             if (self.isSupporterWithBalance()) {
                 stopPolling()
@@ -182,6 +208,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
                     Task {
                         await self.fetchSubscriptionBalance()
                         
+                        print("fetch subscription balance complete.")
+                        
                         if (await self.isSupporterWithBalance()) {
                             await self.stopPolling()
                         }
@@ -193,6 +221,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     }
     
     func isSupporterWithBalance() -> Bool {
+        print("is supporter with balance? pro=\(isPro) availableByteCount=\(self.availableByteCount)")
         return isPro && self.availableByteCount > 0
     }
     

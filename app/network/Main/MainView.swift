@@ -55,6 +55,7 @@ struct MainView: View {
                     }
                 }
             )
+            
         )
         self.isPro = isPro
         _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
@@ -73,45 +74,28 @@ struct MainView: View {
                     )
                 case true:
                 
-                    if (subscriptionBalanceViewModel.errorFetchingSubscriptionBalance) {
-                        
-                        ErrorLoadingSubscriptionBalanceView(
-                            reload: {
-                                Task {
-                                 
-                                    await subscriptionBalanceViewModel.fetchSubscriptionBalance()
-                                    
-                                }
-                            },
-                            isLoading: subscriptionBalanceViewModel.isLoading
-                        )
-                        
-                    } else {
-                    
-                        #if os(iOS)
-                        MainTabView(
-                            api: api,
-                            urApiService: urApiService,
-                            device: device,
-                            logout: self.logout,
-                            providerStore: providerListStore,
-                            introductionComplete: introductionComplete,
-//                            currentPlan: subscriptionBalanceViewModel.currentPlan,
-                            errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance,
-                            isPro: isPro
-                        )
-                        #elseif os(macOS)
-                        MainNavigationSplitView(
-                            api: api,
-                            urApiService: urApiService,
-                            device: device,
-                            logout: self.logout,
-                            providerListStore: providerListStore,
-                            isPro: isPro
-                        )
-                        #endif
-                        
-                    }
+                    #if os(iOS)
+                    MainTabView(
+                        api: api,
+                        urApiService: urApiService,
+                        device: device,
+                        logout: self.logout,
+                        providerStore: providerListStore,
+                        introductionComplete: introductionComplete,
+                    //                            currentPlan: subscriptionBalanceViewModel.currentPlan,
+                        errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance,
+                        isPro: isPro
+                    )
+                    #elseif os(macOS)
+                    MainNavigationSplitView(
+                        api: api,
+                        urApiService: urApiService,
+                        device: device,
+                        logout: self.logout,
+                        providerListStore: providerListStore,
+                        isPro: isPro
+                    )
+                    #endif
                 
             }
             
@@ -120,6 +104,12 @@ struct MainView: View {
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
+        .onChange(of: deviceManager.isPro) { newValue in
+            /**
+             * plan updates change subscription balance polling behavior
+             */
+            subscriptionBalanceViewModel.updateIsPro(newValue)
+        }
     }
 }
 

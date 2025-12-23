@@ -23,11 +23,12 @@ struct MainNavigationSplitView: View {
     @State private var selectedTab: MainNavigationTab = .connect
     @State private var displayIntroduction: Bool
     
-    var api: SdkApi
+    let api: SdkApi
     let urApiService: UrApiServiceProtocol
-    var device: SdkDeviceRemote
-    var logout: () -> Void
-    
+    let device: SdkDeviceRemote
+    let logout: () -> Void
+    let isPro: Bool
+
     var connectViewController: SdkConnectViewController?
     
     var iconWidth: CGFloat = 16
@@ -48,7 +49,8 @@ struct MainNavigationSplitView: View {
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void,
-        providerListStore: ProviderListStore
+        providerListStore: ProviderListStore,
+        isPro: Bool
     ) {
         self.api = api
         self.urApiService = urApiService
@@ -76,6 +78,7 @@ struct MainNavigationSplitView: View {
          * Prompt introduction
          */
         self.displayIntroduction = false
+        self.isPro = isPro
 //        if (currentPlan == .supporter || errorFetchingSubscriptionBalance) {
 //            self.displayIntroduction = false
 //        } else {
@@ -159,7 +162,8 @@ struct MainNavigationSplitView: View {
                     providerStore: providerListStore,
                     promptMoreDataFlow: {},
                     meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,
-                    totalReferrals: referralLinkViewModel.totalReferrals
+                    totalReferrals: referralLinkViewModel.totalReferrals,
+                    isPro: isPro
                 )
             case .account:
                 AccountNavStackView(
@@ -173,6 +177,7 @@ struct MainNavigationSplitView: View {
                     providerCountries: providerListStore.providerCountries,
                     networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
                     fetchNetworkReliability: networkReliabilityStore.getNetworkReliability,
+                    isPro: isPro
                 )
             case .leaderboard:
                 LeaderboardView(api: urApiService)

@@ -19,7 +19,7 @@ struct ConnectActions: View {
     let reconnectTunnel: (() -> Void)?
     let contractStatus: SdkContractStatus?
     let windowCurrentSize: Int32
-    let currentPlan: Plan
+//    let currentPlan: Plan
     let isPollingSubscriptionBalance: Bool
     let availableByteCount: Int
     let pendingByteCount: Int
@@ -27,6 +27,7 @@ struct ConnectActions: View {
     let promptMoreDataFlow: () -> Void
     let meanReliabilityWeight: Double
     let totalReferrals: Int
+    let isPro: Bool
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -53,7 +54,7 @@ struct ConnectActions: View {
                             openSelectProvider: {setIsPresented(true)}
                         )
                     
-                        if (contractStatus?.insufficientBalance == true && currentPlan != .supporter && !isPollingSubscriptionBalance) {
+                        if (contractStatus?.insufficientBalance == true && !isPro && !isPollingSubscriptionBalance) {
                             /**
                              * out of balance
                              * not a supporter
@@ -105,7 +106,7 @@ struct ConnectActions: View {
                     /**
                      * Upgrade and participate flows
                      */
-                    if (currentPlan != .supporter) {
+                    if (!isPro) {
                         
                         VStack(alignment: .leading, spacing: 0) {
                             
@@ -129,8 +130,6 @@ struct ConnectActions: View {
                                 }
                                 
                             }
-                            
-                            
                                 
                             UsageBar(
                                 availableByteCount: availableByteCount,

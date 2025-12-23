@@ -17,6 +17,7 @@ struct MainView: View {
     // var connectViewController: SdkConnectViewController?
     let welcomeAnimationComplete: Binding<Bool>
     let introductionComplete: Binding<Bool>
+    let isPro: Bool
     
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
@@ -31,7 +32,8 @@ struct MainView: View {
         logout: @escaping () -> Void,
         welcomeAnimationComplete: Binding<Bool>,
         networkId: SdkId?,
-        introductionComplete: Binding<Bool>
+        introductionComplete: Binding<Bool>,
+        isPro: Bool
     ) {
         self.api = api
         self.logout = logout
@@ -42,9 +44,20 @@ struct MainView: View {
         self.introductionComplete = introductionComplete
         _subscriptionBalanceViewModel = StateObject(
             wrappedValue: SubscriptionBalanceViewModel(
-                urApiService: urApiService
+                urApiService: urApiService,
+                isPro: isPro,
+                refreshJwt: {
+                    do {
+                        print("trying to refresh JWT")
+                        try device.refreshToken(0)
+                    } catch {
+                        print("error refreshing token: \(error)")
+                    }
+                }
             )
+            
         )
+        self.isPro = isPro
         _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
         _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
     }
@@ -61,43 +74,28 @@ struct MainView: View {
                     )
                 case true:
                 
-                    if (subscriptionBalanceViewModel.errorFetchingSubscriptionBalance) {
-                        
-                        ErrorLoadingSubscriptionBalanceView(
-                            reload: {
-                                Task {
-                                 
-                                    await subscriptionBalanceViewModel.fetchSubscriptionBalance()
-                                    
-                                }
-                            },
-                            isLoading: subscriptionBalanceViewModel.isLoading
-                        )
-                        
-                    } else {
-                    
-                        #if os(iOS)
-                        MainTabView(
-                            api: api,
-                            urApiService: urApiService,
-                            device: device,
-                            logout: self.logout,
-                            providerStore: providerListStore,
-                            introductionComplete: introductionComplete,
-                            currentPlan: subscriptionBalanceViewModel.currentPlan,
-                            errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance
-                        )
-                        #elseif os(macOS)
-                        MainNavigationSplitView(
-                            api: api,
-                            urApiService: urApiService,
-                            device: device,
-                            logout: self.logout,
-                            providerListStore: providerListStore
-                        )
-                        #endif
-                        
-                    }
+                    #if os(iOS)
+                    MainTabView(
+                        api: api,
+                        urApiService: urApiService,
+                        device: device,
+                        logout: self.logout,
+                        providerStore: providerListStore,
+                        introductionComplete: introductionComplete,
+                    //                            currentPlan: subscriptionBalanceViewModel.currentPlan,
+                        errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance,
+                        isPro: isPro
+                    )
+                    #elseif os(macOS)
+                    MainNavigationSplitView(
+                        api: api,
+                        urApiService: urApiService,
+                        device: device,
+                        logout: self.logout,
+                        providerListStore: providerListStore,
+                        isPro: isPro
+                    )
+                    #endif
                 
             }
             
@@ -106,6 +104,12 @@ struct MainView: View {
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
+        .onChange(of: deviceManager.isPro) { newValue in
+            /**
+             * plan updates change subscription balance polling behavior
+             */
+            subscriptionBalanceViewModel.updateIsPro(newValue)
+        }
     }
 }
 

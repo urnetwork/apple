@@ -28,6 +28,7 @@ struct ConnectView_iOS: View {
     let api: SdkApi
     let promptMoreDataFlow: () -> Void
     let meanReliabilityWeight: Double
+    let isPro: Bool
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
     
     @State var displayReconnectTunnel: Bool = false
@@ -41,7 +42,8 @@ struct ConnectView_iOS: View {
         referralLinkViewModel: ReferralLinkViewModel,
         providerStore: ProviderListStore,
         promptMoreDataFlow: @escaping () -> Void,
-        meanReliabilityWeight: Double
+        meanReliabilityWeight: Double,
+        isPro: Bool
     ) {
         self.logout = logout
         self.api = api
@@ -51,6 +53,7 @@ struct ConnectView_iOS: View {
         
         self.promptMoreDataFlow = promptMoreDataFlow
         self.meanReliabilityWeight = meanReliabilityWeight
+        self.isPro = isPro
         
         // _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
         
@@ -113,7 +116,7 @@ struct ConnectView_iOS: View {
                         openUpgradeSheet: {
                             connectViewModel.isPresentedUpgradeSheet = true
                         },
-                        currentPlan: subscriptionBalanceViewModel.currentPlan,
+                        currentPlan: isPro ? .supporter : .none,
                         isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                         tunnelConnected: $connectViewModel.tunnelConnected
                     )
@@ -129,7 +132,7 @@ struct ConnectView_iOS: View {
                     connectViewModel.upgradeBannerTask?.cancel()
                     connectViewModel.upgradeBannerTask = nil
                     
-                    if newValue == .connected && !connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
+                    if newValue == .connected && !connectViewModel.showUpgradeBanner && !isPro {
                         // Show the banner after 10 seconds when connected
                         connectViewModel.upgradeBannerTask = Task {
                             try? await Task.sleep(for: .seconds(10))
@@ -206,14 +209,14 @@ struct ConnectView_iOS: View {
                         reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
                         contractStatus: connectViewModel.contractStatus,
                         windowCurrentSize: connectViewModel.windowCurrentSize,
-                        currentPlan: subscriptionBalanceViewModel.currentPlan,
                         isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                         availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                         pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                         usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
                         promptMoreDataFlow: promptMoreDataFlow,
                         meanReliabilityWeight: meanReliabilityWeight,
-                        totalReferrals: referralLinkViewModel.totalReferrals
+                        totalReferrals: referralLinkViewModel.totalReferrals,
+                        isPro: isPro
                     )
                     
                 }

@@ -65,7 +65,8 @@ struct ContentView: View {
                             },
                             welcomeAnimationComplete: $welcomeAnimationComplete,
                             networkId: networkId,
-                            introductionComplete: $introductionComplete
+                            introductionComplete: $introductionComplete,
+                            isPro: deviceManager.isPro
                         )
                         .opacity(opacity)
 

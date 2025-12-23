@@ -121,7 +121,8 @@ struct IntroductionView: View {
                                                 try await subscriptionManager.purchase(
                                                     product: product,
                                                     onSuccess: {
-                                                        subscriptionBalanceViewModel.setCurrentPlan(.supporter)
+                                                        subscriptionBalanceViewModel.startPolling()
+                                                        // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
                                                     }
                                                 )
                                                 

@@ -17,6 +17,7 @@ struct MainTabView: View {
     let logout: () -> Void
     let connectViewController: SdkConnectViewController?
     let introductionComplete: Binding<Bool>
+    let isPro: Bool
     
     @State private var opacity: Double = 0
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
@@ -41,8 +42,9 @@ struct MainTabView: View {
         logout: @escaping () -> Void,
         providerStore: ProviderListStore,
         introductionComplete: Binding<Bool>,
-        currentPlan: Plan?,
-        errorFetchingSubscriptionBalance: Bool
+//        currentPlan: Plan?,
+        errorFetchingSubscriptionBalance: Bool,
+        isPro: Bool
     ) {
         self.api = api
         self.urApiService = urApiService
@@ -54,6 +56,7 @@ struct MainTabView: View {
         // but without it, disconnect isn't triggered
         self.connectViewController = device.openConnectViewController()
         self.providerListStore = providerStore
+        self.isPro = isPro
         
         _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(
                 api: api
@@ -71,7 +74,7 @@ struct MainTabView: View {
         /**
          * Prompt introduction
          */
-        if (currentPlan == .supporter || errorFetchingSubscriptionBalance) {
+        if (isPro || errorFetchingSubscriptionBalance) {
             self.displayIntroduction = false
         } else {
             
@@ -104,7 +107,8 @@ struct MainTabView: View {
                 promptMoreDataFlow: {
                     self.displayIntroduction = true
                 },
-                meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0
+                meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,
+                isPro: isPro
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
@@ -133,7 +137,8 @@ struct MainTabView: View {
                 referralLinkViewModel: referralLinkViewModel,
                 providerCountries: providerListStore.providerCountries,
                 networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
-                fetchNetworkReliability: networkReliabilityStore.getNetworkReliability
+                fetchNetworkReliability: networkReliabilityStore.getNetworkReliability,
+                isPro: isPro
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {

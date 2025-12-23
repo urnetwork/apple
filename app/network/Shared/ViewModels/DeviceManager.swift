@@ -81,8 +81,14 @@ class DeviceManager: ObservableObject {
     @Published private(set) var provideEnabled: Bool = false
     @Published private(set) var providePaused: Bool = false
     
+    @Published private(set) var isPro: Bool = false
+    private func setIsPro(_ value: Bool) {
+        self.isPro = value
+    }
+    
     private var deviceProvideSub: SdkSubProtocol?
     private var deviceProvidePausedSub: SdkSubProtocol?
+    private var deviceJwtRefreshSub: SdkSubProtocol?
 
     private func updateAllowProvidingCell(_ allow: Bool) {
         #if os(iOS)
@@ -211,6 +217,8 @@ class DeviceManager: ObservableObject {
         
         do {
             parsedJwt = try localState.parseByJwt()
+            print("new parsedJwt?.pro is: \(String(describing: parsedJwt?.pro))")
+            setIsPro(parsedJwt?.pro ?? false)
         } catch {
             parsedJwt = nil
         }
@@ -512,6 +520,8 @@ extension DeviceManager {
                     device.setDefaultLocation(defaultLocation)
                 }
                 
+                
+                
                 self.setDevice(device: device)
                 
             } else {
@@ -536,6 +546,9 @@ extension DeviceManager {
             return
         }
         
+        
+        print("setup device listeners")
+        
         self.cleanupDeviceListeners()
         
         self.deviceProvidePausedSub = device.add(ProvidePausedChangeListener { [weak self] providePaused in
@@ -558,6 +571,20 @@ extension DeviceManager {
             }
         })
         
+        self.deviceJwtRefreshSub = device.add(JwtRefreshListener { [weak self] _ in
+            
+            print("JwtRefreshListener hit")
+            
+            guard let self = self else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.updateParsedJwt()
+            }
+            
+        })
+        
         self.provideEnabled = device.getProvideEnabled()
         self.providePaused = device.getProvidePaused()
     }
@@ -568,6 +595,9 @@ extension DeviceManager {
         
         deviceProvidePausedSub?.close()
         deviceProvidePausedSub = nil
+        
+        deviceJwtRefreshSub?.close()
+        deviceJwtRefreshSub = nil
     }
     
 }
@@ -790,6 +820,19 @@ private class ProvidePausedChangeListener: NSObject, SdkProvidePausedChangeListe
     
     func providePausedChanged(_ providePaused: Bool) {
         c(providePaused)
+    }
+}
+
+private class JwtRefreshListener: NSObject, SdkJwtRefreshListenerProtocol {
+    
+    private let c: (_ jwt: String?) -> Void
+
+    init(c: @escaping (_ jwt: String?) -> Void) {
+        self.c = c
+    }
+    
+    func jwtRefreshed(_ jwt: String?) {
+        c(jwt)
     }
 }
 

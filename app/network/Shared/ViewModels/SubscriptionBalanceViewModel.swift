@@ -39,7 +39,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
     
     private let refreshJwt: () -> Void
     private var isPro: Bool
-//    @Published private(set) var currentPlan: Plan = .none
     
     
     init(
@@ -104,10 +103,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
             
             if let currentSubscription = result.currentSubscription {
   
-//                guard let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) else {
-//                    return
-//                }
-                
                 if let validPlan = Plan(rawValue: currentSubscription.plan.lowercased()) {
                     
                     print("current plan is: \(validPlan)")
@@ -120,14 +115,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
                     }
                     
                 }
-//                else {
-//                    self.setCurrentPlan(.none)
-//                }
-                
             }
-//            else {
-//                self.setCurrentPlan(.none)
-//            }
             
             self.isLoading = false
             self.errorFetchingSubscriptionBalance = false
@@ -179,8 +167,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
     
     func startPolling(interval: TimeInterval = 5.0) {
         
-        print("start polling hit. isPolling? \(isPolling)")
-        
         guard !isPolling else { return }
         
         // Perform initial fetch
@@ -190,8 +176,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.setIsPolling(true)
             
             await fetchSubscriptionBalance()
-            
-            print("fetch subscription balance complete.")
             
             if (self.isSupporterWithBalance()) {
                 stopPolling()
@@ -207,8 +191,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
                     
                     Task {
                         await self.fetchSubscriptionBalance()
-                        
-                        print("fetch subscription balance complete.")
                         
                         if (await self.isSupporterWithBalance()) {
                             await self.stopPolling()

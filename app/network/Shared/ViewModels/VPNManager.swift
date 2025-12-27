@@ -25,7 +25,7 @@ import AppKit
 //    case none
 //}
 
-let TunnelCheckTimeout: TimeInterval = 5
+let TunnelCheckTimeout: TimeInterval = 10
 
 @MainActor
 class VPNManager {

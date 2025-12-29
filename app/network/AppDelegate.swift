@@ -23,7 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var deviceManager: DeviceManager?
     
     override init() {
-        SdkSetMemoryLimit(64 * 1024 * 1024)
+        SdkSetMemoryLimit(48 * 1024 * 1024)
     }
     
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {

@@ -35,11 +35,6 @@ struct ConnectActions: View {
             
             VStack {
                 
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.secondary.opacity(0.3))
-                    .frame(width: 36, height: 4)
-                    .padding(.top, 8)
-                
                 Spacer().frame(height: 16)
                 
                 VStack {
@@ -161,7 +156,6 @@ struct ConnectActions: View {
                     .fill(themeManager.currentTheme.tintedBackgroundBase)
                     .colorMultiply(Color(white: 0.8))
             )
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
     
 }

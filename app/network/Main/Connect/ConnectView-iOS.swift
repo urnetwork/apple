@@ -33,6 +33,13 @@ struct ConnectView_iOS: View {
     
     @State var displayReconnectTunnel: Bool = false
     
+    @State private var isSheetExpanded = false
+    @GestureState private var sheetDragTranslation: CGFloat = 0
+
+    private let sheetMinHeight: CGFloat   // collapsed peek height (adjust)
+    private let sheetMaxHeight: CGFloat = 480   // expanded height (adjust)
+
+    
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
@@ -53,9 +60,12 @@ struct ConnectView_iOS: View {
         
         self.promptMoreDataFlow = promptMoreDataFlow
         self.meanReliabilityWeight = meanReliabilityWeight
-        self.isPro = isPro
         
-        // _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
+
+        self.isPro = isPro
+
+        // we can remove this once pro is scrollable
+        self.sheetMinHeight = isPro ? 250 : 280
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -65,41 +75,13 @@ struct ConnectView_iOS: View {
         
         GeometryReader { geometry in
             
+            let screenHeight = geometry.size.height + geometry.safeAreaInsets.bottom
+            
             ZStack(alignment: .top) {
                 
                 VStack {
                     
-                    //            if connectViewModel.showUpgradeBanner && subscriptionBalanceViewModel.currentPlan != .supporter {
-                    //                HStack {
-                    //                    Text("Need more data, faster?")
-                    //                        .font(themeManager.currentTheme.bodyFont)
-                    //
-                    //                    Spacer()
-                    //
-                    //                    Button(action: {
-                    //                        connectViewModel.isPresentedUpgradeSheet = true
-                    //                    }) {
-                    //                        Text("Upgrade Now")
-                    //                            .font(themeManager.currentTheme.bodyFont)
-                    //                            .fontWeight(.bold)
-                    //                    }
-                    //                    .padding(.horizontal, 12)
-                    //                    .padding(.vertical, 4)
-                    //                    .overlay(
-                    //                        RoundedRectangle(cornerRadius: 4)
-                    //                            .stroke(.accent, lineWidth: 1)
-                    //                    )
-                    //                }
-                    //                .padding()
-                    //                .frame(maxWidth: .infinity)
-                    //                .background(.urElectricBlue)
-                    //                .transition(.move(edge: .top).combined(with: .opacity))
-                    //                .animation(.easeInOut(duration: 0.5), value: connectViewModel.showUpgradeBanner)
-                    //            }
-                    
-                     Spacer()
-                    
-//                    Spacer().frame(height: 32)
+                    Spacer()
                     
                     ConnectButtonView(
                         gridPoints:
@@ -178,49 +160,77 @@ struct ConnectView_iOS: View {
                 }
                 .frame(maxWidth: .infinity)
                 
-                
-                VStack {
-                    Spacer()
+                VStack(spacing: 0) {
                     
+                    if (!isPro) {
+                        /**
+                         * Temporarily disable expanding the sheet if user is pro.
+                         * As we add more sheet functionality, we can remove this check
+                         */
+                     
+                        // Drag handle
+                        VStack(spacing: 8) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.secondary.opacity(0.6))
+                                .frame(width: 36, height: 4)
+                                .padding(.vertical, 16)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .gesture(sheetDragGesture())
+
+                        Divider()
+                        
+                    }
+
+                    // Sheet content can scroll only when expanded
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            ConnectActions(
+                                connect: connectViewModel.connect,
+                                disconnect: connectViewModel.disconnect,
+                                connectionStatus: connectViewModel.connectionStatus,
+                                selectedProvider: connectViewModel.selectedProvider,
+                                setIsPresented: { present in
+                                    providerListSheetViewModel.isPresented = present
+                                },
+                                displayReconnectTunnel: displayReconnectTunnel,
+                                reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+                                contractStatus: connectViewModel.contractStatus,
+                                windowCurrentSize: connectViewModel.windowCurrentSize,
+                                isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                                promptMoreDataFlow: promptMoreDataFlow,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                totalReferrals: referralLinkViewModel.totalReferrals,
+                                isPro: isPro
+                            )
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                    .scrollDisabled(!isSheetExpanded)
+                }
+                .frame(height: currentSheetHeight())
+                .frame(maxWidth: .infinity)
+                .background(
                     Rectangle()
                         .fill(themeManager.currentTheme.tintedBackgroundBase)
                         .colorMultiply(Color(white: 0.8))
-                        .frame(height: 100) // Fixed height for bounce area
-                        .ignoresSafeArea()
-                }
-                .ignoresSafeArea()
-                
-                
-                
-                ScrollView {
-                    
-                    Color.clear
-                        .frame(height: geometry.size.height - 184)
-
-                    ConnectActions(
-                        connect: connectViewModel.connect,
-                        disconnect: connectViewModel.disconnect,
-                        connectionStatus: connectViewModel.connectionStatus,
-                        selectedProvider: connectViewModel.selectedProvider,
-                        setIsPresented: { present in
-                            providerListSheetViewModel.isPresented = present
-                        },
-                        displayReconnectTunnel: displayReconnectTunnel,
-                        reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
-                        contractStatus: connectViewModel.contractStatus,
-                        windowCurrentSize: connectViewModel.windowCurrentSize,
-                        isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
-                        availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                        pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                        promptMoreDataFlow: promptMoreDataFlow,
-                        meanReliabilityWeight: meanReliabilityWeight,
-                        totalReferrals: referralLinkViewModel.totalReferrals,
-                        isPro: isPro
-                    )
-                    
-                }
-                .scrollIndicators(.hidden)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .shadow(color: Color.black.opacity(0.2), radius: 8, y: -2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.1))
+                )
+                .offset(y: sheetY(screenHeight: screenHeight))
+                .ignoresSafeArea(edges: .bottom)
+                .animation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2),
+                           value: isSheetExpanded)
+                .animation(.spring(response: 0.25, dampingFraction: 0.85, blendDuration: 0.1),
+                           value: sheetDragTranslation)
+                .zIndex(1)
                 
             }
             .sheet(isPresented: $providerListSheetViewModel.isPresented) {
@@ -371,6 +381,36 @@ struct ConnectView_iOS: View {
         
     }
     
+    private func currentSheetHeight() -> CGFloat {
+        let base = isSheetExpanded ? sheetMaxHeight : sheetMinHeight
+        let dragged = base - sheetDragTranslation
+        return max(sheetMinHeight, min(sheetMaxHeight, dragged))
+    }
+
+    private func sheetY(screenHeight: CGFloat) -> CGFloat {
+        let height = currentSheetHeight()
+        return screenHeight - height
+    }
+    
+    private func sheetDragGesture() -> some Gesture {
+        let range = sheetMaxHeight - sheetMinHeight
+        return DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .updating($sheetDragTranslation) { value, state, _ in
+                // Allow both directions: negative when dragging up, positive when dragging down
+                let delta = value.translation.height
+                state = max(-range, min(range, delta))
+            }
+            .onEnded { value in
+                let delta = value.translation.height
+                let threshold = range * 0.25
+                if isSheetExpanded {
+                    if delta > threshold { isSheetExpanded = false }
+                } else {
+                    if -delta > threshold { isSheetExpanded = true }
+                }
+            }
+    }
+
 }
 
 

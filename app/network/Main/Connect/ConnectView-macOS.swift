@@ -79,30 +79,35 @@ import URnetworkSdk
                         
                         Spacer().frame(height: 24)
                         
-                        ConnectActions(
-                            connect: connectViewModel.connect,
-                            disconnect: connectViewModel.disconnect,
-                            connectionStatus: connectViewModel.connectionStatus,
-                            selectedProvider: connectViewModel.selectedProvider,
-                            setIsPresented: { present in
-                                isProviderTableVisible = true
-                            },
-                            displayReconnectTunnel: displayReconnectTunnel,
-                            reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
-                            contractStatus: connectViewModel.contractStatus,
-                            windowCurrentSize: connectViewModel.windowCurrentSize,
-                            isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
-                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                            promptMoreDataFlow: {
-                                connectViewModel.isPresentedUpgradeSheet = true
-                            },
-                            meanReliabilityWeight: meanReliabilityWeight,
-                            totalReferrals: totalReferrals,
-                            isPro: isPro
-                        )
+                        VStack {
+                         
+                            ConnectActions(
+                                connect: connectViewModel.connect,
+                                disconnect: connectViewModel.disconnect,
+                                connectionStatus: connectViewModel.connectionStatus,
+                                selectedProvider: connectViewModel.selectedProvider,
+                                setIsPresented: { present in
+                                    isProviderTableVisible = true
+                                },
+                                displayReconnectTunnel: displayReconnectTunnel,
+                                reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+                                contractStatus: connectViewModel.contractStatus,
+                                windowCurrentSize: connectViewModel.windowCurrentSize,
+                                isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                                promptMoreDataFlow: {
+                                    connectViewModel.isPresentedUpgradeSheet = true
+                                },
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                totalReferrals: totalReferrals,
+                                isPro: isPro
+                            )
+                            
+                        }
                         .frame(maxWidth: 600)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                         Spacer().frame(height: 32)
 

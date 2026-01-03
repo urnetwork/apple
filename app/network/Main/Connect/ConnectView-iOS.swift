@@ -33,6 +33,15 @@ struct ConnectView_iOS: View {
     
     @State var displayReconnectTunnel: Bool = false
     
+    
+    // testing
+    @State private var isSheetExpanded = false
+    @GestureState private var sheetDragTranslation: CGFloat = 0
+
+    private let sheetMinHeight: CGFloat = 120   // collapsed peek height (adjust)
+    private let sheetMaxHeight: CGFloat = 520   // expanded height (adjust)
+
+    
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
@@ -64,6 +73,8 @@ struct ConnectView_iOS: View {
     var body: some View {
         
         GeometryReader { geometry in
+            
+            let screenHeight = geometry.size.height
             
             ZStack(alignment: .top) {
                 
@@ -179,48 +190,136 @@ struct ConnectView_iOS: View {
                 .frame(maxWidth: .infinity)
                 
                 
-                VStack {
-                    Spacer()
-                    
-                    Rectangle()
-                        .fill(themeManager.currentTheme.tintedBackgroundBase)
-                        .colorMultiply(Color(white: 0.8))
-                        .frame(height: 100) // Fixed height for bounce area
-                        .ignoresSafeArea()
-                }
-                .ignoresSafeArea()
+                // testing
                 
-                
-                
-                ScrollView {
-                    
-                    Color.clear
-                        .frame(height: geometry.size.height - 184)
+                VStack(spacing: 0) {
+                    // Drag handle (always hittable)
+                    VStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.secondary.opacity(0.6))
+                            .frame(width: 36, height: 4)
+                            .padding(.vertical, 8)
+//                        HStack {
+//                            Text(isSheetExpanded ? "Actions" : "Swipe up for actions")
+//                                .font(.subheadline)
+//                                .fontWeight(.medium)
+//                            Spacer()
+//                            Image(systemName: isSheetExpanded ? "chevron.down" : "chevron.up")
+//                                .foregroundStyle(.secondary)
+//                        }
+//                        .padding(.horizontal)
+//                        .padding(.bottom, 8)
+                    }
+                    .contentShape(Rectangle())
+                    .gesture(sheetDragGesture())
+                    .onTapGesture {
+                        // Allow expanding with a tap on the handle
+                        isSheetExpanded = true
+                    }
 
-                    ConnectActions(
-                        connect: connectViewModel.connect,
-                        disconnect: connectViewModel.disconnect,
-                        connectionStatus: connectViewModel.connectionStatus,
-                        selectedProvider: connectViewModel.selectedProvider,
-                        setIsPresented: { present in
-                            providerListSheetViewModel.isPresented = present
-                        },
-                        displayReconnectTunnel: displayReconnectTunnel,
-                        reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
-                        contractStatus: connectViewModel.contractStatus,
-                        windowCurrentSize: connectViewModel.windowCurrentSize,
-                        isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
-                        availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                        pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                        promptMoreDataFlow: promptMoreDataFlow,
-                        meanReliabilityWeight: meanReliabilityWeight,
-                        totalReferrals: referralLinkViewModel.totalReferrals,
-                        isPro: isPro
-                    )
-                    
+                    Divider()
+
+                    // Sheet content — scroll only when expanded
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            ConnectActions(
+                                connect: connectViewModel.connect,
+                                disconnect: connectViewModel.disconnect,
+                                connectionStatus: connectViewModel.connectionStatus,
+                                selectedProvider: connectViewModel.selectedProvider,
+                                setIsPresented: { present in
+                                    providerListSheetViewModel.isPresented = present
+                                },
+                                displayReconnectTunnel: displayReconnectTunnel,
+                                reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+                                contractStatus: connectViewModel.contractStatus,
+                                windowCurrentSize: connectViewModel.windowCurrentSize,
+                                isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                                promptMoreDataFlow: promptMoreDataFlow,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                totalReferrals: referralLinkViewModel.totalReferrals,
+                                isPro: isPro
+                            )
+                            .padding(.horizontal)
+                            .padding(.bottom, 16)
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                    .scrollDisabled(!isSheetExpanded)
+                    // Only the scrollable sheet content should stop hit testing when collapsed.
+                    .allowsHitTesting(isSheetExpanded)
                 }
-                .scrollIndicators(.hidden)
+                .frame(height: currentSheetHeight())
+                .frame(maxWidth: .infinity)
+                .background(themeManager.currentTheme.tintedBackgroundBase)
+                .colorMultiply(Color(white: 0.95))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .shadow(color: Color.black.opacity(0.2), radius: 8, y: -2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.1))
+                )
+                .offset(y: sheetY(screenHeight: screenHeight))
+                .animation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2),
+                           value: isSheetExpanded)
+                .animation(.spring(response: 0.25, dampingFraction: 0.85, blendDuration: 0.1),
+                           value: sheetDragTranslation)
+                // Remove .allowsHitTesting(isSheetExpanded) here — it blocked the handle too.
+                .zIndex(1)
+                
+                
+                // end testing
+                
+                
+//                VStack {
+//                    Spacer()
+//                    
+//                    Rectangle()
+//                        .fill(themeManager.currentTheme.tintedBackgroundBase)
+//                        .colorMultiply(Color(white: 0.8))
+//                        .frame(height: 100) // Fixed height for bounce area
+//                        .ignoresSafeArea()
+//                }
+//                .ignoresSafeArea()
+                
+                
+                /**
+                 * connect actions
+                 */
+//                ScrollView {
+                    
+//                    Color.clear
+//                        .frame(height: geometry.size.height - 184)
+////                        .presentationBackgroundInteraction(.enabled)
+
+//                    ConnectActions(
+//                        connect: connectViewModel.connect,
+//                        disconnect: connectViewModel.disconnect,
+//                        connectionStatus: connectViewModel.connectionStatus,
+//                        selectedProvider: connectViewModel.selectedProvider,
+//                        setIsPresented: { present in
+//                            providerListSheetViewModel.isPresented = present
+//                        },
+//                        displayReconnectTunnel: displayReconnectTunnel,
+//                        reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
+//                        contractStatus: connectViewModel.contractStatus,
+//                        windowCurrentSize: connectViewModel.windowCurrentSize,
+//                        isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+//                        availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+//                        pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+//                        usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+//                        promptMoreDataFlow: promptMoreDataFlow,
+//                        meanReliabilityWeight: meanReliabilityWeight,
+//                        totalReferrals: referralLinkViewModel.totalReferrals,
+//                        isPro: isPro
+//                    )
+//                    .presentationBackgroundInteraction(.enabled)
+                    
+//                }
+//                .scrollIndicators(.hidden)
+//                .presentationBackgroundInteraction(.enabled)
                 
             }
             .sheet(isPresented: $providerListSheetViewModel.isPresented) {
@@ -370,6 +469,36 @@ struct ConnectView_iOS: View {
         }
         
     }
+    
+    // testing
+    private func currentSheetHeight() -> CGFloat {
+        let base = isSheetExpanded ? sheetMaxHeight : sheetMinHeight
+        let dragged = base - sheetDragTranslation
+        return max(sheetMinHeight, min(sheetMaxHeight, dragged))
+    }
+
+    private func sheetY(screenHeight: CGFloat) -> CGFloat {
+        let height = currentSheetHeight()
+        return screenHeight - height
+    }
+
+    private func sheetDragGesture() -> some Gesture {
+        DragGesture(minimumDistance: 5, coordinateSpace: .global)
+            .updating($sheetDragTranslation) { value, state, _ in
+                let delta = value.translation.height
+                state = max(0, min(sheetMaxHeight - sheetMinHeight, delta))
+            }
+            .onEnded { value in
+                let delta = value.translation.height
+                let threshold = (sheetMaxHeight - sheetMinHeight) * 0.25
+                if isSheetExpanded {
+                    if delta > threshold { isSheetExpanded = false }
+                } else {
+                    if -delta > threshold { isSheetExpanded = true }
+                }
+            }
+    }
+
     
 }
 

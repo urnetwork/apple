@@ -33,8 +33,6 @@ struct ConnectView_iOS: View {
     
     @State var displayReconnectTunnel: Bool = false
     
-    
-    // testing
     @State private var isSheetExpanded = false
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
@@ -383,7 +381,6 @@ struct ConnectView_iOS: View {
         
     }
     
-    // testing
     private func currentSheetHeight() -> CGFloat {
         let base = isSheetExpanded ? sheetMaxHeight : sheetMinHeight
         let dragged = base - sheetDragTranslation

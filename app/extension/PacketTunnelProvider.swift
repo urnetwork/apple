@@ -231,7 +231,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     if device.getConnectLocation() == nil {
                         self.reasserting = false
                         //                    readToDevice(packetFlow: self.packetFlow, device: device)
-                        self.readToDevice()
+//                        self.readToDevice()
                     }
                 }
             }
@@ -292,10 +292,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                             return
                         }
-                        self.reasserting = false
-//                        readToDevice(packetFlow: self.packetFlow, device: device)
-//                        startPacketFlow()
-                        self.readToDevice()
+                        if connected {
+                            self.reasserting = false
+                            //                        readToDevice(packetFlow: self.packetFlow, device: device)
+                            //                        startPacketFlow()
+//                            self.readToDevice()
+                        }
                     }
     //                self.reasserting = false
                 }
@@ -367,6 +369,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 //        }
         
         updateWindowStatus(device.getWindowStatus())
+        self.readToDevice()
         completionHandler(nil)
     }
     

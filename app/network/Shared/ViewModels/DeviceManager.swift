@@ -81,6 +81,63 @@ class DeviceManager: ObservableObject {
     @Published private(set) var provideEnabled: Bool = false
     @Published private(set) var providePaused: Bool = false
     
+//    @Published private(set) var performanceProfile: SdkPerformanceProfile? = nil // nil == auto
+    @Published var selectedWindowType: WindowType = .auto {
+        didSet {
+            
+            if selectedWindowType == .auto && fixedIpSize != false {
+                self.fixedIpSize = false
+                // this will trigger createPerformanceProfile
+                return
+            }
+            
+            let updatedPerformanceProfile = createPerformanceProfile(
+                windowType: selectedWindowType,
+                isFixedSize: fixedIpSize
+            )
+            
+            updatePerformanceProfile(updatedPerformanceProfile)
+        }
+    }
+    
+    @Published var fixedIpSize: Bool = false {
+        didSet {
+            let updatedPerformanceProfile = createPerformanceProfile(
+                windowType: selectedWindowType,
+                isFixedSize: fixedIpSize
+            )
+            
+            updatePerformanceProfile(updatedPerformanceProfile)
+        }
+    }
+    
+    private func createPerformanceProfile(
+        windowType: WindowType,
+        isFixedSize: Bool
+    ) -> SdkPerformanceProfile? {
+        if windowType == .auto {
+            return nil
+        }
+        
+        let performanceProfile = SdkPerformanceProfile()
+        performanceProfile.windowType = windowType == .quality ? SdkWindowTypeQuality : SdkWindowTypeSpeed
+        
+        let windowSizeSettings = SdkWindowSizeSettings()
+        windowSizeSettings.windowSizeMin = isFixedSize ? 1 : 2
+        windowSizeSettings.windowSizeMax = isFixedSize ? 1 : 4
+        
+        performanceProfile.windowSize = windowSizeSettings
+        
+        return performanceProfile
+        
+    }
+    
+    private func updatePerformanceProfile(_ profile: SdkPerformanceProfile?) {
+        guard let device = self.device else { return }
+//        self.performanceProfile = profile
+        device.setPerformanceProfile(profile)
+    }
+    
     @Published private(set) var isPro: Bool = false
     private func setIsPro(_ value: Bool) {
         self.isPro = value
@@ -128,6 +185,20 @@ class DeviceManager: ObservableObject {
                     if let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) {
                         self.allowProvidingCell = provideNetworkMode == .All
                     }
+                    
+//                    let performanceProfile = device.getPerformanceProfile()
+//                    if performanceProfile == nil {
+//                        self.selectedWindowType = .auto
+//                        self.fixedIpSize = false
+//                    } else {
+//                        self.selectedWindowType = performanceProfile?.windowType == SdkWindowTypeQuality ? .quality : .speed
+//
+//                        if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
+//                            self.fixedIpSize = true
+//                        } else {
+//                            self.fixedIpSize = false
+//                        }
+//                    }
                     
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
@@ -445,6 +516,7 @@ extension DeviceManager {
                 let connectLocation = localState.getConnectLocation()
                 let defaultLocation = localState.getDefaultLocation()
                 let canShowRatingDialog = localState.getCanShowRatingDialog()
+                
                 // let provideWhileDisconnected = localState.getProvideWhileDisconnected()
                 
                 let provideControlModeStr = localState.getProvideControlMode()

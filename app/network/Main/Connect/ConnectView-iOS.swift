@@ -36,8 +36,8 @@ struct ConnectView_iOS: View {
     @State private var isSheetExpanded = false
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
-    private let sheetMinHeight: CGFloat   // collapsed peek height (adjust)
-    private let sheetMaxHeight: CGFloat = 480   // expanded height (adjust)
+    private let sheetMinHeight: CGFloat = 280   // collapsed peek height (adjust)
+    private let sheetMaxHeight: CGFloat   // expanded height (adjust)
 
     
     init(
@@ -65,7 +65,8 @@ struct ConnectView_iOS: View {
         self.isPro = isPro
 
         // we can remove this once pro is scrollable
-        self.sheetMinHeight = isPro ? 250 : 280
+        // self.sheetMinHeight = isPro ? 250 : 280
+        self.sheetMaxHeight = isPro ? 440 : 600
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -162,26 +163,23 @@ struct ConnectView_iOS: View {
                 
                 VStack(spacing: 0) {
                     
-                    if (!isPro) {
-                        /**
-                         * Temporarily disable expanding the sheet if user is pro.
-                         * As we add more sheet functionality, we can remove this check
-                         */
-                     
-                        // Drag handle
-                        VStack(spacing: 8) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.secondary.opacity(0.6))
-                                .frame(width: 36, height: 4)
-                                .padding(.vertical, 16)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
-                        .gesture(sheetDragGesture())
-
-                        Divider()
-                        
+                    /**
+                     * Temporarily disable expanding the sheet if user is pro.
+                     * As we add more sheet functionality, we can remove this check
+                     */
+                 
+                    // Drag handle
+                    VStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.secondary.opacity(0.6))
+                            .frame(width: 36, height: 4)
+                            .padding(.vertical, 16)
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .gesture(sheetDragGesture())
+
+                    Divider()
 
                     // Sheet content can scroll only when expanded
                     ScrollView {
@@ -205,12 +203,15 @@ struct ConnectView_iOS: View {
                                 promptMoreDataFlow: promptMoreDataFlow,
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: referralLinkViewModel.totalReferrals,
-                                isPro: isPro
+                                isPro: isPro,
+                                selectedWindowType: $deviceManager.selectedWindowType,
+                                fixedIpSize: $deviceManager.fixedIpSize
                             )
                         }
                     }
                     .scrollIndicators(.hidden)
-                    .scrollDisabled(!isSheetExpanded)
+                    // .scrollDisabled(!isSheetExpanded) // we can set this once sheet takes up entire view
+                    .scrollDisabled(true)
                 }
                 .frame(height: currentSheetHeight())
                 .frame(maxWidth: .infinity)

@@ -28,8 +28,15 @@ struct ConnectActions: View {
     let meanReliabilityWeight: Double
     let totalReferrals: Int
     let isPro: Bool
+    @Binding var selectedWindowType: WindowType
+    @Binding var fixedIpSize: Bool
     
     @EnvironmentObject var themeManager: ThemeManager
+    
+    // for testing
+//    @State var connectMode = "Auto"
+//    @State private var selectedWindowType: WindowType = .auto
+//    @State var fixedSize: Bool = false
     
     var body: some View {
             
@@ -65,7 +72,27 @@ struct ConnectActions: View {
                             /**
                              * sufficient balance
                              */
+                            
+//                            /**
+//                             * connect window options
+//                             */
+//                            Picker(
+//                                "Connect Mode",
+//                                selection: $connectMode
+//                            ) {
+////                                ForEach(ConnectMode.allCases, id: \.self) {
+////                                    Text($0.rawValue.capitalized)
+////                                }
+//                                Text("Auto")
+//                                Text("Web")
+//                                Text("Streaming")
+//                            }.pickerStyle(.segmented)
+//                            
+//                            Spacer().frame(height: 12)
                          
+                            /**
+                             * Action buttons
+                             */
                             if (connectionStatus == .disconnected) {
                                 HStack {
                                     UrButton(text: "Connect", action: connect)
@@ -86,6 +113,43 @@ struct ConnectActions: View {
                                     action: reconnectTunnel ?? {},
                                 )
                             }
+                            
+                            Spacer().frame(height: 24)
+                            
+                            Text("Connect options")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            
+                            /**
+                             * connect window options
+                             */
+                            Picker(
+                                "Connection Mode",
+                                selection: $selectedWindowType
+                            ) {
+                                ForEach(WindowType.allCases) { type in
+                                    Text(type.displayName).tag(type)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            Spacer().frame(height: 12)
+                            
+                            /**
+                             * fixed IP
+                             */
+                            Toggle(isOn: $fixedIpSize) {
+                                Text("Fixed IP")
+                                    .font(themeManager.currentTheme.bodyFont)
+                            }
+                            .disabled(selectedWindowType == .auto)
+                            
+//                            Text(
+//                                "lorem ipsum some text about using fixed IP"
+//                            )
+//                            .font(themeManager.currentTheme.secondaryBodyFont)
+//                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                            
                             
                         }
                         
@@ -157,6 +221,27 @@ struct ConnectActions: View {
                     .colorMultiply(Color(white: 0.8))
             )
     }
+    
+//    private func createPerformanceProfile(
+//        windowType: WindowType,
+//        isFixedSize: Bool
+//    ) -> SdkPerformanceProfile? {
+//        if windowType == .auto {
+//            return nil
+//        }
+//        
+//        let performanceProfile = SdkPerformanceProfile()
+//        performanceProfile.windowType = windowType == .quality ? SdkWindowTypeQuality : SdkWindowTypeSpeed
+//        
+//        let windowSizeSettings = SdkWindowSizeSettings()
+//        windowSizeSettings.windowSizeMin = isFixedSize ? 1 : 2
+//        windowSizeSettings.windowSizeMax = isFixedSize ? 1 : 4
+//        
+//        performanceProfile.windowSize = windowSizeSettings
+//        
+//        return performanceProfile
+//        
+//    }
     
 }
 

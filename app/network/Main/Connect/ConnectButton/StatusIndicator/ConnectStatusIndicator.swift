@@ -48,7 +48,7 @@ struct ConnectStatusIndicator: View {
                     if displayReconnectTunnel {
                         return String(localized: "VPN tunnel disconnected 😓")
                     } else {
-                        return String(localized: "Connected to \(windowCurrentSize) providers")
+                        return String(localized: "Connected to \(windowCurrentSize) \(windowCurrentSize == 1 ? "provider" : "providers")")
                     }
                 }
                 case .none: return ""

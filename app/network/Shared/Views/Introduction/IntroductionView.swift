@@ -20,6 +20,17 @@ struct IntroductionView: View {
     let totalReferrals: Int
     let referralCode: String
     let meanReliabilityWeight: Double
+    let api: UrApiServiceProtocol
+    
+    init(close: @escaping () -> Void, totalReferrals: Int, referralCode: String, meanReliabilityWeight: Double, api: UrApiServiceProtocol) {
+        self.close = close
+        self.totalReferrals = totalReferrals
+        self.referralCode = referralCode
+        self.meanReliabilityWeight = meanReliabilityWeight
+        self.api = api
+        self.selectedPaymentOption = selectedPaymentOption
+        self.presentRedeemBalanceCodeSheet = presentRedeemBalanceCodeSheet
+    }
     
     private var monthlySubscription: Product? {
         return subscriptionManager.monthlySubscription
@@ -30,16 +41,19 @@ struct IntroductionView: View {
     }
     
     @State var selectedPaymentOption: PaymentOption = .yearly
+    @State var presentRedeemBalanceCodeSheet: Bool = false
+    @State var balanceCodeRedeemed: Bool = false
     
     var body: some View {
         
         ZStack {
             
-            if (subscriptionManager.purchaseSuccess) {
+            if (subscriptionManager.purchaseSuccess || balanceCodeRedeemed) {
                 
                 PurchaseSuccessView(dismiss: close)
                     .transition(.opacity)
                     .frame(maxWidth: .infinity)
+                    .ignoresSafeArea()
                 
             } else {
         
@@ -141,6 +155,9 @@ struct IntroductionView: View {
                                         
                                         
                                     })
+                                    
+//                                    Button("Redeem Balance Code", action: {presentRedeemBalanceCodeSheet = true})
+                                    
                                 } else {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle())
@@ -159,12 +176,9 @@ struct IntroductionView: View {
                             
                             Spacer().frame(height: 16)
                             
-                            
-                            
                             /**
-                             * Participate prompt
+                             * Participate flow
                              */
-                                
                             NavigationLink(destination: IntroductionUsageBar(
                                 close: close,
                                 totalReferrals: totalReferrals,
@@ -194,6 +208,27 @@ struct IntroductionView: View {
                             }
                             .buttonStyle(.plain)
                             
+                            Spacer().frame(height: 16)
+                            
+                            /**
+                             * Redeem balance code prompt
+                             */
+                            
+                            VStack(alignment: .center) {
+                                Text("Redeem Balance Code")
+                                    .font(themeManager.currentTheme.toolbarTitleFont)
+                                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(themeManager.currentTheme.textFaintColor, lineWidth: 1)
+                            )
+                            .onTapGesture {
+                                presentRedeemBalanceCodeSheet = true
+                            }
                             
                             Spacer().frame(height: 32)
                             
@@ -219,21 +254,51 @@ struct IntroductionView: View {
                             .accessibilityLabel("Close")
                         }
                     }
+                    .sheet(isPresented: $presentRedeemBalanceCodeSheet) {
+                        VStack {
+                         
+                            RedeemBalanceCodeSheet(
+                                closeSheet: {
+                                    presentRedeemBalanceCodeSheet = false
+                                },
+                                onSuccess: {
+                                    
+                                    presentRedeemBalanceCodeSheet = false
+                                    
+                                    // start polling
+                                    subscriptionBalanceViewModel.startPolling()
+                                    
+                                    Task {
+                                        // Wait approx. 300ms for the sheet to animate out and keyboard to dismiss
+                                        try? await Task.sleep(for: .milliseconds(300))
+                                        self.balanceCodeRedeemed = true
+                                    }
+                                },
+                                api: api
+                            )
+                            
+                        }
+                        .background(themeManager.currentTheme.backgroundColor)
+                    }
                 }
                 
             }
             
         }
         .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
+        .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)
         
     }
 }
+
+
 
 #Preview {
     IntroductionView(
         close: {},
         totalReferrals: 4,
         referralCode: "ABC123",
-        meanReliabilityWeight: 2.0
+        meanReliabilityWeight: 2.0,
+        api: MockUrApiService(),
     )
 }

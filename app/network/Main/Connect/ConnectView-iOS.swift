@@ -202,7 +202,10 @@ struct ConnectView_iOS: View {
                                 availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                                 pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                                 usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                                promptMoreDataFlow: promptMoreDataFlow,
+                                promptMoreDataFlow: {
+                                    promptMoreDataFlow()
+                                    isSheetExpanded = false
+                                },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: referralLinkViewModel.totalReferrals,
                                 isPro: isPro

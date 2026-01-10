@@ -207,7 +207,8 @@ struct MainTabView: View {
                     },
                     totalReferrals: referralLinkViewModel.totalReferrals,
                     referralCode: referralLinkViewModel.referralCode ?? "",
-                    meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0
+                    meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,
+                    api: urApiService
                 )
                 
                 UrSnackBar(
@@ -217,6 +218,7 @@ struct MainTabView: View {
                 .padding(.bottom, 50)
                 
             }
+            .presentationBackground(themeManager.currentTheme.backgroundColor)
             
         }
         

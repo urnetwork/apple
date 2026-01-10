@@ -87,7 +87,8 @@ struct AccountNavStackView: View {
             AccountRootView(
                 navigate: viewModel.navigate,
                 logout: logout,
-                api: api,
+                api: api, // todo - deprecate
+                urApiService: urApiService,
                 referralLinkViewModel: referralLinkViewModel,
                 accountPaymentsViewModel: accountPaymentsViewModel,
                 networkName: networkName,

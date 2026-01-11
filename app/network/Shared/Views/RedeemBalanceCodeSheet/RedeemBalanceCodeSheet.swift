@@ -14,7 +14,6 @@ struct RedeemBalanceCodeSheet: View {
     @StateObject private var viewModel: ViewModel
     
     @EnvironmentObject var themeManager: ThemeManager
-//    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     
     init(
         closeSheet: @escaping () -> Void,
@@ -36,8 +35,6 @@ struct RedeemBalanceCodeSheet: View {
         
             VStack {
                 
-//                Spacer().frame(height: 16)
-                
                 UrTextField(
                     text: $viewModel.code,
                     label: "Balance code",
@@ -53,32 +50,26 @@ struct RedeemBalanceCodeSheet: View {
                         }
                     }
                 )
-  
-                Spacer().frame(height: 32)
-                
-                // for testing - HFAEFVM7GAWSDV3JIHUFJEMLB2
-                
-                UrButton(
-                    text: "Redeem",
-                    action: {
-                        Task {
-                            let result = await viewModel.redeem()
-                            self.handleResult(result)
-                        }
-                    },
-                    enabled: viewModel.redeemState != .validating && viewModel.code.count == 26,
-                    isProcessing: viewModel.redeemState == .validating
-                )
                 
             }
             .padding()
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Redeem Balance Code")
-                        .font(themeManager.currentTheme.toolbarTitleFont).fontWeight(.bold)
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(
+                        "Redeem",
+                        action: {
+                            Task {
+                                let result = await viewModel.redeem()
+                                self.handleResult(result)
+                            }
+                        },
+                        
+                    )
+                    .disabled(viewModel.redeemState == .validating || viewModel.code.count != 26)
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button(action: {
                         closeSheet()
                     }) {
@@ -86,6 +77,7 @@ struct RedeemBalanceCodeSheet: View {
                     }
                 }
             }
+            .navigationTitle("Redeem Code")
             
         }
         .presentationDetents([.height(272)])

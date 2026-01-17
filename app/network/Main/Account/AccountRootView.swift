@@ -120,33 +120,35 @@ struct AccountRootView: View {
                             
                         }
                         
-                        Spacer().frame(height: 8)
-                        
                         /**
                          * only display usage bar to users with basic plans
                          */
-                        
-                        UsageBar(
-                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                            meanReliabilityWeight: meanReliabilityWeight,
-                            totalReferrals: referralLinkViewModel.totalReferrals
-                        )
-                        
-                        HStack {
+                        if (!isPro) {
                             
-                            Spacer()
+                            Spacer().frame(height: 8)
+                         
+                            UsageBar(
+                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                totalReferrals: referralLinkViewModel.totalReferrals
+                            )
                             
-                            Button(action: {
-                                viewModel.isPresentedRedeemBalanceCodeSheet = true
-                            }) {
-                                Text("Redeem Balance Code")
-                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                            HStack {
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    viewModel.isPresentedRedeemBalanceCodeSheet = true
+                                }) {
+                                    Text("Redeem Balance Code")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                }
+                                
                             }
                             
                         }
-                            
                         
                         Divider()
                             .background(themeManager.currentTheme.borderBaseColor)

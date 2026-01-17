@@ -15,6 +15,7 @@ enum AccountNavigationPath: Hashable {
     case wallet(_ wallet: SdkAccountWallet)
     case payout(payment: SdkAccountPayment, accountPoint: SdkAccountPoint?)
     case blockedLocations
+    case transferBalanceCodes
 }
 
 extension AccountNavStackView {

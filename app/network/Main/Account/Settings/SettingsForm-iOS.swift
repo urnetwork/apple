@@ -142,7 +142,7 @@ struct SettingsForm_iOS: View {
                 }
             }
             
-            Section("Authentication") {
+            Section("Account") {
                 /**
                  * Update referral code
                  */
@@ -169,8 +169,19 @@ struct SettingsForm_iOS: View {
                     }
                 }
                 
+                HStack {
+                    Text("Balance Codes")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.transferBalanceCodes)
+                }
+                
             }
-            
             
             Section("Connections") {
             

@@ -14,7 +14,7 @@ extension BlockedLocationsView {
     @MainActor
     class ViewModel: ObservableObject {
 
-        var api: UrApiServiceProtocol
+        let api: UrApiServiceProtocol
 
         @Published var isInitializing: Bool = true
         @Published var isLoading: Bool = false

@@ -184,6 +184,11 @@ struct AccountNavStackView: View {
                         countries: providerCountries
                     )
                     .navigationTitle("Blocked Locations")
+                 
+                case .transferBalanceCodes:
+                    
+                    TransferBalanceCodesView(api: urApiService)
+                        .navigationTitle("Balance Codes")
                     
                 }
                 

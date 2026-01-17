@@ -42,6 +42,7 @@ protocol UrApiServiceProtocol {
      */
     func fetchSubscriptionBalance() async throws -> SdkSubscriptionBalanceResult
     func redeemBalanceCode(_ code: String) async throws -> SdkRedeemBalanceCodeResult
+    func getRedeemedBalanceCodes() async throws -> SdkGetNetworkRedeemedBalanceCodesResult
     
     /**
      * Network Block locations

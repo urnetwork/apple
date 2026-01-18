@@ -23,8 +23,8 @@ struct TransferBalanceCodesView: View {
     
     var body: some View {
         
-        Group {
-         
+        ZStack {
+        
             if (viewModel.isInitializing) {
                 VStack {
                     
@@ -38,17 +38,11 @@ struct TransferBalanceCodesView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 
-                if viewModel.redeemedBalanceCodes.isEmpty {
-                    VStack {
-                        Text("No balance codes found")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    
-                    List {
+                List {
+                    if (!viewModel.redeemedBalanceCodes.isEmpty) {
+                        
                         Section {
+                            
                             ForEach(viewModel.redeemedBalanceCodes, id: \.balanceCodeId?.idStr) { balanceCode in
                                 let masked: String = {
                                     let keep = 3
@@ -67,6 +61,7 @@ struct TransferBalanceCodesView: View {
                                     }
                                 }
                             }
+                            
                         } header: {
                             HStack {
                                 Text("Code")
@@ -80,46 +75,61 @@ struct TransferBalanceCodesView: View {
                             .padding(.vertical, 4)
                         }
                     }
-                    .listStyle(.inset)
                     
                 }
-            }
-        }
-        .toolbar {
-            
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: {
-                    viewModel.displayRedeemSheet = true
-                }) {
-                    Image(systemName: "plus")
+                .listStyle(.inset)
+                .refreshable {
+                    await viewModel.getRedeemedBalanceCodes()
                 }
-            }
-        }
-        .sheet(isPresented: $viewModel.displayRedeemSheet) {
-            VStack {
-             
-                RedeemBalanceCodeSheet(
-                    closeSheet: {
-                        viewModel.displayRedeemSheet = false
-                    },
-                    onSuccess: {
-                        
-                        viewModel.displayRedeemSheet = false
-                        
-                        // start polling
-                         subscriptionBalanceViewModel.startPolling()
-
-                        Task {
-                            await viewModel.getRedeemedBalanceCodes()
+                .toolbar {
+                    
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: {
+                            viewModel.displayRedeemSheet = true
+                        }) {
+                            Image(systemName: "plus")
                         }
+                    }
+                }
+                .sheet(isPresented: $viewModel.displayRedeemSheet) {
+                    VStack {
                         
-                    },
-                    api: self.api
-                )
+                        RedeemBalanceCodeSheet(
+                            closeSheet: {
+                                viewModel.displayRedeemSheet = false
+                            },
+                            onSuccess: {
+                                
+                                viewModel.displayRedeemSheet = false
+                                
+                                // start polling
+                                subscriptionBalanceViewModel.startPolling()
+                                
+                                Task {
+                                    await viewModel.getRedeemedBalanceCodes()
+                                }
+                                
+                            },
+                            api: self.api
+                        )
+                        
+                    }
+                    .background(themeManager.currentTheme.backgroundColor)
+                }
+                
+                if (viewModel.redeemedBalanceCodes.isEmpty) {
+                    VStack {
+                        Text("No balance codes found")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
                 
             }
-            .background(themeManager.currentTheme.backgroundColor)
+            
         }
+        
     }
 }
 

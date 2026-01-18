@@ -361,6 +361,8 @@ struct SettingsForm_iOS: View {
             
             
         }
+        .scrollContentBackground(.hidden)
+        .background(themeManager.currentTheme.backgroundColor)
     }
 }
 #endif

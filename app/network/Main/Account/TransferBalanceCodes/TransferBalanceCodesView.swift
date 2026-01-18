@@ -60,6 +60,7 @@ struct TransferBalanceCodesView: View {
                                         Text(redeemTime.format("Jan 2, 2006"))
                                     }
                                 }
+                                .listRowBackground(themeManager.currentTheme.backgroundColor)
                             }
                             
                         } header: {
@@ -78,6 +79,8 @@ struct TransferBalanceCodesView: View {
                     
                 }
                 .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(themeManager.currentTheme.backgroundColor)
                 .refreshable {
                     await viewModel.getRedeemedBalanceCodes()
                 }
@@ -124,11 +127,13 @@ struct TransferBalanceCodesView: View {
                             .foregroundStyle(themeManager.currentTheme.textMutedColor)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                 }
                 
             }
             
         }
+        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
         
     }
 }

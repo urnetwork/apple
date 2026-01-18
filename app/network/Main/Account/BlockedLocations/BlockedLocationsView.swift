@@ -69,6 +69,7 @@ struct BlockedLocationsView: View {
                                 Text("\(location.locationName)")
                                 Spacer()
                             }
+                            .listRowBackground(themeManager.currentTheme.backgroundColor)
                             .swipeActions(edge: .trailing) {
                                 
                                 Button(role: .destructive) {
@@ -87,6 +88,8 @@ struct BlockedLocationsView: View {
                         
                     }
                     .listStyle(.inset)
+                    .scrollContentBackground(.hidden)
+                    .background(themeManager.currentTheme.backgroundColor)
                     
                 }
                     

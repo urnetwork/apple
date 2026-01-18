@@ -3504,6 +3504,7 @@
       }
     },
     "Authentication" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

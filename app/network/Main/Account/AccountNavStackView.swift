@@ -176,6 +176,7 @@ struct AccountNavStackView: View {
                         isMultiplierTokenHolder: accountWalletsViewModel.isSeekerOrSagaHolder
                     )
                     .navigationTitle(toolbarTitle)
+                    .background(themeManager.currentTheme.backgroundColor)
                     
                 case .blockedLocations:
 
@@ -184,11 +185,13 @@ struct AccountNavStackView: View {
                         countries: providerCountries
                     )
                     .navigationTitle("Blocked Locations")
+                    .background(themeManager.currentTheme.backgroundColor)
                  
                 case .transferBalanceCodes:
                     
                     TransferBalanceCodesView(api: urApiService)
                         .navigationTitle("Balance Codes")
+                        .background(themeManager.currentTheme.backgroundColor)
                     
                 }
                 

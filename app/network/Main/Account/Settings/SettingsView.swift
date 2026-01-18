@@ -80,6 +80,7 @@ struct SettingsView: View {
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
                 canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
             )
+            .background(themeManager.currentTheme.backgroundColor)
             .confirmationDialog(
                 "Are you sure you want to delete your account?",
                 isPresented: $viewModel.isPresentedDeleteAccountConfirmation,

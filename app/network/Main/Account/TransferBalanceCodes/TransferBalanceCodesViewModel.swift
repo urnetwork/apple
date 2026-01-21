@@ -50,8 +50,8 @@ extension TransferBalanceCodesView {
                     // loop
                     for i in 0..<len {
                         
-                        if let location = result.balanceCodes?.get(i) {
-                            balanceCodes.append(location)
+                        if let balanceCode = result.balanceCodes?.get(i) {
+                            balanceCodes.append(balanceCode)
                         }
                     }
                 }

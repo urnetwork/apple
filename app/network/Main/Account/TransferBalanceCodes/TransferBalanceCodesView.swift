@@ -57,7 +57,7 @@ struct TransferBalanceCodesView: View {
                                     
                                     Spacer()
                                     
-                                    Text("+\(formatBytes(balanceCode.balanceByteCount))")
+                                    Text("+\(formatBalanceBytes(Int(balanceCode.balanceByteCount)))")
                                     
                                     Spacer()
         
@@ -157,19 +157,6 @@ struct TransferBalanceCodesView: View {
             
         }
         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-    }
-    
-    private func formatBytes(_ bytes: Int64) -> String {
-        let oneTiB = 1024 * 1024 * 1024 * 1024
-        let oneGiB = 1024 * 1024 * 1024
-        let doubleBytes = Double(bytes)
-        if bytes >= oneTiB {
-            let value = doubleBytes / Double(oneTiB)
-            return String(format: "%.2f TiB", value)
-        } else {
-            let value = doubleBytes / Double(oneGiB)
-            return String(format: "%.2f GiB", value)
-        }
     }
     
     private func formatShortDate(unixMilli: Int64) -> String {

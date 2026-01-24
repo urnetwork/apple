@@ -28,6 +28,7 @@ struct ConnectActions: View {
     let meanReliabilityWeight: Double
     let totalReferrals: Int
     let isPro: Bool
+    let dailyBalanceByteCount: Int
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -131,7 +132,8 @@ struct ConnectActions: View {
                                 pendingByteCount: pendingByteCount,
                                 usedByteCount: usedByteCount,
                                 meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: totalReferrals
+                                totalReferrals: totalReferrals,
+                                dailyBalanceByteCount: dailyBalanceByteCount
                             )
                             
                         }

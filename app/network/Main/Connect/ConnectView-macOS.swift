@@ -102,7 +102,8 @@ import URnetworkSdk
                                 },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: totalReferrals,
-                                isPro: isPro
+                                isPro: isPro,
+                                dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                             
                         }

@@ -37,7 +37,7 @@ struct ConnectView_iOS: View {
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
     private let sheetMinHeight: CGFloat   // collapsed peek height (adjust)
-    private let sheetMaxHeight: CGFloat = 500   // expanded height (adjust)
+    private let sheetMaxHeight: CGFloat = 520   // expanded height (adjust)
 
     
     init(
@@ -159,27 +159,19 @@ struct ConnectView_iOS: View {
                 .frame(maxWidth: .infinity)
                 
                 VStack(spacing: 0) {
-                    
-                    if (!isPro) {
-                        /**
-                         * Temporarily disable expanding the sheet if user is pro.
-                         * As we add more sheet functionality, we can remove this check
-                         */
-                     
-                        // Drag handle
-                        VStack(spacing: 8) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.secondary.opacity(0.6))
-                                .frame(width: 36, height: 4)
-                                .padding(.vertical, 16)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
-                        .gesture(sheetDragGesture())
-
-                        Divider()
-                        
+                 
+                    // Drag handle
+                    VStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.secondary.opacity(0.6))
+                            .frame(width: 36, height: 4)
+                            .padding(.vertical, 16)
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .gesture(sheetDragGesture())
+
+                    Divider()
 
                     // Sheet content can scroll only when expanded
                     ScrollView {

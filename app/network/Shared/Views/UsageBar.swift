@@ -127,7 +127,7 @@ struct UsageBar: View {
                 "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
             ])
             
-            Spacer().frame(height: 8)
+            Spacer().frame(height: 16)
             
             HStack {
                 
@@ -144,6 +144,8 @@ struct UsageBar: View {
             }
             
             Divider()
+            
+            Spacer().frame(height: 8)
 
             HStack {
                 
@@ -158,6 +160,8 @@ struct UsageBar: View {
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
             }
+            
+            Spacer().frame(height: 8)
             
             
             HStack {

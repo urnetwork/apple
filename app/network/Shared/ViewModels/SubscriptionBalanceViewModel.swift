@@ -36,6 +36,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     @Published private(set) var usedBalanceByteCount: Int = 0
     @Published private(set) var pendingByteCount: Int = 0
     @Published private(set) var availableByteCount: Int = 0
+    @Published private(set) var startBalanceByteCount: Int = 0
     
     private let refreshJwt: () -> Void
     private var isPro: Bool
@@ -100,6 +101,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.availableByteCount = Int(result.balanceByteCount)
             self.pendingByteCount = Int(result.openTransferByteCount)
             self.usedBalanceByteCount = Int(result.startBalanceByteCount) - self.availableByteCount - self.pendingByteCount
+            self.startBalanceByteCount = Int(result.startBalanceByteCount)
             
             if let currentSubscription = result.currentSubscription {
   

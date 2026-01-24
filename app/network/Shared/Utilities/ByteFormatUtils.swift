@@ -1,5 +1,5 @@
 //
-//  FormatMiB.swift
+//  ByteFormatUtils.swift
 //  URnetwork
 //
 //  Created by Stuart Kuentzel on 7/5/25.
@@ -38,5 +38,18 @@ func formatMiB(mib: Float) -> String {
         let formatted =
             formatter.string(from: NSNumber(value: mib)) ?? String(format: "%.2f", mib)
         return "\(formatted) MiB"
+    }
+}
+
+func formatBalanceBytes(_ bytes: Int) -> String {
+    let oneTiB = 1024 * 1024 * 1024 * 1024
+    let oneGiB = 1024 * 1024 * 1024
+    let doubleBytes = Double(bytes)
+    if bytes >= oneTiB {
+        let value = doubleBytes / Double(oneTiB)
+        return String(format: "%.2f TiB", value)
+    } else {
+        let value = doubleBytes / Double(oneGiB)
+        return String(format: "%.2f GiB", value)
     }
 }

@@ -37,7 +37,7 @@ struct ConnectView_iOS: View {
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
     private let sheetMinHeight: CGFloat   // collapsed peek height (adjust)
-    private let sheetMaxHeight: CGFloat = 480   // expanded height (adjust)
+    private let sheetMaxHeight: CGFloat = 500   // expanded height (adjust)
 
     
     init(
@@ -63,9 +63,7 @@ struct ConnectView_iOS: View {
         
 
         self.isPro = isPro
-
-        // we can remove this once pro is scrollable
-        self.sheetMinHeight = isPro ? 250 : 280
+        self.sheetMinHeight = 280
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -208,7 +206,8 @@ struct ConnectView_iOS: View {
                                 },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: referralLinkViewModel.totalReferrals,
-                                isPro: isPro
+                                isPro: isPro,
+                                dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                         }
                     }

@@ -119,33 +119,27 @@ struct AccountRootView: View {
                             }
                             
                         }
+                            
+                        Spacer().frame(height: 8)
+                     
+                        UsageBar(
+                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                            meanReliabilityWeight: meanReliabilityWeight,
+                            totalReferrals: referralLinkViewModel.totalReferrals,
+                            dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
+                        )
                         
-                        /**
-                         * only display usage bar to users with basic plans
-                         */
-                        if (!isPro) {
+                        HStack {
                             
-                            Spacer().frame(height: 8)
-                         
-                            UsageBar(
-                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                                meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: referralLinkViewModel.totalReferrals
-                            )
+                            Spacer()
                             
-                            HStack {
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    viewModel.isPresentedRedeemBalanceCodeSheet = true
-                                }) {
-                                    Text("Redeem Balance Code")
-                                        .font(themeManager.currentTheme.secondaryBodyFont)
-                                }
-                                
+                            Button(action: {
+                                viewModel.isPresentedRedeemBalanceCodeSheet = true
+                            }) {
+                                Text("Redeem Balance Code")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
                             }
                             
                         }

@@ -232,6 +232,7 @@ class VPNManager {
         
         if (provideEnabled || connectEnabled || !routeLocal) {
             print("[VPNManager]start")
+            print("[VPNManager]start")
             
             // if provide paused, keep the vpn on but do not keep the locks
             setIdleTimerDisabled(!providePaused)
@@ -398,6 +399,9 @@ class VPNManager {
             }
             
             if reset {
+                
+                print("resetting vpn")
+                
                 tunnelManager.removeFromPreferences() { error in
                     if tunnelInstance != self.tunnelInstance {
                         return

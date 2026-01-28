@@ -36,8 +36,8 @@ struct ConnectView_iOS: View {
     @State private var isSheetExpanded = false
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
-    private let sheetMinHeight: CGFloat   // collapsed peek height (adjust)
-    private let sheetMaxHeight: CGFloat = 520   // expanded height (adjust)
+    private let sheetMinHeight: CGFloat   // collapsed peek height
+    private let sheetMaxHeight: CGFloat = 640   // expanded height
 
     
     init(
@@ -199,12 +199,15 @@ struct ConnectView_iOS: View {
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: referralLinkViewModel.totalReferrals,
                                 isPro: isPro,
+                                selectedWindowType: $deviceManager.selectedWindowType,
+                                fixedIpSize: $deviceManager.fixedIpSize,
                                 dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                         }
                     }
                     .scrollIndicators(.hidden)
-                    .scrollDisabled(!isSheetExpanded)
+//                    .scrollDisabled(!isSheetExpanded) // we can set this once sheet takes up entire view
+                    .scrollDisabled(true)
                 }
                 .frame(height: currentSheetHeight())
                 .frame(maxWidth: .infinity)

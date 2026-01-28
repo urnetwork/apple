@@ -28,6 +28,8 @@ struct ConnectActions: View {
     let meanReliabilityWeight: Double
     let totalReferrals: Int
     let isPro: Bool
+    @Binding var selectedWindowType: WindowType
+    @Binding var fixedIpSize: Bool
     let dailyBalanceByteCount: Int
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -67,6 +69,9 @@ struct ConnectActions: View {
                              * sufficient balance
                              */
                          
+                            /**
+                             * Action buttons
+                             */
                             if (connectionStatus == .disconnected) {
                                 HStack {
                                     UrButton(text: "Connect", action: connect)
@@ -87,6 +92,43 @@ struct ConnectActions: View {
                                     action: reconnectTunnel ?? {},
                                 )
                             }
+                            
+                            Spacer().frame(height: 24)
+                            
+                            Text("Connect options")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            
+                            /**
+                             * connect window options
+                             */
+                            Picker(
+                                "Connection Mode",
+                                selection: $selectedWindowType
+                            ) {
+                                ForEach(WindowType.allCases) { type in
+                                    Text(type.displayName).tag(type)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            Spacer().frame(height: 12)
+                            
+                            /**
+                             * fixed IP
+                             */
+                            Toggle(isOn: $fixedIpSize) {
+                                Text("Fixed IP")
+                                    .font(themeManager.currentTheme.bodyFont)
+                            }
+                            .disabled(selectedWindowType == .auto)
+                            
+//                            Text(
+//                                "lorem ipsum some text about using fixed IP"
+//                            )
+//                            .font(themeManager.currentTheme.secondaryBodyFont)
+//                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                            
                             
                         }
                         

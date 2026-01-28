@@ -51,8 +51,6 @@ struct ProvideControlPicker: View {
             }
 
         }
-        
-    
     
 }
 

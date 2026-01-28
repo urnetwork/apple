@@ -103,6 +103,8 @@ import URnetworkSdk
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: totalReferrals,
                                 isPro: isPro,
+                                selectedWindowType: $deviceManager.selectedWindowType,
+                                fixedIpSize: $deviceManager.fixedIpSize,
                                 dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                             

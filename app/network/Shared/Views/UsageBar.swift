@@ -25,13 +25,15 @@ struct UsageBar: View {
     let meanReliabilityWeight: Double
     let totalReferrals: Int
     let cappedReliabilityData: Double
+    let dailyBalanceByteCount: Int
     
     init(
         availableByteCount: Int,
         pendingByteCount: Int,
         usedByteCount: Int,
         meanReliabilityWeight: Double,
-        totalReferrals: Int
+        totalReferrals: Int,
+        dailyBalanceByteCount: Int
     ) {
         self.data = [
             .init(name: "Used", bytes: usedByteCount),
@@ -44,6 +46,7 @@ struct UsageBar: View {
         self.totalReferrals = totalReferrals
         
         cappedReliabilityData = min(meanReliabilityWeight * 100, 100)
+        self.dailyBalanceByteCount = dailyBalanceByteCount
     }
     
     func minNonZeroValue(_ bytes: Int) -> Int {
@@ -124,17 +127,25 @@ struct UsageBar: View {
                 "Used": .urElectricBlue, "Pending": .urCoral, "Available": themeManager.currentTheme.textFaintColor
             ])
             
-            Spacer().frame(height: 8)
+            Spacer().frame(height: 16)
             
             HStack {
                 
+                Text("Daily Data Balance:")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                
                 Spacer()
                 
-                Text("10 GiB/Month")
+                Text(formatBalanceBytes(dailyBalanceByteCount))
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
             }
+            
+            Divider()
+            
+            Spacer().frame(height: 8)
 
             HStack {
                 
@@ -149,6 +160,8 @@ struct UsageBar: View {
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 
             }
+            
+            Spacer().frame(height: 8)
             
             
             HStack {
@@ -169,6 +182,7 @@ struct UsageBar: View {
         }
         
     }
+    
 }
 
 #Preview {
@@ -177,6 +191,7 @@ struct UsageBar: View {
         pendingByteCount: 10,
         usedByteCount: 20,
         meanReliabilityWeight: 0.2,
-        totalReferrals: 2
+        totalReferrals: 2,
+        dailyBalanceByteCount: 100
     )
 }

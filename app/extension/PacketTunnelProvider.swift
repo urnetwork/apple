@@ -43,7 +43,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // the binary and go runtime take about 16mib of that
             // see https://forums.developer.apple.com/forums/thread/73148?page=2
             #if os(iOS)
-            SdkSetMemoryLimit(24 * 1024 * 1024)
+            SdkSetMemoryLimit(28 * 1024 * 1024)
             #else
             SdkSetMemoryLimit(48 * 1024 * 1024)
             #endif
@@ -228,9 +228,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                         return
                     }
-                    self.reasserting = device.getConnectLocation() != nil
-//                    readToDevice(packetFlow: self.packetFlow, device: device)
-                    self.readToDevice()
+                    if device.getConnectLocation() == nil {
+                        self.reasserting = false
+                        //                    readToDevice(packetFlow: self.packetFlow, device: device)
+//                        self.readToDevice()
+                    }
                 }
             }
         }
@@ -238,7 +240,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let locationChangeSub = device.add(ConnectLocationChangeListener { location in
             try? localState.setConnectLocation(location)
             
-            if location == nil {
+            if device.getConnectLocation() == nil {
                 DispatchQueue.main.async {
                     setLocal()
                 }
@@ -253,7 +255,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
             try? localState.setProvideMode(provideMode)
             
-            if provideEnabled {
+            if provideEnabled && device.getConnectLocation() == nil {
                 DispatchQueue.main.async {
                     setLocal()
                 }
@@ -274,15 +276,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         setLocal()
                     } else {
                         self.reasserting = true
-                        self.setTunnelNetworkSettings(self.networkSettings()) { error in
-                            if let error = error {
-                                self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
-                                return
-                            }
-//                            readToDevice(packetFlow: self.packetFlow, device: device)
-//                            startPacketFlow()
-                            self.readToDevice()
-                        }
+//                        self.setTunnelNetworkSettings(self.networkSettings()) { error in
+//                            if let error = error {
+//                                self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
+//                                return
+//                            }
+////                            readToDevice(packetFlow: self.packetFlow, device: device)
+////                            startPacketFlow()
+//                            self.readToDevice()
+//                        }
                     }
                 } else {
                     self.setTunnelNetworkSettings(self.networkSettings()) { error in
@@ -290,10 +292,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                             return
                         }
-                        self.reasserting = false
-//                        readToDevice(packetFlow: self.packetFlow, device: device)
-//                        startPacketFlow()
-                        self.readToDevice()
+                        if connected {
+                            self.reasserting = false
+                            //                        readToDevice(packetFlow: self.packetFlow, device: device)
+                            //                        startPacketFlow()
+//                            self.readToDevice()
+                        }
                     }
     //                self.reasserting = false
                 }
@@ -357,12 +361,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
 //        Thread.setThreadPriority(1.0)
-        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
-//            startPacketFlow()
-            self.readToDevice()
-            updateWindowStatus(device.getWindowStatus())
-            completionHandler(nil)
-        }
+//        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
+////            startPacketFlow()
+//            self.readToDevice()
+//            updateWindowStatus(device.getWindowStatus())
+//            completionHandler(nil)
+//        }
+        
+        updateWindowStatus(device.getWindowStatus())
+        self.readToDevice()
+        completionHandler(nil)
     }
     
     func networkSettings() -> NEPacketTunnelNetworkSettings {

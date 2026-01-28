@@ -30,6 +30,7 @@ struct ConnectActions: View {
     let isPro: Bool
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
+    let dailyBalanceByteCount: Int
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -165,50 +166,49 @@ struct ConnectActions: View {
                     /**
                      * Upgrade and participate flows
                      */
-                    if (!isPro) {
                         
-                        VStack(alignment: .leading, spacing: 0) {
-                            
-                            Text("Plan")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                            
-                            HStack(alignment: .firstTextBaseline) {
-                                 
-                                Text("Free")
-                                    .font(themeManager.currentTheme.titleCondensedFont)
-                                    .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                                Spacer()
- 
+                    VStack(alignment: .leading, spacing: 0) {
+                        
+                        Text("Plan")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        
+                        HStack(alignment: .firstTextBaseline) {
+                             
+                            Text(isPro ? "Supporter" : "Free")
+                                .font(themeManager.currentTheme.titleCondensedFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                        
+                            Spacer()
+
+                            if (!isPro) {
                                 Button(action: {
                                     promptMoreDataFlow()
                                 }) {
                                     Text("Get Pro")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                 }
-                                
                             }
-                                
-                            UsageBar(
-                                availableByteCount: availableByteCount,
-                                pendingByteCount: pendingByteCount,
-                                usedByteCount: usedByteCount,
-                                meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: totalReferrals
-                            )
                             
                         }
-                        .padding()
-                        .background(
-                            themeManager.currentTheme.tintedBackgroundBase,
+                            
+                        UsageBar(
+                            availableByteCount: availableByteCount,
+                            pendingByteCount: pendingByteCount,
+                            usedByteCount: usedByteCount,
+                            meanReliabilityWeight: meanReliabilityWeight,
+                            totalReferrals: totalReferrals,
+                            dailyBalanceByteCount: dailyBalanceByteCount
                         )
-                        .cornerRadius(12)
                         
                     }
+                    .padding()
+                    .background(
+                        themeManager.currentTheme.tintedBackgroundBase,
+                    )
+                    .cornerRadius(12)
                     
                 }
-                
             }
             
             .padding(.horizontal)

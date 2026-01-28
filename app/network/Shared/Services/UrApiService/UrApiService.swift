@@ -535,6 +535,57 @@ extension UrApiService {
         
     }
     
+    func redeemBalanceCode(_ code: String) async throws -> SdkRedeemBalanceCodeResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = RedeemBalanceCodeCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "RedeemBalanceCodeCallback result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            let args = SdkRedeemBalanceCodeArgs()
+            args.secret = code
+            
+            api.redeemBalanceCode(args, callback: callback)
+        }
+        
+    }
+    
+    func getRedeemedBalanceCodes() async throws -> SdkGetNetworkRedeemedBalanceCodesResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = GetNetworkRedeemedBalanceCodesCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "GetNetworkRedeemedBalanceCodesCallback result is nil"]))
+                    return
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            api.getNetworkRedeemedBalanceCodes(callback)
+        }
+    }
+    
 }
 
 // MARK - blocking locations
@@ -921,6 +972,18 @@ private class UpdateReferralNetworkCallback: SdkCallback<SdkSetNetworkReferralRe
 
 private class UnlinkReferralNetworkCallback: SdkCallback<SdkUnlinkReferralNetworkResult, SdkUnlinkReferralNetworkCallbackProtocol>, SdkUnlinkReferralNetworkCallbackProtocol {
     func result(_ result: SdkUnlinkReferralNetworkResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class RedeemBalanceCodeCallback: SdkCallback<SdkRedeemBalanceCodeResult, SdkRedeemBalanceCodeCallbackProtocol>, SdkRedeemBalanceCodeCallbackProtocol {
+    func result(_ result: SdkRedeemBalanceCodeResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class GetNetworkRedeemedBalanceCodesCallback: SdkCallback<SdkGetNetworkRedeemedBalanceCodesResult, SdkGetNetworkRedeemedBalanceCodesCallbackProtocol>, SdkGetNetworkRedeemedBalanceCodesCallbackProtocol {
+    func result(_ result: SdkGetNetworkRedeemedBalanceCodesResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

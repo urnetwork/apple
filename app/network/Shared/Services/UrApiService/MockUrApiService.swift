@@ -93,4 +93,12 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkUnlinkReferralNetworkResult()
     }
     
+    func redeemBalanceCode(_ code: String) async throws -> SdkRedeemBalanceCodeResult {
+        return SdkRedeemBalanceCodeResult()
+    }
+    
+    func getRedeemedBalanceCodes() async throws -> SdkGetNetworkRedeemedBalanceCodesResult {
+        return SdkGetNetworkRedeemedBalanceCodesResult()
+    }
+    
 }

@@ -42,7 +42,8 @@ struct IntroductionUsageBar: View {
                         pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                         usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
                         meanReliabilityWeight: meanReliabilityWeight,
-                        totalReferrals: totalReferrals
+                        totalReferrals: totalReferrals,
+                        dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                     )
                     
                     Spacer().frame(height: 32)

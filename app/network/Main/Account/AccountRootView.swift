@@ -21,6 +21,7 @@ struct AccountRootView: View {
     let navigate: (AccountNavigationPath) -> Void
     let logout: () -> Void
     let api: SdkApi
+    let urApiService: UrApiServiceProtocol
     let networkName: String?
     let meanReliabilityWeight: Double
     let isPro: Bool
@@ -48,6 +49,7 @@ struct AccountRootView: View {
         navigate: @escaping (AccountNavigationPath) -> Void,
         logout: @escaping () -> Void,
         api: SdkApi,
+        urApiService: UrApiServiceProtocol,
         referralLinkViewModel: ReferralLinkViewModel,
         accountPaymentsViewModel: AccountPaymentsViewModel,
         networkName: String?,
@@ -57,6 +59,7 @@ struct AccountRootView: View {
         self.navigate = navigate
         self.logout = logout
         self.api = api
+        self.urApiService = urApiService
         
         self.referralLinkViewModel = referralLinkViewModel
         self.accountPaymentsViewModel = accountPaymentsViewModel
@@ -69,7 +72,7 @@ struct AccountRootView: View {
     var body: some View {
         
         let isGuest = deviceManager.parsedJwt?.guestMode ?? true
-
+            
         ScrollView {
             
             HStack {
@@ -77,8 +80,6 @@ struct AccountRootView: View {
                 Spacer(minLength: 0)
              
                 VStack {
-                    
-//                    Spacer().frame(height: 16)
                  
                     VStack(alignment: .leading, spacing: 0) {
                         
@@ -118,22 +119,28 @@ struct AccountRootView: View {
                             }
                             
                         }
+                            
+                        Spacer().frame(height: 8)
+                     
+                        UsageBar(
+                            availableByteCount: subscriptionBalanceViewModel.availableByteCount,
+                            pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
+                            usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
+                            meanReliabilityWeight: meanReliabilityWeight,
+                            totalReferrals: referralLinkViewModel.totalReferrals,
+                            dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
+                        )
                         
-                        if (!isPro) {
+                        HStack {
                             
-                            Spacer().frame(height: 8)
+                            Spacer()
                             
-                            /**
-                             * only display usage bar to users with basic plans
-                             */
-                            
-                            UsageBar(
-                                availableByteCount: subscriptionBalanceViewModel.availableByteCount,
-                                pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
-                                usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                                meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: referralLinkViewModel.totalReferrals
-                            )
+                            Button(action: {
+                                viewModel.isPresentedRedeemBalanceCodeSheet = true
+                            }) {
+                                Text("Redeem Balance Code")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                            }
                             
                         }
                         
@@ -170,9 +177,6 @@ struct AccountRootView: View {
                     .background(themeManager.currentTheme.tintedBackgroundBase)
                     .cornerRadius(12)
                     .padding()
-//                    .padding(.horizontal)
-                    
-//                    Spacer().frame(height: 16)
                     
                     /**
                      * Navigation items
@@ -361,6 +365,42 @@ struct AccountRootView: View {
                 await subscriptionBalanceViewModel.fetchSubscriptionBalance()
             }
         }
+        .sheet(isPresented: $viewModel.isPresentedRedeemBalanceCodeSheet) {
+            
+            VStack {
+             
+                RedeemBalanceCodeSheet(
+                    closeSheet: {
+                        viewModel.isPresentedRedeemBalanceCodeSheet = false
+                    },
+                    onSuccess: {
+                        
+                        viewModel.isPresentedRedeemBalanceCodeSheet = false
+                        
+                        // start polling
+                        subscriptionBalanceViewModel.startPolling()
+                        
+                        Task {
+                            // Wait approx. 300ms for the sheet to animate out and keyboard to dismiss
+                            try? await Task.sleep(for: .milliseconds(300))
+                            viewModel.balanceCodeRedeemed = true
+                        }
+                    },
+                    api: urApiService
+                )
+                
+            }
+            .background(themeManager.currentTheme.backgroundColor)
+            
+        }
+        .sheet(isPresented: $viewModel.balanceCodeRedeemed) {
+            PurchaseSuccessView(dismiss: {
+                viewModel.balanceCodeRedeemed = false
+            })
+            .transition(.opacity)
+            .frame(maxWidth: .infinity)
+            .ignoresSafeArea()
+        }
         .sheet(isPresented: $viewModel.isPresentedUpgradeSheet) {
             UpgradeSubscriptionSheet(
                 monthlyProduct: subscriptionManager.monthlySubscription,
@@ -447,6 +487,7 @@ struct AccountRootView: View {
             }
         }
         #endif
+        
     }
     
     private func handleSuccessWithJwt(_ jwt: String) async {
@@ -478,7 +519,6 @@ struct AccountRootView: View {
             print("handleSuccessWithJwt error is \(error)")
         }
 
-        
     }
     
 }

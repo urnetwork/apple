@@ -36,8 +36,8 @@ struct ConnectView_iOS: View {
     @State private var isSheetExpanded = false
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
-    private let sheetMinHeight: CGFloat = 280   // collapsed peek height (adjust)
-    private let sheetMaxHeight: CGFloat   // expanded height (adjust)
+    private let sheetMinHeight: CGFloat   // collapsed peek height
+    private let sheetMaxHeight: CGFloat = 640   // expanded height
 
     
     init(
@@ -63,10 +63,7 @@ struct ConnectView_iOS: View {
         
 
         self.isPro = isPro
-
-        // we can remove this once pro is scrollable
-        // self.sheetMinHeight = isPro ? 250 : 280
-        self.sheetMaxHeight = isPro ? 440 : 600
+        self.sheetMinHeight = 280
         
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -162,11 +159,6 @@ struct ConnectView_iOS: View {
                 .frame(maxWidth: .infinity)
                 
                 VStack(spacing: 0) {
-                    
-                    /**
-                     * Temporarily disable expanding the sheet if user is pro.
-                     * As we add more sheet functionality, we can remove this check
-                     */
                  
                     // Drag handle
                     VStack(spacing: 8) {
@@ -200,17 +192,21 @@ struct ConnectView_iOS: View {
                                 availableByteCount: subscriptionBalanceViewModel.availableByteCount,
                                 pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                                 usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
-                                promptMoreDataFlow: promptMoreDataFlow,
+                                promptMoreDataFlow: {
+                                    promptMoreDataFlow()
+                                    isSheetExpanded = false
+                                },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: referralLinkViewModel.totalReferrals,
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
-                                fixedIpSize: $deviceManager.fixedIpSize
+                                fixedIpSize: $deviceManager.fixedIpSize,
+                                dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                         }
                     }
                     .scrollIndicators(.hidden)
-                    // .scrollDisabled(!isSheetExpanded) // we can set this once sheet takes up entire view
+//                    .scrollDisabled(!isSheetExpanded) // we can set this once sheet takes up entire view
                     .scrollDisabled(true)
                 }
                 .frame(height: currentSheetHeight())

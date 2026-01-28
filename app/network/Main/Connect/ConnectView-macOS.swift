@@ -102,7 +102,10 @@ import URnetworkSdk
                                 },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: totalReferrals,
-                                isPro: isPro
+                                isPro: isPro,
+                                selectedWindowType: $deviceManager.selectedWindowType,
+                                fixedIpSize: $deviceManager.fixedIpSize,
+                                dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                             
                         }

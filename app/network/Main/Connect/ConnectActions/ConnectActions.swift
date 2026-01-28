@@ -34,11 +34,6 @@ struct ConnectActions: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    // for testing
-//    @State var connectMode = "Auto"
-//    @State private var selectedWindowType: WindowType = .auto
-//    @State var fixedSize: Bool = false
-    
     var body: some View {
             
             VStack {
@@ -73,23 +68,6 @@ struct ConnectActions: View {
                             /**
                              * sufficient balance
                              */
-                            
-//                            /**
-//                             * connect window options
-//                             */
-//                            Picker(
-//                                "Connect Mode",
-//                                selection: $connectMode
-//                            ) {
-////                                ForEach(ConnectMode.allCases, id: \.self) {
-////                                    Text($0.rawValue.capitalized)
-////                                }
-//                                Text("Auto")
-//                                Text("Web")
-//                                Text("Streaming")
-//                            }.pickerStyle(.segmented)
-//                            
-//                            Spacer().frame(height: 12)
                          
                             /**
                              * Action buttons
@@ -221,27 +199,6 @@ struct ConnectActions: View {
                     .colorMultiply(Color(white: 0.8))
             )
     }
-    
-//    private func createPerformanceProfile(
-//        windowType: WindowType,
-//        isFixedSize: Bool
-//    ) -> SdkPerformanceProfile? {
-//        if windowType == .auto {
-//            return nil
-//        }
-//        
-//        let performanceProfile = SdkPerformanceProfile()
-//        performanceProfile.windowType = windowType == .quality ? SdkWindowTypeQuality : SdkWindowTypeSpeed
-//        
-//        let windowSizeSettings = SdkWindowSizeSettings()
-//        windowSizeSettings.windowSizeMin = isFixedSize ? 1 : 2
-//        windowSizeSettings.windowSizeMax = isFixedSize ? 1 : 4
-//        
-//        performanceProfile.windowSize = windowSizeSettings
-//        
-//        return performanceProfile
-//        
-//    }
     
 }
 

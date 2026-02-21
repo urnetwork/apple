@@ -36,6 +36,7 @@ protocol UrApiServiceProtocol {
     func validateReferralCode(_ code: String) async throws -> SdkValidateReferralCodeResult
     func upgradeGuest(_ args: SdkUpgradeGuestArgs) async throws -> LoginNetworkResult
     func createAuthCode() async throws -> SdkAuthCodeCreateResult
+    func authCodeLogin(_ args: SdkAuthCodeLoginArgs) async throws -> SdkAuthCodeLoginResult
     
     /**
      * Subscription

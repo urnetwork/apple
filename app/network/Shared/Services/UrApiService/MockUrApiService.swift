@@ -101,4 +101,8 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkGetNetworkRedeemedBalanceCodesResult()
     }
     
+    func authCodeLogin(_ args: SdkAuthCodeLoginArgs) async throws -> SdkAuthCodeLoginResult {
+        return SdkAuthCodeLoginResult()
+    }
+    
 }

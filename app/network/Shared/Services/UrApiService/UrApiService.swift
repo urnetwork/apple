@@ -472,6 +472,36 @@ extension UrApiService {
         }
     }
     
+    func authCodeLogin(_ args: SdkAuthCodeLoginArgs) async throws -> SdkAuthCodeLoginResult {
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = AuthCodeLoginCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "No result found in callback"]))
+                    return
+                }
+                
+                if result.error != nil {
+                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Error in result"]))
+                    return
+                    
+                }
+                
+                continuation.resume(returning: result)
+                
+            }
+            
+            api.authCodeLogin(args, callback: callback)
+            
+        }
+    }
+    
 }
 
 // MARK - referral code
@@ -984,6 +1014,12 @@ private class RedeemBalanceCodeCallback: SdkCallback<SdkRedeemBalanceCodeResult,
 
 private class GetNetworkRedeemedBalanceCodesCallback: SdkCallback<SdkGetNetworkRedeemedBalanceCodesResult, SdkGetNetworkRedeemedBalanceCodesCallbackProtocol>, SdkGetNetworkRedeemedBalanceCodesCallbackProtocol {
     func result(_ result: SdkGetNetworkRedeemedBalanceCodesResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthCodeLoginCallback: SdkCallback<SdkAuthCodeLoginResult, SdkAuthCodeLoginCallbackProtocol>, SdkAuthCodeLoginCallbackProtocol {
+    func result(_ result: SdkAuthCodeLoginResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

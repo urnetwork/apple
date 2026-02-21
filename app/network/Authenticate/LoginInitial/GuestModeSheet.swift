@@ -10,8 +10,8 @@ import SwiftUI
 struct GuestModeSheet: View {
     
     @Binding var termsAgreed: Bool
-    var isCreatingGuestNetwork: Bool
-    var onCreateGuestNetwork: () -> Void
+    let isCreatingGuestNetwork: Bool
+    let onCreateGuestNetwork: () -> Void
     
     
     @EnvironmentObject var themeManager: ThemeManager

@@ -25,6 +25,7 @@ struct LoginInitialView: View {
     let navigate: (LoginInitialNavigationPath) -> Void
     let cancel: (() -> Void)?
     let handleSuccess: (_ jwt: String) async -> Void
+    let urApiService: UrApiServiceProtocol
     
     init(
         urApiService: UrApiServiceProtocol,
@@ -38,6 +39,7 @@ struct LoginInitialView: View {
         self.cancel = cancel
         self.handleSuccess = handleSuccess
         self.guestUpgradeViewModel = guestUpgradeViewModel
+        self.urApiService = urApiService
     }
     
     var body: some View {
@@ -70,7 +72,10 @@ struct LoginInitialView: View {
                             isCheckingUserAuth: viewModel.isCheckingUserAuth,
                             deviceExists: deviceExists,
                             presentSignInWithSolanaSheet: {
-                                viewModel.presentSigninWithSolanaSheet = true
+                                viewModel.setPresentSigninWithSolanaSheet(true)
+                            },
+                            presentAuthCodeLoginSheet: {
+                                viewModel.setPresentAuthCodeLoginSheet(true)
                             },
                             presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet,
                         )
@@ -96,7 +101,10 @@ struct LoginInitialView: View {
                             isCheckingUserAuth: viewModel.isCheckingUserAuth,
                             deviceExists: deviceExists,
                             presentSignInWithSolanaSheet: {
-                                viewModel.presentSigninWithSolanaSheet = true
+                                viewModel.setPresentSigninWithSolanaSheet(true)
+                            },
+                            presentAuthCodeLoginSheet: {
+                                viewModel.setPresentAuthCodeLoginSheet(true)
                             },
                             presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet
                         )
@@ -136,6 +144,20 @@ struct LoginInitialView: View {
                         Task {
                             let result = await viewModel.createGuestNetwork()
                             await self.handleCreateGuestNetworkResult(result)
+                        }
+                    }
+                )
+                .presentationDetents([.height(264)])
+                
+            }
+            .sheet(isPresented: $viewModel.presentAuthCodeLoginSheet) {
+                
+                AuthCodeLoginSheet(
+                    urApiService: self.urApiService,
+                    onSuccess: { jwt in
+                        viewModel.setPresentAuthCodeLoginSheet(false)
+                        Task {
+                            await self.handleSuccess(jwt)
                         }
                     }
                 )
@@ -423,14 +445,14 @@ private struct LoginInitialFormView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     @Binding var userAuth: String
-    var handleUserAuth: () async -> Void
-    var handleAppleLoginResult: (_ result: Result<ASAuthorization, any Error>) async -> Void
-    var handleGoogleSignInButton: () async -> Void
-    var isValidUserAuth: Bool
-    var isCheckingUserAuth: Bool
-    var deviceExists: Bool
-    var presentSignInWithSolanaSheet: () -> Void
-    // var isGuestMode: Bool
+    let handleUserAuth: () async -> Void
+    let handleAppleLoginResult: (_ result: Result<ASAuthorization, any Error>) async -> Void
+    let handleGoogleSignInButton: () async -> Void
+    let isValidUserAuth: Bool
+    let isCheckingUserAuth: Bool
+    let deviceExists: Bool
+    let presentSignInWithSolanaSheet: () -> Void
+    let presentAuthCodeLoginSheet: () -> Void
     
     @Binding var presentGuestNetworkSheet: Bool
     
@@ -507,7 +529,8 @@ private struct LoginInitialFormView: View {
             SSOButtons(
                 handleAppleLoginResult: handleAppleLoginResult,
                 handleGoogleSignInButton: handleGoogleSignInButton,
-                presentSignInWithSolanaSheet: presentSignInWithSolanaSheet
+                presentSignInWithSolanaSheet: presentSignInWithSolanaSheet,
+                presentAuthCodeLoginSheet: presentAuthCodeLoginSheet,
             )
             
             Spacer()
@@ -550,10 +573,10 @@ private struct SSOButtons: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     
-    var handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
-    var handleGoogleSignInButton: () async -> Void
-    var presentSignInWithSolanaSheet: () -> Void
-
+    let handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
+    let handleGoogleSignInButton: () async -> Void
+    let presentSignInWithSolanaSheet: () -> Void
+    let presentAuthCodeLoginSheet: () -> Void
     
     var body: some View {
         
@@ -579,13 +602,13 @@ private struct SSOButtons: View {
             )
             .buttonStyle(.plain)
             
-            Spacer()
-                .frame(height: 24)
-            
             // check if either .phantom or solflare are installed
             if (connectWalletProviderViewModel.isWalletAppInstalled(.phantom)
                 || connectWalletProviderViewModel.isWalletAppInstalled(.solflare)
             ) {
+                
+                Spacer()
+                    .frame(height: 24)
              
                 Button(action: presentSignInWithSolanaSheet) {
                     HStack {
@@ -606,10 +629,32 @@ private struct SSOButtons: View {
                 .background(.white)
                 .clipShape(Capsule())
                 
-                Spacer()
-                    .frame(height: 24)
-                
             }
+            
+            Spacer()
+                .frame(height: 24)
+            
+            Button(action: presentAuthCodeLoginSheet) {
+                HStack {
+                    Image("ur.symbols.auth_code")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16)
+                    Spacer().frame(width: 8)
+                    Text("Log in with Auth Code")
+                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                        .font(
+                            Font.system(size: 19, weight: .medium)
+                        )
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(Capsule())
+            
+            Spacer()
+                .frame(height: 24)
             
         }
         
@@ -622,7 +667,7 @@ private struct SSOButtons: View {
     var handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
     var handleGoogleSignInButton: () async -> Void
     var presentSignInWithSolanaSheet: () -> Void
-
+    let presentAuthCodeLoginSheet: () -> Void
     
     var body: some View {
         
@@ -637,14 +682,9 @@ private struct SSOButtons: View {
                         await handleAppleLoginResult(result)
                     }
                 }
-                // .frame(height: 48)
                 .frame(maxWidth: .infinity)
-                // .clipShape(Capsule())
                 .signInWithAppleButtonStyle(.white)
                 .buttonStyle(.plain)
-                
-    //            Spacer()
-    //                .frame(height: 24)
                 
                 UrGoogleSignInButton(
                     action: handleGoogleSignInButton
@@ -652,6 +692,41 @@ private struct SSOButtons: View {
                 .buttonStyle(.plain)
                 
             }
+            
+            Spacer()
+                .frame(height: 8)
+            
+            HStack {
+             
+                Button(action: presentAuthCodeLoginSheet) {
+                    HStack {
+                        Image("ur.symbols.auth_code")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16)
+                        Spacer().frame(width: 8)
+                        Text("Log in with Auth Code")
+                            .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                            .font(
+                                Font.system(size: 12, weight: .medium)
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .frame(height: 30)
+                .frame(maxWidth: .infinity)
+                .background(.white)
+                .cornerRadius(6)
+                .buttonStyle(.plain)
+                
+                // nudge to account for padding
+                Spacer().frame(width: 8)
+
+                // so button only takes up half space
+                Spacer().frame(maxWidth: .infinity)
+                
+            }
+            .frame(maxWidth: .infinity)
             
 //            Spacer()
 //                .frame(height: 8)

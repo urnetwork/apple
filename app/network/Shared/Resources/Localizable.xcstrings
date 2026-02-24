@@ -12444,156 +12444,156 @@
         }
       }
     },
-    "Enter a Solana or Matic USDC wallet address" : {
+    "Enter a Solana USDC wallet address" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أدخل عنوان محفظة Solana أو Matic USDC"
+            "value" : "أدخل عنوان محفظة USDC على سولانا"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vložte adresu peněženky USDC na Solana či Polygon/Matic síťi/blockchainu"
+            "value" : "Zadejte adresu peněženky USDC na Solaně"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geben Sie eine Solana oder Matic USDC Wallet-Adresse ein"
+            "value" : "Geben Sie eine Solana USDC-Wallet-Adresse ein"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εισάγετε μια διεύθυνση πορτοφολιού Solana ή Matic USDC"
+            "value" : "Εισαγάγετε μια διεύθυνση πορτοφολιού USDC στο Solana"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a Solana or Matic USDC wallet address"
+            "value" : "Enter a Solana USDC wallet address"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduce una dirección de monedero Solana o Matic USDC"
+            "value" : "Introduce una dirección de monedero USDC en Solana"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ingresa una dirección de billetera Solana o Matic USDC"
+            "value" : "Ingresa una dirección de billetera USDC en Solana"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entrez une adresse de portefeuille Solana ou Matic USDC"
+            "value" : "Saisissez une adresse de portefeuille USDC sur Solana"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הזן כתובת ארנק Solana או Matic USDC"
+            "value" : "הזן כתובת ארנק USDC ב-Solana"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solana या Matic USDC वॉलेट पता दर्ज करें"
+            "value" : "Solana USDC वॉलेट पता दर्ज करें"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Masukkan alamat dompet Solana atau Matic USDC"
+            "value" : "Masukkan alamat dompet USDC Solana"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inserisci un indirizzo wallet Solana o Matic USDC"
+            "value" : "Inserisci un indirizzo wallet USDC su Solana"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SolanaまたはMatic USDCウォレットアドレスを入力"
+            "value" : "Solana USDCウォレットアドレスを入力してください"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solana 또는 Matic USDC 월렛 주소를 입력하세요"
+            "value" : "Solana USDC 지갑 주소를 입력하세요"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voer een Solana of Matic USDC walletadres in"
+            "value" : "Voer een Solana USDC-walletadres in"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wprowadź adres portfela Solana lub Matic USDC"
+            "value" : "Wprowadź adres portfela USDC na Solanie"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Digite um endereço de carteira Solana ou Matic USDC"
+            "value" : "Digite um endereço de carteira USDC na Solana"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduza um endereço de carteira Solana ou Matic USDC"
+            "value" : "Introduza um endereço de carteira USDC na Solana"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введите адрес кошелька Solana или Matic USDC"
+            "value" : "Введите адрес кошелька USDC в сети Solana"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ange en Solana eller Matic USDC plånboksadress"
+            "value" : "Ange en Solana USDC-plånboksadress"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ป้อนที่อยู่กระเป๋าเงิน Solana หรือ Matic USDC"
+            "value" : "ป้อนที่อยู่กระเป๋าเงิน USDC บน Solana"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введіть адресу гаманця Solana або Matic USDC"
+            "value" : "Введіть адресу гаманця USDC на Solana"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nhập địa chỉ ví Solana hoặc Matic USDC"
+            "value" : "Nhập địa chỉ ví USDC trên Solana"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入 Solana 或 Matic USDC 钱包地址"
+            "value" : "请输入 Solana USDC 钱包地址"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸入 Solana 或 Matic USDC 錢包地址"
+            "value" : "請輸入 Solana USDC 錢包地址"
           }
         }
       }
@@ -36618,156 +36618,156 @@
       },
       "shouldTranslate" : false
     },
-    "USDC addresses on Solana and Polygon are currently supported" : {
+    "USDC addresses on Solana are currently supported" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "عناوين USDC على Solana و Polygon مدعومة حالياً"
+            "value" : "حاليًا يتم دعم عناوين USDC على سولانا"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nyní jsou podporovány USDC adresy na Solana a Polygon blockchainech"
+            "value" : "V současné době jsou podporovány adresy USDC na Solaně"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC-Adressen auf Solana und Polygon werden derzeit unterstützt"
+            "value" : "USDC-Adressen auf Solana werden derzeit unterstützt"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Οι διευθύνσεις USDC στα Solana και Polygon υποστηρίζονται προς το παρόν"
+            "value" : "Υποστηρίζονται αυτήν τη στιγμή διευθύνσεις USDC στο Solana"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC addresses on Solana and Polygon are currently supported"
+            "value" : "USDC addresses on Solana are currently supported"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualmente se admiten direcciones USDC en Solana y Polygon"
+            "value" : "Actualmente se admiten direcciones USDC en Solana"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualmente se admiten direcciones USDC en Solana y Polygon"
+            "value" : "Actualmente se admiten direcciones USDC en Solana"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les adresses USDC sur Solana et Polygon sont actuellement prises en charge"
+            "value" : "Les adresses USDC sur Solana sont actuellement prises en charge"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כתובות USDC ב-Solana ו-Polygon נתמכות כעת"
+            "value" : "כתובות USDC ב-Solana נתמכות כרגע"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solana और Polygon पर USDC पते वर्तमान में समर्थित हैं"
+            "value" : "Solana पर USDC पतों का वर्तमान में समर्थन किया जाता है"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alamat USDC di Solana dan Polygon saat ini didukung"
+            "value" : "Alamat USDC di Solana saat ini didukung"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gli indirizzi USDC su Solana e Polygon sono attualmente supportati"
+            "value" : "Gli indirizzi USDC su Solana sono attualmente supportati"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在、SolanaとPolygon上のUSDCアドレスがサポートされています"
+            "value" : "Solana上のUSDCアドレスは現在サポートされています"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "현재 Solana 및 Polygon의 USDC 주소가 지원됩니다"
+            "value" : "Solana의 USDC 주소가 현재 지원됩니다"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC addressen op Solana en Polygon worden momenteel ondersteund"
+            "value" : "USDC-adressen op Solana worden momenteel ondersteund"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adresy USDC w sieciach Solana i Polygon są obecnie obsługiwane"
+            "value" : "Adresy USDC na Solanie są obecnie obsługiwane"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Endereços USDC na Solana e Polygon são atualmente suportados"
+            "value" : "Endereços USDC na Solana são atualmente suportados"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os endereços USDC na Solana e Polygon são atualmente suportados"
+            "value" : "Endereços USDC na Solana são atualmente suportados"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В настоящее время поддерживаются адреса USDC в сетях Solana и Polygon"
+            "value" : "В настоящее время поддерживаются адреса USDC в сети Solana"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USDC-adresser på Solana och Polygon stöds för närvarande"
+            "value" : "USDC-adresser på Solana stöds för närvarande"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "รองรับที่อยู่ USDC บน Solana และ Polygon ในขณะนี้"
+            "value" : "ขณะนี้รองรับที่อยู่ USDC บน Solana"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Наразі підтримуються адреси USDC у мережах Solana та Polygon"
+            "value" : "Адреси USDC на Solana наразі підтримуються"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hiện đang hỗ trợ địa chỉ USDC trên Solana và Polygon"
+            "value" : "Hiện tại hỗ trợ địa chỉ USDC trên Solana"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前支持 Solana 和 Polygon 上的 USDC 地址"
+            "value" : "目前支持 Solana 上的 USDC 地址"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前支持 Solana 和 Polygon 上的 USDC 地址"
+            "value" : "目前支援 Solana 上的 USDC 地址"
           }
         }
       }

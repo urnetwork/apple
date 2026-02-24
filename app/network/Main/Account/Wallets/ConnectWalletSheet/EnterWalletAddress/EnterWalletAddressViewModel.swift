@@ -47,18 +47,14 @@ extension EnterWalletAddressView {
         private func validateAddress(_ address: String) {
             Task {
                 async let solanaValidation = validateAddress(address, chain: "SOL")
-                async let maticValidation = validateAddress(address, chain: "MATIC")
     
-                let (solanaResult, polygonResult) = await (solanaValidation, maticValidation)
+                let solanaResult = await solanaValidation
     
-                switch (solanaResult, polygonResult) {
-                case (.success(let isSolanaValid), .success(let isPolygonValid)):
+                switch (solanaResult) {
+                case (.success(let isSolanaValid)):
     
                     if isSolanaValid {
                         self.chain = WalletChain.sol
-                        self.isValidWalletAddress = true
-                    } else if isPolygonValid {
-                        self.chain = WalletChain.matic
                         self.isValidWalletAddress = true
                     } else {
                         self.chain = WalletChain.invalid

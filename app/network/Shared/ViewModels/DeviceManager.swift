@@ -81,9 +81,11 @@ class DeviceManager: ObservableObject {
     @Published private(set) var provideEnabled: Bool = false
     @Published private(set) var providePaused: Bool = false
     
-//    @Published private(set) var performanceProfile: SdkPerformanceProfile? = nil // nil == auto
+    private var isLoadingFromDevice = false
+    
     @Published var selectedWindowType: WindowType = .auto {
         didSet {
+            guard !isLoadingFromDevice else { return }
             
             if selectedWindowType == .auto && fixedIpSize != false {
                 self.fixedIpSize = false
@@ -91,23 +93,14 @@ class DeviceManager: ObservableObject {
                 return
             }
             
-            let updatedPerformanceProfile = createPerformanceProfile(
-                windowType: selectedWindowType,
-                isFixedSize: fixedIpSize
-            )
-            
-            updatePerformanceProfile(updatedPerformanceProfile)
+            propagatePerformanceProfileToDevice()
         }
     }
-    
+
     @Published var fixedIpSize: Bool = false {
         didSet {
-            let updatedPerformanceProfile = createPerformanceProfile(
-                windowType: selectedWindowType,
-                isFixedSize: fixedIpSize
-            )
-            
-            updatePerformanceProfile(updatedPerformanceProfile)
+            guard !isLoadingFromDevice else { return }
+            propagatePerformanceProfileToDevice()
         }
     }
     
@@ -129,13 +122,47 @@ class DeviceManager: ObservableObject {
         performanceProfile.windowSize = windowSizeSettings
         
         return performanceProfile
-        
     }
     
-    private func updatePerformanceProfile(_ profile: SdkPerformanceProfile?) {
+    /// Propagates UI state to device and storage (one direction only)
+    private func propagatePerformanceProfileToDevice() {
         guard let device = self.device else { return }
-//        self.performanceProfile = profile
+        
+        let profile = createPerformanceProfile(
+            windowType: selectedWindowType,
+            isFixedSize: fixedIpSize
+        )
+        
+        // Save to storage
+        do {
+            try asyncLocalState?.getLocalState()?.setPerformanceProfile(profile)
+        } catch {
+            print("error updating performance profile: \(error)")
+        }
+        
+        // Update device
         device.setPerformanceProfile(profile)
+    }
+    
+    /// Loads performance profile from device into UI (called only during init)
+    private func loadPerformanceProfileFromDevice(_ device: SdkDeviceRemote) {
+        // Set flag to prevent didSet from triggering propagation
+        isLoadingFromDevice = true
+        defer { isLoadingFromDevice = false }
+        
+        let performanceProfile = device.getPerformanceProfile()
+        if performanceProfile == nil {
+            self.selectedWindowType = .auto
+            self.fixedIpSize = false
+        } else {
+            self.selectedWindowType = performanceProfile?.windowType == SdkWindowTypeQuality ? .quality : .speed
+            
+            if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
+                self.fixedIpSize = true
+            } else {
+                self.fixedIpSize = false
+            }
+        }
     }
     
     @Published private(set) var isPro: Bool = false
@@ -185,20 +212,8 @@ class DeviceManager: ObservableObject {
                     if let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) {
                         self.allowProvidingCell = provideNetworkMode == .All
                     }
-                    
-//                    let performanceProfile = device.getPerformanceProfile()
-//                    if performanceProfile == nil {
-//                        self.selectedWindowType = .auto
-//                        self.fixedIpSize = false
-//                    } else {
-//                        self.selectedWindowType = performanceProfile?.windowType == SdkWindowTypeQuality ? .quality : .speed
-//
-//                        if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
-//                            self.fixedIpSize = true
-//                        } else {
-//                            self.fixedIpSize = false
-//                        }
-//                    }
+
+                    loadPerformanceProfileFromDevice(device)
                     
                     self.deviceInitialized = true
                     self.vpnManager = VPNManager(device: device)
@@ -511,14 +526,12 @@ extension DeviceManager {
             
             if let localState = localState {
                 
-//                let instanceId = localState.getInstanceId()
                 let routeLocal = localState.getRouteLocal()
                 let connectLocation = localState.getConnectLocation()
                 let defaultLocation = localState.getDefaultLocation()
                 let canShowRatingDialog = localState.getCanShowRatingDialog()
-                
-                // let provideWhileDisconnected = localState.getProvideWhileDisconnected()
-                
+                let performanceProfile = localState.getPerformanceProfile()
+            
                 let provideControlModeStr = localState.getProvideControlMode()
                 let provideControlMode = ProvideControlMode(rawValue: provideControlModeStr)
                 
@@ -577,6 +590,10 @@ extension DeviceManager {
                 device.setProvideNetworkMode(provideNetworkMode?.rawValue ?? ProvideNetworkMode.WiFi.rawValue)
                 device.setCanRefer(canRefer)
                 
+                if (performanceProfile != nil) {
+                    device.setPerformanceProfile(performanceProfile)
+                }
+                
                 // only set the location if the current location is not already equivalent
                 // this avoid resetting the connection
                 if let remoteLocation = device.getConnectLocation() {
@@ -591,8 +608,6 @@ extension DeviceManager {
                 if (defaultLocation != nil) {
                     device.setDefaultLocation(defaultLocation)
                 }
-                
-                
                 
                 self.setDevice(device: device)
                 

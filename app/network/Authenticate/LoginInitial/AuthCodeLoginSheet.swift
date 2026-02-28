@@ -51,7 +51,8 @@ struct AuthCodeLoginSheet: View {
                         let result = await viewModel.authCodeLogin()
                         self.handleAuthCodeLoginResult(result)
                     }
-                }
+                },
+                isSecure: true
             )
             
             Spacer().frame(height: 24)

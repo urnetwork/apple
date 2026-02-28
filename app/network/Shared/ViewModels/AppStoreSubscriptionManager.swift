@@ -43,18 +43,16 @@ class AppStoreSubscriptionManager: ObservableObject {
     
     func fetchProducts() async {
         do {
-            let productIdentifiers = ["supporter", "supporter_yearly"]
+            let productIdentifiers = ["supporter_monthly_26", "supporter_yearly_26"]
             
             let storeProducts = try await Product.products(for: productIdentifiers)
             
-            if let monthlySub = storeProducts.first(where: { $0.id == "supporter" }) {
+            if let monthlySub = storeProducts.first(where: { $0.id == "supporter_monthly_26" }) {
                 self.monthlySubscription = monthlySub
-                print("monthly sub price is: \(monthlySub.displayPrice)")
             }
             
-            if let yearlySub = storeProducts.first(where: { $0.id == "supporter_yearly" }) {
+            if let yearlySub = storeProducts.first(where: { $0.id == "supporter_yearly_26" }) {
                 self.yearlySubscription = yearlySub
-                print("monthly sub price is: \(yearlySub.displayPrice)")
             }
             
             print("Retrieved products: \(storeProducts.count)")

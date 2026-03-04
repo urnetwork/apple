@@ -19,7 +19,6 @@ struct ConnectActions: View {
     let reconnectTunnel: (() -> Void)?
     let contractStatus: SdkContractStatus?
     let windowCurrentSize: Int32
-//    let currentPlan: Plan
     let isPollingSubscriptionBalance: Bool
     let availableByteCount: Int
     let pendingByteCount: Int
@@ -30,6 +29,7 @@ struct ConnectActions: View {
     let isPro: Bool
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
+    @Binding var allowDirect: Bool
     let dailyBalanceByteCount: Int
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -123,12 +123,19 @@ struct ConnectActions: View {
                             }
                             .disabled(selectedWindowType == .auto)
                             
-//                            Text(
-//                                "lorem ipsum some text about using fixed IP"
-//                            )
-//                            .font(themeManager.currentTheme.secondaryBodyFont)
-//                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                            Spacer().frame(height: 12)
                             
+                            /**
+                             * Allow direct
+                             * When "Strong Anonymization" is true, "allowDirect" is false and vice versa
+                             */
+                            Toggle(isOn: Binding(
+                                get: { !allowDirect },
+                                set: { allowDirect = !$0 }
+                            )) {
+                                Text("Strong Anonymization")
+                                    .font(themeManager.currentTheme.bodyFont)
+                            }
                             
                         }
                         

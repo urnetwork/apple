@@ -104,9 +104,17 @@ class DeviceManager: ObservableObject {
         }
     }
     
+    @Published var allowDirect: Bool = false {
+        didSet {
+            guard !isLoadingFromDevice else { return }
+            propagatePerformanceProfileToDevice()
+        }
+    }
+    
     private func createPerformanceProfile(
         windowType: WindowType,
-        isFixedSize: Bool
+        isFixedSize: Bool,
+        allowDirect: Bool
     ) -> SdkPerformanceProfile? {
         if windowType == .auto {
             return nil
@@ -114,6 +122,7 @@ class DeviceManager: ObservableObject {
         
         let performanceProfile = SdkPerformanceProfile()
         performanceProfile.windowType = windowType == .quality ? SdkWindowTypeQuality : SdkWindowTypeSpeed
+        performanceProfile.allowDirect = allowDirect
         
         let windowSizeSettings = SdkWindowSizeSettings()
         windowSizeSettings.windowSizeMin = isFixedSize ? 1 : 2
@@ -130,7 +139,8 @@ class DeviceManager: ObservableObject {
         
         let profile = createPerformanceProfile(
             windowType: selectedWindowType,
-            isFixedSize: fixedIpSize
+            isFixedSize: fixedIpSize,
+            allowDirect: allowDirect,
         )
         
         // Save to storage
@@ -154,8 +164,11 @@ class DeviceManager: ObservableObject {
         if performanceProfile == nil {
             self.selectedWindowType = .auto
             self.fixedIpSize = false
+            self.allowDirect = false
         } else {
             self.selectedWindowType = performanceProfile?.windowType == SdkWindowTypeQuality ? .quality : .speed
+            
+            self.allowDirect = performanceProfile?.allowDirect ?? false
             
             if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
                 self.fixedIpSize = true

@@ -201,6 +201,7 @@ struct ConnectView_iOS: View {
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
+                                allowDirect: $deviceManager.allowDirect,
                                 dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount
                             )
                         }

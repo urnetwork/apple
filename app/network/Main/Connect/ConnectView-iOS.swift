@@ -37,7 +37,7 @@ struct ConnectView_iOS: View {
     @GestureState private var sheetDragTranslation: CGFloat = 0
 
     private let sheetMinHeight: CGFloat   // collapsed peek height
-    private let sheetMaxHeight: CGFloat = 640   // expanded height
+    private let sheetMaxHeight: CGFloat = 680   // expanded height
 
     
     init(

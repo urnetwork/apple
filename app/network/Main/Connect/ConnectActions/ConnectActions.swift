@@ -60,8 +60,10 @@ struct ConnectActions: View {
                             
                             UrButton(
                                 text: "Insufficient balance",
-                                action: {},
-                                enabled: false
+                                action: {
+                                    promptMoreDataFlow()
+                                },
+                                style: .outlineSecondary
                             )
         
                         } else {

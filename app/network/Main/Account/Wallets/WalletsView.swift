@@ -180,6 +180,7 @@ struct WalletsView: View {
                 api: api,
                 presentConnectWalletSheet: $viewModel.presentConnectWalletSheet
             )
+            .environmentObject(themeManager)
             .presentationDetents([.height(264)])
             
             #elseif os(macOS)
@@ -206,6 +207,8 @@ struct WalletsView: View {
                     },
                     api: api
                 )
+                .environmentObject(themeManager)
+                .environmentObject(accountWalletsViewModel)
                 
                 Spacer().frame(height: 16)
                 

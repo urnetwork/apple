@@ -145,6 +145,7 @@ struct BlockedLocationsView: View {
                     viewModel.searchCountry = ""
                 }
             )
+            .environmentObject(themeManager)
             .frame(minHeight: 400)
             
             #else
@@ -164,6 +165,7 @@ struct BlockedLocationsView: View {
                         viewModel.searchCountry = ""
                     }
                 )
+                .environmentObject(themeManager)
                 .navigationBarTitleDisplayMode(.inline)
                 
                 .searchable(text: $viewModel.searchCountry)

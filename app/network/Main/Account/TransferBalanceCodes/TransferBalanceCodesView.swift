@@ -138,6 +138,7 @@ struct TransferBalanceCodesView: View {
                             },
                             api: self.api
                         )
+                        .environmentObject(themeManager)
                         
                     }
                     .background(themeManager.currentTheme.backgroundColor)

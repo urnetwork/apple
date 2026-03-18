@@ -388,6 +388,7 @@ struct AccountRootView: View {
                     },
                     api: urApiService
                 )
+                .environmentObject(themeManager)
                 
             }
             .background(themeManager.currentTheme.backgroundColor)
@@ -397,6 +398,7 @@ struct AccountRootView: View {
             PurchaseSuccessView(dismiss: {
                 viewModel.balanceCodeRedeemed = false
             })
+            .environmentObject(themeManager)
             .transition(.opacity)
             .frame(maxWidth: .infinity)
             .ignoresSafeArea()
@@ -444,6 +446,7 @@ struct AccountRootView: View {
                     viewModel.isPresentedUpgradeSheet = false
                 }
             )
+            .environmentObject(themeManager)
         }
         #if os(iOS)
         .fullScreenCover(isPresented: $viewModel.isPresentedCreateAccount) {

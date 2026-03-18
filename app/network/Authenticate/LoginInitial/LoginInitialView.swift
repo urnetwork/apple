@@ -130,6 +130,8 @@ struct LoginInitialView: View {
                         viewModel.setPresentSigninWithSolanaSheet(false)
                     }
                 )
+                .environmentObject(themeManager)
+                .environmentObject(connectWalletProviderViewModel)
                 #if os(iOS)
                 .presentationDetents([.height(216)])
                 #endif
@@ -147,6 +149,7 @@ struct LoginInitialView: View {
                         }
                     }
                 )
+                .environmentObject(themeManager)
                 .presentationDetents([.height(264)])
                 
             }
@@ -161,6 +164,7 @@ struct LoginInitialView: View {
                         }
                     }
                 )
+                .environmentObject(themeManager)
                 .presentationDetents([.height(264)])
                 
             }

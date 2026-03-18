@@ -107,6 +107,8 @@ struct SettingsView: View {
                         viewModel.presentSigninWithSolanaSheet = false
                     }
                 )
+                .environmentObject(themeManager)
+                .environmentObject(connectWalletProviderViewModel)
                 .presentationDetents([.height(148)])
             }
             .onOpenURL { url in
@@ -145,6 +147,7 @@ struct SettingsView: View {
                     },
                     referralNetwork: viewModel.referralNetwork
                 )
+                .environmentObject(themeManager)
                 .presentationDetents([.height(268)])
                 .presentationDragIndicator(.visible)
             }
@@ -204,6 +207,7 @@ struct SettingsView: View {
                     },
                     referralNetwork: viewModel.referralNetwork
                 )
+                .environmentObject(themeManager)
             }
         
         #endif

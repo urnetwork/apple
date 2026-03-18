@@ -225,6 +225,7 @@ import URnetworkSdk
                         connectViewModel.isPresentedUpgradeSheet = false
                     }
                 )
+                .environmentObject(themeManager)
             }
 
             .toolbar {

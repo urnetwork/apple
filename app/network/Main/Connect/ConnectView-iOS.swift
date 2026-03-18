@@ -228,6 +228,7 @@ struct ConnectView_iOS: View {
                         providerCities: providerListStore.providerCities,
                         providerBestSearchMatches: providerListStore.providerBestSearchMatches
                     )
+                    .environmentObject(themeManager)
                     .navigationBarTitleDisplayMode(.inline)
                     .searchable(
                         text: $providerListStore.searchQuery,
@@ -299,6 +300,7 @@ struct ConnectView_iOS: View {
                         connectViewModel.isPresentedUpgradeSheet = false
                     }
                 )
+                .environmentObject(themeManager)
             }
             
             // upgrade guest account flow

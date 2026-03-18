@@ -181,30 +181,6 @@ import URnetworkSdk
             .onChange(of: connectViewModel.tunnelConnected) { _ in
                 checkTunnelStatus()
             }
-            .onChange(of: connectViewModel.connectionStatus) { newValue in
-                // Cancel any existing banner task
-                connectViewModel.upgradeBannerTask?.cancel()
-                connectViewModel.upgradeBannerTask = nil
-                
-                if newValue == .connected && !connectViewModel.showUpgradeBanner && !isPro {
-                    // Show the banner after 10 seconds when connected
-                    connectViewModel.upgradeBannerTask = Task {
-                        try? await Task.sleep(for: .seconds(10))
-                        // Check if the task was not cancelled before showing the banner
-                        guard !Task.isCancelled else { return }
-                        await MainActor.run {
-                            withAnimation {
-                                connectViewModel.showUpgradeBanner = true
-                            }
-                        }
-                    }
-                } else if newValue != .connected {
-                    // Hide the banner when disconnected
-                    withAnimation {
-                        connectViewModel.showUpgradeBanner = false
-                    }
-                }
-            }
             .onAppear {
                 connectViewModel.updateGrid()
                 connectViewModel.refreshTunnelStatus()

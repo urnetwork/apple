@@ -90,7 +90,11 @@ extension SettingsView {
                     print("Notification permission denied.")
                 case .authorized, .provisional, .ephemeral:
                     print("Notification permission granted.")
-                    self.canReceiveNotifications = true
+                    
+                    Task { @MainActor in
+                        self.canReceiveNotifications = true
+                    }
+                    
                 @unknown default:
                     print("Unknown notification settings.")
                 }

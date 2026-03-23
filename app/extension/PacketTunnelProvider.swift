@@ -38,10 +38,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
         logger.info("[PacketTunnelProvider]init")
         
-        if #available(iOS 16, macOS 13, *) {
-            // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18
+        if #available(iOS 26, macOS 26, *) {
+            // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18, 26
             // the binary and go runtime take about 16mib of that
             // see https://forums.developer.apple.com/forums/thread/73148?page=2
+#if os(iOS)
+            SdkSetMemoryLimit(32 * 1024 * 1024)
+#else
+            SdkSetMemoryLimit(64 * 1024 * 1024)
+#endif
+        } else if #available(iOS 16, macOS 13, *) {
             #if os(iOS)
             SdkSetMemoryLimit(28 * 1024 * 1024)
             #else

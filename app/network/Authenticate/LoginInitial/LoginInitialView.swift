@@ -233,10 +233,10 @@ struct LoginInitialView: View {
                     onSignature: { signature in
 
                         guard let pk = connectWalletProviderViewModel.connectedPublicKey else {
-                        viewModel.setIsSigningMessage(false)
-                        viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-                        return
-                    }
+                            viewModel.setIsSigningMessage(false)
+                            viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+                            return
+                        }
 
                         Task {
                             if connectWalletProviderViewModel.connectedWalletProvider == .bittensor {

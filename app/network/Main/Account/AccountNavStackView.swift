@@ -199,6 +199,12 @@ struct AccountNavStackView: View {
                         .navigationTitle("Provider contracts")
                         .background(themeManager.currentTheme.backgroundColor)
 
+                case .providerIdentities:
+
+                    ProviderIdentitiesView()
+                        .navigationTitle("Provider Identities")
+                        .background(themeManager.currentTheme.backgroundColor)
+
                 }
                 
             }

@@ -32,6 +32,7 @@ struct ConnectActions: View {
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
     @Binding var allowDirect: Bool
+    @Binding var postQuantumEncryption: Bool
     let dailyBalanceByteCount: Int
     let openStatsSheet: (ConnectStatsSheet) -> Void
 
@@ -185,7 +186,19 @@ struct ConnectActions: View {
                                 Text("Strong Anonymization")
                                     .font(themeManager.currentTheme.bodyFont)
                             }
-                            
+
+                            Spacer().frame(height: 12)
+
+                            /**
+                             * Post quantum encryption
+                             * Opportunistic e2e: providers without support fall
+                             * back to plaintext at this layer
+                             */
+                            Toggle(isOn: $postQuantumEncryption) {
+                                Text("Post Quantum Encryption")
+                                    .font(themeManager.currentTheme.bodyFont)
+                            }
+
                         }
                         
                     }

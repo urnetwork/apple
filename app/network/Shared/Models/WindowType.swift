@@ -13,11 +13,12 @@ enum WindowType: String, CaseIterable, Identifiable {
     case speed = "speed"
     
     var id: String { self.rawValue }
+    // localized via the string catalog (window_type_* store keys)
     var displayName: String {
         switch self {
-        case .auto: return "Auto"
-        case .quality: return "Web"
-        case .speed: return "Streaming"
+        case .auto: return String(localized: "Auto")
+        case .quality: return String(localized: "Web")
+        case .speed: return String(localized: "Streaming")
         }
     }
 }

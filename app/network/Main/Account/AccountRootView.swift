@@ -194,7 +194,7 @@ struct AccountRootView: View {
                     .background(themeManager.currentTheme.tintedBackgroundBase)
                     .cornerRadius(12)
                     .padding()
-                    
+
                     /**
                      * Navigation items
                      */
@@ -346,6 +346,18 @@ struct AccountRootView: View {
 
                         Spacer().frame(height: 16)
                     }
+
+                    /**
+                     * Post Quantum Identity
+                     */
+                    PostQuantumIdentityPanel(
+                        navigate: navigate
+                    )
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .cornerRadius(12)
+                    .padding([.horizontal, .bottom])
                     
                     Spacer()
                     

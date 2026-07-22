@@ -163,26 +163,41 @@ class DeviceManager: ObservableObject {
             propagatePerformanceProfileToDevice()
         }
     }
-    
+
+    @Published var postQuantumEncryption: Bool = false {
+        didSet {
+            guard !isLoadingFromDevice else { return }
+            propagatePerformanceProfileToDevice()
+        }
+    }
+
     private func createPerformanceProfile(
         windowType: WindowType,
         isFixedSize: Bool,
-        allowDirect: Bool
-    ) -> SdkPerformanceProfile? {
-        if windowType == .auto {
-            return nil
-        }
-        
+        allowDirect: Bool,
+        postQuantumEncryption: Bool
+    ) -> SdkPerformanceProfile {
+        // always a profile, even for window type auto, so the orthogonal
+        // settings (allow direct, post quantum encryption) persist and apply
+        // in every mode
         let performanceProfile = SdkPerformanceProfile()
-        performanceProfile.windowType = windowType == .quality ? SdkWindowTypeQuality : SdkWindowTypeSpeed
         performanceProfile.allowDirect = allowDirect
-        
-        let windowSizeSettings = SdkWindowSizeSettings()
-        windowSizeSettings.windowSizeMin = isFixedSize ? 1 : 2
-        windowSizeSettings.windowSizeMax = isFixedSize ? 1 : 4
-        
-        performanceProfile.windowSize = windowSizeSettings
-        
+        performanceProfile.postQuantumEncryption = postQuantumEncryption
+
+        switch windowType {
+        case .auto:
+            // no fixed window type or size
+            performanceProfile.windowType = SdkWindowTypeAuto
+        case .quality, .speed:
+            performanceProfile.windowType = windowType == .quality ? SdkWindowTypeQuality : SdkWindowTypeSpeed
+
+            let windowSizeSettings = SdkWindowSizeSettings()
+            windowSizeSettings.windowSizeMin = isFixedSize ? 1 : 2
+            windowSizeSettings.windowSizeMax = isFixedSize ? 1 : 4
+
+            performanceProfile.windowSize = windowSizeSettings
+        }
+
         return performanceProfile
     }
     
@@ -194,6 +209,7 @@ class DeviceManager: ObservableObject {
             windowType: selectedWindowType,
             isFixedSize: fixedIpSize,
             allowDirect: allowDirect,
+            postQuantumEncryption: postQuantumEncryption,
         )
         
         // Save to storage
@@ -214,20 +230,23 @@ class DeviceManager: ObservableObject {
         defer { isLoadingFromDevice = false }
         
         let performanceProfile = device.getPerformanceProfile()
-        if performanceProfile == nil {
-            self.selectedWindowType = .auto
-            self.fixedIpSize = false
-            self.allowDirect = false
+
+        // a nil profile and window type auto mean the same thing
+        if performanceProfile?.windowType == SdkWindowTypeQuality {
+            self.selectedWindowType = .quality
+        } else if performanceProfile?.windowType == SdkWindowTypeSpeed {
+            self.selectedWindowType = .speed
         } else {
-            self.selectedWindowType = performanceProfile?.windowType == SdkWindowTypeQuality ? .quality : .speed
-            
-            self.allowDirect = performanceProfile?.allowDirect ?? false
-            
-            if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
-                self.fixedIpSize = true
-            } else {
-                self.fixedIpSize = false
-            }
+            self.selectedWindowType = .auto
+        }
+
+        self.allowDirect = performanceProfile?.allowDirect ?? false
+        self.postQuantumEncryption = performanceProfile?.postQuantumEncryption ?? false
+
+        if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
+            self.fixedIpSize = true
+        } else {
+            self.fixedIpSize = false
         }
     }
     

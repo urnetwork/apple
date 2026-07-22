@@ -200,6 +200,7 @@ struct ConnectView_iOS: View {
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
                                 allowDirect: $deviceManager.allowDirect,
+                                postQuantumEncryption: $deviceManager.postQuantumEncryption,
                                 dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
                                 openStatsSheet: { sheet in
                                     presentedStatsSheet = sheet

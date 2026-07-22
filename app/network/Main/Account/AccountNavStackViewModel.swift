@@ -17,6 +17,7 @@ enum AccountNavigationPath: Hashable {
     case blockedLocations
     case transferBalanceCodes
     case providerContracts
+    case providerIdentities
 }
 
 extension AccountNavStackView {

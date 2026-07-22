@@ -198,7 +198,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let buildNumber: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "0"
 
         let localStateIsStale = hasStaleLocalState(localState, byJwt: byJwt, instanceId: instanceId)
-        let keyMaterial: SdkDeviceLocalKeyMaterial? = localStateIsStale ? nil : localState.getDeviceLocalKeyMaterial()
+        // device identity is device-scoped, not session-scoped: load the key
+        // material even when the auth state is stale (token rotation,
+        // re-login), so peers can keep verifying this device across sessions.
+        // Only the explicit logout app message rotates the identity.
+        let keyMaterial: SdkDeviceLocalKeyMaterial? = localState.getDeviceLocalKeyMaterial()
 
         let newDevice = SdkNewDeviceLocalWithKeyMaterial(
             networkSpace,
@@ -236,11 +240,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let packetReadGeneration = self.beginPacketReads()
         self.reasserting = true
 
-        if localStateIsStale {
-            self.shouldSaveKeyMaterial = false
-        }
-        
-
+        // a stale auth state wipes the session state below, but never the
+        // device identity: the loaded key material is re-persisted after the
+        // wipe (see saveKeyMaterial() at the end of setup)
         prepareLocalStateForStart(localState, byJwt: byJwt, instanceId: instanceId, hasStaleLocalState: localStateIsStale)
 
         self.deviceConfiguration = deviceConfiguration
@@ -344,6 +346,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         if let keyMaterial {
             device.setKeyMaterial(keyMaterial)
         }
+        // persist the identity immediately: a freshly generated key must
+        // survive this session even if no provide-key event fires, and a
+        // loaded key must be re-written after a stale-state wipe
+        saveKeyMaterial()
 
         let canShowRatingDialogChangeSub = device.add(CanShowRatingDialogChangeListener { canShowRatingDialog in
             try? localState.setCanShowRatingDialog(canShowRatingDialog)

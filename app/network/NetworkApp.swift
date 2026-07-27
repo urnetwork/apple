@@ -20,9 +20,10 @@ struct NetworkApp: App {
 #endif
     
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
-    
+
     @State private var isWindowVisible = true
     @State private var keyEventMonitor: Any?
+    @Environment(\.scenePhase) private var scenePhase
     
     let themeManager = ThemeManager.shared
     
@@ -89,6 +90,21 @@ struct NetworkApp: App {
         blockActionsStore.reset()
         dnsSettingsStore.reset()
         networkPeersStore.reset()
+    }
+
+    // Cold launch already gets a fresh JWT (the SDK's token manager refreshes
+    // once immediately on start), but returning from the background does not
+    // -- the token manager only refreshes on a schedule (~14 days out from
+    // expiration) or when explicitly asked. Force one here so anything that
+    // could have changed out-of-band (e.g. a network name changed from
+    // another device or the web dashboard) shows up when the user comes
+    // back to the app, not just after a local rename or a full logout/login.
+    private func refreshJwtOnForeground() {
+        do {
+            try deviceManager.device?.refreshToken(0)
+        } catch {
+            print("Error refreshing JWT on foreground: \(error)")
+        }
     }
     
     private var connectEnabled: Bool {
@@ -160,6 +176,11 @@ struct NetworkApp: App {
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
                 }
+                .onChange(of: scenePhase) { newPhase in
+                    if newPhase == .active {
+                        refreshJwtOnForeground()
+                    }
+                }
             #elseif os(macOS)
             ContentView()
                 .environmentObject(themeManager)
@@ -187,6 +208,11 @@ struct NetworkApp: App {
                 }
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
+                }
+                .onChange(of: scenePhase) { newPhase in
+                    if newPhase == .active {
+                        refreshJwtOnForeground()
+                    }
                 }
                 .onAppear {
                     if mainWindow == nil {

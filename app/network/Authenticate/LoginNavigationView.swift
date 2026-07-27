@@ -12,8 +12,6 @@ struct LoginNavigationView: View {
     
     @StateObject private var viewModel = ViewModel()
     
-    @StateObject private var guestUpgradeViewModel: GuestUpgradeViewModel
-    
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     
@@ -38,7 +36,6 @@ struct LoginNavigationView: View {
         self.api = api
         self.cancel = cancel
         self.handleSuccess = handleSuccess
-        _guestUpgradeViewModel = StateObject(wrappedValue: GuestUpgradeViewModel(api: api))
     }
     
     var body: some View {
@@ -49,8 +46,7 @@ struct LoginNavigationView: View {
                 urApiService: urApiService,
                 navigate: viewModel.navigate,
                 cancel: cancel,
-                handleSuccess: handleSuccess,
-                guestUpgradeViewModel: guestUpgradeViewModel
+                handleSuccess: handleSuccess
             )
             .id(deviceManager.activeHostName)
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
@@ -61,7 +57,6 @@ struct LoginNavigationView: View {
                             userAuth: userAuth,
                             navigate: viewModel.navigate,
                             handleSuccess: handleSuccess,
-                            guestUpgradeViewModel: guestUpgradeViewModel,
                             api: api
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
@@ -87,6 +82,20 @@ struct LoginNavigationView: View {
                         userAuth: userAuth,
                         popNavigationStack: viewModel.back,
                         api: api
+                    )
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+                case .seedphrase:
+                    LoginSeedphraseView(
+                        urApiService: urApiService,
+                        handleSuccess: handleSuccess,
+                        back: viewModel.back
+                    )
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+                case .createInstant:
+                    CreateNetworkInstantView(
+                        urApiService: urApiService,
+                        handleSuccess: handleSuccess,
+                        back: viewModel.back
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                 }

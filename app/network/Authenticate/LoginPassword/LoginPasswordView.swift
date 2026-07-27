@@ -11,9 +11,7 @@ import URnetworkSdk
 struct LoginPasswordView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var deviceManager: DeviceManager
     @StateObject private var viewModel: ViewModel
-    @ObservedObject var guestUpgradeViewModel: GuestUpgradeViewModel
     
     var userAuth: String
     var navigate: (LoginInitialNavigationPath) -> Void
@@ -25,14 +23,12 @@ struct LoginPasswordView: View {
         userAuth: String,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
         handleSuccess: @escaping (_ jwt: String) async -> Void,
-        guestUpgradeViewModel: GuestUpgradeViewModel,
         api: SdkApi?
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
         self.userAuth = userAuth
         self.navigate = navigate
         self.handleSuccess = handleSuccess
-        self.guestUpgradeViewModel = guestUpgradeViewModel
     }
 
     var body: some View {
@@ -88,7 +84,6 @@ struct LoginPasswordView: View {
                         },
                         enabled: !isLoginInProgress && viewModel.isValid,
                         isProcessing: isLoginInProgress
-                        // todo add icon
                     )
                     
                     Spacer().frame(height: 8)
@@ -123,7 +118,7 @@ struct LoginPasswordView: View {
     }
     
     private var isLoginInProgress: Bool {
-        viewModel.isLoggingIn || guestUpgradeViewModel.isUpgrading
+        viewModel.isLoggingIn
     }
     
     private func submitPasswordLogin() async {
@@ -133,45 +128,8 @@ struct LoginPasswordView: View {
         
         viewModel.setErrorMessage(nil)
         
-        if deviceManager.device != nil {
-            // in guest mode; merge user auth account and login
-            let args = SdkUpgradeGuestExistingArgs()
-            args.userAuth = self.userAuth
-            args.password = self.viewModel.password
-        
-            let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: args)
-            await handleUpgradeLoginResult(result)
-        } else {
-            let result = await viewModel.loginWithPassword(userAuth: self.userAuth)
-            await handleLoginResult(result)
-        }
-    }
-    
-    private func handleUpgradeLoginResult(_ result: AuthLoginResult) async {
-        switch result {
-            
-        case .login(let authJwt):
-            await handleSuccess(authJwt)
-            break
-            
-        case .failure(let error):
-            print("auth login error: \(error.localizedDescription)")
-            viewModel.setIsLoggingIn(false)
-            viewModel.setErrorMessage(snackbarErrorMessage)
-            break
-            
-        case .verificationRequired(let userAuth):
-            navigate(.verify(userAuth))
-            viewModel.setIsLoggingIn(false)
-            break
-            
-        default:
-            viewModel.setIsLoggingIn(false)
-            viewModel.setErrorMessage(snackbarErrorMessage)
-            print("upgrade login result does not match any case")
-            return
-            
-        }
+        let result = await viewModel.loginWithPassword(userAuth: self.userAuth)
+        await handleLoginResult(result)
     }
     
     private func handleLoginResult(_ result: LoginNetworkResult) async {
@@ -179,7 +137,6 @@ struct LoginPasswordView: View {
             
         case .successWithJwt(let jwt):
             await handleSuccess(jwt)
-            // viewModel.setIsLoggingIn(false)
             break
             
         case .successWithVerificationRequired:

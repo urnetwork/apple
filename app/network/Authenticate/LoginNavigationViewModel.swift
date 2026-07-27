@@ -14,6 +14,8 @@ enum LoginInitialNavigationPath: Hashable {
     case createNetwork(_ authLoginArgs: SdkAuthLoginArgs)
     case verify(_ userAuth: String)
     case resetPassword(_ userAuth: String)
+    case seedphrase
+    case createInstant
 }
 
 extension LoginNavigationView {

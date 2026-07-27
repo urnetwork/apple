@@ -53,6 +53,12 @@ class ConnectWalletProviderViewModel: ObservableObject {
     private let bittensorSignMessageRedirectLink = "urnetwork://bittensor-sign-message"
     private let bittensorConnectRedirectLink = "urnetwork://bittensor-connect"
     
+    // When set, the wallet deep link onSignature routes here instead of the default multiplier claim flow
+    var pendingAddAuthSignatureHandler: ((String, String) async -> Void)?
+    
+    // Challenge message to sign during wallet auth addition
+    var pendingWalletAuthMessage: String?
+    
     init() {
         self.createKeyPair()
     }

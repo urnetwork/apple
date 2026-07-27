@@ -73,18 +73,6 @@ extension LoginInitialView {
         }
         
         /**
-         * Guest mode
-         */
-        @Published private(set) var isCreatingGuestNetwork: Bool = false
-        @Published var presentGuestNetworkSheet: Bool = false
-        @Published var termsAgreed: Bool = false
-        @Published private(set) var guestNetworkErrorMessage: String?
-        
-        func setGuestNetworkErrorMessage(_ message: String?) -> Void {
-            guestNetworkErrorMessage = message
-        }
-        
-        /**
          * Auth code login
          */
         @Published var presentAuthCodeLoginSheet: Bool = false
@@ -282,40 +270,6 @@ extension LoginInitialView.ViewModel {
         args.authJwtType = "google"
         
         return .success(args)
-        
-    }
-    
-}
-
-// MARK: create guest network
-extension LoginInitialView.ViewModel {
-    
-    func createGuestNetwork() async -> LoginNetworkResult {
-        
-        if self.isCreatingGuestNetwork {
-            return .failure(LoginError.inProgress)
-        }
-        
-        self.isCreatingGuestNetwork = true
-        self.guestNetworkErrorMessage = nil
-        
-        do {
-            
-            let args = SdkNetworkCreateArgs()
-            args.terms = true
-            args.guestMode = true
-            
-            let result = try await urApiService.createNetwork(args)
-            
-            self.isCreatingGuestNetwork = false
-            
-            
-            return result
-            
-        } catch(let error) {
-            self.isCreatingGuestNetwork = false
-            return .failure(error)
-        }
         
     }
     

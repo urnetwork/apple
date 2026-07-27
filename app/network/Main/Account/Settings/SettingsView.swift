@@ -27,6 +27,7 @@ struct SettingsView: View {
     let api: UrApiServiceProtocol
     let navigate: (AccountNavigationPath) -> Void
     let providerCountries: [SdkConnectLocation]
+    let networkUserViewModel: NetworkUserViewModel?
     
     init(
         api: UrApiServiceProtocol,
@@ -35,9 +36,10 @@ struct SettingsView: View {
         referralLinkViewModel: ReferralLinkViewModel,
         accountWalletsViewModel: AccountWalletsViewModel,
         navigate: @escaping (AccountNavigationPath) -> Void,
-        providerCountries: [SdkConnectLocation]
+        providerCountries: [SdkConnectLocation],
+        networkUserViewModel: NetworkUserViewModel? = nil
     ) {
-        _viewModel = StateObject(wrappedValue: ViewModel(api: api))
+        _viewModel = StateObject(wrappedValue: ViewModel(api: api, networkUserViewModel: networkUserViewModel))
         self.clientId = clientId
         self.accountPreferencesViewModel = accountPreferencesViewModel
         self.referralLinkViewModel = referralLinkViewModel
@@ -45,10 +47,11 @@ struct SettingsView: View {
         self.navigate = navigate
         self.providerCountries = providerCountries
         self.api = api
+        self.networkUserViewModel = networkUserViewModel
     }
     
     var body: some View {
-
+        
         #if os(iOS)
             SettingsForm_iOS(
                 urApiService: api,
@@ -73,6 +76,8 @@ struct SettingsView: View {
                 presentRenameDevice: viewModel.presentRenameDevice,
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
                 canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
+                networkUserViewModel: networkUserViewModel,
+                viewModel: viewModel,
             )
             .background(themeManager.currentTheme.backgroundColor)
             .task {
@@ -107,6 +112,9 @@ struct SettingsView: View {
                     
                 }
             }
+            .onOpenURL { url in
+                handleWalletDeepLink(url)
+            }
             .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
                 UpdateReferralNetworkSheet(
                     api: api,
@@ -124,6 +132,51 @@ struct SettingsView: View {
                 .environmentObject(themeManager)
                 .presentationDetents([.height(268)])
                 .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $viewModel.presentSeedphraseSheet) {
+                SeedphraseDisplayView(
+                    seedphrase: viewModel.generatedSeedphrase,
+                    onConfirmed: { _ in
+                        viewModel.dismissSeedphraseSheet()
+                    }
+                )
+                .environmentObject(themeManager)
+            }
+            .confirmationDialog(
+                "Generate a recovery seedphrase?",
+                isPresented: $viewModel.presentSeedphraseConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Generate") {
+                    Task {
+                        await viewModel.executePendingSeedphraseAction()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("A seedphrase lets you recover your account if you lose access. Store it safely.")
+            }
+            .confirmationDialog(
+                "Remove this sign-in method?",
+                isPresented: $viewModel.presentRemoveAuthConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Remove", role: .destructive) {
+                    Task {
+                        await viewModel.executeRemoveAuth()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                if let authType = viewModel.authTypeToRemove {
+                    Text("Are you sure you want to remove \(authType) as a sign-in method?")
+                }
+            }
+            .sheet(isPresented: $viewModel.presentAddAuthSheet) {
+                AddAuthSheet(api: api, networkUserViewModel: networkUserViewModel)
+                    .environmentObject(themeManager)
+                    .environmentObject(snackbarManager)
+                    .environmentObject(connectWalletProviderViewModel)
             }
         
         #elseif os(macOS)
@@ -150,7 +203,9 @@ struct SettingsView: View {
                 presentRenameDevice: viewModel.presentRenameDevice,
                 canReceiveNotifications: $viewModel.canReceiveNotifications,
                 canReceiveProductUpdates: $accountPreferencesViewModel.canReceiveProductUpdates,
-                launchAtStartupEnabled: $viewModel.launchAtStartupEnabled
+                launchAtStartupEnabled: $viewModel.launchAtStartupEnabled,
+                networkUserViewModel: networkUserViewModel,
+                viewModel: viewModel
             )
             .task {
                 await viewModel.fetchDeviceInfo(clientId)
@@ -200,9 +255,74 @@ struct SettingsView: View {
                 )
                 .environmentObject(themeManager)
             }
+            .sheet(isPresented: $viewModel.presentSeedphraseSheet) {
+                SeedphraseDisplayView(
+                    seedphrase: viewModel.generatedSeedphrase,
+                    onConfirmed: { _ in
+                        viewModel.dismissSeedphraseSheet()
+                    }
+                )
+                .environmentObject(themeManager)
+            }
+            .confirmationDialog(
+                "Generate a recovery seedphrase?",
+                isPresented: $viewModel.presentSeedphraseConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Generate") {
+                    Task {
+                        await viewModel.executePendingSeedphraseAction()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("A seedphrase lets you recover your account if you lose access. Store it safely.")
+            }
+            .confirmationDialog(
+                "Remove this sign-in method?",
+                isPresented: $viewModel.presentRemoveAuthConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Remove", role: .destructive) {
+                    Task {
+                        await viewModel.executeRemoveAuth()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                if let authType = viewModel.authTypeToRemove {
+                    Text("Are you sure you want to remove \(authType) as a sign-in method?")
+                }
+            }
+            .sheet(isPresented: $viewModel.presentAddAuthSheet) {
+                AddAuthSheet(api: api, networkUserViewModel: networkUserViewModel)
+                    .environmentObject(themeManager)
+                    .environmentObject(snackbarManager)
+                    .environmentObject(connectWalletProviderViewModel)
+            }
         
         #endif
         
+    }
+    
+    private func handleWalletDeepLink(_ url: URL) {
+        let vm = connectWalletProviderViewModel
+        if vm.pendingAddAuthSignatureHandler != nil,
+           let pk = vm.connectedPublicKey {
+            vm.handleDeepLink(
+                url,
+                onSignature: { signature in
+                    if let handler = vm.pendingAddAuthSignatureHandler {
+                        Task {
+                            await handler(pk, signature)
+                        }
+                    }
+                },
+                onError: { _ in }
+            )
+        } else {
+            vm.handleDeepLink(url)
+        }
     }
     
     private func saveDeviceName() async {
@@ -237,17 +357,3 @@ struct SettingsView: View {
         #endif
     }
 }
-
-//#Preview {
-//    
-//    let themeManager = ThemeManager.shared
-//    let accountPreferenceViewModel = AccountPreferencesViewModel(api: SdkApi())
-//    
-//    SettingsView(
-//        api: SdkApi(),
-//        clientId: nil,
-//        accountPreferencesViewModel: accountPreferenceViewModel
-//    )
-//    .environmentObject(themeManager)
-//    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-//}

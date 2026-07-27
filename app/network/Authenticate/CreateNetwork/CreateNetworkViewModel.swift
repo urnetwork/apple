@@ -247,58 +247,6 @@ extension CreateNetworkView {
             
         }
         
-        func upgradeGuestNetwork(
-            userAuth: String?,
-            authJwt: String?,
-            authType: String?,
-            walletAuth: SdkWalletAuthArgs?
-        ) async -> LoginNetworkResult {
-            
-            if !formIsValid {
-                return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Create network form is invalid"]))
-            }
-            
-            if isCreatingNetwork {
-                return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Network creation already in progress"]))
-            }
-                
-            
-            self.createNetworkErrorMessage = nil
-            self.isCreatingNetwork = true
-            
-            do {
-                
-                let args = SdkUpgradeGuestArgs()
-                args.networkName = networkName.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                if let userAuth = userAuth {
-                    args.userAuth = userAuth
-                    args.password = password
-                }
-
-                if let authJwt, let authType {
-                    args.authJwt = authJwt
-                    args.authJwtType = authType
-                }
-
-                if let walletAuth {
-                    args.walletAuth = walletAuth
-                }
-                
-                let result = try await urApiService.upgradeGuest(args)
-                
-                self.isCreatingNetwork = false
-                
-                return result
-                
-            } catch {
-                self.isCreatingNetwork = false
-                return .failure(error)
-            }
-            
-            
-        }
-        
         func createNetwork(
             userAuth: String?,
             authJwt: String?,

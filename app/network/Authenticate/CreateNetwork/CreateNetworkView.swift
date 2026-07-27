@@ -188,16 +188,7 @@ struct CreateNetworkView: View {
                             #endif
                             
                             Task {
-                                let result = deviceManager.device != nil
-                                // device exists - upgrade guest network
-                                ? await viewModel.upgradeGuestNetwork(
-                                    userAuth: userAuth,
-                                    authJwt: authLoginArgs.authJwt,
-                                    authType: authLoginArgs.authJwtType,
-                                    walletAuth: authLoginArgs.walletAuth
-                                )
-                                // no device exists - create a new network
-                                : await viewModel.createNetwork(
+                                let result = await viewModel.createNetwork(
                                     userAuth: userAuth,
                                     authJwt: authLoginArgs.authJwt,
                                     authType: authLoginArgs.authJwtType,

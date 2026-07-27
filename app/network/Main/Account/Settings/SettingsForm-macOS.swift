@@ -36,6 +36,9 @@ struct SettingsForm_macOS: View {
     @Binding var canReceiveProductUpdates: Bool
     @Binding var launchAtStartupEnabled: Bool
     
+    let networkUserViewModel: NetworkUserViewModel?
+    let viewModel: SettingsView.ViewModel
+    
     var provideIndicatorColor: Color {
         if !provideEnabled {
             return .urCoral
@@ -170,6 +173,112 @@ struct SettingsForm_macOS: View {
                     
                     Spacer().frame(height: 32)
                     
+                    // MARK: - Seedphrase Management
+                    
+                    HStack {
+                        UrLabel(text: "Seedphrase")
+                        
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        if let networkUser = networkUserViewModel?.networkUser {
+                            let hasSeedphrase = authTypesContains(networkUser.authTypes, "seedphrase")
+                            if hasSeedphrase {
+                            HStack {
+                                Button(action: {
+                                    viewModel.confirmRegenerateSeedphrase()
+                                }) {
+                                    Text("Regenerate Seedphrase")
+                                }
+                                if viewModel.isRegeneratingSeedphrase {
+                                    ProgressView().scaleEffect(0.7)
+                                }
+                                Spacer()
+                            }
+                            .disabled(viewModel.isRegeneratingSeedphrase)
+                        } else {
+                            HStack {
+                                Button(action: {
+                                    viewModel.confirmGenerateSeedphrase()
+                                }) {
+                                    Text("Generate Seedphrase")
+                                }
+                                if viewModel.isGeneratingSeedphrase {
+                                    ProgressView().scaleEffect(0.7)
+                                }
+                                Spacer()
+                            }
+                            .disabled(viewModel.isGeneratingSeedphrase)
+                        }
+                    } else {
+                        Text("Loading...")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    
+                    Text("A seedphrase lets you recover your account if you lose access.")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    .padding()
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    
+                    Spacer().frame(height: 32)
+                    
+                    // MARK: - Sign-In Methods
+                    
+                    HStack {
+                        UrLabel(text: "Sign-In Methods")
+                        
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        if let networkUser = networkUserViewModel?.networkUser {
+                            let authMethods = parseAuthMethods(networkUser)
+
+                            ForEach(authMethods, id: \.self) { method in
+                                HStack {
+                                    Text(methodDisplayName(method))
+                                        .font(themeManager.currentTheme.bodyFont)
+                                    Spacer()
+                                    Button(role: .destructive) {
+                                        viewModel.presentRemoveAuth(method)
+                                    } label: {
+                                        Text("Remove")
+                                    }
+                                }
+                                Spacer().frame(height: 8)
+                            }
+
+                            Spacer().frame(height: 4)
+
+                            Button(action: {
+                                viewModel.presentAddAuthSheet = true
+                            }) {
+                                Text("Add sign-in method")
+                            }
+                        } else {
+                            HStack {
+                                Text("Loading sign-in methods...")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                Spacer()
+                                ProgressView().scaleEffect(0.7)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    
+                    Spacer().frame(height: 32)
+                    
+                    /**
+                     * System
+                     */
                     HStack {
                         UrLabel(text: "System")
                         
@@ -235,7 +344,6 @@ struct SettingsForm_macOS: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             navigate(.transferBalanceCodes)
-                            // navigate to blocked
                         }
                         
                         
@@ -367,7 +475,6 @@ struct SettingsForm_macOS: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             navigate(.blockedLocations)
-                            // navigate to blocked
                         }
                         
                     }
@@ -496,7 +603,7 @@ struct SettingsForm_macOS: View {
                     }
 
                     Spacer().frame(height: 64)
-                    
+
                     Button(role: .destructive, action: {
                         presentDeleteAccountConfirmation()
                     }) {
@@ -514,6 +621,7 @@ struct SettingsForm_macOS: View {
             }
         }
     }
+    
 }
 #endif
 

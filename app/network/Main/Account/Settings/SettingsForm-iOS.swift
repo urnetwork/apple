@@ -35,6 +35,9 @@ struct SettingsForm_iOS: View {
     @Binding var canReceiveNotifications: Bool
     @Binding var canReceiveProductUpdates: Bool
     
+    let networkUserViewModel: NetworkUserViewModel?
+    let viewModel: SettingsView.ViewModel
+    
     var body: some View {
 
         Form {
@@ -132,6 +135,98 @@ struct SettingsForm_iOS: View {
                         Text("Update")
                     }
                     
+                }
+            }
+            
+            // MARK: - Seedphrase Management
+
+            Section("Seedphrase") {
+                VStack(alignment: .leading, spacing: 8) {
+                    if let networkUser = networkUserViewModel?.networkUser {
+                        let hasSeedphrase = authTypesContains(networkUser.authTypes, "seedphrase")
+                        if hasSeedphrase {
+                            Button(action: {
+                                viewModel.confirmRegenerateSeedphrase()
+                            }) {
+                                HStack {
+                                    Text("Regenerate Seedphrase")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                    Spacer()
+                                    if viewModel.isRegeneratingSeedphrase {
+                                        ProgressView()
+                                    }
+                                }
+                            }
+                            .disabled(viewModel.isRegeneratingSeedphrase)
+                        } else {
+                            Button(action: {
+                                viewModel.confirmGenerateSeedphrase()
+                            }) {
+                                HStack {
+                                    Text("Generate Seedphrase")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                    Spacer()
+                                    if viewModel.isGeneratingSeedphrase {
+                                        ProgressView()
+                                    }
+                                }
+                            }
+                            .disabled(viewModel.isGeneratingSeedphrase)
+                        }
+                    } else {
+                        Button(action: {
+                            viewModel.confirmGenerateSeedphrase()
+                        }) {
+                            HStack {
+                                Text("Generate Seedphrase")
+                                    .font(themeManager.currentTheme.bodyFont)
+                                Spacer()
+                                if viewModel.isGeneratingSeedphrase {
+                                    ProgressView()
+                                }
+                            }
+                        }
+                        .disabled(viewModel.isGeneratingSeedphrase)
+                    }
+                    
+                    Text("A seedphrase lets you recover your account if you lose access.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+            }
+
+            // MARK: - Sign-In Methods
+
+            Section("Sign-In Methods") {
+                if let networkUser = networkUserViewModel?.networkUser {
+                    let authMethods = parseAuthMethods(networkUser)
+
+                    ForEach(authMethods, id: \.self) { method in
+                        HStack {
+                            Text(methodDisplayName(method))
+                                .font(themeManager.currentTheme.bodyFont)
+                            Spacer()
+                            Button(role: .destructive) {
+                                viewModel.presentRemoveAuth(method)
+                            } label: {
+                                Text("Remove")
+                            }
+                        }
+                    }
+
+                    Button(action: {
+                        viewModel.presentAddAuthSheet = true
+                    }) {
+                        Text("Add sign-in method")
+                    }
+                } else {
+                    HStack {
+                        Text("Loading sign-in methods...")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        Spacer()
+                        ProgressView()
+                    }
                 }
             }
             
@@ -349,6 +444,7 @@ struct SettingsForm_iOS: View {
         .scrollContentBackground(.hidden)
         .background(themeManager.currentTheme.backgroundColor)
     }
+    
 }
 #endif
 

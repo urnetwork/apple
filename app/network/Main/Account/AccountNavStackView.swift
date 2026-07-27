@@ -105,7 +105,16 @@ struct AccountNavStackView: View {
                         api: api,
                         back: viewModel.back,
                         networkName: networkName,
-                        userAuth: networkUserViewModel.networkUser?.userAuth
+                        userAuth: networkUserViewModel.networkUser?.userAuth,
+                        needsNameClaim: {
+                            guard let networkUser = networkUserViewModel.networkUser else { return false }
+                            let hasIdentityMethod = authTypesContains(networkUser.authTypes, "email")
+                                || authTypesContains(networkUser.authTypes, "phone")
+                                || authTypesContains(networkUser.authTypes, "google")
+                                || authTypesContains(networkUser.authTypes, "apple")
+                                || authTypesContains(networkUser.authTypes, "solana")
+                            return !hasIdentityMethod
+                        }()
                     )
                     .background(themeManager.currentTheme.backgroundColor)
                     .navigationTitle("Profile")
@@ -119,6 +128,7 @@ struct AccountNavStackView: View {
                         accountWalletsViewModel: accountWalletsViewModel,
                         navigate: viewModel.navigate,
                         providerCountries: providerCountries,
+                        networkUserViewModel: networkUserViewModel
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .navigationTitle("Settings")

@@ -49,10 +49,6 @@ class MockUrApiService: UrApiServiceProtocol {
         SdkValidateReferralCodeResult()
     }
     
-    func upgradeGuest(_ args: SdkUpgradeGuestArgs) async throws -> LoginNetworkResult {
-        return LoginNetworkResult.failure(LoginError.appleLoginFailed)
-    }
-    
     func fetchSubscriptionBalance() async throws -> SdkSubscriptionBalanceResult {
         return SdkSubscriptionBalanceResult()
     }
@@ -95,6 +91,38 @@ class MockUrApiService: UrApiServiceProtocol {
     
     func unlinkReferralNetwork() async throws -> SdkUnlinkReferralNetworkResult {
         return SdkUnlinkReferralNetworkResult()
+    }
+    
+    func loginWithSeedphrase(seedphrase: String) async throws -> AuthLoginResult {
+        return AuthLoginResult.failure(LoginError.inProgress)
+    }
+    
+    func createInstantAccount() async throws -> (jwt: String, seedphrase: String) {
+        return ("mock-jwt", "mock seedphrase words here for testing purposes only")
+    }
+    
+    func generateSeedphrase() async throws -> SdkGenerateSeedphraseResult {
+        return SdkGenerateSeedphraseResult()
+    }
+    
+    func regenerateSeedphrase() async throws -> SdkRegenerateSeedphraseResult {
+        return SdkRegenerateSeedphraseResult()
+    }
+    
+    func addAuth(_ args: SdkAddAuthArgs) async throws -> SdkAddAuthResult {
+        return SdkAddAuthResult()
+    }
+    
+    func removeAuth(authType: String) async throws -> SdkRemoveAuthResult {
+        return SdkRemoveAuthResult()
+    }
+    
+    func changeNetworkName(_ newName: String) async throws -> SdkChangeNetworkNameResult {
+        return SdkChangeNetworkNameResult()
+    }
+    
+    func claimNetworkName(_ newName: String) async throws -> SdkClaimNetworkNameResult {
+        return SdkClaimNetworkNameResult()
     }
     
     func redeemBalanceCode(_ code: String) async throws -> SdkRedeemBalanceCodeResult {

@@ -20,8 +20,6 @@ struct LoginInitialView: View {
     @StateObject private var viewModel: ViewModel
     @State private var initialIsLandscape: Bool = false
     
-    @ObservedObject var guestUpgradeViewModel: GuestUpgradeViewModel
-    
     let navigate: (LoginInitialNavigationPath) -> Void
     let cancel: (() -> Void)?
     let handleSuccess: (_ jwt: String) async -> Void
@@ -31,14 +29,12 @@ struct LoginInitialView: View {
         urApiService: UrApiServiceProtocol,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
         cancel: (() -> Void)? = nil,
-        handleSuccess: @escaping (_ jwt: String) async -> Void,
-        guestUpgradeViewModel: GuestUpgradeViewModel
+        handleSuccess: @escaping (_ jwt: String) async -> Void
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(urApiService: urApiService))
         self.navigate = navigate
         self.cancel = cancel
         self.handleSuccess = handleSuccess
-        self.guestUpgradeViewModel = guestUpgradeViewModel
         self.urApiService = urApiService
     }
     
@@ -70,7 +66,7 @@ struct LoginInitialView: View {
                             handleGoogleSignInButton: handleGoogleSignInButton,
                             isValidUserAuth: viewModel.isValidUserAuth,
                             activeLoginAction: viewModel.activeLoginAction,
-                            isLoginActionInFlight: viewModel.isLoginActionInFlight || guestUpgradeViewModel.isUpgrading,
+                            isLoginActionInFlight: viewModel.isLoginActionInFlight,
                             loginErrorMessage: viewModel.loginErrorMessage,
                             deviceExists: deviceExists,
                             presentSignInWithSolanaSheet: {
@@ -87,7 +83,12 @@ struct LoginInitialView: View {
                             presentAuthCodeLoginSheet: {
                                 viewModel.setPresentAuthCodeLoginSheet(true)
                             },
-                            presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet,
+                            presentSeedphraseLogin: {
+                                navigate(.seedphrase)
+                            },
+                            presentCreateInstant: {
+                                navigate(.createInstant)
+                            }
                         )
                         .frame(width: geometry.size.width / 2, alignment: .leading)
                         
@@ -109,7 +110,7 @@ struct LoginInitialView: View {
                             handleGoogleSignInButton: handleGoogleSignInButton,
                             isValidUserAuth: viewModel.isValidUserAuth,
                             activeLoginAction: viewModel.activeLoginAction,
-                            isLoginActionInFlight: viewModel.isLoginActionInFlight || guestUpgradeViewModel.isUpgrading,
+                            isLoginActionInFlight: viewModel.isLoginActionInFlight,
                             loginErrorMessage: viewModel.loginErrorMessage,
                             deviceExists: deviceExists,
                             presentSignInWithSolanaSheet: {
@@ -126,7 +127,12 @@ struct LoginInitialView: View {
                             presentAuthCodeLoginSheet: {
                                 viewModel.setPresentAuthCodeLoginSheet(true)
                             },
-                            presentGuestNetworkSheet: $viewModel.presentGuestNetworkSheet
+                            presentSeedphraseLogin: {
+                                navigate(.seedphrase)
+                            },
+                            presentCreateInstant: {
+                                navigate(.createInstant)
+                            }
                         )
                         
                     }
@@ -155,23 +161,6 @@ struct LoginInitialView: View {
                 #if os(iOS)
                 .presentationDetents([.height(216)])
                 #endif
-                
-            }
-            .sheet(isPresented: $viewModel.presentGuestNetworkSheet) {
-                
-                GuestModeSheet(
-                    termsAgreed: $viewModel.termsAgreed,
-                    isCreatingGuestNetwork: viewModel.isCreatingGuestNetwork,
-                    errorMessage: viewModel.guestNetworkErrorMessage,
-                    onCreateGuestNetwork: {
-                        Task {
-                            let result = await viewModel.createGuestNetwork()
-                            await self.handleCreateGuestNetworkResult(result)
-                        }
-                    }
-                )
-                .environmentObject(themeManager)
-                .presentationDetents([.height(264)])
                 
             }
             .sheet(isPresented: $viewModel.presentAuthCodeLoginSheet) {
@@ -305,47 +294,15 @@ struct LoginInitialView: View {
         switch createArgsResult {
         case .success(let args):
 
-            if deviceManager.device != nil {
-
-                let upgradeArgs = self.createUpgradeSolanaWalletArgs(args)
-
-                let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: upgradeArgs)
-
-                await self.handleAuthLoginResult(result)
-                viewModel.presentSigninWithSolanaSheet = false
-                viewModel.setIsSigningMessage(false)
-
-
-            } else {
-                let result = await viewModel.authLogin(args: args)
-                await self.handleAuthLoginResult(result)
-                viewModel.presentSigninWithSolanaSheet = false
-                viewModel.setIsSigningMessage(false)
-            }
+            let result = await viewModel.authLogin(args: args)
+            await self.handleAuthLoginResult(result)
+            viewModel.presentSigninWithSolanaSheet = false
+            viewModel.setIsSigningMessage(false)
 
         case .failure(let error):
             print("error create args result: \(error.localizedDescription)")
             viewModel.setIsSigningMessage(false)
             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-        }
-    }
-    
-    private func handleCreateGuestNetworkResult(_ result: LoginNetworkResult) async {
-        switch result {
-            
-        case .successWithJwt(let jwt):
-            viewModel.presentGuestNetworkSheet = false
-            await handleSuccess(jwt)
-            break
-        case .failure(let error):
-            print("CreateNetworkView: handleResult: \(error.localizedDescription)")
-            viewModel.setGuestNetworkErrorMessage("There was an error creating your guest network. Please try again.")
-            break
-        default:
-            print("neither success with jwt or failure")
-            viewModel.setGuestNetworkErrorMessage("There was an error creating your guest network. Please try again.")
-            break
-            
         }
     }
     
@@ -362,25 +319,8 @@ struct LoginInitialView: View {
         let createArgsResult = viewModel.createAppleAuthLoginArgs(result)
         switch createArgsResult {
         case .success(let args):
-            
-            if deviceManager.device != nil {
-        
-                // device exists, meaning we're in the guest flow
-                // link guest account to google account
-                
-                let upgradeArgs = self.createUpgradeExistingSocialArgs(args)
-                
-                let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: upgradeArgs)
-                await self.handleAuthLoginResult(result)
-                
-            } else {
-             
-                // login with apple
-                // let result = await viewModel.authLogin(args: args)
-                let result = await viewModel.authLogin(args: args)
-                await self.handleAuthLoginResult(result)
-                
-            }
+            let result = await viewModel.authLogin(args: args)
+            await self.handleAuthLoginResult(result)
         
         case .failure(let error):
             print("error create args result: \(error.localizedDescription)")
@@ -411,6 +351,56 @@ struct LoginInitialView: View {
             print("error create args result: \(error.localizedDescription)")
             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
         }
+        
+    }
+    
+    private func handleGoogleSignInButton() async {
+        
+        guard viewModel.beginLoginAction(.google) else {
+            return
+        }
+        
+        defer {
+            viewModel.endLoginAction(.google)
+        }
+        
+        do {
+            #if os(iOS)
+            
+            guard let rootViewController = getRootViewController() else {
+                print("no root view controller found")
+                viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+                return
+            }
+            
+            let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            #elseif os(macOS)
+            
+            guard let presentingWindow = NSApplication.shared.windows.first else {
+              print("There is no presenting window!")
+              viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+              return
+            }
+            
+            let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingWindow)
+            #endif
+            
+            let createArgsResult = viewModel.createGoogleAuthLoginArgs(signInResult)
+            switch createArgsResult {
+            case .success(let args):
+                let result = await viewModel.authLogin(args: args)
+                await self.handleAuthLoginResult(result)
+            
+            case .failure(let error):
+                print("error create args result: \(error.localizedDescription)")
+                viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+            }
+            
+         } catch {
+             print("Error signing in: \(error.localizedDescription)")
+             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+         }
+        
         
     }
     
@@ -489,18 +479,6 @@ struct LoginInitialView: View {
         }
     }
     
-    private func createUpgradeSolanaWalletArgs(_ args: SdkAuthLoginArgs) -> SdkUpgradeGuestExistingArgs {
-        let updateArgs = SdkUpgradeGuestExistingArgs()
-        updateArgs.walletAuth = args.walletAuth
-        return updateArgs
-    }
-
-    /**
-     * Bittensor sign in: fetches a fresh server-issued challenge (same
-     * flow as Solana), then opens the ur.io/wallet-connect bridge; the
-     * wallet returns through onOpenURL with the ss58 address and sr25519
-     * signature over that challenge.
-     */
     private func handleBittensorSignIn() {
         Task {
             let ok = await viewModel.prepareBittensorChallenge()
@@ -541,102 +519,15 @@ struct LoginInitialView: View {
         switch createArgsResult {
         case .success(let args):
 
-            if deviceManager.device != nil {
-
-                let upgradeArgs = self.createUpgradeSolanaWalletArgs(args)
-
-                let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: upgradeArgs)
-
-                await self.handleAuthLoginResult(result)
-                viewModel.setIsSigningMessage(false)
-
-            } else {
-                let result = await viewModel.authLogin(args: args)
-                await self.handleAuthLoginResult(result)
-                viewModel.setIsSigningMessage(false)
-            }
+            let result = await viewModel.authLogin(args: args)
+            await self.handleAuthLoginResult(result)
+            viewModel.setIsSigningMessage(false)
 
         case .failure(let error):
             print("error create args result: \(error.localizedDescription)")
             viewModel.setIsSigningMessage(false)
             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
         }
-    }
-    
-    private func createUpgradeExistingSocialArgs(_ args: SdkAuthLoginArgs) -> SdkUpgradeGuestExistingArgs {
-        let updateArgs = SdkUpgradeGuestExistingArgs()
-        updateArgs.authJwt = args.authJwt
-        updateArgs.authJwtType = args.authJwtType
-        return updateArgs
-    }
-    
-    private func handleGoogleSignInButton() async {
-        
-        guard viewModel.beginLoginAction(.google) else {
-            return
-        }
-        
-        defer {
-            viewModel.endLoginAction(.google)
-        }
-        
-        do {
-            #if os(iOS)
-            
-            guard let rootViewController = getRootViewController() else {
-                print("no root view controller found")
-                viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-                return
-            }
-            
-            let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
-            #elseif os(macOS)
-            
-            guard let presentingWindow = NSApplication.shared.windows.first else {
-              print("There is no presenting window!")
-              viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-              return
-            }
-            
-            let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingWindow)
-            #endif
-            
-            let createArgsResult = viewModel.createGoogleAuthLoginArgs(signInResult)
-            switch createArgsResult {
-            case .success(let args):
-                
-                if deviceManager.device != nil {
-            
-                    // device exists, meaning we're in the guest flow
-                    // link guest account to google account
-                    // let result = await viewModel.linkGuestToExistingSocialLogin(args: args)
-                    
-                    let upgradeArgs = self.createUpgradeExistingSocialArgs(args)
-                    
-                    let result = await guestUpgradeViewModel.linkGuestToExistingLogin(args: upgradeArgs)
-                    
-                    await self.handleAuthLoginResult(result)
-                    
-                } else {
-                 
-                    // login with google
-                    let result = await viewModel.authLogin(args: args)
-                    await self.handleAuthLoginResult(result)
-                    
-                }
-            
-            case .failure(let error):
-                print("error create args result: \(error.localizedDescription)")
-                viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-            }
-            
-         } catch {
-             print("Error signing in: \(error.localizedDescription)")
-             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-         }
-        
-        
-        
     }
     
 }
@@ -659,7 +550,9 @@ private struct LoginInitialFormView: View {
     let signInWithBittensor: () -> Void
     let presentAuthCodeLoginSheet: () -> Void
 
-    @Binding var presentGuestNetworkSheet: Bool
+    let presentSeedphraseLogin: () -> Void
+    let presentCreateInstant: () -> Void
+    
     @State private var presentNetworkServerSheet = false
     
     var body: some View {
@@ -742,6 +635,8 @@ private struct LoginInitialFormView: View {
                 presentSignInWithSolanaSheet: presentSignInWithSolanaSheet,
                 signInWithBittensor: signInWithBittensor,
                 presentAuthCodeLoginSheet: presentAuthCodeLoginSheet,
+                presentSeedphraseLogin: presentSeedphraseLogin,
+                presentCreateInstant: presentCreateInstant,
                 activeLoginAction: activeLoginAction,
                 isLoginActionInFlight: isLoginActionInFlight
             )
@@ -754,28 +649,54 @@ private struct LoginInitialFormView: View {
             Spacer()
                 .frame(height: 24)
             
-            if !deviceExists {
-                // if a device exists, it means they are already in guest mode and trying to upgrade their account
-                // restrict access to create guest network from within authed guest network
-
+            // Seedphrase login button
+            Button(action: presentSeedphraseLogin) {
                 HStack {
-                    Text("Commitment issues?")
-                        .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-
-                    Button(action: {
-                        presentGuestNetworkSheet = true
-                    }) {
-                        Text("Try Guest Mode")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isLoginActionInFlight)
-
+                    Image(systemName: "key.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16)
+                    Spacer().frame(width: 8)
+                    Text("Sign in with Seedphrase")
+                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                        .font(
+                            Font.system(size: 19, weight: .medium)
+                        )
                 }
-
+                .frame(maxWidth: .infinity)
             }
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(Capsule())
+            .buttonStyle(.plain)
+            .opacity(isLoginActionInFlight ? 0.3 : 1)
+            .disabled(isLoginActionInFlight)
+            
+            Spacer()
+                .frame(height: 12)
+            
+            // Instant create account button
+            Button(action: presentCreateInstant) {
+                HStack {
+                    Image(systemName: "bolt.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16)
+                    Spacer().frame(width: 8)
+                    Text("Create Instant Account")
+                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                        .font(
+                            Font.system(size: 19, weight: .medium)
+                        )
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(Capsule())
+            .buttonStyle(.plain)
+            .opacity(isLoginActionInFlight ? 0.3 : 1)
+            .disabled(isLoginActionInFlight)
             
             Spacer()
                 .frame(height: 8)
@@ -830,6 +751,8 @@ private struct SSOButtons: View {
     let presentSignInWithSolanaSheet: () -> Void
     let signInWithBittensor: () -> Void
     let presentAuthCodeLoginSheet: () -> Void
+    let presentSeedphraseLogin: () -> Void
+    let presentCreateInstant: () -> Void
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
     
@@ -997,6 +920,8 @@ private struct SSOButtons: View {
     var presentSignInWithSolanaSheet: () -> Void
     var signInWithBittensor: () -> Void
     let presentAuthCodeLoginSheet: () -> Void
+    let presentSeedphraseLogin: () -> Void
+    let presentCreateInstant: () -> Void
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
     
@@ -1130,10 +1055,57 @@ private struct SSOButtons: View {
                 .disabled(isLoginActionInFlight)
             }
             .frame(maxWidth: .infinity)
-            
 
+            Spacer()
+                .frame(height: 8)
+
+            // Seedphrase login button (macOS)
+            Button(action: presentSeedphraseLogin) {
+                HStack {
+                    Image(systemName: "key.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 12)
+                    Spacer().frame(width: 8)
+                    Text("Sign in with Seedphrase")
+                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                        .font(Font.system(size: 12, weight: .medium))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(height: 30)
+            .frame(maxWidth: .infinity)
+            .background(.white)
+            .cornerRadius(6)
+            .buttonStyle(.plain)
+            .disabled(isLoginActionInFlight)
+            .opacity(isLoginActionInFlight ? 0.3 : 1)
+
+            Spacer().frame(width: 8)
+
+            // Instant create account button (macOS)
+            Button(action: presentCreateInstant) {
+                HStack {
+                    Image(systemName: "bolt.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 12)
+                    Spacer().frame(width: 8)
+                    Text("Create Instant Account")
+                        .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                        .font(Font.system(size: 12, weight: .medium))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(height: 30)
+            .frame(maxWidth: .infinity)
+            .background(.white)
+            .cornerRadius(6)
+            .buttonStyle(.plain)
+            .disabled(isLoginActionInFlight)
+            .opacity(isLoginActionInFlight ? 0.3 : 1)
         }
-        
+
     }
 }
 #endif

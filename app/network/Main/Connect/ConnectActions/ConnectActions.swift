@@ -79,6 +79,7 @@ struct ConnectActions: View {
     // ALL connected devices (a device is online whether or not it provides);
     // the chooser's peers section stays provide-filtered (connectable only)
     private var peerCount: Int { networkPeersStore.connectedCount }
+    private var peersAvailable: Bool { networkPeersStore.peersAvailable }
 
     // second line under the peers count: whether this device is itself
     // discoverable/connectable as a peer (providing to same-network peers).
@@ -162,15 +163,27 @@ struct ConnectActions: View {
                              * opens the location chooser, which lists these peers at top.
                              * The extra top spacing pushes it just below the collapsed
                              * drawer's peek fold, so it appears only when the drawer opens.
+                             * Peer state lives in the network extension's device, which
+                             * only runs while the tunnel is up: until then the count would
+                             * be a stale zero presented as fact, so the line goes gray and
+                             * says discovery is disabled instead.
                              */
                             Spacer().frame(height: 24)
                             HStack(spacing: 8) {
                                 Circle()
-                                    .fill(peerCount > 0 ? Color.urGreen : Color(hex: "F5C242"))
+                                    .fill(peersAvailable
+                                        ? (peerCount > 0 ? Color.urGreen : Color(hex: "F5C242"))
+                                        : themeManager.currentTheme.textMutedColor)
                                     .frame(width: 8, height: 8)
-                                Text(peerCount == 1 ? "You have 1 other device online" : "You have \(peerCount) other devices online")
-                                    .font(themeManager.currentTheme.secondaryBodyFont)
-                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                if peersAvailable {
+                                    Text(peerCount == 1 ? "You have 1 other device online" : "You have \(peerCount) other devices online")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                } else {
+                                    Text("Peer discovery disabled until connected")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                }
                                 Spacer()
                             }
                             .contentShape(Rectangle())

@@ -70,6 +70,16 @@ private class PeersListener: NSObject, SdkPeersListenerProtocol {
     }
 }
 
+private class RemotePresenceListener: NSObject, SdkRemoteChangeListenerProtocol {
+    private let callback: (Bool) -> Void
+    init(callback: @escaping (Bool) -> Void) {
+        self.callback = callback
+    }
+    func remoteChanged(_ remoteConnected: Bool) {
+        callback(remoteConnected)
+    }
+}
+
 /**
  * Publishes the connected network peers with provide enabled.
  *
@@ -86,9 +96,17 @@ class NetworkPeersStore: ObservableObject {
     // provide, which is what the filtered list above captures.
     @Published private(set) var connectedCount: Int = 0
 
+    // Whether the peer state is live. The peers state lives in the network
+    // extension's device, and the extension only runs while the tunnel is up:
+    // with the RPC down there is nothing real to report, and rendering the
+    // empty store as "0 other devices online" presents a stale zero as fact.
+    // The UI shows a disabled-discovery state instead while this is false.
+    @Published private(set) var peersAvailable: Bool = false
+
     private var device: SdkDeviceRemote?
     private var peerViewController: SdkPeerViewController?
     private var peersSub: SdkSubProtocol?
+    private var remoteSub: SdkSubProtocol?
     #if DEBUG
     // debug-only observation timer: logs the raw peer state so a silent
     // no-push session is visible in the console. Log-only — the published
@@ -108,6 +126,18 @@ class NetworkPeersStore: ObservableObject {
                 self?.update()
             }
         })
+        self.remoteSub = device.add(RemotePresenceListener { [weak self] remoteConnected in
+            DispatchQueue.main.async {
+                self?.peersAvailable = remoteConnected
+                if remoteConnected {
+                    // the reconnect listener-sync pushes fresh peers; refresh
+                    // defensively so a just-enabled line never shows a stale zero
+                    self?.update()
+                }
+            }
+        })
+        // GetRemoteConnected — swift's importer strips the redundant "Remote"
+        self.peersAvailable = device.getConnected()
         vc?.start()
         #if DEBUG
         debugLogTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
@@ -121,6 +151,9 @@ class NetworkPeersStore: ObservableObject {
     func reset() {
         peersSub?.close()
         peersSub = nil
+        remoteSub?.close()
+        remoteSub = nil
+        peersAvailable = false
         if let peerViewController {
             if let device {
                 device.close(peerViewController)

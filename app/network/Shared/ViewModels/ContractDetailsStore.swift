@@ -130,7 +130,13 @@ class ContractDetailsStore: ObservableObject {
     func reset() {
         rowsSub?.close()
         rowsSub = nil
-        viewController?.close()
+        if let viewController {
+            if let device {
+                device.close(viewController)
+            } else {
+                viewController.close()
+            }
+        }
         viewController = nil
         device = nil
         rows = []

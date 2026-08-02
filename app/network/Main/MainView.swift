@@ -25,6 +25,7 @@ struct MainView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
+    @Environment(\.presentationActive) private var presentationActive
     
     init(
         api: SdkApi,
@@ -105,6 +106,15 @@ struct MainView: View {
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
+        .onAppear {
+            subscriptionBalanceViewModel.setActive(presentationActive)
+        }
+        .onChange(of: presentationActive) { active in
+            subscriptionBalanceViewModel.setActive(active)
+        }
+        .onDisappear {
+            subscriptionBalanceViewModel.setActive(false)
+        }
         .onChange(of: subscriptionManager.transactionUpdateSequence) { _ in
             /**
              * StoreKit delivered a transaction outside of an in-app purchase flow: an
@@ -392,4 +402,3 @@ struct WelcomeAnimation: View {
     .background(themeManager.currentTheme.backgroundColor)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
 }
-

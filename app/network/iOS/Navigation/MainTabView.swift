@@ -15,7 +15,6 @@ struct MainTabView: View {
     let urApiService: UrApiServiceProtocol
     let device: SdkDeviceRemote
     let logout: () -> Void
-    let connectViewController: SdkConnectViewController?
     let introductionComplete: Binding<Bool>
     let isPro: Bool
     
@@ -31,6 +30,7 @@ struct MainTabView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @Environment(\.presentationActive) private var presentationActive
     
     @State private var selectedTab = 0
     @State private var displayIntroduction: Bool
@@ -54,10 +54,6 @@ struct MainTabView: View {
         self.logout = logout
         self.device = device
 
-        // todo: investigate why we need this?
-        // we're launching this in NetworkApp
-        // but without it, disconnect isn't triggered
-        self.connectViewController = device.openConnectViewController()
         self.providerListStore = providerStore
         self.isPro = isPro
         
@@ -207,10 +203,18 @@ struct MainTabView: View {
         }
         .opacity(opacity)
         .onAppear {
+            setPresentationActive(presentationActive)
             withAnimation(.easeOut(duration: 1.0)) {
                 opacity = 1
             }
-        }.fullScreenCover(isPresented: $displayIntroduction) {
+        }
+        .onChange(of: presentationActive) { active in
+            setPresentationActive(active)
+        }
+        .onDisappear {
+            setPresentationActive(false)
+        }
+        .fullScreenCover(isPresented: $displayIntroduction) {
             
             ZStack {
              
@@ -235,6 +239,11 @@ struct MainTabView: View {
             
         }
         
+    }
+
+    private func setPresentationActive(_ active: Bool) {
+        referralLinkViewModel.setActive(active)
+        networkReliabilityStore.setActive(active)
     }
     
     // used for adding a border above the tab bar

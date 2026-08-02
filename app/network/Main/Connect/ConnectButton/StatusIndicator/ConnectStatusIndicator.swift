@@ -86,6 +86,7 @@ struct ConnectStatusIndicator: View {
 }
 
 struct AnimatedEllipsis: View {
+    @Environment(\.presentationActive) private var presentationActive
     @State private var dotCount = 0
     @State private var timer: Timer?
 
@@ -97,15 +98,35 @@ struct AnimatedEllipsis: View {
         }
         .frame(width: 20, alignment: .leading)
         .onAppear {
-            timer?.invalidate()
-            timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
-                dotCount = (dotCount + 1) % 4
+            startTimer()
+        }
+        .onChange(of: presentationActive) { active in
+            if active {
+                startTimer()
+            } else {
+                stopTimer()
             }
         }
         .onDisappear {
-            timer?.invalidate()
-            timer = nil
+            stopTimer()
         }
+    }
+
+    private func startTimer() {
+        stopTimer()
+        guard PresentationWorkState.shouldRun(
+            presentationActive: presentationActive
+        ) else {
+            return
+        }
+        timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
+            dotCount = (dotCount + 1) % 4
+        }
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
 }
 
@@ -119,4 +140,3 @@ struct AnimatedEllipsis: View {
         currentPlan: .none
     )
 }
-

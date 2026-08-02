@@ -8,6 +8,42 @@
 import SwiftUI
 import URnetworkSdk
 
+/// Coordinate space anchored at the top of [ConnectActions], in which the fold
+/// marker reports the bottom edge of the connect button. The iOS drawer sizes
+/// its collapsed peek so this fold sits a standard 12pt above the tab bar
+/// (Android parity). The space lives inside ConnectActions so hosts that never
+/// read the preference (macOS) still resolve it.
+let connectActionsFoldCoordinateSpace = "connectActionsFold"
+
+/// The bottom edge (maxY) of whichever connect/disconnect/reconnect button is
+/// showing, measured in [connectActionsFoldCoordinateSpace]. Only one button
+/// variant exists at a time; reduce keeps the deepest edge if that ever
+/// changes.
+struct ConnectActionsFoldPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat? = nil
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        if let next = nextValue() {
+            value = max(value ?? next, next)
+        }
+    }
+}
+
+private extension View {
+    /// Marks this view's bottom edge as the collapsed drawer's fold. A
+    /// zero-size sibling marker would add a VStack spacing slot, so the
+    /// measurement rides on the button's background instead.
+    func connectActionsFold() -> some View {
+        background(
+            GeometryReader { geometry in
+                Color.clear.preference(
+                    key: ConnectActionsFoldPreferenceKey.self,
+                    value: geometry.frame(in: .named(connectActionsFoldCoordinateSpace)).maxY
+                )
+            }
+        )
+    }
+}
+
 struct ConnectActions: View {
     
     let connect: () -> Void
@@ -86,7 +122,8 @@ struct ConnectActions: View {
                                 },
                                 style: .outlineSecondary
                             )
-        
+                            .connectActionsFold()
+
                         } else {
                             /**
                              * sufficient balance
@@ -99,21 +136,24 @@ struct ConnectActions: View {
                                 HStack {
                                     UrButton(text: "Connect", action: connect)
                                 }
+                                .connectActionsFold()
                             }
-                            
+
                             if (connectionStatus != .disconnected && !displayReconnectTunnel) {
                                 UrButton(
                                     text: "Disconnect",
                                     action: disconnect,
                                     style: .outlineSecondary
                                 )
+                                .connectActionsFold()
                             }
-                            
+
                             if displayReconnectTunnel {
                                 UrButton(
                                     text: "Reconnect",
                                     action: reconnectTunnel ?? {},
                                 )
+                                .connectActionsFold()
                             }
 
                             /**
@@ -270,6 +310,11 @@ struct ConnectActions: View {
             
             .padding(.horizontal)
             .padding(.bottom)
+            // the space sits inside the flexible frames below and has no top
+            // padding above it, so fold offsets measured in it are offsets
+            // from the top of the ConnectActions content, immune to any
+            // centering slack a host's frame could introduce
+            .coordinateSpace(name: connectActionsFoldCoordinateSpace)
             .frame(maxWidth: 600)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(

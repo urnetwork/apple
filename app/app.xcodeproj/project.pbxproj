@@ -81,13 +81,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		17F8BA782E18EEF300B600BE /* Exceptions for "network" folder in "networkTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Shared/Services/UrApiService/MockUrApiService.swift,
-			);
-			target = D1B95A5F2CEBDD6A00542E0E /* networkTests */;
-		};
 		D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -105,9 +98,6 @@
 		};
 		D1B95A512CEBDD6900542E0E /* network */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				17F8BA782E18EEF300B600BE /* Exceptions for "network" folder in "networkTests" target */,
-			);
 			path = network;
 			sourceTree = "<group>";
 		};
@@ -809,8 +799,14 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				"TEST_HOST[sdk=iphoneos*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
+				"TEST_HOST[sdk=iphonesimulator*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
+				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/Contents/MacOS/URnetwork";
+				"TEST_HOST[sdk=xros*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
+				"TEST_HOST[sdk=xrsimulator*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
 				XROS_DEPLOYMENT_TARGET = 2.1;
 			};
 			name = Debug;
@@ -832,8 +828,14 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				"TEST_HOST[sdk=iphoneos*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
+				"TEST_HOST[sdk=iphonesimulator*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
+				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/Contents/MacOS/URnetwork";
+				"TEST_HOST[sdk=xros*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
+				"TEST_HOST[sdk=xrsimulator*]" = "$(BUILT_PRODUCTS_DIR)/URnetwork.app/URnetwork";
 				XROS_DEPLOYMENT_TARGET = 2.1;
 			};
 			name = Release;
@@ -856,7 +858,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = network;
+				TEST_TARGET_NAME = URnetwork;
 				XROS_DEPLOYMENT_TARGET = 2.1;
 			};
 			name = Debug;
@@ -879,7 +881,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = network;
+				TEST_TARGET_NAME = URnetwork;
 				XROS_DEPLOYMENT_TARGET = 2.1;
 			};
 			name = Release;

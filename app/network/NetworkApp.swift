@@ -9,21 +9,75 @@ import SwiftUI
 import URnetworkSdk
 import GoogleSignIn
 
+enum PresentationLifecycleTransition: Equatable {
+    case resume
+    case suspend
+}
+
+struct PresentationLifecycleState {
+    private(set) var isActive = false
+
+    static func shouldBeActive(sceneActive: Bool, presentationVisible: Bool) -> Bool {
+        return sceneActive && presentationVisible
+    }
+
+    mutating func update(isActive nextIsActive: Bool) -> PresentationLifecycleTransition? {
+        guard isActive != nextIsActive else {
+            return nil
+        }
+        isActive = nextIsActive
+        return nextIsActive ? .resume : .suspend
+    }
+
+    mutating func update(
+        sceneActive: Bool,
+        presentationVisible: Bool
+    ) -> PresentationLifecycleTransition? {
+        return update(
+            isActive: Self.shouldBeActive(
+                sceneActive: sceneActive,
+                presentationVisible: presentationVisible
+            )
+        )
+    }
+}
+
+struct PresentationWorkState {
+    static func shouldRun(
+        presentationActive: Bool,
+        workReady: Bool = true
+    ) -> Bool {
+        return presentationActive && workReady
+    }
+}
+
+private struct PresentationActiveEnvironmentKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var presentationActive: Bool {
+        get { self[PresentationActiveEnvironmentKey.self] }
+        set { self[PresentationActiveEnvironmentKey.self] = newValue }
+    }
+}
+
 @main
 struct NetworkApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     
 #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 #elseif os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var mainWindow: NSWindow?
+    @State private var mainWindowVisible = true
 #endif
     
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
 
-    @State private var isWindowVisible = true
     @State private var keyEventMonitor: Any?
-    @Environment(\.scenePhase) private var scenePhase
+    @State private var presentationLifecycle = PresentationLifecycleState()
     
     let themeManager = ThemeManager.shared
     
@@ -66,6 +120,12 @@ struct NetworkApp: App {
     }
 
     func updateConnectViewModel(_ device: SdkDeviceRemote?) {
+        guard presentationLifecycle.isActive else {
+            connectViewModel.suspend(api: deviceManager.api, device: device)
+            resetDeviceStores()
+            return
+        }
+
         if let device = device {
             if connectViewModel.device == device && connectViewModel.connectViewController != nil {
                 return
@@ -106,26 +166,42 @@ struct NetworkApp: App {
             print("Error refreshing JWT on foreground: \(error)")
         }
     }
+
+    private func setPresentationActive(_ active: Bool) {
+        guard let transition = presentationLifecycle.update(isActive: active) else {
+            return
+        }
+
+        applyPresentationLifecycleTransition(transition)
+    }
+
+    private func applyPresentationLifecycleTransition(
+        _ transition: PresentationLifecycleTransition
+    ) {
+        switch transition {
+        case .resume:
+            deviceManager.applicationDidBecomeActive()
+            updateConnectViewModel(deviceManager.device)
+        case .suspend:
+            connectViewModel.suspend(api: deviceManager.api, device: deviceManager.device)
+            resetDeviceStores()
+        }
+    }
     
     private var connectEnabled: Bool {
-        
-        guard let device = deviceManager.device else {
+        guard let connectionStatus = connectViewModel.connectionStatus else {
             return false
         }
-        
-        return device.getConnectEnabled()
-        
+        return connectionStatus != .disconnected
     }
     
     private var provideEnabled: Bool {
-        guard let device = deviceManager.device else {
-            return false
-        }
-
         // reflect PUBLIC providing only: Network provide (same-network peers) is
-        // always active, so the provider existing is not a meaningful signal.
-        // ProvideMode is a bit set: compare per-case, never with ranges.
-        return device.getProvideMode() == SdkProvideModePublic
+        // always active, so the provider existing is not a meaningful signal. Use
+        // the listener-backed cache: SwiftUI can evaluate this property repeatedly
+        // while drawing the menu, and a synchronous SDK/RPC getter here stalls the
+        // main actor on every evaluation.
+        return deviceManager.providingPublicly
     }
 
     private var menuBarImage: String {
@@ -168,6 +244,7 @@ struct NetworkApp: App {
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
                 .environmentObject(networkPeersStore)
+                .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -175,12 +252,32 @@ struct NetworkApp: App {
                 .background(themeManager.currentTheme.backgroundColor)
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
+                    #if DEBUG
+                    PhysicalPeerTestDriver.runIfRequested(
+                        deviceManager: deviceManager,
+                        connectViewModel: connectViewModel,
+                        networkPeersStore: networkPeersStore
+                    )
+                    #endif
                 }
-                .onChange(of: scenePhase) { newPhase in
-                    if newPhase == .active {
+                .onChange(of: scenePhase) { phase in
+                    setPresentationActive(phase == .active)
+                    if phase == .active {
                         refreshJwtOnForeground()
                     }
                 }
+                .onAppear {
+                    setPresentationActive(scenePhase == .active)
+                }
+                #if DEBUG
+                .task {
+                    PhysicalPeerTestDriver.runIfRequested(
+                        deviceManager: deviceManager,
+                        connectViewModel: connectViewModel,
+                        networkPeersStore: networkPeersStore
+                    )
+                }
+                #endif
             #elseif os(macOS)
             ContentView()
                 .environmentObject(themeManager)
@@ -190,6 +287,7 @@ struct NetworkApp: App {
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
                 .environmentObject(networkPeersStore)
+                .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -209,8 +307,9 @@ struct NetworkApp: App {
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
                 }
-                .onChange(of: scenePhase) { newPhase in
-                    if newPhase == .active {
+                .onChange(of: scenePhase) { phase in
+                    setMacPresentationActive(sceneActive: phase == .active)
+                    if phase == .active {
                         refreshJwtOnForeground()
                     }
                 }
@@ -223,6 +322,39 @@ struct NetworkApp: App {
                         }
                         mainWindow?.isReleasedWhenClosed = false
                     }
+                    setMainWindowVisible(
+                        mainWindow?.isVisible == true &&
+                        mainWindow?.isMiniaturized == false &&
+                        mainWindow?.occlusionState.contains(.visible) == true
+                    )
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(
+                        for: NSWindow.didChangeOcclusionStateNotification
+                    )
+                ) { notification in
+                    updateMainWindowVisibility(notification)
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(
+                        for: NSWindow.willCloseNotification
+                    )
+                ) { notification in
+                    updateMainWindowVisibility(notification, visible: false)
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(
+                        for: NSWindow.didMiniaturizeNotification
+                    )
+                ) { notification in
+                    updateMainWindowVisibility(notification, visible: false)
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(
+                        for: NSWindow.didDeminiaturizeNotification
+                    )
+                ) { notification in
+                    updateMainWindowVisibility(notification)
                 }
             #endif
             
@@ -321,11 +453,58 @@ struct NetworkApp: App {
     }
     
     #if os(macOS)
+
+    private func setMacPresentationActive(sceneActive: Bool) {
+        guard let transition = presentationLifecycle.update(
+            sceneActive: sceneActive,
+            presentationVisible: mainWindowVisible
+        ) else {
+            return
+        }
+
+        applyPresentationLifecycleTransition(transition)
+    }
+
+    private func setMainWindowVisible(_ visible: Bool) {
+        mainWindowVisible = visible
+        setMacPresentationActive(sceneActive: scenePhase == .active)
+    }
+
+    private func updateMainWindowVisibility(
+        _ notification: Notification
+    ) {
+        guard
+            let window = notification.object as? NSWindow,
+            let mainWindow,
+            window === mainWindow
+        else {
+            return
+        }
+        setMainWindowVisible(
+            window.isVisible &&
+            !window.isMiniaturized &&
+            window.occlusionState.contains(.visible)
+        )
+    }
+
+    private func updateMainWindowVisibility(
+        _ notification: Notification,
+        visible: Bool
+    ) {
+        guard
+            let window = notification.object as? NSWindow,
+            let mainWindow,
+            window === mainWindow
+        else {
+            return
+        }
+        setMainWindowVisible(visible)
+    }
     
     private func hideWindow() {
+        setMainWindowVisible(false)
         mainWindow?.orderOut(nil)  // Hide the window without destroying it
         NSApp.setActivationPolicy(.accessory)  // Remove from Dock
-        isWindowVisible = false
     }
 
     private func showWindow() {
@@ -336,7 +515,7 @@ struct NetworkApp: App {
         }
         
         NSApplication.shared.activate(ignoringOtherApps: true)
-        isWindowVisible = true
+        setMainWindowVisible(true)
     }
     
     #endif

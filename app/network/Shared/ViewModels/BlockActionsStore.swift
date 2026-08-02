@@ -172,7 +172,13 @@ class BlockActionsStore: ObservableObject {
         blockActionStatsSub = nil
         overridesSub?.close()
         overridesSub = nil
-        blockActionViewController?.close()
+        if let blockActionViewController {
+            if let device {
+                device.close(blockActionViewController)
+            } else {
+                blockActionViewController.close()
+            }
+        }
         blockActionViewController = nil
         device = nil
 

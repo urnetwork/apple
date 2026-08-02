@@ -24,11 +24,19 @@ final class networkUITests: XCTestCase {
 
     @MainActor
     func testExample() throws {
-        // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Main UI"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+
+        print("URNETWORK_UI_HIERARCHY_BEGIN")
+        print(app.debugDescription)
+        print("URNETWORK_UI_HIERARCHY_END")
     }
 
     @MainActor

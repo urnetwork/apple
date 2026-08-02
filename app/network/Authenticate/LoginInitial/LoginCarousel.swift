@@ -11,6 +11,7 @@ import Combine
 struct LoginCarousel: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.presentationActive) private var presentationActive
     
     private let images = ["LoginCarousel1", "LoginCarousel2", "LoginCarousel3"]
     @State private var currentOpacity = 1.0
@@ -104,6 +105,13 @@ struct LoginCarousel: View {
         .onAppear {
             startCarousel()
         }
+        .onChange(of: presentationActive) { active in
+            if active {
+                startCarousel()
+            } else {
+                stopCarousel()
+            }
+        }
         .onDisappear {
             stopCarousel()
         }
@@ -115,12 +123,23 @@ struct LoginCarousel: View {
         // cancel existing timers
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
+        guard PresentationWorkState.shouldRun(
+            presentationActive: presentationActive
+        ) else {
+            return
+        }
         
         Timer.publish(every: 5, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
+                guard presentationActive else {
+                    return
+                }
                 self.animateTextOut()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    guard presentationActive else {
+                        return
+                    }
                     self.transitionToNextSlide()
                 }
             }
@@ -135,6 +154,10 @@ struct LoginCarousel: View {
     }
     
     private func transitionToNextSlide() {
+        guard presentationActive else {
+            return
+        }
+
         // animate out the image
         withAnimation(.easeInOut(duration: 0.7)) {
             currentOpacity = 0
@@ -143,6 +166,9 @@ struct LoginCarousel: View {
         
         // state updates
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            guard presentationActive else {
+                return
+            }
             currentIndex = nextIndex
             nextIndex = (nextIndex + 1) % images.count
             currentOpacity = 1
@@ -166,6 +192,9 @@ struct LoginCarousel: View {
 
         // animate the bottom text in
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            guard presentationActive else {
+                return
+            }
             withAnimation(.easeOut(duration: 0.4)) {
                 bottomTextOffset = 0
                 bottomTextOpacity = 1
@@ -180,6 +209,9 @@ struct LoginCarousel: View {
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            guard presentationActive else {
+                return
+            }
             withAnimation(.easeIn(duration: 0.4)) {
                 bottomTextOffset = -70 // Move up and out
                 bottomTextOpacity = 0

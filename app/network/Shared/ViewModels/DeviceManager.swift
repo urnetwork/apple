@@ -16,6 +16,23 @@ import UIKit
 import AppKit
 #endif
 
+struct PerformanceProfilePropagationPlan {
+    let persist: Bool
+    let applyLive: Bool
+
+    init(hasLiveDevice: Bool) {
+        // Persistence owns user intent and is independent of the short-lived
+        // DeviceRemote presentation lifecycle.
+        persist = true
+        applyLive = hasLiveDevice
+    }
+}
+
+struct DeviceSettingWritePolicy {
+    static func shouldPropagate(isLoadingFromDevice: Bool) -> Bool {
+        !isLoadingFromDevice
+    }
+}
 
 @MainActor
 class DeviceManager: ObservableObject {
@@ -51,10 +68,17 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var vpnManager: VPNManager? = nil
     private var isLoggingOut = false
+
+    func applicationDidBecomeActive() {
+        vpnManager?.applicationDidBecomeActive()
+    }
     
     
     @Published var provideControlMode: ProvideControlMode = ProvideControlMode.Never {
         didSet {
+            guard DeviceSettingWritePolicy.shouldPropagate(
+                isLoadingFromDevice: isLoadingFromDevice
+            ) else { return }
             handleProvideControlModeUpdate(provideControlMode)
         }
     }
@@ -97,6 +121,9 @@ class DeviceManager: ObservableObject {
     
     @Published var allowProvidingCell: Bool = false {
         didSet {
+            guard DeviceSettingWritePolicy.shouldPropagate(
+                isLoadingFromDevice: isLoadingFromDevice
+            ) else { return }
             updateAllowProvidingCell(allowProvidingCell)
         }
     }
@@ -135,6 +162,13 @@ class DeviceManager: ObservableObject {
     private var providerNetworkKeySub: SdkSubProtocol?
 
     private var isLoadingFromDevice = false
+
+    private func withDeviceStateLoad(_ load: () -> Void) {
+        let wasLoadingFromDevice = isLoadingFromDevice
+        isLoadingFromDevice = true
+        load()
+        isLoadingFromDevice = wasLoadingFromDevice
+    }
     
     @Published var selectedWindowType: WindowType = .auto {
         didSet {
@@ -203,31 +237,38 @@ class DeviceManager: ObservableObject {
     
     /// Propagates UI state to device and storage (one direction only)
     private func propagatePerformanceProfileToDevice() {
-        guard let device = self.device else { return }
-        
         let profile = createPerformanceProfile(
             windowType: selectedWindowType,
             isFixedSize: fixedIpSize,
             allowDirect: allowDirect,
             postQuantumEncryption: postQuantumEncryption,
         )
+        let plan = PerformanceProfilePropagationPlan(hasLiveDevice: device != nil)
         
         // Save to storage
-        do {
-            try asyncLocalState?.getLocalState()?.setPerformanceProfile(profile)
-        } catch {
-            print("error updating performance profile: \(error)")
+        if plan.persist {
+            do {
+                try asyncLocalState?.getLocalState()?.setPerformanceProfile(profile)
+            } catch {
+                print("error updating performance profile: \(error)")
+            }
         }
         
-        // Update device
-        device.setPerformanceProfile(profile)
+        // Update the live device when available. Persistence is intentionally
+        // independent: a user choice made while the app is recreating its
+        // DeviceRemote must not be discarded just because that short-lived
+        // presentation gap has no device yet.
+        if plan.applyLive {
+            device?.setPerformanceProfile(profile)
+        }
     }
     
     /// Loads performance profile from device into UI (called only during init)
     private func loadPerformanceProfileFromDevice(_ device: SdkDeviceRemote) {
         // Set flag to prevent didSet from triggering propagation
+        let wasLoadingFromDevice = isLoadingFromDevice
         isLoadingFromDevice = true
-        defer { isLoadingFromDevice = false }
+        defer { isLoadingFromDevice = wasLoadingFromDevice }
         
         let performanceProfile = device.getPerformanceProfile()
 
@@ -297,12 +338,14 @@ class DeviceManager: ObservableObject {
             if let device = device {
                 print("set device hit: device exists: resetting vpn manager")
 
-                if let provideControlMode = ProvideControlMode(rawValue: device.getProvideControlMode()) {
-                    self.provideControlMode = provideControlMode
-                }
+                withDeviceStateLoad {
+                    if let provideControlMode = ProvideControlMode(rawValue: device.getProvideControlMode()) {
+                        self.provideControlMode = provideControlMode
+                    }
 
-                if let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) {
-                    self.allowProvidingCell = provideNetworkMode == .All
+                    if let provideNetworkMode = ProvideNetworkMode(rawValue: device.getProvideNetworkMode()) {
+                        self.allowProvidingCell = provideNetworkMode == .All
+                    }
                 }
 
                 loadPerformanceProfileFromDevice(device)
@@ -310,9 +353,11 @@ class DeviceManager: ObservableObject {
                 self.deviceInitialized = true
                 self.vpnManager = VPNManager(device: device)
             } else {
-                self.provideControlMode = ProvideControlMode.Never
+                withDeviceStateLoad {
+                    self.provideControlMode = ProvideControlMode.Never
+                    self.allowProvidingCell = false
+                }
                 self.deviceInitialized = false
-                self.allowProvidingCell = false
             }
             
         }
@@ -342,16 +387,32 @@ class DeviceManager: ObservableObject {
     }
     
     
-    // TODO: check how this is used or set
-    let deviceDescription = "New device"
-    
-    // TODO:
-    // @Published private(set) var deviceDescription: String = "New device"
-    
-//    func setDeviceDescription(_ value: String) {
-//        deviceDescription = value
-//        // device?.setDeviceDescription(value)
-//    }
+    // The initial device name defaults to the human device name — never
+    // "New device". On iOS/iPadOS it is the retail model name ("iPhone 16 Pro
+    // Max"); on macOS it is the user's computer name ("Brien's MacBook Pro",
+    // the System Settings > General > About > Name), falling back to the model.
+    // Users can still rename their device (a separate, server-side
+    // device_name); this is only the default a brand-new device registers with.
+    var deviceDescription: String {
+        #if os(macOS)
+        let computerName = Host.current().localizedName
+        if let computerName, !computerName.isEmpty {
+            return computerName
+        }
+        return Self.deviceModelName()
+        #else
+        return Self.deviceModelName()
+        #endif
+    }
+
+    // the retail model name (e.g. "iPhone 16 Pro Max", "MacBook Pro (16-inch,
+    // Nov 2023)") resolved from the hardware identifier via the bundled
+    // `DeviceModelNames` catalog; unknown/newer identifiers fall back to the
+    // raw identifier, which still names the device.
+    static func deviceModelName() -> String {
+        let identifier = hardwareModelIdentifier()
+        return DeviceModelNames.name(forIdentifier: identifier) ?? identifier
+    }
     
     init() {
         
@@ -543,8 +604,10 @@ extension DeviceManager {
             self.vpnManager = nil
         }
 
-        self.provideControlMode = ProvideControlMode.Never
-        self.allowProvidingCell = false
+        withDeviceStateLoad {
+            self.provideControlMode = ProvideControlMode.Never
+            self.allowProvidingCell = false
+        }
         self.provideEnabled = false
         self.providePaused = false
         self.currentProvideMode = SdkProvideModeNone
@@ -823,9 +886,9 @@ extension DeviceManager {
         device.setCanRefer(canRefer)
         device.setVpnInterfaceWhileOffline(vpnInterfaceWhileOffline)
         device.setBlockerEnabled(blockerEnabled)
-        isLoadingFromDevice = true
-        self.blockerEnabled = blockerEnabled
-        isLoadingFromDevice = false
+        withDeviceStateLoad {
+            self.blockerEnabled = blockerEnabled
+        }
 
         if (performanceProfile != nil) {
             device.setPerformanceProfile(performanceProfile)
@@ -876,7 +939,7 @@ extension DeviceManager {
             }
             
             DispatchQueue.main.async {
-                self.providePaused = device.getProvidePaused()
+                self.providePaused = providePaused
             }
         })
         
@@ -886,7 +949,7 @@ extension DeviceManager {
             }
             
             DispatchQueue.main.async {
-                self.provideEnabled = device.getProvideEnabled()
+                self.provideEnabled = provideEnabled
             }
         })
         
@@ -938,9 +1001,9 @@ extension DeviceManager {
 
             DispatchQueue.main.async {
                 if self.blockerEnabled != blockerEnabled {
-                    self.isLoadingFromDevice = true
-                    self.blockerEnabled = blockerEnabled
-                    self.isLoadingFromDevice = false
+                    self.withDeviceStateLoad {
+                        self.blockerEnabled = blockerEnabled
+                    }
                 }
             }
         })
@@ -1328,8 +1391,7 @@ extension DeviceManager {
         systemVersion = "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
         #endif
 
-        let identifier = Self.hardwareModelIdentifier()
-        let model = DeviceModelNames.name(forIdentifier: identifier) ?? identifier
+        let model = Self.deviceModelName()
         return "\(systemVersion) \(model)"
     }
 

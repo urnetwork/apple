@@ -44,8 +44,22 @@ struct ConnectView_iOS: View {
     @State private var sheetScrollAtTop: Bool = true
     @State private var sheetScrollBaseline: CGFloat? = nil
 
-    private let sheetMinHeight: CGFloat   // collapsed peek height
+    // The collapsed drawer shows EXACTLY the above-the-fold content — the
+    // location row with the connect button — and nothing else. A fixed peek
+    // constant cannot do that across devices and font scales, so the peek is
+    // measured: the sheet header (handle + divider) height plus the fold
+    // marker's offset within the sheet content (Android parity). Until both
+    // measurements land, the fallback keeps a sane peek.
+    @State private var sheetHeaderHeight: CGFloat = 0
+    @State private var sheetFoldMaxY: CGFloat? = nil
+
+    private let sheetMinHeightFallback: CGFloat = 280   // pre-measurement collapsed peek
     private let sheetMaxHeight: CGFloat = 680   // expanded height
+
+    // the standard visible padding between the bottom of the connect button
+    // and the top of the tab bar at the collapsed peek — the same 12pt on
+    // every device, matching the Android drawer
+    private let sheetFoldGap: CGFloat = 12
 
     
     init(
@@ -73,7 +87,6 @@ struct ConnectView_iOS: View {
 
         self.isPro = isPro
         self.collapseDrawerSignal = collapseDrawerSignal
-        self.sheetMinHeight = 280
 
         // adds clear button to search providers text field
         UITextField.appearance().clearButtonMode = .whileEditing
@@ -82,9 +95,10 @@ struct ConnectView_iOS: View {
     var body: some View {
         
         GeometryReader { geometry in
-            
+
             let screenHeight = geometry.size.height + geometry.safeAreaInsets.bottom
-            
+            let sheetCollapsedHeight = collapsedSheetHeight(safeAreaBottom: geometry.safeAreaInsets.bottom)
+
             ZStack(alignment: .top) {
                 
                 VStack {
@@ -144,17 +158,29 @@ struct ConnectView_iOS: View {
                 .frame(maxWidth: .infinity)
                 
                 VStack(spacing: 0) {
-                 
-                    // Drag handle
-                    VStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.secondary.opacity(0.6))
-                            .frame(width: 36, height: 4)
-                            .padding(.vertical, 16)
-                    }
-                    .frame(maxWidth: .infinity)
 
-                    Divider()
+                    // Sheet header: drag handle + divider. Its measured height
+                    // feeds the collapsed peek, which shows header + content
+                    // above the fold + the standard gap over the tab bar.
+                    VStack(spacing: 0) {
+                        VStack(spacing: 8) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.secondary.opacity(0.6))
+                                .frame(width: 36, height: 4)
+                                .padding(.vertical, 16)
+                        }
+                        .frame(maxWidth: .infinity)
+
+                        Divider()
+                    }
+                    .background(
+                        GeometryReader { headerGeometry in
+                            Color.clear.preference(
+                                key: SheetHeaderHeightKey.self,
+                                value: headerGeometry.size.height
+                            )
+                        }
+                    )
 
                     // Sheet content can scroll only when expanded
                     ScrollViewReader { sheetScrollProxy in
@@ -207,10 +233,12 @@ struct ConnectView_iOS: View {
                                 }
                             )
 
-                            // bottom inset equal to the tab bar height so the
-                            // last card isn't tucked under the tab bar
+                            // the sheet extends past the tab content area by
+                            // exactly the bottom inset; matching that here
+                            // leaves the last card ending at the tab bar with
+                            // its own 16pt bottom padding as the standard gap
                             Spacer()
-                                .frame(height: tabBarHeight(safeAreaBottom: geometry.safeAreaInsets.bottom))
+                                .frame(height: geometry.safeAreaInsets.bottom)
                         }
                     }
                     .scrollIndicators(.hidden)
@@ -224,6 +252,9 @@ struct ConnectView_iOS: View {
                             sheetScrollAtTop = (sheetScrollBaseline ?? 0) - 4 <= minY
                         }
                     }
+                    .onPreferenceChange(ConnectActionsFoldPreferenceKey.self) { maxY in
+                        sheetFoldMaxY = maxY
+                    }
                     .onChange(of: isSheetExpanded) { expanded in
                         // when the sheet collapses, reset the content to the top
                         if !expanded {
@@ -234,7 +265,10 @@ struct ConnectView_iOS: View {
                     }
                     }
                 }
-                .frame(height: currentSheetHeight())
+                .onPreferenceChange(SheetHeaderHeightKey.self) { height in
+                    sheetHeaderHeight = height
+                }
+                .frame(height: currentSheetHeight(collapsedHeight: sheetCollapsedHeight))
                 .frame(maxWidth: .infinity)
                 .background(
                     Rectangle()
@@ -254,8 +288,12 @@ struct ConnectView_iOS: View {
                 // and drags over the content move it only when the content is
                 // at its top and the drag is downward (closing)
                 .verticalPanGesture(
-                    onChanged: sheetDragOnChanged,
-                    onEnded: sheetDragOnEnded,
+                    onChanged: { translation in
+                        sheetDragOnChanged(translation, collapsedHeight: sheetCollapsedHeight)
+                    },
+                    onEnded: { translation in
+                        sheetDragOnEnded(translation, collapsedHeight: sheetCollapsedHeight)
+                    },
                     shouldBegin: { translation, location in
                         if !isSheetExpanded {
                             return true
@@ -267,7 +305,7 @@ struct ConnectView_iOS: View {
                         return sheetScrollAtTop && 0 < translation
                     }
                 )
-                .offset(y: sheetY(screenHeight: screenHeight))
+                .offset(y: sheetY(screenHeight: screenHeight, collapsedHeight: sheetCollapsedHeight))
                 .ignoresSafeArea(edges: .bottom)
                 .animation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2),
                            value: isSheetExpanded)
@@ -438,25 +476,43 @@ struct ConnectView_iOS: View {
         
     }
     
-    private func currentSheetHeight() -> CGFloat {
-        let base = isSheetExpanded ? sheetMaxHeight : sheetMinHeight
-        let dragged = base - sheetDragTranslation
-        return max(sheetMinHeight, min(sheetMaxHeight, dragged))
+    // The collapsed peek: sheet header + the content above the fold (location
+    // row with the connect button) + the standard 12pt gap, plus the region
+    // the sheet extends past the tab content area (behind the tab bar).
+    // screenHeight extends past that area by exactly safeAreaBottom, so
+    // whatever the inset reports, the fold lands 12pt above the tab bar —
+    // consistent across devices (Android parity).
+    private func collapsedSheetHeight(safeAreaBottom: CGFloat) -> CGFloat {
+        guard let foldMaxY = sheetFoldMaxY, 0 < sheetHeaderHeight else {
+            return sheetMinHeightFallback
+        }
+        // never taller than the expanded sheet (giant accessibility type),
+        // which would invert the drag range
+        return min(
+            sheetHeaderHeight + foldMaxY + sheetFoldGap + safeAreaBottom,
+            sheetMaxHeight
+        )
     }
 
-    private func sheetY(screenHeight: CGFloat) -> CGFloat {
-        let height = currentSheetHeight()
+    private func currentSheetHeight(collapsedHeight: CGFloat) -> CGFloat {
+        let base = isSheetExpanded ? sheetMaxHeight : collapsedHeight
+        let dragged = base - sheetDragTranslation
+        return max(collapsedHeight, min(sheetMaxHeight, dragged))
+    }
+
+    private func sheetY(screenHeight: CGFloat, collapsedHeight: CGFloat) -> CGFloat {
+        let height = currentSheetHeight(collapsedHeight: collapsedHeight)
         return screenHeight - height
     }
-    
-    private func sheetDragOnChanged(_ translation: CGFloat) {
-        let range = sheetMaxHeight - sheetMinHeight
+
+    private func sheetDragOnChanged(_ translation: CGFloat, collapsedHeight: CGFloat) {
+        let range = sheetMaxHeight - collapsedHeight
         // Allow both directions: negative when dragging up, positive when dragging down
         sheetDragTranslation = max(-range, min(range, translation))
     }
 
-    private func sheetDragOnEnded(_ translation: CGFloat) {
-        let range = sheetMaxHeight - sheetMinHeight
+    private func sheetDragOnEnded(_ translation: CGFloat, collapsedHeight: CGFloat) {
+        let range = sheetMaxHeight - collapsedHeight
         let threshold = range * 0.25
         if isSheetExpanded {
             if translation > threshold { isSheetExpanded = false }
@@ -466,17 +522,20 @@ struct ConnectView_iOS: View {
         sheetDragTranslation = 0
     }
 
-    // the standard tab bar content height plus the bottom safe area it covers
-    private func tabBarHeight(safeAreaBottom: CGFloat) -> CGFloat {
-        return 49 + safeAreaBottom
-    }
-
 }
 
 private struct SheetScrollTopOffsetKey: PreferenceKey {
     static var defaultValue: CGFloat? = nil
     static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
         value = value ?? nextValue()
+    }
+}
+
+// measured height of the sheet header (drag handle + divider)
+private struct SheetHeaderHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 

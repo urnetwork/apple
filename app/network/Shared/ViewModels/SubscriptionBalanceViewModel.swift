@@ -55,6 +55,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
     // this is used primarily for the data usage bar
     private var backgroundPollingTimer: Timer?
     private var backgroundPollingInterval: TimeInterval = 30.0 // 30 seconds
+    private var active = false
     
     @Published private(set) var usedBalanceByteCount: Int = 0
     @Published private(set) var pendingByteCount: Int = 0
@@ -77,15 +78,29 @@ class SubscriptionBalanceViewModel: ObservableObject {
         self.urApiService = urApiService
         self.refreshJwt = refreshJwt
         self.isPro = isPro
-
-        if (!isPro) {
-            startBackgroundPolling()
-        }
     }
 
     deinit {
         pollingTimer?.invalidate()
         backgroundPollingTimer?.invalidate()
+    }
+
+    func setActive(_ nextActive: Bool) {
+        guard active != nextActive else {
+            return
+        }
+        active = nextActive
+
+        if !active {
+            pauseTimers()
+            return
+        }
+
+        if isPolling {
+            resumeConfirmationPolling()
+        } else if !isPro {
+            startBackgroundPolling()
+        }
     }
     
     func updateIsPro(_ isPro: Bool) {
@@ -100,7 +115,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
             stopPolling()
         } else {
             stopPolling()
-            startBackgroundPolling()
+            if active {
+                startBackgroundPolling()
+            }
         }
         
     }
@@ -167,6 +184,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
     }
     
     private func startBackgroundPolling() {
+        guard active, !isPro, !isPolling, backgroundPollingTimer == nil else {
+            return
+        }
         Task {
             
             await fetchSubscriptionBalance()
@@ -175,21 +195,22 @@ class SubscriptionBalanceViewModel: ObservableObject {
                 stopPolling()
                 return
             }
-            
-            // Set up timer for subsequent fetches
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                
-                // poll every 30 seconds
-                self.backgroundPollingTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
-                    guard let self = self else { return }
-                    
-                    Task {
-                        await self.fetchSubscriptionBalance()
-                        
-                        if (await self.isSupporterWithBalance()) {
-                            await self.stopPolling()
-                        }
+            guard active, !isPro, !isPolling, backgroundPollingTimer == nil else {
+                return
+            }
+
+            backgroundPollingTimer = Timer.scheduledTimer(
+                withTimeInterval: backgroundPollingInterval,
+                repeats: true
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self, self.active else {
+                        return
+                    }
+                    await self.fetchSubscriptionBalance()
+
+                    if self.isSupporterWithBalance() {
+                        self.stopPolling()
                     }
                 }
             }
@@ -210,6 +231,20 @@ class SubscriptionBalanceViewModel: ObservableObject {
         self.setPollingInterval(interval)
         self.setIsPolling(true)
 
+        if active {
+            resumeConfirmationPolling()
+        }
+    }
+
+    private func resumeConfirmationPolling() {
+        guard active, isPolling, pollingTimer == nil else {
+            return
+        }
+        if isPollingDeadlineExpired() {
+            timeOutPurchaseConfirmation()
+            return
+        }
+
         Task {
 
             await fetchSubscriptionBalance()
@@ -219,27 +254,35 @@ class SubscriptionBalanceViewModel: ObservableObject {
                 return
             }
 
-            // Set up timer for subsequent fetches
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
+            guard active, isPolling else {
+                return
+            }
+            if isPollingDeadlineExpired() {
+                timeOutPurchaseConfirmation()
+                return
+            }
+            guard pollingTimer == nil else {
+                return
+            }
 
-                self.pollingTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-                    guard let self = self else { return }
+            pollingTimer = Timer.scheduledTimer(withTimeInterval: pollingInterval, repeats: true) {
+                [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self, self.active, self.isPolling else {
+                        return
+                    }
+                    await self.fetchSubscriptionBalance()
 
-                    Task {
-                        await self.fetchSubscriptionBalance()
+                    if self.isSupporterWithBalance() {
+                        self.stopPolling()
+                        return
+                    }
 
-                        if (await self.isSupporterWithBalance()) {
-                            await self.stopPolling()
-                            return
-                        }
-
-                        // the server never confirmed within the window -- stop
-                        // hammering the api and tell the user, rather than spinning
-                        // for the rest of the session
-                        if (await self.isPollingDeadlineExpired()) {
-                            await self.timeOutPurchaseConfirmation()
-                        }
+                    // the server never confirmed within the window -- stop
+                    // hammering the api and tell the user, rather than spinning
+                    // for the rest of the session
+                    if self.isPollingDeadlineExpired() {
+                        self.timeOutPurchaseConfirmation()
                     }
                 }
             }
@@ -261,6 +304,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
     private func timeOutPurchaseConfirmation() {
         stopPolling()
         purchaseConfirmationTimedOut = true
+        if active && !isPro {
+            startBackgroundPolling()
+        }
     }
 
     func clearPurchaseConfirmationTimeout() {
@@ -277,6 +323,13 @@ class SubscriptionBalanceViewModel: ObservableObject {
         pollingTimer = nil
         pollingDeadline = nil
         isPolling = false
+        backgroundPollingTimer?.invalidate()
+        backgroundPollingTimer = nil
+    }
+
+    private func pauseTimers() {
+        pollingTimer?.invalidate()
+        pollingTimer = nil
         backgroundPollingTimer?.invalidate()
         backgroundPollingTimer = nil
     }

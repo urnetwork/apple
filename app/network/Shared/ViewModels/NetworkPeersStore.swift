@@ -121,7 +121,13 @@ class NetworkPeersStore: ObservableObject {
     func reset() {
         peersSub?.close()
         peersSub = nil
-        peerViewController?.close()
+        if let peerViewController {
+            if let device {
+                device.close(peerViewController)
+            } else {
+                peerViewController.close()
+            }
+        }
         peerViewController = nil
         device = nil
         connectedProvidePeers = []

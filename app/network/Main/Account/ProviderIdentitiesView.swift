@@ -12,7 +12,9 @@ import URnetworkSdk
  * Provider Identities: a live list with one row per provider with an
  * established, identity-verified e2e session. Each row shows the provider's
  * identity key identicon, its canonical hash and its client id; tapping the
- * hash copies the full hash, tapping the client id copies the client id.
+ * identicon opens the identity details sheet for that peer (the same sheet
+ * as the panel's own identicon), tapping the hash copies the full hash,
+ * tapping the client id copies the client id.
  */
 struct ProviderIdentitiesView: View {
 
@@ -21,13 +23,21 @@ struct ProviderIdentitiesView: View {
 
     @StateObject private var store = PostQuantumIdentityStore()
 
+    // the peer whose identity details sheet is open, nil for none
+    @State private var presentingRow: ProviderIdentityRow? = nil
+
     var body: some View {
 
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(store.providerIdentities) { row in
                     VStack(spacing: 0) {
-                        ProviderIdentityRowView(row: row)
+                        ProviderIdentityRowView(
+                            row: row,
+                            onIdenticonTap: {
+                                presentingRow = row
+                            }
+                        )
                         Divider()
                     }
                     .transition(.opacity)
@@ -46,6 +56,11 @@ struct ProviderIdentitiesView: View {
         .onDisappear {
             store.reset()
         }
+        // the identity details sheet for a tapped peer identicon — the same
+        // sheet the panel opens for this device's own identicon
+        .sheet(item: $presentingRow) { row in
+            PostQuantumIdentityShareSheet(row: row)
+        }
 
     }
 }
@@ -56,15 +71,21 @@ struct ProviderIdentityRowView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
 
     let row: ProviderIdentityRow
+    let onIdenticonTap: () -> Void
 
     var body: some View {
 
         HStack(alignment: .center, spacing: 16) {
 
+            // tap opens the identity details sheet for this peer
             IdenticonView(
                 image: row.identicon,
                 size: PostQuantumIdentityStore.rowIdenticonSize
             )
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onIdenticonTap()
+            }
 
             VStack(alignment: .leading, spacing: 4) {
 

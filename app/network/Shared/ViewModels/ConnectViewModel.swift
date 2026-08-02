@@ -11,15 +11,44 @@ import SwiftUI
 import Combine
 
 private class GridListener: NSObject, SdkGridListenerProtocol {
-    private let callback: () async -> Void
+    private let lock = NSLock()
+    private var scheduled = false
+    private var dirty = false
+    private let callback: @MainActor () -> Void
 
-    init(callback: @escaping () async -> Void) {
+    init(callback: @escaping @MainActor () -> Void) {
         self.callback = callback
     }
-    
+
     func gridChanged() {
-        Task {
-            await callback()
+        lock.lock()
+        if scheduled {
+            dirty = true
+            lock.unlock()
+            return
+        }
+        scheduled = true
+        lock.unlock()
+
+        DispatchQueue.main.async { [weak self] in
+            self?.drain()
+        }
+    }
+
+    @MainActor
+    private func drain() {
+        callback()
+
+        lock.lock()
+        if dirty {
+            dirty = false
+            lock.unlock()
+            DispatchQueue.main.async { [weak self] in
+                self?.drain()
+            }
+        } else {
+            scheduled = false
+            lock.unlock()
         }
     }
 }
@@ -47,6 +76,18 @@ private class SelectedLocationListener: NSObject, SdkSelectedLocationListenerPro
     }
     
     func selectedLocationChanged(_ location: SdkConnectLocation?) {
+        callback(location)
+    }
+}
+
+private class ConnectLocationStateListener: NSObject, SdkConnectLocationChangeListenerProtocol {
+    private let callback: (_ location: SdkConnectLocation?) -> Void
+
+    init(callback: @escaping (_ location: SdkConnectLocation?) -> Void) {
+        self.callback = callback
+    }
+
+    func connectLocationChanged(_ location: SdkConnectLocation?) {
         callback(location)
     }
 }
@@ -113,6 +154,7 @@ class ConnectViewModel: ObservableObject {
     private var selectedLocationListenerSub: SdkSubProtocol?
     private var tunnelListenerSub: SdkSubProtocol?
     private var contractListenerSub: SdkSubProtocol?
+    private var connectLocationStateSub: SdkSubProtocol?
 
     // last published grid signature; skip redundant re-renders when the SDK
     // re-emits a logically unchanged grid (its point objects get fresh
@@ -164,6 +206,19 @@ class ConnectViewModel: ObservableObject {
         })
     }
 
+    /**
+     * Release all presentation-only SDK work while retaining the last device and
+     * published snapshot. The packet tunnel/provider owns data-plane continuity;
+     * reopening the scene calls `setup` and obtains a fresh controller snapshot.
+     */
+    func suspend(api: SdkApi?, device: SdkDeviceRemote?) {
+        closeListeners()
+        closeConnectViewController()
+        self.api = api
+        self.device = device
+        addBackgroundConnectionStateListener()
+    }
+
     func reset() {
         closeListeners()
         closeConnectViewController()
@@ -189,17 +244,49 @@ class ConnectViewModel: ObservableObject {
         selectedLocationListenerSub?.close()
         tunnelListenerSub?.close()
         contractListenerSub?.close()
+        connectLocationStateSub?.close()
 
         gridListenerSub = nil
         connectionStatusListenerSub = nil
         selectedLocationListenerSub = nil
         tunnelListenerSub = nil
         contractListenerSub = nil
+        connectLocationStateSub = nil
     }
 
     private func closeConnectViewController() {
-        connectViewController?.close()
+        if let connectViewController {
+            if let device {
+                device.close(connectViewController)
+            } else {
+                connectViewController.close()
+            }
+        }
         connectViewController = nil
+    }
+
+    /**
+     * The macOS tray stays interactive while its window is hidden. Keep only
+     * the device's event-driven location state so tray connect/disconnect
+     * commands update their label; all polling and presentation controllers
+     * remain closed. On iOS this listener is inert while the app is suspended.
+     */
+    private func addBackgroundConnectionStateListener() {
+        guard let device else {
+            return
+        }
+
+        updateBackgroundConnectionState(device.getConnectLocation())
+        connectLocationStateSub = device.add(ConnectLocationStateListener { [weak self] location in
+            DispatchQueue.main.async {
+                self?.updateBackgroundConnectionState(location)
+            }
+        })
+    }
+
+    private func updateBackgroundConnectionState(_ location: SdkConnectLocation?) {
+        selectedProvider = location ?? selectedProvider
+        connectionStatus = location == nil ? .disconnected : .destinationSet
     }
     
     func refreshTunnelStatus() {
@@ -210,7 +297,9 @@ class ConnectViewModel: ObservableObject {
      * Used in the provider list
      */
     func connect(_ provider: SdkConnectLocation) {
-        connectViewController?.connect(provider)
+        withCommandViewController { viewController in
+            viewController.connect(provider)
+        }
         try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
     }
     
@@ -219,18 +308,38 @@ class ConnectViewModel: ObservableObject {
      */
     func connect() {
         if let selectedProvider = self.selectedProvider {
-            connectViewController?.connect(selectedProvider)
+            withCommandViewController { viewController in
+                viewController.connect(selectedProvider)
+            }
         } else {
-            connectViewController?.connectBestAvailable()
+            connectBestAvailable()
         }
     }
     
     func connectBestAvailable() {
-        connectViewController?.connectBestAvailable()
+        withCommandViewController { viewController in
+            viewController.connectBestAvailable()
+        }
     }
     
     func disconnect() {
-        connectViewController?.disconnect()
+        withCommandViewController { viewController in
+            viewController.disconnect()
+        }
+    }
+
+    private func withCommandViewController(_ command: (SdkConnectViewController) -> Void) {
+        if let connectViewController {
+            command(connectViewController)
+            return
+        }
+        guard let device, let viewController = device.openConnectViewController() else {
+            return
+        }
+        defer {
+            device.close(viewController)
+        }
+        command(viewController)
     }
     
     private func addSelectedLocationListener() {
@@ -292,15 +401,7 @@ extension ConnectViewModel {
     
     private func addGridListener() {
         let listener = GridListener { [weak self] in
-            
-            guard let self = self else {
-                return
-            }
-            
-            await MainActor.run {
-                self.updateGrid()
-            }
-            
+            self?.updateGrid()
         }
         gridListenerSub = connectViewController?.add(listener)
         updateGrid()
@@ -391,6 +492,9 @@ extension ConnectViewModel {
         }
         
         if let status = ConnectionStatus(rawValue: statusString) {
+            guard status != self.connectionStatus else {
+                return
+            }
             self.connectionStatus = status
             
             if status == .connected {

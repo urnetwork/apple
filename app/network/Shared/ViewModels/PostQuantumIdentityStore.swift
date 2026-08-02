@@ -131,7 +131,13 @@ class PostQuantumIdentityStore: ObservableObject {
     func reset() {
         identitiesSub?.close()
         identitiesSub = nil
-        viewController?.close()
+        if let viewController {
+            if let device {
+                device.close(viewController)
+            } else {
+                viewController.close()
+            }
+        }
         viewController = nil
         device = nil
         ownIdentityRow = nil

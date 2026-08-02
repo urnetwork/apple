@@ -22,7 +22,11 @@ struct DeviceModelNamesTests {
 
     @Test func unknownIdentifiersFallBack() {
         #expect(DeviceModelNames.name(forIdentifier: "iPhone99,9") == nil)
-        #expect(DeviceModelNames.name(forIdentifier: "arm64") == nil)
         #expect(DeviceModelNames.name(forIdentifier: "") == nil)
+    }
+
+    @Test func simulatorArchitectureResolves() {
+        #expect(DeviceModelNames.name(forIdentifier: "arm64") == "iPhone Simulator")
+        #expect(DeviceModelNames.name(forIdentifier: "x86_64") == "iPhone Simulator")
     }
 }

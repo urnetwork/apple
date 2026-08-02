@@ -23,6 +23,7 @@ struct MainNavigationSplitView: View {
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
+    @Environment(\.presentationActive) private var presentationActive
 
     @State private var selectedTab: MainNavigationTab = .connect
     @State private var displayIntroduction: Bool
@@ -32,8 +33,6 @@ struct MainNavigationSplitView: View {
     let device: SdkDeviceRemote
     let logout: () -> Void
     let isPro: Bool
-
-    var connectViewController: SdkConnectViewController?
 
     var iconWidth: CGFloat = 16
     
@@ -62,11 +61,6 @@ struct MainNavigationSplitView: View {
         self.logout = logout
         self.device = device
         self.providerListStore = providerListStore
-
-        // todo: investigate why we need this?
-        // we're launching this in NetworkApp
-        // but without it, disconnect isn't triggered
-        self.connectViewController = device.openConnectViewController()
 
         _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(
                 api: api
@@ -215,6 +209,20 @@ struct MainNavigationSplitView: View {
             .environmentObject(connectViewModel)
             .frame(minWidth: 600, minHeight: 700)
         }
+        .onAppear {
+            setPresentationActive(presentationActive)
+        }
+        .onChange(of: presentationActive) { active in
+            setPresentationActive(active)
+        }
+        .onDisappear {
+            setPresentationActive(false)
+        }
+    }
+
+    private func setPresentationActive(_ active: Bool) {
+        referralLinkViewModel.setActive(active)
+        networkReliabilityStore.setActive(active)
     }
 }
 

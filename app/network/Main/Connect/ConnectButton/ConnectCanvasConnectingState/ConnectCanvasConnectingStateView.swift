@@ -9,6 +9,7 @@ import SwiftUI
 import URnetworkSdk
 
 struct ConnectCanvasConnectingStateView: View {
+    @Environment(\.presentationActive) private var presentationActive
     
     var gridPoints: [SdkId: SdkProviderGridPoint]
     var gridWidth: Int32
@@ -66,13 +67,17 @@ struct ConnectCanvasConnectingStateView: View {
                 viewModel.updateGridPoints(gridPoints, gridWidth: gridWidth)
             }
         }
+        .onChange(of: presentationActive) { active in
+            viewModel.setPresentationActive(active)
+        }
         .onAppear {
+            viewModel.setPresentationActive(presentationActive)
             if isConnecting {
                 viewModel.updateGridPoints(gridPoints, gridWidth: gridWidth)
             }
         }
         .onDisappear {
-            viewModel.stopAnimations()
+            viewModel.setPresentationActive(false)
         }
 
     }

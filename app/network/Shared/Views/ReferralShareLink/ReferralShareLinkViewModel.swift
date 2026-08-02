@@ -18,6 +18,7 @@ class ReferralLinkViewModel: ObservableObject {
     
     private var pollingTimer: Timer?
     private var pollingInterval: TimeInterval = 60.0 // poll every minute
+    private var active = false
     
     let domain = "ReferralLinkViewModel"
     
@@ -25,32 +26,50 @@ class ReferralLinkViewModel: ObservableObject {
     
     init(api: SdkApi) {
         self.api = api
-        startPolling()
     }
 
     deinit {
         pollingTimer?.invalidate()
     }
+
+    func setActive(_ nextActive: Bool) {
+        guard active != nextActive else {
+            return
+        }
+        active = nextActive
+        if active {
+            startPolling()
+        } else {
+            stopPolling()
+        }
+    }
     
     private func startPolling() {
+        guard active, pollingTimer == nil else {
+            return
+        }
         Task {
             
             await fetchReferralLink()
+            guard active, pollingTimer == nil else {
+                return
+            }
             
             // Set up timer for subsequent fetches
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                
-                // poll every minute
-                self.pollingTimer = Timer.scheduledTimer(withTimeInterval: pollingInterval, repeats: true) { [weak self] _ in
-                    guard let self = self else { return }
-                    
-                    Task {
-                        await self.fetchReferralLink()
+            pollingTimer = Timer.scheduledTimer(withTimeInterval: pollingInterval, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self, self.active else {
+                        return
                     }
+                    await self.fetchReferralLink()
                 }
             }
         }
+    }
+
+    private func stopPolling() {
+        pollingTimer?.invalidate()
+        pollingTimer = nil
     }
     
     func fetchReferralLink() async {
@@ -110,4 +129,3 @@ private class GetNetworkReferralCodeCallback: SdkCallback<SdkGetNetworkReferralC
         handleResult(result, err: err)
     }
 }
-

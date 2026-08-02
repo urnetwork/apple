@@ -115,12 +115,14 @@ class ThroughputStore: ObservableObject {
     @Published private(set) var hasProviderStats: Bool = false
     @Published private(set) var windowDuration: TimeInterval = 60
 
+    private var device: SdkDeviceRemote?
     private var contractViewController: SdkContractViewController?
     private var throughputListenerSub: SdkSubProtocol?
 
     func setup(_ device: SdkDeviceRemote) {
         reset()
 
+        self.device = device
         guard let contractViewController = device.openContractViewController() else {
             return
         }
@@ -139,8 +141,15 @@ class ThroughputStore: ObservableObject {
     func reset() {
         throughputListenerSub?.close()
         throughputListenerSub = nil
-        contractViewController?.close()
+        if let contractViewController {
+            if let device {
+                device.close(contractViewController)
+            } else {
+                contractViewController.close()
+            }
+        }
         contractViewController = nil
+        device = nil
 
         clientPoints = []
         providerPoints = []

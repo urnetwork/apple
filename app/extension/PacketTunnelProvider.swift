@@ -11,6 +11,11 @@ import OSLog
 
 //import Atomics
 
+private struct TunnelNetworkSettingsPlan {
+    let settings: NEPacketTunnelNetworkSettings
+    let signature: String
+}
+
 // see https://developer.apple.com/documentation/networkextension/nepackettunnelprovider
 // discussion on how the PacketTunnelProvider is excluded from the routes it sets up:
 // see https://forums.developer.apple.com/forums/thread/677180
@@ -32,12 +37,24 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var close: (() -> Void)?
     private var memoryPressureSource: DispatchSourceMemoryPressure?
     private var connected: Bool = false
-    // the dns servers currently applied to the tunnel, used to detect when the
-    // network settings need a re-apply after a dns settings change
-    private var appliedTunnelDnsServers: [String] = []
+    // NetworkExtension applies settings asynchronously. Listener bursts during
+    // connect/reconnect used to overlap several identical applies; serialize
+    // them and retain only the newest distinct pending plan.
+    private let tunnelSettingsLock = NSLock()
+    private var tunnelSettingsSessionActive = false
+    private var tunnelSettingsGeneration: UInt64 = 0
+    private var appliedTunnelSettingsSignature: String?
+    private var tunnelSettingsInFlight: TunnelNetworkSettingsPlan?
+    private var tunnelSettingsInFlightCompletions: [((Error?) -> Void)] = []
+    private var pendingTunnelSettings: TunnelNetworkSettingsPlan?
+    private var pendingTunnelSettingsForce = false
+    private var pendingTunnelSettingsCompletions: [((Error?) -> Void)] = []
     private var stopped: Bool = false
     private var shouldSaveKeyMaterial: Bool = true
     private let packetReadLock = NSLock()
+    // re-checks the network path + power state on demand (set per tunnel
+    // session; used by wake() after sleep, when the sockets are stale)
+    private var networkStateRefresh: (() -> Void)?
     private var packetReadGeneration: UInt64 = 0
     private let logoutProviderMessage = "logout"
 
@@ -51,14 +68,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18, 26
             // the binary and go runtime take about 16mib of that
             // see https://forums.developer.apple.com/forums/thread/73148?page=2
+            //
+            // SdkSetMemoryLimit sizes the global message pools (packet 12 :
+            // large-object 2, of 34 parts) + go soft limit; the per-device
+            // memory target is set separately at device creation. 32mb total
+            // footprint budget for the constrained extension.
 #if os(iOS)
-            SdkSetMemoryLimit(24 * 1024 * 1024)
+            SdkSetMemoryLimit(32 * 1024 * 1024)
 #else
             SdkSetMemoryLimit(64 * 1024 * 1024)
 #endif
         } else if #available(iOS 16, macOS 13, *) {
             #if os(iOS)
-            SdkSetMemoryLimit(24 * 1024 * 1024)
+            SdkSetMemoryLimit(32 * 1024 * 1024)
             #else
             SdkSetMemoryLimit(48 * 1024 * 1024)
             #endif
@@ -158,6 +180,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         }
 
+        // Supersede all reads and settings work from a previous tunnel before
+        // replacing its device. Generation guards keep late callbacks from
+        // tearing down the new session.
+        self.stopPacketReads()
+        self.endTunnelSettingsSession()
 
 //        self.reasserting = true
 
@@ -204,7 +231,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // Only the explicit logout app message rotates the identity.
         let keyMaterial: SdkDeviceLocalKeyMaterial? = localState.getDeviceLocalKeyMaterial()
 
-        let newDevice = SdkNewDeviceLocalWithKeyMaterial(
+        let newDevice = SdkNewDeviceLocalWithMemoryTarget(
             networkSpace,
             byJwt,
             "ios-network-extension",
@@ -214,6 +241,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // rpc is started explicitly below with the per-session server pem
             false,
             keyMaterial,
+            // the per-device memory target (split dns 2 : client 14 :
+            // provider 4 inside the sdk, with the provider share backing the
+            // client pair while providing is off), set explicitly where the
+            // device is created; the process-level SdkSetMemoryLimit above
+            // sizes the shared message pools and go soft limit
+            20 * 1024 * 1024,
             &err
         )
         if let err {
@@ -238,6 +271,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         
         let packetReadGeneration = self.beginPacketReads()
+        self.beginTunnelSettingsSession()
         self.reasserting = true
 
         // a stale auth state wipes the session state below, but never the
@@ -302,7 +336,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let setLocal = {
             if device.getConnectLocation() == nil {
                 // reset to local if available
-                self.setTunnelNetworkSettings(self.networkSettings()) { error in
+                self.applyTunnelNetworkSettings { error in
                     if let error = error {
                         self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                         return
@@ -395,11 +429,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // dns servers (e.g. unencrypted local servers set or cleared)
         let dnsResolverSettingsChangeSub = device.add(DnsResolverSettingsChangeListener { _ in
             DispatchQueue.main.async {
-                if self.tunnelDnsServers() != self.appliedTunnelDnsServers {
-                    self.setTunnelNetworkSettings(self.networkSettings()) { error in
-                        if let error = error {
-                            self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
-                        }
+                self.applyTunnelNetworkSettings { error in
+                    if let error = error {
+                        self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                     }
                 }
             }
@@ -427,7 +459,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 //                        }
                     }
                 } else {
-                    self.setTunnelNetworkSettings(self.networkSettings()) { error in
+                    self.applyTunnelNetworkSettings { error in
                         if let error = error {
                             self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
                             return
@@ -445,7 +477,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
             DispatchQueue.main.async {
-                updateWindowStatus(device.getWindowStatus())
+                updateWindowStatus(windowStatus)
             }
         })
 
@@ -457,10 +489,74 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
         let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
-        pathMonitor.pathUpdateHandler = { path in
+        // signature of the physical path (the tunnel's utun is .other, excluded above):
+        // only a material change — interface set, status, or gateways (an AP/subnet
+        // roam keeps the interface name but changes the gateway) — kicks the transports.
+        // all mutable path/power state below is confined to pathMonitorQueue.
+        var lastPathSignature: String? = nil
+        var lastPathConstrained: Bool = false
+        // degraded performance: a device in low power mode, thermally throttled, or on
+        // a constrained (Low Data Mode) path answers control pings slowly — ease the
+        // SDK's liveness probe timings so slow is not misread as dead
+        let updatePerformanceDegraded = {
+            let processInfo = ProcessInfo.processInfo
+            let degraded = processInfo.isLowPowerModeEnabled
+                || processInfo.thermalState == .serious
+                || processInfo.thermalState == .critical
+                || lastPathConstrained
+            device.setPerformanceDegraded(degraded)
+        }
+        let handlePathUpdate = { (path: Network.NWPath) in
             updatePath(path)
+            lastPathConstrained = path.isConstrained
+            updatePerformanceDegraded()
+            let gateways = path.gateways.map { "\($0)" }.joined(separator: ",")
+            let pathSignature = "\(path.status)|"
+                + path.availableInterfaces.map { "\($0.name):\($0.type)" }.joined(separator: ",")
+                + "|" + gateways
+            if let last = lastPathSignature, last != pathSignature {
+                // the old sockets are likely bound to a dead path: re-dial the
+                // platform transports and re-prove/re-warm the tunnel DoH now,
+                // instead of waiting for ping timeouts to notice
+                self.logger.info("[PacketTunnelProvider]network path changed, re-dialing transports")
+                device.networkChanged()
+            }
+            lastPathSignature = pathSignature
+        }
+        pathMonitor.pathUpdateHandler = { path in
+            handlePathUpdate(path)
         }
         pathMonitor.start(queue: pathMonitorQueue)
+        // NEProvider.defaultPath is the VPN-aware default-path signal; it can lead the
+        // physical monitor on transitions, so a change prompts a re-check of the
+        // physical path signature (the signature dedups the double notification)
+        let defaultPathObservation = self.observe(\.defaultPath) { _, _ in
+            pathMonitorQueue.async {
+                handlePathUpdate(pathMonitor.currentPath)
+            }
+        }
+        // low power / thermal transitions ease or restore the probe timings
+        let powerStateObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name.NSProcessInfoPowerStateDidChange,
+            object: nil,
+            queue: nil
+        ) { _ in
+            pathMonitorQueue.async { updatePerformanceDegraded() }
+        }
+        let thermalStateObserver = NotificationCenter.default.addObserver(
+            forName: ProcessInfo.thermalStateDidChangeNotification,
+            object: nil,
+            queue: nil
+        ) { _ in
+            pathMonitorQueue.async { updatePerformanceDegraded() }
+        }
+        pathMonitorQueue.async { updatePerformanceDegraded() }
+        // wake() re-dials and refreshes path/power state after sleep (see wake below)
+        self.networkStateRefresh = {
+            pathMonitorQueue.async {
+                handlePathUpdate(pathMonitor.currentPath)
+            }
+        }
         let provideNetworkModeChangeSub = device.add( ProvideNetworkModeChangeListener { mode in
             if let mode {
                 try? localState.setProvideNetworkMode(mode)
@@ -493,6 +589,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         self.close = {
             packetReceiverSub?.close()
+            defaultPathObservation.invalidate()
+            NotificationCenter.default.removeObserver(powerStateObserver)
+            NotificationCenter.default.removeObserver(thermalStateObserver)
+            self.networkStateRefresh = nil
             pathMonitor.cancel()
             routeLocalChangeSub?.close()
             vpnInterfaceWhileOfflineChangeSub?.close()
@@ -522,7 +622,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 //            completionHandler(nil)
 //        }
 
-        self.setTunnelNetworkSettings(self.networkSettings()) { error in
+        self.applyTunnelNetworkSettings(force: true) { error in
             DispatchQueue.main.async {
                 guard self.isPacketReadActive(generation: packetReadGeneration) else {
                     completionHandler(NSError(domain: "network.ur.extension", code: 9, userInfo: [NSLocalizedDescriptionKey: "Tunnel start was superseded"]))
@@ -532,6 +632,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 if let error {
                     self.logger.error("[PacketTunnelProvider]failed to set initial tunnel network settings: \(error.localizedDescription)")
                     self.stopPacketReads()
+                    self.endTunnelSettingsSession()
                     if let close = self.close {
                         close()
                         self.close = nil
@@ -552,7 +653,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
     }
 
-    func networkSettings() -> NEPacketTunnelNetworkSettings {
+    private func makeTunnelNetworkSettingsPlan() -> TunnelNetworkSettingsPlan {
         let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
 
         // IPv4 Configuration
@@ -574,15 +675,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let ipv6Settings = NEIPv6Settings()
         networkSettings.ipv6Settings = ipv6Settings
 
-        // DNS from the SDK device, like the tunnel address: the dns settings'
-        // unencrypted local servers when set, otherwise the default plain-DNS
-        // resolvers (see `tunnelDnsServers`). Always plain :53, never OS-level
+        // DNS from the SDK device: the dns settings' unencrypted local servers
+        // when set, otherwise the distinct plain-DNS UpgradeMux mask (see
+        // `tunnelDnsServers`). Always plain :53, never OS-level
         // encrypted DNS (DoH/DoT): the UpgradeMux claims :53 and performs the
         // unencrypted-DNS -> DoH upgrade itself, so enabling encrypted DNS at the OS
         // level here (e.g. NEDNSOverHTTPSSettings/NEDNSOverTLSSettings) would bypass
         // the mux and hide queries from it.
         let dnsServers = self.tunnelDnsServers()
-        self.appliedTunnelDnsServers = dnsServers
         let dnsSettings = NEDNSSettings(servers: dnsServers)
         // route every DNS query to the tunnel resolver (empty string matches all
         // domains). without this the OS may not send :53 queries into the tunnel, so
@@ -593,7 +693,213 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // default URnetwork MTU
         networkSettings.mtu = 1440
 
-        return networkSettings
+        let signature = "v4=\(tunnelLocalAddress)|dns=\(dnsServers.joined(separator: ","))|mtu=1440"
+        return TunnelNetworkSettingsPlan(
+            settings: networkSettings,
+            signature: signature
+        )
+    }
+
+    private func beginTunnelSettingsSession() {
+        resetTunnelSettingsSession(
+            active: true,
+            errorDescription: "Tunnel network settings session was superseded"
+        )
+    }
+
+    private func endTunnelSettingsSession() {
+        resetTunnelSettingsSession(
+            active: false,
+            errorDescription: "Tunnel network settings session stopped"
+        )
+    }
+
+    private func resetTunnelSettingsSession(active: Bool, errorDescription: String) {
+        tunnelSettingsLock.lock()
+        tunnelSettingsGeneration &+= 1
+        tunnelSettingsSessionActive = active
+        appliedTunnelSettingsSignature = nil
+
+        let callbacks = tunnelSettingsInFlightCompletions + pendingTunnelSettingsCompletions
+        tunnelSettingsInFlight = nil
+        tunnelSettingsInFlightCompletions = []
+        pendingTunnelSettings = nil
+        pendingTunnelSettingsForce = false
+        pendingTunnelSettingsCompletions = []
+        tunnelSettingsLock.unlock()
+
+        guard !callbacks.isEmpty else {
+            return
+        }
+        let error = NSError(
+            domain: "network.ur.extension",
+            code: 11,
+            userInfo: [NSLocalizedDescriptionKey: errorDescription]
+        )
+        completeTunnelSettingsCallbacks(callbacks, error: error)
+    }
+
+    /**
+     * Apply at most one NEPacketTunnelNetworkSettings transaction at a time.
+     * Equal settings join the active transaction; if settings change while it
+     * is active, only the newest plan is retained and applied next.
+     */
+    private func applyTunnelNetworkSettings(
+        force: Bool = false,
+        completion: ((Error?) -> Void)? = nil
+    ) {
+        let plan = makeTunnelNetworkSettingsPlan()
+        var start: (TunnelNetworkSettingsPlan, UInt64)?
+        var immediateError: Error?
+        var completeImmediately = false
+
+        tunnelSettingsLock.lock()
+        if !tunnelSettingsSessionActive {
+            immediateError = NSError(
+                domain: "network.ur.extension",
+                code: 12,
+                userInfo: [NSLocalizedDescriptionKey: "Tunnel network settings session is not active"]
+            )
+        } else if let inFlight = tunnelSettingsInFlight {
+            if inFlight.signature == plan.signature {
+                // Latest state has returned to the plan already in flight.
+                // Cancel a different pending plan and let all its callers join
+                // this transaction.
+                tunnelSettingsInFlightCompletions.append(contentsOf: pendingTunnelSettingsCompletions)
+                pendingTunnelSettings = nil
+                pendingTunnelSettingsForce = false
+                pendingTunnelSettingsCompletions = []
+                if let completion {
+                    tunnelSettingsInFlightCompletions.append(completion)
+                }
+            } else {
+                pendingTunnelSettings = plan
+                pendingTunnelSettingsForce = force
+                if let completion {
+                    pendingTunnelSettingsCompletions.append(completion)
+                }
+            }
+        } else if !force, appliedTunnelSettingsSignature == plan.signature {
+            completeImmediately = true
+        } else {
+            tunnelSettingsGeneration &+= 1
+            let generation = tunnelSettingsGeneration
+            tunnelSettingsInFlight = plan
+            if let completion {
+                tunnelSettingsInFlightCompletions = [completion]
+            } else {
+                tunnelSettingsInFlightCompletions = []
+            }
+            start = (plan, generation)
+        }
+        tunnelSettingsLock.unlock()
+
+        if let immediateError {
+            if let completion {
+                completeTunnelSettingsCallbacks([completion], error: immediateError)
+            }
+            return
+        }
+        if completeImmediately {
+            if let completion {
+                completeTunnelSettingsCallbacks([completion], error: nil)
+            }
+            return
+        }
+        if let (plan, generation) = start {
+            startTunnelSettingsApply(plan, generation: generation)
+        }
+    }
+
+    private func startTunnelSettingsApply(
+        _ plan: TunnelNetworkSettingsPlan,
+        generation: UInt64
+    ) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {
+                return
+            }
+
+            self.tunnelSettingsLock.lock()
+            let valid = self.tunnelSettingsSessionActive
+                && self.tunnelSettingsGeneration == generation
+                && self.tunnelSettingsInFlight?.signature == plan.signature
+            self.tunnelSettingsLock.unlock()
+            guard valid else {
+                return
+            }
+
+            self.setTunnelNetworkSettings(plan.settings) { [weak self] error in
+                self?.finishTunnelSettingsApply(plan, generation: generation, error: error)
+            }
+        }
+    }
+
+    private func finishTunnelSettingsApply(
+        _ plan: TunnelNetworkSettingsPlan,
+        generation: UInt64,
+        error: Error?
+    ) {
+        var completedCallbacks: [((Error?) -> Void)] = []
+        var deduplicatedCallbacks: [((Error?) -> Void)] = []
+        var start: (TunnelNetworkSettingsPlan, UInt64)?
+
+        tunnelSettingsLock.lock()
+        guard tunnelSettingsSessionActive,
+              tunnelSettingsGeneration == generation,
+              tunnelSettingsInFlight?.signature == plan.signature else {
+            tunnelSettingsLock.unlock()
+            return
+        }
+
+        completedCallbacks = tunnelSettingsInFlightCompletions
+        tunnelSettingsInFlight = nil
+        tunnelSettingsInFlightCompletions = []
+
+        if error == nil {
+            appliedTunnelSettingsSignature = plan.signature
+        }
+
+        if let pending = pendingTunnelSettings {
+            let pendingForce = pendingTunnelSettingsForce
+            let pendingCallbacks = pendingTunnelSettingsCompletions
+            pendingTunnelSettings = nil
+            pendingTunnelSettingsForce = false
+            pendingTunnelSettingsCompletions = []
+
+            if error == nil,
+               !pendingForce,
+               appliedTunnelSettingsSignature == pending.signature {
+                deduplicatedCallbacks = pendingCallbacks
+            } else {
+                tunnelSettingsGeneration &+= 1
+                let nextGeneration = tunnelSettingsGeneration
+                tunnelSettingsInFlight = pending
+                tunnelSettingsInFlightCompletions = pendingCallbacks
+                start = (pending, nextGeneration)
+            }
+        }
+        tunnelSettingsLock.unlock()
+
+        if let (nextPlan, nextGeneration) = start {
+            startTunnelSettingsApply(nextPlan, generation: nextGeneration)
+        }
+        completeTunnelSettingsCallbacks(completedCallbacks, error: error)
+        completeTunnelSettingsCallbacks(deduplicatedCallbacks, error: nil)
+    }
+
+    private func completeTunnelSettingsCallbacks(
+        _ callbacks: [((Error?) -> Void)],
+        error: Error?
+    ) {
+        guard !callbacks.isEmpty else {
+            return
+        }
+        DispatchQueue.main.async {
+            for callback in callbacks {
+                callback(error)
+            }
+        }
     }
 
     /// The plain-dns servers for the tunnel, from the sdk device like the tunnel
@@ -609,10 +915,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         }
         if servers.isEmpty {
-            // static fallback matching the SDK default tunnel resolvers; Quad9
-            // (9.9.9.9) leads so no resolver the OS would auto-upgrade to encrypted
-            // DNS is applied alone (see the SDK's defaultTunnelDnsServersIpv4)
-            servers = ["9.9.9.9", "1.1.1.1"]
+            // If the device-scoped value is unavailable, use the SDK's
+            // URnetwork-owned UpgradeMux identity rather than advertising a
+            // third-party resolver the OS could classify or reach directly.
+            servers = [SdkGetDefaultTunnelDnsAddressIpv4()]
         }
         return servers
     }
@@ -647,6 +953,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         logger.info("[PacketTunnelProvider]stop with reason: \(String(describing: reason))")
 
         self.stopPacketReads()
+        self.endTunnelSettingsSession()
         if let close = self.close {
             close()
             self.close = nil
@@ -657,6 +964,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.localState = nil
         self.shouldSaveKeyMaterial = true
         completionHandler()
+    }
+
+    override func wake() {
+        // returning from sleep: the transport sockets are stale — re-dial and
+        // refresh the path/power state now instead of waiting for ping
+        // timeouts to notice the dead connections
+        logger.info("[PacketTunnelProvider]wake")
+        device?.networkChanged()
+        networkStateRefresh?()
     }
 
     override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {

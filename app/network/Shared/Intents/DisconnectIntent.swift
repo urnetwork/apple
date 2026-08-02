@@ -46,7 +46,7 @@ struct DisconnectIntent: AppIntent {
             return .result(dialog: "Failed to connect URnetwork")
         }
         defer {
-            connectViewController.close()
+            device.close(connectViewController)
         }
         
         var status = connectViewController.getConnectionStatus()

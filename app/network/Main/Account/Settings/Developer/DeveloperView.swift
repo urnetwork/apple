@@ -28,10 +28,13 @@ struct DeveloperView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var reliabilityStore: ReliabilityStore
+    @Environment(\.presentationActive) private var presentationActive
 
     /**
-     * non-optional convenience over the published snapshot; the control
-     * sections only render while `reliabilityStore.connected`
+     * non-optional convenience over the published snapshot. Only ever read
+     * inside the `reliabilityStore.connected` branch, where the snapshot is
+     * non-nil by definition -- the fallback is a compile-time convenience,
+     * never a set of defaults presented as if they were in force.
      */
     private var settings: ReliabilitySettings {
         reliabilityStore.settings ?? ReliabilitySettings()
@@ -57,8 +60,15 @@ struct DeveloperView: View {
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(themeManager.currentTheme.backgroundColor)
+        // the 5s poll is an rpc into the packet tunnel extension: it runs only
+        // while this screen is both on screen AND the app is presenting
+        // (backgrounded app / hidden macOS window stops it), the same
+        // three-part lifecycle the rest of the app uses
         .onAppear {
-            reliabilityStore.setActive(true)
+            reliabilityStore.setActive(presentationActive)
+        }
+        .onChange(of: presentationActive) { active in
+            reliabilityStore.setActive(active)
         }
         .onDisappear {
             reliabilityStore.setActive(false)
@@ -399,10 +409,18 @@ struct DeveloperView: View {
                 zeroLabel: "All"
             ) { $0.probeSampleHostCount = $1 }
             countRow(
+                "Probe silence streak",
+                "How many consecutive probe passes an exit may answer with total silence before it is warned out of new-flow placement — the compensation for providers that leave the network mid-session. Placement only: removal stays traffic-based, and any sign of life clears the streak",
+                count: settings.probeSilenceWarnStreak,
+                zeroLabel: "Off"
+            ) { $0.probeSilenceWarnStreak = $1 }
+            countRow(
                 "Candidates evaluated per slot",
                 "How many providers a window expansion pings and ranks per slot it needs, keeping the best. 1 evaluates exactly what it needs",
                 count: settings.evaluationPoolMultiple,
-                zeroLabel: "0"
+                // 0 is not a behaviour: connect clamps this to max(1, …), so
+                // the row says what a 0 actually does rather than showing it
+                zeroLabel: "1 (min)"
             ) { $0.evaluationPoolMultiple = $1 }
             actionRow("Probe all exits now") {
                 reliabilityStore.probeAllExits()
@@ -464,6 +482,11 @@ struct DeveloperView: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
+        } footer: {
+            // every action returns void over the bridge and no-ops when the
+            // extension has no multi client, so the log above records what was
+            // asked for. The counters and exit rows are where it is confirmed
+            footerText("Actions are requests: confirm them in the measurements and exit rows, which refresh underneath.")
         }
     }
 
@@ -491,6 +514,23 @@ struct DeveloperView: View {
         Text(text)
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textFaintColor)
+    }
+
+    /**
+     * A tappable action, rendered as accent-colored text like the android
+     * screen's actions rather than a bordered button.
+     */
+    private func actionRow(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     /** A read-only counter row: label and detail with a value in place of a control. */
@@ -649,17 +689,32 @@ private struct DeveloperNumberRow: View {
                 TextField("0", text: $text)
                     .font(.system(size: 13).monospacedDigit())
                     .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
+                    .frame(width: 72)
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled()
+                    // numbersAndPunctuation, NOT numberPad: the number pad has
+                    // no return key, which leaves onSubmit dead and a tap on
+                    // some other field the only way to commit. Non-numeric
+                    // input is rejected by commitText
                     #if os(iOS)
-                    .keyboardType(.numberPad)
+                    .keyboardType(.numbersAndPunctuation)
+                    .submitLabel(.done)
                     #endif
                     .focused($focused)
                     .onSubmit {
-                        commitText()
+                        endEditing()
                     }
                     .disabled(!enabled)
+
+                // the second commit affordance: a form row gives the keyboard
+                // nowhere to go, so editing must be endable from the row itself
+                if focused {
+                    Button("Set") {
+                        endEditing()
+                    }
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .buttonStyle(.borderless)
+                }
             }
 
             Text(detail)
@@ -670,6 +725,9 @@ private struct DeveloperNumberRow: View {
             text = "\(value)"
         }
         .onChange(of: value) { newValue in
+            // never fight the typist: the effective value re-seeds the field
+            // only while it is not being edited, so a poll landing mid-edit
+            // cannot overwrite what is being typed
             if !focused {
                 text = "\(newValue)"
             }
@@ -679,6 +737,17 @@ private struct DeveloperNumberRow: View {
                 commitText()
             }
         }
+    }
+
+    /**
+     * Ends editing through the focus change, so `commitText` runs exactly
+     * once no matter which affordance was used.
+     */
+    private func endEditing() {
+        focused = false
+        #if canImport(UIKit)
+        hideKeyboard()
+        #endif
     }
 
     private func commitText() {

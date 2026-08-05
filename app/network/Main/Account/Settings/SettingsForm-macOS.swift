@@ -573,7 +573,7 @@ struct SettingsForm_macOS: View {
 
                     
                     Spacer().frame(height: 32)
-
+                    
                     /**
                      * Developer
                      */
@@ -603,7 +603,7 @@ struct SettingsForm_macOS: View {
 
                     HStack {
                         UrLabel(text: "Version and Build info")
-
+                        
                         Spacer()
                     }
                     

@@ -204,6 +204,10 @@ class BlockActionsStore: ObservableObject {
     // request is never dropped
     private var exitAttributionRefreshing = false
     private var exitAttributionWanted = false
+    // when the last rpc actually went out, for the rate floor in
+    // refreshExitAttribution. Cleared with the rest of the attribution state
+    // so a new device starts fresh rather than inheriting a cooldown.
+    private var exitAttributionLastFetch: Date?
 
     // bumped on every setup/reset so a refresh that started against an old
     // device (or before a reset) can never publish over newer state
@@ -263,6 +267,7 @@ class BlockActionsStore: ObservableObject {
         // later refresh
         exitAttributionRefreshing = false
         exitAttributionWanted = false
+        exitAttributionLastFetch = nil
 
         blockActionsSub?.close()
         blockActionsSub = nil
@@ -374,6 +379,19 @@ class BlockActionsStore: ObservableObject {
             exitAttributionWanted = true
             return
         }
+        // rate floor. Block actions flush on connect's 1s event epoch, so the
+        // event-driven path alone would fire this ~5x the designed rate while
+        // browsing -- and each call walks the whole live-flow table under the
+        // datapath lock on the far side. The periodic tick is already running
+        // at exactly the freshness this feature promises, so a too-soon
+        // request is dropped rather than queued: the next tick, at most
+        // exitAttributionInterval away, does the work.
+        if let last = exitAttributionLastFetch,
+            Date().timeIntervalSince(last) < Self.exitAttributionInterval
+        {
+            return
+        }
+        exitAttributionLastFetch = Date()
         exitAttributionRefreshing = true
         let generation = self.generation
         Task { [weak self] in

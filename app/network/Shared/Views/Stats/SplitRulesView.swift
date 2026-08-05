@@ -19,6 +19,7 @@ struct SplitRulesView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var blockActionsStore: BlockActionsStore
+    @Environment(\.presentationActive) private var presentationActive
 
     private struct EditorTarget: Identifiable {
         let id: String
@@ -76,9 +77,9 @@ struct SplitRulesView: View {
                 )
 
             /**
-             * Info: how exclusions work
+             * Info: how rules apply
              */
-            Text("Exclusions apply to the whole co-associated network cluster, so related traffic is caught together.")
+            Text("Rules apply to the whole co-associated network cluster, so related traffic is caught together.")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -99,7 +100,7 @@ struct SplitRulesView: View {
             ) {
 
                 if blockActionsStore.splitRules.isEmpty {
-                    Text("Tap traffic below to route it locally, bypassing the tunnel.")
+                    Text("Tap traffic below to route it locally or hold it to one provider.")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textFaintColor)
                         .listRowBackground(Color.clear)
@@ -216,14 +217,33 @@ struct SplitRulesView: View {
         .background(themeManager.currentTheme.backgroundColor)
         .onAppear {
             displayedActions = blockActionsStore.blockActions
+            // a sheet is only ever mounted while the app is presenting it, so
+            // "not suspended" is the right starting state; the transitions
+            // below carry it from there
             blockActionsStore.setExitAttributionActive(true)
+        }
+        .onChange(of: presentationActive) { active in
+            blockActionsStore.setExitAttributionSuspended(!active)
         }
         .onDisappear {
             blockActionsStore.setExitAttributionActive(false)
+            blockActionsStore.setExitAttributionSuspended(false)
         }
         .onChange(of: blockActionsStore.blockActions) { blockActions in
             if isAtTop {
                 displayedActions = blockActions
+            } else {
+                // the frozen list still tracks attribution (and byte counts)
+                // for the rows already on screen: an attribution-only rebuild
+                // reuses the row ids, so it would otherwise never reach the
+                // reader -- no "N new" chip counts it, and watching a row grow
+                // a second exit chip is the whole point. Membership and order
+                // stay frozen, so nothing shifts under the reader.
+                let liveById = Dictionary(
+                    blockActions.map { ($0.id, $0) },
+                    uniquingKeysWith: { first, _ in first }
+                )
+                displayedActions = displayedActions.map { liveById[$0.id] ?? $0 }
             }
         }
         .sheet(item: $editorTarget) { target in
@@ -638,17 +658,18 @@ struct SplitRuleEditorView: View {
                     title: "Route locally",
                     description: "Selected hosts bypass the tunnel."
                 )
-                // pin: the cluster stays in the tunnel, but its traffic is
-                // held to one exit so the site's api and cdns share an egress ip
+                // a site pin is exit STABILITY, not consolidation: the hosts
+                // keep their ordinary grouping and simply hold a benched exit
+                // longer before being re-raced off it (see SplitRuleMode)
                 modeRow(
                     .pinned,
-                    title: "Pin to one provider",
-                    description: "Keeps the selected hosts on a single provider, so the site's API and images share one IP address. Use for sites whose content fails to load through the VPN."
+                    title: "Keep on one provider",
+                    description: "Selected hosts hold their provider longer instead of being moved at the first sign of trouble, so the site changes IP addresses less often mid-session."
                 )
                 modeRow(
                     .included,
                     title: "Route through VPN",
-                    description: "Selected hosts are routed through the tunnel."
+                    description: "The default: selected hosts use the tunnel with no pin."
                 )
             }
             .padding(.horizontal)

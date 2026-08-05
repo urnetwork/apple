@@ -71,10 +71,14 @@ struct BlockActionItem: Identifiable, Equatable {
  * What a site split rule does with the matching cluster's traffic.
  *
  * EXCLUDED routes the cluster locally, bypassing the tunnel; INCLUDED routes
- * it through the tunnel. PINNED is not routing at all: the cluster stays in
- * the tunnel like any other, but its flows are held to one stable exit, so
- * the site's api and its cdns present a single egress IP -- the fix for
- * sites whose images fail to load behind a multi-exit VPN.
+ * it through the tunnel with no pin. PINNED is not routing at all, and for a
+ * SITE rule it is narrower than the app pinning android also offers: the
+ * cluster keeps its ordinary per-domain grouping and gains only a longer
+ * tolerance for a benched or quarantined exit before its flows are re-raced
+ * off it (sdk `RouteOverride.Pin` -- the affinity-group consolidation that
+ * makes an app's api and cdns share one egress ip is gated on an app id,
+ * which iOS has no way to supply). The site-rule effect is fewer mid-session
+ * exit changes for that site, not one shared egress ip.
  */
 enum SplitRuleMode {
     case excluded
@@ -187,14 +191,29 @@ class BlockActionsStore: ObservableObject {
 
     // the exit-attribution re-poll: flows re-race and rebind between
     // block-action events, so the join is refreshed on a slow tick as well,
-    // active only while a consuming view is visible -- a row growing a
-    // second exit chip mid-session is exactly the observation this feature
-    // exists for
+    // active only while a consuming view is visible AND the app is
+    // presenting it -- a row growing a second exit chip mid-session is
+    // exactly the observation this feature exists for
     private var exitAttributionTimer: Timer?
-    private var exitAttributionActive = false
+    // the consuming view is mounted
+    private var exitAttributionVisible = false
+    // the app is backgrounded, or its window is hidden/occluded
+    private var exitAttributionSuspended = false
+    // one refresh is in flight; `wanted` records a request that arrived
+    // while it was, so the coalescer has a trailing edge and the last
+    // request is never dropped
     private var exitAttributionRefreshing = false
+    private var exitAttributionWanted = false
+
+    // bumped on every setup/reset so a refresh that started against an old
+    // device (or before a reset) can never publish over newer state
+    private var generation = 0
 
     private static let exitAttributionInterval: TimeInterval = 5.0
+
+    private var exitAttributionActive: Bool {
+        exitAttributionVisible && !exitAttributionSuspended
+    }
 
     deinit {
         exitAttributionTimer?.invalidate()
@@ -232,10 +251,19 @@ class BlockActionsStore: ObservableObject {
         updateBlockActions()
         updateBlockStats()
         updateOverrides()
-        refreshExitAttribution()
+        // the view's visibility survives a device swap; pick the poll back up
+        applyExitAttributionActive()
     }
 
     func reset() {
+        generation += 1
+        stopExitAttributionTimer()
+        // the flag belongs to the generation that is ending: an rpc still in
+        // flight can no longer publish, so leaving it set would wedge every
+        // later refresh
+        exitAttributionRefreshing = false
+        exitAttributionWanted = false
+
         blockActionsSub?.close()
         blockActionsSub = nil
         blockActionStatsSub?.close()
@@ -261,55 +289,116 @@ class BlockActionsStore: ObservableObject {
     }
 
     /**
-     * Runs the exit-attribution re-poll only while a consuming view is
-     * visible; the join is a pull into the extension, so there is no reason
-     * to keep it fresh with nothing rendering it
+     * the consuming view reports its visibility; the join is a pull into the
+     * extension, so there is no reason to keep it fresh with nothing
+     * rendering it
      */
-    func setExitAttributionActive(_ nextActive: Bool) {
-        guard exitAttributionActive != nextActive else {
+    func setExitAttributionActive(_ nextVisible: Bool) {
+        guard exitAttributionVisible != nextVisible else {
             return
         }
-        exitAttributionActive = nextActive
-        if nextActive {
-            refreshExitAttribution()
-            exitAttributionTimer = Timer.scheduledTimer(
-                withTimeInterval: Self.exitAttributionInterval,
-                repeats: true
-            ) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    self?.refreshExitAttribution()
-                }
-            }
-        } else {
-            exitAttributionTimer?.invalidate()
-            exitAttributionTimer = nil
+        exitAttributionVisible = nextVisible
+        applyExitAttributionActive()
+    }
+
+    /**
+     * the app stopped presenting the view (backgrounded on iOS; window
+     * hidden, miniaturized or occluded on macOS). A mounted view is not a
+     * presented one -- SwiftUI does not unmount a sheet to background the
+     * app, so without this the poll would keep hitting the extension from
+     * behind a hidden window (android suspends the same job on the process
+     * lifecycle's STOP)
+     */
+    func setExitAttributionSuspended(_ nextSuspended: Bool) {
+        guard exitAttributionSuspended != nextSuspended else {
+            return
         }
+        exitAttributionSuspended = nextSuspended
+        applyExitAttributionActive()
+    }
+
+    private func applyExitAttributionActive() {
+        if exitAttributionActive {
+            refreshExitAttribution()
+            startExitAttributionTimer()
+        } else {
+            stopExitAttributionTimer()
+        }
+    }
+
+    private func startExitAttributionTimer() {
+        guard exitAttributionActive, device != nil, exitAttributionTimer == nil else {
+            return
+        }
+        let timer = Timer(
+            timeInterval: Self.exitAttributionInterval,
+            repeats: true
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.tickExitAttribution()
+            }
+        }
+        // .common: the default mode is suspended while the activity list is
+        // being scrolled, which is exactly when these chips are watched
+        RunLoop.main.add(timer, forMode: .common)
+        exitAttributionTimer = timer
+    }
+
+    private func stopExitAttributionTimer() {
+        exitAttributionTimer?.invalidate()
+        exitAttributionTimer = nil
+    }
+
+    /**
+     * the 5s tick. With no rows on screen there is nothing to attribute, so
+     * the tick costs no rpc (android skips the same way)
+     */
+    private func tickExitAttribution() {
+        guard !blockActions.isEmpty else {
+            return
+        }
+        refreshExitAttribution()
     }
 
     /**
      * Re-pulls the destination->exit join and rebuilds the rows when it
      * moved. The readout is an rpc into the extension, so it runs off the
-     * main thread; refreshes coalesce (at most one in flight)
+     * main thread; at most one is in flight, and a request that arrives
+     * while one is running fires again when it lands
      */
     private func refreshExitAttribution() {
-        guard exitAttributionActive, !exitAttributionRefreshing, let device = self.device else {
+        guard exitAttributionActive, let device = self.device else {
+            return
+        }
+        guard !exitAttributionRefreshing else {
+            exitAttributionWanted = true
             return
         }
         exitAttributionRefreshing = true
+        let generation = self.generation
         Task { [weak self] in
+            // fetchExitsByIp is nonisolated: the synchronous rpc round trip
+            // never runs on the main actor
             let exitsByIp = await Self.fetchExitsByIp(device)
-            guard let self else {
-                return
-            }
-            self.exitAttributionRefreshing = false
-            guard self.device === device else {
-                // the device changed mid-flight; the next refresh reads the new one
-                return
-            }
-            if self.exitsByIp != exitsByIp {
-                self.exitsByIp = exitsByIp
-                self.updateBlockActions()
-            }
+            self?.publishExitAttribution(exitsByIp, generation: generation)
+        }
+    }
+
+    private func publishExitAttribution(_ exitsByIp: [String: Set<String>], generation: Int) {
+        guard generation == self.generation else {
+            // a setup/reset landed while the rpc was in flight; that reset
+            // already cleared the in-flight flag for the new generation
+            return
+        }
+        exitAttributionRefreshing = false
+        if self.exitsByIp != exitsByIp {
+            self.exitsByIp = exitsByIp
+            updateBlockActions()
+        }
+        if exitAttributionWanted {
+            // the trailing edge: the join moved again while this call was out
+            exitAttributionWanted = false
+            refreshExitAttribution()
         }
     }
 

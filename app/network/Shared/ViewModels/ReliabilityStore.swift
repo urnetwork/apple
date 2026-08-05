@@ -474,15 +474,9 @@ class ReliabilityStore: ObservableObject {
         }
     }
 
-    /**
-     * Fires one qualification probe pass at this exit right now instead of
-     * waiting for the background sweep.
-     */
-    func probeExit(_ exit: ReliabilityExit) {
-        performAction("Probing exit \(exit.label)") { device in
-            _ = device.probeExit(exit.id)
-        }
-    }
+    // There is no per-exit probe: connect exposes only a full sweep
+    // (ProbeAllExits), and the android developer screen has no per-row probe
+    // either, so the sweep below is the whole probing surface.
 
     /**
      * Fires a qualification probe pass at every exit right now. Non-blocking;

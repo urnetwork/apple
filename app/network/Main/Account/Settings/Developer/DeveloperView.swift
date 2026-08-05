@@ -600,16 +600,13 @@ struct DeveloperView: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
 
-            HStack(spacing: 24) {
-                Button("Probe") {
-                    reliabilityStore.probeExit(exit)
-                }
-                Button("Migrate") {
-                    reliabilityStore.migrateExit(exit)
-                }
+            // migrate is the only per-exit action: probing is a full sweep
+            // (see the Probing section), matching the android screen
+            Button("Migrate") {
+                reliabilityStore.migrateExit(exit)
             }
-            // borderless so the two buttons hit-test separately instead of
-            // the whole form row swallowing both taps
+            // borderless so the button hit-tests on its own instead of the
+            // whole form row swallowing the tap
             .buttonStyle(.borderless)
         }
         .padding(.vertical, 2)

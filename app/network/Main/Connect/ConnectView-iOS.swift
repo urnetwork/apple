@@ -122,6 +122,9 @@ struct ConnectView_iOS: View {
                         },
                         currentPlan: isPro ? .supporter : .none,
                         isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                        showProviderLocations: {
+                            presentedStatsSheet = .providerLocations
+                        },
                         tunnelConnected: $connectViewModel.tunnelConnected
                     )
                     

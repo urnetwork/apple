@@ -24,7 +24,9 @@ struct ConnectButtonView: View {
     let openUpgradeSheet: () -> Void
     let currentPlan: Plan
     let isPollingSubscriptionBalance: Bool
-    
+    // opens the provider-locations detail view from the connected status label
+    var showProviderLocations: (() -> Void)? = nil
+
     @Binding var tunnelConnected: Bool
     
     let canvasWidth: CGFloat = 256
@@ -139,9 +141,10 @@ struct ConnectButtonView: View {
                 contractStatus: contractStatus,
                 windowCurrentSize: windowCurrentSize,
                 isPollingSubscriptionBalance: isPollingSubscriptionBalance,
-                currentPlan: currentPlan
+                currentPlan: currentPlan,
+                showProviderLocations: showProviderLocations
             )
-            
+
             Spacer().frame(height: 16)
             
         }

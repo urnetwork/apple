@@ -15,6 +15,7 @@ enum ConnectStatsSheet: String, Identifiable {
     case clientContracts
     case splitRules
     case dnsSettings
+    case providerLocations
 
     var id: String { rawValue }
 }
@@ -289,6 +290,10 @@ struct ConnectStatsSheets: ViewModifier {
                     case .splitRules:
                         StatsSheetContainer(title: "Split rules") {
                             SplitRulesView()
+                        }
+                    case .providerLocations:
+                        StatsSheetContainer(title: "Provider Locations") {
+                            ProviderLocationsView()
                         }
                     case .dnsSettings:
                         dnsSettingsSheet

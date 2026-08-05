@@ -76,6 +76,9 @@ import URnetworkSdk
                             },
                             currentPlan: isPro ? .supporter : .none,
                             isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                            showProviderLocations: {
+                                presentedStatsSheet = .providerLocations
+                            },
                             tunnelConnected: $connectViewModel.tunnelConnected,
                         )
                         .animation(.spring(duration: 0.3), value: isProviderTableVisible)

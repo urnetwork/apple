@@ -179,8 +179,18 @@ struct ReliabilityExit: Identifiable, Equatable {
     // seconds since last proven; -1 is never
     let probeAgeSeconds: Int64
 
-    init(_ exit: SdkExit) {
-        id = exit.clientId?.idStr ?? UUID().uuidString
+    /**
+     * nil for an exit with no client id. The go side always populates one, so
+     * this is latent -- but an exit without an id is not addressable (migrate
+     * parses it back into an Id) and substituting a fresh uuid would mint a
+     * new ForEach identity on every 5s poll, rebuilding the row and sending
+     * garbage to the bridge.
+     */
+    init?(_ exit: SdkExit) {
+        guard let clientId = exit.clientId?.idStr, !clientId.isEmpty else {
+            return nil
+        }
+        id = clientId
         windowType = exit.windowType
         warning = exit.warning
         quarantined = exit.quarantined
@@ -258,8 +268,8 @@ private func mapExits(_ list: SdkExitList?) -> [ReliabilityExit] {
     var exits: [ReliabilityExit] = []
     exits.reserveCapacity(list.len())
     for i in 0..<list.len() {
-        if let exit = list.get(i) {
-            exits.append(ReliabilityExit(exit))
+        if let exit = list.get(i), let row = ReliabilityExit(exit) {
+            exits.append(row)
         }
     }
     return exits
@@ -270,10 +280,16 @@ private func mapExits(_ list: SdkExitList?) -> [ReliabilityExit] {
  * effective settings, the counters, and the per-exit readout.
  *
  * Every DeviceRemote call here is a synchronous rpc round trip to the packet
- * tunnel extension, so they all run off the main actor. The screen's 5s poll
- * runs only while the screen is visible (`setActive`) and a device is set;
- * everything tolerates `device == nil` (tunnel down) and a replaced device
- * object (extension restart) mid-flight.
+ * tunnel extension, so they all run off the main actor, serialized on one
+ * queue (see `bridgeQueue`). The screen's 5s poll runs only while the screen
+ * is visible (`setActive`) and a device is set; everything tolerates
+ * `device == nil` (tunnel down) and a replaced device object (extension
+ * restart) mid-flight.
+ *
+ * `settings` is nil whenever the extension has no multi client to override --
+ * which on iOS is NOT the same as "no device": the DeviceRemote is created at
+ * login and outlives every tunnel session, so a non-nil device says nothing
+ * about whether there is anything to configure.
  */
 @MainActor
 class ReliabilityStore: ObservableObject {
@@ -292,15 +308,28 @@ class ReliabilityStore: ObservableObject {
     @Published private(set) var lastAction: String? = nil
 
     /**
-     * nil settings while disconnected -- there is no multi client to read
-     * from, so the controls have nothing to act on and the screen shows a
-     * connect hint rather than reporting defaults that are not in force
+     * nil settings means there is no multi client behind the bridge -- the
+     * tunnel is down, so the controls have nothing to act on and the screen
+     * shows a connect hint rather than reporting defaults that are not in
+     * force. This is the ONLY honest connected signal on iOS: the device
+     * itself is created at login and exists whether or not the tunnel is up.
      */
     var connected: Bool {
         settings != nil
     }
 
     private var device: SdkDeviceRemote?
+
+    /**
+     * Every DeviceRemote call runs here: off the main thread, and serialized.
+     *
+     * Serialization is load-bearing, not hygiene. A settings mutation is a
+     * read-modify-write of the FULL struct, so two overlapping mutations lose
+     * a field -- the second reads before the first has written, then reverts
+     * it with its own full-struct write. Reads share the queue too, so a poll
+     * can never publish a snapshot it read halfway through a write.
+     */
+    private let bridgeQueue = DispatchQueue(label: "com.urnetwork.ReliabilityStore.bridge")
 
     // true while the developer screen is visible
     private var active = false
@@ -356,11 +385,15 @@ class ReliabilityStore: ObservableObject {
         guard active, device != nil, pollTimer == nil else {
             return
         }
-        pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.refresh()
             }
         }
+        // .common: the default mode is suspended while the form is being
+        // scrolled, which is exactly when the counters are being watched
+        RunLoop.main.add(timer, forMode: .common)
+        pollTimer = timer
     }
 
     private func stopPolling() {
@@ -373,17 +406,22 @@ class ReliabilityStore: ObservableObject {
             return
         }
         let generation = self.generation
-        Task.detached(priority: .userInitiated) { [weak self] in
-            // each getter is a synchronous rpc round trip; never on the main actor
+        bridgeQueue.async { [weak self] in
+            // each getter is a synchronous rpc round trip; never on the main
+            // actor, and never overlapping a write on this queue.
+            // settings is nil with no multi client behind the bridge; metrics
+            // and the exit list honestly degrade to zeros and empty
             let settings = device.getReliabilitySettings().map { ReliabilitySettings($0) }
             let metrics = device.getReliabilityMetrics().map { ReliabilityMetrics($0) }
             let exits = mapExits(device.getExits())
-            await self?.publish(
-                settings: settings,
-                metrics: metrics,
-                exits: exits,
-                generation: generation
-            )
+            Task { @MainActor [weak self] in
+                self?.publish(
+                    settings: settings,
+                    metrics: metrics,
+                    exits: exits,
+                    generation: generation
+                )
+            }
         }
     }
 
@@ -409,19 +447,30 @@ class ReliabilityStore: ObservableObject {
 
     /**
      * Applies one settings change as a read-modify-write of the FULL settings
-     * struct against a FRESH read from the device. Deliberately never writes
-     * back a cached snapshot: a stale one (read while the tunnel was down, or
-     * before another writer's change) is partly or wholly zero-valued, and
-     * `setReliabilitySettings` applies the whole struct -- writing it back
-     * would silently turn every other reliability fix off.
+     * struct against a FRESH read from the device, serialized against every
+     * other bridge call.
+     *
+     * Two traps meet here. Writing back a CACHED snapshot would apply a
+     * partly-or-wholly zero-valued struct (`setReliabilitySettings` takes the
+     * whole thing), silently turning every other reliability fix off. And a
+     * fresh read of NIL means there is no multi client to override at all --
+     * writing then would install an all-zero override that the bridge's sync
+     * state re-applies when the extension starts, disabling the entire
+     * reliability stack for the session. Neither is hypothetical on iOS,
+     * where the device exists from login onward regardless of the tunnel.
      */
     func updateSettings(_ mutate: @escaping (SdkReliabilitySettings) -> Void) {
         guard let device = self.device else {
             return
         }
         let generation = self.generation
-        Task.detached(priority: .userInitiated) { [weak self] in
+        bridgeQueue.async { [weak self] in
             guard let sdkSettings = device.getReliabilitySettings() else {
+                // nothing to override; publish the nil so the screen falls
+                // back to the connect hint instead of showing dead controls
+                Task { @MainActor [weak self] in
+                    self?.publishSettings(nil, generation: generation)
+                }
                 return
             }
             mutate(sdkSettings)
@@ -429,7 +478,9 @@ class ReliabilityStore: ObservableObject {
             // read back the now-effective values so the ui reflects what the
             // device actually applied, not what was asked for
             let settings = device.getReliabilitySettings().map { ReliabilitySettings($0) }
-            await self?.publishSettings(settings, generation: generation)
+            Task { @MainActor [weak self] in
+                self?.publishSettings(settings, generation: generation)
+            }
         }
     }
 
@@ -447,7 +498,7 @@ class ReliabilityStore: ObservableObject {
      * it back" that makes every experiment undoable.
      */
     func resetSettings() {
-        performAction("Reset to shipped defaults") { device in
+        performAction("reset to shipped defaults") { device in
             _ = device.resetReliabilitySettings()
         }
     }
@@ -457,7 +508,7 @@ class ReliabilityStore: ObservableObject {
      * the config, drive the same workload, read the numbers back.
      */
     func resetMetrics() {
-        performAction("Reset measurements") { device in
+        performAction("reset measurements") { device in
             _ = device.resetReliabilityMetrics()
         }
     }
@@ -469,7 +520,7 @@ class ReliabilityStore: ObservableObject {
      * is.
      */
     func migrateExit(_ exit: ReliabilityExit) {
-        performAction("Migrated exit \(exit.label)") { device in
+        performAction("migrate exit \(exit.label)") { device in
             _ = device.migrateExit(exit.id)
         }
     }
@@ -484,7 +535,7 @@ class ReliabilityStore: ObservableObject {
      * probing is off.
      */
     func probeAllExits() {
-        performAction("Probing all exits") { device in
+        performAction("probe all exits") { device in
             _ = device.probeAllExits()
         }
     }
@@ -496,19 +547,31 @@ class ReliabilityStore: ObservableObject {
      * physically moving between networks.
      */
     func simulateNetworkChange() {
-        performAction("Simulated network change") { device in
+        performAction("simulate network change") { device in
             _ = device.simulateNetworkChange()
         }
     }
 
+    /**
+     * Runs one action on the bridge queue and records it.
+     *
+     * `description` names what was ASKED FOR, never what happened: every
+     * action on the frozen contract returns void, and each one is a silent
+     * no-op when there is no multi client behind the rpc. Reporting
+     * "Simulated network change" when nothing happened is exactly the
+     * mechanism-with-no-field-observable-signal failure this screen exists to
+     * catch. The counters and exit rows refreshed underneath are the evidence.
+     */
     private func performAction(_ description: String, _ action: @escaping (SdkDeviceRemote) -> Void) {
         guard let device = self.device else {
             return
         }
         let generation = self.generation
-        Task.detached(priority: .userInitiated) { [weak self] in
+        bridgeQueue.async { [weak self] in
             action(device)
-            await self?.finishAction(description, generation: generation)
+            Task { @MainActor [weak self] in
+                self?.finishAction(description, generation: generation)
+            }
         }
     }
 
@@ -516,7 +579,7 @@ class ReliabilityStore: ObservableObject {
         guard generation == self.generation else {
             return
         }
-        lastAction = description
+        lastAction = "Requested: \(description)"
         refresh()
     }
 }

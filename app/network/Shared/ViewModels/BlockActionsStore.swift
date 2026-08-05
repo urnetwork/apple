@@ -35,6 +35,11 @@ struct BlockActionItem: Identifiable, Equatable {
     let hasRouteOverride: Bool
     let packetCount: Int
     let byteCount: Int64
+    // short client ids of the exits CURRENTLY carrying flows to this
+    // cluster's ips (live join against the flow table). One id is the normal
+    // healthy shape; two ids on one row is a site split across egress IPs --
+    // the exact event the affinity work exists to prevent
+    let exitShortIds: [String]
 
     /**
      * every host name (matched + unmatched) and every ip (matched + unmatched)
@@ -63,6 +68,49 @@ struct BlockActionItem: Identifiable, Equatable {
 }
 
 /**
+ * What a site split rule does with the matching cluster's traffic.
+ *
+ * EXCLUDED routes the cluster locally, bypassing the tunnel; INCLUDED routes
+ * it through the tunnel with no pin. PINNED is not routing at all, and for a
+ * SITE rule it is narrower than the app pinning android also offers: the
+ * cluster keeps its ordinary per-domain grouping and gains only a longer
+ * tolerance for a benched or quarantined exit before its flows are re-raced
+ * off it (sdk `RouteOverride.Pin` -- the affinity-group consolidation that
+ * makes an app's api and cdns share one egress ip is gated on an app id,
+ * which iOS has no way to supply). The site-rule effect is fewer mid-session
+ * exit changes for that site, not one shared egress ip.
+ */
+enum SplitRuleMode {
+    case excluded
+    case included
+    case pinned
+
+    func toSdkRouteOverride() -> SdkRouteOverride? {
+        let route = SdkRouteOverride()
+        switch self {
+        case .excluded:
+            route.local = true
+        case .included:
+            route.local = false
+        case .pinned:
+            route.local = false
+            route.pin = true
+        }
+        return route
+    }
+
+    static func of(local: Bool, pin: Bool) -> SplitRuleMode {
+        if local {
+            return .excluded
+        }
+        if pin {
+            return .pinned
+        }
+        return .included
+    }
+}
+
+/**
  * A block action override ("split rule")
  */
 struct SplitRuleItem: Identifiable, Equatable {
@@ -73,7 +121,7 @@ struct SplitRuleItem: Identifiable, Equatable {
     // exact ip values — both rendered as green chips in the row
     let hostBaseNames: [String]
     let ipValues: [String]
-    let routeLocal: Bool
+    let mode: SplitRuleMode
 }
 
 private class BlockActionsListener: NSObject, SdkBlockActionsListenerProtocol {
@@ -134,6 +182,47 @@ class BlockActionsStore: ObservableObject {
      */
     private var sdkOverrides: [SdkBlockActionOverride] = []
 
+    /**
+     * the live destination->exit attribution, joined onto each cluster's ips
+     * in `updateBlockActions`: destination ip -> short client ids of the
+     * exits CURRENTLY carrying flows to it, after any re-race or rebind
+     */
+    private var exitsByIp: [String: Set<String>] = [:]
+
+    // the exit-attribution re-poll: flows re-race and rebind between
+    // block-action events, so the join is refreshed on a slow tick as well,
+    // active only while a consuming view is visible AND the app is
+    // presenting it -- a row growing a second exit chip mid-session is
+    // exactly the observation this feature exists for
+    private var exitAttributionTimer: Timer?
+    // the consuming view is mounted
+    private var exitAttributionVisible = false
+    // the app is backgrounded, or its window is hidden/occluded
+    private var exitAttributionSuspended = false
+    // one refresh is in flight; `wanted` records a request that arrived
+    // while it was, so the coalescer has a trailing edge and the last
+    // request is never dropped
+    private var exitAttributionRefreshing = false
+    private var exitAttributionWanted = false
+    // when the last rpc actually went out, for the rate floor in
+    // refreshExitAttribution. Cleared with the rest of the attribution state
+    // so a new device starts fresh rather than inheriting a cooldown.
+    private var exitAttributionLastFetch: Date?
+
+    // bumped on every setup/reset so a refresh that started against an old
+    // device (or before a reset) can never publish over newer state
+    private var generation = 0
+
+    private static let exitAttributionInterval: TimeInterval = 5.0
+
+    private var exitAttributionActive: Bool {
+        exitAttributionVisible && !exitAttributionSuspended
+    }
+
+    deinit {
+        exitAttributionTimer?.invalidate()
+    }
+
     func setup(_ device: SdkDeviceRemote) {
         reset()
 
@@ -147,6 +236,9 @@ class BlockActionsStore: ObservableObject {
         self.blockActionsSub = blockActionViewController.add(BlockActionsListener { [weak self] in
             DispatchQueue.main.async {
                 self?.updateBlockActions()
+                // new flows race and bind as routing decisions land, so the
+                // attribution join re-pulls with the burst too
+                self?.refreshExitAttribution()
             }
         })
         self.blockActionStatsSub = blockActionViewController.add(BlockActionStatsListener { [weak self] in
@@ -163,9 +255,20 @@ class BlockActionsStore: ObservableObject {
         updateBlockActions()
         updateBlockStats()
         updateOverrides()
+        // the view's visibility survives a device swap; pick the poll back up
+        applyExitAttributionActive()
     }
 
     func reset() {
+        generation += 1
+        stopExitAttributionTimer()
+        // the flag belongs to the generation that is ending: an rpc still in
+        // flight can no longer publish, so leaving it set would wedge every
+        // later refresh
+        exitAttributionRefreshing = false
+        exitAttributionWanted = false
+        exitAttributionLastFetch = nil
+
         blockActionsSub?.close()
         blockActionsSub = nil
         blockActionStatsSub?.close()
@@ -187,6 +290,152 @@ class BlockActionsStore: ObservableObject {
         sdkOverrides = []
         allowedCount = 0
         blockedCount = 0
+        exitsByIp = [:]
+    }
+
+    /**
+     * the consuming view reports its visibility; the join is a pull into the
+     * extension, so there is no reason to keep it fresh with nothing
+     * rendering it
+     */
+    func setExitAttributionActive(_ nextVisible: Bool) {
+        guard exitAttributionVisible != nextVisible else {
+            return
+        }
+        exitAttributionVisible = nextVisible
+        applyExitAttributionActive()
+    }
+
+    /**
+     * the app stopped presenting the view (backgrounded on iOS; window
+     * hidden, miniaturized or occluded on macOS). A mounted view is not a
+     * presented one -- SwiftUI does not unmount a sheet to background the
+     * app, so without this the poll would keep hitting the extension from
+     * behind a hidden window (android suspends the same job on the process
+     * lifecycle's STOP)
+     */
+    func setExitAttributionSuspended(_ nextSuspended: Bool) {
+        guard exitAttributionSuspended != nextSuspended else {
+            return
+        }
+        exitAttributionSuspended = nextSuspended
+        applyExitAttributionActive()
+    }
+
+    private func applyExitAttributionActive() {
+        if exitAttributionActive {
+            refreshExitAttribution()
+            startExitAttributionTimer()
+        } else {
+            stopExitAttributionTimer()
+        }
+    }
+
+    private func startExitAttributionTimer() {
+        guard exitAttributionActive, device != nil, exitAttributionTimer == nil else {
+            return
+        }
+        let timer = Timer(
+            timeInterval: Self.exitAttributionInterval,
+            repeats: true
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.tickExitAttribution()
+            }
+        }
+        // .common: the default mode is suspended while the activity list is
+        // being scrolled, which is exactly when these chips are watched
+        RunLoop.main.add(timer, forMode: .common)
+        exitAttributionTimer = timer
+    }
+
+    private func stopExitAttributionTimer() {
+        exitAttributionTimer?.invalidate()
+        exitAttributionTimer = nil
+    }
+
+    /**
+     * the 5s tick. With no rows on screen there is nothing to attribute, so
+     * the tick costs no rpc (android skips the same way)
+     */
+    private func tickExitAttribution() {
+        guard !blockActions.isEmpty else {
+            return
+        }
+        refreshExitAttribution()
+    }
+
+    /**
+     * Re-pulls the destination->exit join and rebuilds the rows when it
+     * moved. The readout is an rpc into the extension, so it runs off the
+     * main thread; at most one is in flight, and a request that arrives
+     * while one is running fires again when it lands
+     */
+    private func refreshExitAttribution() {
+        guard exitAttributionActive, let device = self.device else {
+            return
+        }
+        guard !exitAttributionRefreshing else {
+            exitAttributionWanted = true
+            return
+        }
+        // rate floor. Block actions flush on connect's 1s event epoch, so the
+        // event-driven path alone would fire this ~5x the designed rate while
+        // browsing -- and each call walks the whole live-flow table under the
+        // datapath lock on the far side. The periodic tick is already running
+        // at exactly the freshness this feature promises, so a too-soon
+        // request is dropped rather than queued: the next tick, at most
+        // exitAttributionInterval away, does the work.
+        if let last = exitAttributionLastFetch,
+            Date().timeIntervalSince(last) < Self.exitAttributionInterval
+        {
+            return
+        }
+        exitAttributionLastFetch = Date()
+        exitAttributionRefreshing = true
+        let generation = self.generation
+        Task { [weak self] in
+            // fetchExitsByIp is nonisolated: the synchronous rpc round trip
+            // never runs on the main actor
+            let exitsByIp = await Self.fetchExitsByIp(device)
+            self?.publishExitAttribution(exitsByIp, generation: generation)
+        }
+    }
+
+    private func publishExitAttribution(_ exitsByIp: [String: Set<String>], generation: Int) {
+        guard generation == self.generation else {
+            // a setup/reset landed while the rpc was in flight; that reset
+            // already cleared the in-flight flag for the new generation
+            return
+        }
+        exitAttributionRefreshing = false
+        if self.exitsByIp != exitsByIp {
+            self.exitsByIp = exitsByIp
+            updateBlockActions()
+        }
+        if exitAttributionWanted {
+            // the trailing edge: the join moved again while this call was out
+            exitAttributionWanted = false
+            refreshExitAttribution()
+        }
+    }
+
+    /**
+     * destination ip -> short client ids of the exits currently carrying
+     * flows to it. nonisolated so the rpc runs off the main actor
+     */
+    private nonisolated static func fetchExitsByIp(_ device: SdkDeviceRemote) async -> [String: Set<String>] {
+        var exitsByIp: [String: Set<String>] = [:]
+        if let destinationExits = device.getDestinationExits() {
+            for i in 0..<destinationExits.len() {
+                guard let destinationExit = destinationExits.get(i),
+                      let idStr = destinationExit.clientId?.idStr else {
+                    continue
+                }
+                exitsByIp[destinationExit.destinationIp, default: []].insert(String(idStr.prefix(8)))
+            }
+        }
+        return exitsByIp
     }
 
     private func updateBlockActions() {
@@ -201,14 +450,24 @@ class BlockActionsStore: ObservableObject {
                     continue
                 }
                 let unmatchedHosts = stringListToArray(action.hosts)
+                let ips = stringListToArray(action.ips)
+                let matchedIps = stringListToArray(action.matchedIps)
+                // the live destination->exit attribution join (see
+                // `refreshExitAttribution`)
+                var exitIds = Set<String>()
+                for ip in matchedIps + ips {
+                    if let exits = exitsByIp[ip] {
+                        exitIds.formUnion(exits)
+                    }
+                }
                 items.append(
                     BlockActionItem(
                         id: action.blockActionId?.idStr ?? UUID().uuidString,
                         time: Date(timeIntervalSince1970: TimeInterval(action.time) / 1000.0),
                         hosts: unmatchedHosts,
-                        ips: stringListToArray(action.ips),
+                        ips: ips,
                         matchedHosts: stringListToArray(action.matchedHosts),
-                        matchedIps: stringListToArray(action.matchedIps),
+                        matchedIps: matchedIps,
                         hostBaseNames: collapseHosts(unmatchedHosts),
                         block: action.block,
                         local: action.local,
@@ -216,7 +475,8 @@ class BlockActionsStore: ObservableObject {
                         hasBlockOverride: action.blockOverride != nil,
                         hasRouteOverride: action.routeOverride != nil,
                         packetCount: action.packetCount,
-                        byteCount: action.byteCount
+                        byteCount: action.byteCount,
+                        exitShortIds: exitIds.sorted()
                     )
                 )
             }
@@ -265,7 +525,12 @@ class BlockActionsStore: ObservableObject {
                         hosts: ruleHosts,
                         hostBaseNames: collapseHosts(ruleHostNames),
                         ipValues: ruleIps,
-                        routeLocal: override.routeOverride?.local ?? false
+                        // excluded when the route override is local, pinned
+                        // when it carries a pin, else included
+                        mode: SplitRuleMode.of(
+                            local: override.routeOverride?.local ?? false,
+                            pin: override.routeOverride?.pin ?? false
+                        )
                     )
                 )
             }
@@ -287,26 +552,25 @@ class BlockActionsStore: ObservableObject {
     }
 
     /**
-     * creates a split rule forcing the selected host values to route local
+     * creates a split rule applying `mode` to the selected host values;
+     * see `SplitRuleMode`
      */
-    func createLocalRule(hosts: [String]) {
+    func createRule(hosts: [String], mode: SplitRuleMode) {
         guard let device = self.device, !hosts.isEmpty else {
             return
         }
         let override = SdkBlockActionOverride()
         override.overrideId = SdkNewId()
         override.hosts = arrayToStringList(hosts)
-        let route = SdkRouteOverride()
-        route.local = true
-        override.routeOverride = route
+        override.routeOverride = mode.toSdkRouteOverride()
         device.add(override)
         updateOverrides()
     }
 
     /**
-     * replaces the host values of an existing split rule
+     * replaces the host values and mode of an existing split rule
      */
-    func updateRule(id: String, hosts: [String]) {
+    func updateRule(id: String, hosts: [String], mode: SplitRuleMode) {
         guard let device = self.device else {
             return
         }
@@ -318,6 +582,7 @@ class BlockActionsStore: ObservableObject {
             return
         }
         override.hosts = arrayToStringList(hosts)
+        override.routeOverride = mode.toSdkRouteOverride()
         let list = SdkBlockActionOverrideList()
         for sdkOverride in sdkOverrides {
             list?.add(sdkOverride)

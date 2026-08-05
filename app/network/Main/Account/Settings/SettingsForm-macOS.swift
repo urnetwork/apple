@@ -574,6 +574,33 @@ struct SettingsForm_macOS: View {
                     
                     Spacer().frame(height: 32)
                     
+                    /**
+                     * Developer
+                     */
+                    HStack {
+                        UrLabel(text: "Developer")
+
+                        Spacer()
+                    }
+
+                    HStack {
+                        Text("Open developer tools")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        navigate(.developer)
+                    }
+                    .padding()
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    Spacer().frame(height: 32)
+
                     HStack {
                         UrLabel(text: "Version and Build info")
                         

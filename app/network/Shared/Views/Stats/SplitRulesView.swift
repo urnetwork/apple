@@ -25,6 +25,7 @@ struct SplitRulesView: View {
         let candidates: [String]
         let selected: Set<String>
         let ruleId: String?
+        let mode: SplitRuleMode
     }
 
     @State private var editorTarget: EditorTarget? = nil
@@ -111,7 +112,8 @@ struct SplitRulesView: View {
                                     id: rule.id,
                                     candidates: rule.hosts,
                                     selected: Set(rule.hosts),
-                                    ruleId: rule.id
+                                    ruleId: rule.id,
+                                    mode: rule.mode
                                 )
                             }
                             .contextMenu {
@@ -214,6 +216,10 @@ struct SplitRulesView: View {
         .background(themeManager.currentTheme.backgroundColor)
         .onAppear {
             displayedActions = blockActionsStore.blockActions
+            blockActionsStore.setExitAttributionActive(true)
+        }
+        .onDisappear {
+            blockActionsStore.setExitAttributionActive(false)
         }
         .onChange(of: blockActionsStore.blockActions) { blockActions in
             if isAtTop {
@@ -224,7 +230,8 @@ struct SplitRulesView: View {
             SplitRuleEditorView(
                 candidates: target.candidates,
                 initialSelection: target.selected,
-                ruleId: target.ruleId
+                ruleId: target.ruleId,
+                initialMode: target.mode
             )
             .environmentObject(themeManager)
             .environmentObject(blockActionsStore)
@@ -265,7 +272,8 @@ struct SplitRulesView: View {
                 id: action.id,
                 candidates: candidates,
                 selected: Set(rule.hosts),
-                ruleId: rule.id
+                ruleId: rule.id,
+                mode: rule.mode
             )
         } else {
             // create a rule from the action's host values, all initially UNSELECTED:
@@ -275,7 +283,8 @@ struct SplitRulesView: View {
                 id: action.id,
                 candidates: action.hostValues,
                 selected: [],
-                ruleId: nil
+                ruleId: nil,
+                mode: .excluded
             )
         }
     }
@@ -307,7 +316,7 @@ private struct SplitRulesTopOffsetKey: PreferenceKey {
 }
 
 // A split rule (override) row: all of the rule's host base names and exact ips as
-// green chips (the whole rule is "active"), with the Local state chip trailing.
+// green chips (the whole rule is "active"), with the mode state chip trailing.
 struct SplitRuleRowView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -327,7 +336,17 @@ struct SplitRuleRowView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            StateChip(text: "Local", color: .urGreen, highlighted: true)
+            // an excluded cluster routes locally: the same Local language as
+            // the activity rows. a pinned cluster is in the tunnel like any
+            // other, just held to one exit
+            switch rule.mode {
+            case .excluded:
+                StateChip(text: "Local", color: .urGreen, highlighted: true)
+            case .pinned:
+                StateChip(text: "Pinned", color: .urElectricBlue, highlighted: true)
+            case .included:
+                StateChip(text: "Included", color: .urElectricBlue, highlighted: true)
+            }
 
         }
         .padding(.vertical, 4)
@@ -370,6 +389,15 @@ struct BlockActionRowView: View {
                     Text(relativeTime(action.time))
                     if 0 < action.byteCount {
                         Text(formatByteCountCompact(action.byteCount))
+                    }
+                    // which exit(s) carry this cluster right now. One chip is
+                    // the healthy shape; two chips on one row is the site
+                    // split across egress IPs, live
+                    ForEach(action.exitShortIds, id: \.self) { exitId in
+                        ExitChip(
+                            exitShortId: exitId,
+                            split: 1 < action.exitShortIds.count
+                        )
                     }
                 }
                 .font(.system(size: 11).monospacedDigit())
@@ -466,6 +494,29 @@ struct IPsPill: View {
     }
 }
 
+// The exit currently carrying a cluster's flows, as a tinted "via <short client
+// id>" capsule. One chip on a row is the normal healthy shape; when a row splits
+// across exits, every chip flips to coral so the split-egress observation --
+// the exact event the site affinity work exists to prevent -- is unmissable.
+struct ExitChip: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let exitShortId: String
+    let split: Bool
+
+    var body: some View {
+        let color = split ? Color.urCoral : themeManager.currentTheme.accentColor
+        Text("via \(exitShortId)")
+            .font(.system(size: 10, weight: .medium).monospaced())
+            .foregroundColor(color)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(color.opacity(0.14))
+            .clipShape(Capsule())
+    }
+}
+
 // A flow layout that places chips left-to-right and wraps to a new line when the
 // next chip would overflow the available width.
 struct ChipFlowLayout: Layout {
@@ -534,7 +585,9 @@ struct StateChip: View {
 }
 
 /**
- * Create or edit a split rule: select the host values to route locally
+ * Create or edit a split rule: select the host values and what the rule does
+ * with them -- route locally (excluded), pin to one provider, or route
+ * through the tunnel (included); see `SplitRuleMode`
  */
 struct SplitRuleEditorView: View {
 
@@ -546,11 +599,13 @@ struct SplitRuleEditorView: View {
     let ruleId: String?
 
     @State private var selection: Set<String>
+    @State private var mode: SplitRuleMode
 
-    init(candidates: [String], initialSelection: Set<String>, ruleId: String?) {
+    init(candidates: [String], initialSelection: Set<String>, ruleId: String?, initialMode: SplitRuleMode) {
         self.candidates = candidates
         self.ruleId = ruleId
         _selection = State(initialValue: initialSelection)
+        _mode = State(initialValue: initialMode)
     }
 
     private var isEditing: Bool {
@@ -576,10 +631,27 @@ struct SplitRuleEditorView: View {
             }
             .padding()
 
-            Text("Selected hosts are routed locally and bypass the tunnel.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                .padding(.horizontal)
+            // what the rule does with the selected hosts, one exclusive choice
+            VStack(spacing: 0) {
+                modeRow(
+                    .excluded,
+                    title: "Route locally",
+                    description: "Selected hosts bypass the tunnel."
+                )
+                // pin: the cluster stays in the tunnel, but its traffic is
+                // held to one exit so the site's api and cdns share an egress ip
+                modeRow(
+                    .pinned,
+                    title: "Pin to one provider",
+                    description: "Keeps the selected hosts on a single provider, so the site's API and images share one IP address. Use for sites whose content fails to load through the VPN."
+                )
+                modeRow(
+                    .included,
+                    title: "Route through VPN",
+                    description: "Selected hosts are routed through the tunnel."
+                )
+            }
+            .padding(.horizontal)
 
             List {
                 ForEach(candidates, id: \.self) { host in
@@ -618,9 +690,9 @@ struct SplitRuleEditorView: View {
                     action: {
                         let hosts = candidates.filter { selection.contains($0) }
                         if let ruleId = ruleId {
-                            blockActionsStore.updateRule(id: ruleId, hosts: hosts)
+                            blockActionsStore.updateRule(id: ruleId, hosts: hosts, mode: mode)
                         } else {
-                            blockActionsStore.createLocalRule(hosts: hosts)
+                            blockActionsStore.createRule(hosts: hosts, mode: mode)
                         }
                         dismiss()
                     },
@@ -644,5 +716,44 @@ struct SplitRuleEditorView: View {
 
         }
         .background(themeManager.currentTheme.backgroundColor)
+    }
+
+    /**
+     * one exclusive mode choice: a radio-style circle with the mode title
+     * and what it does
+     */
+    private func modeRow(
+        _ rowMode: SplitRuleMode,
+        title: LocalizedStringKey,
+        description: LocalizedStringKey
+    ) -> some View {
+        let selected = mode == rowMode
+        return HStack(alignment: .top, spacing: 10) {
+
+            Image(systemName: selected ? "circle.inset.filled" : "circle")
+                .foregroundColor(
+                    selected
+                        ? .urGreen
+                        : themeManager.currentTheme.textFaintColor
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                Text(description)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+
+        }
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            mode = rowMode
+        }
     }
 }

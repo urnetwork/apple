@@ -89,6 +89,7 @@ struct NetworkApp: App {
     @StateObject var blockActionsStore = BlockActionsStore()
     @StateObject var dnsSettingsStore = DnsSettingsStore()
     @StateObject var networkPeersStore = NetworkPeersStore()
+    @StateObject var reliabilityStore = ReliabilityStore()
 
     init() {
         let deviceManager = DeviceManager()
@@ -143,6 +144,7 @@ struct NetworkApp: App {
         blockActionsStore.setup(device)
         dnsSettingsStore.setup(device)
         networkPeersStore.setup(device)
+        reliabilityStore.setup(device)
     }
 
     private func resetDeviceStores() {
@@ -150,6 +152,7 @@ struct NetworkApp: App {
         blockActionsStore.reset()
         dnsSettingsStore.reset()
         networkPeersStore.reset()
+        reliabilityStore.reset()
     }
 
     // Cold launch already gets a fresh JWT (the SDK's token manager refreshes
@@ -244,6 +247,7 @@ struct NetworkApp: App {
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
                 .environmentObject(networkPeersStore)
+                .environmentObject(reliabilityStore)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
@@ -287,6 +291,7 @@ struct NetworkApp: App {
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
                 .environmentObject(networkPeersStore)
+                .environmentObject(reliabilityStore)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)

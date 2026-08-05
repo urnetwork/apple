@@ -215,6 +215,12 @@ struct AccountNavStackView: View {
                         .navigationTitle("Provider Identities")
                         .background(themeManager.currentTheme.backgroundColor)
 
+                case .developer:
+
+                    DeveloperView()
+                        .navigationTitle("Developer")
+                        .background(themeManager.currentTheme.backgroundColor)
+
                 }
                 
             }

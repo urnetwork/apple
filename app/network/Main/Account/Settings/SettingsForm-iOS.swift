@@ -429,8 +429,22 @@ struct SettingsForm_iOS: View {
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 }
             }
-            
-            
+
+            Section("Developer") {
+                HStack {
+                    Text("Open developer tools")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.developer)
+                }
+            }
+
+
             Section("Danger") {
                 Button(role: .destructive, action: {
                     presentDeleteAccountConfirmation()

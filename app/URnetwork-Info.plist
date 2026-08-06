@@ -43,7 +43,10 @@
 	     to the ur.io/wallet-connect bridge. When empty, the bridge falls back to
 	     injected wallets only (browser extension / wallet in-app browser). -->
 	<key>URWalletConnectProjectId</key>
-	<string></string>
+	<!-- duplicated from vault/main/walletconnect.yml (the source of truth) so it
+	     bundles into the client; a WalletConnect project id is a public client
+	     identifier. Update both together. -->
+	<string>c9e8eb687dd18c83739e81715fe055af</string>
 	<key>NEVPNConfiguration</key>
 	<array>
 		<string>network.ur.extension</string>

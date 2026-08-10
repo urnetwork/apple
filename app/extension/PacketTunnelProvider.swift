@@ -568,22 +568,38 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
 
 //        let packetWriteLock = NSLock()
-        let packetReceiverSub = device.add(PacketReceiver { ipVersion, ipProtocol, packet in
-//            let dataCopy = try! data.withUnsafeBytes<Data> { body in
-//                return Data(bytes: body, count: data.count)
-//            }
-
-//            packetWriteLock.lock()
-//            defer { packetWriteLock.unlock() }
-
-            switch ipVersion {
-            case 4:
-                self.packetFlow.writePackets([packet], withProtocols: [AF_INET as NSNumber])
-            case 6:
-                self.packetFlow.writePackets([packet], withProtocols: [AF_INET6 as NSNumber])
-            default:
-                // unknown version, drop
-                break
+        let packetReceiverSub = device.add(PacketBatchBytesReceiver { packetBatchBytes in
+            var packets: [Data] = []
+            var protocols: [NSNumber] = []
+            packetBatchBytes.withUnsafeBytes { rawBuffer in
+                guard let bytes = rawBuffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    return
+                }
+                var offset = 0
+                while 2 <= rawBuffer.count - offset {
+                    let packetByteCount =
+                        (Int(bytes[offset]) << 8) | Int(bytes[offset + 1])
+                    offset += 2
+                    guard 0 < packetByteCount,
+                          packetByteCount <= rawBuffer.count - offset else {
+                        return
+                    }
+                    let ipVersion = bytes[offset] >> 4
+                    switch ipVersion {
+                    case 4:
+                        protocols.append(AF_INET as NSNumber)
+                    case 6:
+                        protocols.append(AF_INET6 as NSNumber)
+                    default:
+                        offset += packetByteCount
+                        continue
+                    }
+                    packets.append(Data(bytes: bytes + offset, count: packetByteCount))
+                    offset += packetByteCount
+                }
+            }
+            if !packets.isEmpty {
+                self.packetFlow.writePackets(packets, withProtocols: protocols)
             }
         })
 
@@ -1025,8 +1041,24 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             guard self.isPacketReadActive(generation: generation) else { return }
 
             if let device = self.device {
-                for packet in packets {
-                    device.sendPacket(packet, n: Int32(packet.count))
+                for batchStart in stride(from: 0, to: packets.count, by: 64) {
+                    let batchEnd = min(batchStart + 64, packets.count)
+                    var packetBatchBytes = Data()
+                    let batchByteCount = packets[batchStart..<batchEnd].reduce(0) {
+                        $0 + 2 + $1.count
+                    }
+                    packetBatchBytes.reserveCapacity(batchByteCount)
+                    for packet in packets[batchStart..<batchEnd] {
+                        guard packet.count <= Int(UInt16.max) else { continue }
+                        var packetByteCount = UInt16(packet.count).bigEndian
+                        Swift.withUnsafeBytes(of: &packetByteCount) {
+                            packetBatchBytes.append(contentsOf: $0)
+                        }
+                        packetBatchBytes.append(packet)
+                    }
+                    if !packetBatchBytes.isEmpty {
+                        device.sendPacketBatch(packetBatchBytes)
+                    }
                 }
             }
             self.readToDevice(generation: generation)
@@ -1051,16 +1083,16 @@ private class ProvideSecretKeysListener: NSObject, SdkProvideSecretKeysListenerP
 
 
 
-private class PacketReceiver: NSObject, SdkReceivePacketProtocol {
-    func receivePacket(_ ipVersion: Int, ipProtocol: Int, packet: Data?) {
-        if let packet {
-            c(ipVersion, ipProtocol, packet)
+private class PacketBatchBytesReceiver: NSObject, SdkReceivePacketBatchProtocol {
+    func receivePacketBatch(_ packetBatchBytes: Data?) {
+        if let packetBatchBytes {
+            c(packetBatchBytes)
         }
     }
 
-    private let c: (Int, Int, Data) -> Void
+    private let c: (Data) -> Void
 
-    init(c: @escaping (Int, Int, Data) -> Void) {
+    init(c: @escaping (Data) -> Void) {
         self.c = c
     }
 

@@ -96,6 +96,20 @@ struct NetworkApp: App {
         _deviceManager = StateObject(wrappedValue: deviceManager)
         appDelegate.deviceManager = deviceManager
 
+        /**
+         * Start the StoreKit transaction listener at PROCESS launch, per
+         * Apple's guidance — not at MainView creation (post-login). A renewal,
+         * an Ask to Buy approval, or a cross-device purchase delivered while
+         * the app sits on the login screen is reported to the server, finished
+         * only on a terminal answer, and recorded here — then picked up by the
+         * per-network gate when its network logs in. The api provider hands
+         * the monitor whatever session api exists at report time (an empty
+         * byJwt means logged out, and reporting defers until login).
+         */
+        AppStoreTransactionMonitor.shared.start(apiProvider: { [weak deviceManager] in
+            deviceManager?.api
+        })
+
         #if os(iOS)
         // for styling NavigationTitle
         // todo - can probably be moved to top of app

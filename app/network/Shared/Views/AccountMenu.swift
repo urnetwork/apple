@@ -53,6 +53,7 @@ struct AccountMenu: View {
             }) {
                 Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
             }
+            .accessibilityIdentifier("acceptance.account.logout")
             
             ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
                 Label("Share URnetwork", systemImage: "square.and.arrow.up")
@@ -91,6 +92,7 @@ struct AccountMenu: View {
                 )
         }
         .menuStyle(.borderlessButton)
+        .accessibilityIdentifier("acceptance.account.menu")
         
 
     }

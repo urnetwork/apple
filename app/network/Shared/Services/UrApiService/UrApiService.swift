@@ -493,6 +493,10 @@ extension UrApiService {
             }
 
             let args = SdkNetworkCreateArgs()
+            // Main still validates this field. Newer servers generate their own
+            // instant-account name and safely ignore this compatibility fallback.
+            args.networkName = "guest-\(UUID().uuidString.lowercased())"
+            args.guestMode = true
             args.terms = true
             // No userAuth, password, authJwt, walletAuth — triggers seedphrase path
             api.networkCreate(args, callback: callback)

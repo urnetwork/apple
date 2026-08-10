@@ -580,7 +580,8 @@ private struct LoginInitialFormView: View {
                         }
                     }
                     
-                }
+                },
+                accessibilityIdentifier: "acceptance.password.user"
             )
             #elseif os(macOS)
             UrTextField(
@@ -602,7 +603,8 @@ private struct LoginInitialFormView: View {
                         }
                     }
                     
-                }
+                },
+                accessibilityIdentifier: "acceptance.password.user"
             )
             #endif
             
@@ -617,7 +619,8 @@ private struct LoginInitialFormView: View {
                     }
                 },
                 enabled: isValidUserAuth && !isLoginActionInFlight,
-                isProcessing: activeLoginAction == .userAuth
+                isProcessing: activeLoginAction == .userAuth,
+                accessibilityIdentifier: "acceptance.password.next"
             )
             
             Spacer()
@@ -671,6 +674,7 @@ private struct LoginInitialFormView: View {
             .buttonStyle(.plain)
             .opacity(isLoginActionInFlight ? 0.3 : 1)
             .disabled(isLoginActionInFlight)
+            .accessibilityIdentifier("acceptance.login.secret")
             
             Spacer()
                 .frame(height: 12)
@@ -697,6 +701,7 @@ private struct LoginInitialFormView: View {
             .buttonStyle(.plain)
             .opacity(isLoginActionInFlight ? 0.3 : 1)
             .disabled(isLoginActionInFlight)
+            .accessibilityIdentifier("acceptance.login.instant")
             
             Spacer()
                 .frame(height: 8)
@@ -1080,6 +1085,7 @@ private struct SSOButtons: View {
             .buttonStyle(.plain)
             .disabled(isLoginActionInFlight)
             .opacity(isLoginActionInFlight ? 0.3 : 1)
+            .accessibilityIdentifier("acceptance.login.secret")
 
             Spacer().frame(width: 8)
 
@@ -1104,6 +1110,7 @@ private struct SSOButtons: View {
             .buttonStyle(.plain)
             .disabled(isLoginActionInFlight)
             .opacity(isLoginActionInFlight ? 0.3 : 1)
+            .accessibilityIdentifier("acceptance.login.instant")
         }
 
     }

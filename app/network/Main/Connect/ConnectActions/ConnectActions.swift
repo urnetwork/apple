@@ -135,7 +135,11 @@ struct ConnectActions: View {
                              */
                             if (connectionStatus == .disconnected) {
                                 HStack {
-                                    UrButton(text: "Connect", action: connect)
+                                    UrButton(
+                                        text: "Connect",
+                                        action: connect,
+                                        accessibilityIdentifier: "acceptance.connect"
+                                    )
                                 }
                                 .connectActionsFold()
                             }
@@ -144,7 +148,8 @@ struct ConnectActions: View {
                                 UrButton(
                                     text: "Disconnect",
                                     action: disconnect,
-                                    style: .outlineSecondary
+                                    style: .outlineSecondary,
+                                    accessibilityIdentifier: "acceptance.disconnect"
                                 )
                                 .connectActionsFold()
                             }

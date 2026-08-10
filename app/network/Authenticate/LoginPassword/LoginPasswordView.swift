@@ -63,7 +63,8 @@ struct LoginPasswordView: View {
                                 }
                             }
                         },
-                        isSecure: true
+                        isSecure: true,
+                        accessibilityIdentifier: "acceptance.password.input"
                     )
                     
                     Spacer().frame(height: 32)
@@ -83,7 +84,8 @@ struct LoginPasswordView: View {
                             }
                         },
                         enabled: !isLoginInProgress && viewModel.isValid,
-                        isProcessing: isLoginInProgress
+                        isProcessing: isLoginInProgress,
+                        accessibilityIdentifier: "acceptance.password.submit"
                     )
                     
                     Spacer().frame(height: 8)

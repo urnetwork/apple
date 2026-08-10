@@ -25,6 +25,7 @@ struct UrButton: View {
     var isFullWidth: Bool = true
     var trailingIcon: String?
     var isProcessing: Bool = false
+    var accessibilityIdentifier: String = ""
     
     var body: some View {
         
@@ -67,6 +68,7 @@ struct UrButton: View {
         )
         .opacity(opacity)
         .disabled(!enabled || isProcessing)
+        .accessibilityIdentifier(accessibilityIdentifier)
     }
     
     private var buttonText: some View {

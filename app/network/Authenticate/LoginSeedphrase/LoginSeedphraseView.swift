@@ -54,6 +54,7 @@ struct LoginSeedphraseView: View {
                         }
                     }
                     .cornerRadius(8)
+                    .accessibilityIdentifier("acceptance.secret.input")
 
                 Spacer().frame(height: 32)
 
@@ -66,7 +67,8 @@ struct LoginSeedphraseView: View {
                         }
                     },
                     enabled: viewModel.isSeedphraseValid && !viewModel.isLoggingIn,
-                    isProcessing: viewModel.isLoggingIn
+                    isProcessing: viewModel.isLoggingIn,
+                    accessibilityIdentifier: "acceptance.secret.submit"
                 )
 
                 Spacer().frame(height: 8)

@@ -44,6 +44,8 @@ struct UrTextField: View {
     var isSecure: Bool = false
     
     var disableCapitalization: Bool = false
+
+    var accessibilityIdentifier: String = ""
     
     #if os(iOS)
     private var autoCapitalization: TextInputAutocapitalization {
@@ -125,6 +127,7 @@ struct UrTextField: View {
                     .onChange(of: text) { newValue in
                         onTextChange?(newValue)
                     }
+                    .accessibilityIdentifier(accessibilityIdentifier)
                     
                     #else
                     
@@ -160,6 +163,7 @@ struct UrTextField: View {
                     .onChange(of: text) { newValue in
                         onTextChange?(newValue)
                     }
+                    .accessibilityIdentifier(accessibilityIdentifier)
                     
                     #endif
                     
@@ -188,6 +192,7 @@ struct UrTextField: View {
                     .onChange(of: text) { newValue in
                         onTextChange?(newValue)
                     }
+                    .accessibilityIdentifier(accessibilityIdentifier)
                     
                     #elseif os(macOS)
                     
@@ -223,6 +228,7 @@ struct UrTextField: View {
                     .onChange(of: text) { newValue in
                         onTextChange?(newValue)
                     }
+                    .accessibilityIdentifier(accessibilityIdentifier)
                     
                     #endif
                     

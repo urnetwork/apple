@@ -60,6 +60,9 @@ struct ProviderIdentityRow: Identifiable, Equatable {
     let identicon: IdenticonImage?
     // panel-deck size raster
     let identiconSmall: IdenticonImage?
+    // badge-size raster, rendered next to the client id in provider
+    // locations to mark a provider with a verified e2e session
+    let identiconBadge: IdenticonImage?
 
     var id: String { clientId }
 
@@ -91,6 +94,8 @@ private class PostQuantumIdentityChangeListener: NSObject, SdkPostQuantumIdentit
 class PostQuantumIdentityStore: ObservableObject {
 
     // identicon display point sizes; rasters render at 2x
+    // the provider-locations trailing badge next to the 11pt client id
+    static let badgeIdenticonSize: CGFloat = 16
     static let deckIdenticonSize: CGFloat = 28
     static let rowIdenticonSize: CGFloat = 40
     // the panel's own-identity identicon: 2x a list row
@@ -170,7 +175,8 @@ class PostQuantumIdentityStore: ObservableObject {
                 publicKeyHash: hash,
                 publicKey: key,
                 identicon: identicon(key: key, hash: hash, size: Self.panelIdenticonSize),
-                identiconSmall: nil
+                identiconSmall: nil,
+                identiconBadge: nil
             )
         }
         if ownRow != ownIdentityRow {
@@ -192,7 +198,8 @@ class PostQuantumIdentityStore: ObservableObject {
                         publicKeyHash: keyHash,
                         publicKey: key,
                         identicon: identicon(key: key, hash: keyHash, size: Self.rowIdenticonSize),
-                        identiconSmall: identicon(key: key, hash: keyHash, size: Self.deckIdenticonSize)
+                        identiconSmall: identicon(key: key, hash: keyHash, size: Self.deckIdenticonSize),
+                        identiconBadge: identicon(key: key, hash: keyHash, size: Self.badgeIdenticonSize)
                     )
                 )
             }

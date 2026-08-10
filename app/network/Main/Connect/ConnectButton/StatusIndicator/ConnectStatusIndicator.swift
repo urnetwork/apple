@@ -112,6 +112,7 @@ struct ConnectStatusIndicator: View {
             }
         }
         .accessibilityAddTraits(canShowProviderLocations ? .isButton : [])
+        .accessibilityIdentifier("acceptance.connect.status")
     }
 }
 

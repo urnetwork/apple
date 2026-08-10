@@ -22,6 +22,21 @@ struct ProviderLocationsView: View {
     @EnvironmentObject var deviceManager: DeviceManager
 
     @StateObject private var store = ProviderLocationsStore()
+    @StateObject private var identityStore = PostQuantumIdentityStore()
+
+    // providers with an identity-verified e2e session, keyed by the same
+    // egress client id the rows carry — membership is the "end-to-end
+    // encrypted" signal, and the value is the peer's identity identicon
+    // rendered at badge size (see ProviderIdentityRow.identiconBadge)
+    private var pqIdenticonByClientId: [String: IdenticonImage] {
+        var byClientId: [String: IdenticonImage] = [:]
+        for identity in identityStore.providerIdentities {
+            if let badge = identity.identiconBadge {
+                byClientId[identity.clientId] = badge
+            }
+        }
+        return byClientId
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -64,7 +79,8 @@ struct ProviderLocationsView: View {
                             ProviderLocationRowView(
                                 row: row,
                                 selected: row.id == store.selectedClientId,
-                                onSelect: { store.select(row.id) }
+                                onSelect: { store.select(row.id) },
+                                pqIdenticon: pqIdenticonByClientId[row.id]
                             )
                             .listRowBackground(themeManager.currentTheme.backgroundColor)
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -92,10 +108,12 @@ struct ProviderLocationsView: View {
         .onAppear {
             if let device = deviceManager.device {
                 store.setup(device)
+                identityStore.setup(device)
             }
         }
         .onDisappear {
             store.reset()
+            identityStore.reset()
         }
     }
 
@@ -131,6 +149,10 @@ private struct ProviderLocationRowView: View {
     let row: ProviderLocationRow
     let selected: Bool
     let onSelect: () -> Void
+    // the provider's post-quantum identity identicon at badge size, non-nil
+    // only when the provider has an identity-verified end-to-end encrypted
+    // session; rendered as a small badge to the right of the client id
+    let pqIdenticon: IdenticonImage?
 
     private static let rowPadding: CGFloat = 16
 
@@ -141,20 +163,33 @@ private struct ProviderLocationRowView: View {
 
             VStack(alignment: .leading, spacing: 2) {
 
-                // the client id, tap to copy
-                Text(row.id)
-                    .font(.system(size: 11, weight: .medium).monospaced())
-                    .foregroundColor(
-                        selected
-                            ? themeManager.currentTheme.textColor
-                            : themeManager.currentTheme.textFaintColor
-                    )
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        copyClientId()
+                // the client id, tap to copy, with the identity identicon as a
+                // trailing badge when the session is verified end-to-end
+                // encrypted. The badge is conditionally built — never
+                // IdenticonView(image: nil, ...), which draws the placeholder
+                // square — so absence is the "not e2e" state.
+                HStack(alignment: .center, spacing: 6) {
+                    Text(row.id)
+                        .font(.system(size: 11, weight: .medium).monospaced())
+                        .foregroundColor(
+                            selected
+                                ? themeManager.currentTheme.textColor
+                                : themeManager.currentTheme.textFaintColor
+                        )
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            copyClientId()
+                        }
+                    if let pqIdenticon {
+                        IdenticonView(
+                            image: pqIdenticon,
+                            size: PostQuantumIdentityStore.badgeIdenticonSize
+                        )
+                        .accessibilityLabel(String(localized: "Post Quantum Encryption"))
                     }
+                }
 
                 Text(providerPlaceLabel(row))
                     .font(themeManager.currentTheme.bodyFont)

@@ -23745,6 +23745,17 @@
         }
       }
     },
+    "Couldn't load subscription options. Check your connection and retry." : {
+      "comment" : "Shown in the upgrade sheet and intro funnel when the App Store product fetch failed, with a retry action — replaces the eternal spinner (Shared/Views/UpgradeSubscriptionSheet.swift, Shared/Views/Introduction/IntroductionView.swift).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load subscription options. Check your connection and retry."
+          }
+        }
+      }
+    },
     "Couldn't open wallet. Please install it and try again." : {
       "comment" : "Snackbar shown when the external wallet app could not be opened. Used in Shared/Views/SolanaSignMessageSheet.swift and Main/Account/Wallets/ConnectWalletSheet/ConnectWalletSheetView.swift.",
       "localizations" : {
@@ -24075,6 +24086,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法解析公鑰，請稍後再試。"
+          }
+        }
+      }
+    },
+    "Couldn't restore purchases. Please try again." : {
+      "comment" : "Restore-purchases outcome: the App Store sync failed (e.g. the user cancelled the credentials prompt or the store was unreachable) and no entitlement was found locally (Shared/ViewModels/AppStoreSubscriptionManager.swift).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't restore purchases. Please try again."
           }
         }
       }
@@ -48564,6 +48586,17 @@
         }
       }
     },
+    "No previous purchases were found." : {
+      "comment" : "Restore-purchases outcome: the sync succeeded and there is genuinely nothing to restore (Shared/ViewModels/AppStoreSubscriptionManager.swift).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No previous purchases were found."
+          }
+        }
+      }
+    },
     "No providers connected" : {
       "comment" : "Empty state of the provider locations sheet when no providers are connected.",
       "localizations" : {
@@ -50903,6 +50936,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "付款待處理"
+          }
+        }
+      }
+    },
+    "Payment received." : {
+      "comment" : "Title of the post-purchase screen while the server has not yet confirmed the entitlement (Shared/Views/PurchaseSuccessView.swift). StoreKit took the payment; the confirmation poll is still running — the copy must not claim premium yet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment received."
           }
         }
       }
@@ -56258,6 +56302,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供功能是可選的。開啟後，應用程式在使用 Wi-Fi 並於背景運行時，可與網絡分享你的連接。"
+          }
+        }
+      }
+    },
+    "Purchase found. Confirming your plan — it will update automatically." : {
+      "comment" : "Restore-purchases outcome: an entitlement for the current network was found; the confirmation poll now bridges the gap until the server credits it (Shared/ViewModels/AppStoreSubscriptionManager.swift).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchase found. Confirming your plan — it will update automatically."
           }
         }
       }
@@ -62240,6 +62295,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解析器"
+          }
+        }
+      }
+    },
+    "Restore purchases" : {
+      "comment" : "Action label that resyncs App Store purchases (AppStore.sync + entitlement scan). Shown in Settings and in the upgrade flow's failure states (Main/Account/Settings/SettingsForm-iOS.swift, SettingsForm-macOS.swift, Shared/Views/UpgradeSubscriptionSheet.swift, Shared/Views/PurchaseSuccessView.swift, Shared/Views/Introduction/IntroductionView.swift).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore purchases"
           }
         }
       }
@@ -72937,6 +73003,17 @@
         }
       }
     },
+    "The purchase could not be completed. Please try again." : {
+      "comment" : "Shown inline in the upgrade flow when a StoreKit purchase attempt throws (Shared/ViewModels/AppStoreSubscriptionManager.swift). Every purchase failure is shown to the user — a payment error they cannot see is one they will hit again. User cancellation is not an error and never shows this.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The purchase could not be completed. Please try again."
+          }
+        }
+      }
+    },
     "The strongest security rules are known not to work in %@. There are less secure recommended DNS settings that work better." : {
       "comment" : "dns settings",
       "localizations" : {
@@ -75772,6 +75849,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此網絡名稱已被使用"
+          }
+        }
+      }
+    },
+    "This purchase couldn't be verified with the App Store, so it can't be applied to your account. If you were charged and your plan doesn't update, please contact support." : {
+      "comment" : "Shown inline in the upgrade flow when the server's verify answer for a purchase's transaction JWS is terminal `invalid` — the proof will never verify. The transaction is still finished so StoreKit stops redelivering it; this message is how the failure reaches the user instead of a silent success (Shared/ViewModels/AppStoreSubscriptionManager.swift). Apple sibling of purchase_could_not_be_verified (android).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This purchase couldn't be verified with the App Store, so it can't be applied to your account. If you were charged and your plan doesn't update, please contact support."
           }
         }
       }
@@ -84498,6 +84586,184 @@
         }
       }
     },
+    "We couldn't confirm your purchase yet. If you completed checkout, your plan will update automatically in a few minutes — there's no need to buy again." : {
+      "comment" : "Shown when the post-checkout confirmation poll gives up (2 minutes) without the server confirming the subscription. The purchase is still likely to land later; the background poll and the next launch pick it up. On apple: the delayed phase of PurchaseSuccessView and the MainView snackbar.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم نتمكن من تأكيد عملية الشراء بعد. إذا أكملت الدفع، فسيتم تحديث خطتك تلقائيًا خلال دقائق قليلة — لا حاجة للشراء مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatím se nám nepodařilo potvrdit váš nákup. Pokud jste platbu dokončili, váš tarif se během několika minut aktualizuje automaticky — není třeba nakupovat znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wir konnten deinen Kauf noch nicht bestätigen. Wenn du den Bezahlvorgang abgeschlossen hast, wird dein Plan in wenigen Minuten automatisch aktualisiert — du musst nicht erneut kaufen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν μπορέσαμε ακόμη να επιβεβαιώσουμε την αγορά σας. Αν ολοκληρώσατε την πληρωμή, το πρόγραμμά σας θα ενημερωθεί αυτόματα σε λίγα λεπτά — δεν χρειάζεται να αγοράσετε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't confirm your purchase yet. If you completed checkout, your plan will update automatically in a few minutes — there's no need to buy again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hemos podido confirmar tu compra. Si completaste el pago, tu plan se actualizará automáticamente en unos minutos; no es necesario volver a comprar."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no pudimos confirmar tu compra. Si completaste el pago, tu plan se actualizará automáticamente en unos minutos; no es necesario volver a comprar."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no pudimos confirmar tu compra. Si completaste el pago, tu plan se actualizará automáticamente en unos minutos; no es necesario volver a comprar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous n'avons pas encore pu confirmer votre achat. Si vous avez terminé le paiement, votre plan sera mis à jour automatiquement dans quelques minutes — inutile d'acheter à nouveau."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עדיין לא הצלחנו לאשר את הרכישה שלכם. אם השלמתם את התשלום, התוכנית שלכם תתעדכן אוטומטית בעוד מספר דקות — אין צורך לרכוש שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हम अभी तक आपकी खरीदारी की पुष्टि नहीं कर सके। यदि आपने चेकआउट पूरा कर लिया है, तो आपकी योजना कुछ ही मिनटों में अपने आप अपडेट हो जाएगी — दोबारा खरीदने की जरूरत नहीं है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kami belum dapat mengonfirmasi pembelian Anda. Jika Anda telah menyelesaikan checkout, paket Anda akan diperbarui secara otomatis dalam beberapa menit — tidak perlu membeli lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non siamo ancora riusciti a confermare il tuo acquisto. Se hai completato il pagamento, il tuo piano si aggiornerà automaticamente entro pochi minuti — non è necessario acquistare di nuovo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "購入をまだ確認できませんでした。チェックアウトを完了した場合、プランは数分以内に自動的に更新されます。再度購入する必要はありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 구매를 확인하지 못했습니다. 결제를 완료하셨다면 몇 분 안에 플랜이 자동으로 업데이트됩니다. 다시 구매할 필요가 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We konden je aankoop nog niet bevestigen. Als je het afrekenen hebt voltooid, wordt je plan binnen enkele minuten automatisch bijgewerkt — je hoeft niet opnieuw te kopen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się jeszcze potwierdzić zakupu. Jeśli płatność została zakończona, Twój plan zaktualizuje się automatycznie w ciągu kilku minut — nie musisz kupować ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda não conseguimos confirmar a sua compra. Se concluiu o pagamento, o seu plano será atualizado automaticamente dentro de alguns minutos — não é preciso comprar novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda não conseguimos confirmar sua compra. Se você concluiu o checkout, seu plano será atualizado automaticamente em alguns minutos — não é preciso comprar de novo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda não conseguimos confirmar a sua compra. Se concluiu o pagamento, o seu plano será atualizado automaticamente dentro de alguns minutos — não é preciso comprar novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока не удалось подтвердить вашу покупку. Если вы завершили оплату, ваш тариф обновится автоматически через несколько минут — покупать заново не нужно."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vi kunde inte bekräfta ditt köp ännu. Om du slutförde betalningen uppdateras din plan automatiskt inom några minuter — du behöver inte köpa igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เรายังไม่สามารถยืนยันการซื้อของคุณได้ หากคุณชำระเงินเสร็จแล้ว แพ็กเกจของคุณจะอัปเดตโดยอัตโนมัติภายในไม่กี่นาที — ไม่จำเป็นต้องซื้อซ้ำ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ми поки не змогли підтвердити вашу покупку. Якщо ви завершили оплату, ваш план оновиться автоматично за кілька хвилин — купувати повторно не потрібно."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chúng tôi chưa thể xác nhận giao dịch mua của bạn. Nếu bạn đã hoàn tất thanh toán, kế hoạch của bạn sẽ tự động cập nhật sau vài phút — không cần mua lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们尚未能确认您的购买。如果您已完成结账，您的计划将在几分钟内自动更新——无需再次购买。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們尚未能確認您的購買。如果您已完成結帳，您的計劃將在幾分鐘內自動更新——無需再次購買。"
+          }
+        }
+      }
+    },
+    "We're confirming your purchase with the App Store. Your plan will update automatically." : {
+      "comment" : "Body of the post-purchase screen while the confirmation poll runs (Shared/Views/PurchaseSuccessView.swift). Processing-shaped, not premium-shaped: the server learns of the purchase by webhook and has not confirmed yet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We're confirming your purchase with the App Store. Your plan will update automatically."
+          }
+        }
+      }
+    },
     "Web" : {
       "comment" : "A button label that says \"Web\".",
       "isCommentAutoGenerated" : true,
@@ -87661,6 +87927,17 @@
         }
       }
     },
+    "Your account isn't ready for purchases. Please restart the app and try again." : {
+      "comment" : "Shown when a purchase is refused before contacting the App Store because the networkId is missing or unparseable — the purchase could never be credited to anyone (Shared/ViewModels/AppStoreSubscriptionManager.swift). This used to be a silent no-op.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account isn't ready for purchases. Please restart the app and try again."
+          }
+        }
+      }
+    },
     "Your email" : {
       "comment" : "Label for the empty text field.",
       "isCommentAutoGenerated" : true,
@@ -88996,6 +89273,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的助記詞"
+          }
+        }
+      }
+    },
+    "Your subscription was purchased under a different account. Log in to that account to use it." : {
+      "comment" : "The store purchase belongs to a different network than the one logged in — crediting must not go to the wrong account, so tell the user which way out exists. Apple: restore-purchases outcome (Shared/ViewModels/AppStoreSubscriptionManager.swift). Android: terminal `wrong_network` answer from the Play purchase report (google/PlanViewModel.kt); the purchase is still acknowledged so Play does not auto-refund it.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your subscription was purchased under a different account. Log in to that account to use it."
           }
         }
       }

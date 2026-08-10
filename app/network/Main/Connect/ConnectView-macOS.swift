@@ -218,6 +218,10 @@ import URnetworkSdk
                     yearlyProduct: subscriptionManager.yearlySubscription,
                     purchase: { product in
 
+                        // purchase fails in the Mac App Store if the vpn is
+                        // connected (the store client honors the tunnel's
+                        // default route), so disconnect around the purchase;
+                        // see the A6 note on AppStoreSubscriptionManager.purchase
                         let initiallyConnected = deviceManager.device?.getConnected() ?? false
 
                         if initiallyConnected {
@@ -234,6 +238,7 @@ import URnetworkSdk
                                 )
 
                             } catch (let error) {
+                                // rendered inline via subscriptionManager.purchaseError
                                 print("error making purchase: \(error)")
                             }
 
@@ -246,7 +251,23 @@ import URnetworkSdk
                     },
                     isPurchasing: subscriptionManager.isPurchasing,
                     purchaseSuccess: subscriptionManager.purchaseSuccess,
+                    purchaseConfirmed: deviceManager.isPro,
                     purchasePending: subscriptionManager.purchasePending,
+                    purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
+                    purchaseError: subscriptionManager.purchaseError,
+                    productsLoadFailed: subscriptionManager.fetchProductsError,
+                    retryFetchProducts: {
+                        subscriptionManager.retryFetchProductsIfNeeded()
+                    },
+                    restorePurchases: {
+                        Task {
+                            if await subscriptionManager.restorePurchases() == .restored {
+                                subscriptionBalanceViewModel.startPolling()
+                            }
+                        }
+                    },
+                    isRestoringPurchases: subscriptionManager.isRestoringPurchases,
+                    restoreMessage: subscriptionManager.restoreResultMessage,
                     dismiss: {
                         connectViewModel.isPresentedUpgradeSheet = false
                         // the purchase flags describe ONE attempt; letting them

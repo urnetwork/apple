@@ -389,7 +389,11 @@ struct ConnectView_iOS: View {
                     monthlyProduct: subscriptionManager.monthlySubscription,
                     yearlyProduct: subscriptionManager.yearlySubscription,
                     purchase: { product in
-                        
+
+                        // note: no VPN disconnect around the purchase on iOS —
+                        // App Store purchase traffic does not ride the tunnel;
+                        // see the A6 note on AppStoreSubscriptionManager.purchase
+
                         Task {
                             do {
                                 try await subscriptionManager.purchase(
@@ -398,18 +402,35 @@ struct ConnectView_iOS: View {
                                         subscriptionBalanceViewModel.startPolling()
                                     }
                                 )
-                                
+
                             } catch(let error) {
+                                // rendered inline via subscriptionManager.purchaseError
                                 print("error making purchase: \(error)")
                             }
-                            
-                            
+
+
                         }
-                        
+
                     },
                     isPurchasing: subscriptionManager.isPurchasing,
                     purchaseSuccess: subscriptionManager.purchaseSuccess,
+                    purchaseConfirmed: deviceManager.isPro,
                     purchasePending: subscriptionManager.purchasePending,
+                    purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
+                    purchaseError: subscriptionManager.purchaseError,
+                    productsLoadFailed: subscriptionManager.fetchProductsError,
+                    retryFetchProducts: {
+                        subscriptionManager.retryFetchProductsIfNeeded()
+                    },
+                    restorePurchases: {
+                        Task {
+                            if await subscriptionManager.restorePurchases() == .restored {
+                                subscriptionBalanceViewModel.startPolling()
+                            }
+                        }
+                    },
+                    isRestoringPurchases: subscriptionManager.isRestoringPurchases,
+                    restoreMessage: subscriptionManager.restoreResultMessage,
                     dismiss: {
                         connectViewModel.isPresentedUpgradeSheet = false
                         // the purchase flags describe ONE attempt; letting them

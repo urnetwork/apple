@@ -79,6 +79,40 @@ struct ContentView: View {
             
             UrSnackBar(message: snackbarManager.message, isVisible: snackbarManager.isVisible)
                 .padding(.bottom, 50)
+
+            // Present only in acceptance builds.  XCUITest asserts this
+            // compile-time marker before touching credentials, which prevents
+            // a stale installed app from masquerading as the local build.
+            if let acceptanceBuildID {
+                Text(acceptanceBuildID)
+                    .font(.system(size: 1))
+                    .frame(width: 1, height: 1)
+                    .clipped()
+                    .opacity(0.01)
+                    .accessibilityIdentifier("acceptance.build.id")
+                Text(NetworkConfig.officialEnvName)
+                    .font(.system(size: 1))
+                    .frame(width: 1, height: 1)
+                    .clipped()
+                    .opacity(0.01)
+                    .accessibilityIdentifier("acceptance.environment")
+                if let networkID = deviceManager.parsedJwt?.networkId?.idStr {
+                    Text(networkID)
+                        .font(.system(size: 1))
+                        .frame(width: 1, height: 1)
+                        .clipped()
+                        .opacity(0.01)
+                        .accessibilityIdentifier("acceptance.network.id")
+                }
+                if let clientID = deviceManager.device?.getClientId()?.idStr {
+                    Text(clientID)
+                        .font(.system(size: 1))
+                        .frame(width: 1, height: 1)
+                        .clipped()
+                        .opacity(0.01)
+                        .accessibilityIdentifier("acceptance.client.id")
+                }
+            }
             
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -92,6 +126,15 @@ struct ContentView: View {
             
         }
         
+    }
+
+    private var acceptanceBuildID: String? {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "URAcceptanceBuildID") as? String,
+              !value.isEmpty,
+              !value.contains("$(") else {
+            return nil
+        }
+        return value
     }
     
     private func updatePath() {

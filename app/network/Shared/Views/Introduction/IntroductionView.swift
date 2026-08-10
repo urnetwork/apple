@@ -46,13 +46,37 @@ struct IntroductionView: View {
         
         ZStack {
             
-            if (subscriptionManager.purchaseSuccess || balanceCodeRedeemed) {
-                
+            if (subscriptionManager.purchaseSuccess) {
+
+                // StoreKit success is not entitlement: the copy stays
+                // processing-shaped until the confirmation poll flips isPro,
+                // and says so if the poll gives up (finding A2)
+                PurchaseSuccessView(
+                    phase: deviceManager.isPro
+                        ? .confirmed
+                        : (subscriptionBalanceViewModel.purchaseConfirmationTimedOut ? .delayed : .confirming),
+                    restore: {
+                        Task {
+                            if await subscriptionManager.restorePurchases() == .restored {
+                                subscriptionBalanceViewModel.startPolling()
+                            }
+                        }
+                    },
+                    isRestoring: subscriptionManager.isRestoringPurchases,
+                    restoreMessage: subscriptionManager.restoreResultMessage,
+                    dismiss: close
+                )
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
+                    .ignoresSafeArea()
+
+            } else if (balanceCodeRedeemed) {
+
                 PurchaseSuccessView(dismiss: close)
                     .transition(.opacity)
                     .frame(maxWidth: .infinity)
                     .ignoresSafeArea()
-                
+
             } else {
         
                 NavigationStack {
@@ -118,16 +142,19 @@ struct IntroductionView: View {
                                         action: {
                                         
                                         let product = selectedPaymentOption == .monthly ? monthly : yearly
-                                        
+
                                         let initiallyConnected = deviceManager.device?.getConnected() ?? false
-                                        
+
 #if os(macOS)
-                                        // purchase fails in mac app store if vpn is connected
+                                        // purchase fails in mac app store if vpn is connected;
+                                        // iOS App Store traffic does not ride the tunnel, so only
+                                        // macOS disconnects around the purchase — see the A6 note
+                                        // on AppStoreSubscriptionManager.purchase
                                         if (initiallyConnected) {
                                             connectViewModel.disconnect()
                                         }
 #endif
-                                        
+
                                         Task {
                                             do {
                                                 try await subscriptionManager.purchase(
@@ -137,30 +164,97 @@ struct IntroductionView: View {
                                                         // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
                                                     }
                                                 )
-                                                
+
                                             } catch(let error) {
+                                                // rendered inline via subscriptionManager.purchaseError
                                                 print("error making purchase: \(error)")
                                             }
-                                            
+
 #if os(macOS)
                                             if (initiallyConnected) {
                                                 connectViewModel.connect()
                                             }
 #endif
-                                            
+
                                         }
-                                        
-                                        
-                                        
+
+
+
                                     })
-                                    
+
+                                    /**
+                                     * A failed attempt renders its reason
+                                     * inline (finding A5), with the manual
+                                     * resync beside it (finding A3).
+                                     */
+                                    if let purchaseError = subscriptionManager.purchaseError {
+
+                                        Spacer().frame(height: 12)
+
+                                        Text(purchaseError)
+                                            .font(themeManager.currentTheme.secondaryBodyFont)
+                                            .foregroundColor(.red)
+
+                                        Spacer().frame(height: 8)
+
+                                        Button(action: {
+                                            Task {
+                                                if await subscriptionManager.restorePurchases() == .restored {
+                                                    subscriptionBalanceViewModel.startPolling()
+                                                }
+                                            }
+                                        }) {
+                                            if subscriptionManager.isRestoringPurchases {
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle())
+                                            } else {
+                                                Text("Restore purchases")
+                                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                        .underline()
+
+                                        if let restoreMessage = subscriptionManager.restoreResultMessage {
+                                            Spacer().frame(height: 8)
+
+                                            Text(restoreMessage)
+                                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                        }
+                                    }
+
 //                                    Button("Redeem Balance Code", action: {presentRedeemBalanceCodeSheet = true})
-                                    
+
+                                } else if subscriptionManager.fetchProductsError {
+
+                                    // the init-time product fetch failed; this
+                                    // used to be an eternal spinner (finding A5)
+                                    VStack(alignment: .center, spacing: 12) {
+                                        Text("Couldn't load subscription options. Check your connection and retry.")
+                                            .font(themeManager.currentTheme.bodyFont)
+                                            .multilineTextAlignment(.center)
+
+                                        UrButton(
+                                            text: "Retry",
+                                            action: {
+                                                subscriptionManager.retryFetchProductsIfNeeded()
+                                            }
+                                        )
+                                    }
+                                    .frame(maxWidth: .infinity)
+
                                 } else {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle())
                                 }
-                                
+
+                            }
+                            .onAppear {
+                                // the intro funnel can't spin forever on a
+                                // product fetch that failed at app init
+                                subscriptionManager.retryFetchProductsIfNeeded()
                             }
                             
                             Spacer().frame(height: 16)

@@ -100,6 +100,9 @@ struct SeedphraseDisplayView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(themeManager.currentTheme.textMutedColor.opacity(0.3), lineWidth: 1)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(seedphrase)
+        .accessibilityIdentifier("acceptance.instant.seedphrase")
     }
 
     private func wordRowView(index: Int, word: String) -> some View {
@@ -135,7 +138,8 @@ struct SeedphraseDisplayView: View {
                     hasCopied = false
                 }
             },
-            enabled: !hasCopied
+            enabled: !hasCopied,
+            accessibilityIdentifier: "acceptance.instant.copy"
         )
     }
 
@@ -146,7 +150,8 @@ struct SeedphraseDisplayView: View {
                 onConfirmed(seedphrase)
             },
             enabled: true,
-            isProcessing: false
+            isProcessing: false,
+            accessibilityIdentifier: "acceptance.instant.continue"
         )
         .tint(.urGreen)
     }

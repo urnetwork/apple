@@ -55,6 +55,7 @@ struct CreateNetworkInstantView: View {
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                         .font(themeManager.currentTheme.secondaryBodyFont)
                 }
+                .accessibilityIdentifier("acceptance.instant.terms")
 
                 Spacer().frame(height: 32)
 
@@ -69,7 +70,8 @@ struct CreateNetworkInstantView: View {
                         }
                     },
                     enabled: viewModel.formIsValid,
-                    isProcessing: viewModel.isCreatingAccount
+                    isProcessing: viewModel.isCreatingAccount,
+                    accessibilityIdentifier: "acceptance.instant.create"
                 )
 
                 Spacer().frame(height: 8)

@@ -22,9 +22,11 @@ struct MainView: View {
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     @StateObject private var providerListStore: ProviderListStore
+    @ObservedObject private var transactionMonitor = AppStoreTransactionMonitor.shared
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var snackbarManager: UrSnackbarManager
     @Environment(\.presentationActive) private var presentationActive
     
     init(
@@ -108,6 +110,21 @@ struct MainView: View {
         .environmentObject(subscriptionManager)
         .onAppear {
             subscriptionBalanceViewModel.setActive(presentationActive)
+
+            /**
+             * Catch-up for transactions that arrived BEFORE this view existed:
+             * the process-scoped AppStoreTransactionMonitor reports (and, on a
+             * terminal server answer, finishes) transactions from launch, and
+             * the manager's init replays the monitor's state through its
+             * per-network gate. If a matching transaction was already credited
+             * (e.g. an Ask to Buy approval or a cross-device purchase
+             * delivered while logged out), the sequence is already non-zero
+             * here — and onChange below will never fire for it. Start the
+             * confirmation poll now.
+             */
+            if 0 < subscriptionManager.transactionUpdateSequence {
+                subscriptionBalanceViewModel.startPolling()
+            }
         }
         .onChange(of: presentationActive) { active in
             subscriptionBalanceViewModel.setActive(active)
@@ -138,6 +155,29 @@ struct MainView: View {
              * plan updates change subscription balance polling behavior
              */
             subscriptionBalanceViewModel.updateIsPro(newValue)
+        }
+        .onChange(of: transactionMonitor.wrongNetworkSequence) { _ in
+            /**
+             * A delivered transaction reported `wrong_network`: it is real and
+             * was finished (the network it was purchased under gets its credit
+             * via the webhook/reconciler), but it belongs to a DIFFERENT
+             * network than this session. It must not start this network's
+             * poll — but it must not vanish silently either.
+             */
+            snackbarManager.showSnackbar(message: String(localized: "Your subscription was purchased under a different account. Log in to that account to use it."))
+        }
+        .onChange(of: subscriptionBalanceViewModel.purchaseConfirmationTimedOut) { timedOut in
+            /**
+             * The confirmation poll gave up without the server confirming the
+             * purchase (finding A2). The upgrade sheet shows this state when it
+             * is still open — but the user may have dismissed it minutes ago,
+             * so also surface it on the app's global overlay. The purchase is
+             * still likely to land: the background poll and the next launch
+             * pick it up.
+             */
+            if timedOut {
+                snackbarManager.showSnackbar(message: String(localized: "We couldn't confirm your purchase yet. If you completed checkout, your plan will update automatically in a few minutes — there's no need to buy again."))
+            }
         }
         .onChange(of: subscriptionBalanceViewModel.didDetectUpgradeToPro) { detected in
             if detected {

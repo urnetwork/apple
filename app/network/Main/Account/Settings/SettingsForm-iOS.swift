@@ -14,7 +14,9 @@ struct SettingsForm_iOS: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
-    
+    @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+
     let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
     let referralCode: String?;
@@ -268,7 +270,41 @@ struct SettingsForm_iOS: View {
                 .onTapGesture {
                     navigate(.transferBalanceCodes)
                 }
-                
+
+                /**
+                 * Restore purchases (finding A3): the only user-triggerable
+                 * App Store resync — recovers a paid subscription the app
+                 * never observed (lost webhook, purchase on another device,
+                 * reinstall), and an App Review expectation.
+                 */
+                HStack {
+                    Text("Restore purchases")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    if subscriptionManager.isRestoringPurchases {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard !subscriptionManager.isRestoringPurchases else {
+                        return
+                    }
+                    Task {
+                        let outcome = await subscriptionManager.restorePurchases()
+                        if outcome == .restored {
+                            subscriptionBalanceViewModel.startPolling()
+                        }
+                        if let message = subscriptionManager.restoreResultMessage {
+                            snackbarManager.showSnackbar(message: message)
+                        }
+                    }
+                }
+
             }
             
             Section("Device") {

@@ -12,6 +12,11 @@ import URnetworkSdk
  * tapping a row spins the globe to that provider, and stepping the globe's
  * wheel moves the list selection.
  *
+ * The rows are in the SDK view controller's display order, west to east, so
+ * scrolling the list and stepping the wheel walk the providers the same way.
+ * (They were once sorted by connected duration, which put the rows in an order
+ * the wheel did not follow.)
+ *
  * There is deliberately no device-location sync here. Core Location has no
  * injection point an app can reach on a shipping device (see
  * PROVIDERLOCATIONS.md, "Apple"), so the Android toggle has no counterpart.
@@ -47,7 +52,9 @@ struct ProviderLocationsView: View {
                 // a VStack would otherwise negotiate the split between them
                 ProviderGlobeView(
                     rows: store.rows,
-                    selectedClientId: $store.selectedClientId
+                    selectedClientId: store.selectedClientId,
+                    onSelect: { store.select($0) },
+                    onStep: { store.step($0) }
                 )
                 .frame(height: providerGlobeHeight(in: geometry.size))
 
@@ -74,31 +81,47 @@ struct ProviderLocationsView: View {
 
                 } else {
 
-                    List {
-                        ForEach(store.rows) { row in
-                            ProviderLocationRowView(
-                                row: row,
-                                selected: row.id == store.selectedClientId,
-                                onSelect: { store.select(row.id) },
-                                pqIdenticon: pqIdenticonByClientId[row.id]
-                            )
-                            .listRowBackground(themeManager.currentTheme.backgroundColor)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            // swipe alone never removes: the destructive action
-                            // has to be tapped (allowsFullSwipe: false), the
-                            // same rule the blocked-locations list uses
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    store.removeProvider(row)
-                                } label: {
-                                    Label("Remove", systemImage: "trash")
+                    // ScrollViewReader so the selection can be brought on
+                    // screen: it moves without the list being touched — a wheel
+                    // step on the globe, the default landing on the longest
+                    // connected provider, a removal handing it to the nearest.
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(store.rows) { row in
+                                ProviderLocationRowView(
+                                    row: row,
+                                    selected: row.id == store.selectedClientId,
+                                    onSelect: { store.select(row.id) },
+                                    pqIdenticon: pqIdenticonByClientId[row.id]
+                                )
+                                .listRowBackground(themeManager.currentTheme.backgroundColor)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                // swipe alone never removes: the destructive action
+                                // has to be tapped (allowsFullSwipe: false), the
+                                // same rule the blocked-locations list uses
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        store.removeProvider(row)
+                                    } label: {
+                                        Label("Remove", systemImage: "trash")
+                                    }
                                 }
                             }
                         }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .background(themeManager.currentTheme.backgroundColor)
+                        .onChange(of: store.selectedClientId) { selected in
+                            guard let selected else {
+                                return
+                            }
+                            // scrollTo without an anchor moves the minimum
+                            // needed, so a row already on screen stays put
+                            withAnimation {
+                                proxy.scrollTo(selected)
+                            }
+                        }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
-                    .background(themeManager.currentTheme.backgroundColor)
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)

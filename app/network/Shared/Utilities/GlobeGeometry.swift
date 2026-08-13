@@ -179,6 +179,10 @@ enum GlobeGeometry {
      * The leftover travel is what makes it hysteretic: after a step the user
      * must drag another full threshold to step again, so a finger resting near
      * the boundary cannot flicker between two providers.
+     *
+     * Only the travel-to-steps conversion lives here: the wheel itself — the
+     * centroid-relative provider order and the clamping at its ends — is the
+     * SDK's ProviderLocationsViewController, shared by every platform.
      */
     static func wheelStep(travel: Double, threshold: Double) -> GlobeWheelStep {
         if threshold <= 0 {
@@ -190,20 +194,6 @@ enum GlobeGeometry {
             steps: steps,
             remainingTravel: travel + Double(steps) * threshold
         )
-    }
-
-    /**
-     * Advances an index by `steps`, wrapping at both ends. Wrapping is the
-     * right model here because the wheel is ordered by longitude, which is
-     * cyclic: stepping east past the last provider lands on the westernmost,
-     * which is also the shortest way round the globe.
-     */
-    static func wrapIndex(index: Int, steps: Int, count: Int) -> Int {
-        if count <= 0 {
-            return -1
-        }
-        let next = (index + steps) % count
-        return next < 0 ? next + count : next
     }
 
     /**

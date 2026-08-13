@@ -267,20 +267,9 @@ struct GlobeGeometryTests {
         #expect(GlobeGeometry.wheelStep(travel: -1000, threshold: 0).steps == 0)
     }
 
-    // longitude is cyclic, so the wheel wraps at both ends — stepping east past
-    // the last provider lands on the westernmost, the shortest way round
-    @Test func theWheelWrapsAtBothEnds() {
-        #expect(GlobeGeometry.wrapIndex(index: 2, steps: 1, count: 3) == 0)
-        #expect(GlobeGeometry.wrapIndex(index: 0, steps: -1, count: 3) == 2)
-        #expect(GlobeGeometry.wrapIndex(index: 0, steps: 1, count: 3) == 1)
-        // a multi-step drag wraps more than once
-        #expect(GlobeGeometry.wrapIndex(index: 0, steps: 7, count: 3) == 1)
-        #expect(GlobeGeometry.wrapIndex(index: 0, steps: -7, count: 3) == 2)
-    }
-
-    @Test func wrapIndexReportsNoIndexForAnEmptyWheel() {
-        #expect(GlobeGeometry.wrapIndex(index: 0, steps: 1, count: 0) == -1)
-    }
+    // The wheel order and the step clamping are the SDK's
+    // ProviderLocationsViewController (provider_locations_view_controller.go,
+    // tested there); this module only converts drag travel to step counts.
 
     // MARK: - fit-center layout
     //

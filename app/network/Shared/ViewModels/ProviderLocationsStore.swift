@@ -9,7 +9,9 @@ import URnetworkSdk
 
 /**
  * One currently connected provider, as rendered by the globe and the list.
- * The SDK returns these sorted oldest-connected first (= descending duration).
+ * The rows arrive in the SDK view controller's display order — west to east
+ * about the providers' centroid, then the ones with no coordinates — so the
+ * list reads left to right in the order the globe's wheel steps through.
  */
 struct ProviderLocationRow: Identifiable, Equatable {
 
@@ -71,15 +73,29 @@ private class ProviderLocationsRemoteListener: NSObject, SdkRemoteChangeListener
     }
 }
 
+private class SelectedProviderLocationListener: NSObject, SdkSelectedProviderLocationChangeListenerProtocol {
+    private let callback: () -> Void
+    init(callback: @escaping () -> Void) {
+        self.callback = callback
+    }
+    func selectedProviderLocationChanged() {
+        callback()
+    }
+}
+
 /**
  * Publishes the currently connected providers and their locations.
  *
  * The SDK change listener carries no payload — it is a signal that the window
- * changed, so every notify re-reads `getConnectedProviderLocations()`. The SDK
- * hands back fresh proxy objects on every read, so the rows are compared by
- * value and only published when something actually changed: the view also runs
- * a one-second duration clock, and republishing an identical list under it
- * would rebuild the globe once a second.
+ * changed, so every notify re-reads the view controller's
+ * `getProviderLocations()`. That is the same window the device reports, in the
+ * shared display order, and it is read from the controller rather than the
+ * device so the rows and the selection always come from one snapshot.
+ *
+ * The SDK hands back fresh proxy objects on every read, so the rows are
+ * compared by value and only published when something actually changed: the
+ * view also runs a one-second duration clock, and republishing an identical
+ * list under it would rebuild the globe once a second.
  */
 @MainActor
 class ProviderLocationsStore: ObservableObject {
@@ -99,11 +115,22 @@ class ProviderLocationsStore: ObservableObject {
     private var device: SdkDeviceRemote?
     private var locationsSub: SdkSubProtocol?
     private var remoteSub: SdkSubProtocol?
+    // the selection and the globe's scroll wheel live in the SDK's shared
+    // ProviderLocationsViewController, so every platform steps identically
+    private var viewController: SdkProviderLocationsViewController?
+    private var selectedSub: SdkSubProtocol?
 
     func setup(_ device: SdkDeviceRemote) {
         reset()
 
         self.device = device
+        let vc = device.openProviderLocationsViewController()
+        self.viewController = vc
+        self.selectedSub = vc?.add(SelectedProviderLocationListener { [weak self] in
+            DispatchQueue.main.async {
+                self?.updateSelection()
+            }
+        })
         self.locationsSub = device.add(ConnectedProviderLocationsListener { [weak self] in
             DispatchQueue.main.async {
                 self?.update()
@@ -130,6 +157,18 @@ class ProviderLocationsStore: ObservableObject {
         locationsSub = nil
         remoteSub?.close()
         remoteSub = nil
+        selectedSub?.close()
+        selectedSub = nil
+        if let viewController {
+            // the manager owns the controller, so close it through the device
+            // that opened it — closing it directly leaks the ownership entry
+            if let device {
+                device.close(viewController)
+            } else {
+                viewController.close()
+            }
+        }
+        viewController = nil
         device = nil
         rows = []
         selectedClientId = nil
@@ -137,8 +176,28 @@ class ProviderLocationsStore: ObservableObject {
     }
 
     func select(_ clientId: String?) {
-        if selectedClientId != clientId {
-            selectedClientId = clientId
+        viewController?.setSelectedClientId(clientId ?? "")
+    }
+
+    /**
+     * Moves the globe's wheel selection by `steps` providers, positive east.
+     * The order (west to east relative to the providers' centroid) and the
+     * clamping at the wheel's ends live in the SDK view controller, shared by
+     * every platform.
+     */
+    func step(_ steps: Int) {
+        viewController?.stepSelection(Int32(clamping: steps))
+    }
+
+    // The view controller keeps the selection pointed at a connected provider —
+    // the longest connected one by default, the nearest one when the selected
+    // provider leaves — so this only mirrors its state ("" = no providers at
+    // all).
+    private func updateSelection() {
+        let selected = viewController?.getSelectedClientId() ?? ""
+        let next = selected.isEmpty ? nil : selected
+        if selectedClientId != next {
+            selectedClientId = next
         }
     }
 
@@ -147,20 +206,20 @@ class ProviderLocationsStore: ObservableObject {
      * for the rest of this connection. The row disappears when the SDK reports
      * the window change; the local list is trimmed first so the swipe does not
      * appear to snap back while that round trip happens.
+     *
+     * The view controller moves the selection to the nearest provider when the
+     * removed one was selected, so there is nothing to clear here.
      */
     func removeProvider(_ row: ProviderLocationRow) {
         withAnimation(.easeInOut(duration: 0.25)) {
             rows = rows.filter { $0.id != row.id }
         }
-        if selectedClientId == row.id {
-            selectedClientId = nil
-        }
-        device?.removeConnectedProvider(row.clientId)
+        viewController?.removeProvider(row.id)
     }
 
     private func update() {
         var newRows: [ProviderLocationRow] = []
-        if let list = device?.getConnectedProviderLocations() {
+        if let list = viewController?.getProviderLocations() {
             for i in 0..<list.len() {
                 guard let location = list.get(i), let clientId = location.clientId else {
                     continue
@@ -199,9 +258,7 @@ class ProviderLocationsStore: ObservableObject {
                 rows = newRows
             }
         }
-        // drop a selection whose provider left the window
-        if let selected = selectedClientId, !newRows.contains(where: { $0.id == selected }) {
-            selectedClientId = nil
-        }
+        // the view controller drops a selection whose provider left the window
+        updateSelection()
     }
 }

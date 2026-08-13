@@ -19,14 +19,25 @@ private let selectedRingStroke: Double = 1.5
 private let selectedRingRadius = dotRadius + selectedRingGap + selectedRingStroke / 2
 // the web globe's neutral blue for a provider whose country is unknown
 private let unknownCountryColor = Color(hex: "0099FF")
+// The selected provider's dot is its own country color darkened toward black.
+// Same factor on every platform (see PROVIDERLOCATIONS.md), so the selection
+// reads the same everywhere.
+private let selectedDotDarken: Double = 0.55
 // The sphere is sized to fit its box with room for a selected dot's ring at
 // the limb, so the globe never paints outside the component. (The web zooms
 // past its frame and crops; here the globe sits fully inside instead.)
 private let globeScale = GlobeGeometry.center - dotRadius - selectedRingGap - selectedRingStroke
-// Recentering is a primary interaction (every wheel step recenters), not the
-// web's occasional pointer-leave animation, so it is snappier than the web's
-// 1000 ms — a slow ease makes rapid stepping feel like it lags the finger.
-private let recenterDuration: Double = 0.45
+// Recentering is a primary interaction (every selection change recenters), not
+// the web's occasional pointer-leave animation, so it is snappier than the
+// web's 1000 ms — a slow curve makes stepping feel like it lags the finger.
+//
+// It is a spring rather than a timing curve because those steps overlap: a
+// second one lands while the first is still running, and a spring retargets
+// from the rotation's current position AND velocity, where an ease restarts
+// from a standstill and reads as a stutter on every step. Critically damped
+// (dampingFraction 1), so the globe settles onto the provider instead of
+// swinging past it.
+private let recenterAnimation = Animation.spring(response: 0.45, dampingFraction: 1)
 private let tapSlop: Double = 28
 // how far the finger travels to advance one provider, as a fraction of the
 // globe's width
@@ -53,24 +64,33 @@ func providerGlobeHeight(in size: CGSize) -> CGFloat {
 /**
  * The provider globe: a dark sphere with white land, a graticule, and one dot
  * per plottable provider colored by its country. The selected provider gets a
- * ring, and selecting spins the globe to center that provider.
+ * ring, and the globe is always centered on it — however the selection moved,
+ * whether the user tapped a dot or a row, stepped the wheel, or the provider
+ * it was resting on left the window.
  *
  * Interaction is a **scroll wheel** while there are providers to traverse: a
  * horizontal drag steps the selection through the providers ordered west to
  * east, and each step recenters the globe. Free rotation would fight that
  * animation, so it is offered only when there is nothing to traverse.
+ *
+ * `onStep` reports wheel steps (positive east) once a drag crosses the
+ * hysteresis threshold; the wheel itself — the centroid-relative order and the
+ * clamping at its ends — lives in the SDK's ProviderLocationsViewController.
  */
 struct ProviderGlobeView: View {
 
     let rows: [ProviderLocationRow]
-    @Binding var selectedClientId: String?
+    let selectedClientId: String?
+    let onSelect: (String) -> Void
+    let onStep: (Int) -> Void
 
     @State private var topology: WorldTopology? = nil
     @State private var lambda: Double = 0
     @State private var phi: Double = 0
-    // the globe centers once on the first provider that appears, and
-    // thereafter only on an explicit selection — recentering on every window
-    // turnover would yank the globe out from under a user who is dragging it
+    // whether the globe has ever been placed. Only the opening fallback needs
+    // it (see centerTarget): before it, an unplottable selection lands on the
+    // first provider on the globe rather than nowhere; after it, the globe
+    // follows the selection and nothing else.
     @State private var centeredOnce: Bool = false
     // the drag translation already accounted for, so the wheel's leftover
     // travel (its hysteresis) survives across gesture updates
@@ -85,12 +105,6 @@ struct ProviderGlobeView: View {
 
     private var plottable: [ProviderLocationRow] {
         rows.filter { $0.plottable }
-    }
-
-    // The wheel order is by longitude (west to east), independent of the
-    // list's duration order: swiping traverses the globe left to right.
-    private var wheel: [ProviderLocationRow] {
-        plottable.sorted { ($0.lon ?? 0) < ($1.lon ?? 0) }
     }
 
     var body: some View {
@@ -125,11 +139,12 @@ struct ProviderGlobeView: View {
                 topology = decoded
             }
         }
-        .onChange(of: selectedClientId) { _ in
-            recenterOnSelection()
-        }
-        .onChange(of: plottable.first?.id) { _ in
-            recenterOnSelection()
+        // one trigger for every way the globe's center can move: the selection
+        // changing, and the selected provider's own coordinates arriving or
+        // changing under it. Watching the selected id alone left the globe
+        // parked where it was when a row's coordinates showed up late.
+        .onChange(of: centerTarget) { target in
+            recenter(on: target)
         }
         .onChange(of: dragActive) { active in
             if !active {
@@ -137,7 +152,7 @@ struct ProviderGlobeView: View {
             }
         }
         .onAppear {
-            recenterOnSelection()
+            recenter(on: centerTarget)
         }
     }
 
@@ -149,7 +164,7 @@ struct ProviderGlobeView: View {
                 state = true
             }
             .onChanged { value in
-                if wheel.isEmpty {
+                if plottable.isEmpty {
                     rotateFreely(value.translation, size: size)
                 } else {
                     stepWheel(value.translation.width, size: size)
@@ -187,14 +202,10 @@ struct ProviderGlobeView: View {
      * the selection, and the step consumes exactly one threshold of travel —
      * that leftover is the hysteresis, so a finger resting on the boundary
      * cannot flicker between two providers. Swiping left advances (the globe
-     * spins east under the finger), and the wheel wraps at both ends, which is
-     * correct because longitude is cyclic.
+     * spins east under the finger). The wheel's order and its ends are the
+     * SDK view controller's; this only reports the step count.
      */
     private func stepWheel(_ translationWidth: Double, size: CGSize) {
-        let order = wheel
-        guard !order.isEmpty else {
-            return
-        }
         let travel = translationWidth - wheelConsumed
         let step = GlobeGeometry.wheelStep(
             travel: travel,
@@ -204,14 +215,7 @@ struct ProviderGlobeView: View {
             return
         }
         wheelConsumed = translationWidth - step.remainingTravel
-        let current = order.firstIndex { $0.id == selectedClientId } ?? -1
-        // nothing selected yet: the first step lands on the westernmost provider
-        let next = current < 0
-            ? 0
-            : GlobeGeometry.wrapIndex(index: current, steps: step.steps, count: order.count)
-        if order.indices.contains(next) {
-            selectedClientId = order[next].id
-        }
+        onStep(step.steps)
     }
 
     private func selectNearest(to point: CGPoint, size: CGSize) {
@@ -234,30 +238,65 @@ struct ProviderGlobeView: View {
             x: tap.x, y: tap.y, points: visible.map { $0.1 }, radius: tapSlop
         )
         if 0 <= hit {
-            selectedClientId = visible[hit].0
+            onSelect(visible[hit].0)
         }
     }
 
+    // MARK: - centering
+
     /**
-     * Spins the globe to the selected provider, taking the short way round.
-     * `lerpRotation(t: 1)` resolves the target to its nearest equivalent angle,
-     * so SwiftUI's linear interpolation of lambda is already the short path.
+     * Where the globe belongs: the selected provider's position on the sphere.
+     * nil when there is nothing to center on — no providers yet, or a selected
+     * provider with no coordinates, which has no dot to center under.
+     *
+     * Until the globe has centered once the first plottable provider stands in
+     * for a selection that cannot be plotted, so opening the view lands on a
+     * provider rather than on the empty Atlantic at (0, 0). After that the
+     * globe follows the selection only: chasing the first row as the window
+     * turns over would yank the globe around for no reason the user can see.
      */
-    private func recenterOnSelection() {
+    private var centerTarget: GlobeCenterTarget? {
         let visible = plottable
         let target = visible.first { $0.id == selectedClientId }
             ?? (centeredOnce ? nil : visible.first)
         guard let target = target, let lat = target.lat, let lon = target.lon else {
+            return nil
+        }
+        return GlobeCenterTarget(clientId: target.id, lat: lat, lon: lon)
+    }
+
+    /**
+     * Spins the globe to the target, taking the short way round.
+     * `lerpRotation(t: 1)` resolves the target to its nearest equivalent angle,
+     * so SwiftUI's linear interpolation of lambda is already the short path.
+     */
+    private func recenter(on target: GlobeCenterTarget?) {
+        guard let target = target else {
             return
         }
+        // the globe is now placed, even if it was already pointing here
         centeredOnce = true
-        let to = GlobeGeometry.rotationCentering(lon: lon, lat: lat)
+        let to = GlobeGeometry.rotationCentering(lon: target.lon, lat: target.lat)
         let shortest = GlobeGeometry.lerpRotation(from: (lambda, phi), to: to, t: 1)
-        withAnimation(.easeInOut(duration: recenterDuration)) {
+        guard shortest.lambda != lambda || shortest.phi != phi else {
+            // nothing to animate; restarting the spring here would only add a
+            // stutter to a globe that is already on the provider
+            return
+        }
+        withAnimation(recenterAnimation) {
             lambda = shortest.lambda
             phi = shortest.phi
         }
     }
+}
+
+/// The rotation the globe is animating toward, identified by the provider it
+/// belongs to: comparing the coordinates as well as the id is what makes a
+/// provider whose position changes under the selection recenter the globe.
+private struct GlobeCenterTarget: Equatable {
+    let clientId: String
+    let lat: Double
+    let lon: Double
 }
 
 /**
@@ -333,7 +372,11 @@ private struct GlobeCanvas: View, Animatable {
                 }
             }
 
-            // provider dots
+            // Provider dots. The selected one is held back and drawn last so it
+            // is never covered by a dot that happens to sit on top of it —
+            // providers in one city land on the same pixel.
+            var selected: (center: CGPoint, color: Color)? = nil
+            let r = dotRadius * unit
             for row in rows {
                 guard let lon = row.lon, let lat = row.lat,
                       let projected = GlobeGeometry.project(
@@ -343,24 +386,38 @@ private struct GlobeCanvas: View, Animatable {
                 }
                 let center = canvasPoint(projected)
                 let color = providerDotColor(row)
-                let r = dotRadius * unit
+                if row.id == selectedClientId {
+                    selected = (center, color)
+                    continue
+                }
                 context.fill(
                     Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: 2 * r, height: 2 * r)),
                     with: .color(color)
                 )
-                if row.id == selectedClientId {
-                    let ringR = selectedRingRadius * unit
-                    context.stroke(
-                        Path(ellipseIn: CGRect(
-                            x: center.x - ringR,
-                            y: center.y - ringR,
-                            width: 2 * ringR,
-                            height: 2 * ringR
-                        )),
-                        with: .color(color),
-                        lineWidth: selectedRingStroke * unit
-                    )
-                }
+            }
+            if let selected {
+                // a darker core inside its own full-strength ring: the selection
+                // reads at a glance without changing which country color it is
+                context.fill(
+                    Path(ellipseIn: CGRect(
+                        x: selected.center.x - r,
+                        y: selected.center.y - r,
+                        width: 2 * r,
+                        height: 2 * r
+                    )),
+                    with: .color(selected.color.darkenedForSelection())
+                )
+                let ringR = selectedRingRadius * unit
+                context.stroke(
+                    Path(ellipseIn: CGRect(
+                        x: selected.center.x - ringR,
+                        y: selected.center.y - ringR,
+                        width: 2 * ringR,
+                        height: 2 * ringR
+                    )),
+                    with: .color(selected.color),
+                    lineWidth: selectedRingStroke * unit
+                )
             }
         }
     }
@@ -443,4 +500,25 @@ func providerDotColor(_ row: ProviderLocationRow) -> Color {
         return unknownCountryColor
     }
     return Color(hex: SdkGetColorHex(row.countryCode.lowercased()))
+}
+
+private extension Color {
+    /// The same color, darkened toward black for the selected provider's dot.
+    func darkenedForSelection() -> Color {
+        #if canImport(UIKit)
+        let components = UIColor(self).cgColor.components ?? []
+        #else
+        let components = NSColor(self).cgColor.components ?? []
+        #endif
+        guard 3 <= components.count else {
+            return self
+        }
+        return Color(
+            .sRGB,
+            red: Double(components[0]) * selectedDotDarken,
+            green: Double(components[1]) * selectedDotDarken,
+            blue: Double(components[2]) * selectedDotDarken,
+            opacity: 4 <= components.count ? Double(components[3]) : 1
+        )
+    }
 }

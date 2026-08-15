@@ -68,6 +68,38 @@ struct UrSwitchToggle<Label: View>: View {
     }
 }
 
+/// Shared disclosure for the intentional routes that bypass the kill switch.
+/// Keeping the copy and interaction in one component makes the exception hard
+/// to omit when the setting is presented on another Apple form factor.
+struct KillSwitchLabel: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @State private var isPresentingException = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("Kill switch")
+                .font(themeManager.currentTheme.bodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+
+            Button {
+                isPresentingException = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .imageScale(.small)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Show kill switch exception")
+        }
+        .alert("Kill switch exception", isPresented: $isPresentingException) {
+            Button("Got it", role: .cancel) {}
+        } message: {
+            Text("While the VPN is connected, outbound SMTP on TCP port 25 bypasses the VPN and uses your local network, even when the kill switch is on. This may expose your local public IP to the mail server. SMTP on ports 465 and 587 stays in the VPN and must establish TLS.")
+        }
+    }
+}
+
 #Preview {
     
     UrSwitchToggle(

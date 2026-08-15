@@ -6,7 +6,7 @@
 //
 
 import NetworkExtension
-import URnetworkSdk
+import URnetworkExtensionSdk
 import OSLog
 
 //import Atomics
@@ -36,6 +36,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var localState: SdkLocalState?
     private var close: (() -> Void)?
     private var memoryPressureSource: DispatchSourceMemoryPressure?
+    private var memoryMonitor: ExtensionMemoryMonitor?
+    private var fips140Enabled = false
     private var connected: Bool = false
     // NetworkExtension applies settings asynchronously. Listener bursts during
     // connect/reconnect used to overlap several identical applies; serialize
@@ -63,6 +65,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         super.init()
 
         logger.info("[PacketTunnelProvider]init")
+
+        fips140Enabled = SdkGetFips140Enabled()
+        if fips140Enabled {
+            logger.fault("[PacketTunnelProvider]FIPS 140 is outside the network-extension memory budget")
+        }
 
         if #available(iOS 26, macOS 26, *) {
             // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18, 26
@@ -93,23 +100,39 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // see https://developer.apple.com/documentation/dispatch/dispatchsource/makememorypressuresource(eventmask:queue:)
         memoryPressureSource = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: nil)
         if let memoryPressureSource = memoryPressureSource {
-            memoryPressureSource.setEventHandler {
-                let event = DispatchSource.MemoryPressureEvent(rawValue: memoryPressureSource.data)
+            memoryPressureSource.setEventHandler { [weak self] in
+                guard let self, let source = self.memoryPressureSource else {
+                    return
+                }
+                let event = DispatchSource.MemoryPressureEvent(rawValue: source.data)
                 if event.contains(.warning) || event.contains(.critical) {
+                    self.memoryMonitor?.sample(event: "pressure-before-free")
                     SdkFreeMemory()
+                    self.memoryMonitor?.sample(event: "pressure-after-free")
                 }
             }
             memoryPressureSource.activate()
         }
+
+        memoryMonitor = ExtensionMemoryMonitor(logger: logger)
+        memoryMonitor?.start()
     }
 
     deinit {
+        memoryMonitor?.sample(event: "deinit")
+        memoryMonitor?.stop()
         memoryPressureSource?.cancel()
     }
 
 
     override func startTunnel(options: [String : NSObject]? = nil, completionHandler: @escaping ((any Error)?) -> Void) {
         logger.info("[PacketTunnelProvider]start")
+        memoryMonitor?.sample(event: "start-requested")
+
+        guard !fips140Enabled else {
+            completionHandler(NSError(domain: "network.ur.extension", code: 11, userInfo: [NSLocalizedDescriptionKey: "FIPS 140 exceeds the network extension memory budget"]))
+            return
+        }
 
         guard let providerConfiguration = (protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration else {
             logger.error( "[PacketTunnelProvider]start failed - no providerConfiguration")
@@ -283,6 +306,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.device = device
         self.localState = localState
         self.shouldSaveKeyMaterial = true
+        memoryMonitor?.sample(event: "device-created")
 
         // set glog dir
         let logsURL: URL
@@ -484,7 +508,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let updatePath = { (path: Network.NWPath) in
             let canProvideOnCell = device.getProvideNetworkMode() == "all"
             let canProvideOnNetwork = canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell)
-            self.logger.info("[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) provide=\(canProvideOnNetwork)")
+            self.logger.info(
+                "[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) expensive=\(path.isExpensive) constrained=\(path.isConstrained) provide=\(canProvideOnNetwork)"
+            )
             device.setProvidePaused(!canProvideOnNetwork)
         }
         let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
@@ -664,6 +690,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
                 updateWindowStatus(device.getWindowStatus())
                 self.readToDevice(generation: packetReadGeneration)
+                self.memoryMonitor?.sample(event: "tunnel-started")
                 completionHandler(nil)
             }
         }
@@ -967,6 +994,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         logger.info("[PacketTunnelProvider]stop with reason: \(String(describing: reason))")
+        memoryMonitor?.sample(event: "tunnel-stopping")
 
         self.stopPacketReads()
         self.endTunnelSettingsSession()
@@ -979,6 +1007,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.device = nil
         self.localState = nil
         self.shouldSaveKeyMaterial = true
+        memoryMonitor?.sample(event: "tunnel-stopped")
         completionHandler()
     }
 
@@ -1301,8 +1330,16 @@ private class ProvideNetworkModeChangeListener: NSObject, SdkProvideNetworkModeC
 func canProvideOnNetwork(path: Network.NWPath, canProvideOnCell: Bool) ->  Bool {
     // TODO it seems like iOS 16,17 have more issues than 18, but the root cause is unknown
     if #available(iOS 18, macOS 15, *) {
+        // Low Data Mode is an explicit request to reduce data use, so never
+        // provide while the physical path is constrained. An expensive Wi-Fi
+        // path is commonly a Personal Hotspot and must not be treated like
+        // unmetered Wi-Fi. Cellular remains available only through the user's
+        // explicit "Allow providing on cellular network" setting.
+        if path.isConstrained {
+            return false
+        }
         if path.usesInterfaceType(.wifi) || path.usesInterfaceType(.wiredEthernet) {
-            return true
+            return !path.isExpensive
         }
         if path.usesInterfaceType(.cellular) {
             return canProvideOnCell

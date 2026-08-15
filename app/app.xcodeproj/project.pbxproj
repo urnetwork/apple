@@ -13,7 +13,7 @@
 		175DEFB62D6DAB7700A9BD36 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */; };
 		17A25D3E2D5C702200507C75 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */; platformFilter = ios; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
-		D1829C242CEBF0E300920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C232CEBF0E300920833 /* URnetworkSdk */; };
+		B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = B17E00032F00000100000003 /* URnetworkExtensionSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -159,7 +159,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D1829C242CEBF0E300920833 /* URnetworkSdk in Frameworks */,
+				B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */,
 				D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */,
 				1728CF992D1691F100050EC5 /* NetworkExtension.framework in Frameworks */,
 			);
@@ -321,7 +321,7 @@
 			);
 			name = URnetworkVPN;
 			packageProductDependencies = (
-				D1829C232CEBF0E300920833 /* URnetworkSdk */,
+				B17E00032F00000100000003 /* URnetworkExtensionSdk */,
 			);
 			productName = extension;
 			productReference = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */;
@@ -389,6 +389,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */,
+				B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */,
 				17041CF52D026BE4003F4D5A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -1043,6 +1044,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = URnetworkSdk;
 		};
+		B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = URnetworkExtensionSdk;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1072,10 +1077,10 @@
 			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
 			productName = URnetworkSdk;
 		};
-		D1829C232CEBF0E300920833 /* URnetworkSdk */ = {
+		B17E00032F00000100000003 /* URnetworkExtensionSdk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
-			productName = URnetworkSdk;
+			package = B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */;
+			productName = URnetworkExtensionSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

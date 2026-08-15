@@ -18,6 +18,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 root="${URNETWORK_ROOT:-$(dirname "$here")}"
+derived_data="$here/app/build/DerivedData"
 
 echo "== sync localizations (store -> Localizable.xcstrings)"
 (cd "$root/localizations" &&
@@ -32,11 +33,18 @@ fi
 echo "== xcodebuild URnetwork (iOS)"
 (cd "$here/app" && xcodebuild -workspace app.xcodeproj/project.xcworkspace \
     -scheme URnetwork -configuration Release \
-    -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build)
+    -destination 'generic/platform=iOS' -derivedDataPath "$derived_data" \
+    CODE_SIGNING_ALLOWED=NO build)
+
+"$root/sdk/build/check_apple_size.sh" \
+    --sdk "$root/sdk/build/apple/URnetworkSdk.xcframework" \
+    --extension-sdk "$root/sdk/build/apple/URnetworkExtensionSdk.xcframework" \
+    --extension "$derived_data/Build/Products/Release-iphoneos/URnetworkVPN.appex"
 
 echo "== xcodebuild URnetwork (macOS)"
 (cd "$here/app" && xcodebuild -workspace app.xcodeproj/project.xcworkspace \
     -scheme URnetwork -configuration Release \
-    -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build)
+    -destination 'generic/platform=macOS' -derivedDataPath "$derived_data" \
+    CODE_SIGNING_ALLOWED=NO build)
 
 echo "== apple build OK"

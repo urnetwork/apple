@@ -493,9 +493,7 @@ struct SettingsForm_macOS: View {
                                 get: { !deviceManager.routeLocal },
                                 set: { deviceManager.routeLocal = !$0 }
                             )) {
-                                Text("Kill switch")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                KillSwitchLabel()
                             }
                             
                             Spacer()

@@ -8,12 +8,255 @@
 import NetworkExtension
 import URnetworkExtensionSdk
 import OSLog
+import Security
+import CryptoKit
 
 //import Atomics
 
 private struct TunnelNetworkSettingsPlan {
     let settings: NEPacketTunnelNetworkSettings
     let signature: String
+}
+
+private struct SharedTunnelJwtEnvelope: Codable {
+    static let currentVersion = 2
+    let version: Int
+    let instanceId: String
+    let byJwt: String
+    let issuedAt: Int64?
+    let expiresAt: Int64?
+
+    init(
+        instanceId: String,
+        byJwt: String,
+        issuedAt: Int64?,
+        expiresAt: Int64?
+    ) {
+        self.version = Self.currentVersion
+        self.instanceId = instanceId
+        self.byJwt = byJwt
+        self.issuedAt = issuedAt
+        self.expiresAt = expiresAt
+    }
+}
+
+private struct LegacySharedTunnelJwtEnvelope: Codable {
+    let version: Int
+    let instanceId: String
+    let byJwt: String
+}
+
+private struct SharedTunnelJwtCandidate {
+    let account: String
+    let byJwt: String
+    let issuedAt: Int64?
+    let expiresAt: Int64?
+}
+
+private enum SharedTunnelJwtStore {
+    private static let service = "network.ur.shared-tunnel-jwt"
+    private static let accountPrefix = "v2-"
+    private static let retainedTokensPerInstance = 3
+
+    static func load(expectedInstanceId: String) -> String? {
+        freshest(loadCandidates(expectedInstanceId: expectedInstanceId))?.byJwt
+    }
+
+    @discardableResult
+    static func save(byJwt: String, instanceId: String) -> Bool {
+        let dates = jwtDates(byJwt)
+        guard !byJwt.isEmpty, !instanceId.isEmpty,
+              let account = account(byJwt: byJwt, instanceId: instanceId),
+              let data = try? JSONEncoder().encode(
+                SharedTunnelJwtEnvelope(
+                    instanceId: instanceId,
+                    byJwt: byJwt,
+                    issuedAt: dates.issuedAt,
+                    expiresAt: dates.expiresAt
+                )
+              ), var query = keychainIdentityQuery(account: account) else {
+            return false
+        }
+        query[kSecValueData as String] = data
+        query[kSecAttrAccessible as String] =
+            kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess || status == errSecDuplicateItem else {
+            return false
+        }
+        prune(expectedInstanceId: instanceId)
+        return true
+    }
+
+    static func clear() {
+        guard let query = keychainIdentityQuery() else { return }
+        _ = SecItemDelete(query as CFDictionary)
+    }
+
+    private static func loadCandidates(
+        expectedInstanceId: String
+    ) -> [SharedTunnelJwtCandidate] {
+        guard var query = keychainIdentityQuery() else { return [] }
+        query[kSecReturnAttributes as String] = true
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitAll
+        var result: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess else {
+            return []
+        }
+        let items: [[String: Any]]
+        if let array = result as? [[String: Any]] {
+            items = array
+        } else if let item = result as? [String: Any] {
+            items = [item]
+        } else {
+            return []
+        }
+        return items.compactMap { item in
+            guard let data = item[kSecValueData as String] as? Data,
+                  let account = item[kSecAttrAccount as String] as? String else {
+                return nil
+            }
+            return candidate(
+                data: data,
+                account: account,
+                expectedInstanceId: expectedInstanceId
+            )
+        }
+    }
+
+    private static func candidate(
+        data: Data,
+        account: String,
+        expectedInstanceId: String
+    ) -> SharedTunnelJwtCandidate? {
+        let decoder = JSONDecoder()
+        if let envelope = try? decoder.decode(
+            SharedTunnelJwtEnvelope.self,
+            from: data
+        ), envelope.version == SharedTunnelJwtEnvelope.currentVersion,
+           envelope.instanceId == expectedInstanceId,
+           !envelope.byJwt.isEmpty {
+            return SharedTunnelJwtCandidate(
+                account: account,
+                byJwt: envelope.byJwt,
+                issuedAt: envelope.issuedAt,
+                expiresAt: envelope.expiresAt
+            )
+        }
+        if let legacy = try? decoder.decode(
+            LegacySharedTunnelJwtEnvelope.self,
+            from: data
+        ), legacy.version == 1,
+           legacy.instanceId == expectedInstanceId,
+           !legacy.byJwt.isEmpty {
+            let dates = jwtDates(legacy.byJwt)
+            return SharedTunnelJwtCandidate(
+                account: account,
+                byJwt: legacy.byJwt,
+                issuedAt: dates.issuedAt,
+                expiresAt: dates.expiresAt
+            )
+        }
+        return nil
+    }
+
+    private static func freshest(
+        _ candidates: [SharedTunnelJwtCandidate],
+        now: Int64 = Int64(Date().timeIntervalSince1970)
+    ) -> SharedTunnelJwtCandidate? {
+        candidates.max { lhs, rhs in
+            isPreferred(rhs, over: lhs, now: now)
+        }
+    }
+
+    private static func isPreferred(
+        _ lhs: SharedTunnelJwtCandidate,
+        over rhs: SharedTunnelJwtCandidate,
+        now: Int64
+    ) -> Bool {
+        let lhsExpired = lhs.expiresAt.map { $0 <= now } ?? false
+        let rhsExpired = rhs.expiresAt.map { $0 <= now } ?? false
+        if lhsExpired != rhsExpired { return !lhsExpired }
+        let lhsIssuedAt = lhs.issuedAt ?? Int64.min
+        let rhsIssuedAt = rhs.issuedAt ?? Int64.min
+        if lhsIssuedAt != rhsIssuedAt { return lhsIssuedAt > rhsIssuedAt }
+        let lhsExpiresAt = lhs.expiresAt ?? Int64.min
+        let rhsExpiresAt = rhs.expiresAt ?? Int64.min
+        if lhsExpiresAt != rhsExpiresAt { return lhsExpiresAt > rhsExpiresAt }
+        return lhs.account > rhs.account
+    }
+
+    private static func prune(expectedInstanceId: String) {
+        let candidates = loadCandidates(expectedInstanceId: expectedInstanceId)
+        guard candidates.count > retainedTokensPerInstance else { return }
+        let now = Int64(Date().timeIntervalSince1970)
+        let keep = Set(
+            candidates.sorted { isPreferred($0, over: $1, now: now) }
+                .prefix(retainedTokensPerInstance)
+                .map(\.account)
+        )
+        for candidate in candidates where !keep.contains(candidate.account) {
+            guard let query = keychainIdentityQuery(account: candidate.account) else {
+                continue
+            }
+            _ = SecItemDelete(query as CFDictionary)
+        }
+    }
+
+    private static func jwtDates(
+        _ jwt: String
+    ) -> (issuedAt: Int64?, expiresAt: Int64?) {
+        let components = jwt.split(separator: ".", omittingEmptySubsequences: false)
+        guard components.count >= 2 else { return (nil, nil) }
+        var payload = String(components[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let remainder = payload.count % 4
+        if remainder != 0 {
+            payload += String(repeating: "=", count: 4 - remainder)
+        }
+        guard let data = Data(base64Encoded: payload),
+              let object = try? JSONSerialization.jsonObject(with: data),
+              let claims = object as? [String: Any] else {
+            return (nil, nil)
+        }
+        func int64(_ value: Any?) -> Int64? {
+            if let number = value as? NSNumber { return number.int64Value }
+            if let string = value as? String { return Int64(string) }
+            return nil
+        }
+        return (int64(claims["iat"]), int64(claims["exp"]))
+    }
+
+    private static func account(byJwt: String, instanceId: String) -> String? {
+        guard !byJwt.isEmpty, !instanceId.isEmpty else { return nil }
+        func digest(_ value: String) -> String {
+            SHA256.hash(data: Data(value.utf8)).map {
+                String(format: "%02x", $0)
+            }.joined()
+        }
+        return accountPrefix + digest(instanceId) + "-" + digest(byJwt)
+    }
+
+    private static func keychainIdentityQuery(
+        account: String? = nil
+    ) -> [String: Any]? {
+        guard let accessGroup = Bundle.main.object(
+            forInfoDictionaryKey: "URSharedKeychainAccessGroup"
+        ) as? String, !accessGroup.isEmpty else {
+            return nil
+        }
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccessGroup as String: accessGroup,
+        ]
+        if let account {
+            query[kSecAttrAccount as String] = account
+        }
+        return query
+    }
 }
 
 // see https://developer.apple.com/documentation/networkextension/nepackettunnelprovider
@@ -141,10 +384,31 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
 
-        guard let byJwt = providerConfiguration["by_jwt"] as? String else {
+        guard let configuredByJwt = providerConfiguration["by_jwt"] as? String else {
             completionHandler(NSError(domain: "network.ur.extension", code: 2, userInfo: [NSLocalizedDescriptionKey: "Missing by_jwt"]))
             return
         }
+
+        guard let configuredInstanceId =
+                providerConfiguration["instance_id"] as? String,
+              !configuredInstanceId.isEmpty else {
+            completionHandler(NSError(domain: "network.ur.extension", code: 5, userInfo: [NSLocalizedDescriptionKey: "Missing instance_id"]))
+            return
+        }
+
+        // Add the profile snapshot to the immutable shared history before
+        // selecting. This handles an OS-driven launch after the app refreshed
+        // the profile but before either process wrote the v2 Keychain format.
+        if !SharedTunnelJwtStore.save(
+            byJwt: configuredByJwt,
+            instanceId: configuredInstanceId
+        ) {
+            logger.error("[PacketTunnelProvider]could not migrate configured tunnel JWT")
+        }
+        // Prefer the freshest exact-instance token written by either process.
+        let byJwt = SharedTunnelJwtStore.load(
+            expectedInstanceId: configuredInstanceId
+        ) ?? configuredByJwt
 
         guard let networkSpaceJson = providerConfiguration["network_space"] as? String else {
             completionHandler(NSError(domain: "network.ur.extension", code: 3, userInfo: [NSLocalizedDescriptionKey: "Missing network_space"]))
@@ -171,7 +435,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         var err: NSError?
 
-        let instanceId = SdkParseId(providerConfiguration["instance_id"] as? String, &err)
+        let instanceId = SdkParseId(configuredInstanceId, &err)
         if let err {
             completionHandler(err)
             return
@@ -179,6 +443,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         guard let instanceId = instanceId else {
             completionHandler(NSError(domain: "network.ur.extension", code: 5, userInfo: [NSLocalizedDescriptionKey: "Failed to parse instance_id"]))
             return
+        }
+        if !SharedTunnelJwtStore.save(
+            byJwt: byJwt,
+            instanceId: configuredInstanceId
+        ) {
+            logger.error("[PacketTunnelProvider]could not persist shared tunnel JWT")
         }
 
 
@@ -400,6 +670,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         let provideSecretKeysSub = device.add(ProvideSecretKeysListener { _ in
             saveKeyMaterial()
+        })
+        let jwtRefreshSub = device.add(TunnelJwtRefreshListener { jwt in
+            guard let jwt, !jwt.isEmpty else { return }
+            if !SharedTunnelJwtStore.save(
+                byJwt: jwt,
+                instanceId: configuredInstanceId
+            ) {
+                self.logger.error("[PacketTunnelProvider]could not save refreshed shared tunnel JWT")
+            }
         })
         if let keyMaterial {
             device.setKeyMaterial(keyMaterial)
@@ -647,6 +926,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             canReferChangeSub?.close()
             performanceProfileChangeSub?.close()
             provideSecretKeysSub?.close()
+            jwtRefreshSub?.close()
             locationChangeSub?.close()
             defaultLocationChangeSub?.close()
             dnsResolverSettingsChangeSub?.close()
@@ -706,8 +986,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // exclude the local network from the tunnel, matching Android (MainService's
         // excludeRoute set): the RFC1918 private ranges bypass the tunnel so LAN
         // traffic reaches local devices directly. DNS is unaffected — it still routes
-        // to the tunnel resolver via matchDomains below (the ipv6 tunnel carries no
-        // routes, so ipv6 ULA fd00::/8 already bypasses without an explicit exclude).
+        // to the tunnel resolver via matchDomains below. The tunnel advertises no IPv6
+        // settings, so there are no IPv6 tunnel routes to exclude.
         ipv4Settings.excludedRoutes = [
             NEIPv4Route(destinationAddress: "10.0.0.0", subnetMask: "255.0.0.0"),
             NEIPv4Route(destinationAddress: "172.16.0.0", subnetMask: "255.240.0.0"),
@@ -715,8 +995,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         ]
         networkSettings.ipv4Settings = ipv4Settings
 
-        let ipv6Settings = NEIPv6Settings()
-        networkSettings.ipv6Settings = ipv6Settings
+        // Remote providers do not forward IPv6 yet. Keep the tunnel IPv4-only:
+        // do not assign an IPv6 address, install IPv6 routes, or advertise an
+        // IPv6 tunnel interface that applications might select.
+        networkSettings.ipv6Settings = nil
 
         // DNS from the SDK device: the dns settings' unencrypted local servers
         // when set, otherwise the distinct plain-DNS UpgradeMux mask (see
@@ -736,7 +1018,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // default URnetwork MTU
         networkSettings.mtu = 1440
 
-        let signature = "v4=\(tunnelLocalAddress)|dns=\(dnsServers.joined(separator: ","))|mtu=1440"
+        let signature = "v4=\(tunnelLocalAddress)|v6=off|dns=\(dnsServers.joined(separator: ","))|mtu=1440"
         return TunnelNetworkSettingsPlan(
             settings: networkSettings,
             signature: signature
@@ -1023,6 +1305,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
         if String(data: messageData, encoding: .utf8) == logoutProviderMessage {
             shouldSaveKeyMaterial = false
+            SharedTunnelJwtStore.clear()
             do {
                 try localState?.logout()
                 deviceConfiguration = nil
@@ -1094,6 +1377,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
     }
 
+}
+
+private final class TunnelJwtRefreshListener: NSObject,
+    SdkJwtRefreshListenerProtocol {
+    private let callback: (String?) -> Void
+
+    init(_ callback: @escaping (String?) -> Void) {
+        self.callback = callback
+    }
+
+    func jwtRefreshed(_ jwt: String?) {
+        callback(jwt)
+    }
 }
 
 

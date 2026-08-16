@@ -22,6 +22,35 @@ final class networkUITests: XCTestCase {
     }
 
     @MainActor
+    func testColdProcessRelaunchRestoresSecureTunnelCredentials() throws {
+        #if os(iOS)
+        let runId = UUID().uuidString
+        app.launchEnvironment["UR_COLD_RELAUNCH_MODE"] = "seed"
+        app.launchEnvironment["UR_COLD_RELAUNCH_RUN_ID"] = runId
+        app.launch()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
+        let seeded = element("integration.cold-relaunch.result")
+        XCTAssertTrue(seeded.waitForExistence(timeout: 30))
+        XCTAssertEqual(seeded.label, "seeded")
+
+        // XCUIApplication.terminate kills the target process. The next launch
+        // creates a new DeviceManager/app process and can recover only from
+        // durable Keychain material, not Swift/static memory.
+        app.terminate()
+        XCTAssertTrue(app.wait(for: .notRunning, timeout: 30))
+
+        app = XCUIApplication()
+        app.launchEnvironment["UR_COLD_RELAUNCH_MODE"] = "verify"
+        app.launchEnvironment["UR_COLD_RELAUNCH_RUN_ID"] = runId
+        app.launch()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
+        let verified = element("integration.cold-relaunch.result")
+        XCTAssertTrue(verified.waitForExistence(timeout: 30))
+        XCTAssertEqual(verified.label, "verified")
+        #endif
+    }
+
+    @MainActor
     func testMainAcceptance() throws {
         let environment = ProcessInfo.processInfo.environment
         let user = try requiredEnvironment("UR_ACCEPT_USER", environment)

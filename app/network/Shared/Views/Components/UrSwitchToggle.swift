@@ -95,7 +95,7 @@ struct KillSwitchLabel: View {
         .alert("Kill switch exception", isPresented: $isPresentingException) {
             Button("Got it", role: .cancel) {}
         } message: {
-            Text("While the VPN is connected, outbound SMTP on TCP port 25 bypasses the VPN and uses your local network, even when the kill switch is on. This may expose your local public IP to the mail server. SMTP on ports 465 and 587 stays in the VPN and must establish TLS.")
+            Text("While the VPN is connected, IPv6 is not routed through URnetwork and may use your local network, even when the kill switch is on. Outbound SMTP on TCP port 25 also bypasses the VPN. These exceptions may expose your local public IP to those destinations. SMTP on ports 465 and 587 stays in the VPN and must establish TLS.")
         }
     }
 }

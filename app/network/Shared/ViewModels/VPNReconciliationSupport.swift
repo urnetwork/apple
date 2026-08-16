@@ -53,14 +53,31 @@ struct VPNTunnelConfigurationIdentity: Equatable {
     let rpcServerPem: String
     let rpcClientPem: String
     let networkSpaceJson: String
-    // The app-side DeviceRemote is recreated with the UI process, while the
-    // packet-tunnel provider owns the instance ID for its longer lifetime.
-    // Retain this field for diagnostics, but do not use it to decide whether
-    // the app can authenticate and adopt an existing tunnel.
+    // DeviceRemote and DeviceLocal must use the same instance ID: the SDK
+    // rejects an RPC sync before applying state when they differ. Cold-launch
+    // bootstrap recovers the provider-owned value before DeviceRemote exists;
+    // normal adoption therefore requires exact equality.
     let instanceId: String
 }
 
 func vpnTunnelConfigurationMatchesForAdoption(
+    installedIdentity: VPNTunnelConfigurationIdentity?,
+    desiredIdentity: VPNTunnelConfigurationIdentity?
+) -> Bool {
+    guard vpnTunnelConfigurationMatchesForBootstrap(
+        installedIdentity: installedIdentity,
+        desiredIdentity: desiredIdentity
+    ), let installedIdentity, let desiredIdentity else {
+        return false
+    }
+    return installedIdentity.instanceId == desiredIdentity.instanceId
+}
+
+// A cold app process must discover the instance owned by an already-running
+// packet tunnel before it constructs DeviceRemote. At that point an instance
+// comparison is intentionally impossible; authenticate the candidate with the
+// persisted RPC transport and network configuration, then adopt its instance.
+func vpnTunnelConfigurationMatchesForBootstrap(
     installedIdentity: VPNTunnelConfigurationIdentity?,
     desiredIdentity: VPNTunnelConfigurationIdentity?
 ) -> Bool {
@@ -140,6 +157,30 @@ func vpnRunningTunnelAdoptionIndex(
         selectedPriority = priority
     }
     return selectedIndex
+}
+
+func vpnRunningTunnelBootstrapIdentity(
+    candidates: [(
+        connectionState: VPNTunnelConnectionState,
+        identity: VPNTunnelConfigurationIdentity?
+    )],
+    desiredIdentity: VPNTunnelConfigurationIdentity?
+) -> VPNTunnelConfigurationIdentity? {
+    var selectedIdentity: VPNTunnelConfigurationIdentity?
+    var selectedPriority = 0
+    for candidate in candidates {
+        guard let priority = vpnTunnelAdoptionPriority(candidate.connectionState),
+              priority > selectedPriority,
+              vpnTunnelConfigurationMatchesForBootstrap(
+                installedIdentity: candidate.identity,
+                desiredIdentity: desiredIdentity
+              ) else {
+            continue
+        }
+        selectedIdentity = candidate.identity
+        selectedPriority = priority
+    }
+    return selectedIdentity
 }
 
 func vpnForegroundRetryAction(

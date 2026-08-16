@@ -253,7 +253,17 @@ struct NetworkApp: App {
             
             
             #if os(iOS)
-            ContentView()
+            Group {
+                #if DEBUG
+                if let result = ColdRelaunchIntegrationHarness.result {
+                    ColdRelaunchIntegrationView(result: result)
+                } else {
+                    ContentView()
+                }
+                #else
+                ContentView()
+                #endif
+            }
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
                 .environmentObject(connectViewModel)
@@ -540,3 +550,99 @@ struct NetworkApp: App {
     #endif
     
 }
+
+#if DEBUG && os(iOS)
+private enum ColdRelaunchIntegrationHarness {
+    static let result: String? = runIfRequested()
+
+    private static func runIfRequested() -> String? {
+        let environment = ProcessInfo.processInfo.environment
+        guard let mode = environment["UR_COLD_RELAUNCH_MODE"],
+              let runId = environment["UR_COLD_RELAUNCH_RUN_ID"],
+              !runId.isEmpty else {
+            return nil
+        }
+        let instanceId = "cold-relaunch-\(runId)"
+        let rpcAccount = "cold-relaunch-rpc-\(runId)"
+        let freshJwt = jwt(issuedAt: 2_000_000_000, expiresAt: 4_000_000_000)
+        let olderJwt = jwt(issuedAt: 1_900_000_000, expiresAt: 3_900_000_000)
+        let rpcSession = RpcSession(
+            clientPem: "test-client-private-\(runId)",
+            clientCertPem: "test-client-public-\(runId)",
+            serverPem: "test-server-private-\(runId)",
+            serverCertPem: "test-server-public-\(runId)",
+            host: "127.0.0.1",
+            port: 12_025
+        )
+
+        switch mode {
+        case "seed":
+            SharedTunnelJwtStore.remove(expectedInstanceId: instanceId)
+            RpcSessionStore.testingClear(account: rpcAccount)
+            guard SharedTunnelJwtStore.save(
+                byJwt: freshJwt,
+                instanceId: instanceId
+            ), RpcSessionStore.testingSave(
+                rpcSession,
+                state: .confirmed,
+                account: rpcAccount
+            ) else {
+                return "seed-failed"
+            }
+            return "seeded"
+
+        case "verify":
+            // Simulate a delayed response from an older refresh after the
+            // process relaunch. Immutable token records must retain freshJwt.
+            let delayedSave = SharedTunnelJwtStore.save(
+                byJwt: olderJwt,
+                instanceId: instanceId
+            )
+            let jwtRestored = SharedTunnelJwtStore.load(
+                expectedInstanceId: instanceId
+            ) == freshJwt
+            let wrongInstanceRejected = SharedTunnelJwtStore.load(
+                expectedInstanceId: instanceId + "-other"
+            ) == nil
+            let rpcRestored: Bool
+            switch RpcSessionStore.testingLoadResult(account: rpcAccount) {
+            case .confirmed(let restored):
+                rpcRestored = restored == rpcSession
+            case .missing, .pending, .corrupt, .unavailable:
+                rpcRestored = false
+            }
+            SharedTunnelJwtStore.remove(expectedInstanceId: instanceId)
+            RpcSessionStore.testingClear(account: rpcAccount)
+            return delayedSave && jwtRestored && wrongInstanceRejected && rpcRestored
+                ? "verified"
+                : "verify-failed"
+
+        default:
+            return "unknown-mode"
+        }
+    }
+
+    private static func jwt(issuedAt: Int64, expiresAt: Int64) -> String {
+        let payload = try! JSONSerialization.data(withJSONObject: [
+            "iat": issuedAt,
+            "exp": expiresAt,
+        ])
+        func base64URL(_ data: Data) -> String {
+            data.base64EncodedString()
+                .replacingOccurrences(of: "+", with: "-")
+                .replacingOccurrences(of: "/", with: "_")
+                .replacingOccurrences(of: "=", with: "")
+        }
+        return "e30.\(base64URL(payload)).integration-signature"
+    }
+}
+
+private struct ColdRelaunchIntegrationView: View {
+    let result: String
+
+    var body: some View {
+        Text(result)
+            .accessibilityIdentifier("integration.cold-relaunch.result")
+    }
+}
+#endif

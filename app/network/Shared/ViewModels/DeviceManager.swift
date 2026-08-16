@@ -687,9 +687,10 @@ extension DeviceManager {
                         return
                     }
 
-                    if !self.initDevice(clientJwt: result, deviceSpec: deviceSpecs) {
-                        self.clearAuthStateAndMarkInitialized()
-                    }
+                    self.initDeviceFromStoredAuthentication(
+                        clientJwt: result,
+                        deviceSpec: deviceSpecs
+                    )
                 } else {
                     self.markInitializedWithoutDevice()
                 }
@@ -776,6 +777,66 @@ extension DeviceManager {
 // MARK: Device handlers
 @MainActor
 extension DeviceManager {
+    private func initDeviceFromStoredAuthentication(
+        clientJwt: String,
+        deviceSpec: String
+    ) {
+        let finishInitialization = { [weak self] (activeInstanceId: String?) in
+            guard let self else { return }
+
+            if let activeInstanceId {
+                var parseError: NSError?
+                let parsedInstanceId = SdkParseId(activeInstanceId, &parseError)
+                if let parsedInstanceId, parseError == nil {
+                    do {
+                        try self.asyncLocalState?.getLocalState()?.setInstanceId(
+                            parsedInstanceId
+                        )
+                        print("[DeviceManager]restored instance_id from active tunnel")
+                    } catch {
+                        print("[DeviceManager]failed to persist active tunnel instance_id: \(error.localizedDescription)")
+                    }
+                } else {
+                    print("[DeviceManager]active tunnel has invalid instance_id: \(parseError?.localizedDescription ?? "unknown parse error")")
+                }
+            }
+
+            if !self.initDevice(clientJwt: clientJwt, deviceSpec: deviceSpec) {
+                self.clearAuthStateAndMarkInitialized()
+            }
+        }
+
+        guard let networkSpace else {
+            finishInitialization(nil)
+            return
+        }
+        var networkSpaceError: NSError?
+        let networkSpaceJson = networkSpace.toJson(&networkSpaceError)
+        guard networkSpaceError == nil, !networkSpaceJson.isEmpty else {
+            finishInitialization(nil)
+            return
+        }
+
+        let rpcLoadResult = RpcSessionStore.loadResult()
+        guard let rpcSession = rpcLoadResult.session else {
+            switch rpcLoadResult {
+            case .corrupt(let reason):
+                print("[DeviceManager]RPC session is corrupt: \(reason)")
+            case .unavailable(let reason):
+                print("[DeviceManager]RPC session storage unavailable: \(reason)")
+            case .missing, .pending, .confirmed:
+                break
+            }
+            finishInitialization(nil)
+            return
+        }
+
+        VPNManager.loadActiveTunnelBootstrapInstanceId(
+            networkSpaceJson: networkSpaceJson,
+            rpcSession: rpcSession,
+            completion: finishInitialization
+        )
+    }
     
     func initDevice(
         clientJwt: String,
@@ -837,10 +898,23 @@ extension DeviceManager {
             return false
         }
 
+        // Populate the shared restart credential on every authenticated cold
+        // launch, not only when this build observes the next JWT rotation. For
+        // upgraded installations the bootstrap above has already restored the
+        // running profile's exact instance into LocalState, so this also closes
+        // the one-restart migration gap for a token refreshed by an older build.
+        if let activeInstanceId = device.getInstanceId()?.string(),
+           !activeInstanceId.isEmpty {
+            VPNManager.seedCurrentTunnelJwtIfMissing(
+                clientJwt,
+                instanceId: activeInstanceId
+            )
+        }
+
         // point the rpc transport at the last known good session (if any) so the
         // device can connect to an already-running extension immediately, instead
         // of the default 127.0.0.1:12025 ws until the vpn is (re)started
-        if let rpcSession = RpcSessionStore.load() {
+        if let rpcSession = RpcSessionStore.loadResult().session {
             do {
                 try device.setRpcServer(rpcSession.clientPem, serverCertPem: rpcSession.serverCertPem, hostPort: rpcSession.hostPort)
             } catch {
@@ -953,13 +1027,22 @@ extension DeviceManager {
             }
         })
         
-        self.deviceJwtRefreshSub = device.add(JwtRefreshListener { [weak self] _ in
+        self.deviceJwtRefreshSub = device.add(JwtRefreshListener { [weak self] jwt in
             guard let self = self else {
                 return
             }
 
             DispatchQueue.main.async {
                 self.updateParsedJwt()
+                guard let jwt, !jwt.isEmpty,
+                      let instanceId = device.getInstanceId()?.string(),
+                      !instanceId.isEmpty else {
+                    return
+                }
+                VPNManager.persistRefreshedTunnelJwt(
+                    jwt,
+                    instanceId: instanceId
+                )
             }
 
         })
@@ -1323,6 +1406,7 @@ extension DeviceManager {
         }
 
         isLoggingOut = true
+        SharedTunnelJwtStore.clear()
 
         let finishLocalStateLogout = {
             guard let asyncLocalState = self.asyncLocalState else {

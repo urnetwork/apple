@@ -10,6 +10,8 @@ import NetworkExtension
 import URnetworkSdk
 import Network
 import Combine
+import Security
+import CryptoKit
 #if os(iOS)
 import BackgroundTasks
 #endif
@@ -30,6 +32,7 @@ let TunnelCheckTimeout: TimeInterval = 10
 private let TunnelLogoutProviderMessage = Data("logout".utf8)
 private let VPNStateBurstCoalesceDelay: TimeInterval = 0.020
 private let TunnelHealthPollInterval: TimeInterval = 0.250
+private let VPNBootstrapLookupTimeout: TimeInterval = 2
 
 private struct VPNManagerOperationError: LocalizedError {
     let operation: String
@@ -112,6 +115,7 @@ class VPNManager: ObservableObject {
     private var rpcRemoteChangeSub: SdkSubProtocol?
     private var rpcConnectTimeoutWork: DispatchWorkItem?
     private var currentRpcSession: RpcSession?
+    private var currentRpcSessionState: RpcSessionPersistenceState?
     private let rpcConnectTimeout: TimeInterval = 15
 
 //    private var tunnelStarted: Bool = false
@@ -714,6 +718,7 @@ class VPNManager: ObservableObject {
         shouldRun: Bool,
         managerCount: Int,
         tunnelInstance: Int,
+        inspectRpcSyncError: Bool = false,
         completion: ((Error?) -> Void)?
     ) {
         clearVpnError()
@@ -740,6 +745,18 @@ class VPNManager: ObservableObject {
         // accepts it, then independently validate actual SDK tunnel health.
         // A reset's final attempt is handled above and cannot silently succeed.
         completion?(nil)
+        if inspectRpcSyncError {
+            waitForAdoptedTunnelHealth(
+                expectedStarted: expectedStarted,
+                device: device,
+                index: index,
+                shouldRun: shouldRun,
+                recoveryAction: recoveryAction,
+                tunnelInstance: tunnelInstance,
+                deadline: Date().addingTimeInterval(TunnelCheckTimeout)
+            )
+            return
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) { [weak self] in
             guard let self,
                   tunnelInstance == self.tunnelInstance else {
@@ -769,6 +786,69 @@ class VPNManager: ObservableObject {
             case .reportFailure:
                 break
             }
+        }
+    }
+
+    private func waitForAdoptedTunnelHealth(
+        expectedStarted: Bool,
+        device: SdkDeviceRemote,
+        index: Int,
+        shouldRun: Bool,
+        recoveryAction: VPNTunnelRecoveryAction,
+        tunnelInstance: Int,
+        deadline: Date
+    ) {
+        guard tunnelInstance == self.tunnelInstance else { return }
+        guard desiredState.shouldRun == shouldRun else {
+            requestVpnServiceUpdate(coalesceBurst: false)
+            return
+        }
+
+        let syncError = device.getSyncError()
+        if !syncError.isEmpty {
+            print("[VPNManager]running tunnel RPC adoption rejected: \(syncError)")
+            requestVpnRecovery(
+                shouldRun: shouldRun,
+                index: index,
+                reset: true
+            )
+            return
+        }
+        if device.getTunnelStarted() == expectedStarted {
+            return
+        }
+        if Date() >= deadline {
+            switch recoveryAction {
+            case .restartCurrentProfileInPlace:
+                requestVpnRecovery(
+                    shouldRun: shouldRun,
+                    index: index,
+                    reset: true
+                )
+            case .tryNextProfile(let nextIndex):
+                requestVpnRecovery(
+                    shouldRun: shouldRun,
+                    index: nextIndex,
+                    reset: false
+                )
+            case .reportFailure:
+                break
+            }
+            return
+        }
+
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + TunnelHealthPollInterval
+        ) { [weak self] in
+            self?.waitForAdoptedTunnelHealth(
+                expectedStarted: expectedStarted,
+                device: device,
+                index: index,
+                shouldRun: shouldRun,
+                recoveryAction: recoveryAction,
+                tunnelInstance: tunnelInstance,
+                deadline: deadline
+            )
         }
     }
 
@@ -825,7 +905,7 @@ class VPNManager: ObservableObject {
         }
     }
 
-    private func tunnelConnectionState(_ status: NEVPNStatus) -> VPNTunnelConnectionState {
+    private static func tunnelConnectionState(_ status: NEVPNStatus) -> VPNTunnelConnectionState {
         switch status {
         case .invalid:
             return .invalid
@@ -850,7 +930,7 @@ class VPNManager: ObservableObject {
         tunnelInstance: Int,
         completion: @escaping (Error?) -> Void
     ) {
-        let connectionState = tunnelConnectionState(
+        let connectionState = Self.tunnelConnectionState(
             tunnelManager.connection.status
         )
         guard vpnTunnelNeedsStopBeforeConfiguration(
@@ -880,7 +960,7 @@ class VPNManager: ObservableObject {
             completion(makeVPNManagerError("VPN operation superseded", code: 10))
             return
         }
-        let connectionState = tunnelConnectionState(
+        let connectionState = Self.tunnelConnectionState(
             tunnelManager.connection.status
         )
         if vpnTunnelConnectionIsStopped(connectionState) {
@@ -909,11 +989,12 @@ class VPNManager: ObservableObject {
         }
     }
 
-    private func installedTunnelIdentity(
+    private static func installedTunnelIdentity(
         _ manager: NETunnelProviderManager
     ) -> VPNTunnelConfigurationIdentity? {
         guard let tunnelProtocol =
                 manager.protocolConfiguration as? NETunnelProviderProtocol,
+              tunnelProtocol.providerBundleIdentifier == "network.ur.extension",
               let configuration = tunnelProtocol.providerConfiguration,
               let rpcListenHostPort =
                 configuration["rpc_listen_hostport"] as? String,
@@ -930,6 +1011,171 @@ class VPNManager: ObservableObject {
             networkSpaceJson: networkSpaceJson,
             instanceId: instanceId
         )
+    }
+
+    // Cold-launch bootstrap runs before DeviceRemote exists. Authenticate an
+    // active profile with the persisted RPC session + network configuration,
+    // then return the provider-owned instance so the new remote is constructed
+    // with the only identity the SDK will accept.
+    static func loadActiveTunnelBootstrapInstanceId(
+        networkSpaceJson: String,
+        rpcSession: RpcSession,
+        completion: @escaping (String?) -> Void
+    ) {
+        performVPNOperation(
+            operation: "bootstrap.loadAllFromPreferences",
+            timeout: VPNBootstrapLookupTimeout
+        ) { resolve in
+            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+                if let error {
+                    resolve(.failure(error))
+                } else {
+                    resolve(.success(managers ?? []))
+                }
+            }
+        } completion: { (result: Result<[NETunnelProviderManager], Error>) in
+            guard case .success(let managers) = result else {
+                if case .failure(let error) = result {
+                    print("[VPNManager]active tunnel bootstrap unavailable: \(error.localizedDescription)")
+                }
+                completion(nil)
+                return
+            }
+
+            let desiredIdentity = VPNTunnelConfigurationIdentity(
+                rpcListenHostPort: rpcSession.hostPort,
+                rpcServerPem: rpcSession.serverPem,
+                rpcClientPem: rpcSession.clientCertPem,
+                networkSpaceJson: networkSpaceJson,
+                instanceId: ""
+            )
+            let candidates = managers.map {
+                (
+                    connectionState: Self.tunnelConnectionState(
+                        $0.connection.status
+                    ),
+                    identity: Self.installedTunnelIdentity($0)
+                )
+            }
+            completion(
+                vpnRunningTunnelBootstrapIdentity(
+                    candidates: candidates,
+                    desiredIdentity: desiredIdentity
+                )?.instanceId
+            )
+        }
+    }
+
+    // Keep the profile snapshot current as a fallback for upgrades from builds
+    // without the shared Keychain handoff. Saving preferences does not restart
+    // the active packet tunnel; it only changes what a later OS relaunch reads.
+    static func persistRefreshedTunnelJwt(
+        _ byJwt: String,
+        instanceId: String
+    ) {
+        guard SharedTunnelJwtStore.save(
+            byJwt: byJwt,
+            instanceId: instanceId
+        ) else {
+            print("[VPNManager]failed to persist refreshed shared tunnel JWT")
+            return
+        }
+
+        updateTunnelProfileJwt(instanceId: instanceId)
+    }
+
+    // Upgrade migration only. If the running extension has already written a
+    // token for this exact DeviceLocal, that value is authoritative and must
+    // not be replaced by an older app-container snapshot during cold launch.
+    static func seedCurrentTunnelJwtIfMissing(
+        _ byJwt: String,
+        instanceId: String
+    ) {
+        guard SharedTunnelJwtStore.seedIfMissing(
+            byJwt: byJwt,
+            instanceId: instanceId
+        ) != nil else {
+            print("[VPNManager]failed to seed shared tunnel JWT")
+            return
+        }
+        updateTunnelProfileJwt(instanceId: instanceId)
+    }
+
+    private static func updateTunnelProfileJwt(
+        instanceId: String,
+        attempt: Int = 0
+    ) {
+        guard let byJwt = SharedTunnelJwtStore.load(
+            expectedInstanceId: instanceId
+        ) else {
+            print("[VPNManager]no exact-instance JWT available for profile refresh")
+            return
+        }
+        performVPNOperation(
+            operation: "jwtRefresh.loadAllFromPreferences",
+            timeout: VPNBootstrapLookupTimeout
+        ) { resolve in
+            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+                if let error {
+                    resolve(.failure(error))
+                } else {
+                    resolve(.success(managers ?? []))
+                }
+            }
+        } completion: { (result: Result<[NETunnelProviderManager], Error>) in
+            guard case .success(let managers) = result else {
+                if case .failure(let error) = result {
+                    print("[VPNManager]could not load profiles for JWT refresh: \(error.localizedDescription)")
+                }
+                return
+            }
+
+            for manager in managers {
+                guard let tunnelProtocol =
+                        manager.protocolConfiguration as? NETunnelProviderProtocol,
+                      tunnelProtocol.providerBundleIdentifier == "network.ur.extension",
+                      var configuration = tunnelProtocol.providerConfiguration,
+                      configuration["instance_id"] as? String == instanceId,
+                      configuration["by_jwt"] as? String != byJwt,
+                      // Superseded rotations must never overwrite a newer one.
+                      SharedTunnelJwtStore.load(
+                        expectedInstanceId: instanceId
+                      ) == byJwt else {
+                    continue
+                }
+
+                configuration["by_jwt"] = byJwt
+                tunnelProtocol.providerConfiguration = configuration
+                manager.protocolConfiguration = tunnelProtocol
+                performVPNOperation(
+                    operation: "jwtRefresh.saveToPreferences",
+                    timeout: TunnelCheckTimeout
+                ) { resolve in
+                    manager.saveToPreferences { error in
+                        if let error {
+                            resolve(.failure(error))
+                        } else {
+                            resolve(.success(()))
+                        }
+                    }
+                } completion: { (saveResult: Result<Void, Error>) in
+                    if case .failure(let error) = saveResult {
+                        print("[VPNManager]could not update profile JWT: \(error.localizedDescription)")
+                    }
+                    // A stale save can finish after a newer rotation. Re-read
+                    // the immutable Keychain history after every completion
+                    // and converge the profile again if ordering changed.
+                    if SharedTunnelJwtStore.load(
+                        expectedInstanceId: instanceId
+                    ) != byJwt, attempt < 3 {
+                        updateTunnelProfileJwt(
+                            instanceId: instanceId,
+                            attempt: attempt + 1
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private func desiredTunnelIdentity(
@@ -979,10 +1225,26 @@ class VPNManager: ObservableObject {
         if let session = self.currentRpcSession {
             return session
         }
-        if let session = RpcSessionStore.load() {
+
+        switch RpcSessionStore.loadResult() {
+        case .confirmed(let session):
             self.currentRpcSession = session
+            self.currentRpcSessionState = .confirmed
             return session
+        case .pending(let session):
+            self.currentRpcSession = session
+            self.currentRpcSessionState = .pending
+            return session
+        case .missing:
+            break
+        case .corrupt(let reason):
+            print("[VPNManager]discarding corrupt RPC session: \(reason)")
+            RpcSessionStore.clear()
+        case .unavailable(let reason):
+            print("[VPNManager]RPC session storage unavailable: \(reason)")
+            return nil
         }
+
         var err: NSError?
         guard let keyMaterial = SdkGenerateDeviceRpcKeyMaterial(&err), err == nil else {
             return nil
@@ -1003,7 +1265,12 @@ class VPNManager: ObservableObject {
             host: "127.0.0.1",
             port: Int.random(in: 12000...12100)
         )
+        guard RpcSessionStore.save(session, state: .pending) else {
+            print("[VPNManager]failed to persist pending RPC session")
+            return nil
+        }
         self.currentRpcSession = session
+        self.currentRpcSessionState = .pending
         return session
     }
 
@@ -1014,39 +1281,58 @@ class VPNManager: ObservableObject {
     // session that already connected before is kept and reused, so repeated
     // restarts (e.g. switching locations) never discard known-good material.
     private func applyRpcSession(_ session: RpcSession, device: SdkDeviceRemote, tunnelInstance: Int) {
+        self.rpcRemoteChangeSub?.close()
+        self.rpcConnectTimeoutWork?.cancel()
+
+        let confirmSession = { [weak self] in
+            guard let self, tunnelInstance == self.tunnelInstance else { return }
+            self.rpcConnectTimeoutWork?.cancel()
+            self.rpcConnectTimeoutWork = nil
+            guard self.currentRpcSessionState != .confirmed else { return }
+            guard RpcSessionStore.save(session, state: .confirmed) else {
+                print("[VPNManager]failed to persist confirmed RPC session")
+                return
+            }
+            self.currentRpcSessionState = .confirmed
+        }
+
+        // Register before changing the transport: AddRemoteChangeListener is
+        // edge-triggered and does not replay an already-connected state.
+        self.rpcRemoteChangeSub = device.add(RemoteChangeListener { [weak self] remoteConnected in
+            DispatchQueue.main.async {
+                guard let self = self, tunnelInstance == self.tunnelInstance else { return }
+                guard remoteConnected else { return }
+                confirmSession()
+            }
+        })
+
         do {
             try device.setRpcServer(session.clientPem, serverCertPem: session.serverCertPem, hostPort: session.hostPort)
         } catch {
             print("[VPNManager]setRpcServer failed: \(error.localizedDescription)")
         }
 
-        self.rpcRemoteChangeSub?.close()
-        self.rpcConnectTimeoutWork?.cancel()
+        // Close the listener-registration race with a level check. Swift's SDK
+        // importer exposes DeviceRemote.GetRemoteConnected as getConnected().
+        if device.getConnected() {
+            confirmSession()
+        }
 
-        self.rpcRemoteChangeSub = device.add(RemoteChangeListener { [weak self] remoteConnected in
-            DispatchQueue.main.async {
-                guard let self = self, tunnelInstance == self.tunnelInstance else { return }
-                guard remoteConnected else { return }
-                // this material connected; persist it as last-known-good and stop the timeout
-                self.rpcConnectTimeoutWork?.cancel()
-                self.rpcConnectTimeoutWork = nil
-                RpcSessionStore.save(session)
-            }
-        })
-
-        // Only fresh, never-connected material is put on a connect deadline. If a
-        // session is already the persisted last-known-good it has connected
-        // before, so keep reusing it — a transient timeout while the tunnel keeps
-        // restarting (e.g. switching locations repeatedly, which calls
-        // updateVpnService over and over) must not discard good key material or
-        // force a new port on the next start.
-        guard RpcSessionStore.load() == nil else { return }
+        // Confirmed material remains reusable across transient tunnel restarts.
+        // Pending material gets a bounded chance to authenticate, including
+        // after an app crash between profile save and the connected callback.
+        guard self.currentRpcSessionState != .confirmed else { return }
 
         let timeoutWork = DispatchWorkItem { [weak self] in
             guard let self = self, tunnelInstance == self.tunnelInstance else { return }
-            // the rpc channel never came up with this fresh material; drop it so
-            // the next start generates new material on a new port
+            if device.getConnected() {
+                confirmSession()
+                return
+            }
+            RpcSessionStore.clearPending(session)
             self.currentRpcSession = nil
+            self.currentRpcSessionState = nil
+            self.requestVpnServiceUpdate(force: true, coalesceBurst: false)
         }
         self.rpcConnectTimeoutWork = timeoutWork
         DispatchQueue.main.asyncAfter(deadline: .now() + self.rpcConnectTimeout, execute: timeoutWork)
@@ -1209,10 +1495,10 @@ class VPNManager: ObservableObject {
                 }
                 let adoptionCandidates = managers.map {
                     (
-                        connectionState: self.tunnelConnectionState(
+                        connectionState: Self.tunnelConnectionState(
                             $0.connection.status
                         ),
-                        identity: self.installedTunnelIdentity($0)
+                        identity: Self.installedTunnelIdentity($0)
                     )
                 }
                 if let adoptionIndex = vpnRunningTunnelAdoptionIndex(
@@ -1239,6 +1525,7 @@ class VPNManager: ObservableObject {
                         shouldRun: shouldRun,
                         managerCount: n,
                         tunnelInstance: tunnelInstance,
+                        inspectRpcSyncError: true,
                         completion: completion
                     )
                     return
@@ -1309,6 +1596,17 @@ class VPNManager: ObservableObject {
                             completion: completion
                         )
                         return
+                    }
+
+                    // Seed the shared restart credential before installing the
+                    // profile. The extension independently validates the
+                    // instance and keeps this value current after its own JWT
+                    // rotations.
+                    if !SharedTunnelJwtStore.save(
+                        byJwt: byJwt,
+                        instanceId: instanceId
+                    ) {
+                        print("[VPNManager]could not seed shared tunnel JWT")
                     }
 
                     let tunnelProtocol = NETunnelProviderProtocol()
@@ -1827,7 +2125,7 @@ private class ProvidePausedChangeListener: NSObject, SdkProvidePausedChangeListe
 // extension), and the loopback host/port the extension listens on.
 // The PEM values are opaque strings produced by the SDK; the app stores and
 // forwards them verbatim and never manipulates the material itself.
-struct RpcSession: Codable {
+struct RpcSession: Codable, Equatable {
     let clientPem: String       // client cert + private key (app presents; stays in app)
     let clientCertPem: String   // client cert only (public; sent to the extension to pin)
     let serverPem: String       // server cert + private key (sent to the extension to present)
@@ -1836,25 +2134,560 @@ struct RpcSession: Codable {
     let port: Int
 
     var hostPort: String { "\(host):\(port)" }
+
+    var validationError: String? {
+        guard !clientPem.isEmpty else { return "client PEM is empty" }
+        guard !clientCertPem.isEmpty else { return "client certificate PEM is empty" }
+        guard !serverPem.isEmpty else { return "server PEM is empty" }
+        guard !serverCertPem.isEmpty else { return "server certificate PEM is empty" }
+        guard host == "127.0.0.1" else { return "RPC host is not IPv4 loopback" }
+        guard (1...65_535).contains(port) else { return "RPC port is out of range" }
+        return nil
+    }
 }
 
-// RpcSessionStore persists the last known good RpcSession in the app process so
-// reconnects reuse the same material/port (avoiding an extension device
-// recreation) until a connection fails.
-enum RpcSessionStore {
-    private static let key = "network.ur.rpcSessionLastGood"
+enum RpcSessionPersistenceState: String, Codable {
+    case pending
+    case confirmed
+}
 
-    static func load() -> RpcSession? {
-        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
-        return try? JSONDecoder().decode(RpcSession.self, from: data)
+struct RpcSessionEnvelope: Codable, Equatable {
+    static let currentVersion = 1
+
+    let version: Int
+    let state: RpcSessionPersistenceState
+    let session: RpcSession
+
+    init(
+        state: RpcSessionPersistenceState,
+        session: RpcSession,
+        version: Int = currentVersion
+    ) {
+        self.version = version
+        self.state = state
+        self.session = session
+    }
+}
+
+enum RpcSessionStoreLoadResult: Equatable {
+    case missing
+    case pending(RpcSession)
+    case confirmed(RpcSession)
+    case corrupt(String)
+    case unavailable(String)
+
+    var session: RpcSession? {
+        switch self {
+        case .pending(let session), .confirmed(let session):
+            return session
+        case .missing, .corrupt, .unavailable:
+            return nil
+        }
+    }
+}
+
+// RpcSessionStore keeps private RPC identity material in the data-protection
+// keychain. The versioned envelope distinguishes a transaction written before
+// the tunnel starts (pending) from material that completed an authenticated RPC
+// sync (confirmed). A one-time migration imports the former UserDefaults value
+// as confirmed because that legacy store was written only after connection.
+enum RpcSessionStore {
+    private static let legacyDefaultsKey = "network.ur.rpcSessionLastGood"
+    private static let keychainService = "network.ur.rpc-session"
+    private static let keychainAccount = "device-rpc-session"
+
+    static func decode(_ data: Data) -> RpcSessionStoreLoadResult {
+        do {
+            let envelope = try JSONDecoder().decode(RpcSessionEnvelope.self, from: data)
+            guard envelope.version == RpcSessionEnvelope.currentVersion else {
+                return .corrupt("unsupported version \(envelope.version)")
+            }
+            if let validationError = envelope.session.validationError {
+                return .corrupt("invalid session: \(validationError)")
+            }
+            switch envelope.state {
+            case .pending:
+                return .pending(envelope.session)
+            case .confirmed:
+                return .confirmed(envelope.session)
+            }
+        } catch {
+            return .corrupt("decode failed: \(error.localizedDescription)")
+        }
     }
 
-    static func save(_ session: RpcSession) {
-        guard let data = try? JSONEncoder().encode(session) else { return }
-        UserDefaults.standard.set(data, forKey: key)
+    static func encode(
+        _ session: RpcSession,
+        state: RpcSessionPersistenceState
+    ) -> Data? {
+        guard session.validationError == nil else { return nil }
+        return try? JSONEncoder().encode(
+            RpcSessionEnvelope(state: state, session: session)
+        )
+    }
+
+    static func loadResult() -> RpcSessionStoreLoadResult {
+        switch readKeychainData(account: keychainAccount) {
+        case .success(.some(let data)):
+            return decode(data)
+        case .success(.none):
+            return migrateLegacySession()
+        case .failure(let error):
+            return .unavailable(error.localizedDescription)
+        }
+    }
+
+    @discardableResult
+    static func save(
+        _ session: RpcSession,
+        state: RpcSessionPersistenceState
+    ) -> Bool {
+        guard let data = encode(session, state: state) else {
+            return false
+        }
+        switch writeKeychainData(data, account: keychainAccount) {
+        case .success:
+            return true
+        case .failure(let error):
+            print("[RpcSessionStore]keychain write failed: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    static func clearPending(_ session: RpcSession) {
+        guard case .pending(let storedSession) = loadResult(),
+              storedSession == session else {
+            return
+        }
+        clear()
     }
 
     static func clear() {
-        UserDefaults.standard.removeObject(forKey: key)
+        let query = keychainIdentityQuery(account: keychainAccount)
+        let status = SecItemDelete(query as CFDictionary)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            print("[RpcSessionStore]keychain delete failed: \(status)")
+        }
+        UserDefaults.standard.removeObject(forKey: legacyDefaultsKey)
+    }
+
+    private static func migrateLegacySession() -> RpcSessionStoreLoadResult {
+        guard let data = UserDefaults.standard.data(forKey: legacyDefaultsKey) else {
+            return .missing
+        }
+        let session: RpcSession
+        do {
+            session = try JSONDecoder().decode(RpcSession.self, from: data)
+        } catch {
+            return .corrupt("legacy decode failed: \(error.localizedDescription)")
+        }
+        if let validationError = session.validationError {
+            return .corrupt("invalid legacy session: \(validationError)")
+        }
+        guard save(session, state: .confirmed) else {
+            return .unavailable("failed to migrate legacy RPC session")
+        }
+        UserDefaults.standard.removeObject(forKey: legacyDefaultsKey)
+        return .confirmed(session)
+    }
+
+    #if DEBUG
+    static func testingLoadResult(account: String) -> RpcSessionStoreLoadResult {
+        switch readKeychainData(account: account) {
+        case .success(.some(let data)):
+            return decode(data)
+        case .success(.none):
+            return .missing
+        case .failure(let error):
+            return .unavailable(error.localizedDescription)
+        }
+    }
+
+    @discardableResult
+    static func testingSave(
+        _ session: RpcSession,
+        state: RpcSessionPersistenceState,
+        account: String
+    ) -> Bool {
+        guard let data = encode(session, state: state) else { return false }
+        if case .success = writeKeychainData(data, account: account) {
+            return true
+        }
+        return false
+    }
+
+    static func testingClear(account: String) {
+        _ = SecItemDelete(
+            keychainIdentityQuery(account: account) as CFDictionary
+        )
+    }
+    #endif
+
+    private static func keychainIdentityQuery(account: String) -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: account,
+        ]
+    }
+
+    private static func readKeychainData(account: String) -> Result<Data?, Error> {
+        var query = keychainIdentityQuery(account: account)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        switch status {
+        case errSecSuccess:
+            guard let data = result as? Data else {
+                return .failure(makeKeychainError(errSecDecode))
+            }
+            return .success(data)
+        case errSecItemNotFound:
+            return .success(nil)
+        default:
+            return .failure(makeKeychainError(status))
+        }
+    }
+
+    private static func writeKeychainData(
+        _ data: Data,
+        account: String
+    ) -> Result<Void, Error> {
+        let query = keychainIdentityQuery(account: account)
+        let update: [String: Any] = [
+            kSecValueData as String: data,
+        ]
+        let updateStatus = SecItemUpdate(
+            query as CFDictionary,
+            update as CFDictionary
+        )
+        if updateStatus == errSecSuccess {
+            return .success(())
+        }
+        guard updateStatus == errSecItemNotFound else {
+            return .failure(makeKeychainError(updateStatus))
+        }
+
+        var add = query
+        for (key, value) in update {
+            add[key] = value
+        }
+        add[kSecAttrAccessible as String] =
+            kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        let addStatus = SecItemAdd(add as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            return .failure(makeKeychainError(addStatus))
+        }
+        return .success(())
+    }
+
+    private static func makeKeychainError(_ status: OSStatus) -> NSError {
+        NSError(
+            domain: NSOSStatusErrorDomain,
+            code: Int(status),
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    SecCopyErrorMessageString(status, nil) as String? ??
+                    "Keychain error \(status)",
+            ]
+        )
+    }
+}
+
+// The Network Extension can be relaunched by the OS without the app. A token
+// captured in providerConfiguration therefore cannot be the sole durable
+// credential: SDK rotation in either process would leave that snapshot stale.
+// This envelope is shared only between network.ur and network.ur.extension via
+// their dedicated Keychain access group, and is accepted only for the exact
+// DeviceLocal instance encoded in the installed tunnel profile.
+struct SharedTunnelJwtEnvelope: Codable, Equatable {
+    static let currentVersion = 2
+
+    let version: Int
+    let instanceId: String
+    let byJwt: String
+    let issuedAt: Int64?
+    let expiresAt: Int64?
+
+    init(
+        instanceId: String,
+        byJwt: String,
+        version: Int = currentVersion,
+        issuedAt: Int64? = nil,
+        expiresAt: Int64? = nil
+    ) {
+        self.version = version
+        self.instanceId = instanceId
+        self.byJwt = byJwt
+        self.issuedAt = issuedAt
+        self.expiresAt = expiresAt
+    }
+}
+
+private struct LegacySharedTunnelJwtEnvelope: Codable {
+    let version: Int
+    let instanceId: String
+    let byJwt: String
+}
+
+struct SharedTunnelJwtCandidate: Equatable {
+    let account: String
+    let instanceId: String
+    let byJwt: String
+    let issuedAt: Int64?
+    let expiresAt: Int64?
+}
+
+enum SharedTunnelJwtStore {
+    private static let service = "network.ur.shared-tunnel-jwt"
+    private static let accountPrefix = "v2-"
+    private static let accessGroupInfoKey = "URSharedKeychainAccessGroup"
+    private static let retainedTokensPerInstance = 3
+
+    static func encode(byJwt: String, instanceId: String) -> Data? {
+        guard !byJwt.isEmpty, !instanceId.isEmpty else { return nil }
+        let claims = jwtDates(byJwt)
+        return try? JSONEncoder().encode(
+            SharedTunnelJwtEnvelope(
+                instanceId: instanceId,
+                byJwt: byJwt,
+                issuedAt: claims.issuedAt,
+                expiresAt: claims.expiresAt
+            )
+        )
+    }
+
+    static func decode(_ data: Data, expectedInstanceId: String) -> String? {
+        candidate(
+            data: data,
+            account: "decode",
+            expectedInstanceId: expectedInstanceId
+        )?.byJwt
+    }
+
+    @discardableResult
+    static func save(byJwt: String, instanceId: String) -> Bool {
+        guard let data = encode(byJwt: byJwt, instanceId: instanceId),
+              let account = account(byJwt: byJwt, instanceId: instanceId),
+              var query = keychainIdentityQuery(account: account) else {
+            return false
+        }
+        query[kSecValueData as String] = data
+        query[kSecAttrAccessible as String] =
+            kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess || status == errSecDuplicateItem else {
+            print("[SharedTunnelJwtStore]keychain add failed: \(status)")
+            return false
+        }
+        prune(expectedInstanceId: instanceId)
+        return true
+    }
+
+    static func load(expectedInstanceId: String) -> String? {
+        freshest(
+            loadCandidates(expectedInstanceId: expectedInstanceId)
+        )?.byJwt
+    }
+
+    // Every token is an immutable item. If app and extension refresh at the
+    // same time, a delayed write can add an older token but cannot overwrite
+    // the newer one; readers deterministically select by JWT iat/exp.
+    static func seedIfMissing(byJwt: String, instanceId: String) -> String? {
+        guard save(byJwt: byJwt, instanceId: instanceId) else { return nil }
+        return load(expectedInstanceId: instanceId)
+    }
+
+    static func clear() {
+        guard let query = keychainIdentityQuery() else { return }
+        let status = SecItemDelete(query as CFDictionary)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            print("[SharedTunnelJwtStore]keychain delete failed: \(status)")
+        }
+    }
+
+    static func remove(expectedInstanceId: String) {
+        for candidate in loadCandidates(expectedInstanceId: expectedInstanceId) {
+            guard let query = keychainIdentityQuery(account: candidate.account) else {
+                continue
+            }
+            _ = SecItemDelete(query as CFDictionary)
+        }
+    }
+
+    static func freshest(
+        _ candidates: [SharedTunnelJwtCandidate],
+        now: Int64 = Int64(Date().timeIntervalSince1970)
+    ) -> SharedTunnelJwtCandidate? {
+        candidates.max { lhs, rhs in
+            isPreferred(rhs, over: lhs, now: now)
+        }
+    }
+
+    private static func isPreferred(
+        _ lhs: SharedTunnelJwtCandidate,
+        over rhs: SharedTunnelJwtCandidate,
+        now: Int64
+    ) -> Bool {
+        let lhsExpired = lhs.expiresAt.map { $0 <= now } ?? false
+        let rhsExpired = rhs.expiresAt.map { $0 <= now } ?? false
+        if lhsExpired != rhsExpired { return !lhsExpired }
+
+        let lhsIssuedAt = lhs.issuedAt ?? Int64.min
+        let rhsIssuedAt = rhs.issuedAt ?? Int64.min
+        if lhsIssuedAt != rhsIssuedAt { return lhsIssuedAt > rhsIssuedAt }
+
+        let lhsExpiresAt = lhs.expiresAt ?? Int64.min
+        let rhsExpiresAt = rhs.expiresAt ?? Int64.min
+        if lhsExpiresAt != rhsExpiresAt { return lhsExpiresAt > rhsExpiresAt }
+
+        // Tokens minted in the same second can have identical time claims.
+        // The digest-backed account gives every process the same tie-breaker.
+        return lhs.account > rhs.account
+    }
+
+    private static func candidate(
+        data: Data,
+        account: String,
+        expectedInstanceId: String
+    ) -> SharedTunnelJwtCandidate? {
+        let decoder = JSONDecoder()
+        if let envelope = try? decoder.decode(
+            SharedTunnelJwtEnvelope.self,
+            from: data
+        ), envelope.version == SharedTunnelJwtEnvelope.currentVersion,
+           envelope.instanceId == expectedInstanceId,
+           !envelope.byJwt.isEmpty {
+            return SharedTunnelJwtCandidate(
+                account: account,
+                instanceId: envelope.instanceId,
+                byJwt: envelope.byJwt,
+                issuedAt: envelope.issuedAt,
+                expiresAt: envelope.expiresAt
+            )
+        }
+
+        // One-time compatibility with the v1 single-slot item. New saves are
+        // always v2 and therefore cannot be overwritten by this legacy slot.
+        if let legacy = try? decoder.decode(
+            LegacySharedTunnelJwtEnvelope.self,
+            from: data
+        ), legacy.version == 1,
+           legacy.instanceId == expectedInstanceId,
+           !legacy.byJwt.isEmpty {
+            let claims = jwtDates(legacy.byJwt)
+            return SharedTunnelJwtCandidate(
+                account: account,
+                instanceId: legacy.instanceId,
+                byJwt: legacy.byJwt,
+                issuedAt: claims.issuedAt,
+                expiresAt: claims.expiresAt
+            )
+        }
+        return nil
+    }
+
+    private static func loadCandidates(
+        expectedInstanceId: String
+    ) -> [SharedTunnelJwtCandidate] {
+        guard var query = keychainIdentityQuery() else { return [] }
+        query[kSecReturnAttributes as String] = true
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitAll
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess else { return [] }
+
+        let items: [[String: Any]]
+        if let array = result as? [[String: Any]] {
+            items = array
+        } else if let item = result as? [String: Any] {
+            items = [item]
+        } else {
+            return []
+        }
+        return items.compactMap { item in
+            guard let data = item[kSecValueData as String] as? Data,
+                  let account = item[kSecAttrAccount as String] as? String else {
+                return nil
+            }
+            return candidate(
+                data: data,
+                account: account,
+                expectedInstanceId: expectedInstanceId
+            )
+        }
+    }
+
+    private static func prune(expectedInstanceId: String) {
+        let candidates = loadCandidates(expectedInstanceId: expectedInstanceId)
+        guard candidates.count > retainedTokensPerInstance else { return }
+        let keep = Set(
+            candidates.sorted {
+                isPreferred($0, over: $1, now: Int64(Date().timeIntervalSince1970))
+            }.prefix(retainedTokensPerInstance).map(\.account)
+        )
+        for candidate in candidates where !keep.contains(candidate.account) {
+            guard let query = keychainIdentityQuery(account: candidate.account) else {
+                continue
+            }
+            _ = SecItemDelete(query as CFDictionary)
+        }
+    }
+
+    private static func jwtDates(
+        _ jwt: String
+    ) -> (issuedAt: Int64?, expiresAt: Int64?) {
+        let components = jwt.split(separator: ".", omittingEmptySubsequences: false)
+        guard components.count >= 2 else { return (nil, nil) }
+        var payload = String(components[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let remainder = payload.count % 4
+        if remainder != 0 {
+            payload += String(repeating: "=", count: 4 - remainder)
+        }
+        guard let data = Data(base64Encoded: payload),
+              let object = try? JSONSerialization.jsonObject(with: data),
+              let claims = object as? [String: Any] else {
+            return (nil, nil)
+        }
+        func int64(_ value: Any?) -> Int64? {
+            if let number = value as? NSNumber { return number.int64Value }
+            if let string = value as? String { return Int64(string) }
+            return nil
+        }
+        return (int64(claims["iat"]), int64(claims["exp"]))
+    }
+
+    private static func account(byJwt: String, instanceId: String) -> String? {
+        guard !byJwt.isEmpty, !instanceId.isEmpty else { return nil }
+        func digest(_ value: String) -> String {
+            SHA256.hash(data: Data(value.utf8)).map {
+                String(format: "%02x", $0)
+            }.joined()
+        }
+        return accountPrefix + digest(instanceId) + "-" + digest(byJwt)
+    }
+
+    private static func keychainIdentityQuery(
+        account: String? = nil
+    ) -> [String: Any]? {
+        guard let accessGroup = Bundle.main.object(
+            forInfoDictionaryKey: accessGroupInfoKey
+        ) as? String, !accessGroup.isEmpty else {
+            return nil
+        }
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccessGroup as String: accessGroup,
+        ]
+        if let account {
+            query[kSecAttrAccount as String] = account
+        }
+        return query
     }
 }

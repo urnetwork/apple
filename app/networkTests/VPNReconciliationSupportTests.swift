@@ -234,7 +234,7 @@ struct VPNReconciliationSupportTests {
         ))
     }
 
-    @Test func providerOwnedInstanceMismatchDoesNotRestartRunningTunnel() {
+    @Test func instanceMismatchCannotBeAdoptedByDeviceRemote() {
         let identity = testTunnelIdentity()
         let relaunchedAppIdentity = VPNTunnelConfigurationIdentity(
             rpcListenHostPort: identity.rpcListenHostPort,
@@ -243,12 +243,155 @@ struct VPNReconciliationSupportTests {
             networkSpaceJson: identity.networkSpaceJson,
             instanceId: "new-app-process-instance"
         )
-        #expect(vpnShouldAdoptRunningTunnel(
+        #expect(!vpnShouldAdoptRunningTunnel(
             reset: false,
             connectionState: .connected,
             installedIdentity: identity,
             desiredIdentity: relaunchedAppIdentity
         ))
+    }
+
+    @Test func bootstrapCanRecoverInstanceFromAuthenticatedRunningTunnel() {
+        let identity = testTunnelIdentity()
+        let bootstrapIdentity = VPNTunnelConfigurationIdentity(
+            rpcListenHostPort: identity.rpcListenHostPort,
+            rpcServerPem: identity.rpcServerPem,
+            rpcClientPem: identity.rpcClientPem,
+            networkSpaceJson: identity.networkSpaceJson,
+            instanceId: ""
+        )
+        let recovered = vpnRunningTunnelBootstrapIdentity(
+            candidates: [
+                (
+                    connectionState: VPNTunnelConnectionState.connected,
+                    identity: Optional(identity)
+                ),
+            ],
+            desiredIdentity: bootstrapIdentity
+        )
+        #expect(recovered?.instanceId == identity.instanceId)
+    }
+
+    @Test func coldProcessRelaunchRecoversDriftedInstanceWithoutRestart() throws {
+        let runningIdentity = testTunnelIdentity()
+        let driftedLocalIdentity = VPNTunnelConfigurationIdentity(
+            rpcListenHostPort: runningIdentity.rpcListenHostPort,
+            rpcServerPem: runningIdentity.rpcServerPem,
+            rpcClientPem: runningIdentity.rpcClientPem,
+            networkSpaceJson: runningIdentity.networkSpaceJson,
+            instanceId: "instance-created-by-old-jwt-refresh"
+        )
+
+        #expect(!vpnShouldAdoptRunningTunnel(
+            reset: false,
+            connectionState: .connected,
+            installedIdentity: runningIdentity,
+            desiredIdentity: driftedLocalIdentity
+        ))
+
+        let recoveredIdentity = try #require(
+            vpnRunningTunnelBootstrapIdentity(
+                candidates: [
+                    (
+                        connectionState: VPNTunnelConnectionState.connected,
+                        identity: Optional(runningIdentity)
+                    ),
+                ],
+                desiredIdentity: driftedLocalIdentity
+            )
+        )
+        let relaunchedIdentity = VPNTunnelConfigurationIdentity(
+            rpcListenHostPort: driftedLocalIdentity.rpcListenHostPort,
+            rpcServerPem: driftedLocalIdentity.rpcServerPem,
+            rpcClientPem: driftedLocalIdentity.rpcClientPem,
+            networkSpaceJson: driftedLocalIdentity.networkSpaceJson,
+            instanceId: recoveredIdentity.instanceId
+        )
+
+        #expect(vpnShouldAdoptRunningTunnel(
+            reset: false,
+            connectionState: .connected,
+            installedIdentity: runningIdentity,
+            desiredIdentity: relaunchedIdentity
+        ))
+    }
+
+    @Test func bootstrapRejectsRunningTunnelWithDifferentRpcSession() {
+        let identity = testTunnelIdentity()
+        let bootstrapIdentity = VPNTunnelConfigurationIdentity(
+            rpcListenHostPort: "127.0.0.1:12099",
+            rpcServerPem: identity.rpcServerPem,
+            rpcClientPem: identity.rpcClientPem,
+            networkSpaceJson: identity.networkSpaceJson,
+            instanceId: ""
+        )
+        #expect(vpnRunningTunnelBootstrapIdentity(
+            candidates: [
+                (
+                    connectionState: VPNTunnelConnectionState.connected,
+                    identity: Optional(identity)
+                ),
+            ],
+            desiredIdentity: bootstrapIdentity
+        ) == nil)
+    }
+
+    @Test func rpcSessionEnvelopeDistinguishesPendingAndConfirmed() throws {
+        let session = testRpcSession()
+        let pendingData = try #require(
+            RpcSessionStore.encode(session, state: .pending)
+        )
+        let confirmedData = try #require(
+            RpcSessionStore.encode(session, state: .confirmed)
+        )
+
+        #expect(RpcSessionStore.decode(pendingData) == .pending(session))
+        #expect(RpcSessionStore.decode(confirmedData) == .confirmed(session))
+    }
+
+    @Test func rpcSessionEnvelopeRejectsCorruptAndUnknownVersions() throws {
+        let corruptResult = RpcSessionStore.decode(Data("not-json".utf8))
+        guard case .corrupt = corruptResult else {
+            Issue.record("Malformed RPC session was not reported as corrupt")
+            return
+        }
+
+        let unknownVersion = RpcSessionEnvelope(
+            state: .confirmed,
+            session: testRpcSession(),
+            version: RpcSessionEnvelope.currentVersion + 1
+        )
+        let unknownData = try JSONEncoder().encode(unknownVersion)
+        guard case .corrupt(let reason) = RpcSessionStore.decode(unknownData) else {
+            Issue.record("Unknown RPC session version was accepted")
+            return
+        }
+        #expect(reason.contains("unsupported version"))
+    }
+
+    @Test func rpcSessionEnvelopeRejectsInvalidTransportMaterial() throws {
+        let invalidSession = RpcSession(
+            clientPem: "",
+            clientCertPem: "client-public",
+            serverPem: "server-private",
+            serverCertPem: "server-public",
+            host: "0.0.0.0",
+            port: 0
+        )
+        #expect(
+            RpcSessionStore.encode(invalidSession, state: .confirmed) == nil
+        )
+
+        let invalidEnvelope = RpcSessionEnvelope(
+            state: .confirmed,
+            session: invalidSession
+        )
+        let invalidData = try JSONEncoder().encode(invalidEnvelope)
+        guard case .corrupt(let reason) = RpcSessionStore.decode(invalidData) else {
+            Issue.record("Invalid RPC transport material was accepted")
+            return
+        }
+        #expect(reason.contains("invalid session"))
     }
 
     @Test func explicitProfileResetDoesNotAdoptRunningTunnel() {
@@ -464,6 +607,130 @@ struct VPNReconciliationSupportTests {
         #expect(callbackCount.value == 1)
     }
 
+    @Test func sharedTunnelJwtEnvelopeRequiresExactInstance() throws {
+        let data = try #require(
+            SharedTunnelJwtStore.encode(
+                byJwt: "fresh.jwt.value",
+                instanceId: "instance-a"
+            )
+        )
+        #expect(
+            SharedTunnelJwtStore.decode(
+                data,
+                expectedInstanceId: "instance-a"
+            ) == "fresh.jwt.value"
+        )
+        #expect(
+            SharedTunnelJwtStore.decode(
+                data,
+                expectedInstanceId: "instance-b"
+            ) == nil
+        )
+    }
+
+    @Test func sharedTunnelJwtEnvelopeRejectsUnknownVersionAndEmptyValues() throws {
+        let unknown = SharedTunnelJwtEnvelope(
+            instanceId: "instance-a",
+            byJwt: "jwt",
+            version: SharedTunnelJwtEnvelope.currentVersion + 1
+        )
+        let data = try JSONEncoder().encode(unknown)
+        #expect(
+            SharedTunnelJwtStore.decode(
+                data,
+                expectedInstanceId: "instance-a"
+            ) == nil
+        )
+        #expect(
+            SharedTunnelJwtStore.encode(
+                byJwt: "",
+                instanceId: "instance-a"
+            ) == nil
+        )
+    }
+
+    @Test func sharedTunnelJwtFreshnessRejectsDelayedOlderWriter() {
+        let instanceId = "instance-a"
+        let older = SharedTunnelJwtCandidate(
+            account: "older",
+            instanceId: instanceId,
+            byJwt: "older.jwt",
+            issuedAt: 1_000,
+            expiresAt: 9_000
+        )
+        let newer = SharedTunnelJwtCandidate(
+            account: "newer",
+            instanceId: instanceId,
+            byJwt: "newer.jwt",
+            issuedAt: 2_000,
+            expiresAt: 10_000
+        )
+
+        #expect(
+            SharedTunnelJwtStore.freshest(
+                [newer, older],
+                now: 3_000
+            ) == newer
+        )
+        #expect(
+            SharedTunnelJwtStore.freshest(
+                [older, newer],
+                now: 3_000
+            ) == newer
+        )
+    }
+
+    @Test func sharedTunnelJwtFreshnessPrefersUsableTokenOverExpiredToken() {
+        let expiredButLaterIssued = SharedTunnelJwtCandidate(
+            account: "expired",
+            instanceId: "instance-a",
+            byJwt: "expired.jwt",
+            issuedAt: 4_000,
+            expiresAt: 5_000
+        )
+        let usable = SharedTunnelJwtCandidate(
+            account: "usable",
+            instanceId: "instance-a",
+            byJwt: "usable.jwt",
+            issuedAt: 3_000,
+            expiresAt: 7_000
+        )
+
+        #expect(
+            SharedTunnelJwtStore.freshest(
+                [expiredButLaterIssued, usable],
+                now: 6_000
+            ) == usable
+        )
+    }
+
+    @Test func sharedTunnelJwtV1MigrationRecordRemainsReadable() throws {
+        struct LegacyEnvelope: Codable {
+            let version: Int
+            let instanceId: String
+            let byJwt: String
+        }
+        let data = try JSONEncoder().encode(
+            LegacyEnvelope(
+                version: 1,
+                instanceId: "instance-a",
+                byJwt: "legacy.jwt"
+            )
+        )
+        #expect(
+            SharedTunnelJwtStore.decode(
+                data,
+                expectedInstanceId: "instance-a"
+            ) == "legacy.jwt"
+        )
+        #expect(
+            SharedTunnelJwtStore.decode(
+                data,
+                expectedInstanceId: "instance-b"
+            ) == nil
+        )
+    }
+
     private func testTunnelIdentity() -> VPNTunnelConfigurationIdentity {
         VPNTunnelConfigurationIdentity(
             rpcListenHostPort: "127.0.0.1:12000",
@@ -471,6 +738,17 @@ struct VPNReconciliationSupportTests {
             rpcClientPem: "client",
             networkSpaceJson: "{\"env\":\"test\"}",
             instanceId: "instance"
+        )
+    }
+
+    private func testRpcSession() -> RpcSession {
+        RpcSession(
+            clientPem: "client-private",
+            clientCertPem: "client-public",
+            serverPem: "server-private",
+            serverCertPem: "server-public",
+            host: "127.0.0.1",
+            port: 12000
         )
     }
 }

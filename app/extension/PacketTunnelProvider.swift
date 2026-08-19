@@ -487,6 +487,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.connected = false
         self.close?()
         self.close = nil
+        self.device = nil
+        self.deviceConfiguration = nil
+        self.localState = nil
         
 
 
@@ -552,12 +555,20 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return
         }
 
+        // DeviceLocal starts background work during construction. Until the
+        // complete session close closure is installed below, any early return
+        // must close it rather than leaving its Go graph alive in the extension.
+        let startupCleanup = TunnelStartupCleanup {
+            device.close()
+        }
+
         // start the rpc server listening on the per-session host/port,
         // presenting the self-signed server certificate and requiring + pinning
         // the client certificate (mTLS) from the app
         do {
             try device.setRpcServer(rpcServerPem, clientCertPem: rpcClientPem, hostPort: rpcListenHostPort)
         } catch {
+            startupCleanup.cleanUpNow()
             completionHandler(error)
             return
         }
@@ -874,37 +885,21 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
 //        let packetWriteLock = NSLock()
         let packetReceiverSub = device.add(PacketBatchBytesReceiver { packetBatchBytes in
-            var packets: [Data] = []
-            var protocols: [NSNumber] = []
-            packetBatchBytes.withUnsafeBytes { rawBuffer in
-                guard let bytes = rawBuffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                    return
+            autoreleasepool {
+                var packets: [Data] = []
+                var protocols: [NSNumber] = []
+                packets.reserveCapacity(TunnelPacketBatchCodec.maxPacketCount)
+                protocols.reserveCapacity(TunnelPacketBatchCodec.maxPacketCount)
+                let valid = TunnelPacketBatchCodec.decode(packetBatchBytes) { packet, ipVersion in
+                    packets.append(packet)
+                    protocols.append((ipVersion == 4 ? AF_INET : AF_INET6) as NSNumber)
                 }
-                var offset = 0
-                while 2 <= rawBuffer.count - offset {
-                    let packetByteCount =
-                        (Int(bytes[offset]) << 8) | Int(bytes[offset + 1])
-                    offset += 2
-                    guard 0 < packetByteCount,
-                          packetByteCount <= rawBuffer.count - offset else {
-                        return
-                    }
-                    let ipVersion = bytes[offset] >> 4
-                    switch ipVersion {
-                    case 4:
-                        protocols.append(AF_INET as NSNumber)
-                    case 6:
-                        protocols.append(AF_INET6 as NSNumber)
-                    default:
-                        offset += packetByteCount
-                        continue
-                    }
-                    packets.append(Data(bytes: bytes + offset, count: packetByteCount))
-                    offset += packetByteCount
+                if valid && !packets.isEmpty {
+                    // This is Connect's deliberate device-TUN receive
+                    // exception: keep final NEPacketTunnelFlow injection
+                    // synchronous so Transfer ACK follows accepted delivery.
+                    self.packetFlow.writePackets(packets, withProtocols: protocols)
                 }
-            }
-            if !packets.isEmpty {
-                self.packetFlow.writePackets(packets, withProtocols: protocols)
             }
         })
 
@@ -935,6 +930,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 //            packetContext.wrappingIncrement(ordering: .relaxed)
             device.close()
         }
+        startupCleanup.commit()
 
 //        Thread.setThreadPriority(1.0)
 //        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
@@ -1015,10 +1011,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         dnsSettings.matchDomains = [""]
         networkSettings.dnsSettings = dnsSettings
 
-        // default URnetwork MTU
-        networkSettings.mtu = 1440
+        // Keep one full encrypted tunnel packet eligible for H3's single-
+        // DATAGRAM lane. This is the same value used by provider packetization.
+        let tunnelMtu = SdkGetDefaultTunnelMtu()
+        networkSettings.mtu = NSNumber(value: tunnelMtu)
 
-        let signature = "v4=\(tunnelLocalAddress)|v6=off|dns=\(dnsServers.joined(separator: ","))|mtu=1440"
+        let signature = "v4=\(tunnelLocalAddress)|v6=off|dns=\(dnsServers.joined(separator: ","))|mtu=\(tunnelMtu)"
         return TunnelNetworkSettingsPlan(
             settings: networkSettings,
             signature: signature
@@ -1353,23 +1351,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             guard self.isPacketReadActive(generation: generation) else { return }
 
             if let device = self.device {
-                for batchStart in stride(from: 0, to: packets.count, by: 64) {
-                    let batchEnd = min(batchStart + 64, packets.count)
-                    var packetBatchBytes = Data()
-                    let batchByteCount = packets[batchStart..<batchEnd].reduce(0) {
-                        $0 + 2 + $1.count
-                    }
-                    packetBatchBytes.reserveCapacity(batchByteCount)
-                    for packet in packets[batchStart..<batchEnd] {
-                        guard packet.count <= Int(UInt16.max) else { continue }
-                        var packetByteCount = UInt16(packet.count).bigEndian
-                        Swift.withUnsafeBytes(of: &packetByteCount) {
-                            packetBatchBytes.append(contentsOf: $0)
-                        }
-                        packetBatchBytes.append(packet)
-                    }
-                    if !packetBatchBytes.isEmpty {
-                        device.sendPacketBatch(packetBatchBytes)
+                TunnelPacketBatchCodec.encode(packets) { packetBatchBytes in
+                    autoreleasepool {
+                        _ = device.sendPacketBatch(packetBatchBytes)
                     }
                 }
             }

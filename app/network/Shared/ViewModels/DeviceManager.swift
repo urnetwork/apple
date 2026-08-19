@@ -983,6 +983,20 @@ extension DeviceManager {
             device.setDefaultLocation(defaultLocation)
         }
 
+        // transport settings: the device (in the extension) persists and
+        // restores its own policy, but the app and the extension do not share
+        // storage, so an edit made while the tunnel was down would be lost on
+        // relaunch. The app local state mirrors every edit
+        // (TransportSettingsStore.apply); seed the remote from that mirror so
+        // the edit is queued and applied on the next connect. Nothing stored
+        // means never edited: leave the extension's persisted/default policy.
+        if let transportSettings = localState.getTransportSettings() {
+            device.setTransportSettings(transportSettings)
+        }
+        if let providerTransportSettings = localState.getProviderTransportSettings() {
+            device.setProviderTransportSettings(providerTransportSettings)
+        }
+
         self.setDevice(device: device)
         return true
     }

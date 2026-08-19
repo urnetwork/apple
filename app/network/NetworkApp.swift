@@ -88,6 +88,7 @@ struct NetworkApp: App {
     @StateObject var throughputStore = ThroughputStore()
     @StateObject var blockActionsStore = BlockActionsStore()
     @StateObject var dnsSettingsStore = DnsSettingsStore()
+    @StateObject var transportSettingsStore = TransportSettingsStore()
     @StateObject var networkPeersStore = NetworkPeersStore()
     @StateObject var reliabilityStore = ReliabilityStore()
 
@@ -157,6 +158,9 @@ struct NetworkApp: App {
         throughputStore.setup(device)
         blockActionsStore.setup(device)
         dnsSettingsStore.setup(device)
+        // the app local state mirrors the transport settings edits so they
+        // survive an app relaunch while the tunnel is down (see the store)
+        transportSettingsStore.setup(device, localState: deviceManager.asyncLocalState?.getLocalState())
         networkPeersStore.setup(device)
         reliabilityStore.setup(device)
     }
@@ -165,6 +169,7 @@ struct NetworkApp: App {
         throughputStore.reset()
         blockActionsStore.reset()
         dnsSettingsStore.reset()
+        transportSettingsStore.reset()
         networkPeersStore.reset()
         reliabilityStore.reset()
     }
@@ -270,6 +275,7 @@ struct NetworkApp: App {
                 .environmentObject(throughputStore)
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
+                .environmentObject(transportSettingsStore)
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
@@ -314,6 +320,7 @@ struct NetworkApp: App {
                 .environmentObject(throughputStore)
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
+                .environmentObject(transportSettingsStore)
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
                 .environment(\.presentationActive, presentationLifecycle.isActive)

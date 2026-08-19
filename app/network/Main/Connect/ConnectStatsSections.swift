@@ -16,6 +16,7 @@ enum ConnectStatsSheet: String, Identifiable {
     case splitRules
     case dnsSettings
     case providerLocations
+    case transportSettings
 
     var id: String { rawValue }
 }
@@ -50,6 +51,18 @@ struct ConnectStatsSections: View {
                     route: .remote,
                     title: "Remote",
                     window: throughputStore.windowDuration
+                )
+
+                Spacer().frame(height: 12)
+
+                /**
+                 * The remote traffic of the window by transport, full width
+                 * under the remote plot. Tap to open the transport settings.
+                 * The child tap wins over the card's tap.
+                 */
+                TransportDistributionBar(
+                    distribution: throughputStore.clientTransportDistribution,
+                    action: { openSheet(.transportSettings) }
                 )
 
                 Spacer().frame(height: 12)
@@ -275,6 +288,7 @@ struct ConnectStatsSheets: ViewModifier {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var blockActionsStore: BlockActionsStore
     @EnvironmentObject var dnsSettingsStore: DnsSettingsStore
+    @EnvironmentObject var transportSettingsStore: TransportSettingsStore
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var connectViewModel: ConnectViewModel
 
@@ -297,14 +311,30 @@ struct ConnectStatsSheets: ViewModifier {
                         }
                     case .dnsSettings:
                         dnsSettingsSheet
+                    case .transportSettings:
+                        transportSettingsSheet
                     }
                 }
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
                 .environmentObject(blockActionsStore)
                 .environmentObject(dnsSettingsStore)
+                .environmentObject(transportSettingsStore)
                 .environmentObject(snackbarManager)
             }
+    }
+
+    @ViewBuilder
+    private var transportSettingsSheet: some View {
+        let transportView = TransportSettingsView(
+            kind: .client,
+            settings: transportSettingsStore.clientSettings
+        )
+        #if os(macOS)
+        transportView.frame(minWidth: 480, minHeight: 540)
+        #else
+        transportView
+        #endif
     }
 
     @ViewBuilder

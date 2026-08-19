@@ -12,8 +12,9 @@
 		1728CF992D1691F100050EC5 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
 		175DEFB62D6DAB7700A9BD36 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */; };
 		17A25D3E2D5C702200507C75 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */; platformFilter = ios; };
-		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = B17E00032F00000100000003 /* URnetworkExtensionSdk */; };
+		B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */; };
+		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -70,6 +71,7 @@
 		175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		1783A00D2D60111600024F80 /* URnetworkLaunchHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = URnetworkLaunchHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		178F47EA2CEDA80A00CD9C3D /* URnetwork-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "URnetwork-Info.plist"; sourceTree = "<group>"; };
+		B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelMemoryBounds.swift; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -168,6 +170,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D12FB4D230335883004A3A45 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		D1B95A462CEBDD6900542E0E = {
 			isa = PBXGroup;
 			children = (
@@ -180,6 +190,7 @@
 				1783A00E2D60111700024F80 /* URnetworkLaunchHelper */,
 				D1B95A822CEBE76400542E0E /* Frameworks */,
 				D1B95A502CEBDD6900542E0E /* Products */,
+				D12FB4D230335883004A3A45 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -457,6 +468,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -675,7 +687,6 @@
 				INFOPLIST_FILE = "URnetwork-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -688,6 +699,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -746,7 +758,6 @@
 				INFOPLIST_FILE = "URnetwork-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -759,6 +770,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -1042,13 +1054,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = URnetworkSdk;
-		};
 		B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = URnetworkExtensionSdk;
+		};
+		D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = URnetworkSdk;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -1074,15 +1086,15 @@
 			package = 17041CF52D026BE4003F4D5A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
 		};
-		D1829C212CEBF0D700920833 /* URnetworkSdk */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
-			productName = URnetworkSdk;
-		};
 		B17E00032F00000100000003 /* URnetworkExtensionSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */;
 			productName = URnetworkExtensionSdk;
+		};
+		D1829C212CEBF0D700920833 /* URnetworkSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
+			productName = URnetworkSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

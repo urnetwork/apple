@@ -28280,6 +28280,28 @@
         }
       }
     },
+    "Direct over QUIC. Fastest where it is not filtered." : {
+      "comment" : "One line description of the H3 transport in the transport settings editor.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct over QUIC. Fastest where it is not filtered."
+          }
+        }
+      }
+    },
+    "Direct over TLS. Works on most networks." : {
+      "comment" : "One line description of the H1 transport in the transport settings editor.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct over TLS. Works on most networks."
+          }
+        }
+      }
+    },
     "Disconnect" : {
       "comment" : "Disconnect VPN button text",
       "localizations" : {
@@ -28610,6 +28632,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "斷開 URnetwork VPN 連接"
+          }
+        }
+      }
+    },
+    "Disguised as DNS traffic with a constant reply pump. Lowest bandwidth, highest availability." : {
+      "comment" : "One line description of the whodis pump (DNS pump) transport in the transport settings editor.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disguised as DNS traffic with a constant reply pump. Lowest bandwidth, highest availability."
+          }
+        }
+      }
+    },
+    "Disguised as DNS traffic. For networks that filter direct connections." : {
+      "comment" : "One line description of the whodis (DNS) transport in the transport settings editor.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disguised as DNS traffic. For networks that filter direct connections."
           }
         }
       }
@@ -30659,6 +30703,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟用提供模式以使此裝置可被發現"
+          }
+        }
+      }
+    },
+    "Enabled under Auto" : {
+      "comment" : "Section header of the per-transport enable toggles shown when the transport mode is Auto.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enabled under Auto"
           }
         }
       }
@@ -42400,6 +42455,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連結另一種登入帳戶的方式。"
+          }
+        }
+      }
+    },
+    "Listed in preference order: H3 and H1 first, then whodis, then whodis pump. The order is fixed. At least one transport stays enabled." : {
+      "comment" : "Footer of the Auto transports section explaining the fixed preference order.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listed in preference order: H3 and H1 first, then whodis, then whodis pump. The order is fixed. At least one transport stays enabled."
           }
         }
       }
@@ -55646,6 +55712,17 @@
         }
       }
     },
+    "Provider transports" : {
+      "comment" : "Title of the transport settings editor for the provider transport policy.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provider transports"
+          }
+        }
+      }
+    },
     "Providing" : {
       "comment" : "Used in Main/Account/Wallets/WalletsView.swift.",
       "localizations" : {
@@ -56324,6 +56401,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Purchase found. Confirming your plan — it will update automatically."
+          }
+        }
+      }
+    },
+    "queued" : {
+      "comment" : "Transport bar label for traffic admitted for sending but not yet attributed to a physical transport.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "queued"
           }
         }
       }
@@ -57160,6 +57248,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接收連接通知"
+          }
+        }
+      }
+    },
+    "Recommended. Uses the enabled transports below." : {
+      "comment" : "Subtitle of the Auto transport mode row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended. Uses the enabled transports below."
           }
         }
       }
@@ -62306,6 +62405,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解析器"
+          }
+        }
+      }
+    },
+    "Restore default transports" : {
+      "comment" : "Button that resets the transport settings draft to the SDK default policy.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore default transports"
           }
         }
       }
@@ -73203,6 +73313,28 @@
         }
       }
     },
+    "The transport this device uses to reach providers. Auto tries the enabled transports in preference order and keeps every healthy transport of the same tier connected in parallel." : {
+      "comment" : "Footer of the client transport mode section.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The transport this device uses to reach providers. Auto tries the enabled transports in preference order and keeps every healthy transport of the same tier connected in parallel."
+          }
+        }
+      }
+    },
+    "The transport this device uses while providing for others. Auto tries the enabled transports in preference order and keeps every healthy transport of the same tier connected in parallel." : {
+      "comment" : "Footer of the provider transport mode section.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The transport this device uses while providing for others. Auto tries the enabled transports in preference order and keeps every healthy transport of the same tier connected in parallel."
+          }
+        }
+      }
+    },
     "There are unapplied recommended settings for {country}" : {
       "comment" : "dns settings",
       "localizations" : {
@@ -77255,6 +77387,28 @@
         }
       }
     },
+    "Transport" : {
+      "comment" : "Section header of the transport mode selection (Auto or a single transport).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transport"
+          }
+        }
+      }
+    },
+    "Transports" : {
+      "comment" : "Title of the transport distribution bar under the client statistics chart and of the transport settings editor.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transports"
+          }
+        }
+      }
+    },
     "Trusted by over 100,000 private networks" : {
       "comment" : "Used in Shared/Views/Introduction/IntroductionView.swift.",
       "localizations" : {
@@ -78588,6 +78742,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未支付的已提供數據"
+          }
+        }
+      }
+    },
+    "unused" : {
+      "comment" : "Prefix of the transport bar footer listing the enabled transports that carried no traffic in the stats window.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unused"
           }
         }
       }

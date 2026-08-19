@@ -357,8 +357,11 @@ struct ProviderStatsSection: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var throughputStore: ThroughputStore
+    @EnvironmentObject var transportSettingsStore: TransportSettingsStore
 
     let navigate: (AccountNavigationPath) -> Void
+
+    @State private var presentTransportSettings = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -382,6 +385,18 @@ struct ProviderStatsSection: View {
                     route: .local,
                     title: "Local",
                     window: throughputStore.windowDuration
+                )
+
+                Spacer().frame(height: 12)
+
+                /**
+                 * The relayed traffic of the window by the transport this
+                 * device used to carry it, under the provider plot. Tap to
+                 * open the provider transport settings.
+                 */
+                TransportDistributionBar(
+                    distribution: throughputStore.providerTransportDistribution,
+                    action: { presentTransportSettings = true }
                 )
 
                 Spacer().frame(height: 12)
@@ -411,6 +426,21 @@ struct ProviderStatsSection: View {
             if throughputStore.hasProviderStats {
                 navigate(.providerContracts)
             }
+        }
+        .sheet(isPresented: $presentTransportSettings) {
+            let transportView = TransportSettingsView(
+                kind: .provider,
+                settings: transportSettingsStore.providerSettings
+            )
+            Group {
+                #if os(macOS)
+                transportView.frame(minWidth: 480, minHeight: 540)
+                #else
+                transportView
+                #endif
+            }
+            .environmentObject(themeManager)
+            .environmentObject(transportSettingsStore)
         }
     }
 }

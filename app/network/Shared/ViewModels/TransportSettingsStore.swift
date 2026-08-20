@@ -35,8 +35,8 @@ enum TransportType: String, CaseIterable, Identifiable, Hashable {
 
     /**
      * The carriers a transport mode can select, in the SDK's default preference
-     * order (h3 and h1 tie as the direct tier, then dns, then dns pump). This
-     * is the order every transport list in the app shows them in.
+     * order (h1, h3, dns, then dns pump). This is the order every transport
+     * list in the app shows them in.
      */
     static var selectable: [TransportType] {
         Self.fromSdk(SdkSelectableTransportModes())
@@ -104,7 +104,8 @@ enum TransportType: String, CaseIterable, Identifiable, Hashable {
         case .dns: return .urPink
         case .dnsPump: return .urYellow
         case .p2p: return .urElectricBlue
-        case .unknown: return theme.textMutedColor
+        // dark neutral: muted gray read too close to the pale H1 blue in the bar
+        case .unknown: return theme.textFaintColor
         }
     }
 }
@@ -184,6 +185,70 @@ struct TransportSettings: Equatable {
     }
 }
 
+/** Runtime Auto capability reported by the extension that owns the transport budget. */
+struct TransportRuntimeStatus: Equatable {
+    let autoDegraded: Bool
+    let autoEligibleTransports: Set<TransportType>
+    let autoConstraint: String
+
+    init(_ sdk: SdkTransportStatus) {
+        autoDegraded = sdk.autoDegraded
+        autoEligibleTransports = Set(TransportType.fromSdk(sdk.autoEligibleModes))
+        autoConstraint = sdk.autoConstraint
+    }
+
+    func isAutoEligible(_ transport: TransportType) -> Bool {
+        autoEligibleTransports.contains(transport)
+    }
+}
+
+/**
+ * The status decorations of the transport settings editor, computed as one
+ * pure step so every display rule is deterministic and testable:
+ * - decorations render only for Auto, only with a known status, and only
+ *   while the draft equals the applied policy the status was computed for
+ *   (a status must never be interpreted against an unrelated draft)
+ * - `autoDegraded` is authoritative: no degradation, no decorations
+ * - a transport is constrained when it is enabled under Auto and absent from
+ *   the status's eligible modes; the banner can render with no constrained
+ *   rows when the ineligible modes are vocabulary this app does not know
+ * - the memory constraint has its own copy; any other constraint uses the
+ *   generic system-constraint copy (an unknown future constraint must not be
+ *   presented as a memory limit)
+ */
+struct TransportStatusPresentation: Equatable {
+    let showBanner: Bool
+    let memoryConstraint: Bool
+    let constrainedTransports: Set<TransportType>
+
+    static let hidden = TransportStatusPresentation(
+        showBanner: false,
+        memoryConstraint: false,
+        constrainedTransports: []
+    )
+
+    static func compute(
+        draft: TransportSettings,
+        statusPolicy: TransportSettings?,
+        status: TransportRuntimeStatus?
+    ) -> TransportStatusPresentation {
+        guard
+            let status,
+            status.autoDegraded,
+            draft.isAuto,
+            let statusPolicy,
+            draft == statusPolicy
+        else {
+            return .hidden
+        }
+        return TransportStatusPresentation(
+            showBanner: true,
+            memoryConstraint: status.autoConstraint == SdkTransportConstraintMemory,
+            constrainedTransports: Set(draft.autoTransports.filter { !status.isAutoEligible($0) })
+        )
+    }
+}
+
 /**
  * Which device policy a transport settings surface edits: the client policy
  * (the carrier this device uses to reach providers) or the provider policy
@@ -221,6 +286,26 @@ private class ProviderTransportSettingsListener: NSObject, SdkProviderTransportS
     }
 }
 
+private class TransportStatusListener: NSObject, SdkTransportStatusChangeListenerProtocol {
+    private let callback: (SdkTransportStatus?) -> Void
+    init(callback: @escaping (SdkTransportStatus?) -> Void) {
+        self.callback = callback
+    }
+    func transportStatusChanged(_ transportStatus: SdkTransportStatus?) {
+        callback(transportStatus)
+    }
+}
+
+private class ProviderTransportStatusListener: NSObject, SdkProviderTransportStatusChangeListenerProtocol {
+    private let callback: (SdkTransportStatus?) -> Void
+    init(callback: @escaping (SdkTransportStatus?) -> Void) {
+        self.callback = callback
+    }
+    func providerTransportStatusChanged(_ transportStatus: SdkTransportStatus?) {
+        callback(transportStatus)
+    }
+}
+
 /**
  * Publishes the device transport settings (client and provider) and applies
  * edits.
@@ -246,11 +331,24 @@ class TransportSettingsStore: ObservableObject {
 
     @Published private(set) var clientSettings: TransportSettings? = nil
     @Published private(set) var providerSettings: TransportSettings? = nil
+    @Published private(set) var clientStatus: TransportRuntimeStatus? = nil
+    @Published private(set) var providerStatus: TransportRuntimeStatus? = nil
+    // the applied policy each status was computed for. The device delivers the
+    // paired settings event before its status event (and refresh() reads
+    // settings first), so the published settings at status arrival are the
+    // paired snapshot. When a settings change arrives without a status (an
+    // offline queued edit), the pairing intentionally goes stale so the editor
+    // hides its decorations instead of interpreting the old status against an
+    // unrelated policy.
+    @Published private(set) var clientStatusPolicy: TransportSettings? = nil
+    @Published private(set) var providerStatusPolicy: TransportSettings? = nil
 
     private var device: SdkDeviceRemote?
     private var localState: SdkLocalState?
     private var clientSub: SdkSubProtocol?
     private var providerSub: SdkSubProtocol?
+    private var clientStatusSub: SdkSubProtocol?
+    private var providerStatusSub: SdkSubProtocol?
 
     func setup(_ device: SdkDeviceRemote, localState: SdkLocalState?) {
         reset()
@@ -268,6 +366,16 @@ class TransportSettingsStore: ObservableObject {
                 self?.publish(sdkSettings, kind: .provider)
             }
         })
+        self.clientStatusSub = device.add(TransportStatusListener { [weak self] sdkStatus in
+            DispatchQueue.main.async {
+                self?.publish(sdkStatus, kind: .client)
+            }
+        })
+        self.providerStatusSub = device.add(ProviderTransportStatusListener { [weak self] sdkStatus in
+            DispatchQueue.main.async {
+                self?.publish(sdkStatus, kind: .provider)
+            }
+        })
 
         refresh()
     }
@@ -277,16 +385,42 @@ class TransportSettingsStore: ObservableObject {
         clientSub = nil
         providerSub?.close()
         providerSub = nil
+        clientStatusSub?.close()
+        clientStatusSub = nil
+        providerStatusSub?.close()
+        providerStatusSub = nil
         device = nil
         localState = nil
         clientSettings = nil
         providerSettings = nil
+        clientStatus = nil
+        providerStatus = nil
+        clientStatusPolicy = nil
+        providerStatusPolicy = nil
     }
 
     func settings(_ kind: TransportSettingsKind) -> TransportSettings? {
         switch kind {
         case .client: return clientSettings
         case .provider: return providerSettings
+        }
+    }
+
+    func status(_ kind: TransportSettingsKind) -> TransportRuntimeStatus? {
+        switch kind {
+        case .client: return clientStatus
+        case .provider: return providerStatus
+        }
+    }
+
+    /**
+     * The applied policy the published status was computed for. The editor
+     * renders status decorations only while its draft equals this policy.
+     */
+    func statusPolicy(_ kind: TransportSettingsKind) -> TransportSettings? {
+        switch kind {
+        case .client: return clientStatusPolicy
+        case .provider: return providerStatusPolicy
         }
     }
 
@@ -300,6 +434,8 @@ class TransportSettingsStore: ObservableObject {
         }
         publish(device.getTransportSettings(), kind: .client)
         publish(device.getProviderTransportSettings(), kind: .provider)
+        publish(device.getTransportStatus(), kind: .client)
+        publish(device.getProviderTransportStatus(), kind: .provider)
     }
 
     /**
@@ -319,6 +455,31 @@ class TransportSettingsStore: ObservableObject {
         case .provider:
             if settings != providerSettings {
                 providerSettings = settings
+            }
+        }
+    }
+
+    private func publish(_ sdkStatus: SdkTransportStatus?, kind: TransportSettingsKind) {
+        guard let sdkStatus else {
+            return
+        }
+        let status = TransportRuntimeStatus(sdkStatus)
+        // pair the status with the settings current at its arrival, also when
+        // the status value itself is unchanged (the policy it decorates moved)
+        switch kind {
+        case .client:
+            if status != clientStatus {
+                clientStatus = status
+            }
+            if clientStatusPolicy != clientSettings {
+                clientStatusPolicy = clientSettings
+            }
+        case .provider:
+            if status != providerStatus {
+                providerStatus = status
+            }
+            if providerStatusPolicy != providerSettings {
+                providerStatusPolicy = providerSettings
             }
         }
     }

@@ -129,4 +129,154 @@ struct TransportStatsTests {
         #expect(a == b)
         #expect(a.sdk !== b.sdk)
     }
+
+    // MARK: runtime status presentation
+
+    private func status(
+        degraded: Bool,
+        eligible: [String],
+        constraint: String = SdkTransportConstraintMemory
+    ) -> TransportRuntimeStatus {
+        let sdk = SdkTransportStatus()
+        sdk.autoDegraded = degraded
+        let modes = SdkStringList()
+        for mode in eligible {
+            modes?.add(mode)
+        }
+        sdk.autoEligibleModes = modes
+        sdk.autoConstraint = degraded ? constraint : ""
+        return TransportRuntimeStatus(sdk)
+    }
+
+    private var defaultAuto: TransportSettings {
+        TransportSettings(SdkDefaultTransportSettings()!)
+    }
+
+    @Test func healthyStatusShowsNoDecorations() {
+        let applied = defaultAuto
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: status(degraded: false, eligible: TransportType.selectable.map { $0.rawValue })
+        )
+        #expect(presentation == .hidden)
+    }
+
+    @Test func degradedStatusMarksEnabledIneligibleTransports() {
+        let applied = defaultAuto
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: status(degraded: true, eligible: [SdkTransportModeH1])
+        )
+        #expect(presentation.showBanner)
+        #expect(presentation.memoryConstraint)
+        #expect(presentation.constrainedTransports == [.h3, .dns, .dnsPump])
+    }
+
+    @Test func autoDisabledTransportIsNeverConstrained() {
+        // h3 disabled in the policy and absent from the eligible modes: no
+        // indicator on h3, only on the enabled-but-ineligible carriers
+        let sdk = SdkDefaultTransportSettings()!
+        #expect(sdk.setAutoModeEnabled(SdkTransportModeH3, enabled: false))
+        let applied = TransportSettings(sdk)
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: status(degraded: true, eligible: [SdkTransportModeH1])
+        )
+        #expect(presentation.showBanner)
+        #expect(presentation.constrainedTransports == [.dns, .dnsPump])
+    }
+
+    @Test func explicitModeHidesAutoStatus() {
+        let sdk = SdkDefaultTransportSettings()!
+        sdk.mode = SdkTransportModeH3
+        let applied = TransportSettings(sdk)
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: status(degraded: true, eligible: [SdkTransportModeH1])
+        )
+        #expect(presentation == .hidden)
+    }
+
+    @Test func unknownStatusShowsNoDecorations() {
+        let applied = defaultAuto
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: nil
+        )
+        #expect(presentation == .hidden)
+    }
+
+    @Test func dirtyDraftHidesStatusUntilItMatchesTheAppliedPolicy() {
+        let applied = defaultAuto
+        let degraded = status(degraded: true, eligible: [SdkTransportModeH1])
+
+        // an edit away from the applied policy hides the decorations
+        let draftSdk = applied.sdk.clone() ?? applied.sdk
+        #expect(draftSdk.setAutoModeEnabled(SdkTransportModeDnsPump, enabled: false))
+        let edited = TransportStatusPresentation.compute(
+            draft: TransportSettings(draftSdk),
+            statusPolicy: applied,
+            status: degraded
+        )
+        #expect(edited == .hidden)
+
+        // editing back to the applied policy restores them
+        #expect(draftSdk.setAutoModeEnabled(SdkTransportModeDnsPump, enabled: true))
+        let restored = TransportStatusPresentation.compute(
+            draft: TransportSettings(draftSdk),
+            statusPolicy: applied,
+            status: degraded
+        )
+        #expect(restored.showBanner)
+
+        // a stale pairing (settings moved without a status) also hides them
+        let unpaired = TransportStatusPresentation.compute(
+            draft: TransportSettings(draftSdk),
+            statusPolicy: nil,
+            status: degraded
+        )
+        #expect(unpaired == .hidden)
+    }
+
+    @Test func unknownConstraintUsesGenericCopy() {
+        let applied = defaultAuto
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: status(degraded: true, eligible: [SdkTransportModeH1], constraint: "quantum")
+        )
+        #expect(presentation.showBanner)
+        #expect(!presentation.memoryConstraint)
+    }
+
+    @Test func unknownEligibleVocabularyKeepsTheBannerRenderable() {
+        // the authoritative degraded flag renders the banner even when the
+        // eligible list carries only vocabulary this app does not know
+        let applied = defaultAuto
+        let presentation = TransportStatusPresentation.compute(
+            draft: applied,
+            statusPolicy: applied,
+            status: status(degraded: true, eligible: ["warp9"])
+        )
+        #expect(presentation.showBanner)
+        #expect(presentation.constrainedTransports == [.h3, .h1, .dns, .dnsPump])
+    }
+
+    @Test func storeStartsAndResetsWithUnknownStatus() async {
+        await MainActor.run {
+            let store = TransportSettingsStore()
+            #expect(store.status(.client) == nil)
+            #expect(store.statusPolicy(.client) == nil)
+            store.reset()
+            #expect(store.status(.client) == nil)
+            #expect(store.status(.provider) == nil)
+            #expect(store.statusPolicy(.client) == nil)
+            #expect(store.statusPolicy(.provider) == nil)
+        }
+    }
 }

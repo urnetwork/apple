@@ -187,9 +187,11 @@ Files (all under `app/network`, a synchronized Xcode group — no pbxproj edits)
   - `TransportType` enum (raw values = SDK strings): PRESENTATION ONLY —
     `label` (H3, H1, whodis, whodis pump, P2P, "queued" for unknown),
     `detail`, brand `color(theme)`: H3 urGreen, H1 urLightBlue, whodis urPink,
-    whodis pump urYellow, P2P urElectricBlue, queued neutral (theme muted).
-    Coral is deliberately not used so the bar cannot be confused with the
-    Blocked chart next to it. `selectable` reads `SdkSelectableTransportModes()`.
+    whodis pump urYellow, P2P urElectricBlue, queued dark neutral (theme faint,
+    2026-08-20: was theme muted, which read too close to the pale H1 blue —
+    same swap on all five platforms: TextFaint / kUrTextFaint / kTextFaint /
+    #5a5a5a). Coral is deliberately not used so the bar cannot be confused with
+    the Blocked chart next to it. `selectable` reads `SdkSelectableTransportModes()`.
   - `TransportSettings`: a render SNAPSHOT of an `SdkTransportSettings`
     (`singleTransport`, `autoTransports`, `enabledTransports`, all via the SDK
     helpers) that keeps the `sdk` object; edits go through the SDK object then
@@ -217,7 +219,9 @@ Files (all under `app/network`, a synchronized Xcode group — no pbxproj edits)
     transport is then in the unused footer.
   - Legend row (used shares: dot + name + SDK percent, "<1%" for a used 0,
     `numericText` roll) and unused footer row (hollow dots + names, faint,
-    prefixed "unused"); rows wrap on narrow drawers (`FlowRow` layout). Title
+    prefixed "unused"); rows wrap on narrow drawers (`FlowRow` layout, every
+    item in a line placed on the line's shared last-text-baseline so the names
+    and the "unused" label sit on one common baseline). Title
     row "Transports ›" so the nested tap target reads as its own control inside
     the tappable card. Whole component tappable → editor.
 - `Shared/Views/Stats/TransportSettingsView.swift`: the editor sheet, same
@@ -337,3 +341,31 @@ relaunch and the offline reads would show the default. Hence:
   (`transport_h3/h1/dns/dnspump/p2p` ids) intentionally have no store keys yet — they are
   non-translatable product names using in-code English fallbacks; add
   `translatable: false` keys if wanted.
+
+### Legend baseline pass (2026-08-20)
+
+Invariant: within a legend/footer line, all names (and the "unused" label) sit
+on one common text baseline.
+
+- **Apple**: the real bug — `FlowRow` placed each item centered at the running
+  row height, so the first item of every line rode half a line high. Rewritten
+  as a two-pass layout that aligns every item on the line's shared
+  last-text-baseline (`TransportDistributionBar.swift`). Verified: app builds,
+  `TransportStatsTests` 7/7 on the sim.
+- **Android**: `itemVerticalAlignment = Alignment.Bottom` on both FlowRows
+  (Compose has no cross-item baseline in FlowRow; bottom ≡ baseline for the
+  uniform 11sp labels and stays closest if heights ever diverge). Verified:
+  `:app:compileGithubDebugKotlin` against a fresh AAR.
+- **Linux**: `WrapRow` now bottom-aligns items in a row (was center — already
+  two-pass, no first-item bug); chip labels `set_valign(END)` because the
+  `ur-mono-11` percent face has different metrics from the caption face, so
+  per-chip centering skewed their baselines. Verified: TU compiles (ninja).
+- **Windows**: cross-item alignment was already exact (every inline is an
+  `InlineUIContainer` bottom-anchored on the RichTextBlock line baseline);
+  within chips the Consolas percent vs Segoe name were center-skewed →
+  `VerticalAlignment::Bottom` on the chip labels. Source-only (no local build).
+- **Web**: nothing applicable — all legend text is the same 11px face, so flex
+  `align-items: center` is exactly baseline-aligned; switching to
+  `align-items: baseline` would REGRESS (a chip's flex baseline comes from its
+  first item, the empty dot span, whose synthesized baseline is its bottom
+  edge mid-text). Leave center.

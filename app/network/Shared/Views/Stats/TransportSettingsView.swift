@@ -46,6 +46,19 @@ struct TransportSettingsView: View {
         sdkDraft.equals(kind.defaultSettings.sdk)
     }
 
+    /**
+     * The runtime-status decorations for the current draft. Every display
+     * rule (Auto-only, the draft-equals-applied gate, enabled-and-ineligible
+     * rows, memory vs generic copy) is the pure predicate's.
+     */
+    private var statusPresentation: TransportStatusPresentation {
+        TransportStatusPresentation.compute(
+            draft: draft,
+            statusPolicy: transportSettingsStore.statusPolicy(kind),
+            status: transportSettingsStore.status(kind)
+        )
+    }
+
     private var title: LocalizedStringKey {
         switch kind {
         case .client: return "Transports"
@@ -95,6 +108,25 @@ struct TransportSettingsView: View {
                 }
 
                 if draft.isAuto {
+                    if statusPresentation.showBanner {
+                        Section {
+                            Label {
+                                Group {
+                                    if statusPresentation.memoryConstraint {
+                                        Text("Auto is degraded because system memory limits prevent some enabled transports from running.")
+                                    } else {
+                                        Text("Auto is degraded because system constraints prevent some enabled transports from running.")
+                                    }
+                                }
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            } icon: {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.urAmber)
+                            }
+                        }
+                    }
+
                     Section {
                         ForEach(TransportType.selectable) { transport in
                             UrSwitchToggle(
@@ -104,13 +136,23 @@ struct TransportSettingsView: View {
                                 // resolve to the full default), so show it disabled
                                 isEnabled: !(draft.isAutoEnabled(transport) && draft.autoTransports.count == 1)
                             ) {
-                                transportLabel(transport, showsDetail: false)
+                                HStack {
+                                    transportLabel(transport, showsDetail: false)
+                                    Spacer()
+                                    // a runtime warning, not an editing
+                                    // restriction: the toggle stays editable
+                                    if statusPresentation.constrainedTransports.contains(transport) {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundColor(.urAmber)
+                                            .accessibilityLabel("Unavailable due to system constraints")
+                                    }
+                                }
                             }
                         }
                     } header: {
                         sectionHeader("Enabled under Auto")
                     } footer: {
-                        Text("Listed in preference order: H3 and H1 first, then whodis, then whodis pump. The order is fixed. At least one transport stays enabled.")
+                        Text("Listed in preference order: H1 first, then H3, whodis, and whodis pump. The order is fixed. At least one transport stays enabled.")
                             .font(themeManager.currentTheme.secondaryBodyFont)
                             .foregroundColor(themeManager.currentTheme.textFaintColor)
                     }
@@ -229,6 +271,7 @@ struct TransportSettingsView: View {
             }
         )
     }
+
 }
 
 #Preview {

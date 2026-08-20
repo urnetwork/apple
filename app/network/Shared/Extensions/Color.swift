@@ -15,6 +15,11 @@ extension Color {
     // near-black against the dark background)
     static let urMutedCoral = Color(hex: "C8604F")
 
+    // amber, used for runtime constraint warnings (a degraded Auto transport
+    // policy); byte-matched to the other platforms' amber and distinct from
+    // the whodis pump brand yellow
+    static let urAmber = Color(hex: "F5C242")
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0

@@ -279,46 +279,77 @@ struct AnimatableVector: VectorArithmetic, Equatable {
 
 /**
  * A left-aligned horizontal flow that wraps items to the next line when they
- * do not fit, for the legend and footer rows on narrow drawers.
+ * do not fit, for the legend and footer rows on narrow drawers. Every item in
+ * a line is aligned on the line's shared text baseline, so the transport
+ * names (and the unused label) sit on one common baseline.
  */
 struct FlowRow: Layout {
     var horizontalSpacing: CGFloat = 8
     var verticalSpacing: CGFloat = 4
 
+    private struct Item {
+        let index: Int
+        let size: CGSize
+        // distance from the item's top to its last text baseline; for items
+        // without text this is the bottom edge, which reads as the baseline
+        let baseline: CGFloat
+    }
+
+    private struct Line {
+        var items: [Item] = []
+        var width: CGFloat = 0
+        // deepest ascent above / descent below the shared baseline
+        var baseline: CGFloat = 0
+        var descent: CGFloat = 0
+        var height: CGFloat { baseline + descent }
+    }
+
+    private func lines(subviews: Subviews, maxWidth: CGFloat) -> [Line] {
+        var lines: [Line] = []
+        var line = Line()
+        var x: CGFloat = 0
+        for (index, subview) in subviews.enumerated() {
+            let dimensions = subview.dimensions(in: .unspecified)
+            let size = CGSize(width: dimensions.width, height: dimensions.height)
+            let baseline = dimensions[VerticalAlignment.lastTextBaseline]
+            if !line.items.isEmpty && maxWidth < x + size.width {
+                lines.append(line)
+                line = Line()
+                x = 0
+            }
+            line.items.append(Item(index: index, size: size, baseline: baseline))
+            line.width = x + size.width
+            line.baseline = max(line.baseline, baseline)
+            line.descent = max(line.descent, size.height - baseline)
+            x += size.width + horizontalSpacing
+        }
+        if !line.items.isEmpty {
+            lines.append(line)
+        }
+        return lines
+    }
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxWidth = proposal.width ?? .infinity
-        var x: CGFloat = 0
-        var y: CGFloat = 0
-        var rowHeight: CGFloat = 0
-        var width: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if 0 < x && maxWidth < x + size.width {
-                x = 0
-                y += rowHeight + verticalSpacing
-                rowHeight = 0
-            }
-            x += size.width + horizontalSpacing
-            rowHeight = max(rowHeight, size.height)
-            width = max(width, x - horizontalSpacing)
-        }
-        return CGSize(width: maxWidth.isFinite ? maxWidth : width, height: y + rowHeight)
+        let lines = lines(subviews: subviews, maxWidth: maxWidth)
+        let height = lines.reduce(0) { $0 + $1.height } + verticalSpacing * CGFloat(max(0, lines.count - 1))
+        let width = lines.reduce(0) { max($0, $1.width) }
+        return CGSize(width: maxWidth.isFinite ? maxWidth : width, height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x: CGFloat = bounds.minX
-        var y: CGFloat = bounds.minY
-        var rowHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if bounds.minX < x && bounds.maxX < x + size.width {
-                x = bounds.minX
-                y += rowHeight + verticalSpacing
-                rowHeight = 0
+        var y = bounds.minY
+        for line in lines(subviews: subviews, maxWidth: bounds.width) {
+            var x = bounds.minX
+            for item in line.items {
+                subviews[item.index].place(
+                    at: CGPoint(x: x, y: y + line.baseline - item.baseline),
+                    anchor: .topLeading,
+                    proposal: .unspecified
+                )
+                x += item.size.width + horizontalSpacing
             }
-            subview.place(at: CGPoint(x: x, y: y + rowHeight / 2), anchor: .leading, proposal: .unspecified)
-            x += size.width + horizontalSpacing
-            rowHeight = max(rowHeight, size.height)
+            y += line.height + verticalSpacing
         }
     }
 }

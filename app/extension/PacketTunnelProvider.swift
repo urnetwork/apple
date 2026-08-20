@@ -322,7 +322,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // SdkSetMemoryLimit sizes the global message pools (packet 12 :
             // large-object 2, of 34 parts) + go soft limit; the per-device
             // memory target is set separately at device creation. 32mb total
-            // footprint budget for the constrained extension.
+            // footprint budget for the constrained extension. At this target
+            // the aggregate platform budget admits H1 + H3, so iOS keeps the
+            // normal Auto policy. Smaller targets admit H1 first and leave H3
+            // unstarted when the two carriers do not fit together.
 #if os(iOS)
             SdkSetMemoryLimit(32 * 1024 * 1024)
 #else

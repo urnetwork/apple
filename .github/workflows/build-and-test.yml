@@ -1,0 +1,244 @@
+name: Build and test - Apple
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# macOS runners bill at 10x and this job is long (two gomobile binds, two
+# Release builds, a simulator test run). Keep one run per ref.
+concurrency:
+  group: build-and-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: xcodebuild (iOS + macOS)
+    # macos-15 is the Apple silicon image, and it has to be: sdk/build/Makefile
+    # binds `iossimulator/arm64` with no x86_64 simulator slice, so the
+    # simulator test host below cannot link on an intel runner. The image is
+    # macOS 15.7, above the networkTests target's MACOSX floor of 15.1.
+    runs-on: macos-15
+    # The two gomobile binds dominate: four slices each, over a
+    # gvisor/pion/quic-go-sized module, before any xcodebuild runs.
+    timeout-minutes: 180
+    env:
+      # Stamped into the SDK by -ldflags "-X github.com/urnetwork/sdk.Version=".
+      # The release pipeline derives this from warpctl; this workflow only
+      # builds and tests, so a constant is the honest value rather than a fake
+      # version. The Makefile tolerates it being empty; this is just legible.
+      WARP_VERSION: 0.0.0-ci
+      # The pinned Go below is a CEILING, not just a floor (see the setup-go
+      # step). `local` turns a future sibling bumping its go directive past
+      # 1.26 into a loud "requires go >= 1.27" error instead of a silent
+      # toolchain download that re-breaks the bind.
+      GOTOOLCHAIN: local
+    steps:
+      # The checkout MUST be a subdirectory named `apple`: the app links the
+      # SDK through app/URnetworkSdk/Package.swift, a binaryTarget whose path
+      # is ../../../sdk/build/apple/URnetworkSdk.xcframework -- i.e. a sibling
+      # checkout resolved from the workspace root.
+      - name: Check out apple
+        uses: actions/checkout@v4
+        with:
+          path: apple
+
+      # Those xcframeworks are committed nowhere and the sdk repo publishes no
+      # release, so there is nothing to download: CI builds them here or it
+      # cannot build the app at all.
+      - name: Check out sdk
+        uses: actions/checkout@v4
+        with:
+          repository: urnetwork/sdk
+          path: sdk
+
+      # sdk/go.mod and sdk/build/go.mod resolve these with
+      # `replace github.com/urnetwork/<x> => ../<x>` / `=> ../../<x>`, so they
+      # have to sit at the workspace root beside the sdk checkout. The
+      # directory names must match the replace targets exactly.
+      - name: Check out connect dependency
+        run: git clone --depth 1 https://github.com/urnetwork/connect.git connect
+
+      - name: Check out glog dependency
+        run: git clone --depth 1 https://github.com/urnetwork/glog.git glog
+
+      - name: Check out goidenticons dependency
+        run: git clone --depth 1 https://github.com/urnetwork/goidenticons.git goidenticons
+
+      # The sdk references RenderPngV2. goidenticons publishes it today, so
+      # this no-ops -- but an unconditional shim would be a REDECLARATION that
+      # fails the build, so write it only when the symbol is genuinely absent.
+      # Same guard, verbatim, as the windows workflow.
+      - name: Shim goidenticons RenderPngV2 if unpublished
+        run: |
+          if grep -qR '^func RenderPngV2(' goidenticons/; then
+            echo "goidenticons publishes RenderPngV2 -- no shim needed"
+          else
+            echo "goidenticons lacks RenderPngV2 -- shimming to RenderPng"
+            echo 'package goidenticons' > goidenticons/render_v2_ci_shim.go
+            echo 'func RenderPngV2(data []byte, size int) ([]byte, error) { return RenderPng(data, size) }' >> goidenticons/render_v2_ci_shim.go
+          fi
+
+      # 16.4 is the macos-15 default and the series this project was written
+      # for (pbxproj objectVersion 77 / LastUpgradeVersion 1620). Pinned so a
+      # runner-image default bump cannot silently move the toolchain to
+      # Xcode 26 and with it the iOS SDK the app is compiled against.
+      - name: Select Xcode 16.4
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app
+          xcodebuild -version
+          xcrun simctl list runtimes | grep -i ios
+
+      # NOT `go-version: stable`, which the sibling Go workflows use. stable is
+      # 1.27, and sdk/build/Makefile's build_apple exports GODEBUG=gotypesalias=0,
+      # which the go 1.27 runtime fatals on -- its own comment says
+      # gomobile/gobind must be built with go <= 1.26. go-version-file pins to
+      # the 1.26.5 in sdk/build/go.mod, the same convention server/test.yml uses.
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: sdk/build/go.mod
+          cache-dependency-path: sdk/build/go.sum
+
+      # init_tools, not `init`: build.sh uses `init` because it is a local dev
+      # script, but `init` additionally runs `go get golang.org/x/mobile/bind`
+      # (dirtying go.mod -- x/mobile is already pinned there at the same
+      # GOMOBILE_VERSION) and ends with `go clean -cache && go clean -modcache`,
+      # throwing away everything it just downloaded along with the setup-go
+      # cache. The Makefile says as much: init_tools exists "so acceptance
+      # builds do not install tools or clean shared Go caches".
+      #
+      # build_apple then binds URnetworkSdk.xcframework and
+      # URnetworkExtensionSdk.xcframework for ios/arm64 + iossimulator/arm64 +
+      # macos/arm64 + macos/amd64 and runs the SDK half of the size gate.
+      - name: Build the SDK xcframeworks
+        working-directory: sdk/build
+        run: make init_tools build_apple
+
+      # gomobile bind failing part-way can still leave a plausible-looking
+      # directory behind, and the app build would then fail 200 lines later
+      # with a confusing missing-module error. The Makefile only asserts the
+      # xcframework directories exist, and its size gate only measures the
+      # ios-arm64 slice -- so assert here on the SIMULATOR and MACOS slices
+      # too, which are exactly the ones the test run and the macOS build link.
+      - name: Verify the xcframeworks carry the slices the app links
+        run: |
+          fail=0
+          for fw in URnetworkSdk URnetworkExtensionSdk; do
+            root="sdk/build/apple/$fw.xcframework"
+            # slice directory names are xcodebuild's (ios-arm64,
+            # ios-arm64-simulator, macos-arm64_x86_64), not gomobile's target
+            # spelling, so match the last two by pattern
+            for pattern in 'ios-arm64' 'ios-arm64*simulator*' 'macos-*'; do
+              dir=""
+              for candidate in "$root"/*; do
+                [ -d "$candidate" ] || continue
+                # $pattern is deliberately unquoted here: `case` treats it as
+                # the glob it is, without the word-splitting an unquoted `ls`
+                # argument would bring
+                # shellcheck disable=SC2254
+                case "${candidate##*/}" in
+                  $pattern) dir="$candidate"; break ;;
+                esac
+              done
+              if [ -z "$dir" ]; then
+                echo "::error::$fw.xcframework has no $pattern slice"
+                fail=1
+                continue
+              fi
+              bin=$(find "$dir" -type f -name "$fw" | head -1)
+              if [ -z "$bin" ]; then
+                echo "::error::$dir contains no $fw binary"
+                fail=1
+                continue
+              fi
+              size=$(stat -f %z "$bin")
+              echo "$fw $(basename "$dir"): $size bytes"
+              # a real bind of this sdk is tens of MB; anything tiny is a stub
+              if [ "$size" -lt 5000000 ]; then
+                echo "::error::$bin is only $size bytes -- implausibly small"
+                fail=1
+              fi
+            done
+          done
+          exit $fail
+
+      # CODE_SIGNING_ALLOWED=NO and nothing else, exactly as build.sh does it:
+      # every target is CODE_SIGN_STYLE = Automatic with a DEVELOPMENT_TEAM
+      # baked into the pbxproj, and blanking that under automatic signing is
+      # the classic trigger for "Signing for X requires a development team".
+      # This is a BUILD, not an archive -- signing, provisioning, notarization
+      # and upload are deliberately out of scope for this workflow.
+      - name: Build for iOS (device, unsigned)
+        working-directory: apple/app
+        run: |
+          xcodebuild -workspace app.xcodeproj/project.xcworkspace \
+            -scheme URnetwork -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      # The same budget gate build.sh runs after its iOS build. Beyond the size
+      # ceiling it re-reads the appex's Go build metadata, so it also proves the
+      # extension really was built GOOS=ios with fips140 off -- a FIPS default
+      # would physically back a 32 MiB BSS buffer in the packet tunnel.
+      - name: Check the network extension size budget
+        run: |
+          sdk/build/check_apple_size.sh \
+            --extension apple/app/build/DerivedData/Build/Products/Release-iphoneos/URnetworkVPN.appex
+
+      - name: Build for macOS (unsigned)
+        working-directory: apple/app
+        run: |
+          xcodebuild -workspace app.xcodeproj/project.xcworkspace \
+            -scheme URnetwork -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      # networkTests is a host-app unit-test bundle (BUNDLE_LOADER / TEST_HOST
+      # is URnetwork.app), so the tests really do launch the app -- on the iOS
+      # Simulator, which needs no signing at all. test-main.sh proves that:
+      # its simulator leg passes CODE_SIGNING_ALLOWED=NO alone, while its macOS
+      # leg has to add -allowProvisioningUpdates DEVELOPMENT_TEAM=... because
+      # the sandbox and NetworkExtension entitlements need a real profile.
+      # That is why macOS above is build-only.
+      #
+      # -only-testing:networkTests because the URnetwork scheme's test action
+      # also lists networkUITests, whose testMainAcceptance signs into a live
+      # account from vault/main/test-acceptance.yml and asserts a changed
+      # public egress IP -- credentials this workflow neither has nor wants.
+      # networkTests is the repo's real unit suite (10 files, XCTest plus
+      # swift-testing), not a stand-in.
+      #
+      # OS is left unpinned: iPhone 16 exists in every runtime on this image
+      # and all of them clear the target's 18.1 floor, so pinning one only
+      # creates a break when the image rotates runtimes.
+      - name: Run unit tests on the iOS Simulator
+        working-directory: apple/app
+        run: |
+          xcodebuild test \
+            -workspace app.xcodeproj/project.xcworkspace \
+            -scheme URnetwork -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -derivedDataPath build/DerivedData \
+            -only-testing:networkTests \
+            -resultBundlePath build/networkTests.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload the test result bundle
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: networkTests-xcresult
+          path: apple/app/build/networkTests.xcresult
+          if-no-files-found: warn

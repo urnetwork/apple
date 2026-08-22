@@ -92,8 +92,8 @@ struct TransportStatsTests {
         var settings = TransportSettings(sdk)
         #expect(settings.isAuto)
         #expect(settings.singleTransport == nil)
-        #expect(settings.autoTransports == [.h3, .h1, .dns, .dnsPump])
-        #expect(settings.enabledTransports == [.h3, .h1, .dns, .dnsPump])
+        #expect(settings.autoTransports == [.h1, .h3, .dns, .dnsPump])
+        #expect(settings.enabledTransports == [.h1, .h3, .dns, .dnsPump])
 
         // a single mode enables its carrier only; the auto policy is retained
         sdk.mode = SdkTransportModeDns
@@ -101,7 +101,7 @@ struct TransportStatsTests {
         #expect(!settings.isAuto)
         #expect(settings.singleTransport == .dns)
         #expect(settings.enabledTransports == [.dns])
-        #expect(settings.autoTransports == [.h3, .h1, .dns, .dnsPump])
+        #expect(settings.autoTransports == [.h1, .h3, .dns, .dnsPump])
 
         // edits go through the sdk helpers and are visible in a fresh snapshot
         sdk.mode = SdkTransportModeAuto
@@ -117,7 +117,7 @@ struct TransportStatsTests {
     }
 
     @Test func selectableTransportsAreTheSdkDefaultOrder() {
-        #expect(TransportType.selectable == [.h3, .h1, .dns, .dnsPump])
+        #expect(TransportType.selectable == [.h1, .h3, .dns, .dnsPump])
         #expect(TransportType.h3.isSelectable)
         #expect(!TransportType.p2p.isSelectable)
         #expect(!TransportType.unknown.isSelectable)

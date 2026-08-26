@@ -111,6 +111,7 @@ struct SettingsView: View {
                     }
                     
                 }
+                .accessibilityIdentifier("acceptance.account.delete.confirm")
             }
             .onOpenURL { url in
                 handleWalletDeepLink(url)
@@ -238,6 +239,7 @@ struct SettingsView: View {
                     }
                     
                 }
+                .accessibilityIdentifier("acceptance.account.delete.confirm")
             }
             .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
                 UpdateReferralNetworkSheet(

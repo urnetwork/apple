@@ -223,6 +223,7 @@ struct AccountRootView: View {
                                 }
                             }
                         )
+                        .accessibilityIdentifier("acceptance.account.settings")
                         AccountNavLink(
                             name: "Wallet",
                             iconPath: "ur.symbols.wallet",

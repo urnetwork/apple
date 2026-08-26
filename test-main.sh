@@ -28,12 +28,13 @@ umask 077
 
 here="$(cd "$(dirname "$0")" && pwd)"
 root="${URNETWORK_ROOT:-$(dirname "$here")}"
-vault="${UR_ACCEPT_VAULT:-$root/vault/main/test-acceptance.yml}"
+vault="${UR_ACCEPT_VAULT:-$root/vault/main/tests.yml}"
 fixture="${UR_ACCEPT_FIXTURE:-$here/tests/__acceptance__/fixtures/apple-main.secret}"
 repeat_count="${UR_ACCEPT_REPEAT:-1}"
 skip_build="${SKIP_BUILD:-0}"
 headless="${HEADLESS:-0}"
 keep_fixture="${UR_ACCEPT_KEEP_FIXTURE:-0}"
+result_matrix="${UR_ACCEPT_RESULT_FILE:-}"
 platforms="ios macos"
 
 for arg in "$@"; do
@@ -57,9 +58,16 @@ die() { echo "[apple acceptance] ERROR: $*" >&2; exit 1; }
 command -v timeout >/dev/null 2>&1 || die "GNU timeout is required (brew install coreutils)"
 node "$root/build/all/acceptance/preflight-main.mjs" || exit 1
 [ -f "$vault" ] || die "no acceptance vault at $vault"
-acc_user="$(awk -F': *' '$1=="user"{print $2; exit}' "$vault")"
-acc_pass="$(awk -F': *' '$1=="pass"{print $2; exit}' "$vault")"
-[ -n "$acc_user" ] && [ -n "$acc_pass" ] || die "$vault must contain user: and pass:"
+config_reader="$root/tests/read-tests-config.sh"
+[ -x "$config_reader" ] || die "test config reader is missing: $config_reader"
+UR_ACCEPT_VAULT="$vault" "$config_reader" --ready validate
+acc_user="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get data_plane_account.email)"
+acc_pass="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get data_plane_account.password)"
+signup_network_prefix="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get signup.network_name_prefix)"
+signup_password="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get signup.password)"
+signup_email_domain="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get signup.email.domain)"
+signup_email_prefix="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get signup.email.local_part_prefix)"
+signup_phone="$(UR_ACCEPT_VAULT="$vault" "$config_reader" get signup.phone.number)"
 
 simulator_name="${UR_ACCEPT_APPLE_SIMULATOR:-urnetwork-acceptance}"
 simulator_udid="$(xcrun simctl list devices available | sed -n "s/^[[:space:]]*${simulator_name} (\([^)]*\)).*/\1/p" | sed -n '1p')"
@@ -152,6 +160,19 @@ cleanup() {
     echo "[apple acceptance] could not remove $clipboard_dir" >&2
     exit_status=1
   fi
+  if [ -n "$result_matrix" ]; then
+    mkdir -p "$(dirname "$result_matrix")"
+    matrix_status=PASS
+    matrix_detail="all selected Apple destinations completed"
+    if [ "$exit_status" -ne 0 ]; then
+      matrix_status=FAIL
+      matrix_detail="Apple acceptance runner failed; see platform artifacts"
+    fi
+    for matrix_case in email phone instant password data-plane; do
+      printf 'apple\t%s\t%s\t%s\n' "$matrix_case" "$matrix_status" "$matrix_detail" >>"$result_matrix"
+    done
+    chmod 600 "$result_matrix"
+  fi
   echo
   if [ "$exit_status" -eq 0 ]; then
     echo "[apple acceptance] ✓ ACCEPTANCE PASSED (artifacts: $artifacts)"
@@ -242,6 +263,11 @@ prepare_xctestrun() {
   /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_BUILD_ID -string "$build_id" "$output"
   /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_PLATFORM -string "$platform" "$output"
   /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_REPEAT -string "$repeat_count" "$output"
+  /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_NETWORK_PREFIX -string "$signup_network_prefix" "$output"
+  /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_PASSWORD -string "$signup_password" "$output"
+  /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_EMAIL_DOMAIN -string "$signup_email_domain" "$output"
+  /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_EMAIL_PREFIX -string "$signup_email_prefix" "$output"
+  /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_PHONE -string "$signup_phone" "$output"
   if [ -f "$fixture" ]; then
     secret="$(tr '\r\n\t' '   ' <"$fixture" | tr -s ' ')"
     [ "$(printf '%s\n' "$secret" | awk '{print NF}')" -eq 24 ] || die "fixture must contain a 24-word secret key"
@@ -303,7 +329,7 @@ run_ios() {
   printf '' | timeout 5 xcrun simctl pbcopy "$simulator_udid"
   active_platform=ios
   set +e
-  timeout "$((600 + repeat_count * 600))" xcodebuild test-without-building \
+  timeout "$((900 + repeat_count * 900))" xcodebuild test-without-building \
     -xctestrun "$xctestrun" \
     -destination "platform=iOS Simulator,id=$simulator_udid" \
     -derivedDataPath "$derived" \
@@ -370,7 +396,7 @@ run_macos() {
   printf '' | timeout 5 pbcopy
   active_platform=macos
   set +e
-  timeout "$((600 + repeat_count * 600))" xcodebuild test-without-building \
+  timeout "$((900 + repeat_count * 900))" xcodebuild test-without-building \
     -xctestrun "$xctestrun" \
     -destination 'platform=macOS' \
     -derivedDataPath "$derived" \

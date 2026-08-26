@@ -674,6 +674,7 @@ struct SettingsForm_macOS: View {
                     }) {
                         Text("Delete account")
                     }
+                    .accessibilityIdentifier("acceptance.account.delete.request")
                     
                     Spacer().frame(height: 12)
                     

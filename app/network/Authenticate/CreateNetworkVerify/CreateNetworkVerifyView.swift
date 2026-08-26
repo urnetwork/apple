@@ -98,6 +98,7 @@ struct CreateNetworkVerifyView: View {
                             .textInputAutocapitalization(.never)
                             .textContentType(.oneTimeCode)
                             .disabled(viewModel.isSubmitting || viewModel.isSendingOtp)
+                            .accessibilityIdentifier("acceptance.verify.code")
                         
                         #elseif os(macOS)
                     
@@ -124,9 +125,11 @@ struct CreateNetworkVerifyView: View {
                             .autocorrectionDisabled()
                             .textContentType(.oneTimeCode)
                             .disabled(viewModel.isSubmitting || viewModel.isSendingOtp)
+                            .accessibilityIdentifier("acceptance.verify.code")
                     
                         #endif
                     }
+                    .accessibilityIdentifier("acceptance.verify.container")
                     .contentShape(Rectangle())
                     .onTapGesture {
                         if !viewModel.isSubmitting && !viewModel.isSendingOtp {

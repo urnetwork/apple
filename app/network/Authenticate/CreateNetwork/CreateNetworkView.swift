@@ -121,7 +121,8 @@ struct CreateNetworkView: View {
                         isEnabled: !viewModel.isCreatingNetwork,
                         validationState: viewModel.networkNameValidationState,
                         submitLabel: .next,
-                        disableCapitalization: true
+                        disableCapitalization: true,
+                        accessibilityIdentifier: "acceptance.create.network"
                     )
                     .focused($focusedField, equals: .networkName)
                     .onSubmit {
@@ -143,7 +144,8 @@ struct CreateNetworkView: View {
                             supportingText: "Password must be at least 12 characters long",
                             isEnabled: !viewModel.isCreatingNetwork,
                             submitLabel: .done,
-                            isSecure: true
+                            isSecure: true,
+                            accessibilityIdentifier: "acceptance.create.password"
                         )
                         .focused($focusedField, equals: .password)
                         
@@ -156,6 +158,7 @@ struct CreateNetworkView: View {
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                             .font(themeManager.currentTheme.secondaryBodyFont)
                     }
+                    .accessibilityIdentifier("acceptance.create.terms")
                     
                     Spacer().frame(height: 24)
                     
@@ -200,7 +203,8 @@ struct CreateNetworkView: View {
                             
                         },
                         enabled: viewModel.formIsValid && !viewModel.isCreatingNetwork,
-                        isProcessing: viewModel.isCreatingNetwork
+                        isProcessing: viewModel.isCreatingNetwork,
+                        accessibilityIdentifier: "acceptance.create.submit"
                     )
                     
                     Spacer().frame(height: 8)

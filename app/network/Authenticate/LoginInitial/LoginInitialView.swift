@@ -430,7 +430,9 @@ struct LoginInitialView: View {
                 // challenge fetch and reopen the right sign-in surface.
                 viewModel.isSigningForCreateNetwork = true
                 if connectWalletProviderViewModel.connectedWalletProvider == .bittensor {
-                    let ok = await viewModel.prepareBittensorChallenge()
+                    let ok = await viewModel.prepareBittensorChallenge(
+                        walletAddress: authLoginArgs.walletAuth?.publicKey
+                    )
                     if ok {
                         connectWalletProviderViewModel.openBittensorSignIn(
                             message: viewModel.bittensorChallengeMessage ?? ""
@@ -439,7 +441,9 @@ struct LoginInitialView: View {
                         viewModel.isSigningForCreateNetwork = false
                     }
                 } else {
-                    let ok = await viewModel.prepareSolanaChallenge()
+                    let ok = await viewModel.prepareSolanaChallenge(
+                        walletAddress: authLoginArgs.walletAuth?.publicKey
+                    )
                     if ok {
                         viewModel.setPresentSigninWithSolanaSheet(true)
                     } else {

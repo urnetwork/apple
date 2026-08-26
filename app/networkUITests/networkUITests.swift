@@ -16,6 +16,14 @@ final class networkUITests: XCTestCase {
     private var app: XCUIApplication!
     private var repetition = 0
 
+    private struct SignupInputs {
+        let networkPrefix: String
+        let password: String
+        let emailDomain: String
+        let emailPrefix: String
+        let phoneNumber: String
+    }
+
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
@@ -57,6 +65,13 @@ final class networkUITests: XCTestCase {
         let password = try requiredEnvironment("UR_ACCEPT_PASS", environment)
         let expectedBuildID = try requiredEnvironment("UR_ACCEPT_BUILD_ID", environment)
         let platform = try requiredEnvironment("UR_ACCEPT_PLATFORM", environment)
+        let signup = SignupInputs(
+            networkPrefix: try requiredEnvironment("UR_ACCEPT_SIGNUP_NETWORK_PREFIX", environment),
+            password: try requiredEnvironment("UR_ACCEPT_SIGNUP_PASSWORD", environment),
+            emailDomain: try requiredEnvironment("UR_ACCEPT_SIGNUP_EMAIL_DOMAIN", environment),
+            emailPrefix: try requiredEnvironment("UR_ACCEPT_SIGNUP_EMAIL_PREFIX", environment),
+            phoneNumber: try requiredEnvironment("UR_ACCEPT_SIGNUP_PHONE", environment)
+        )
         let repetitions = Int(environment["UR_ACCEPT_REPEAT"] ?? "1") ?? 0
         XCTAssertGreaterThan(repetitions, 0, "UR_ACCEPT_REPEAT must be positive")
         XCTAssertTrue(platform == "ios" || platform == "macos")
@@ -77,6 +92,15 @@ final class networkUITests: XCTestCase {
             repetition = current
             print("UR_ACCEPTANCE_BEGIN repetition=\(current)/\(repetitions) platform=\(platform)")
             do {
+                let unique = "\(platform)-\(current)-\(Int(Date().timeIntervalSince1970 * 1_000))"
+                let email = "\(signup.emailPrefix)-\(unique)@\(signup.emailDomain)".lowercased()
+                try passwordSignupLifecycle(
+                    method: "email", userAuth: email, signup: signup, unique: unique
+                )
+                try passwordSignupLifecycle(
+                    method: "phone", userAuth: signup.phoneNumber, signup: signup, unique: unique
+                )
+
                 if let existingSecret = secretKey {
                     try loginWithSecretKey(existingSecret)
                 } else {
@@ -160,6 +184,110 @@ final class networkUITests: XCTestCase {
         }
         let connect = element("acceptance.connect")
         XCTAssertTrue(connect.waitForExistence(timeout: 90), "main Connect screen did not become ready")
+    }
+
+    private func waitUntilEnabled(_ identifier: String, timeout: TimeInterval = 90) throws {
+        let target = element(identifier)
+        XCTAssertTrue(target.waitForExistence(timeout: timeout), "missing UI control \(identifier)")
+        let enabled = NSPredicate(format: "enabled == true")
+        let expectation = XCTNSPredicateExpectation(predicate: enabled, object: target)
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed, "UI control never enabled: \(identifier)")
+    }
+
+    private func waitForEither(_ first: String, _ second: String, timeout: TimeInterval = 90) throws -> String {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if element(first).exists { return first }
+            if element(second).exists { return second }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        } while Date() < deadline
+        XCTFail("neither UI control appeared: \(first), \(second)")
+        throw AcceptanceError.unexpectedInitialState
+    }
+
+    private func completePasswordPrompt(password: String) throws {
+        try enter(password, in: "acceptance.password.input")
+        try tap("acceptance.password.submit")
+        let destination = try waitForEither("acceptance.connect", "acceptance.verify.code")
+        if destination == "acceptance.verify.code" {
+            XCTFail("configured acceptance identity unexpectedly requires verification")
+            throw AcceptanceError.unexpectedInitialState
+        }
+        try waitForMain()
+    }
+
+    private func openNewPasswordSignup(userAuth: String, signup: SignupInputs) throws {
+        for attempt in 0..<2 {
+            try enter(userAuth, in: "acceptance.password.user")
+            try tap("acceptance.password.next")
+            let destination = try waitForEither("acceptance.create.network", "acceptance.password.input")
+            if destination == "acceptance.create.network" { return }
+
+            // A configured fixture can survive an interrupted campaign.
+            // Authenticate and delete only that dedicated identity, then retry.
+            try completePasswordPrompt(password: signup.password)
+            try deleteAccountThroughUI()
+            if attempt == 1 {
+                XCTFail("dedicated password fixture could not be reset")
+                throw AcceptanceError.unexpectedInitialState
+            }
+        }
+    }
+
+    private func passwordSignupLifecycle(
+        method: String,
+        userAuth: String,
+        signup: SignupInputs,
+        unique: String
+    ) throws {
+        print("UR_ACCEPTANCE_STEP signup-\(method)")
+        try openNewPasswordSignup(userAuth: userAuth, signup: signup)
+        let network = "\(signup.networkPrefix)-\(method)-\(unique)"
+            .lowercased()
+            .replacingOccurrences(of: "_", with: "-")
+        try enter(String(network.prefix(49)), in: "acceptance.create.network")
+        try enter(signup.password, in: "acceptance.create.password")
+        try tap("acceptance.create.terms")
+        try waitUntilEnabled("acceptance.create.submit")
+        try tap("acceptance.create.submit", timeout: 90)
+        let destination = try waitForEither("acceptance.connect", "acceptance.verify.code")
+        if destination == "acceptance.verify.code" {
+            XCTFail("configured acceptance identity unexpectedly requires verification")
+            throw AcceptanceError.unexpectedInitialState
+        }
+        try waitForMain()
+        let networkID = try currentNetworkID()
+        attachScreenshot("\(repetition)-\(method)-signup")
+        do {
+            try logoutThroughUI()
+            try loginWithPassword(user: userAuth, password: signup.password)
+            XCTAssertEqual(try currentNetworkID(), networkID, "\(method) login returned a different network")
+            attachScreenshot("\(repetition)-\(method)-login")
+            try deleteAccountThroughUI()
+        } catch {
+            try? deleteAccountThroughUI()
+            throw error
+        }
+    }
+
+    private func deleteAccountThroughUI() throws {
+        print("UR_ACCEPTANCE_STEP delete-temporary-account")
+        if element("acceptance.password.user").exists { return }
+        try navigateToAccount()
+        try tap("acceptance.account.settings")
+        try tap("acceptance.account.delete.request")
+        let confirm = element("acceptance.account.delete.confirm")
+        if confirm.waitForExistence(timeout: 10) {
+            confirm.tap()
+        } else {
+            let fallback = app.buttons["Delete account"]
+            XCTAssertTrue(fallback.waitForExistence(timeout: 10), "delete-account confirmation is missing")
+            fallback.tap()
+        }
+        XCTAssertTrue(
+            element("acceptance.password.user").waitForExistence(timeout: 90),
+            "login screen did not return after account deletion"
+        )
     }
 
     private func currentNetworkID() throws -> String {

@@ -27,8 +27,6 @@ class ConnectWalletProviderViewModel: ObservableObject {
     private var walletEncryptionPublicKey: String? = nil
     var connectedWalletProvider: ConnectedWalletProvider? = nil
     
-    let welcomeMessage = "Welcome to URnetwork"
-
     /**
      * Solflare
      */

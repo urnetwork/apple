@@ -485,6 +485,7 @@ struct SettingsForm_iOS: View {
                 }) {
                     Text("Delete account")
                 }
+                .accessibilityIdentifier("acceptance.account.delete.request")
             }
             
             

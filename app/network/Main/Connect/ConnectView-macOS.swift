@@ -185,6 +185,7 @@ import URnetworkSdk
                 .animation(.spring(duration: 0.3), value: isProviderTableVisible)
                 .frame(maxWidth: .infinity)
             }
+            .accessibilityIdentifier("acceptance.connect.scroll")
             .onChange(of: connectViewModel.connectionStatus) { _ in
                 checkTunnelStatus()
             }
@@ -440,6 +441,7 @@ import URnetworkSdk
                 }
 
             }
+            .accessibilityIdentifier("acceptance.provider.list")
 
         }
     }

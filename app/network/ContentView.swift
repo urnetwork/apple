@@ -9,6 +9,26 @@ import SwiftUI
 import URnetworkSdk
 import GoogleSignIn
 
+// A tiny acceptance-only value that remains explicit in the accessibility
+// tree. macOS can expose a clipped Text by identifier while leaving its
+// inferred label empty, so neither the label nor value may rely on inference.
+struct AcceptanceMarker: View {
+    let identifier: String
+    let value: String
+
+    var body: some View {
+        Text(value)
+            .font(.system(size: 1))
+            .frame(width: 1, height: 1)
+            .clipped()
+            .opacity(0.01)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier(identifier)
+            .accessibilityLabel(Text(value))
+            .accessibilityValue(Text(value))
+    }
+}
+
 struct ContentView: View {
     
     var api: SdkApi?
@@ -84,33 +104,25 @@ struct ContentView: View {
             // compile-time marker before touching credentials, which prevents
             // a stale installed app from masquerading as the local build.
             if let acceptanceBuildID {
-                Text(acceptanceBuildID)
-                    .font(.system(size: 1))
-                    .frame(width: 1, height: 1)
-                    .clipped()
-                    .opacity(0.01)
-                    .accessibilityIdentifier("acceptance.build.id")
-                Text(NetworkConfig.officialEnvName)
-                    .font(.system(size: 1))
-                    .frame(width: 1, height: 1)
-                    .clipped()
-                    .opacity(0.01)
-                    .accessibilityIdentifier("acceptance.environment")
+                AcceptanceMarker(
+                    identifier: "acceptance.build.id",
+                    value: acceptanceBuildID
+                )
+                AcceptanceMarker(
+                    identifier: "acceptance.environment",
+                    value: NetworkConfig.officialEnvName
+                )
                 if let networkID = deviceManager.parsedJwt?.networkId?.idStr {
-                    Text(networkID)
-                        .font(.system(size: 1))
-                        .frame(width: 1, height: 1)
-                        .clipped()
-                        .opacity(0.01)
-                        .accessibilityIdentifier("acceptance.network.id")
+                    AcceptanceMarker(
+                        identifier: "acceptance.network.id",
+                        value: networkID
+                    )
                 }
                 if let clientID = deviceManager.device?.getClientId()?.idStr {
-                    Text(clientID)
-                        .font(.system(size: 1))
-                        .frame(width: 1, height: 1)
-                        .clipped()
-                        .opacity(0.01)
-                        .accessibilityIdentifier("acceptance.client.id")
+                    AcceptanceMarker(
+                        identifier: "acceptance.client.id",
+                        value: clientID
+                    )
                 }
             }
             

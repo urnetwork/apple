@@ -132,6 +132,7 @@ struct NetworkPeerRow: View {
         .onTapGesture {
             connect()
         }
+        .accessibilityIdentifier(peer.acceptanceIdentifier)
         .listRowBackground(Color.clear)
     }
 }

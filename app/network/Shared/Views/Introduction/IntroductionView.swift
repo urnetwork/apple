@@ -8,6 +8,33 @@
 import SwiftUI
 import StoreKit
 
+enum IntroductionRoute: Hashable {
+    case usage
+    case participate
+    case refer
+}
+
+struct IntroductionRouteState: Equatable {
+    var path: [IntroductionRoute] = []
+
+    mutating func advance(to route: IntroductionRoute) {
+        let expectedRoute: IntroductionRoute?
+        switch path.last {
+        case nil:
+            expectedRoute = .usage
+        case .usage:
+            expectedRoute = .participate
+        case .participate:
+            expectedRoute = .refer
+        case .refer:
+            expectedRoute = nil
+        }
+
+        guard route == expectedRoute else { return }
+        path.append(route)
+    }
+}
+
 struct IntroductionView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -41,6 +68,7 @@ struct IntroductionView: View {
     @State var selectedPaymentOption: PaymentOption = .yearly
     @State var presentRedeemBalanceCodeSheet: Bool = false
     @State var balanceCodeRedeemed: Bool = false
+    @State private var routeState = IntroductionRouteState()
     
     var body: some View {
         
@@ -79,7 +107,7 @@ struct IntroductionView: View {
 
             } else {
         
-                NavigationStack {
+                NavigationStack(path: $routeState.path) {
                     
                     ScrollView {
                         
@@ -271,12 +299,9 @@ struct IntroductionView: View {
                             /**
                              * Participate flow
                              */
-                            NavigationLink(destination: IntroductionUsageBar(
-                                close: close,
-                                totalReferrals: totalReferrals,
-                                referralCode: referralCode,
-                                meanReliabilityWeight: meanReliabilityWeight
-                            )) {
+                            Button(action: {
+                                routeState.advance(to: .usage)
+                            }) {
                                 VStack(alignment: .center) {
                                     Text("Community Edition")
                                         .font(themeManager.currentTheme.toolbarTitleFont)
@@ -293,12 +318,17 @@ struct IntroductionView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 16)
                                 .frame(maxWidth: .infinity)
+                                // Plain buttons otherwise hit-test only their
+                                // rendered text, while accessibility exposes
+                                // this entire card as the button frame.
+                                .contentShape(Rectangle())
                                 .background(
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(themeManager.currentTheme.textFaintColor, lineWidth: 1)
                                 )
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier("acceptance.introduction.community")
                             
                             Spacer().frame(height: 16)
                             
@@ -371,6 +401,36 @@ struct IntroductionView: View {
                             
                         }
                         .background(themeManager.currentTheme.backgroundColor)
+                    }
+                    .navigationDestination(for: IntroductionRoute.self) { route in
+                        switch route {
+                        case .usage:
+                            IntroductionUsageBar(
+                                close: close,
+                                totalReferrals: totalReferrals,
+                                referralCode: referralCode,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                continueAction: {
+                                    routeState.advance(to: .participate)
+                                }
+                            )
+                        case .participate:
+                            IntroductionParticipateSettingsView(
+                                close: close,
+                                totalReferrals: totalReferrals,
+                                referralCode: referralCode,
+                                meanReliabilityWeight: meanReliabilityWeight,
+                                continueAction: {
+                                    routeState.advance(to: .refer)
+                                }
+                            )
+                        case .refer:
+                            ParticipateReferView(
+                                close: close,
+                                totalReferrals: totalReferrals,
+                                referralCode: referralCode
+                            )
+                        }
                     }
                 }
                 

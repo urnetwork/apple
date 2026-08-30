@@ -359,6 +359,7 @@ struct WelcomeAnimation: View {
                             enabled: !subscriptionBalanceLoading,
                             isProcessing: subscriptionBalanceLoading,
                         )
+                        .accessibilityIdentifier("acceptance.welcome.enter")
                         
                     }
                     .frame(maxWidth: .infinity)

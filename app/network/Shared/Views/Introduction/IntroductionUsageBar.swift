@@ -16,6 +16,7 @@ struct IntroductionUsageBar: View {
     let totalReferrals: Int
     let referralCode: String
     let meanReliabilityWeight: Double
+    let continueAction: () -> Void
     
     var body: some View {
         
@@ -60,12 +61,7 @@ struct IntroductionUsageBar: View {
                     
                     VStack {
                      
-                        NavigationLink(destination: IntroductionParticipateSettingsView(
-                            close: close,
-                            totalReferrals: totalReferrals,
-                            referralCode: referralCode,
-                            meanReliabilityWeight: meanReliabilityWeight
-                        )) {
+                        Button(action: continueAction) {
                             Text("Continue")
                                 .font(themeManager.currentTheme.toolbarTitleFont.bold())
                                 .frame(maxWidth: .infinity)
@@ -75,6 +71,7 @@ struct IntroductionUsageBar: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("acceptance.introduction.usage.continue")
                         
                     }
                     
@@ -93,6 +90,7 @@ struct IntroductionUsageBar: View {
         close: {},
         totalReferrals: 4,
         referralCode: "ABC123",
-        meanReliabilityWeight: 0.2
+        meanReliabilityWeight: 0.2,
+        continueAction: {}
     )
 }

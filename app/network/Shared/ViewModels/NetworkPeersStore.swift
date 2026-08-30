@@ -22,6 +22,12 @@ struct NetworkPeerItem: Identifiable, Equatable {
         clientId.idStr
     }
 
+    // Stable per-peer UI automation identity. Acceptance selects the exact
+    // runner-created provider rather than whichever peer happens to render first.
+    var acceptanceIdentifier: String {
+        "acceptance.peer.\(clientId.idStr)"
+    }
+
     // compare by the stable string id — SdkId is an SDK object compared by
     // identity, which differs on every rebuild and would defeat the dedup
     static func == (lhs: NetworkPeerItem, rhs: NetworkPeerItem) -> Bool {

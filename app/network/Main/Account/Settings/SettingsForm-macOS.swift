@@ -685,6 +685,7 @@ struct SettingsForm_macOS: View {
                 .frame(minHeight: geometry.size.height)
                 
             }
+            .accessibilityIdentifier("acceptance.account.settings.scroll")
         }
     }
     

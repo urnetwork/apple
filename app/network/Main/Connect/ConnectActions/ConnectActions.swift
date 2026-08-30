@@ -193,6 +193,8 @@ struct ConnectActions: View {
                             }
                             .contentShape(Rectangle())
                             .onTapGesture { setIsPresented(true) }
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityIdentifier("acceptance.peers.open")
 
                             Spacer().frame(height: 6)
                             Text(discoverableText)

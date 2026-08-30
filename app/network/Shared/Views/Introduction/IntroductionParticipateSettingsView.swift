@@ -16,6 +16,7 @@ struct IntroductionParticipateSettingsView: View {
     let totalReferrals: Int
     let referralCode: String
     let meanReliabilityWeight: Double
+    let continueAction: () -> Void
     
     var body: some View {
         
@@ -88,11 +89,7 @@ struct IntroductionParticipateSettingsView: View {
                     
                     Spacer()
                     
-                    NavigationLink(destination: ParticipateReferView(
-                        close: close,
-                        totalReferrals: totalReferrals,
-                        referralCode: referralCode
-                    )) {
+                    Button(action: continueAction) {
                         Text("Continue")
                             .font(themeManager.currentTheme.toolbarTitleFont.bold())
                             .frame(maxWidth: .infinity)
@@ -102,6 +99,7 @@ struct IntroductionParticipateSettingsView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("acceptance.introduction.provide.continue")
                     
                 }
                 .padding()
@@ -117,6 +115,7 @@ struct IntroductionParticipateSettingsView: View {
         close: {},
         totalReferrals: 4,
         referralCode: "ABC123",
-        meanReliabilityWeight: 0.2
+        meanReliabilityWeight: 0.2,
+        continueAction: {}
     )
 }

@@ -140,6 +140,7 @@ struct ParticipateReferView: View {
                     UrButton(text: "Get connected", action: {
                         close()
                     })
+                    .accessibilityIdentifier("acceptance.introduction.finish")
                     
                 }
                 .padding()

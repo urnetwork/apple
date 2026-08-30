@@ -23,6 +23,10 @@ struct CreateNetworkInstantView: View {
 
     @State private var accountResult: InstantAccountResult? = nil
 
+    // flips to true when the referral code is accepted; the bonus sheet shows
+    // the gold royal welcome for a beat before dismissing itself
+    @State private var showRoyalWelcome = false
+
     init(
         urApiService: UrApiServiceProtocol,
         handleSuccess: @escaping (_ jwt: String) async -> Void,
@@ -57,7 +61,16 @@ struct CreateNetworkInstantView: View {
                 }
                 .accessibilityIdentifier("acceptance.instant.terms")
 
-                Spacer().frame(height: 32)
+                Spacer().frame(height: 16)
+
+                if viewModel.isValidReferralCode && !viewModel.isCappedReferralCode {
+
+                    ReferralAppliedChip()
+
+                    Spacer().frame(height: 16)
+                }
+
+                Spacer().frame(height: 16)
 
                 UrButton(
                     text: "Create Account",
@@ -78,10 +91,82 @@ struct CreateNetworkInstantView: View {
 
                 UrInlineErrorText(message: viewModel.errorMessage)
 
+                Spacer().frame(height: 32)
+
+                Button(action: {
+                    viewModel.isPresentedAddBonusSheet = true
+                }) {
+                    Text((!viewModel.bonusReferralCode.isEmpty) ? "Edit referral code" : "Add referral code")
+                        .foregroundColor(themeManager.currentTheme.textFaintColor)
+                        .font(themeManager.currentTheme.toolbarTitleFont.bold())
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isCreatingAccount)
+
             }
             .padding()
             .frame(maxWidth: .infinity)
             .frame(maxWidth: 400)
+        }
+        .sheet(isPresented: $viewModel.isPresentedAddBonusSheet, onDismiss: {
+            showRoyalWelcome = false
+        }) {
+
+            VStack {
+
+                if showRoyalWelcome {
+
+                    // the code was accepted: show the gold royal welcome
+                    // for a beat before dismissing the sheet
+                    RoyalWelcomeContent()
+
+                } else {
+
+                    HStack {
+                        Text("Add referral code to earn extra rewards")
+                            .font(themeManager.currentTheme.toolbarTitleFont)
+
+                        Spacer()
+                    }
+
+                    Spacer().frame(height: 32)
+
+                    UrTextField(
+                        text: $viewModel.bonusReferralCode,
+                        label: "Bonus referral code",
+                        placeholder: "Enter a bonus referral code",
+                        supportingText: viewModel.referralCodeInputSupportingText,
+                        isEnabled: !viewModel.isValidatingReferralCode,
+                        submitLabel: .done,
+                        onSubmit: {
+                            Task {
+                                let result = await viewModel.validateReferralCode()
+                                self.handleValidateReferralResult(result)
+                            }
+                        }
+                    )
+
+                    Spacer().frame(height: 32)
+
+                    UrButton(
+                        text: "Apply bonus",
+                        action: {
+                            Task {
+                                let result = await viewModel.validateReferralCode()
+                                self.handleValidateReferralResult(result)
+                            }
+                        },
+                        enabled: !viewModel.isValidatingReferralCode && !viewModel.bonusReferralCode.isEmpty,
+                        isProcessing: viewModel.isValidatingReferralCode
+                    )
+
+                }
+
+            }
+            .padding()
+            .presentationDetents([.height(showRoyalWelcome ? 420 : 264)])
+            .environmentObject(themeManager)
+
         }
         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
         .toolbar {
@@ -130,6 +215,29 @@ struct CreateNetworkInstantView: View {
             .interactiveDismissDisabled(true)
         }
         #endif
+    }
+
+    private func handleValidateReferralResult(_ result: Result<SdkValidateReferralCodeResult, Error>) {
+
+        switch result {
+            case .success(let validationResult):
+            if (validationResult.isValid && !validationResult.isCapped) {
+                // royal welcome moment, then dismiss the sheet
+                withAnimation {
+                    showRoyalWelcome = true
+                }
+                Task {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    viewModel.isPresentedAddBonusSheet = false
+                    showRoyalWelcome = false
+                }
+            }
+
+            case .failure(let error):
+                print("validate referral code error: \(error.localizedDescription)")
+
+        }
+
     }
 
 }

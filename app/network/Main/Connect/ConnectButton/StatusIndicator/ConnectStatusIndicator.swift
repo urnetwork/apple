@@ -111,6 +111,8 @@ struct ConnectStatusIndicator: View {
                 showProviderLocations?()
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(statusMsg))
         .accessibilityAddTraits(canShowProviderLocations ? .isButton : [])
         .accessibilityIdentifier("acceptance.connect.status")
     }

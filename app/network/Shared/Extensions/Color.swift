@@ -20,6 +20,16 @@ extension Color {
     // the whodis pump brand yellow
     static let urAmber = Color(hex: "F5C242")
 
+    // Referral gold. The ur.io referral-panel palette (#F5B93C family), used
+    // only for the referral king-frog moments. Deliberately a warmer gold than
+    // the Pro gold so the Pro avatar ring keeps its meaning while referral
+    // royalty gets its own.
+    static let urReferralGold = Color(hex: "F5B93C")
+    static let urReferralGoldLight = Color(hex: "FFD76A")
+    static let urReferralGoldPale = Color(hex: "FFE38A")
+    // text on gold surfaces (the site's ink)
+    static let urReferralGoldInk = Color(hex: "241A05")
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0

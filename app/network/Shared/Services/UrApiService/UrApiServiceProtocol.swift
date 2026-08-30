@@ -66,7 +66,7 @@ protocol UrApiServiceProtocol {
      * Settings
      */
     func loginWithSeedphrase(seedphrase: String) async throws -> AuthLoginResult
-    func createInstantAccount() async throws -> (jwt: String, seedphrase: String)
+    func createInstantAccount(referralCode: String?) async throws -> (jwt: String, seedphrase: String)
     func deleteAccount() async throws -> SdkNetworkDeleteResult
     func getReferralNetwork() async throws -> SdkGetReferralNetworkResult
     func setNetworkReferral(_ referralCode: String) async throws -> SdkSetNetworkReferralResult

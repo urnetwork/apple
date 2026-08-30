@@ -29,7 +29,32 @@ struct UpdateReferralNetworkSheet: View {
         self.referralNetwork = referralNetwork
     }
 
+    // flips to true when the referral network is linked; shows the gold royal
+    // welcome for a beat before handing back to the settings screen
+    @State private var showRoyalWelcome = false
+
     var body: some View {
+
+        if showRoyalWelcome {
+            VStack {
+                Spacer().frame(height: 24)
+
+                RoyalWelcomeContent()
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 24)
+            .task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                onSuccess()
+            }
+        } else {
+            sheetContent
+        }
+    }
+
+    private var sheetContent: some View {
         VStack {
 
             Spacer().frame(height: 24)
@@ -69,7 +94,11 @@ struct UpdateReferralNetworkSheet: View {
                             let result = await viewModel.updateReferralNetwork()
 
                             if case .success = result {
-                                onSuccess()
+                                // linking a referral network is the royal
+                                // welcome moment
+                                withAnimation {
+                                    showRoyalWelcome = true
+                                }
                             }
                         }
                     },

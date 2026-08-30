@@ -8,22 +8,78 @@
 import Foundation
 import URnetworkSdk
 
+/**
+ * A batch of newly observed referrals for the local network. `isFirst` marks
+ * the crowning: the count went from zero to earned, which gets the full-screen
+ * celebration; later batches get the gold snackbar.
+ */
+struct ReferralCelebration: Equatable {
+    let joined: Int
+    let isFirst: Bool
+}
 
 @MainActor
 class ReferralLinkViewModel: ObservableObject {
-    
+
     @Published private(set) var referralCode: String?
     @Published private(set) var totalReferrals: Int = 0
     @Published private(set) var isLoading: Bool = false
-    
+
+    /**
+     * Referral celebrations, keyed off the count the last celebration (or the
+     * baseline) left behind, persisted per network (the referral code is
+     * stable and unique per network) so an increment observed on this device
+     * celebrates exactly once. The first observation only records the
+     * baseline: pre-existing referrals (reinstall, second device) are old
+     * news, not a surprise.
+     */
+    @Published private(set) var pendingCelebration: ReferralCelebration?
+
+    func clearCelebration() {
+        pendingCelebration = nil
+    }
+
+    private func maybeCelebrate(code: String, count: Int) {
+        guard !code.isEmpty else { return }
+
+        let defaults = UserDefaults.standard
+        let key = "referral.celebratedCount.\(code)"
+
+        guard defaults.object(forKey: key) != nil else {
+            // first observation for this network on this device: baseline only
+            defaults.set(count, forKey: key)
+            return
+        }
+
+        let previous = defaults.integer(forKey: key)
+        if count > previous {
+            if let pending = pendingCelebration {
+                // an unseen celebration is still up: fold the new arrivals in
+                pendingCelebration = ReferralCelebration(
+                    joined: pending.joined + (count - previous),
+                    isFirst: pending.isFirst
+                )
+            } else {
+                pendingCelebration = ReferralCelebration(
+                    joined: count - previous,
+                    isFirst: previous == 0
+                )
+            }
+            defaults.set(count, forKey: key)
+        } else if count < previous {
+            // referrals can be unlinked; re-baseline quietly
+            defaults.set(count, forKey: key)
+        }
+    }
+
     private var pollingTimer: Timer?
     private var pollingInterval: TimeInterval = 60.0 // poll every minute
     private var active = false
-    
+
     let domain = "ReferralLinkViewModel"
-    
+
     let api: SdkApi?
-    
+
     init(api: SdkApi) {
         self.api = api
     }
@@ -113,8 +169,9 @@ class ReferralLinkViewModel: ObservableObject {
             self.referralCode = result.referralCode
             self.totalReferrals = result.totalReferrals
             self.isLoading = false
-            
-            
+
+            self.maybeCelebrate(code: result.referralCode, count: result.totalReferrals)
+
         } catch(let error) {
             self.isLoading = false
             print("error fetching referral link: \(error.localizedDescription)")

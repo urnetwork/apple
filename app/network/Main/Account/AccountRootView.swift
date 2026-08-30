@@ -28,9 +28,12 @@ struct AccountRootView: View {
     let isPro: Bool
     
     @StateObject private var viewModel: ViewModel = ViewModel()
-    
+
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
+
+    // presents the gold king-frog refer panel
+    @State private var isPresentedReferSheet = false
     
     private let urnetworkAppStoreID = "6741000606"
     
@@ -236,31 +239,59 @@ struct AccountRootView: View {
                             }
                         )
                         
-                        ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
-                            
+                        /**
+                         * Refer friends: opens the gold king-frog refer panel
+                         * (same as the ur.io referral panel)
+                         */
+                        Button(action: {
+                            isPresentedReferSheet = true
+                        }) {
+
                             VStack(spacing: 0) {
                                 HStack {
-                                    
+
                                     Image("ur.symbols.heart")
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                    
+
                                     Spacer().frame(width: 16)
-                                    
+
                                     Text("Refer friends")
                                         .font(themeManager.currentTheme.bodyFont)
                                         .foregroundColor(themeManager.currentTheme.textColor)
-                                    
+
                                     Spacer()
-                                    
+
                                 }
                                 .padding(.vertical, 8)
                                 .padding(.horizontal)
-                                
+
                                 Divider()
                                     .background(themeManager.currentTheme.borderBaseColor)
-                                
+
                             }
-                            
+
+                        }
+                        .buttonStyle(.plain)
+                        .sheet(isPresented: $isPresentedReferSheet) {
+                            #if os(iOS)
+                            ReferSheet(
+                                referralLinkViewModel: referralLinkViewModel,
+                                dismiss: {
+                                    isPresentedReferSheet = false
+                                }
+                            )
+                            .environmentObject(themeManager)
+                            .presentationDetents([.large])
+                            #elseif os(macOS)
+                            ReferSheet(
+                                referralLinkViewModel: referralLinkViewModel,
+                                dismiss: {
+                                    isPresentedReferSheet = false
+                                }
+                            )
+                            .environmentObject(themeManager)
+                            .frame(minWidth: 480, minHeight: 620)
+                            #endif
                         }
                         
                         /**

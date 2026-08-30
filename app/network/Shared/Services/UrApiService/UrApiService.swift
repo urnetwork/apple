@@ -444,7 +444,7 @@ extension UrApiService {
         }
     }
     
-    func createInstantAccount() async throws -> (jwt: String, seedphrase: String) {
+    func createInstantAccount(referralCode: String?) async throws -> (jwt: String, seedphrase: String) {
         let api = try requireApi()
         return try await withCheckedThrowingContinuation { continuation in
             
@@ -499,6 +499,11 @@ extension UrApiService {
             args.guestMode = true
             args.terms = true
             // No userAuth, password, authJwt, walletAuth — triggers seedphrase path
+            // instant accounts can be referred too; the server links the
+            // referral on any create path
+            if let referralCode = referralCode, !referralCode.isEmpty {
+                args.referralCode = referralCode
+            }
             api.networkCreate(args, callback: callback)
             
         }

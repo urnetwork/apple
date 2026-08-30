@@ -728,6 +728,1605 @@
         }
       }
     },
+    "%1$lld friends have joined — you're earning +%2$lld GiB/day, for life." : {
+      "comment" : "Crowned status line on the gold refer overlay once the network has referrals. {count} is total referrals, {data} the total daily GiB the referrer earns (min(count, 20) × 3).",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء — تكسب +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم صديق واحد — تكسب +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم صديقان — تكسب +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء — تكسب +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء — تكسب +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء — تكسب +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Připojil se přítel — získáváte +%2$lld GiB/den, na celý život."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Připojili se %1$lld přátelé — získáváte +%2$lld GiB/den, na celý život."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Připojilo se %1$lld přátel — získáváte +%2$lld GiB/den, na celý život."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Připojilo se %1$lld přátel — získáváte +%2$lld GiB/den, na celý život."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ein Freund ist beigetreten – du erhältst +%2$lld GiB/Tag, ein Leben lang."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Freunde sind beigetreten – du erhältst +%2$lld GiB/Tag, ein Leben lang."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ένας φίλος μπήκε — κερδίζεις +%2$lld GiB/ημέρα, για πάντα."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld φίλοι μπήκαν — κερδίζεις +%2$lld GiB/ημέρα, για πάντα."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "A friend has joined — you're earning +%2$lld GiB/day, for life."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld friends have joined — you're earning +%2$lld GiB/day, for life."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amigo se ha unido: ganas +%2$lld GiB/día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos se han unido: ganas +%2$lld GiB/día, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amigo se ha unido: ganas +%2$lld GiB/día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos se han unido: ganas +%2$lld GiB/día, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amigo se ha unido: ganas +%2$lld GiB/día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos se han unido: ganas +%2$lld GiB/día, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un ami a rejoint — vous gagnez +%2$lld GiB/jour, à vie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amis ont rejoint — vous gagnez +%2$lld GiB/jour, à vie."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "חבר הצטרף — אתה מרוויח +%2$lld GiB ליום, לכל החיים."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "שני חברים הצטרפו — אתה מרוויח +%2$lld GiB ליום, לכל החיים."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld חברים הצטרפו — אתה מרוויח +%2$lld GiB ליום, לכל החיים."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld חברים הצטרפו — אתה מרוויח +%2$lld GiB ליום, לכל החיים."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "एक दोस्त जुड़ चुका है — आप जीवनभर +%2$lld GiB/दिन कमा रहे हैं।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld दोस्त जुड़ चुके हैं — आप जीवनभर +%2$lld GiB/दिन कमा रहे हैं।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld teman telah bergabung — Anda mendapat +%2$lld GiB/hari, seumur hidup."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amico si è unito: guadagni +%2$lld GiB/giorno, a vita."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amici si sono uniti: guadagni +%2$lld GiB/giorno, a vita."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "友達%1$lld人が参加済み。毎日+%2$lld GiBを一生獲得中。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "친구 %1$lld명이 가입했습니다. 평생 +%2$lld GiB/일을 받는 중."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Er is een vriend lid geworden — je verdient +%2$lld GiB/dag, levenslang."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Er zijn %1$lld vrienden lid geworden — je verdient +%2$lld GiB/dag, levenslang."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dołączył znajomy — zarabiasz +%2$lld GiB/dzień, na całe życie."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dołączyło %1$lld znajomych — zarabiasz +%2$lld GiB/dzień, na całe życie."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dołączyło %1$lld znajomych — zarabiasz +%2$lld GiB/dzień, na całe życie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dołączyło %1$lld znajomych — zarabiasz +%2$lld GiB/dzień, na całe życie."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo aderiu — está a ganhar +%2$lld GiB/dia, para toda a vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos aderiram — está a ganhar +%2$lld GiB/dia, para toda a vida."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo entrou — você está ganhando +%2$lld GiB/dia, para sempre."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos entraram — você está ganhando +%2$lld GiB/dia, para sempre."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo aderiu — está a ganhar +%2$lld GiB/dia, para toda a vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos aderiram — está a ganhar +%2$lld GiB/dia, para toda a vida."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Присоединился друг — вы получаете +%2$lld GiB в день, навсегда."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Присоединились %1$lld друга — вы получаете +%2$lld GiB в день, навсегда."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Присоединились %1$lld друзей — вы получаете +%2$lld GiB в день, навсегда."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Присоединились %1$lld друзей — вы получаете +%2$lld GiB в день, навсегда."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "En vän har gått med – du tjänar +%2$lld GiB/dag, livet ut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld vänner har gått med – du tjänar +%2$lld GiB/dag, livet ut."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "เพื่อน %1$lld คนเข้าร่วมแล้ว — คุณได้รับ +%2$lld GiB/วัน ตลอดชีวิต"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Приєднався друг — ви отримуєте +%2$lld GiB на день, довічно."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Приєдналися %1$lld друзі — ви отримуєте +%2$lld GiB на день, довічно."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Приєдналися %1$lld друзів — ви отримуєте +%2$lld GiB на день, довічно."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Приєдналися %1$lld друзів — ви отримуєте +%2$lld GiB на день, довічно."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld người bạn đã tham gia — bạn đang nhận +%2$lld GiB/ngày, trọn đời."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "已有 %1$lld 位好友加入——你正终身每天多获得 +%2$lld GiB。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "已有 %1$lld 位好友加入——你正終身每日多獲得 +%2$lld GiB。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%1$lld friends joined with your code! +%2$lld GiB/day each, for life." : {
+      "comment" : "Gold toast shown to the referrer for referrals after the first (the first gets the full-screen celebration). {count} friends just joined, {data} is the daily GiB bonus per referral (currently 3).",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء برمزك! +%2$lld GiB يوميًا لكل منهم، مدى الحياة."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم صديق برمزك! +%2$lld GiB يوميًا، مدى الحياة."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم صديقان برمزك! +%2$lld GiB يوميًا لكل منهما، مدى الحياة."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء برمزك! +%2$lld GiB يوميًا لكل منهم، مدى الحياة."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء برمزك! +%2$lld GiB يوميًا لكل منهم، مدى الحياة."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء برمزك! +%2$lld GiB يوميًا لكل منهم، مدى الحياة."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Přes váš kód se připojil přítel! +%2$lld GiB/den, na celý život."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Přes váš kód se připojili %1$lld přátelé! +%2$lld GiB/den za každého, na celý život."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Přes váš kód se připojilo %1$lld přátel! +%2$lld GiB/den za každého, na celý život."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Přes váš kód se připojilo %1$lld přátel! +%2$lld GiB/den za každého, na celý život."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ein Freund ist mit deinem Code beigetreten! +%2$lld GiB/Tag, ein Leben lang."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Freunde sind mit deinem Code beigetreten! Je +%2$lld GiB/Tag, ein Leben lang."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ένας φίλος μπήκε με τον κωδικό σου! +%2$lld GiB/ημέρα, για πάντα."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld φίλοι μπήκαν με τον κωδικό σου! +%2$lld GiB/ημέρα ο καθένας, για πάντα."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "A friend joined with your code! +%2$lld GiB/day, for life."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld friends joined with your code! +%2$lld GiB/day each, for life."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "¡Un amigo se unió con tu código! +%2$lld GiB/día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "¡%1$lld amigos se unieron con tu código! +%2$lld GiB/día por cada uno, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "¡Un amigo se unió con tu código! +%2$lld GiB/día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "¡%1$lld amigos se unieron con tu código! +%2$lld GiB/día por cada uno, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "¡Un amigo se unió con tu código! +%2$lld GiB/día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "¡%1$lld amigos se unieron con tu código! +%2$lld GiB/día por cada uno, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un ami a rejoint avec votre code ! +%2$lld GiB/jour, à vie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amis ont rejoint avec votre code ! +%2$lld GiB/jour chacun, à vie."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "חבר הצטרף עם הקוד שלך! +%2$lld GiB ליום, לכל החיים."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "שני חברים הצטרפו עם הקוד שלך! +%2$lld GiB ליום לכל אחד, לכל החיים."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld חברים הצטרפו עם הקוד שלך! +%2$lld GiB ליום לכל אחד, לכל החיים."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld חברים הצטרפו עם הקוד שלך! +%2$lld GiB ליום לכל אחד, לכל החיים."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "आपके कोड से एक दोस्त जुड़ा! जीवनभर +%2$lld GiB/दिन।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "आपके कोड से %1$lld दोस्त जुड़े! हर एक से जीवनभर +%2$lld GiB/दिन।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld teman bergabung dengan kode Anda! +%2$lld GiB/hari untuk setiap teman, seumur hidup."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amico si è unito con il tuo codice! +%2$lld GiB/giorno, a vita."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amici si sono uniti con il tuo codice! +%2$lld GiB/giorno ciascuno, a vita."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "友達%1$lld人があなたのコードで参加！1人につき毎日+%2$lld GiB、一生もらえます。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "친구 %1$lld명이 내 코드로 가입했습니다! 한 명당 평생 +%2$lld GiB/일."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Een vriend is met jouw code lid geworden! +%2$lld GiB/dag, levenslang."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld vrienden zijn met jouw code lid geworden! Elk +%2$lld GiB/dag, levenslang."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Znajomy dołączył z twoim kodem! +%2$lld GiB/dzień, na całe życie."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld znajomych dołączyło z twoim kodem! Po +%2$lld GiB/dzień za każdego, na całe życie."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld znajomych dołączyło z twoim kodem! Po +%2$lld GiB/dzień za każdego, na całe życie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld znajomych dołączyło z twoim kodem! Po +%2$lld GiB/dzień za każdego, na całe życie."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo aderiu com o seu código! +%2$lld GiB/dia, para toda a vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos aderiram com o seu código! +%2$lld GiB/dia por cada um, para toda a vida."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo entrou com o seu código! +%2$lld GiB/dia, para sempre."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos entraram com o seu código! +%2$lld GiB/dia por cada um, para sempre."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo aderiu com o seu código! +%2$lld GiB/dia, para toda a vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos aderiram com o seu código! +%2$lld GiB/dia por cada um, para toda a vida."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Друг присоединился по вашему коду! +%2$lld GiB в день, навсегда."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друга присоединились по вашему коду! По +%2$lld GiB в день за каждого, навсегда."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзей присоединились по вашему коду! По +%2$lld GiB в день за каждого, навсегда."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзей присоединились по вашему коду! По +%2$lld GiB в день за каждого, навсегда."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "En vän gick med via din kod! +%2$lld GiB/dag, livet ut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld vänner gick med via din kod! +%2$lld GiB/dag vardera, livet ut."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "เพื่อน %1$lld คนเข้าร่วมด้วยโค้ดของคุณ! +%2$lld GiB/วันต่อคน ตลอดชีวิต"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Друг приєднався за вашим кодом! +%2$lld GiB на день, довічно."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзі приєдналися за вашим кодом! По +%2$lld GiB на день за кожного, довічно."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзів приєдналися за вашим кодом! По +%2$lld GiB на день за кожного, довічно."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзів приєдналися за вашим кодом! По +%2$lld GiB на день за кожного, довічно."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld người bạn đã tham gia bằng mã của bạn! +%2$lld GiB/ngày cho mỗi người, trọn đời."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld 位好友通过你的推荐码加入了！每位 +%2$lld GiB/天，终身有效。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld 位好友透過你的推薦碼加入了！每位 +%2$lld GiB/日，終身有效。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%1$lld friends just joined URnetwork with your code. Each one earns you +%2$lld GiB a day of free data — for life." : {
+      "comment" : "Body of the one-time full-screen crowning celebration shown to the referrer when a friend joins with their code. {count} is the number of friends that just joined, {data} the daily GiB bonus per referral (currently 3).",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء للتو إلى URnetwork برمزك. كل واحد يمنحك +%2$lld GiB يوميًا من البيانات المجانية — مدى الحياة."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم صديق للتو إلى URnetwork برمزك. كلاكما يكسب +%2$lld GiB يوميًا من البيانات المجانية — مدى الحياة."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم صديقان للتو إلى URnetwork برمزك. كل واحد يمنحك +%2$lld GiB يوميًا من البيانات المجانية — مدى الحياة."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء للتو إلى URnetwork برمزك. كل واحد يمنحك +%2$lld GiB يوميًا من البيانات المجانية — مدى الحياة."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء للتو إلى URnetwork برمزك. كل واحد يمنحك +%2$lld GiB يوميًا من البيانات المجانية — مدى الحياة."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "انضم %1$lld من الأصدقاء للتو إلى URnetwork برمزك. كل واحد يمنحك +%2$lld GiB يوميًا من البيانات المجانية — مدى الحياة."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Právě se přes váš kód připojil k URnetwork přítel. Oba získáváte +%2$lld GiB dat zdarma denně — na celý život."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Právě se přes váš kód připojili k URnetwork %1$lld přátelé. Každý z nich vám vynáší +%2$lld GiB dat zdarma denně — na celý život."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Právě se přes váš kód připojilo k URnetwork %1$lld přátel. Každý z nich vám vynáší +%2$lld GiB dat zdarma denně — na celý život."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Právě se přes váš kód připojilo k URnetwork %1$lld přátel. Každý z nich vám vynáší +%2$lld GiB dat zdarma denně — na celý život."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ein Freund ist gerade mit deinem Code URnetwork beigetreten. Ihr beide erhaltet +%2$lld GiB kostenlose Daten pro Tag – ein Leben lang."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Freunde sind gerade mit deinem Code URnetwork beigetreten. Jeder bringt dir +%2$lld GiB kostenlose Daten pro Tag – ein Leben lang."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ένας φίλος μόλις μπήκε στο URnetwork με τον κωδικό σου. Κερδίζετε και οι δύο +%2$lld GiB δωρεάν δεδομένα την ημέρα — για πάντα."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld φίλοι μόλις μπήκαν στο URnetwork με τον κωδικό σου. Ο καθένας σού αποφέρει +%2$lld GiB δωρεάν δεδομένα την ημέρα — για πάντα."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "A friend just joined URnetwork with your code. You're both earning +%2$lld GiB a day of free data — for life."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld friends just joined URnetwork with your code. Each one earns you +%2$lld GiB a day of free data — for life."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amigo acaba de unirse a URnetwork con tu código. Ambos ganan +%2$lld GiB de datos gratis al día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos acaban de unirse a URnetwork con tu código. Cada uno te da +%2$lld GiB de datos gratis al día, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amigo acaba de unirse a URnetwork con tu código. Ambos ganan +%2$lld GiB de datos gratis al día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos acaban de unirse a URnetwork con tu código. Cada uno te da +%2$lld GiB de datos gratis al día, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amigo acaba de unirse a URnetwork con tu código. Ambos ganan +%2$lld GiB de datos gratis al día, de por vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos acaban de unirse a URnetwork con tu código. Cada uno te da +%2$lld GiB de datos gratis al día, de por vida."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un ami vient de rejoindre URnetwork avec votre code. Vous gagnez tous les deux +%2$lld GiB de données gratuites par jour — à vie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amis viennent de rejoindre URnetwork avec votre code. Chacun vous rapporte +%2$lld GiB de données gratuites par jour — à vie."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "חבר הצטרף זה עתה ל‑URnetwork עם הקוד שלך. שניכם מרוויחים +%2$lld GiB של נתונים חינם ביום — לכל החיים."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "שני חברים הצטרפו זה עתה ל‑URnetwork עם הקוד שלך. כל אחד מזכה אותך ב‑+%2$lld GiB של נתונים חינם ביום — לכל החיים."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld חברים הצטרפו זה עתה ל‑URnetwork עם הקוד שלך. כל אחד מזכה אותך ב‑+%2$lld GiB של נתונים חינם ביום — לכל החיים."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld חברים הצטרפו זה עתה ל‑URnetwork עם הקוד שלך. כל אחד מזכה אותך ב‑+%2$lld GiB של נתונים חינם ביום — לכל החיים."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "आपके कोड से एक दोस्त अभी URnetwork से जुड़ा। आप दोनों को जीवनभर हर दिन +%2$lld GiB मुफ़्त डेटा मिलेगा।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "आपके कोड से %1$lld दोस्त अभी URnetwork से जुड़े। हर दोस्त से आपको जीवनभर हर दिन +%2$lld GiB मुफ़्त डेटा मिलेगा।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld teman baru saja bergabung dengan URnetwork memakai kode Anda. Masing-masing memberi Anda +%2$lld GiB data gratis per hari — seumur hidup."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Un amico si è appena unito a URnetwork con il tuo codice. State guadagnando entrambi +%2$lld GiB di dati gratuiti al giorno — a vita."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amici si sono appena uniti a URnetwork con il tuo codice. Ognuno ti frutta +%2$lld GiB di dati gratuiti al giorno — a vita."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "友達%1$lld人があなたのコードでURnetworkに参加しました。1人につき毎日+%2$lld GiBの無料データを一生獲得できます。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "친구 %1$lld명이 내 코드로 URnetwork에 가입했습니다. 한 명당 평생 매일 +%2$lld GiB의 무료 데이터를 받습니다."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Er is zojuist een vriend via jouw code lid geworden van URnetwork. Jullie verdienen allebei +%2$lld GiB gratis data per dag — levenslang."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Er zijn zojuist %1$lld vrienden via jouw code lid geworden van URnetwork. Elk levert je +%2$lld GiB gratis data per dag op — levenslang."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Znajomy właśnie dołączył do URnetwork z twoim kodem. Oboje zyskujecie +%2$lld GiB darmowych danych dziennie — na całe życie."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld znajomych właśnie dołączyło do URnetwork z twoim kodem. Każdy przynosi ci +%2$lld GiB darmowych danych dziennie — na całe życie."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld znajomych właśnie dołączyło do URnetwork z twoim kodem. Każdy przynosi ci +%2$lld GiB darmowych danych dziennie — na całe życie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld znajomych właśnie dołączyło do URnetwork z twoim kodem. Każdy przynosi ci +%2$lld GiB darmowych danych dziennie — na całe życie."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo acabou de aderir à URnetwork com o seu código. Ambos ganham +%2$lld GiB de dados grátis por dia — para toda a vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos acabaram de aderir à URnetwork com o seu código. Cada um rende-lhe +%2$lld GiB de dados grátis por dia — para toda a vida."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo acabou de entrar na URnetwork com o seu código. Vocês dois ganham +%2$lld GiB de dados grátis por dia — para sempre."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos acabaram de entrar na URnetwork com o seu código. Cada um rende +%2$lld GiB de dados grátis por dia — para sempre."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Um amigo acabou de aderir à URnetwork com o seu código. Ambos ganham +%2$lld GiB de dados grátis por dia — para toda a vida."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld amigos acabaram de aderir à URnetwork com o seu código. Cada um rende-lhe +%2$lld GiB de dados grátis por dia — para toda a vida."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Друг только что присоединился к URnetwork по вашему коду. Вы оба получаете +%2$lld GiB бесплатных данных в день — навсегда."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друга только что присоединились к URnetwork по вашему коду. Каждый приносит вам +%2$lld GiB бесплатных данных в день — навсегда."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзей только что присоединились к URnetwork по вашему коду. Каждый приносит вам +%2$lld GiB бесплатных данных в день — навсегда."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзей только что присоединились к URnetwork по вашему коду. Каждый приносит вам +%2$lld GiB бесплатных данных в день — навсегда."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "En vän gick precis med i URnetwork med din kod. Ni får båda +%2$lld GiB gratis data per dag — livet ut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld vänner gick precis med i URnetwork med din kod. Var och en ger dig +%2$lld GiB gratis data per dag — livet ut."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "เพื่อน %1$lld คนเพิ่งเข้าร่วม URnetwork ด้วยโค้ดของคุณ แต่ละคนทำให้คุณได้รับข้อมูลฟรี +%2$lld GiB ต่อวัน — ตลอดชีวิต"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Друг щойно приєднався до URnetwork за вашим кодом. Ви обидва отримуєте +%2$lld GiB безкоштовних даних на день — довічно."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзі щойно приєдналися до URnetwork за вашим кодом. Кожен приносить вам +%2$lld GiB безкоштовних даних на день — довічно."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзів щойно приєдналися до URnetwork за вашим кодом. Кожен приносить вам +%2$lld GiB безкоштовних даних на день — довічно."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld друзів щойно приєдналися до URnetwork за вашим кодом. Кожен приносить вам +%2$lld GiB безкоштовних даних на день — довічно."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld người bạn vừa tham gia URnetwork bằng mã của bạn. Mỗi người mang lại cho bạn +%2$lld GiB dữ liệu miễn phí mỗi ngày — trọn đời."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld 位好友刚刚通过你的推荐码加入 URnetwork。每位好友都让你终身每天多获得 +%2$lld GiB 免费流量。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld 位好友剛剛透過你的推薦碼加入 URnetwork。每位好友都讓你終身每日多獲得 +%2$lld GiB 免費流量。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
     "%1$lldh %2$lldm" : {
       "comment" : "Compact duration a provider has been connected, as hours and minutes (e.g. 3h 24m). {hours} is the whole hours, {minutes} the remaining minutes.",
       "localizations" : {
@@ -6162,173 +7761,6 @@
         }
       }
     },
-    "+%lld GiB/Month" : {
-      "comment" : "Call to action",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/شهر"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/měsíc"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/Monat"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/μήνα"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/Month"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mes"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mes"
-          }
-        },
-        "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mes"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mois"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/חודש"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/महीना"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/bulan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mese"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/月"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/월"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/maand"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/miesiąc"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mês"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mês"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/mês"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/месяц"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/månad"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/เดือน"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld ГіБ/місяць"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/tháng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/月"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%lld GiB/月"
-          }
-        }
-      }
-    },
     "⚠️ This is the ONLY time you'll see this." : {
       "comment" : "A warning message displayed in the seedphrase display view.",
       "isCommentAutoGenerated" : true,
@@ -7166,6 +8598,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系統將產生一組新的助記詞並連結至你的帳戶。"
+          }
+        }
+      }
+    },
+    "A royal welcome!" : {
+      "comment" : "Celebration headline shown the moment a referral code is accepted (signup bonus sheet and the settings referral sheet). Royal king-frog theme, matches the ur.io referral panel.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ترحيب ملكي!"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Královské přivítání!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein königlicher Empfang!"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Βασιλικό καλωσόρισμα!"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A royal welcome!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Una bienvenida real!"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Una bienvenida real!"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Una bienvenida real!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un accueil royal !"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קבלת פנים מלכותית!"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "शाही स्वागत है!"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sambutan kerajaan!"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un benvenuto regale!"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "王室級の歓迎です！"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "왕실급 환영입니다!"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een koninklijk welkom!"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Królewskie powitanie!"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boas-vindas reais!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boas-vindas reais!"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boas-vindas reais!"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Королевский приём!"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ett kungligt välkomnande!"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การต้อนรับระดับราชวงศ์!"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Королівський прийом!"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chào đón hoàng gia!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "王者般的欢迎！"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "王者般的歡迎！"
           }
         }
       }
@@ -45005,6 +46604,173 @@
         }
       }
     },
+    "More connections help our community stay anonymous (and help you earn!)" : {
+      "comment" : "Refer overlay",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المزيد من الاتصالات يساعد مجتمعنا على البقاء مجهول الهوية (ويساعدك على كسب المال!)"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Více připojení pomáhá naší komunitě zůstat anonymní (a pomáhá vám vydělávat!)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr Verbindungen helfen unserer Community, anonym zu bleiben (und helfen dir, Geld zu verdienen!)"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Περισσότερες συνδέσεις βοηθούν την κοινότητά μας να παραμένει ανώνυμη (και σας βοηθούν να κερδίσετε χρήματα!)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More connections help our community stay anonymous (and help you earn!)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más conexiones ayudan a nuestra comunidad a mantenerse anónima (¡y te ayudan a ganar dinero!)"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más conexiones ayudan a nuestra comunidad a mantenerse anónima (¡y te ayudan a ganar dinero!)"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más conexiones ayudan a nuestra comunidad a mantenerse anónima (¡y te ayudan a ganar dinero!)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus de connexions aident notre communauté à rester anonyme (et vous aident à gagner de l'argent !)"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יותר חיבורים עוזרים לקהילה שלנו להישאר אנונימית (ועוזרים לך להרוויח!)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अधिक कनेक्शन हमारे समुदाय को गुमनाम रहने में मदद करते हैं (और आपको पैसे कमाने में मदद करते हैं!)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lebih banyak koneksi membantu komunitas kami tetap anonim (dan membantu Anda menghasilkan!)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Più connessioni aiutano la nostra community a rimanere anonima (e aiutano te a guadagnare!)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "より多くの接続はコミュニティの匿名性を保つのに役立ちます（そしてあなたの収益にも！）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 많은 연결은 우리 커뮤니티가 익명성을 유지하는 데 도움이 됩니다 (그리고 당신의 수익에도 도움이 됩니다!)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meer verbindingen helpen onze community anoniem te blijven (en helpen je verdienen!)"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej połączeń pomaga naszej społeczności zachować anonimowość (i pomaga ci zarabiać!)"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais conexões ajudam nossa comunidade a permanecer anônima (e ajudam você a ganhar!)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais conexões ajudam nossa comunidade a permanecer anônima (e ajudam você a ganhar!)"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais ligações ajudam a nossa comunidade a permanecer anónima (e ajudam-no a ganhar!)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше подключений помогают нашему сообществу оставаться анонимным (и помогают вам зарабатывать!)"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fler anslutningar hjälper vår community att förbli anonym (och hjälper dig att tjäna!)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การเชื่อมต่อที่เยอะขึ้น จะช่วยขับเคลื่อนชุมชนของพวกเราให้มีความเป็นส่วนตัวมากขึ้น (และยังทำให้คุณมีรายได้ด้วย!)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Більше підключень допомагає нашій спільноті залишатися анонімною (і допомагає вам заробляти!)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhiều kết nối hơn giúp cộng đồng của chúng ta ẩn danh (và giúp bạn kiếm tiền!)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多连接可以帮助我们的社区保持匿名（并帮助您赚钱！）"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多連接有助我們的社區保持匿名（並幫助你賺取！）"
+          }
+        }
+      }
+    },
     "Most Popular" : {
       "comment" : "Used in Shared/Views/ProductOptionCard.swift.",
       "localizations" : {
@@ -59290,6 +61056,173 @@
         }
       }
     },
+    "Referral confirmed — you and your friend each get +%lld GiB/day of free data, for life." : {
+      "comment" : "Detail line under the royal-welcome headline when a referral code is accepted. {data} is the daily bonus in GiB each side earns (pro.yml referral, currently 3).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم تأكيد الإحالة — تحصل أنت وصديقك على +%lld GiB يوميًا من البيانات المجانية، مدى الحياة."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doporučení potvrzeno — vy i váš přítel získáte každý +%lld GiB/den dat zdarma, na celý život."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empfehlung bestätigt – du und dein Freund erhaltet je +%lld GiB/Tag an kostenlosen Daten, ein Leben lang."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η παραπομπή επιβεβαιώθηκε — εσύ και ο φίλος σου παίρνετε από +%lld GiB/ημέρα δωρεάν δεδομένα, για πάντα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referral confirmed — you and your friend each get +%lld GiB/day of free data, for life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referido confirmado: tú y tu amigo obtienen +%lld GiB/día de datos gratis cada uno, de por vida."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referido confirmado: tú y tu amigo obtienen +%lld GiB/día de datos gratis cada uno, de por vida."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referido confirmado: tú y tu amigo obtienen +%lld GiB/día de datos gratis cada uno, de por vida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parrainage confirmé — vous et votre ami recevez chacun +%lld GiB/jour de données gratuites, à vie."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההפניה אושרה — אתה וחברך מקבלים כל אחד +%lld GiB ליום של נתונים חינם, לכל החיים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "रेफ़रल की पुष्टि हो गई — आपको और आपके दोस्त, दोनों को जीवनभर +%lld GiB/दिन मुफ़्त डेटा मिलेगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referensi dikonfirmasi — Anda dan teman Anda masing-masing mendapat +%lld GiB/hari data gratis, seumur hidup."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invito confermato: tu e il tuo amico ricevete +%lld GiB/giorno di dati gratuiti a testa, a vita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "紹介が確定しました。あなたと友達それぞれに毎日+%lld GiBの無料データを一生プレゼント。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추천이 확인되었습니다. 나와 친구 모두 평생 매일 +%lld GiB의 무료 데이터를 받습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwijzing bevestigd — jij en je vriend krijgen elk +%lld GiB/dag aan gratis data, levenslang."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polecenie potwierdzone — ty i twój znajomy otrzymujecie po +%lld GiB dziennie darmowych danych, na całe życie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referência confirmada — você e o seu amigo recebem, cada um, +%lld GiB/dia de dados grátis, para toda a vida."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indicação confirmada — você e seu amigo ganham, cada um, +%lld GiB/dia de dados grátis, para sempre."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referência confirmada — você e o seu amigo recebem, cada um, +%lld GiB/dia de dados grátis, para toda a vida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реферал подтверждён — вы и ваш друг получаете по +%lld GiB бесплатных данных в день, навсегда."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rekommendationen bekräftad – du och din vän får +%lld GiB/dag i gratis data var, livet ut."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยืนยันการแนะนำแล้ว — คุณและเพื่อนจะได้รับข้อมูลฟรีคนละ +%lld GiB/วัน ตลอดชีวิต"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реферал підтверджено — ви та ваш друг отримуєте по +%lld GiB безкоштовних даних на день, довічно."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xác nhận giới thiệu — bạn và bạn bè của bạn mỗi người nhận +%lld GiB/ngày dữ liệu miễn phí, trọn đời."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐已确认——你和好友每人每天获得 +%lld GiB 免费流量，终身有效。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推薦已確認——你和好友每人每日獲得 +%lld GiB 免費流量，終身有效。"
+          }
+        }
+      }
+    },
     "Referral network" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -66295,6 +68228,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享 URnetwork"
+          }
+        }
+      }
+    },
+    "Share your code. Friends enter it when they sign up." : {
+      "comment" : "Refer overlay",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شارك رمزك. يدخله أصدقاؤك عند التسجيل."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sdílejte svůj kód. Přátelé ho zadají při registraci."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teile deinen Code. Freunde geben ihn bei der Anmeldung ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μοιραστείτε τον κωδικό σας. Οι φίλοι σας τον εισάγουν κατά την εγγραφή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share your code. Friends enter it when they sign up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparte tu código. Tus amigos lo introducen al registrarse."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparte tu código. Tus amigos lo ingresan al registrarse."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparte tu código. Tus amigos lo ingresan al registrarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partagez votre code. Vos amis le saisissent lors de leur inscription."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שתף את הקוד שלך. חברים מזינים אותו כשהם נרשמים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपना कोड शेयर करें। दोस्त साइन अप करते समय इसे डालते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bagikan kode Anda. Teman memasukkannya saat mendaftar."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condividi il tuo codice. Gli amici lo inseriscono quando si registrano."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コードを共有しましょう。友達が登録時に入力します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "코드를 공유하세요. 친구가 가입할 때 입력하면 됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel je code. Vrienden voeren hem in bij het aanmelden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Udostępnij swój kod. Znajomi wpisują go przy rejestracji."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partilhe o seu código. Os amigos introduzem-no ao criar a conta."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartilhe seu código. Seus amigos inserem o código ao criar a conta."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partilhe o seu código. Os amigos introduzem-no ao criar a conta."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделитесь своим кодом. Друзья вводят его при регистрации."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dela din kod. Vänner anger den när de registrerar sig."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แชร์โค้ดของคุณ เพื่อนกรอกโค้ดนี้ตอนสมัคร"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поділіться своїм кодом. Друзі вводять його під час реєстрації."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ mã của bạn. Bạn bè nhập mã khi đăng ký."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享你的推荐码。朋友注册时输入即可。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享你的推薦碼。朋友註冊時輸入即可。"
           }
         }
       }

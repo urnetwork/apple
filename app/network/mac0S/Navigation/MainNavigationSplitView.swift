@@ -23,6 +23,7 @@ struct MainNavigationSplitView: View {
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
+    @EnvironmentObject var snackbarManager: UrSnackbarManager
     @Environment(\.presentationActive) private var presentationActive
 
     @State private var selectedTab: MainNavigationTab = .connect
@@ -88,7 +89,9 @@ struct MainNavigationSplitView: View {
     }
     
     var body: some View {
-        
+
+        ZStack {
+
         NavigationSplitView {
             List(selection: $selectedTab) {
                 
@@ -217,6 +220,39 @@ struct MainNavigationSplitView: View {
         }
         .onDisappear {
             setPresentationActive(false)
+        }
+
+        /**
+         * Referral celebrations: the first referral gets the full-screen
+         * crowning overlay; later ones get the gold snackbar. Detected by
+         * the referral poll against the per-network celebrated baseline.
+         */
+        if let celebration = referralLinkViewModel.pendingCelebration, celebration.isFirst {
+            ReferralCelebrationOverlay(
+                joinedCount: celebration.joined,
+                referralCode: referralLinkViewModel.referralCode,
+                referralLinkViewModel: referralLinkViewModel,
+                onDismiss: {
+                    referralLinkViewModel.clearCelebration()
+                }
+            )
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+        }
+
+        }
+        .animation(.easeInOut(duration: 0.3), value: referralLinkViewModel.pendingCelebration)
+        .onChange(of: referralLinkViewModel.pendingCelebration) { celebration in
+            guard let celebration = celebration, !celebration.isFirst else {
+                return
+            }
+            snackbarManager.showSnackbar(
+                message: String.localizedStringWithFormat(
+                    String(localized: "%1$lld friends joined with your code! +%2$lld GiB/day each, for life."),
+                    celebration.joined,
+                    referralBonusGiBPerDay
+                )
+            )
+            referralLinkViewModel.clearCelebration()
         }
     }
 

@@ -97,7 +97,7 @@ class MockUrApiService: UrApiServiceProtocol {
         return AuthLoginResult.failure(LoginError.inProgress)
     }
     
-    func createInstantAccount() async throws -> (jwt: String, seedphrase: String) {
+    func createInstantAccount(referralCode: String?) async throws -> (jwt: String, seedphrase: String) {
         return ("mock-jwt", "mock seedphrase words here for testing purposes only")
     }
     

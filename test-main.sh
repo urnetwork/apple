@@ -14,7 +14,7 @@
 #   ./test-main.sh --macos-only    signed macOS app only
 #   ./test-main.sh --skip-build    reuse cached DerivedData/build IDs
 #   ./test-main.sh --keep-fixture  retain the private instant-account fixture
-#   ./test-main.sh --headless      do not open the Simulator application
+#   ./test-main.sh --headless      keep Simulator hidden and unactivated
 #
 # Environment:
 #   UR_ACCEPT_VAULT=<path>         alternate main acceptance credentials
@@ -27,6 +27,7 @@ set -euo pipefail
 umask 077
 
 here="$(cd "$(dirname "$0")" && pwd)"
+source "$here/test-main-lib.sh"
 root="${URNETWORK_ROOT:-$(dirname "$here")}"
 vault="${UR_ACCEPT_VAULT:-$root/vault/main/tests.yml}"
 fixture="${UR_ACCEPT_FIXTURE:-$here/tests/__acceptance__/fixtures/apple-main.secret}"
@@ -79,8 +80,21 @@ timestamp="$(date +%Y%m%d-%H%M%S)"
 artifacts="$here/tests/__acceptance__/$timestamp"
 cache="$here/tests/__acceptance__/build"
 mkdir -p "$artifacts" "$cache" "$(dirname "$fixture")"
-clipboard_dir="$(mktemp -d "${TMPDIR:-/tmp}/urnetwork-apple-clipboard.XXXXXX")"
+acceptance_temp_root="${TMPDIR:-/tmp}"
+if [ "$acceptance_temp_root" != / ]; then
+  acceptance_temp_root="${acceptance_temp_root%/}"
+fi
+clipboard_dir="$(mktemp -d "$acceptance_temp_root/urnetwork-apple-clipboard.XXXXXX")"
 chmod 700 "$clipboard_dir"
+provider_credentials="$clipboard_dir/provider-credentials"
+provider_dir="$clipboard_dir/peer-provider"
+provider_agent="$clipboard_dir/peer-provider-agent"
+provider_pid=""
+test_runner_watch_pid=""
+provider_client_id=""
+mkdir -p "$provider_dir"
+printf '%s\n%s\n' "$acc_user" "$acc_pass" >"$provider_credentials"
+chmod 600 "$provider_credentials"
 host_clipboard_saved=0
 simulator_clipboard_saved=0
 active_platform=""
@@ -111,9 +125,54 @@ release_platform_clients() {
   return "$result"
 }
 
+release_provider_client() {
+  local active="$provider_dir/active-client-id"
+  [ -f "$active" ] || return 0
+  UR_ACCEPT_USER="$acc_user" UR_ACCEPT_PASS="$acc_pass" \
+    timeout 90 node "$root/build/all/acceptance/client-cleanup.mjs" "$active"
+}
+
+stop_peer_provider() {
+  local status=0
+  [ -n "$provider_pid" ] || return 0
+  touch "$provider_dir/stop"
+  for _ in $(seq 1 300); do
+    kill -0 "$provider_pid" 2>/dev/null || break
+    sleep 0.2
+  done
+  if kill -0 "$provider_pid" 2>/dev/null; then
+    kill -TERM "$provider_pid" 2>/dev/null || true
+    for _ in $(seq 1 50); do
+      kill -0 "$provider_pid" 2>/dev/null || break
+      sleep 0.2
+    done
+  fi
+  if kill -0 "$provider_pid" 2>/dev/null; then
+    kill -KILL "$provider_pid" 2>/dev/null || true
+  fi
+  if wait "$provider_pid"; then status=0; else status=$?; fi
+  provider_pid=""
+  return "$status"
+}
+
+stop_test_runner_watch() {
+  [ -n "$test_runner_watch_pid" ] || return 0
+  kill "$test_runner_watch_pid" >/dev/null 2>&1 || true
+  wait "$test_runner_watch_pid" >/dev/null 2>&1 || true
+  test_runner_watch_pid=""
+}
+
 cleanup() {
   exit_status=$?
   local simulator_state=""
+  stop_test_runner_watch
+  if ! stop_peer_provider; then
+    exit_status=1
+  fi
+  if ! release_provider_client; then
+    echo "[apple acceptance] could not release the retained peer provider client" >&2
+    exit_status=1
+  fi
   rm -f "$cache/ios/Build/Products/.acceptance.xctestrun" "$cache/macos/Build/Products/.acceptance.xctestrun"
   if [ -n "$simulator_udid" ]; then
     timeout 15 xcrun simctl terminate "$simulator_udid" network.ur >/dev/null 2>&1 || true
@@ -156,7 +215,7 @@ cleanup() {
       exit_status=1
     fi
   fi
-  if ! rm -rf "$clipboard_dir"; then
+  if ! apple_acceptance_remove_temp_tree "$clipboard_dir" "$acceptance_temp_root"; then
     echo "[apple acceptance] could not remove $clipboard_dir" >&2
     exit_status=1
   fi
@@ -168,7 +227,9 @@ cleanup() {
       matrix_status=FAIL
       matrix_detail="Apple acceptance runner failed; see platform artifacts"
     fi
-    for matrix_case in email phone instant password data-plane; do
+    matrix_cases="email phone instant password data-plane"
+    case " $platforms " in *" macos "*) matrix_cases="$matrix_cases peer-to-peer" ;; esac
+    for matrix_case in $matrix_cases; do
       printf 'apple\t%s\t%s\t%s\n' "$matrix_case" "$matrix_status" "$matrix_detail" >>"$result_matrix"
     done
     chmod 600 "$result_matrix"
@@ -184,6 +245,27 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 
+case "$(uname -m)" in arm64|aarch64) host_arch=arm64 ;; x86_64|amd64) host_arch=amd64 ;; *) die "unsupported Apple build architecture" ;; esac
+warpctl="$root/warp/warpctl/build/darwin/$host_arch/warpctl"
+if [ -n "${WARP_VERSION:-}" ]; then
+  sdk_version="$WARP_VERSION"
+elif [ "$skip_build" -eq 1 ] && [ -s "$cache/sdk-version" ]; then
+  sdk_version="$(tr -d '\r\n' <"$cache/sdk-version")"
+else
+  [ -x "$warpctl" ] || die "local warpctl is missing; run $root/build/all/apple/setup.sh"
+  sdk_version="$("$warpctl" ls version)+$("$warpctl" ls version-code)"
+fi
+case "$sdk_version" in
+  ''|*[!A-Za-z0-9.+-]*) die "local SDK version contains unsupported characters" ;;
+esac
+
+case " $platforms " in
+  *" macos "*)
+    apple_acceptance_macos_automation_ready || \
+      die "macOS UI automation privacy grants are missing"
+    ;;
+esac
+
 if [ "$skip_build" -ne 1 ]; then
   tools_dir="${UR_ACCEPT_APPLE_TOOLS:-$root/build/all/apple/.acceptance-tools}"
   case "$tools_dir" in
@@ -194,17 +276,6 @@ if [ "$skip_build" -ne 1 ]; then
     [ -x "$tools_dir/go-bin/$tool" ] || \
       die "$tool is missing; run $root/build/all/apple/setup.sh"
   done
-  case "$(uname -m)" in arm64|aarch64) host_arch=arm64 ;; x86_64|amd64) host_arch=amd64 ;; *) die "unsupported Apple build architecture" ;; esac
-  warpctl="$root/warp/warpctl/build/darwin/$host_arch/warpctl"
-  [ -x "$warpctl" ] || die "local warpctl is missing; run $root/build/all/apple/setup.sh"
-  if [ -n "${WARP_VERSION:-}" ]; then
-    sdk_version="$WARP_VERSION"
-  else
-    sdk_version="$("$warpctl" ls version)+$("$warpctl" ls version-code)"
-  fi
-  case "$sdk_version" in
-    ''|*[!A-Za-z0-9.+-]*) die "local SDK version contains unsupported characters" ;;
-  esac
   echo "[apple acceptance] building the local Apple SDK"
   mkdir -p "$clipboard_dir/go-cache" "$clipboard_dir/go-mod-cache"
   (
@@ -215,12 +286,21 @@ if [ "$skip_build" -ne 1 ]; then
       GOPATH="$tools_dir/go-path" \
       GOBIN="$tools_dir/go-bin" \
       PATH="$tools_dir/go-bin:$PATH" \
-      timeout 3600 make build_apple
+      run_apple_acceptance_timeout timeout 3600 make build_apple
   ) 2>&1 | tee "$artifacts/sdk-build.log"
+  printf '%s\n' "$sdk_version" >"$cache/sdk-version"
 else
   [ -d "$root/sdk/build/apple/URnetworkSdk.xcframework" ] || \
     die "Apple SDK is missing; run without --skip-build"
 fi
+
+case " $platforms " in
+  *" macos "*)
+    echo "[apple acceptance] building the same-platform peer provider"
+    (cd "$root/build/all/acceptance" && \
+      run_apple_acceptance_timeout timeout 600 go build -trimpath -o "$provider_agent" .)
+    ;;
+esac
 
 pull_fixture() {
   local source="$1" temporary="$artifacts/.guest-secret-key"
@@ -253,7 +333,7 @@ verify_app_marker() {
 }
 
 prepare_xctestrun() {
-  local derived="$1" output="$2" build_id="$3" platform="$4" source secret=""
+  local derived="$1" output="$2" build_id="$3" platform="$4" peer_id="${5:-}" source secret=""
   source="$(find "$derived/Build/Products" -maxdepth 1 -name '*.xctestrun' ! -name '.acceptance.xctestrun' -print | sort | sed -n '1p')"
   [ -f "$source" ] || die "xctestrun file is missing from $derived"
   cp "$source" "$output"
@@ -268,6 +348,10 @@ prepare_xctestrun() {
   /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_EMAIL_DOMAIN -string "$signup_email_domain" "$output"
   /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_EMAIL_PREFIX -string "$signup_email_prefix" "$output"
   /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_SIGNUP_PHONE -string "$signup_phone" "$output"
+  if [ -n "$peer_id" ]; then
+    /usr/bin/plutil -insert networkUITests.EnvironmentVariables.UR_ACCEPT_PEER_ID -string "$peer_id" "$output" 2>/dev/null || \
+      /usr/bin/plutil -replace networkUITests.EnvironmentVariables.UR_ACCEPT_PEER_ID -string "$peer_id" "$output"
+  fi
   if [ -f "$fixture" ]; then
     secret="$(tr '\r\n\t' '   ' <"$fixture" | tr -s ' ')"
     [ "$(printf '%s\n' "$secret" | awk '{print NF}')" -eq 24 ] || die "fixture must contain a 24-word secret key"
@@ -276,7 +360,7 @@ prepare_xctestrun() {
 }
 
 verify_test_log() {
-  local log="$1" platform="$2" pass_count
+  local log="$1" platform="$2" pass_count peer_pass_count
   if grep -q 'Test skipped' "$log"; then
     echo "[apple acceptance] $platform UI test was skipped" >&2
     return 1
@@ -286,6 +370,51 @@ verify_test_log() {
     echo "[apple acceptance] expected $repeat_count completed $platform repetitions, found $pass_count" >&2
     return 1
   fi
+  if [ "$platform" = macos ]; then
+    peer_pass_count="$(grep -c 'UR_ACCEPTANCE_P2P_PASS repetition=' "$log" || true)"
+    if [ "$peer_pass_count" -ne "$repeat_count" ]; then
+      echo "[apple acceptance] expected $repeat_count completed peer-to-peer repetitions, found $peer_pass_count" >&2
+      return 1
+    fi
+  fi
+}
+
+start_peer_provider() {
+  local out="$1" physical_interface
+  physical_interface="$(route -n get default 2>/dev/null | awk '/interface:/{print $2; exit}')"
+  case "$physical_interface" in
+    ''|*[!A-Za-z0-9._-]*) die "could not determine a safe physical default interface" ;;
+  esac
+  rm -rf "$provider_dir/state"
+  rm -f "$provider_dir/active-client-id" "$provider_dir/provider-client-id" \
+    "$provider_dir/result.json" "$provider_dir/stop"
+  "$provider_agent" \
+    -peer-provider \
+    -credentials "$provider_credentials" \
+    -active-client "$provider_dir/active-client-id" \
+    -state-dir "$provider_dir/state" \
+    -sdk-version "$sdk_version" \
+    -app-version "$sdk_version" \
+    -peer-provider-ready "$provider_dir/provider-client-id" \
+    -peer-provider-stop "$provider_dir/stop" \
+    -peer-provider-result "$provider_dir/result.json" \
+    -peer-provider-egress-interface "$physical_interface" \
+    >"$out/peer-provider.stdout.log" 2>"$out/peer-provider.log" &
+  provider_pid=$!
+  for _ in $(seq 1 180); do
+    if [ -s "$provider_dir/provider-client-id" ]; then break; fi
+    if ! kill -0 "$provider_pid" 2>/dev/null; then
+      wait "$provider_pid" || true
+      provider_pid=""
+      die "macOS peer provider exited before becoming ready"
+    fi
+    sleep 1
+  done
+  [ -s "$provider_dir/provider-client-id" ] || die "timed out waiting for the macOS peer provider"
+  provider_client_id="$(tr -d '\r\n' <"$provider_dir/provider-client-id")"
+  case "$provider_client_id" in
+    ''|*[!A-Za-z0-9._-]*) die "macOS peer provider returned an invalid client ID" ;;
+  esac
 }
 
 run_ios() {
@@ -293,12 +422,13 @@ run_ios() {
   mkdir -p "$out"
   xcrun simctl boot "$simulator_udid" >/dev/null 2>&1 || true
   timeout 180 xcrun simctl bootstatus "$simulator_udid" -b
-  [ "$headless" -eq 1 ] || open -a Simulator >/dev/null 2>&1 || true
+  apple_acceptance_open_simulator "$headless" >/dev/null 2>&1 || \
+    die "could not launch Simulator for CoreSimulator host services"
 
   if [ "$skip_build" -ne 1 ]; then
     build_id="${timestamp}-ios"
     rm -rf "$derived"
-    timeout 3600 xcodebuild build-for-testing \
+    run_apple_acceptance_timeout timeout 3600 xcodebuild build-for-testing \
       -project "$here/app/app.xcodeproj" \
       -scheme URnetworkUITests \
       -destination "platform=iOS Simulator,id=$simulator_udid" \
@@ -328,8 +458,14 @@ run_ios() {
   fi
   printf '' | timeout 5 xcrun simctl pbcopy "$simulator_udid"
   active_platform=ios
+  apple_acceptance_watch_test_runner \
+    "$simulator_udid" \
+    network.ur.networkUITests.xctrunner \
+    networkUITests-Runner \
+    >"$out/test-runner-launch.log" 2>&1 &
+  test_runner_watch_pid=$!
   set +e
-  timeout "$((900 + repeat_count * 900))" xcodebuild test-without-building \
+  run_apple_acceptance_timeout timeout "$((900 + repeat_count * 900))" xcodebuild test-without-building \
     -xctestrun "$xctestrun" \
     -destination "platform=iOS Simulator,id=$simulator_udid" \
     -derivedDataPath "$derived" \
@@ -338,6 +474,7 @@ run_ios() {
     2>&1 | tee "$out/test.log"
   test_status=${PIPESTATUS[0]}
   set -e
+  stop_test_runner_watch
   rm -f "$xctestrun"
   if [ "$test_status" -eq 0 ] && ! verify_test_log "$out/test.log" ios; then test_status=1; fi
   pull_fixture ios || true
@@ -364,7 +501,7 @@ run_macos() {
   if [ "$skip_build" -ne 1 ]; then
     build_id="${timestamp}-macos"
     rm -rf "$derived"
-    timeout 3600 xcodebuild build-for-testing \
+    run_apple_acceptance_timeout timeout 3600 xcodebuild build-for-testing \
       -project "$here/app/app.xcodeproj" \
       -scheme URnetworkUITests \
       -destination 'platform=macOS' \
@@ -384,8 +521,9 @@ run_macos() {
   [ -d "$app_path" ] || die "macOS acceptance app is missing from $derived"
   verify_app_marker "$app_path" "$build_id"
 
+  start_peer_provider "$out"
   xctestrun="$derived/Build/Products/.acceptance.xctestrun"
-  prepare_xctestrun "$derived" "$xctestrun" "$build_id" macos
+  prepare_xctestrun "$derived" "$xctestrun" "$build_id" macos "$provider_client_id"
 
   if [ "$host_clipboard_saved" -eq 0 ]; then
     if ! timeout 5 pbpaste >"$clipboard_dir/host.txt" 2>/dev/null; then
@@ -396,7 +534,7 @@ run_macos() {
   printf '' | timeout 5 pbcopy
   active_platform=macos
   set +e
-  timeout "$((900 + repeat_count * 900))" xcodebuild test-without-building \
+  run_apple_acceptance_timeout timeout "$((900 + repeat_count * 900))" xcodebuild test-without-building \
     -xctestrun "$xctestrun" \
     -destination 'platform=macOS' \
     -derivedDataPath "$derived" \
@@ -406,6 +544,20 @@ run_macos() {
   test_status=${PIPESTATUS[0]}
   set -e
   rm -f "$xctestrun"
+  if ! stop_peer_provider; then
+    echo "[apple acceptance] peer provider failed" >&2
+    test_status=1
+  elif ! grep -q '"ok":true' "$provider_dir/result.json" 2>/dev/null; then
+    echo "[apple acceptance] peer provider did not verify bidirectional traffic" >&2
+    test_status=1
+  else
+    cp "$provider_dir/result.json" "$out/peer-provider-result.json"
+  fi
+  if ! release_provider_client; then
+    echo "[apple acceptance] peer provider client cleanup failed" >&2
+    test_status=1
+    platform_cleanup_failed=1
+  fi
   if [ "$test_status" -eq 0 ] && ! verify_test_log "$out/test.log" macos; then test_status=1; fi
   pull_fixture macos || true
   if [ ! -f "$fixture" ]; then

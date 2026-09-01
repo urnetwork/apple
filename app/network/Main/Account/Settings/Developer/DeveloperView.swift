@@ -44,6 +44,10 @@ struct DeveloperView: View {
     // the export outlives this screen, so its in-flight guard and its result
     // are held outside the view -- see DiagnosticExportState
     @ObservedObject private var exportState = DiagnosticExportState.shared
+    // likewise held outside the view: the level is a property of the device,
+    // not of this screen, and a write is an rpc that must not be abandoned
+    // half-way by navigating back
+    @ObservedObject private var verbosityState = LogVerbosityState.shared
     @State private var showLogPicker = false
     @State private var selectedLogNames: Set<String> = []
 
@@ -87,6 +91,10 @@ struct DeveloperView: View {
             // export, so it is read here rather than when the picker opens
             await exportState.refreshInventory(
                 sharedRootUnavailableReason: sharedRootUnavailableReason)
+            // the level survives a relaunch (the sdk persists and restores
+            // it), so what the control shows has to come from the device on
+            // every appearance rather than defaulting to 0
+            await verbosityState.refresh(device: deviceManager.device)
         }
         .onChange(of: presentationActive) { active in
             reliabilityStore.setActive(active)
@@ -122,6 +130,14 @@ struct DeveloperView: View {
     /** Diagnostics: everything the client knows, as one file the user can send. */
     private var diagnosticsSection: some View {
         Section {
+            // above the export actions, in the order the task is actually
+            // performed: the level is chosen, the problem is reproduced, and
+            // only then is a bundle exported. Raising it afterwards captures
+            // nothing of what already happened
+            verbosityRow
+            if LogVerbosity.revealsDestinations(verbosityState.level) {
+                destinationWarning
+            }
             if let inventoryLabel = exportState.inventoryLabel {
                 Text(inventoryLabel)
                     .font(themeManager.currentTheme.secondaryBodyFont)
@@ -226,6 +242,111 @@ struct DeveloperView: View {
             }
         } header: {
             sectionHeader("Diagnostics")
+        }
+    }
+
+    /**
+     * How much the SDK writes to the log, as a stepper over the three levels
+     * the `connect` package actually distinguishes.
+     *
+     * The value shown is what the DEVICE reports, not what was last tapped:
+     * the binding's setter sends a level and the state republishes whatever
+     * comes back from the device afterwards, so a level that was clamped or
+     * never applied is visible here rather than silently assumed. Believing
+     * you are capturing at 2 while the extension logs at 0 is the failure
+     * this screen exists to prevent, not one it should introduce.
+     *
+     * With no device the row reads "Unavailable" and is inert. That is not
+     * level 0: the logs come from the packet tunnel extension, so with
+     * nothing read back the level in force there is unknown, and printing
+     * "0 · Default" would be the guess the read-back exists to avoid.
+     */
+    private var verbosityRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Stepper(
+                value: Binding(
+                    // clamped for the control only -- an out-of-range level
+                    // an embedder set is still REPORTED as what it is, in the
+                    // value label below. The stepper needs a number even when
+                    // there is none to show; it is disabled in that state, so
+                    // this fallback is never a value the user can act on or
+                    // see.
+                    get: { LogVerbosity.clamp(verbosityState.level ?? LogVerbosity.minimum) },
+                    set: { newLevel in setLogVerbosity(newLevel) }
+                ),
+                in: LogVerbosity.range
+            ) {
+                HStack {
+                    Text("Log detail")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Spacer()
+                    Text(LogVerbosity.valueLabel(verbosityState.level))
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        // an unavailable row is not a setting value: it reads
+                        // as muted text, not as a level in force
+                        .foregroundColor(
+                            verbosityState.level == nil
+                                ? themeManager.currentTheme.textMutedColor
+                                : themeManager.currentTheme.accentColor)
+                }
+            }
+            // inert with no level read back (there is nothing to step from),
+            // and held across a write, which is an rpc into the extension
+            .disabled(
+                deviceManager.device == nil
+                    || verbosityState.level == nil
+                    || verbosityState.isApplying)
+
+            Text(LogVerbosity.detail(verbosityState.level))
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 2)
+    }
+
+    /**
+     * Shown for as long as the level is raised, and deliberately loud.
+     *
+     * At V(1) and above the logs name the destinations of real traffic, so
+     * this is the difference between a bundle that is safe to send and one
+     * that should not leave the device -- not a detail to discover after it
+     * has been mailed to support.
+     */
+    private var destinationWarning: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(themeManager.currentTheme.dangerColor)
+            Text(LogVerbosity.destinationWarning)
+                .font(themeManager.currentTheme.bodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(themeManager.currentTheme.dangerColor.opacity(0.15))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(themeManager.currentTheme.dangerColor, lineWidth: 1)
+        )
+    }
+
+    /**
+     * Drives the level through the DEVICE, never the process-local
+     * `SdkSetLogVerbosity`: the contract and transport logging happens in the
+     * packet tunnel extension, and the app process is not where it is
+     * produced. `deviceManager.device` is read here, on the main actor,
+     * before the hop -- as with the export.
+     */
+    private func setLogVerbosity(_ level: Int) {
+        let device = deviceManager.device
+        Task {
+            await verbosityState.setLevel(level, device: device)
         }
     }
 

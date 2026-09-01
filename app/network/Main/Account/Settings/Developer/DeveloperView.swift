@@ -28,6 +28,7 @@ struct DeveloperView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var reliabilityStore: ReliabilityStore
+    @EnvironmentObject var deviceManager: DeviceManager
     @Environment(\.presentationActive) private var presentationActive
 
     /**
@@ -40,10 +41,23 @@ struct DeveloperView: View {
         reliabilityStore.settings ?? ReliabilitySettings()
     }
 
+    // the export outlives this screen, so its in-flight guard and its result
+    // are held outside the view -- see DiagnosticExportState
+    @ObservedObject private var exportState = DiagnosticExportState.shared
+    @State private var showLogPicker = false
+    @State private var selectedLogNames: Set<String> = []
+
+    // read what was recorded at startup; do NOT call configure() here, which
+    // would re-point glog every time this view is constructed
+    private var sharedRootUnavailableReason: String? {
+        DiagnosticsLogLocation.sharedRootUnavailableReason
+    }
+
     var body: some View {
         Form {
 
             introSection
+            diagnosticsSection
 
             if reliabilityStore.connected {
                 measurementsSection
@@ -67,6 +81,13 @@ struct DeveloperView: View {
         .onAppear {
             reliabilityStore.setActive(presentationActive)
         }
+        .task {
+            // the inventory (and with it the total size and any unavailable
+            // source) has to be on screen BEFORE the user commits to an
+            // export, so it is read here rather than when the picker opens
+            await exportState.refreshInventory(
+                sharedRootUnavailableReason: sharedRootUnavailableReason)
+        }
         .onChange(of: presentationActive) { active in
             reliabilityStore.setActive(active)
         }
@@ -85,12 +106,147 @@ struct DeveloperView: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
 
                 if !reliabilityStore.connected {
-                    Text("Connect to use these tools.")
+                    // the diagnostics section below works while disconnected
+                    // -- exporting the logs of a connection that will not come
+                    // up is exactly when it is wanted -- so this must not tell
+                    // the user the whole screen is dead
+                    Text("Connect to use the live connection tools. Diagnostics below work either way.")
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                 }
             }
             .padding(.vertical, 2)
+        }
+    }
+
+    /** Diagnostics: everything the client knows, as one file the user can send. */
+    private var diagnosticsSection: some View {
+        Section {
+            if let inventoryLabel = exportState.inventoryLabel {
+                Text(inventoryLabel)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            ForEach(exportState.unavailableSources, id: \.self) { note in
+                Text(note)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            actionRow("Export all logs (raw)", isEnabled: !exportState.isExporting) {
+                exportBundle(redacted: false)
+            }
+            actionRow("Export redacted logs", isEnabled: !exportState.isExporting) {
+                exportBundle(redacted: true)
+            }
+            // disabled while an export runs like the other three rows: its
+            // handler re-reads the on-disk inventory, and that read is exactly
+            // the work the running export is already doing
+            actionRow("Choose logs…", isEnabled: !exportState.isExporting) {
+                showLogPicker.toggle()
+                Task {
+                    await exportState.refreshInventory(
+                        sharedRootUnavailableReason: sharedRootUnavailableReason)
+                    // a checked file that has since rotated away would be
+                    // dropped by the SDK filter without a word, so the picker
+                    // would promise files the bundle does not contain
+                    selectedLogNames.formIntersection(
+                        Set(exportState.inventory.map { $0.name }))
+                }
+            }
+            if showLogPicker {
+                // identified by source+name, not name alone: glog names embed
+                // the program and pid so a collision across processes is
+                // unlikely, but nothing enforces it, and a duplicate id is a
+                // SwiftUI diffing hazard
+                ForEach(exportState.inventory, id: \.pickerRowId) { info in
+                    Button {
+                        if selectedLogNames.contains(info.name) {
+                            selectedLogNames.remove(info.name)
+                        } else {
+                            selectedLogNames.insert(info.name)
+                        }
+                    } label: {
+                        HStack {
+                            Text(DiagnosticExportService.rowLabel(
+                                source: info.source,
+                                severity: info.severity,
+                                byteCount: info.byteCount,
+                                modifiedMillis: info.modifiedMillis))
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(
+                                    selectedLogNames.contains(info.name)
+                                        ? themeManager.currentTheme.accentColor
+                                        : themeManager.currentTheme.textMutedColor)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                Text(DiagnosticExportService.selectionLabel(
+                    fileCount: selectedLogNames.count,
+                    byteCount: DiagnosticExportService.totalByteCount(
+                        of: exportState.inventory.filter { selectedLogNames.contains($0.name) })))
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                // Disabled (and a no-op even if somehow tapped) with nothing
+                // checked, or while an export is already running: an empty
+                // selection means "no filter" to the SDK, which would
+                // otherwise export every log file unredacted -- the opposite
+                // of what this row's label promises.
+                actionRow(
+                    "Export selected",
+                    isEnabled: !exportState.isExporting
+                        && DiagnosticExportService.canExportSelection(selectedLogNames)
+                ) {
+                    guard DiagnosticExportService.canExportSelection(selectedLogNames) else { return }
+                    exportBundle(redacted: false, selected: Array(selectedLogNames))
+                }
+            }
+            if exportState.isExporting {
+                Text("Exporting…")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            if let exportedBundle = exportState.bundle {
+                ShareLink(item: exportedBundle) {
+                    Text("Share \(exportedBundle.lastPathComponent)")
+                        .font(themeManager.currentTheme.bodyFont)
+                }
+            }
+            if let exportSummary = exportState.summary {
+                Text(exportSummary)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            if let exportError = exportState.errorMessage {
+                Text(exportError)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+        } header: {
+            sectionHeader("Diagnostics")
+        }
+    }
+
+    /**
+     * The work itself, its in-flight guard and its result all live in
+     * DiagnosticExportState, which outlives this view. Everything the export
+     * needs from the environment is read here, on the main actor, before the
+     * hop -- reading `deviceManager.device` off the main actor would itself be
+     * unsafe.
+     */
+    private func exportBundle(redacted: Bool, selected: [String] = []) {
+        let device = deviceManager.device
+        let reason = sharedRootUnavailableReason
+
+        Task {
+            await exportState.export(
+                redacted: redacted,
+                selected: selected,
+                device: device,
+                sharedRootUnavailableReason: reason
+            )
         }
     }
 
@@ -520,17 +676,23 @@ struct DeveloperView: View {
      * A tappable action, rendered as accent-colored text like the android
      * screen's actions rather than a bordered button.
      */
-    private func actionRow(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+    private func actionRow(
+        _ title: LocalizedStringKey, isEnabled: Bool = true, action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack {
                 Text(title)
                     .font(themeManager.currentTheme.bodyFont)
-                    .foregroundColor(themeManager.currentTheme.accentColor)
+                    .foregroundColor(
+                        isEnabled
+                            ? themeManager.currentTheme.accentColor
+                            : themeManager.currentTheme.textMutedColor)
                 Spacer()
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
     }
 
     /** A read-only counter row: label and detail with a value in place of a control. */

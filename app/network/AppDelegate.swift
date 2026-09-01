@@ -40,7 +40,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         #if os(iOS)
         BGTaskScheduler.shared.register(forTaskWithIdentifier: "network.ur.update-tunnel", using: nil) { task in
-            self.deviceManager?.vpnManager?.handleBackgroundUpdate(task: task)
+            guard let deviceManager = self.deviceManager else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            deviceManager.handleBackgroundUpdate(task: task)
         }
         #endif
         return true

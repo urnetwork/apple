@@ -35,17 +35,77 @@ enum VPNTunnelRecoveryAction: Equatable {
 
 enum VPNForegroundRetryAction: Equatable {
     case none
-    case reconcile
     case forceReconcile
 }
 
-enum VPNTunnelConnectionState {
+enum VPNTunnelConnectionState: Equatable {
     case invalid
     case disconnected
     case connecting
     case connected
     case reasserting
     case disconnecting
+}
+
+let VPNDisconnectedHealthAuditDelay: TimeInterval = 0
+let VPNDisconnectingHealthAuditDelay: TimeInterval = 1
+let VPNConnectedBackendHealthAuditDelay: TimeInterval = 3
+let VPNTransitionalHealthAuditDelay: TimeInterval = 5
+
+/// NetworkExtension status is the process-level source of truth, while the RPC
+/// and SDK values prove that the containing app can actually reach a started,
+/// usable tunnel. Cached SDK state alone must never make a dead provider look
+/// healthy.
+func vpnTunnelHealthIsSatisfied(
+    expectedStarted: Bool,
+    connectionState: VPNTunnelConnectionState,
+    rpcConnected: Bool,
+    sdkTunnelStarted: Bool,
+    requiresProvider: Bool,
+    providerCount: Int
+) -> Bool {
+    guard expectedStarted else {
+        return vpnTunnelConnectionIsStopped(connectionState)
+    }
+    guard connectionState == .connected,
+          rpcConnected,
+          sdkTunnelStarted else {
+        return false
+    }
+    return !requiresProvider || providerCount > 0
+}
+
+/// Returns when a live status change deserves a health audit. Transitional
+/// states get time to settle; a fully disconnected desired tunnel is repaired
+/// immediately. A deliberate stop is also enforced if an active profile
+/// remains behind.
+func vpnTunnelHealthAuditDelay(
+    shouldRun: Bool,
+    reconcileInFlight: Bool,
+    connectionState: VPNTunnelConnectionState,
+    isHealthy: Bool
+) -> TimeInterval? {
+    guard !reconcileInFlight else {
+        return nil
+    }
+    if !shouldRun {
+        return vpnTunnelConnectionIsStopped(connectionState)
+            ? nil
+            : VPNDisconnectedHealthAuditDelay
+    }
+    guard !isHealthy else {
+        return nil
+    }
+    switch connectionState {
+    case .invalid, .disconnected:
+        return VPNDisconnectedHealthAuditDelay
+    case .disconnecting:
+        return VPNDisconnectingHealthAuditDelay
+    case .connected:
+        return VPNConnectedBackendHealthAuditDelay
+    case .connecting, .reasserting:
+        return VPNTransitionalHealthAuditDelay
+    }
 }
 
 struct VPNTunnelConfigurationIdentity: Equatable {
@@ -94,6 +154,8 @@ func vpnTunnelConfigurationMatchesForBootstrap(
 private func vpnTunnelAdoptionPriority(
     _ connectionState: VPNTunnelConnectionState
 ) -> Int? {
+    // Connecting/reasserting profiles are adopted only long enough for the
+    // caller's bounded health check. They are candidates, not healthy tunnels.
     switch connectionState {
     case .connected:
         return 3
@@ -199,7 +261,10 @@ func vpnForegroundRetryAction(
     if reconcileInFlight {
         return .none
     }
-    return .reconcile
+    // Foregrounding is a health boundary, not merely another desired-state
+    // notification. Bypass the desired-state cache so NetworkExtension's live
+    // connection status and RPC/backend readiness are inspected.
+    return .forceReconcile
 }
 
 func vpnTunnelRecoveryAction(

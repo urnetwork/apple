@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import NetworkExtension
+@preconcurrency import NetworkExtension
 import URnetworkSdk
 import Network
 import Combine
@@ -33,6 +33,62 @@ private let TunnelLogoutProviderMessage = Data("logout".utf8)
 private let VPNStateBurstCoalesceDelay: TimeInterval = 0.020
 private let TunnelHealthPollInterval: TimeInterval = 0.250
 private let VPNBootstrapLookupTimeout: TimeInterval = 2
+private let VPNAppPathHealthAuditDelay: TimeInterval = 1
+private let VPNBackgroundHealthLease: TimeInterval = 25
+
+private final class VPNAppPathTransitionDetector: @unchecked Sendable {
+    private let lock = NSLock()
+    private var wasObserved = false
+    private var wasSatisfied = false
+    private var signature: String?
+
+    func record(isSatisfied: Bool, signature newSignature: String) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let materiallyChanged = wasObserved && isSatisfied && (
+            !wasSatisfied || signature != newSignature
+        )
+        wasObserved = true
+        wasSatisfied = isSatisfied
+        if isSatisfied {
+            signature = newSignature
+        }
+        return materiallyChanged
+    }
+}
+
+#if os(iOS)
+final class VPNBackgroundTaskFinisher: @unchecked Sendable {
+    private let lock = NSLock()
+    private var finished = false
+    private let task: BGTask
+
+    init(task: BGTask) {
+        self.task = task
+    }
+
+    var isFinished: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return finished
+    }
+
+    func finish(success: Bool) {
+        lock.lock()
+        guard !finished else {
+            lock.unlock()
+            return
+        }
+        finished = true
+        lock.unlock()
+
+        DispatchQueue.main.async { [task] in
+            task.setTaskCompleted(success: success)
+        }
+    }
+}
+#endif
 
 private struct VPNManagerOperationError: LocalizedError {
     let operation: String
@@ -109,7 +165,19 @@ class VPNManager: ObservableObject {
     private var reconcileInFlight = false
     private var reconcileWaiters: [((Error?) -> Void)] = []
     private var isClosed = false
+    private var applicationIsActive = true
+    private var applicationBecameActiveAt = Date()
+    private var backgroundHealthLeaseUntil: Date?
+    private var backgroundHealthLeaseGeneration: UInt64 = 0
+    private var explicitHealthLeaseCount = 0
     private var idleTimerDisabled = false
+
+    // Retain the live manager objects so their NEVPNConnection status updates
+    // can be observed. The desired-state cache is not a health signal.
+    private var observedVpnManagers: [NETunnelProviderManager] = []
+    private var vpnStatusObservers: [NSObjectProtocol] = []
+    private var healthAuditWork: DispatchWorkItem?
+    private var healthAuditDeadline: Date?
 
     // per-session rpc transport (client/server self-signed material + listen port)
     private var rpcRemoteChangeSub: SdkSubProtocol?
@@ -123,8 +191,8 @@ class VPNManager: ObservableObject {
     
     var contractStatusSub: SdkSubProtocol?
     
-    let monitor = NWPathMonitor()
-    let queue = DispatchQueue(label: "NetworkMonitor")
+    private let monitor = NWPathMonitor()
+    private let queue = DispatchQueue(label: "network.ur.app.pathMonitor")
     
     
     init(device: SdkDeviceRemote) {
@@ -137,6 +205,36 @@ class VPNManager: ObservableObject {
             providePaused: device.getProvidePaused()
         )
         
+        // NWPathMonitor immediately emits its current path. Treat that first
+        // value as a baseline; only an actual path transition should trigger a
+        // health audit. The small transition detector also makes the callback
+        // safe if Network ever invokes it on a replacement queue.
+        let appPathTransitionDetector = VPNAppPathTransitionDetector()
+        self.monitor.pathUpdateHandler = { [weak self] path in
+            let isSatisfied = path.status == .satisfied
+            let interfaces = path.availableInterfaces
+                .filter { path.usesInterfaceType($0.type) }
+                .map { "\($0.name):\($0.type)" }
+                .sorted()
+                .joined(separator: ",")
+            let gateways = path.gateways
+                .map { "\($0)" }
+                .sorted()
+                .joined(separator: ",")
+            let signature = "interfaces=\(interfaces)|gateways=\(gateways)"
+            let pathMateriallyChanged = appPathTransitionDetector.record(
+                isSatisfied: isSatisfied,
+                signature: signature
+            )
+
+            guard pathMateriallyChanged else { return }
+            DispatchQueue.main.async {
+                self?.scheduleLiveHealthAudit(
+                    after: VPNAppPathHealthAuditDelay,
+                    reason: "app-network-path"
+                )
+            }
+        }
         self.monitor.start(queue: queue)
 
         self.routeLocalSub = device.add(RouteLocalChangeListener { [weak self] routeLocal in
@@ -212,8 +310,74 @@ class VPNManager: ObservableObject {
        }
     }
     
-    func handleBackgroundUpdate(task: BGTask) {
-        task.setTaskCompleted(success: true)
+    func handleBackgroundUpdate(
+        task: BGTask,
+        finisher: VPNBackgroundTaskFinisher? = nil
+    ) {
+        let finisher = finisher ?? VPNBackgroundTaskFinisher(task: task)
+        guard !finisher.isFinished else { return }
+        backgroundHealthLeaseGeneration &+= 1
+        let leaseGeneration = backgroundHealthLeaseGeneration
+        backgroundHealthLeaseUntil = Date().addingTimeInterval(
+            VPNBackgroundHealthLease
+        )
+        task.expirationHandler = { [weak self] in
+            finisher.finish(success: false)
+            DispatchQueue.main.async {
+                self?.endBackgroundHealthLease(
+                    generation: leaseGeneration
+                )
+            }
+        }
+
+        scheduleBackgroundUpdate()
+        refreshDesiredStateFromDevice()
+        let expectedTunnelStarted = desiredState.shouldRun
+        requestVpnServiceUpdate(force: true, coalesceBurst: false) { [weak self] error in
+            guard let self else {
+                finisher.finish(success: false)
+                return
+            }
+            guard error == nil else {
+                self.endBackgroundHealthLease(generation: leaseGeneration)
+                finisher.finish(success: false)
+                return
+            }
+
+            Task { @MainActor [weak self] in
+                guard let self else {
+                    finisher.finish(success: false)
+                    return
+                }
+                let remainingLease = max(
+                    0,
+                    self.backgroundHealthLeaseUntil?.timeIntervalSinceNow ?? 0
+                )
+                guard remainingLease > 0 else {
+                    self.endBackgroundHealthLease(
+                        generation: leaseGeneration
+                    )
+                    finisher.finish(success: false)
+                    return
+                }
+
+                let result = await self.waitForTunnelState(
+                    started: expectedTunnelStarted,
+                    timeout: remainingLease
+                )
+                self.endBackgroundHealthLease(generation: leaseGeneration)
+                if case .success = result {
+                    finisher.finish(success: true)
+                } else {
+                    finisher.finish(success: false)
+                }
+            }
+        }
+    }
+
+    private func endBackgroundHealthLease(generation: UInt64) {
+        guard generation == backgroundHealthLeaseGeneration else { return }
+        backgroundHealthLeaseUntil = nil
     }
     #endif
     
@@ -231,8 +395,19 @@ class VPNManager: ObservableObject {
         }
         isClosed = true
         self.tunnelInstance += 1
+        applicationIsActive = false
+        backgroundHealthLeaseGeneration &+= 1
+        backgroundHealthLeaseUntil = nil
+        cancelLiveHealthAudit()
         self.monitor.cancel()
+        self.monitor.pathUpdateHandler = nil
         self.setIdleTimerDisabled(false)
+
+        for observer in vpnStatusObservers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        vpnStatusObservers = []
+        observedVpnManagers = []
 
         reconcileScheduled = false
         reconcileScheduleGeneration &+= 1
@@ -301,10 +476,18 @@ class VPNManager: ObservableObject {
     
     func updateVpnService() {
         refreshDesiredStateFromDevice()
-        requestVpnServiceUpdate(coalesceBurst: false)
+        requestVpnServiceUpdate(force: true, coalesceBurst: false)
     }
 
     func updateVpnServiceAndWait(timeout: TimeInterval = 30) async -> Result<Void, Error> {
+        // App Intents run without an active scene but still own bounded process
+        // execution. Keep recovery polls and pending-RPC validation alive for
+        // the duration of this explicit wait.
+        explicitHealthLeaseCount += 1
+        defer {
+            explicitHealthLeaseCount = max(0, explicitHealthLeaseCount - 1)
+        }
+
         // the tunnel is the packet router: it must run whenever the device is
         // connected, providing (any mode — including Network, which relays for
         // same-network peers), or routing remotely
@@ -318,7 +501,7 @@ class VPNManager: ObservableObject {
                 waiter.resume(.failure(makeVPNManagerError("Timed out updating VPN service", code: 5)))
             }
 
-            requestVpnServiceUpdate(coalesceBurst: false) { error in
+            requestVpnServiceUpdate(force: true, coalesceBurst: false) { error in
                 if let error {
                     waiter.resume(.failure(error))
                 } else {
@@ -338,7 +521,7 @@ class VPNManager: ObservableObject {
         let deadline = Date().addingTimeInterval(timeout)
 
         while Date() < deadline {
-            if device.getTunnelStarted() == started {
+            if liveTunnelStateMatches(expectedStarted: started) {
                 return .success(())
             }
 
@@ -367,6 +550,8 @@ class VPNManager: ObservableObject {
     }
 
     func applicationDidBecomeActive() {
+        applicationIsActive = true
+        applicationBecameActiveAt = Date()
         let action = vpnForegroundRetryAction(
             isClosed: isClosed,
             reconcileInFlight: reconcileInFlight,
@@ -388,6 +573,23 @@ class VPNManager: ObservableObject {
             force: action == .forceReconcile,
             coalesceBurst: false
         )
+    }
+
+    func applicationDidBecomeInactive() {
+        applicationIsActive = false
+        cancelLiveHealthAudit()
+        // Main-queue timers resume with an expired deadline after suspension.
+        // Preserve pending credentials and let the forced foreground reconcile
+        // re-arm their connection timeout against a live process.
+        rpcConnectTimeoutWork?.cancel()
+        rpcConnectTimeoutWork = nil
+    }
+
+    private var healthChecksMayRun: Bool {
+        if applicationIsActive || explicitHealthLeaseCount > 0 {
+            return true
+        }
+        return backgroundHealthLeaseUntil.map { Date() < $0 } ?? false
     }
 
     private func requestVpnServiceUpdate(
@@ -592,6 +794,233 @@ class VPNManager: ObservableObject {
         #endif
     }
 
+    private struct TunnelHealthSnapshot {
+        let connectionState: VPNTunnelConnectionState
+        let rpcConnected: Bool
+        let sdkTunnelStarted: Bool
+        let requiresProvider: Bool
+        let providerCount: Int
+
+        func satisfies(expectedStarted: Bool) -> Bool {
+            vpnTunnelHealthIsSatisfied(
+                expectedStarted: expectedStarted,
+                connectionState: connectionState,
+                rpcConnected: rpcConnected,
+                sdkTunnelStarted: sdkTunnelStarted,
+                requiresProvider: requiresProvider,
+                providerCount: providerCount
+            )
+        }
+
+        var description: String {
+            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount)"
+        }
+    }
+
+    private func tunnelHealthSnapshot(
+        manager: NETunnelProviderManager,
+        device: SdkDeviceRemote,
+        expectedStarted: Bool
+    ) -> TunnelHealthSnapshot {
+        let connectionState = Self.tunnelConnectionState(
+            manager.connection.status
+        )
+        guard expectedStarted else {
+            // Once NetworkExtension says the provider is stopped there is no
+            // live RPC process to consult. Last-known SDK state is irrelevant.
+            return TunnelHealthSnapshot(
+                connectionState: connectionState,
+                rpcConnected: false,
+                sdkTunnelStarted: false,
+                requiresProvider: false,
+                providerCount: 0
+            )
+        }
+
+        // Do not read cached SDK tunnel/window values until the RPC transport
+        // itself is live. DeviceRemote intentionally retains last-known values
+        // across disconnects for UI continuity.
+        let rpcConnected = device.getConnected()
+        guard rpcConnected else {
+            return TunnelHealthSnapshot(
+                connectionState: connectionState,
+                rpcConnected: false,
+                sdkTunnelStarted: false,
+                requiresProvider: false,
+                providerCount: 0
+            )
+        }
+
+        let sdkTunnelStarted = device.getTunnelStarted()
+        let requiresProvider = device.getConnectLocation() != nil
+        let providerCount: Int
+        if requiresProvider {
+            providerCount = Int(device.getWindowStatus()?.providerStateAdded ?? 0)
+        } else {
+            providerCount = 0
+        }
+        return TunnelHealthSnapshot(
+            connectionState: connectionState,
+            rpcConnected: true,
+            sdkTunnelStarted: sdkTunnelStarted,
+            requiresProvider: requiresProvider,
+            providerCount: providerCount
+        )
+    }
+
+    private static func automaticRecoveryPolicyIsCurrent(
+        _ manager: NETunnelProviderManager
+    ) -> Bool {
+        guard manager.isEnabled,
+              manager.isOnDemandEnabled,
+              let tunnelProtocol =
+                manager.protocolConfiguration as? NETunnelProviderProtocol,
+              !tunnelProtocol.disconnectOnSleep else {
+            return false
+        }
+        return manager.onDemandRules?.contains { rule in
+            guard let connectRule = rule as? NEOnDemandRuleConnect else {
+                return false
+            }
+            return connectRule.interfaceTypeMatch == .any
+        } ?? false
+    }
+
+    private static func applyAutomaticRecoveryPolicy(
+        to manager: NETunnelProviderManager
+    ) {
+        manager.isEnabled = true
+        let connectRule = NEOnDemandRuleConnect()
+        connectRule.interfaceTypeMatch = .any
+        manager.onDemandRules = [connectRule]
+        manager.isOnDemandEnabled = true
+
+        if let tunnelProtocol =
+                manager.protocolConfiguration as? NETunnelProviderProtocol {
+            tunnelProtocol.disconnectOnSleep = false
+            manager.protocolConfiguration = tunnelProtocol
+        }
+    }
+
+    private func liveTunnelStateMatches(expectedStarted: Bool) -> Bool {
+        if !expectedStarted {
+            return observedVpnManagers.allSatisfy {
+                vpnTunnelConnectionIsStopped(
+                    Self.tunnelConnectionState($0.connection.status)
+                )
+            }
+        }
+        return observedVpnManagers.contains { manager in
+            Self.automaticRecoveryPolicyIsCurrent(manager) &&
+                tunnelHealthSnapshot(
+                    manager: manager,
+                    device: device,
+                    expectedStarted: true
+                ).satisfies(expectedStarted: true)
+        }
+    }
+
+    private func trackVpnManagers(_ managers: [NETunnelProviderManager]) {
+        for observer in vpnStatusObservers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        vpnStatusObservers = []
+        observedVpnManagers = managers
+
+        for manager in managers {
+            let connection = manager.connection
+            let observer = NotificationCenter.default.addObserver(
+                forName: .NEVPNStatusDidChange,
+                object: connection,
+                queue: .main
+            ) { [weak self, weak connection] _ in
+                guard let connection else { return }
+                Task { @MainActor [weak self] in
+                    self?.vpnStatusDidChange(connection)
+                }
+            }
+            vpnStatusObservers.append(observer)
+        }
+    }
+
+    private func vpnStatusDidChange(_ connection: NEVPNConnection) {
+        guard !isClosed,
+              let manager = observedVpnManagers.first(where: {
+                  $0.connection === connection
+              }) else {
+            return
+        }
+
+        let state = Self.tunnelConnectionState(connection.status)
+        let shouldRun = desiredState.shouldRun
+        let snapshot = tunnelHealthSnapshot(
+            manager: manager,
+            device: device,
+            expectedStarted: shouldRun
+        )
+        print("[VPNManager][status] \(snapshot.description) desired=\(shouldRun)")
+
+        if liveTunnelStateMatches(expectedStarted: shouldRun) {
+            cancelLiveHealthAudit()
+            return
+        }
+        guard applicationIsActive,
+              let delay = vpnTunnelHealthAuditDelay(
+                shouldRun: shouldRun,
+                reconcileInFlight: reconcileInFlight,
+                connectionState: state,
+                isHealthy: snapshot.satisfies(expectedStarted: shouldRun)
+              ) else {
+            return
+        }
+        scheduleLiveHealthAudit(after: delay, reason: "vpn-status-\(state)")
+    }
+
+    private func scheduleLiveHealthAudit(
+        after delay: TimeInterval,
+        reason: String
+    ) {
+        guard !isClosed, applicationIsActive else { return }
+
+        let deadline = Date().addingTimeInterval(delay)
+        if let existingDeadline = healthAuditDeadline,
+           existingDeadline <= deadline {
+            return
+        }
+        healthAuditWork?.cancel()
+
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.healthAuditWork = nil
+            self.healthAuditDeadline = nil
+            guard !self.isClosed, self.applicationIsActive else { return }
+
+            self.refreshDesiredStateFromDevice()
+            let shouldRun = self.desiredState.shouldRun
+            guard !self.liveTunnelStateMatches(
+                expectedStarted: shouldRun
+            ) else {
+                return
+            }
+            guard !self.reconcileInFlight else {
+                // The active transition owns its own bounded health check.
+                return
+            }
+
+            print("[VPNManager][health] audit failed reason=\(reason) desired=\(shouldRun); reconciling live state")
+            self.requestVpnServiceUpdate(force: true, coalesceBurst: false)
+        }
+        healthAuditWork = work
+        healthAuditDeadline = deadline
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    private func cancelLiveHealthAudit() {
+        healthAuditWork?.cancel()
+        healthAuditWork = nil
+        healthAuditDeadline = nil
+    }
+
     private func loadAllVpnManagers(
         operation: String,
         completion: @escaping (Result<[NETunnelProviderManager], Error>) -> Void
@@ -604,7 +1033,10 @@ class VPNManager: ObservableObject {
                     resolve(.success(managers ?? []))
                 }
             }
-        } completion: { result in
+        } completion: { (result: Result<[NETunnelProviderManager], Error>) in
+            if case .success(let managers) = result {
+                self.trackVpnManagers(managers)
+            }
             completion(result)
         }
     }
@@ -639,6 +1071,32 @@ class VPNManager: ObservableObject {
                 completion(nil)
             }
         }
+    }
+
+    private func ensureAutomaticRecoveryPolicy(
+        _ manager: NETunnelProviderManager,
+        operation: String,
+        completion: @escaping (Error?) -> Void
+    ) {
+        guard !Self.automaticRecoveryPolicyIsCurrent(manager) else {
+            completion(nil)
+            return
+        }
+
+        Self.applyAutomaticRecoveryPolicy(to: manager)
+        saveVpnManager(
+            manager,
+            operation: operation,
+            lateCompletion: { [weak self] error in
+                DispatchQueue.main.async {
+                    self?.reconcileAfterLatePreferenceWrite(
+                        operation: operation,
+                        error: error
+                    )
+                }
+            },
+            completion: completion
+        )
     }
 
     private func reconcileAfterLatePreferenceWrite(
@@ -712,6 +1170,7 @@ class VPNManager: ObservableObject {
     private func finishAcceptedTunnelTransition(
         expectedStarted: Bool,
         operation: String,
+        manager: NETunnelProviderManager,
         device: SdkDeviceRemote,
         index: Int,
         reset: Bool,
@@ -732,6 +1191,7 @@ class VPNManager: ObservableObject {
             waitForTerminalTunnelHealth(
                 expectedStarted: expectedStarted,
                 operation: operation,
+                manager: manager,
                 device: device,
                 shouldRun: shouldRun,
                 tunnelInstance: tunnelInstance,
@@ -742,60 +1202,37 @@ class VPNManager: ObservableObject {
         }
 
         // The first attempt remains fast: return as soon as NetworkExtension
-        // accepts it, then independently validate actual SDK tunnel health.
-        // A reset's final attempt is handled above and cannot silently succeed.
+        // accepts it, then independently validate NetworkExtension + RPC + SDK
+        // backend health. A reset's final attempt is handled above and cannot
+        // silently succeed.
         completion?(nil)
-        if inspectRpcSyncError {
-            waitForAdoptedTunnelHealth(
-                expectedStarted: expectedStarted,
-                device: device,
-                index: index,
-                shouldRun: shouldRun,
-                recoveryAction: recoveryAction,
-                tunnelInstance: tunnelInstance,
-                deadline: Date().addingTimeInterval(TunnelCheckTimeout)
-            )
-            return
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + TunnelCheckTimeout) { [weak self] in
-            guard let self,
-                  tunnelInstance == self.tunnelInstance else {
-                return
-            }
-            guard self.desiredState.shouldRun == shouldRun else {
-                self.requestVpnServiceUpdate(coalesceBurst: false)
-                return
-            }
-            guard device.getTunnelStarted() != expectedStarted else {
-                return
-            }
-
-            switch recoveryAction {
-            case .restartCurrentProfileInPlace:
-                self.requestVpnRecovery(
-                    shouldRun: shouldRun,
-                    index: index,
-                    reset: true
-                )
-            case .tryNextProfile(let nextIndex):
-                self.requestVpnRecovery(
-                    shouldRun: shouldRun,
-                    index: nextIndex,
-                    reset: false
-                )
-            case .reportFailure:
-                break
-            }
-        }
+        let healthTimeout = inspectRpcSyncError
+            ? VPNTransitionalHealthAuditDelay
+            : TunnelCheckTimeout
+        waitForRecoverableTunnelHealth(
+            expectedStarted: expectedStarted,
+            operation: operation,
+            manager: manager,
+            device: device,
+            index: index,
+            shouldRun: shouldRun,
+            recoveryAction: recoveryAction,
+            tunnelInstance: tunnelInstance,
+            inspectRpcSyncError: inspectRpcSyncError,
+            deadline: Date().addingTimeInterval(healthTimeout)
+        )
     }
 
-    private func waitForAdoptedTunnelHealth(
+    private func waitForRecoverableTunnelHealth(
         expectedStarted: Bool,
+        operation: String,
+        manager: NETunnelProviderManager,
         device: SdkDeviceRemote,
         index: Int,
         shouldRun: Bool,
         recoveryAction: VPNTunnelRecoveryAction,
         tunnelInstance: Int,
+        inspectRpcSyncError: Bool,
         deadline: Date
     ) {
         guard tunnelInstance == self.tunnelInstance else { return }
@@ -803,9 +1240,14 @@ class VPNManager: ObservableObject {
             requestVpnServiceUpdate(coalesceBurst: false)
             return
         }
+        // Outside a live BGAppRefresh lease, abandon non-terminal validation
+        // while the containing app is inactive. Foreground activation starts a
+        // fresh live-state reconcile, avoiding an expired sleep-era deadline
+        // from immediately restarting a healthy provider before RPC reconnects.
+        guard healthChecksMayRun || reconcileInFlight else { return }
 
-        let syncError = device.getSyncError()
-        if !syncError.isEmpty {
+        let syncError = inspectRpcSyncError ? device.getSyncError() : ""
+        if expectedStarted, !syncError.isEmpty {
             print("[VPNManager]running tunnel RPC adoption rejected: \(syncError)")
             requestVpnRecovery(
                 shouldRun: shouldRun,
@@ -814,47 +1256,69 @@ class VPNManager: ObservableObject {
             )
             return
         }
-        if device.getTunnelStarted() == expectedStarted {
+        let snapshot = tunnelHealthSnapshot(
+            manager: manager,
+            device: device,
+            expectedStarted: expectedStarted
+        )
+        if snapshot.satisfies(expectedStarted: expectedStarted) {
             return
         }
         if Date() >= deadline {
-            switch recoveryAction {
-            case .restartCurrentProfileInPlace:
-                requestVpnRecovery(
-                    shouldRun: shouldRun,
-                    index: index,
-                    reset: true
-                )
-            case .tryNextProfile(let nextIndex):
-                requestVpnRecovery(
-                    shouldRun: shouldRun,
-                    index: nextIndex,
-                    reset: false
-                )
-            case .reportFailure:
-                break
-            }
+            print("[VPNManager][\(operation)] unhealthy after grace: \(snapshot.description)")
+            requestVpnRecovery(
+                action: recoveryAction,
+                shouldRun: shouldRun,
+                index: index
+            )
             return
         }
 
         DispatchQueue.main.asyncAfter(
             deadline: .now() + TunnelHealthPollInterval
         ) { [weak self] in
-            self?.waitForAdoptedTunnelHealth(
+            self?.waitForRecoverableTunnelHealth(
                 expectedStarted: expectedStarted,
+                operation: operation,
+                manager: manager,
                 device: device,
                 index: index,
                 shouldRun: shouldRun,
                 recoveryAction: recoveryAction,
                 tunnelInstance: tunnelInstance,
+                inspectRpcSyncError: inspectRpcSyncError,
                 deadline: deadline
             )
+        }
+    }
+
+    private func requestVpnRecovery(
+        action: VPNTunnelRecoveryAction,
+        shouldRun: Bool,
+        index: Int
+    ) {
+        switch action {
+        case .restartCurrentProfileInPlace:
+            requestVpnRecovery(
+                shouldRun: shouldRun,
+                index: index,
+                reset: true
+            )
+        case .tryNextProfile(let nextIndex):
+            requestVpnRecovery(
+                shouldRun: shouldRun,
+                index: nextIndex,
+                reset: false
+            )
+        case .reportFailure:
+            break
         }
     }
 
     private func waitForTerminalTunnelHealth(
         expectedStarted: Bool,
         operation: String,
+        manager: NETunnelProviderManager,
         device: SdkDeviceRemote,
         shouldRun: Bool,
         tunnelInstance: Int,
@@ -871,15 +1335,57 @@ class VPNManager: ObservableObject {
             completion?(nil)
             return
         }
-        if device.getTunnelStarted() == expectedStarted {
+
+        // An ordinary app suspension is not evidence that the provider is
+        // unhealthy. Keep this terminal retry pending until foreground RPC can
+        // reconnect. A launched BGAppRefreshTask owns a short lease and may
+        // continue the same bounded validation while the app is inactive.
+        if expectedStarted, !healthChecksMayRun {
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + TunnelHealthPollInterval
+            ) { [weak self] in
+                self?.waitForTerminalTunnelHealth(
+                    expectedStarted: expectedStarted,
+                    operation: operation,
+                    manager: manager,
+                    device: device,
+                    shouldRun: shouldRun,
+                    tunnelInstance: tunnelInstance,
+                    deadline: Date().addingTimeInterval(TunnelCheckTimeout),
+                    completion: completion
+                )
+            }
+            return
+        }
+
+        // A timer scheduled immediately before suspension can run after the
+        // foreground callback. Always grant the RPC/backend stack one complete
+        // health window following the latest activation.
+        let effectiveDeadline: Date
+        if expectedStarted, applicationIsActive {
+            effectiveDeadline = max(
+                deadline,
+                applicationBecameActiveAt.addingTimeInterval(
+                    TunnelCheckTimeout
+                )
+            )
+        } else {
+            effectiveDeadline = deadline
+        }
+        let snapshot = tunnelHealthSnapshot(
+            manager: manager,
+            device: device,
+            expectedStarted: expectedStarted
+        )
+        if snapshot.satisfies(expectedStarted: expectedStarted) {
             clearVpnError()
             completion?(nil)
             return
         }
-        if Date() >= deadline {
+        if Date() >= effectiveDeadline {
             let expectedState = expectedStarted ? "start" : "stop"
             let error = makeVPNManagerError(
-                "VPN tunnel failed to \(expectedState) after profile reset",
+                "VPN tunnel failed to \(expectedState) after profile reset (\(snapshot.description))",
                 code: 11
             )
             completion?(
@@ -896,10 +1402,11 @@ class VPNManager: ObservableObject {
             self?.waitForTerminalTunnelHealth(
                 expectedStarted: expectedStarted,
                 operation: operation,
+                manager: manager,
                 device: device,
                 shouldRun: shouldRun,
                 tunnelInstance: tunnelInstance,
-                deadline: deadline,
+                deadline: effectiveDeadline,
                 completion: completion
             )
         }
@@ -933,21 +1440,62 @@ class VPNManager: ObservableObject {
         let connectionState = Self.tunnelConnectionState(
             tunnelManager.connection.status
         )
-        guard vpnTunnelNeedsStopBeforeConfiguration(
+        let needsStop = vpnTunnelNeedsStopBeforeConfiguration(
             profileExists: profileExists,
             connectionState: connectionState
-        ) else {
-            completion(nil)
+        )
+
+        let finishPreparation = { [weak self] in
+            guard needsStop else {
+                completion(nil)
+                return
+            }
+            guard let self else {
+                completion(makeVPNManagerError("VPN manager released", code: 7))
+                return
+            }
+            guard tunnelInstance == self.tunnelInstance else {
+                completion(makeVPNManagerError("VPN operation superseded", code: 10))
+                return
+            }
+            tunnelManager.connection.stopVPNTunnel()
+            self.waitForTunnelManagerToStop(
+                tunnelManager,
+                tunnelInstance: tunnelInstance,
+                deadline: Date().addingTimeInterval(TunnelCheckTimeout),
+                completion: completion
+            )
+        }
+
+        guard profileExists, tunnelManager.isOnDemandEnabled else {
+            finishPreparation()
             return
         }
 
-        tunnelManager.connection.stopVPNTunnel()
-        waitForTunnelManagerToStop(
+        // A connect-any on-demand rule is required for recovery, but it can
+        // race any deliberate configuration/restart by starting the old profile
+        // before or immediately after stopVPNTunnel(). Disable it transactionally
+        // first; the rebuilt configuration below restores the full policy.
+        tunnelManager.isOnDemandEnabled = false
+        let operation = "start.prepareExistingProfile.disableOnDemand"
+        saveVpnManager(
             tunnelManager,
-            tunnelInstance: tunnelInstance,
-            deadline: Date().addingTimeInterval(TunnelCheckTimeout),
-            completion: completion
-        )
+            operation: operation,
+            lateCompletion: { [weak self] error in
+                DispatchQueue.main.async {
+                    self?.reconcileAfterLatePreferenceWrite(
+                        operation: operation,
+                        error: error
+                    )
+                }
+            }
+        ) { error in
+            if let error {
+                completion(error)
+                return
+            }
+            finishPreparation()
+        }
     }
 
     private func waitForTunnelManagerToStop(
@@ -1301,8 +1849,24 @@ class VPNManager: ObservableObject {
         self.rpcRemoteChangeSub = device.add(RemoteChangeListener { [weak self] remoteConnected in
             DispatchQueue.main.async {
                 guard let self = self, tunnelInstance == self.tunnelInstance else { return }
-                guard remoteConnected else { return }
-                confirmSession()
+                print("[VPNManager][rpc] connected=\(remoteConnected)")
+                if remoteConnected {
+                    confirmSession()
+                    // RPC is necessary but not sufficient: give the provider
+                    // window a moment to become ready, then verify all layers.
+                    self.scheduleLiveHealthAudit(
+                        after: VPNAppPathHealthAuditDelay,
+                        reason: "rpc-connected-backend-check"
+                    )
+                } else {
+                    // Confirmed credentials do not get the pending-session
+                    // timeout below. A separate bounded audit is therefore
+                    // required when a previously live RPC transport disappears.
+                    self.scheduleLiveHealthAudit(
+                        after: VPNConnectedBackendHealthAuditDelay,
+                        reason: "rpc-disconnected"
+                    )
+                }
             }
         })
 
@@ -1322,6 +1886,10 @@ class VPNManager: ObservableObject {
         // Pending material gets a bounded chance to authenticate, including
         // after an app crash between profile save and the connected callback.
         guard self.currentRpcSessionState != .confirmed else { return }
+        guard healthChecksMayRun else {
+            print("[VPNManager][rpc] pending credential timeout deferred while inactive")
+            return
+        }
 
         let timeoutWork = DispatchWorkItem { [weak self] in
             guard let self = self, tunnelInstance == self.tunnelInstance else { return }
@@ -1507,27 +2075,54 @@ class VPNManager: ObservableObject {
                     desiredIdentity: desiredIdentity
                 ),
                    let rpcSession {
-                    #if DEBUG
-                    print("[VPNManager]adopt running tunnel profile=\(adoptionIndex) count=\(n)")
-                    #endif
-                    self.applyRpcSession(
-                        rpcSession,
-                        device: device,
-                        tunnelInstance: tunnelInstance
-                    )
-                    device.sync()
-                    self.finishAcceptedTunnelTransition(
-                        expectedStarted: true,
-                        operation: "start.adopt.health",
-                        device: device,
-                        index: adoptionIndex,
-                        reset: reset,
-                        shouldRun: shouldRun,
-                        managerCount: n,
-                        tunnelInstance: tunnelInstance,
-                        inspectRpcSyncError: true,
-                        completion: completion
-                    )
+                    let adoptedManager = managers[adoptionIndex]
+                    self.ensureAutomaticRecoveryPolicy(
+                        adoptedManager,
+                        operation: "start.adopt.enableAutomaticRecovery"
+                    ) { [weak self] error in
+                        DispatchQueue.main.async {
+                            guard let self,
+                                  tunnelInstance == self.tunnelInstance else {
+                                return
+                            }
+                            if let error {
+                                self.retryStartOrReport(
+                                    error,
+                                    operation: "start.adopt.enableAutomaticRecovery",
+                                    index: adoptionIndex,
+                                    reset: reset,
+                                    shouldRun: shouldRun,
+                                    managerCount: n,
+                                    tunnelInstance: tunnelInstance,
+                                    completion: completion
+                                )
+                                return
+                            }
+
+                            #if DEBUG
+                            print("[VPNManager]adopt running tunnel profile=\(adoptionIndex) count=\(n)")
+                            #endif
+                            self.applyRpcSession(
+                                rpcSession,
+                                device: device,
+                                tunnelInstance: tunnelInstance
+                            )
+                            device.sync()
+                            self.finishAcceptedTunnelTransition(
+                                expectedStarted: true,
+                                operation: "start.adopt.health",
+                                manager: adoptedManager,
+                                device: device,
+                                index: adoptionIndex,
+                                reset: reset,
+                                shouldRun: shouldRun,
+                                managerCount: n,
+                                tunnelInstance: tunnelInstance,
+                                inspectRpcSyncError: true,
+                                completion: completion
+                            )
+                        }
+                    }
                     return
                 }
 
@@ -1545,6 +2140,9 @@ class VPNManager: ObservableObject {
 
                 var tunnelManager: NETunnelProviderManager
                 tunnelManager = index < n ? managers[index] : NETunnelProviderManager()
+                if index >= n {
+                    self.trackVpnManagers(managers + [tunnelManager])
+                }
 
                 let startTunnel = {
                     guard tunnelInstance == self.tunnelInstance else { return }
@@ -1646,11 +2244,7 @@ class VPNManager: ObservableObject {
                     tunnelManager.protocolConfiguration = tunnelProtocol
 
                     tunnelManager.localizedDescription = "URnetwork [\(networkSpace.getHostName()) \(networkSpace.getEnvName())]"
-                    tunnelManager.isEnabled = true
-                    tunnelManager.isOnDemandEnabled = false
-                    let connectRule = NEOnDemandRuleConnect()
-                    connectRule.interfaceTypeMatch = NEOnDemandRuleInterfaceType.any
-                    tunnelManager.onDemandRules = [connectRule]
+                    Self.applyAutomaticRecoveryPolicy(to: tunnelManager)
 
                     self.saveVpnManager(
                         tunnelManager,
@@ -1711,6 +2305,7 @@ class VPNManager: ObservableObject {
                                         self.finishAcceptedTunnelTransition(
                                             expectedStarted: true,
                                             operation: "start.health",
+                                            manager: tunnelManager,
                                             device: device,
                                             index: index,
                                             reset: reset,
@@ -1848,6 +2443,7 @@ class VPNManager: ObservableObject {
                         self.finishAcceptedTunnelTransition(
                             expectedStarted: false,
                             operation: "stop.health",
+                            manager: tunnelManager,
                             device: device,
                             index: index,
                             reset: reset,

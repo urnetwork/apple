@@ -137,13 +137,13 @@ struct VPNReconciliationSupportTests {
         )
     }
 
-    @Test func foregroundChecksHealthyIdleStateWithoutForcing() {
+    @Test func foregroundForcesLiveHealthInspection() {
         #expect(
             vpnForegroundRetryAction(
                 isClosed: false,
                 reconcileInFlight: false,
                 hasError: false
-            ) == .reconcile
+            ) == .forceReconcile
         )
     }
 
@@ -187,7 +187,7 @@ struct VPNReconciliationSupportTests {
         ))
     }
 
-    @Test func matchingConnectingTunnelIsAdoptedWithoutDuplicateStart() {
+    @Test func matchingConnectingTunnelIsAdoptedForBoundedHealthCheck() {
         let identity = testTunnelIdentity()
         #expect(vpnShouldAdoptRunningTunnel(
             reset: false,
@@ -197,7 +197,7 @@ struct VPNReconciliationSupportTests {
         ))
     }
 
-    @Test func matchingReassertingTunnelIsAdoptedWithoutRestart() {
+    @Test func matchingReassertingTunnelIsAdoptedForBoundedHealthCheck() {
         let identity = testTunnelIdentity()
         #expect(vpnShouldAdoptRunningTunnel(
             reset: false,
@@ -215,6 +215,123 @@ struct VPNReconciliationSupportTests {
             installedIdentity: identity,
             desiredIdentity: identity
         ))
+    }
+
+    @Test func connectedTunnelRequiresLiveRpcAndStartedState() {
+        #expect(vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: true,
+            sdkTunnelStarted: true,
+            requiresProvider: false,
+            providerCount: 0
+        ))
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: false,
+            sdkTunnelStarted: true,
+            requiresProvider: false,
+            providerCount: 0
+        ))
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: true,
+            sdkTunnelStarted: false,
+            requiresProvider: false,
+            providerCount: 0
+        ))
+    }
+
+    @Test func remoteTunnelRequiresAReadyProviderWindow() {
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: true,
+            sdkTunnelStarted: true,
+            requiresProvider: true,
+            providerCount: 0
+        ))
+        #expect(vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: true,
+            sdkTunnelStarted: true,
+            requiresProvider: true,
+            providerCount: 1
+        ))
+    }
+
+    @Test func connectingAndReassertingAreNeverHealthy() {
+        for state in [VPNTunnelConnectionState.connecting, .reasserting] {
+            #expect(!vpnTunnelHealthIsSatisfied(
+                expectedStarted: true,
+                connectionState: state,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: false,
+                providerCount: 1
+            ))
+        }
+    }
+
+    @Test func stoppedHealthUsesNetworkExtensionStatusNotCachedSdkState() {
+        #expect(vpnTunnelHealthIsSatisfied(
+            expectedStarted: false,
+            connectionState: .disconnected,
+            rpcConnected: true,
+            sdkTunnelStarted: true,
+            requiresProvider: true,
+            providerCount: 1
+        ))
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: false,
+            connectionState: .disconnecting,
+            rpcConnected: false,
+            sdkTunnelStarted: false,
+            requiresProvider: false,
+            providerCount: 0
+        ))
+    }
+
+    @Test func statusAuditTimingRepairsDisconnectsAndGracesTransitions() {
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: true,
+            reconcileInFlight: false,
+            connectionState: .disconnected,
+            isHealthy: false
+        ) == 0)
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: true,
+            reconcileInFlight: false,
+            connectionState: .reasserting,
+            isHealthy: false
+        ) == VPNTransitionalHealthAuditDelay)
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: true,
+            reconcileInFlight: false,
+            connectionState: .connected,
+            isHealthy: true
+        ) == nil)
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: true,
+            reconcileInFlight: true,
+            connectionState: .disconnected,
+            isHealthy: false
+        ) == nil)
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: false,
+            reconcileInFlight: false,
+            connectionState: .connected,
+            isHealthy: false
+        ) == VPNDisconnectedHealthAuditDelay)
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: false,
+            reconcileInFlight: false,
+            connectionState: .disconnected,
+            isHealthy: true
+        ) == nil)
     }
 
     @Test func mismatchedTunnelConfigurationIsNotAdopted() {

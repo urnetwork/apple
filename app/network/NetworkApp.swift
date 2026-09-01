@@ -210,6 +210,7 @@ struct NetworkApp: App {
             deviceManager.applicationDidBecomeActive()
             updateConnectViewModel(deviceManager.device)
         case .suspend:
+            deviceManager.applicationDidBecomeInactive()
             connectViewModel.suspend(api: deviceManager.api, device: deviceManager.device)
             resetDeviceStores()
         }

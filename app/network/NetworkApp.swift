@@ -93,6 +93,11 @@ struct NetworkApp: App {
     @StateObject var reliabilityStore = ReliabilityStore()
 
     init() {
+        // the app process writes its own logs too: glog writes NOTHING until a
+        // log dir is set, so without this the app half of a diagnostic bundle
+        // would be empty
+        DiagnosticsLogLocation.configure(processName: DiagnosticsLogLocation.appProcessName)
+
         let deviceManager = DeviceManager()
         _deviceManager = StateObject(wrappedValue: deviceManager)
         appDelegate.deviceManager = deviceManager

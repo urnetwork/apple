@@ -56,9 +56,7 @@ struct FeedbackView: View {
                             Text("Attach logs to feedback (optional)")
                                 .font(themeManager.currentTheme.bodyFont)
                         }
-                        
-    //                    ExportLogsButton()
-                        
+
                         Spacer().frame(height: 16)
             
                         

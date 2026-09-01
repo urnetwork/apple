@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS build of the same target. Apple requires app group identifiers to be
+  team-id prefixed on macOS ("TEAMID.group.network.ur"); iOS requires them
+  unprefixed. One entitlements file cannot satisfy both, and with the
+  unprefixed identifier containerURL(forSecurityApplicationGroupIdentifier:)
+  returns nil on macOS -- so the app and the extension each fall back to their
+  own private directory and a macOS diagnostic bundle can never contain the
+  extension's logs. Wired by CODE_SIGN_ENTITLEMENTS[sdk=macosx*].
+  The team id is written out literally rather than as $(AppIdentifierPrefix):
+  Xcode expands that variable at BUILD time, but automatic signing REGISTERS an
+  app group with the developer portal before expansion, so the portal receives
+  the literal "$(AppIdentifierPrefix)group.network.ur" and rejects it as an
+  invalid identifier. keychain-access-groups below can keep the variable because
+  keychain groups are derived from the app id and are never registered.
+  The running binary still resolves the granted identifier from its own
+  signature at runtime (DiagnosticsLogContract.appGroupIdentifier), so a build
+  signed by another team resolves its own container.
+-->
+<plist version="1.0">
+<dict>
+	<key>aps-environment</key>
+	<string>development</string>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>6BGU69Q742.group.network.ur</string>
+	</array>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+	<key>com.apple.developer.aps-environment</key>
+	<string>development</string>
+	<key>com.apple.developer.kernel.increased-memory-limit</key>
+	<true/>
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>dns-settings</string>
+		<string>packet-tunnel-provider</string>
+		<string>dns-proxy</string>
+	</array>
+	<key>com.apple.developer.networking.vpn.api</key>
+	<array>
+		<string>allow-vpn</string>
+	</array>
+	<key>com.apple.developer.sustained-execution</key>
+	<true/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)network.ur.tunnel-credentials</string>
+	</array>
+</dict>
+</plist>

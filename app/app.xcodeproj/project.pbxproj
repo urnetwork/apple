@@ -14,6 +14,7 @@
 		17A25D3E2D5C702200507C75 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */; platformFilter = ios; };
 		B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = B17E00032F00000100000003 /* URnetworkExtensionSdk */; };
 		B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */; };
+		B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
@@ -72,6 +73,7 @@
 		1783A00D2D60111600024F80 /* URnetworkLaunchHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = URnetworkLaunchHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		178F47EA2CEDA80A00CD9C3D /* URnetwork-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "URnetwork-Info.plist"; sourceTree = "<group>"; };
 		B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelMemoryBounds.swift; sourceTree = SOURCE_ROOT; };
+		B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/DiagnosticsLogContract.swift; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */,
+				B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -483,6 +486,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -663,6 +667,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = network/network.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "network/network-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 0;
@@ -734,6 +739,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = network/network.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "network/network-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 0;
@@ -905,6 +911,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = extension/extension.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "extension/extension-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 0;
@@ -951,6 +958,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = extension/extension.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "extension/extension-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 0;

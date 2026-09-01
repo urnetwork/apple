@@ -302,10 +302,23 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var networkStateRefresh: (() -> Void)?
     private var packetReadGeneration: UInt64 = 0
     private let logoutProviderMessage = "logout"
+    // the app asks for this immediately before it reads this process's log
+    // files for a diagnostic export
+    private let flushLogsProviderMessage = "flush-logs"
 
 
     override init() {
         super.init()
+
+        // FIRST, before anything that can log or fail: glog writes nothing
+        // anywhere until SetLogDirForProcess has run, so every line emitted
+        // before this point is lost. This used to sit inside startTunnel after
+        // device creation, past seventeen completionHandler(...)/return paths
+        // -- so a tunnel that failed to start produced no extension log files
+        // at all, and the diagnostic export of the most diagnostically
+        // valuable window the feature exists to capture came back empty with
+        // nothing saying why.
+        ExtensionDiagnosticsLogLocation.configure()
 
         logger.info("[PacketTunnelProvider]init")
 
@@ -591,21 +604,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.localState = localState
         self.shouldSaveKeyMaterial = true
         memoryMonitor?.sample(event: "device-created")
-
-        // set glog dir
-        let logsURL: URL
-        if let cacheURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first {
-            logsURL = cacheURL.appendingPathComponent("Logs")
-        } else if let libURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
-            logsURL = libURL.appendingPathComponent("Logs")
-        } else {
-            // As a last resort, use the temporary directory
-            logsURL = FileManager.default.temporaryDirectory.appendingPathComponent("Logs")
-        }
-
-        try? FileManager.default.createDirectory(at: logsURL, withIntermediateDirectories: true)
-
-        SdkSetLogDir(logsURL.path, nil)
 
         // load initial device settings
         // these will be in effect until the app connects and sets the user values
@@ -1304,6 +1302,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
+        if String(data: messageData, encoding: .utf8) == flushLogsProviderMessage {
+            // glog buffers each severity file through a 256KiB writer and
+            // flushes on a 30s ticker, and the zip is assembled in the app
+            // process -- so without this the last seconds of extension logs,
+            // the ones describing whatever the user is reporting, are still in
+            // this process's memory when the app reads the files.
+            SdkFlushGlog()
+            completionHandler?(Data("ok".utf8))
+            return
+        }
+
         if String(data: messageData, encoding: .utf8) == logoutProviderMessage {
             shouldSaveKeyMaterial = false
             SharedTunnelJwtStore.clear()

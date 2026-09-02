@@ -15,7 +15,7 @@ class AccountPointsStore: ObservableObject {
     @Published private(set) var accountPoints: [SdkAccountPoint] = []
     
     @Published private(set) var netPoints: Double = 0
-    @Published private(set) var payoutPoints: Double = 0
+    @Published private(set) var providingPoints: Double = 0
     @Published private(set) var multiplierPoints: Double = 0
     @Published private(set) var referralPoints: Double = 0
     @Published private(set) var reliabilityPoints: Double = 0
@@ -85,7 +85,7 @@ class AccountPointsStore: ObservableObject {
             let n = result.accountPoints?.len()
             
             var netPoints = 0.0
-            var payoutPoints = 0.0
+            var providingPoints = 0.0
             var multiplierPoints = 0.0
             var referralPoints = 0.0
             var reliabilityPoints = 0.0
@@ -110,7 +110,7 @@ class AccountPointsStore: ObservableObject {
                         
                         switch event {
                             case .payout:
-                                payoutPoints += pointValue
+                                providingPoints += pointValue
                             case .payoutLinkedAccount:
                                 referralPoints += pointValue
                             case .payoutMultiplier:
@@ -129,7 +129,7 @@ class AccountPointsStore: ObservableObject {
             self.accountPoints = accountPoints
             self.netPoints = netPoints
             
-            self.payoutPoints = payoutPoints
+            self.providingPoints = providingPoints
             self.referralPoints = referralPoints
             self.multiplierPoints = multiplierPoints
             self.reliabilityPoints = reliabilityPoints

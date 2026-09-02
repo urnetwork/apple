@@ -15,12 +15,10 @@ struct AccountNavStackView: View {
     @StateObject private var viewModel: ViewModel = ViewModel()
     
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
-    @StateObject var accountWalletsViewModel: AccountWalletsViewModel
-    @StateObject var payoutWalletViewModel: PayoutWalletViewModel
+    @StateObject var earningsViewModel: EarningsViewModel
     @StateObject var accountPointsStore: AccountPointsStore
     
     @ObservedObject var networkUserViewModel: NetworkUserViewModel
-    @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     let api: SdkApi
@@ -37,7 +35,6 @@ struct AccountNavStackView: View {
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
         logout: @escaping () -> Void,
-        accountPaymentsViewModel: AccountPaymentsViewModel,
         networkUserViewModel: NetworkUserViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
         providerCountries: [SdkConnectLocation],
@@ -50,19 +47,11 @@ struct AccountNavStackView: View {
                 api: api
             )
         )
-        _accountWalletsViewModel = StateObject.init(wrappedValue: AccountWalletsViewModel(
-                api: api
-            )
-        )
-        
-        _payoutWalletViewModel = StateObject.init(wrappedValue: PayoutWalletViewModel(
-                api: api
-            )
-        )
-        
+        _earningsViewModel = StateObject(wrappedValue: EarningsViewModel(
+            client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
+        ))
         _accountPointsStore = StateObject.init(wrappedValue: AccountPointsStore(api: api))
         
-        self.accountPaymentsViewModel = accountPaymentsViewModel
         self.networkUserViewModel = networkUserViewModel
         
         self.device = device
@@ -90,7 +79,7 @@ struct AccountNavStackView: View {
                 api: api, // todo - deprecate
                 urApiService: urApiService,
                 referralLinkViewModel: referralLinkViewModel,
-                accountPaymentsViewModel: accountPaymentsViewModel,
+                accountPointsStore: accountPointsStore,
                 networkName: networkName,
                 meanReliabilityWeight: networkReliabilityWindow?.meanReliabilityWeight ?? 0,
                 isPro: isPro
@@ -125,7 +114,6 @@ struct AccountNavStackView: View {
                         clientId: device.getClientId(),
                         accountPreferencesViewModel: accountPreferencesViewModel,
                         referralLinkViewModel: referralLinkViewModel,
-                        accountWalletsViewModel: accountWalletsViewModel,
                         navigate: viewModel.navigate,
                         providerCountries: providerCountries,
                         networkUserViewModel: networkUserViewModel
@@ -133,60 +121,16 @@ struct AccountNavStackView: View {
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     .navigationTitle("Settings")
                     
-                case .wallets:
-                    WalletsView(
+                case .earnings:
+                    EarningsView(
                         navigate: viewModel.navigate,
-                        api: urApiService,
-                        netAccountPoints: accountPointsStore.netPoints,
-                        payoutPoints: accountPointsStore.payoutPoints,
-                        multiplierPoints: accountPointsStore.multiplierPoints,
-                        referralPoints: accountPointsStore.referralPoints,
-                        reliabilityPoints: accountPointsStore.reliabilityPoints,
-                        fetchAccountPoints: accountPointsStore.fetchAccountPoints,
+                        accountPointsStore: accountPointsStore,
                         networkReliabilityWindow: networkReliabilityWindow,
                         fetchNetworkReliability: fetchNetworkReliability,
-                        referralLinkViewModel: referralLinkViewModel,
+                        viewModel: earningsViewModel
                     )
-                    .navigationTitle("Payout Wallets")
+                    .navigationTitle("Earnings")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                    .environmentObject(accountPaymentsViewModel)
-                    .environmentObject(accountWalletsViewModel)
-                    .environmentObject(payoutWalletViewModel)
-                    
-                case .wallet(let wallet):
-                    
-                    let payments = accountPaymentsViewModel.filterPaymentsByWalletId(wallet.walletId)
-                    
-                    WalletView(
-                        wallet: wallet,
-                        navigate: viewModel.navigate,
-                        payoutWalletId: payoutWalletViewModel.payoutWalletId,
-                        payments: payments,
-                        promptRemoveWallet: accountWalletsViewModel.promptRemoveWallet,
-                        fetchPayments: accountPaymentsViewModel.fetchPayments
-                    )
-                    .navigationTitle("\(wallet.blockchain) Wallet")
-                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                    .environmentObject(accountPaymentsViewModel)
-                    .environmentObject(payoutWalletViewModel)
-                    
-                    
-                case .payout(let payment, _):
-                    
-                    let toolbarTitle = if let completeTime = payment.completeTime {
-                        "+\(String(format: "%.2f", payment.tokenAmount)) \(payment.tokenType) (\(completeTime.format("Jan 2, 2006")))"
-                    } else {
-                        "Pending payout"
-                    }
-                    
-                    PayoutItemView(
-                        navigate: viewModel.navigate,
-                        payment: payment,
-                        accountPointsViewModel: accountPointsStore,
-                        isMultiplierTokenHolder: accountWalletsViewModel.isSeekerOrSagaHolder
-                    )
-                    .navigationTitle(toolbarTitle)
-                    .background(themeManager.currentTheme.backgroundColor)
                     
                 case .blockedLocations:
 
@@ -225,31 +169,8 @@ struct AccountNavStackView: View {
                 
             }
         }
-        .confirmationDialog(
-            "Are you sure you want to remove this wallet?",
-            isPresented: $accountWalletsViewModel.isPresentingRemoveWalletSheet
-        ) {
-            Button("Remove wallet", role: .destructive) {
-                removeWallet()
-            }
-        }
     }
-    
-    private func removeWallet() {
-        
-        viewModel.back()
-        
-        Task {
-            let result = await accountWalletsViewModel.removeWallet()
-            
-            if case .failure = result {
-                
-                // TODO: snackbar error
-                
-            }
-        }
-    }
-    
+
 }
 
 //#Preview {
@@ -258,7 +179,6 @@ struct AccountNavStackView: View {
 //        device: SdkDeviceRemote(),
 //        provideWhileDisconnected: .constant(true),
 //        logout: {},
-//        accountPaymentsViewModel: AccountPaymentsViewModel(api: nil),
 //        networkUserViewModel: NetworkUserViewModel(api: SdkApi())
 //    )
 //    .environmentObject(ThemeManager.shared)

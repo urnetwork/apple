@@ -195,7 +195,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
             
             
         } catch(let error) {
-            print("\(domain) error fetching payouts \(error)")
+            print("\(domain) error fetching subscription balance \(error)")
             self.isLoading = false
             self.errorFetchingSubscriptionBalance = true
         }

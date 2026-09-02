@@ -631,6 +631,16 @@ class ConnectWalletProviderViewModel: ObservableObject {
      * urnetwork://bittensor-sign-message?address=<ss58>&signature=<hex>
      */
     func openBittensorSignIn(message: String) {
+        openBittensorBridge(message: message, purpose: nil)
+    }
+
+    /// Proves a coldkey for the Earnings screen: the bridge signs the connect
+    /// challenge and returns the address with the signature.
+    func openBittensorConnectWallet(message: String) {
+        openBittensorBridge(message: message, purpose: "connect")
+    }
+
+    private func openBittensorBridge(message: String, purpose: String?) {
         var webComponents = URLComponents()
         webComponents.scheme = "https"
         webComponents.host = "ur.io"
@@ -641,6 +651,9 @@ class ConnectWalletProviderViewModel: ObservableObject {
             URLQueryItem(name: "message", value: message),
             URLQueryItem(name: "redirect_link", value: bittensorSignMessageRedirectLink),
         ]
+        if let purpose {
+            items.append(URLQueryItem(name: "purpose", value: purpose))
+        }
         // the WalletConnect Cloud project id (URnetwork-Info.plist) lets the
         // bridge pair with a wallet app; without it the bridge uses injected
         // wallets only

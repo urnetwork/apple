@@ -41,7 +41,6 @@ struct MainNavigationSplitView: View {
     // can probably pass this down from MainView
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
     
-    @StateObject var accountPaymentsViewModel: AccountPaymentsViewModel
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -63,12 +62,6 @@ struct MainNavigationSplitView: View {
         self.logout = logout
         self.device = device
         self.providerListStore = providerListStore
-
-        _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(
-                api: api
-            )
-        )
-        
         _networkUserViewModel = StateObject(wrappedValue: NetworkUserViewModel(api: api))
         
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
@@ -94,7 +87,16 @@ struct MainNavigationSplitView: View {
         ZStack {
 
         NavigationSplitView {
-            List(selection: $selectedTab) {
+            List(selection: Binding(
+                get: { selectedTab },
+                set: { newValue in
+                    if newValue == .connect {
+                        selectConnectTab()
+                    } else {
+                        selectedTab = newValue
+                    }
+                }
+            )) {
                 
                 HStack {
 
@@ -171,8 +173,7 @@ struct MainNavigationSplitView: View {
                     urApiService: urApiService,
                     device: device,
                     logout: logout,
-                    accountPaymentsViewModel: accountPaymentsViewModel,
-                    networkUserViewModel: networkUserViewModel,
+                        networkUserViewModel: networkUserViewModel,
                     referralLinkViewModel: referralLinkViewModel,
                     providerCountries: providerListStore.providerCountries,
                     networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
@@ -217,8 +218,15 @@ struct MainNavigationSplitView: View {
         .onAppear {
             setPresentationActive(presentationActive)
         }
+        // a widget tap lands on the connect tab. The dashboard widget does
+        // exactly what the Connect sidebar item does; the providers and
+        // contracts widgets select the tab and the connect view takes their
+        // sheet from there
         .onReceive(deepLinkRouter.$pending) { destination in
-            if destination != nil {
+            guard let destination else { return }
+            if destination == .connect {
+                selectConnectTab()
+            } else {
                 selectedTab = .connect
             }
         }
@@ -261,6 +269,13 @@ struct MainNavigationSplitView: View {
             )
             referralLinkViewModel.clearCelebration()
         }
+    }
+
+    /// What a click on the Connect sidebar item does: select the tab. The
+    /// sidebar item and the dashboard widget both go through here so the two
+    /// cannot diverge.
+    private func selectConnectTab() {
+        selectedTab = .connect
     }
 
     private func setPresentationActive(_ active: Bool) {

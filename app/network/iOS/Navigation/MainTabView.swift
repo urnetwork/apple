@@ -21,7 +21,6 @@ struct MainTabView: View {
     @State private var opacity: Double = 0
     @StateObject var providerListSheetViewModel: ProviderListSheetViewModel = ProviderListSheetViewModel()
     
-    @StateObject var accountPaymentsViewModel: AccountPaymentsViewModel
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     @StateObject private var networkReliabilityStore: NetworkReliabilityStore
@@ -57,12 +56,6 @@ struct MainTabView: View {
 
         self.providerListStore = providerStore
         self.isPro = isPro
-        
-        _accountPaymentsViewModel = StateObject.init(wrappedValue: AccountPaymentsViewModel(
-                api: api
-            )
-        )
-        
         _networkUserViewModel = StateObject(wrappedValue: NetworkUserViewModel(api: api))
         
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
@@ -96,11 +89,11 @@ struct MainTabView: View {
         TabView(selection: Binding(
             get: { selectedTab },
             set: { newValue in
-                if newValue == 0 && selectedTab == 0 {
-                    // re-tapped the connect tab
-                    connectTabReselectCount += 1
+                if newValue == 0 {
+                    selectConnectTab()
+                } else {
+                    selectedTab = newValue
                 }
-                selectedTab = newValue
             }
         )) {
 
@@ -144,7 +137,6 @@ struct MainTabView: View {
                 urApiService: urApiService,
                 device: device,
                 logout: logout,
-                accountPaymentsViewModel: accountPaymentsViewModel,
                 networkUserViewModel: networkUserViewModel,
                 referralLinkViewModel: referralLinkViewModel,
                 providerCountries: providerListStore.providerCountries,
@@ -205,9 +197,15 @@ struct MainTabView: View {
                 
         }
         .opacity(opacity)
-        // a widget tap lands on the connect tab; the connect view takes the sheet from there
+        // a widget tap lands on the connect tab. The dashboard widget does
+        // exactly what the Connect tab item does; the providers and contracts
+        // widgets select the tab and the connect view takes their sheet from
+        // there
         .onReceive(deepLinkRouter.$pending) { destination in
-            if destination != nil {
+            guard let destination else { return }
+            if destination == .connect {
+                selectConnectTab()
+            } else {
                 selectedTab = 0
             }
         }
@@ -282,6 +280,16 @@ struct MainTabView: View {
             referralLinkViewModel.clearCelebration()
         }
 
+    }
+
+    /// What a tap on the Connect tab item does: select the tab, and when it
+    /// is already selected, collapse the connect drawer. The tab item and the
+    /// dashboard widget both go through here so the two cannot diverge.
+    private func selectConnectTab() {
+        if selectedTab == 0 {
+            connectTabReselectCount += 1
+        }
+        selectedTab = 0
     }
 
     private func setPresentationActive(_ active: Bool) {

@@ -30,7 +30,7 @@ struct AccountRootView: View {
     @StateObject private var viewModel: ViewModel = ViewModel()
 
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
-    @ObservedObject var accountPaymentsViewModel: AccountPaymentsViewModel
+    @ObservedObject var accountPointsStore: AccountPointsStore
 
     // presents the gold king-frog refer panel
     @State private var isPresentedReferSheet = false
@@ -55,7 +55,7 @@ struct AccountRootView: View {
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
         referralLinkViewModel: ReferralLinkViewModel,
-        accountPaymentsViewModel: AccountPaymentsViewModel,
+        accountPointsStore: AccountPointsStore,
         networkName: String?,
         meanReliabilityWeight: Double,
         isPro: Bool
@@ -66,7 +66,7 @@ struct AccountRootView: View {
         self.urApiService = urApiService
         
         self.referralLinkViewModel = referralLinkViewModel
-        self.accountPaymentsViewModel = accountPaymentsViewModel
+        self.accountPointsStore = accountPointsStore
         self.networkName = networkName
         self.meanReliabilityWeight = meanReliabilityWeight
         self.isPro = isPro
@@ -169,7 +169,7 @@ struct AccountRootView: View {
                             .padding(.vertical, 16)
                         
                         HStack {
-                            Text("Network earnings")
+                            Text("Points earned")
                                 .font(themeManager.currentTheme.secondaryBodyFont)
                                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                             Spacer()
@@ -177,15 +177,9 @@ struct AccountRootView: View {
                         
                         HStack(alignment: .firstTextBaseline) {
                             
-                            let totalPayouts = accountPaymentsViewModel.totalPayoutsUsdc
-                            
-                            Text(totalPayouts > 0 ? String(format: "%.4f", totalPayouts) : "0")
+                            Text(verbatim: SnAlpha.formatPoints(accountPointsStore.netPoints))
                                 .font(themeManager.currentTheme.titleCondensedFont)
                                 .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                            Text("USDC")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
                             
                             Spacer()
                             
@@ -228,13 +222,13 @@ struct AccountRootView: View {
                         )
                         .accessibilityIdentifier("acceptance.account.settings")
                         AccountNavLink(
-                            name: "Wallet",
+                            name: "Earnings",
                             iconPath: "ur.symbols.wallet",
                             action: {
                                 if isGuest {
                                     viewModel.isPresentedCreateAccount = true
                                 } else {
-                                    navigate(.wallets)
+                                    navigate(.earnings)
                                 }
                             }
                         )
@@ -595,12 +589,12 @@ struct AccountRootView: View {
             ToolbarItem(placement: .automatic) {
                 Button(action: {
                     Task {
-                        await accountPaymentsViewModel.fetchPayments()
+                        await accountPointsStore.fetchAccountPoints()
                     }
                 }) {
                     Image(systemName: "arrow.clockwise")
                 }
-                .disabled(accountPaymentsViewModel.isLoadingPayments)
+                .disabled(accountPointsStore.isLoading)
             }
         }
         #endif

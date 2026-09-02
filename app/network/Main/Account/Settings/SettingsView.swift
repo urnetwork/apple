@@ -22,7 +22,6 @@ struct SettingsView: View {
     var clientId: SdkId?
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
-    @ObservedObject var accountWalletsViewModel: AccountWalletsViewModel
     
     let api: UrApiServiceProtocol
     let navigate: (AccountNavigationPath) -> Void
@@ -34,7 +33,6 @@ struct SettingsView: View {
         clientId: SdkId?,
         accountPreferencesViewModel: AccountPreferencesViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
-        accountWalletsViewModel: AccountWalletsViewModel,
         navigate: @escaping (AccountNavigationPath) -> Void,
         providerCountries: [SdkConnectLocation],
         networkUserViewModel: NetworkUserViewModel? = nil
@@ -43,7 +41,6 @@ struct SettingsView: View {
         self.clientId = clientId
         self.accountPreferencesViewModel = accountPreferencesViewModel
         self.referralLinkViewModel = referralLinkViewModel
-        self.accountWalletsViewModel = accountWalletsViewModel
         self.navigate = navigate
         self.providerCountries = providerCountries
         self.api = api

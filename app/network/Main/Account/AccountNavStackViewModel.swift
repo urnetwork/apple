@@ -11,9 +11,7 @@ import URnetworkSdk
 enum AccountNavigationPath: Hashable {
     case profile
     case settings
-    case wallets
-    case wallet(_ wallet: SdkAccountWallet)
-    case payout(payment: SdkAccountPayment, accountPoint: SdkAccountPoint?)
+    case earnings
     case blockedLocations
     case transferBalanceCodes
     case providerContracts

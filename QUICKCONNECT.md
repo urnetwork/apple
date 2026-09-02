@@ -507,8 +507,9 @@ Still to exercise:
   consider `.foreground(.dynamic)` + `continueInForeground` to let the
   control offer to open the app when not signed in.
 - **Brand fonts** in the widgets (the catalog fonts would need bundling).
-- **Parity**: the Android tile has no widget counterparts yet; this design's
-  snapshot contract is platform-neutral.
+- **Parity**: done on Android on 2026-09-02 (`android/QUICKCONNECT.md`): the
+  same snapshot contract feeds three Jetpack Glance widgets, plus launcher
+  shortcuts and the polished Quick Settings tile.
 
 ## Sources
 

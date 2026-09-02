@@ -541,6 +541,13 @@ class VPNManager: ObservableObject {
     }
 
     private func refreshDesiredStateFromDevice() {
+        // a connect or disconnect made outside the app (Control Center, the
+        // widget, Settings) since the app last decided wins over the app's
+        // saved state; apply it to the device before deriving what to run
+        TunnelIntentAdoption.adoptPending(
+            localState: device.getNetworkSpace()?.getAsyncLocalState()?.getLocalState(),
+            device: device
+        )
         desiredState = VPNDesiredState(
             provideEnabled: device.getProvideEnabled(),
             connectEnabled: device.getConnectEnabled(),
@@ -952,6 +959,20 @@ class VPNManager: ObservableObject {
         }
 
         let state = Self.tunnelConnectionState(connection.status)
+        // the quick connect control and the widgets read NEVPNStatus when
+        // rendered but are not told when it changes; every transition seen
+        // here re-renders them
+        WidgetRefresh.reloadAll()
+        // a toggle made from Control Center while the app is running arrives
+        // here as a status change; fold the shared intent in before the
+        // desired state is compared to it (only a pending outside intent
+        // costs the device round trips of a full refresh)
+        if TunnelIntentAdoption.adoptPending(
+            localState: device.getNetworkSpace()?.getAsyncLocalState()?.getLocalState(),
+            device: device
+        ) != nil {
+            refreshDesiredStateFromDevice()
+        }
         let shouldRun = desiredState.shouldRun
         let snapshot = tunnelHealthSnapshot(
             manager: manager,
@@ -1458,6 +1479,9 @@ class VPNManager: ObservableObject {
                 completion(makeVPNManagerError("VPN operation superseded", code: 10))
                 return
             }
+            // a restart in place, not a user disconnect: the extension must
+            // not record this stop as a shared disconnect intent
+            TunnelIntentStore.markAppInitiatedStop()
             tunnelManager.connection.stopVPNTunnel()
             self.waitForTunnelManagerToStop(
                 tunnelManager,
@@ -2400,6 +2424,10 @@ class VPNManager: ObservableObject {
                 let n = managers.count
                 let tunnelManager = managers[index]
 
+                // the app's own stop (the in-app intent is recorded by the
+                // connect view model): tell the extension not to mistake it
+                // for a Settings disconnect
+                TunnelIntentStore.markAppInitiatedStop()
                 tunnelManager.isEnabled = false
                 tunnelManager.isOnDemandEnabled = false
                 tunnelManager.onDemandRules = nil
@@ -2504,8 +2532,16 @@ class VPNManager: ObservableObject {
     static func clearTunnelLocalStateAndRemoveAllVpnProfiles(completion: @escaping (Error?) -> Void) {
         // forget the rpc transport material so the next login regenerates it
         RpcSessionStore.clear()
+        // the widgets must not keep showing the signed-out account's
+        // location, providers and balance
+        WidgetSnapshotStore.clear()
         sendLogoutMessageToTunnelProviders {
-            removeAllVpnProfiles(completion: completion)
+            removeAllVpnProfiles { error in
+                // with no configuration left, the quick connect control shows
+                // "Not signed in" and the widgets their empty state
+                WidgetRefresh.reloadAll()
+                completion(error)
+            }
         }
     }
 

@@ -281,6 +281,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var device: SdkDeviceLocal?
     private var localState: SdkLocalState?
     private var close: (() -> Void)?
+    /// Publishes the widgets' snapshot for the life of the tunnel session.
+    private var snapshotWriter: WidgetSnapshotWriter?
     private var memoryPressureSource: DispatchSourceMemoryPressure?
     private var memoryMonitor: ExtensionMemoryMonitor?
     private var fips140Enabled = false
@@ -625,6 +627,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         device.setProvidePaused(true)
         if let location = localState.getConnectLocation() {
             device.setConnectLocation(location)
+        } else if let location = WidgetSnapshotWriter.connectLocationForSharedIntent(localState: localState) {
+            // a quick connect from Control Center or the widget on a device
+            // whose last in-app action was a disconnect: nothing is saved
+            // here, so honor the newer shared intent with the last selected
+            // location, else the best available provider
+            logger.info("[PacketTunnelProvider][\(self.lifecycleId)] connecting for the shared quick connect intent")
+            device.setConnectLocation(location)
         }
         device.setProvideMode(localState.getProvideMode())
         device.setProvideControlMode(localState.getProvideControlMode())
@@ -955,7 +964,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         })
 
+        // publish location, providers, throughput and balance for the widgets
+        let snapshotWriter = WidgetSnapshotWriter(device: device, logger: logger)
+        self.snapshotWriter = snapshotWriter
+        snapshotWriter.start()
+
         self.close = {
+            snapshotWriter.close()
             packetReceiverSub?.close()
             defaultPathObservation.invalidate()
             NotificationCenter.default.removeObserver(powerStateObserver)
@@ -1020,6 +1035,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 self.readToDevice(generation: packetReadGeneration)
                 self.memoryMonitor?.sample(event: "tunnel-started")
                 completionHandler(nil)
+                // the tunnel is up: re-render the quick connect control and
+                // the widgets now that NEVPNStatus reads connected
+                snapshotWriter.tunnelStarted()
             }
         }
     }
@@ -1439,6 +1457,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             self?.cancelPendingTransportRecovery()
         }
 
+        recordSharedIntentForStop(reason: reason)
+        if let snapshotWriter = self.snapshotWriter {
+            self.snapshotWriter = nil
+            // writes the widgets' snapshot as inactive and re-renders the
+            // control and widgets; synchronous, since this process may be
+            // reaped as soon as the completion handler runs
+            snapshotWriter.tunnelStopped()
+        }
+
         self.stopPacketReads()
         self.endTunnelSettingsSession()
         if let close = self.close {
@@ -1452,6 +1479,29 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.shouldSaveKeyMaterial = true
         memoryMonitor?.sample(event: "tunnel-stopped")
         completionHandler()
+    }
+
+    /// A stop the user made outside the app (Settings > VPN, the system's VPN
+    /// control, or another VPN taking over) is a disconnect the app must not
+    /// undo on its next foreground. The app marks the stops it makes itself
+    /// (TunnelIntentStore.markAppInitiatedStop) so they are not mistaken for
+    /// one; the quick connect control records its own intent before stopping.
+    private func recordSharedIntentForStop(reason: NEProviderStopReason) {
+        let appInitiated = TunnelIntentStore.consumeAppInitiatedStop()
+        switch reason {
+        case .userInitiated, .configurationDisabled, .providerDisabled, .superceded:
+            guard !appInitiated else { return }
+            if let current = TunnelIntentStore.load(),
+               !current.connect,
+               Date().timeIntervalSince(current.changedAt) < TunnelIntentStore.appStopWindow {
+                // the control or the widget already recorded this disconnect
+                return
+            }
+            TunnelIntentStore.record(connect: false, source: TunnelIntentStore.sourceSystem)
+            logger.info("[PacketTunnelProvider][\(self.lifecycleId)] recorded a system disconnect intent")
+        default:
+            return
+        }
     }
 
     override func sleep(completionHandler: @escaping () -> Void) {

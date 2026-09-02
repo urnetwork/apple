@@ -15,6 +15,22 @@
 		B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = B17E00032F00000100000003 /* URnetworkExtensionSdk */; };
 		B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */; };
 		B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
+		B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B17E01012F0000010000A002 /* URnetworkWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
+		B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
+		B17E01102F0000010000A011 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
+		B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
+		B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
+		B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
+		B17E01162F0000010000A017 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
+		B17E01182F0000010000A019 /* network/Shared/Utilities/GlobeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */; };
+		B17E011A2F0000010000A01B /* network/Shared/Utilities/WorldTopology.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01192F0000010000A01A /* network/Shared/Utilities/WorldTopology.swift */; };
+		B17E011C2F0000010000A01D /* network/Shared/Utilities/ByteFormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */; };
+		B17E011E2F0000010000A01F /* network/Shared/Utilities/RateFormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011D2F0000010000A01E /* network/Shared/Utilities/RateFormatUtils.swift */; };
+		B17E01202F0000010000A021 /* network/Shared/Intents/OpenURnetworkIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */; };
+		B17E01222F0000010000A023 /* network/Shared/Resources/world-110m.json in Resources */ = {isa = PBXBuildFile; fileRef = B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */; };
+		B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */; };
+		B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
@@ -22,6 +38,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		B17E010C2F0000010000A00D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B17E01002F0000010000A001;
+			remoteInfo = URnetworkWidgets;
+		};
 		D1B95A612CEBDD6A00542E0E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
@@ -62,6 +85,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */,
+				B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -74,6 +98,17 @@
 		178F47EA2CEDA80A00CD9C3D /* URnetwork-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "URnetwork-Info.plist"; sourceTree = "<group>"; };
 		B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelMemoryBounds.swift; sourceTree = SOURCE_ROOT; };
 		B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/DiagnosticsLogContract.swift; sourceTree = SOURCE_ROOT; };
+		B17E01012F0000010000A002 /* URnetworkWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/TunnelIntentStore.swift; sourceTree = SOURCE_ROOT; };
+		B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetSnapshots.swift; sourceTree = SOURCE_ROOT; };
+		B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetRefresh.swift; sourceTree = SOURCE_ROOT; };
+		B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/GlobeGeometry.swift; sourceTree = SOURCE_ROOT; };
+		B17E01192F0000010000A01A /* network/Shared/Utilities/WorldTopology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/WorldTopology.swift; sourceTree = SOURCE_ROOT; };
+		B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/ByteFormatUtils.swift; sourceTree = SOURCE_ROOT; };
+		B17E011D2F0000010000A01E /* network/Shared/Utilities/RateFormatUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/RateFormatUtils.swift; sourceTree = SOURCE_ROOT; };
+		B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Intents/OpenURnetworkIntent.swift; sourceTree = SOURCE_ROOT; };
+		B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */ = {isa = PBXFileReference; lastKnownFileType = file.json; path = "network/Shared/Resources/world-110m.json"; sourceTree = SOURCE_ROOT; };
+		B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = network/Shared/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -85,6 +120,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B17E01092F0000010000A00A /* Exceptions for "widgets" folder in "URnetworkWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B17E01002F0000010000A001 /* URnetworkWidgets */;
+		};
 		D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -98,6 +140,14 @@
 		1783A00E2D60111700024F80 /* URnetworkLaunchHelper */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = URnetworkLaunchHelper;
+			sourceTree = "<group>";
+		};
+		B17E01082F0000010000A009 /* widgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B17E01092F0000010000A00A /* Exceptions for "widgets" folder in "URnetworkWidgets" target */,
+			);
+			path = widgets;
 			sourceTree = "<group>";
 		};
 		D1B95A512CEBDD6900542E0E /* network */ = {
@@ -130,6 +180,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B17E01032F0000010000A004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +235,16 @@
 			children = (
 				B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */,
 				B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */,
+				B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */,
+				B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */,
+				B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */,
+				B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */,
+				B17E01192F0000010000A01A /* network/Shared/Utilities/WorldTopology.swift */,
+				B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */,
+				B17E011D2F0000010000A01E /* network/Shared/Utilities/RateFormatUtils.swift */,
+				B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */,
+				B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */,
+				B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -191,6 +259,7 @@
 				D1B95A6D2CEBDD6A00542E0E /* networkUITests */,
 				D1B95A852CEBE76400542E0E /* extension */,
 				1783A00E2D60111700024F80 /* URnetworkLaunchHelper */,
+				B17E01082F0000010000A009 /* widgets */,
 				D1B95A822CEBE76400542E0E /* Frameworks */,
 				D1B95A502CEBDD6900542E0E /* Products */,
 				D12FB4D230335883004A3A45 /* Recovered References */,
@@ -204,6 +273,7 @@
 				D1B95A602CEBDD6A00542E0E /* networkTests.xctest */,
 				D1B95A6A2CEBDD6A00542E0E /* networkUITests.xctest */,
 				D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */,
+				B17E01012F0000010000A002 /* URnetworkWidgets.appex */,
 				1783A00D2D60111600024F80 /* URnetworkLaunchHelper */,
 			);
 			name = Products;
@@ -245,6 +315,28 @@
 			productReference = 1783A00D2D60111600024F80 /* URnetworkLaunchHelper */;
 			productType = "com.apple.product-type.tool";
 		};
+		B17E01002F0000010000A001 /* URnetworkWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B17E01052F0000010000A006 /* Build configuration list for PBXNativeTarget "URnetworkWidgets" */;
+			buildPhases = (
+				B17E01022F0000010000A003 /* Sources */,
+				B17E01032F0000010000A004 /* Frameworks */,
+				B17E01042F0000010000A005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B17E01082F0000010000A009 /* widgets */,
+			);
+			name = URnetworkWidgets;
+			packageProductDependencies = (
+			);
+			productName = widgets;
+			productReference = B17E01012F0000010000A002 /* URnetworkWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		D1B95A4E2CEBDD6900542E0E /* URnetwork */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D1B95A742CEBDD6B00542E0E /* Build configuration list for PBXNativeTarget "URnetwork" */;
@@ -258,6 +350,7 @@
 			);
 			dependencies = (
 				D1B95A8B2CEBE76400542E0E /* PBXTargetDependency */,
+				B17E010B2F0000010000A00C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D1B95A512CEBDD6900542E0E /* network */,
@@ -354,6 +447,9 @@
 					1783A00C2D60111600024F80 = {
 						CreatedOnToolsVersion = 16.2;
 					};
+					B17E01002F0000010000A001 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					D1B95A4E2CEBDD6900542E0E = {
 						CreatedOnToolsVersion = 16.1;
 					};
@@ -416,11 +512,21 @@
 				D1B95A692CEBDD6A00542E0E /* networkUITests */,
 				D1B95A802CEBE76400542E0E /* URnetworkVPN */,
 				1783A00C2D60111600024F80 /* URnetworkLaunchHelper */,
+				B17E01002F0000010000A001 /* URnetworkWidgets */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B17E01042F0000010000A005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B17E01222F0000010000A023 /* network/Shared/Resources/world-110m.json in Resources */,
+				B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D1B95A4D2CEBDD6900542E0E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -460,6 +566,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B17E01022F0000010000A003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */,
+				B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
+				B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
+				B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
+				B17E01182F0000010000A019 /* network/Shared/Utilities/GlobeGeometry.swift in Sources */,
+				B17E011A2F0000010000A01B /* network/Shared/Utilities/WorldTopology.swift in Sources */,
+				B17E011C2F0000010000A01D /* network/Shared/Utilities/ByteFormatUtils.swift in Sources */,
+				B17E011E2F0000010000A01F /* network/Shared/Utilities/RateFormatUtils.swift in Sources */,
+				B17E01202F0000010000A021 /* network/Shared/Intents/OpenURnetworkIntent.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D1B95A4B2CEBDD6900542E0E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -487,12 +609,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
+				B17E01102F0000010000A011 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
+				B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
+				B17E01162F0000010000A017 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		B17E010B2F0000010000A00C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B17E01002F0000010000A001 /* URnetworkWidgets */;
+			targetProxy = B17E010C2F0000010000A00D /* PBXContainerItemProxy */;
+		};
 		D1B95A622CEBDD6A00542E0E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D1B95A4E2CEBDD6900542E0E /* URnetwork */;
@@ -536,6 +666,81 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B17E01062F0000010000A007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = widgets/widgets.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "widgets/widgets-macOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B17E01072F0000010000A008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = widgets/widgets.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "widgets/widgets-macOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -1010,6 +1215,15 @@
 			buildConfigurations = (
 				1783A0122D60111700024F80 /* Debug */,
 				1783A0132D60111700024F80 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B17E01052F0000010000A006 /* Build configuration list for PBXNativeTarget "URnetworkWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B17E01062F0000010000A007 /* Debug */,
+				B17E01072F0000010000A008 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

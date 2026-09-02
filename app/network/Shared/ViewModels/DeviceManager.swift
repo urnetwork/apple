@@ -955,6 +955,11 @@ extension DeviceManager {
             return false
         }
 
+        // a quick connect or disconnect made from Control Center, the widget
+        // or Settings since the app last ran is the newest decision: fold it
+        // into the saved connect location before it is pushed to the device
+        TunnelIntentAdoption.adoptPending(localState: localState, device: nil)
+
         let routeLocal = localState.getRouteLocal()
         let blockerEnabled = localState.getBlockerEnabled()
         let connectLocation = localState.getConnectLocation()

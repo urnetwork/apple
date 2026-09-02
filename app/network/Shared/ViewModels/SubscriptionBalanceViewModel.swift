@@ -65,6 +65,10 @@ class SubscriptionBalanceViewModel: ObservableObject {
     private let refreshJwt: () -> Void
     private var isPro: Bool
 
+    // the last balance published for the Home Screen dashboard, so the
+    // 30 s poll only rewrites the snapshot (and reloads the widget) on change
+    private var lastWidgetBalanceSnapshot: WidgetBalanceSnapshot?
+
     // set once when a free -> paid upgrade is first detected, so the app can
     // reset provide mode to never at the upgrade (the user can opt back in after)
     @Published private(set) var didDetectUpgradeToPro: Bool = false
@@ -157,6 +161,25 @@ class SubscriptionBalanceViewModel: ObservableObject {
             // never run. A lapsed subscriber kept showing "Supporter", kept Pro
             // behavior, and kept the upgrade CTA hidden until the app was relaunched.
             let serverIsPro = result.currentSubscription != nil
+
+            // the Home Screen dashboard's balance bar reads this snapshot;
+            // the tunnel extension refreshes it on its own slow cadence while
+            // the tunnel is up, the app whenever it fetches
+            let balanceSnapshot = WidgetBalanceSnapshot(
+                updatedAt: Date(),
+                startBalanceByteCount: result.startBalanceByteCount,
+                balanceByteCount: result.balanceByteCount,
+                openTransferByteCount: result.openTransferByteCount,
+                isPro: serverIsPro
+            )
+            if balanceSnapshot.usedByteCount != lastWidgetBalanceSnapshot?.usedByteCount
+                || balanceSnapshot.balanceByteCount != lastWidgetBalanceSnapshot?.balanceByteCount
+                || balanceSnapshot.startBalanceByteCount != lastWidgetBalanceSnapshot?.startBalanceByteCount {
+                lastWidgetBalanceSnapshot = balanceSnapshot
+                if WidgetSnapshotStore.save(balanceSnapshot) {
+                    WidgetRefresh.reloadDashboard()
+                }
+            }
 
             if serverIsPro && !self.isPro {
                 // free -> paid: signal the upgrade so provide mode resets to never once

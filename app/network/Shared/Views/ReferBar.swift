@@ -21,12 +21,13 @@ struct ReferBar: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     let data: [ReferDataUsage]
-    let total: Int = 20
+    let total: Int
     let cornerRadius: CGFloat = 12
     
-    init(referralCount: Int) {
+    init(referralCount: Int, total: Int = referralMaxReferrals) {
         
-        let cappedCount = min(referralCount, total)
+        self.total = max(1, total)
+        let cappedCount = min(referralCount, self.total)
         self.data = [
             .init(name: "Referrals", count: cappedCount),
             .init(name: "Available", count: total - cappedCount),
@@ -61,7 +62,7 @@ struct ReferBar: View {
 //        .frame(height: 32)
         .frame(height: 44)
         .chartForegroundStyleScale([
-            "Referrals": .urElectricBlue, "Available": themeManager.currentTheme.textFaintColor
+            "Referrals": .urReferralGold, "Available": themeManager.currentTheme.textFaintColor
         ])
         
     }

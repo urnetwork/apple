@@ -28,6 +28,10 @@ struct UsageBar: View {
     let dailyBalanceByteCount: Int
     // when set, the referral row is a share link that opens the referral flow
     let referralCode: String?
+    // the referral row; off where referrals have their own screen
+    let showReferrals: Bool
+    // the referral cap and bonus, from the server
+    let terms: ReferralTerms
 
     init(
         availableByteCount: Int,
@@ -36,7 +40,9 @@ struct UsageBar: View {
         meanReliabilityWeight: Double,
         totalReferrals: Int,
         dailyBalanceByteCount: Int,
-        referralCode: String? = nil
+        referralCode: String? = nil,
+        showReferrals: Bool = true,
+        terms: ReferralTerms = .default
     ) {
         // the series names are also the chart legend labels, so they localize;
         // they must match the chartForegroundStyleScale keys below exactly
@@ -53,6 +59,8 @@ struct UsageBar: View {
         cappedReliabilityData = min(meanReliabilityWeight * 100, 100)
         self.dailyBalanceByteCount = dailyBalanceByteCount
         self.referralCode = referralCode
+        self.showReferrals = showReferrals
+        self.terms = terms
     }
     
     func minNonZeroValue(_ bytes: Int) -> Int {
@@ -151,6 +159,8 @@ struct UsageBar: View {
                 
             }
             
+            if showReferrals {
+
             Divider()
             
             Spacer().frame(height: 8)
@@ -170,6 +180,8 @@ struct UsageBar: View {
                 .contentShape(Rectangle())
             } else {
                 referralRow(showsShareIcon: false)
+            }
+
             }
 
         }
@@ -196,7 +208,7 @@ struct UsageBar: View {
 
             Spacer()
 
-            Text("+\(totalReferrals * 3) GiB/Day")
+            Text("+\(terms.earnedGiBPerDay(totalReferrals)) GiB/Day")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundStyle(themeManager.currentTheme.textMutedColor)
 

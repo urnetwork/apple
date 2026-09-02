@@ -167,11 +167,15 @@ struct ContentView: View {
     }
     
     private func handleSuccessWithJwt(_ jwt: String) async {
+
+        // the onboarding flow follows a network that was just created, never an
+        // existing account signing in
+        let newNetwork = UrApiService.consumeNewNetwork(jwt: jwt)
         
         self.welcomeAnimationComplete = false
-        self.introductionComplete = false
+        self.introductionComplete = !newNetwork
      
-        let result = await deviceManager.authenticateNetworkClient(jwt)
+        let result = await deviceManager.authenticateNetworkClient(jwt, newNetwork: newNetwork)
         
         if case .failure(let error) = result {
             print("[ContentView] handleSuccessWithJwt: \(error.localizedDescription)")

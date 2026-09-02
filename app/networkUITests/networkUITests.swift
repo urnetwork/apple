@@ -853,7 +853,8 @@ final class networkUITests: XCTestCase {
         repeat {
             let now = Date()
             let enter = element("acceptance.welcome.enter")
-            let close = app.buttons["Close"].firstMatch
+            // the onboarding flow's Skip (formerly its X close button)
+            let close = element("acceptance.introduction.skip")
             let welcomeState = Self.transitionControlState(
                 retryReady: now >= welcomeNextAttempt,
                 exists: { enter.exists },
@@ -912,6 +913,7 @@ final class networkUITests: XCTestCase {
             "acceptance.introduction.community",
             "acceptance.introduction.usage.continue",
             "acceptance.introduction.provide.continue",
+            "acceptance.introduction.refer.continue",
             "acceptance.introduction.finish",
         ]
         guard let current = stages.firstIndex(where: { element($0).exists }) else {
@@ -928,6 +930,7 @@ final class networkUITests: XCTestCase {
             "acceptance.introduction.community",
             "acceptance.introduction.usage.continue",
             "acceptance.introduction.provide.continue",
+            "acceptance.introduction.refer.continue",
             "acceptance.introduction.finish",
         ] where element(identifier).exists {
             return true

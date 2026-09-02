@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import URnetworkSdk
 
 struct IntroductionParticipateSettingsView: View {
     
@@ -13,6 +14,7 @@ struct IntroductionParticipateSettingsView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     
     let close: () -> Void
+    let back: () -> Void
     let totalReferrals: Int
     let referralCode: String
     let meanReliabilityWeight: Double
@@ -24,27 +26,36 @@ struct IntroductionParticipateSettingsView: View {
             
             ScrollView {
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 0) {
+
+                    IntroductionTopBar(step: 3, onSkip: close, onBack: back)
+
+                    Spacer().frame(height: 16)
                     
-                    IntroIcon()
-                    
-                    Text("Contribute Bandwidth")
+                    Text("Contribute bandwidth")
                         .font(themeManager.currentTheme.titleFont)
 
                     Spacer().frame(height: 16)
 
-                    Text("Providing is optional. When you turn it on, the app can share your connection with the network while it runs in the background on Wi-Fi.")
+                    Text("Your choice, completely optional:")
                         .font(themeManager.currentTheme.bodyFontLarge)
 
-                    Spacer().frame(height: 32)
+                    Spacer().frame(height: 16)
 
-                    Text("Providing is off by default. Choose when your device provides below.")
-                        .font(themeManager.currentTheme.bodyFont)
+                    IntroBulletPoint(text: "Allow your devices to share internet with each other")
+
+                    IntroBulletPoint(text: "Share your internet with other people ❤️")
+
+                    Spacer().frame(height: 16)
                     
-                    Spacer().frame(height: 4)
-                    
-                    HStack {
-                        ProvideControlPicker()
+                    VStack(alignment: .leading) {
+                        HStack {
+                            ProvideModeIndicator()
+                            Text("Provide mode")
+                                .font(themeManager.currentTheme.bodyFont)
+                            Spacer()
+                        }
+                        ProvideControlModeList()
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
@@ -59,12 +70,8 @@ struct IntroductionParticipateSettingsView: View {
                     )
                     .cornerRadius(8)
                     
-                    Spacer().frame(height: 32)
-                    
-                    Text("You can also allow the provider to use cell network data, which works great if you have an unlimited plan.")
-                        .font(themeManager.currentTheme.bodyFont)
-                    
-                    Spacer().frame(height: 4)
+                    #if os(iOS)
+                    Spacer().frame(height: 16)
                     
                     HStack {
                         
@@ -86,11 +93,12 @@ struct IntroductionParticipateSettingsView: View {
                             )
                     )
                     .cornerRadius(8)
+                    #endif
                     
-                    Spacer()
+                    Spacer(minLength: 24)
                     
                     Button(action: continueAction) {
-                        Text("Continue")
+                        Text("Next")
                             .font(themeManager.currentTheme.toolbarTitleFont.bold())
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -107,15 +115,52 @@ struct IntroductionParticipateSettingsView: View {
                 
             }
         }
+        .navigationBarBackButtonHidden(true)
+        #if os(iOS)
+        .toolbar(.hidden, for: .navigationBar)
+        #endif
+    }
+}
+
+/// The live provide indicator dot (the same encoding as the settings picker).
+private struct ProvideModeIndicator: View {
+
+    @EnvironmentObject var deviceManager: DeviceManager
+
+    var body: some View {
+        let dot: Color = {
+            switch deviceManager.currentProvideMode {
+            case SdkProvideModePublic:
+                return deviceManager.providePaused ? .urYellow : .urGreen
+            case SdkProvideModeNetwork, SdkProvideModeFriendsAndFamily:
+                return .urGreen
+            default:
+                return .urCoral
+            }
+        }()
+        ZStack {
+            if deviceManager.currentProvideMode == SdkProvideModePublic {
+                Circle()
+                    .strokeBorder(deviceManager.providePaused ? Color.urYellow : Color.urGreen, lineWidth: 1.5)
+                    .frame(width: 14, height: 14)
+            }
+            Circle()
+                .fill(dot)
+                .frame(width: 8, height: 8)
+        }
+        .frame(width: 14, height: 14)
     }
 }
 
 #Preview {
     IntroductionParticipateSettingsView(
         close: {},
+        back: {},
         totalReferrals: 4,
         referralCode: "ABC123",
         meanReliabilityWeight: 0.2,
         continueAction: {}
     )
+    .environmentObject(ThemeManager.shared)
+    .environmentObject(IntroConnectorState())
 }

@@ -55,6 +55,7 @@ final class WidgetSnapshotWriter {
     private var location: WidgetLocationSnapshot?
     private var providers: [WidgetProviderSnapshot] = []
     private var providing = false
+    private var provideMode: String? = nil
     private var active = false
     private var lastWritten: WidgetTunnelSnapshot?
 
@@ -97,6 +98,7 @@ final class WidgetSnapshotWriter {
             active = true
             location = Self.locationSnapshot(device.getConnectLocation())
             providing = device.getProvideEnabled()
+            provideMode = device.getProvideControlMode()
             providers = Self.providerSnapshots(Self.orderedProviders(device))
             if let stats = device.getPacketStats() {
                 accumulator.recordClient(egress: stats.remoteEgressByteCount, ingress: stats.remoteIngressByteCount)
@@ -125,6 +127,16 @@ final class WidgetSnapshotWriter {
                 self?.queue.async {
                     guard let self, self.active, self.providing != provideEnabled else { return }
                     self.providing = provideEnabled
+                    self.write()
+                    self.routineReload.request(urgent: true)
+                }
+            }) {
+                subs.append(sub)
+            }
+            if let sub = device.add(WidgetProvideControlModeListener { [weak self] mode in
+                self?.queue.async {
+                    guard let self, self.active, self.provideMode != mode else { return }
+                    self.provideMode = mode
                     self.write()
                     self.routineReload.request(urgent: true)
                 }
@@ -288,6 +300,7 @@ final class WidgetSnapshotWriter {
             updatedAt: Date(),
             tunnelActive: active ?? self.active,
             providing: providing,
+            provideMode: provideMode,
             location: location,
             providers: providers,
             throughput: accumulator.snapshot,
@@ -573,6 +586,12 @@ private final class WidgetProvideListener: NSObject, SdkProvideChangeListenerPro
     private let c: (Bool) -> Void
     init(c: @escaping (Bool) -> Void) { self.c = c }
     func provideChanged(_ provideEnabled: Bool) { c(provideEnabled) }
+}
+
+private final class WidgetProvideControlModeListener: NSObject, SdkProvideControlModeChangeListenerProtocol {
+    private let c: (String?) -> Void
+    init(c: @escaping (String?) -> Void) { self.c = c }
+    func provideControlModeChanged(_ provideControlMode: String?) { c(provideControlMode) }
 }
 
 private final class WidgetConnectedProvidersListener: NSObject, SdkConnectedProviderLocationChangeListenerProtocol {

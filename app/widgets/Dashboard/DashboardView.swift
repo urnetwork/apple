@@ -116,15 +116,33 @@ struct DashboardView: View {
                 placeholder: nil
             )
             ThroughputChartView(
-                title: "Provider",
+                title: providerTitle,
                 color: WidgetTheme.providerSeries,
                 points: throughput.buckets.map {
                     ThroughputChartView.Point(start: $0.start, egress: $0.providerEgress, ingress: $0.providerIngress)
                 },
                 bucketSeconds: throughput.bucketSeconds,
                 now: entry.date,
-                placeholder: entry.tunnel.providing ? nil : "Not providing"
+                placeholder: entry.tunnel.providing ? nil : "Provider stats will appear when the provider is enabled."
             )
+        }
+    }
+
+    /// "Provider · Auto": the chart name with the current provide mode.
+    private var providerTitle: LocalizedStringKey {
+        guard let mode = entry.tunnel.provideMode, let label = Self.provideModeLabel(mode) else {
+            return "Provider"
+        }
+        return "Provider · \(label)"
+    }
+
+    private static func provideModeLabel(_ mode: String) -> String? {
+        switch mode {
+        case "auto": return String(localized: "Auto")
+        case "always": return String(localized: "Always")
+        case "network": return String(localized: "Network")
+        case "never": return String(localized: "Never")
+        default: return nil
         }
     }
 

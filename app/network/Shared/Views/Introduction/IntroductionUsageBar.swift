@@ -13,6 +13,7 @@ struct IntroductionUsageBar: View {
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     
     let close: () -> Void
+    let back: () -> Void
     let totalReferrals: Int
     let referralCode: String
     let meanReliabilityWeight: Double
@@ -24,16 +25,18 @@ struct IntroductionUsageBar: View {
         
             ScrollView {
             
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 0) {
+
+                    IntroductionTopBar(step: 2, onSkip: close, onBack: back)
+
+                    Spacer().frame(height: 16)
                     
-                    IntroIcon()
-                    
-                    Text("Boost Your Bandwidth")
+                    Text("Your bandwidth")
                         .font(themeManager.currentTheme.titleFont)
 
                     Spacer().frame(height: 16)
 
-                    Text("You get free data every month, and can earn more by referring friends.")
+                    Text("You get free data every day.")
                         .font(themeManager.currentTheme.bodyFontLarge)
                     
                     Spacer().frame(height: 32)
@@ -45,24 +48,25 @@ struct IntroductionUsageBar: View {
                         meanReliabilityWeight: meanReliabilityWeight,
                         totalReferrals: totalReferrals,
                         dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
-                        referralCode: referralCode
+                        showReferrals: false
                     )
+
+                    if subscriptionBalanceViewModel.startBalanceByteCount > 0 {
+
+                        Spacer().frame(height: 32)
+
+                        // the free allowance the server grants (pro.yml free.data per
+                        // data_period), never a number typed into the app
+                        Text("By default, you get \(formatDailyAllowance(subscriptionBalanceViewModel.startBalanceByteCount)) every day.")
+                            .font(themeManager.currentTheme.bodyFont)
+                    }
                     
-                    Spacer().frame(height: 32)
-                    
-                    Text("By default you get 10 GiB/month. Here's how you can earn extra bandwidth:")
-                        .font(themeManager.currentTheme.bodyFont)
-                    
-                    Spacer().frame(height: 16)
-                    
-                    IntroBulletPoint(text: "Refer a friend = +3 GiB/Day")
-                    
-                    Spacer()
+                    Spacer(minLength: 24)
                     
                     VStack {
                      
                         Button(action: continueAction) {
-                            Text("Continue")
+                            Text("Next")
                                 .font(themeManager.currentTheme.toolbarTitleFont.bold())
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -81,16 +85,32 @@ struct IntroductionUsageBar: View {
             }
             
         }
+        .navigationBarBackButtonHidden(true)
+        #if os(iOS)
+        .toolbar(.hidden, for: .navigationBar)
+        #endif
         
     }
+}
+
+/// The daily allowance for prose: whole gibibytes without decimals ("30 GiB"), anything else in the balance form.
+func formatDailyAllowance(_ byteCount: Int) -> String {
+    let gib = 1024 * 1024 * 1024
+    if byteCount > 0 && byteCount % gib == 0 {
+        return "\(byteCount / gib) GiB"
+    }
+    return formatBalanceBytes(byteCount)
 }
 
 #Preview {
     IntroductionUsageBar(
         close: {},
+        back: {},
         totalReferrals: 4,
         referralCode: "ABC123",
         meanReliabilityWeight: 0.2,
         continueAction: {}
     )
+    .environmentObject(ThemeManager.shared)
+    .environmentObject(IntroConnectorState())
 }

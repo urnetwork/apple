@@ -42,19 +42,24 @@ struct ThroughputChartView: View {
                     .foregroundStyle(WidgetTheme.textMuted)
                     .widgetAccentable()
                 Spacer()
-                if let placeholder, peak == 0 {
-                    Text(placeholder)
-                        .font(WidgetTheme.label)
-                        .foregroundStyle(WidgetTheme.textFaint)
-                } else {
+                if placeholder == nil || peak > 0 {
                     Text("\(peakRate) peak")
                         .font(WidgetTheme.label)
                         .foregroundStyle(WidgetTheme.textMuted)
                 }
             }
             .frame(height: Self.labelBand)
-            Canvas { context, size in
-                draw(&context, size: size)
+            if let placeholder, peak == 0 {
+                // the series is expected to be flat: say why instead of drawing it
+                Text(placeholder)
+                    .font(WidgetTheme.label)
+                    .foregroundStyle(WidgetTheme.textFaint)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                Canvas { context, size in
+                    draw(&context, size: size)
+                }
             }
         }
     }

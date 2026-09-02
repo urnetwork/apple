@@ -9,6 +9,22 @@ import Foundation
 import URnetworkSdk
 
 class UrApiService: UrApiServiceProtocol {
+
+    /**
+     * The jwts handed out by network creation (sign-up, instant account,
+     * verified sign-up): the post-login onboarding flow is for these and never
+     * for an existing account signing in. Consumed by the login handler.
+     */
+    private static var newNetworkJwts = Set<String>()
+
+    static func markNewNetwork(_ jwt: String) {
+        newNetworkJwts.insert(jwt)
+    }
+
+    static func consumeNewNetwork(jwt: String) -> Bool {
+        newNetworkJwts.remove(jwt) != nil
+    }
+
     
     // Resolved live on every call instead of captured once at init. This
     // mirrors Android's `application.api` (a `get() = networkSpaceManagerProvider
@@ -480,6 +496,7 @@ extension UrApiService {
                 if let network = result.network {
                     switch self.nonEmptyJwt(network.byJwt, context: "createInstantAccount") {
                     case .success(let jwt):
+                        UrApiService.markNewNetwork(jwt)
                         continuation.resume(returning: (jwt, seedphrase))
                     case .failure(let error):
                         continuation.resume(throwing: error)
@@ -538,6 +555,7 @@ extension UrApiService {
                 if let network = result.network {
                     switch self.nonEmptyJwt(network.byJwt, context: "createNetwork") {
                     case .success(let jwt):
+                        UrApiService.markNewNetwork(jwt)
                         continuation.resume(returning: .successWithJwt(jwt))
                     case .failure(let error):
                         continuation.resume(throwing: error)

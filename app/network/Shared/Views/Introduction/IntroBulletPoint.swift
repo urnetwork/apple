@@ -15,14 +15,20 @@ struct IntroBulletPoint: View {
         
         VStack {
         
-            HStack {
+            // the dot sits on the first line, and a bullet that wraps stays left-aligned
+            HStack(alignment: .top) {
                 
                 Circle().foregroundStyle(.urGreen).frame(width: 12, height: 12)
+                    .padding(.top, 6)
                 
                 Spacer().frame(width: 16)
              
                 Text(text)
                     .font(Font.custom("PP NeueBit", size: 22).weight(.bold))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 0)
                 
             }
             

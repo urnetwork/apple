@@ -99,18 +99,31 @@ extension SnapshotEntry {
     static func sample(at date: Date) -> SnapshotEntry {
         let now = Int64(date.timeIntervalSince1970)
         let bucketSeconds = WidgetThroughputAccumulator.bucketSeconds
+        let count = WidgetThroughputAccumulator.bucketCount
+        // real traffic: a quiet floor with a few bursts that spike and decay
+        let clientBursts = burstSeries(
+            count: count,
+            bursts: [(7, 5_200_000, 0.62), (19, 2_400_000, 0.5), (31, 8_100_000, 0.7), (46, 3_600_000, 0.55), (55, 1_500_000, 0.45)],
+            floor: 60_000,
+            seed: 17
+        )
+        let providerBursts = burstSeries(
+            count: count,
+            bursts: [(11, 1_300_000, 0.6), (38, 900_000, 0.55), (52, 1_900_000, 0.65)],
+            floor: 25_000,
+            seed: 41
+        )
         var buckets: [WidgetThroughputBucket] = []
-        for i in 0..<WidgetThroughputAccumulator.bucketCount {
-            let start = ((now / bucketSeconds) - Int64(WidgetThroughputAccumulator.bucketCount - 1 - i)) * bucketSeconds
-            let phase = Double(i) / 9.0
-            let client = Int64(6_000_000 + 5_000_000 * sin(phase) + 2_000_000 * sin(phase * 3.1))
-            let provider = Int64(1_500_000 + 1_200_000 * sin(phase * 0.7 + 1))
+        for i in 0..<count {
+            let start = ((now / bucketSeconds) - Int64(count - 1 - i)) * bucketSeconds
+            let client = clientBursts[i]
+            let provider = providerBursts[i]
             buckets.append(WidgetThroughputBucket(
                 start: start,
-                clientEgress: max(0, client / 4),
-                clientIngress: max(0, client),
-                providerEgress: max(0, provider),
-                providerIngress: max(0, provider / 3)
+                clientEgress: Int64(client * 0.18),
+                clientIngress: Int64(client),
+                providerEgress: Int64(provider),
+                providerIngress: Int64(provider * 0.3)
             ))
         }
         let providers = [
@@ -180,4 +193,31 @@ extension SnapshotEntry {
             date: date, tunnel: tunnel, balance: balance, isOn: true, isConfigured: true, isPreview: true
         )
     }
+}
+
+
+/// A bytes-per-bucket series shaped like real traffic: a low, jittery floor
+/// with bursts that jump up and tail off (each burst: start bucket, peak
+/// bytes, decay per bucket). Deterministic for a given seed so the gallery
+/// preview never flickers.
+private func burstSeries(count: Int, bursts: [(Int, Double, Double)], floor: Double, seed: UInt64) -> [Double] {
+    var state = seed
+    func noise() -> Double {
+        // a small linear congruential generator: enough for jitter
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        return Double((state >> 33) % 1000) / 1000.0
+    }
+    var series = (0..<count).map { _ in floor * (0.6 + 0.8 * noise()) }
+    for (at, peak, decay) in bursts {
+        var level = peak
+        var i = at
+        while i < count && 0.02 * peak < level {
+            series[i] += level * (0.85 + 0.3 * noise())
+            level *= decay
+            i += 1
+        }
+        // a short ramp into the burst, one bucket before the peak
+        if 0 < at { series[at - 1] += peak * 0.3 * noise() }
+    }
+    return series
 }

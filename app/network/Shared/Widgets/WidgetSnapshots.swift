@@ -141,6 +141,9 @@ struct WidgetTunnelSnapshot: Codable, Equatable {
     /// NEVPNStatus for the on/off question and use this for the rest.
     var tunnelActive: Bool
     var providing: Bool
+    /// The provide control mode ("auto", "always", "network", "never"); nil
+    /// when unknown or written before this field existed.
+    var provideMode: String? = nil
     var location: WidgetLocationSnapshot?
     /// Active providers in the tunnel's window, oldest-connected first.
     var providers: [WidgetProviderSnapshot]

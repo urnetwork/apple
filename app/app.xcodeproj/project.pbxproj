@@ -31,11 +31,11 @@
 		B17E01222F0000010000A023 /* network/Shared/Resources/world-110m.json in Resources */ = {isa = PBXBuildFile; fileRef = B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */; };
 		B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */; };
 		B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
+		B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +110,7 @@
 		B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Intents/OpenURnetworkIntent.swift; sourceTree = SOURCE_ROOT; };
 		B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */ = {isa = PBXFileReference; lastKnownFileType = file.json; path = "network/Shared/Resources/world-110m.json"; sourceTree = SOURCE_ROOT; };
 		B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = network/Shared/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
+		B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetDeepLinks.swift; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -118,7 +119,6 @@
 		D1B95A6A2CEBDD6A00542E0E /* networkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A832CEBE76400542E0E /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetDeepLinks.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -247,6 +247,7 @@
 				B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */,
 				B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */,
 				B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */,
+				B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";

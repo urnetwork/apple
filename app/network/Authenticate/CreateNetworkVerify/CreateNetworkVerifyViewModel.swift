@@ -176,6 +176,8 @@ extension CreateNetworkVerifyView {
                         if let network = result.network {
 
                             if network.byJwt.isEmpty == false {
+                                // a verified sign-up is a new network: it gets the onboarding flow
+                                UrApiService.markNewNetwork(network.byJwt)
                                 continuation.resume(returning: network.byJwt)
                             } else {
                                 continuation.resume(throwing: NSError(domain: "CreateNetworkVerifyViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "byJWT is empty"]))

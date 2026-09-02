@@ -18,23 +18,27 @@ struct DashboardView: View {
     let entry: SnapshotEntry
 
     var body: some View {
-        if family == .systemLarge {
-            VStack(alignment: .leading, spacing: 10) {
-                header
-                BalanceBarView(balance: entry.balance)
-                charts
-                Spacer(minLength: 0)
-                footer
+        Group {
+            if family == .systemLarge {
+                VStack(alignment: .leading, spacing: 10) {
+                    header
+                    BalanceBarView(balance: entry.balance)
+                    charts
+                    Spacer(minLength: 0)
+                    footer
+                }
+            } else {
+                // the short widget is exactly the large one's top section:
+                // location, provider count, quick connect, balance bar
+                VStack(alignment: .leading, spacing: 10) {
+                    header
+                    BalanceBarView(balance: entry.balance)
+                }
+                .frame(maxHeight: .infinity, alignment: .center)
             }
-        } else {
-            // the short widget is exactly the large one's top section:
-            // location, provider count, quick connect, balance bar
-            VStack(alignment: .leading, spacing: 10) {
-                header
-                BalanceBarView(balance: entry.balance)
-            }
-            .frame(maxHeight: .infinity, alignment: .center)
         }
+        // a tap anywhere else opens the app on the connect tab
+        .widgetURL(WidgetDestination.connect.url)
     }
 
     // MARK: Header: location + quick connect

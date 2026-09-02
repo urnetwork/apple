@@ -347,6 +347,22 @@ left, list right, four rows), large (globe over a six-row list).
   `OrderConnectedProviderLocations`, so the extension orders the snapshot
   with the same code the provider details view uses.
 
+## 5a. Widget taps open the app on the matching screen
+
+Each widget carries one `widgetURL` on the `urnetwork` scheme the app
+already registers: `urnetwork://widgets/connect` (dashboard),
+`.../providers` (globe), `.../contracts` (contracts), defined in
+`network/Shared/Widgets/WidgetDeepLinks.swift` (compiled into the app and
+the widget extension). The app's `onOpenURL` hands a widget destination to
+`DeepLinkRouter` (an environment object; other URLs still go to Google
+Sign-In); the tab view selects the connect tab while a destination is
+pending, and the connect view presents the provider details or client
+contracts sheet and consumes it, on receipt or on appear — so a cold launch
+from a widget, the welcome animation and an unmounted tab all still land on
+the right screen. macOS does the same through the split view's selection.
+The dashboard's quick connect toggle keeps its own action inside the
+widget; a tap anywhere else opens the app.
+
 ## 5b. The contracts widget
 
 `app/widgets/Contracts/ContractsWidget.swift`. Families small, medium,

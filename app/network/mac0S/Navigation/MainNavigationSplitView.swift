@@ -27,6 +27,7 @@ struct MainNavigationSplitView: View {
     @Environment(\.presentationActive) private var presentationActive
 
     @State private var selectedTab: MainNavigationTab = .connect
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     @State private var displayIntroduction: Bool
     
     let api: SdkApi
@@ -214,6 +215,11 @@ struct MainNavigationSplitView: View {
         }
         .onAppear {
             setPresentationActive(presentationActive)
+        }
+        .onReceive(deepLinkRouter.$pending) { destination in
+            if destination != nil {
+                selectedTab = .connect
+            }
         }
         .onChange(of: presentationActive) { active in
             setPresentationActive(active)

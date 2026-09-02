@@ -19,6 +19,7 @@ struct ConnectView_iOS: View {
     @Environment(\.requestReview) private var requestReview
     
     @EnvironmentObject var connectViewModel: ConnectViewModel
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
 
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
@@ -38,6 +39,19 @@ struct ConnectView_iOS: View {
     @State private var isSheetExpanded = false
     @State private var sheetDragTranslation: CGFloat = 0
     @State private var presentedStatsSheet: ConnectStatsSheet? = nil
+    
+    /// Presents the sheet a widget tap asked for, if one is pending.
+    private func presentWidgetDestination() {
+        guard let destination = deepLinkRouter.consume() else { return }
+        switch destination {
+        case .providers:
+            presentedStatsSheet = .providerLocations
+        case .contracts:
+            presentedStatsSheet = .clientContracts
+        case .connect:
+            break
+        }
+    }
 
     // whether the expanded sheet's content is scrolled to the very top.
     // at the top, a downward drag closes the sheet instead of rubber-banding
@@ -383,6 +397,13 @@ struct ConnectView_iOS: View {
             }
             // statistics and dns detail sheets (store subscription isolated in the modifier)
             .modifier(ConnectStatsSheets(presentedStatsSheet: $presentedStatsSheet))
+        // a Home Screen widget tap: provider details or client contracts
+        .onReceive(deepLinkRouter.$pending) { _ in
+            presentWidgetDestination()
+        }
+        .onAppear {
+            presentWidgetDestination()
+        }
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 UpgradeSubscriptionSheet(

@@ -60,6 +60,8 @@ struct ContractsView: View {
                 .clipped()
             }
         }
+        // a tap opens the app on the client contract details
+        .widgetURL(WidgetDestination.contracts.url)
     }
 
     private var header: some View {

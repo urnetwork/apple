@@ -35,6 +35,7 @@
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +118,7 @@
 		D1B95A6A2CEBDD6A00542E0E /* networkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A832CEBE76400542E0E /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetDeepLinks.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -571,6 +573,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */,
+				B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */,
 				B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
 				B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
 				B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,

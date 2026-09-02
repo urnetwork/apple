@@ -91,6 +91,8 @@ struct NetworkApp: App {
     @StateObject var transportSettingsStore = TransportSettingsStore()
     @StateObject var networkPeersStore = NetworkPeersStore()
     @StateObject var reliabilityStore = ReliabilityStore()
+    // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
+    @StateObject var deepLinkRouter = DeepLinkRouter()
 
     init() {
         // the app process writes its own logs too: glog writes NOTHING until a
@@ -284,9 +286,16 @@ struct NetworkApp: App {
                 .environmentObject(transportSettingsStore)
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
+                .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
-                    GIDSignIn.sharedInstance.handle(url)
+                    if let destination = WidgetDestination(url: url) {
+                        // a Home Screen widget tap: the tab view and the
+                        // connect view route it
+                        deepLinkRouter.open(destination)
+                    } else {
+                        GIDSignIn.sharedInstance.handle(url)
+                    }
                 }
                 .preferredColorScheme(.dark)
                 .background(themeManager.currentTheme.backgroundColor)
@@ -329,9 +338,16 @@ struct NetworkApp: App {
                 .environmentObject(transportSettingsStore)
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
+                .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
-                    GIDSignIn.sharedInstance.handle(url)
+                    if let destination = WidgetDestination(url: url) {
+                        // a Home Screen widget tap: the tab view and the
+                        // connect view route it
+                        deepLinkRouter.open(destination)
+                    } else {
+                        GIDSignIn.sharedInstance.handle(url)
+                    }
                 }
                 .preferredColorScheme(.dark)
                 .background(themeManager.currentTheme.backgroundColor)

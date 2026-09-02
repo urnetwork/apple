@@ -42,6 +42,13 @@ struct ProviderGlobeView: View {
     }
 
     var body: some View {
+        content
+            // a tap opens the app on the provider details
+            .widgetURL(WidgetDestination.providers.url)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch family {
         case .systemSmall:
             ZStack(alignment: .bottom) {

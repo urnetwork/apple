@@ -30,6 +30,7 @@ struct MainTabView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     @Environment(\.presentationActive) private var presentationActive
     
     @State private var selectedTab = 0
@@ -204,6 +205,12 @@ struct MainTabView: View {
                 
         }
         .opacity(opacity)
+        // a widget tap lands on the connect tab; the connect view takes the sheet from there
+        .onReceive(deepLinkRouter.$pending) { destination in
+            if destination != nil {
+                selectedTab = 0
+            }
+        }
         .onAppear {
             setPresentationActive(presentationActive)
             withAnimation(.easeOut(duration: 1.0)) {

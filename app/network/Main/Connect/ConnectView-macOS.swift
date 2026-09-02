@@ -19,6 +19,7 @@ import URnetworkSdk
         @Environment(\.requestReview) private var requestReview
 
         @EnvironmentObject var connectViewModel: ConnectViewModel
+        @EnvironmentObject var deepLinkRouter: DeepLinkRouter
 
         @State var isLoading: Bool = false
 
@@ -28,6 +29,19 @@ import URnetworkSdk
 
         @State var displayReconnectTunnel: Bool = false
         @State private var presentedStatsSheet: ConnectStatsSheet? = nil
+        
+        /// Presents the sheet a widget tap asked for, if one is pending.
+        private func presentWidgetDestination() {
+            guard let destination = deepLinkRouter.consume() else { return }
+            switch destination {
+            case .providers:
+                presentedStatsSheet = .providerLocations
+            case .contracts:
+                presentedStatsSheet = .clientContracts
+            case .connect:
+                break
+            }
+        }
         
         let promptMoreDataFlow: () -> Void
         let meanReliabilityWeight: Double
@@ -212,6 +226,13 @@ import URnetworkSdk
 
             // statistics and dns detail sheets (store subscription isolated in the modifier)
             .modifier(ConnectStatsSheets(presentedStatsSheet: $presentedStatsSheet))
+            // a Home Screen widget tap: provider details or client contracts
+            .onReceive(deepLinkRouter.$pending) { _ in
+                presentWidgetDestination()
+            }
+            .onAppear {
+                presentWidgetDestination()
+            }
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 UpgradeSubscriptionSheet(

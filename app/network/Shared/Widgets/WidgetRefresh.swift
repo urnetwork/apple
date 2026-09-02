@@ -24,10 +24,20 @@ enum WidgetRefresh {
 
     /// The Control Center / Lock Screen / Action button toggle (iOS 18,
     /// macOS 26). A no-op on earlier systems.
+    ///
+    /// iOS only at compile time: `ControlCenter` is a macOS 26 symbol, so it
+    /// is simply absent from the macOS 15 SDK the CI toolchain (Xcode 16.4)
+    /// builds against, and the `#available` check below cannot help — that is
+    /// a runtime test, and the declaration has to exist to compile at all.
+    /// The control ships on iOS only in practice, so on macOS this is a no-op
+    /// rather than a missing method: `reloadAll()` and the app, tunnel
+    /// extension and widget targets that call it all still build.
     static func reloadControl() {
+        #if os(iOS)
         if #available(iOS 18.0, macOS 26.0, *) {
             ControlCenter.shared.reloadControls(ofKind: WidgetKinds.quickConnectControl)
         }
+        #endif
     }
 
     static func reloadDashboard() {

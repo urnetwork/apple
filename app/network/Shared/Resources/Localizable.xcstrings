@@ -28,6 +28,7 @@
     },
     "***%@" : {
       "comment" : "Used in Authenticate/CreateNetwork/CreateNetworkView.swift.",
+      "extractionState" : "stale",
       "shouldTranslate" : false
     },
     "#%@" : {
@@ -56,6 +57,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@"
+          }
+        }
+      }
+    },
+    "%@ of block" : {
+      "comment" : "History row: the network's share of the block.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ of block"
           }
         }
       }
@@ -227,10 +239,34 @@
         }
       }
     },
+    "%@ peak" : {
+      "comment" : "Chart label; the argument is a formatted byte rate such as '1.2 MB/s'.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ peak"
+          }
+        }
+      }
+    },
+    "%@ pts" : {
+      "comment" : "Points count with unit for history rows.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ pts"
+          }
+        }
+      }
+    },
     "%@ USDC" : {
+      "extractionState" : "stale",
       "shouldTranslate" : false
     },
     "%@ wallet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -397,6 +433,7 @@
       }
     },
     "%@ Wallet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4068,6 +4105,29 @@
         }
       }
     },
+    "%lld contracts, %@" : {
+      "comment" : "Accessibility label for one contract stack in the contracts widget. The arguments are the number of contracts and the bytes moved.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld contract, %2$@"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld contracts, %2$@"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
     "%lld host%@" : {
       "comment" : "A label that shows the number of hosts for a split rule. The argument is the number of hosts.",
       "extractionState" : "stale",
@@ -5676,6 +5736,75 @@
               "stringUnit" : {
                 "state" : "translated",
                 "value" : "%lld 個新增"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%lld peers" : {
+      "comment" : "Contracts widget header: number of peers with open contracts.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld peer"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld peers"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%lld providers" : {
+      "comment" : "Widget subtitle: number of connected providers.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld provider"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld providers"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%lld providers · providing" : {
+      "comment" : "Widget subtitle: number of connected providers while this device is also providing.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld provider · providing"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld providers · providing"
               }
             }
             }
@@ -7436,6 +7565,7 @@
       }
     },
     "+%@ USDC" : {
+      "extractionState" : "stale",
       "shouldTranslate" : false
     },
     "+%lf GiB/Day" : {
@@ -7757,6 +7887,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%lld GiB/日"
+          }
+        }
+      }
+    },
+    "+%lld more" : {
+      "comment" : "Provider globe widget: providers not shown in the list. The argument is a count.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld more"
           }
         }
       }
@@ -8268,6 +8409,7 @@
     },
     "2x your free and referral data" : {
       "comment" : "A description of the benefits of using a Seeker Token.",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "ar" : {
@@ -9270,6 +9412,7 @@
     },
     "Account points" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9431,6 +9574,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "帳戶積分"
+          }
+        }
+      }
+    },
+    "Across %lld finalized epochs" : {
+      "comment" : "Subtitle of the claim dialog.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Across %lld finalized epochs"
           }
         }
       }
@@ -10439,6 +10593,28 @@
         }
       }
     },
+    "Add TAO for gas" : {
+      "comment" : "State when the gas key has no TAO.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add TAO for gas"
+          }
+        }
+      }
+    },
+    "Added to Quick Settings" : {
+      "comment" : "Label shown on the last onboarding page once the quick connect tile is in Quick Settings.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to Quick Settings"
+          }
+        }
+      }
+    },
     "Adjust settings to maximize reliability. App runs in the background when connected and on Wi-Fi. Reliability is how many IPs you make continually available to the network" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10927,6 +11103,17 @@
         }
       }
     },
+    "Allow your devices to share internet with each other" : {
+      "comment" : "First bullet on the onboarding Contribute bandwidth page.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow your devices to share internet with each other"
+          }
+        }
+      }
+    },
     "Allowed" : {
       "comment" : "Text for a chip that indicates that the action is allowed.",
       "isCommentAutoGenerated" : true,
@@ -11264,6 +11451,7 @@
     },
     "Amount" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12445,6 +12633,7 @@
     },
     "Are you sure you want to remove this wallet?" : {
       "comment" : "Used in Main/Account/AccountNavStackView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14470,6 +14659,340 @@
         }
       }
     },
+    "Back" : {
+      "comment" : "\tButton text for going back to the previous screen.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رجوع"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zpět"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πίσω"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atrás"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atrás"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atrás"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retour"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חזור"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "वापस"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kembali"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indietro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "戻る"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뒤로"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terug"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstecz"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назад"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillbaka"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ย้อนกลับ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назад"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quay lại"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回"
+          }
+        }
+      }
+    },
+    "Balance" : {
+      "comment" : "Wallet Screen",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الرصيد"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zůstatek"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guthaben"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπόλοιπο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solde"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יתרה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "शेष"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "残高"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잔액"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Баланс"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saldo"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยอดคงเหลือ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Баланс"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số dư"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "余额"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "餘額"
+          }
+        }
+      }
+    },
     "Balance code" : {
       "comment" : "Guidance for someone who has no code yet. Deliberately PLAIN TEXT with no link and no button: app store rules forbid steering a user to an external purchase, but nothing stops us saying where codes come from. Without this, the sheet asks for a code and gives no way to obtain one.",
       "localizations" : {
@@ -15138,12 +15661,36 @@
         }
       }
     },
+    "Best value" : {
+      "comment" : "Gold pill on the recommended (annual) plan card.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best value"
+          }
+        }
+      }
+    },
     "Bittensor" : {
       "comment" : "Used in Main/Account/Wallet/WalletView.swift.",
+      "extractionState" : "stale",
       "shouldTranslate" : false
+    },
+    "Bittensor wallet" : {
+      "comment" : "Label of the connected wallet block.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bittensor wallet"
+          }
+        }
+      }
     },
     "Bittensor wallets are stored for future use and can't receive payouts yet." : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17136,6 +17683,17 @@
         }
       }
     },
+    "By default, you get %@ every day." : {
+      "comment" : "Onboarding data page: the daily free allowance, formatted from the server's balance (pro.yml free.data per data_period).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By default, you get %@ every day."
+          }
+        }
+      }
+    },
     "By participating in the network and providing bandwidth you can earn rewards." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -18293,6 +18851,17 @@
         }
       }
     },
+    "Checking address…" : {
+      "comment" : "Progress text while the address is validated.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking address…"
+          }
+        }
+      }
+    },
     "Choose the network domain used by the app. Leave the API and connect URLs blank to derive them from the domain." : {
       "comment" : "Explains the network API selector.",
       "localizations" : {
@@ -18456,6 +19025,184 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇應用程式使用的網絡網域。將 API 和 connect URL 留空則從網域衍生。"
+          }
+        }
+      }
+    },
+    "Claim" : {
+      "comment" : "Call to action",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مطالبة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyzvědněte"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einlösen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απαίτηση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamar"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réclamer"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ממש"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "दावा करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klaim"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riscatta"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "受け取る"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "받기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opeisen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odbierz"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reivindicar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resgatar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reivindicar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получить"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hämta"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รับ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отримати"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhận"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "领取"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "領取"
+          }
+        }
+      }
+    },
+    "Claim %@" : {
+      "comment" : "Claim button with the amount.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim %@"
           }
         }
       }
@@ -18791,6 +19538,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "申領倍數"
+          }
+        }
+      }
+    },
+    "Claim SN25α" : {
+      "comment" : "Title of the claim dialog.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim SN25α"
+          }
+        }
+      }
+    },
+    "Claim your spot" : {
+      "comment" : "Button on the Top 200 tile.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim your spot"
+          }
+        }
+      }
+    },
+    "Claimed" : {
+      "comment" : "Claim state: confirmed on chain.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claimed"
+          }
+        }
+      }
+    },
+    "Claims for epoch %lld have expired." : {
+      "comment" : "Error when an epoch can no longer be claimed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claims for epoch %lld have expired."
+          }
+        }
+      }
+    },
+    "Claims open 48 hours after an epoch is finalized and stay open for the vault's expiry window." : {
+      "comment" : "Explainer in the claim dialog.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claims open 48 hours after an epoch is finalized and stay open for the vault's expiry window."
+          }
+        }
+      }
+    },
+    "Client" : {
+      "comment" : "Dashboard widget chart title: this device's own traffic.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Client"
           }
         }
       }
@@ -20636,6 +21449,7 @@
     },
     "Confirm Seeker Token" : {
       "comment" : "Used in Main/Account/Settings/SettingsView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20964,6 +21778,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連接"
+          }
+        }
+      }
+    },
+    "Connect a Bittensor wallet first." : {
+      "comment" : "Error when claiming without a wallet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a Bittensor wallet first."
           }
         }
       }
@@ -21303,8 +22128,20 @@
         }
       }
     },
+    "Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively." : {
+      "comment" : "Line on the wallet block before a wallet is connected.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively."
+          }
+        }
+      }
+    },
     "Connect a wallet with the Seeker Pre-Order Token" : {
       "comment" : "Used in Main/Account/Settings/SettingsForm-iOS.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21470,8 +22307,20 @@
         }
       }
     },
+    "Connect Bittensor wallet" : {
+      "comment" : "Button to connect a Bittensor coldkey.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect Bittensor wallet"
+          }
+        }
+      }
+    },
     "Connect external wallet" : {
       "comment" : "Wallets Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21633,6 +22482,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連接錢包"
+          }
+        }
+      }
+    },
+    "Connect in one tap" : {
+      "comment" : "Title of the last onboarding page: the quick connect tile and the home screen widgets.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect in one tap"
+          }
+        }
+      }
+    },
+    "Connect once to see your traffic here" : {
+      "comment" : "Dashboard widget footer before the tunnel has ever written data.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect once to see your traffic here"
           }
         }
       }
@@ -21801,6 +22672,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連接選項"
+          }
+        }
+      }
+    },
+    "Connect or disconnect the URnetwork VPN." : {
+      "comment" : "Description of the quick connect control in the Control Center gallery.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect or disconnect the URnetwork VPN."
+          }
+        }
+      }
+    },
+    "Connect to see your contracts" : {
+      "comment" : "Contracts widget empty state while the tunnel is down.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect to see your contracts"
           }
         }
       }
@@ -22141,6 +23034,7 @@
     },
     "Connect Wallet" : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/EnterWalletAddress/EnterWalletAddressView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23016,6 +23910,17 @@
               }
             }
             }
+          }
+        }
+      }
+    },
+    "Connected to the UR protocol. Claims land here. Alpha accrues from the next epoch after connecting." : {
+      "comment" : "Line under the connected coldkey.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected to the UR protocol. Claims land here. Alpha accrues from the next epoch after connecting."
           }
         }
       }
@@ -24188,6 +25093,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "合約"
+          }
+        }
+      }
+    },
+    "Contracts" : {
+      "comment" : "App connect screen: contract details section title",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "العقود"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verträge"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contracts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Контракты"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合约"
           }
         }
       }
@@ -28901,6 +29847,7 @@
     },
     "DEFAULT" : {
       "comment" : "Used in Shared/Views/PayoutWalletTag.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -30253,6 +31200,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "斷開 URnetwork VPN 連接"
+          }
+        }
+      }
+    },
+    "Disconnected" : {
+      "comment" : "Connection status shown on the connect panel and in the tray tooltip when the tunnel is down. The counterpart of the `connected` key.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غير متصل"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpojeno"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Getrennt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποσυνδεδεμένο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectado"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectado"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecté"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנותק"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डिस्कनेक्टेड"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terputus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnesso"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未接続"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 끊김"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niet verbonden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozłączono"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectado"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desligado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключено"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frånkopplad"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตัดการเชื่อมต่อแล้ว"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відключено"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã ngắt kết nối"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已断开连接"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已斷開連接"
           }
         }
       }
@@ -32161,6 +33275,17 @@
         }
       }
     },
+    "Emission is paid to your coldkey directly. Bindings renew per epoch." : {
+      "comment" : "Detail under the bound status.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emission is paid to your coldkey directly. Bindings renew per epoch."
+          }
+        }
+      }
+    },
     "Enable provide mode to make this device discoverable" : {
       "comment" : "Hint shown when the device is not discoverable because provide mode is off.",
       "localizations" : {
@@ -33177,6 +34302,7 @@
     },
     "Enter a Solana or Bittensor wallet address" : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/EnterWalletAddress/EnterWalletAddressView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -33343,6 +34469,7 @@
       }
     },
     "Enter a Solana USDC wallet address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -33504,6 +34631,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請輸入 Solana USDC 錢包地址"
+          }
+        }
+      }
+    },
+    "Enter address manually" : {
+      "comment" : "Fallback link to paste an ss58 address.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter address manually"
           }
         }
       }
@@ -34179,6 +35317,7 @@
     },
     "Enter wallet address" : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/EnterWalletAddress/EnterWalletAddressView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -34674,6 +35813,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入你的電話號碼或電郵"
+          }
+        }
+      }
+    },
+    "Epoch %lld" : {
+      "comment" : "History row title.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epoch %lld"
           }
         }
       }
@@ -35205,6 +36355,7 @@
     },
     "Error setting default wallet" : {
       "comment" : "Snackbar shown when setting the default payout wallet fails. Used in Main/Account/Wallet/WalletView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -35372,6 +36523,7 @@
     },
     "Error setting default wallet: %@" : {
       "comment" : "Snackbar shown when setting the default payout wallet fails, with the underlying error message. Used in Main/Account/Wallet/WalletView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -35533,6 +36685,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定預設錢包時發生錯誤：%@"
+          }
+        }
+      }
+    },
+    "Every verified referral gives each of you %lld GiB/day for free, for life." : {
+      "comment" : "Detail line of the gold referral panel. The amount is the daily GiB each side earns per verified referral (pro.yml referral).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كل إحالة موثّقة تمنح كلاً منكما %lld جيبي بايت يومياً مجاناً، مدى الحياة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jede verifizierte Empfehlung bringt Ihnen beiden je %lld GiB/Tag kostenlos, auf Lebenszeit."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every verified referral gives each of you %lld GiB/day for free, for life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada referido verificado les da a cada uno %lld GiB/día gratis, de por vida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Каждый подтверждённый реферал даёт каждому из вас по %lld ГиБ в день бесплатно, навсегда."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每一次通过验证的推荐，都会让你们双方各获得每天 %lld GiB 免费流量，终身有效。"
           }
         }
       }
@@ -35871,6 +37064,17 @@
         }
       }
     },
+    "Expired" : {
+      "comment" : "Claim state: past the vault's expiry block.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expired"
+          }
+        }
+      }
+    },
     "Expires" : {
       "comment" : "Guidance for someone who has no code yet. Deliberately PLAIN TEXT with no link and no button: app store rules forbid steering a user to an external purchase, but nothing stops us saying where codes come from. Without this, the sheet asks for a code and gives no way to obtain one.",
       "localizations" : {
@@ -36201,6 +37405,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯出日誌"
+          }
+        }
+      }
+    },
+    "Failed" : {
+      "comment" : "Claim state: failed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed"
           }
         }
       }
@@ -37705,6 +38920,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "免費"
+          }
+        }
+      }
+    },
+    "Gas key" : {
+      "comment" : "Label of the gas key row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gas key"
           }
         }
       }
@@ -39890,6 +41116,17 @@
         }
       }
     },
+    "History" : {
+      "comment" : "Label of the per-epoch history list.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        }
+      }
+    },
     "How are we doing?" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -40726,6 +41963,17 @@
         }
       }
     },
+    "Includes %lld day free trial" : {
+      "comment" : "Line under the annual plan card. The number of days is the free trial length.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Includes %lld day free trial"
+          }
+        }
+      }
+    },
     "Includes 2 week free trial" : {
       "comment" : "Used in Shared/Views/ProductOptionCard.swift.",
       "localizations" : {
@@ -41056,6 +42304,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "餘額不足"
+          }
+        }
+      }
+    },
+    "Internet" : {
+      "comment" : "Right stop label of the onboarding route line the anonymized member travels along.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Internet"
           }
         }
       }
@@ -43578,6 +44837,17 @@
         }
       }
     },
+    "Learn how it works at ur.xyz" : {
+      "comment" : "Link text under the protocol note.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn how it works at ur.xyz"
+          }
+        }
+      }
+    },
     "Learn more about the multiplier" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -45934,6 +47204,28 @@
         }
       }
     },
+    "Long-press the Home Screen, tap +, search URnetwork, and add a widget." : {
+      "comment" : "How to add a Home Screen widget on iOS (no pin-widget API).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long-press the Home Screen, tap +, search URnetwork, and add a widget."
+          }
+        }
+      }
+    },
+    "Long-press your home screen, choose Widgets, and pick URnetwork." : {
+      "comment" : "Manual steps for adding widgets on launchers without the pin dialog.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long-press your home screen, choose Widgets, and pick URnetwork."
+          }
+        }
+      }
+    },
     "Lowest user/IP ratio to access content" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -46103,6 +47395,7 @@
     },
     "Make default" : {
       "comment" : "Wallet Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47274,6 +48567,7 @@
     },
     "Net points earned" : {
       "comment" : "Used in Shared/Views/AccountPointsBreakdown.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47942,6 +49236,7 @@
     },
     "Network earnings" : {
       "comment" : "Used in Main/Account/AccountRootView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -50115,6 +51410,17 @@
         }
       }
     },
+    "No contracts" : {
+      "comment" : "Contracts widget empty state while connected with no open client contracts.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No contracts"
+          }
+        }
+      }
+    },
     "No email, phone, or password needed. Your account is secured by a seedphrase." : {
       "comment" : "A description of the benefits of creating an Instant Account.",
       "isCommentAutoGenerated" : true,
@@ -50279,6 +51585,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無需電郵、電話或密碼。你的帳戶由助記詞保護。"
+          }
+        }
+      }
+    },
+    "No epochs yet. Points appear after your first finalized epoch." : {
+      "comment" : "Empty state of the points history.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No epochs yet. Points appear after your first finalized epoch."
+          }
+        }
+      }
+    },
+    "No friends yet. Share your code and watch the crown appear. 👑" : {
+      "comment" : "Status line of the gold referral panel while the network has no referral yet.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا أصدقاء بعد. شارك رمزك وسيظهر التاج. 👑"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Freunde – teilen Sie Ihren Code und die Krone erscheint. 👑"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No friends yet. Share your code and watch the crown appear. 👑"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay amigos. Comparte tu código y verás aparecer la corona. 👑"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока нет друзей — поделитесь кодом, и появится корона. 👑"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有好友——分享你的推荐码，皇冠即将出现。👑"
           }
         }
       }
@@ -50462,6 +51820,17 @@
         }
       }
     },
+    "No providers" : {
+      "comment" : "Badge on the small provider globe widget when no providers are connected.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No providers"
+          }
+        }
+      }
+    },
     "No providers connected" : {
       "comment" : "Empty state of the provider locations sheet when no providers are connected.",
       "localizations" : {
@@ -50625,6 +51994,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未連接任何供應商"
+          }
+        }
+      }
+    },
+    "Not providing" : {
+      "comment" : "Dashboard widget provider chart label when providing is off.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not providing"
+          }
+        }
+      }
+    },
+    "Not signed in" : {
+      "comment" : "Quick connect control / widget value when the app has no tunnel configuration yet (fresh install or logged out).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not signed in"
           }
         }
       }
@@ -51300,6 +52691,239 @@
         }
       }
     },
+    "Open" : {
+      "comment" : "Button on the Home Screen widget that opens the app when the tunnel is not configured yet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        }
+      }
+    },
+    "Open Control Center, choose Edit Controls, and add URnetwork." : {
+      "comment" : "How to add the quick connect control on macOS.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Control Center, choose Edit Controls, and add URnetwork."
+          }
+        }
+      }
+    },
+    "Open Control Center, tap +, then Add a Control, and pick URnetwork." : {
+      "comment" : "How to add the quick connect control on iOS (no add-control API).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Control Center, tap +, then Add a Control, and pick URnetwork."
+          }
+        }
+      }
+    },
+    "Open Quick Settings, tap the pencil, and drag URnetwork into place." : {
+      "comment" : "Manual steps for adding the quick connect tile on Android versions without the system add-tile request (before Android 13).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Quick Settings, tap the pencil, and drag URnetwork into place."
+          }
+        }
+      }
+    },
+    "Open the widget gallery from Notification Center, search URnetwork, and drag a widget to the desktop." : {
+      "comment" : "How to add a desktop widget on macOS.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the widget gallery from Notification Center, search URnetwork, and drag a widget to the desktop."
+          }
+        }
+      }
+    },
+    "Open URnetwork" : {
+      "comment" : "Tray menu item that shows the app window. The counterpart of quit_urnetwork.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فتح URnetwork"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otevřít URnetwork"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Άνοιγμα του URnetwork"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open URnetwork"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir URnetwork"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir URnetwork"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir URnetwork"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir URnetwork"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פתח את URnetwork"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork खोलें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buka URnetwork"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri URnetwork"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetworkを開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 열기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork openen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz URnetwork"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir URnetwork"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir URnetwork"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir URnetwork"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть URnetwork"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna URnetwork"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิด URnetwork"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити URnetwork"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở URnetwork"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 URnetwork"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟 URnetwork"
+          }
+        }
+      }
+    },
+    "Open URnetwork to set up" : {
+      "comment" : "Widget subtitle when the app has no tunnel configuration yet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open URnetwork to set up"
+          }
+        }
+      }
+    },
     "or" : {
       "comment" : "Referring to the two options 'Get started' *or* 'Login with Apple'",
       "localizations" : {
@@ -51469,6 +53093,7 @@
     },
     "Other" : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/ConnectWalletSheetView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -51630,6 +53255,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "其他"
+          }
+        }
+      }
+    },
+    "Paid in USDC on Solana." : {
+      "comment" : "The one USDC mention: the Solana subscription payment note.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paid in USDC on Solana."
           }
         }
       }
@@ -52638,8 +54274,20 @@
         }
       }
     },
+    "Paying with Solana is a one-time yearly payment, with no free trial." : {
+      "comment" : "Note under the Solana payment button on the plan picker: Solana is a one-time yearly payment, the free trial is Stripe only.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paying with Solana is a one-time yearly payment, with no free trial."
+          }
+        }
+      }
+    },
     "Payment Pending" : {
       "comment" : "Used in Main/Account/PayoutItem/PayoutItemView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -52818,6 +54466,7 @@
     },
     "Payout" : {
       "comment" : "Used in Main/Account/AccountNavStackView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -52985,6 +54634,7 @@
     },
     "Payout wallet updated" : {
       "comment" : "Snackbar shown after the payout wallet is changed. Used in Main/Account/Wallet/WalletView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -53152,6 +54802,7 @@
     },
     "Payout Wallets" : {
       "comment" : "Wallet Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -53319,6 +54970,7 @@
     },
     "Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold." : {
       "comment" : "Wallet Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -55161,6 +56813,7 @@
     },
     "Points breakdown" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -55322,6 +56975,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "積分明細"
+          }
+        }
+      }
+    },
+    "Points earned" : {
+      "comment" : "Headline label of the earnings screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points earned"
           }
         }
       }
@@ -56663,6 +58327,28 @@
         }
       }
     },
+    "Provider" : {
+      "comment" : "Dashboard widget chart title: traffic relayed for others while providing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provider"
+          }
+        }
+      }
+    },
+    "Provider · %@" : {
+      "comment" : "Title above the provider traffic chart in the dashboard widget: the chart name with the current provide mode (Auto, Always, Network, Never).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provider · %@"
+          }
+        }
+      }
+    },
     "Provider contracts" : {
       "comment" : "A label for the provider contracts screen.",
       "isCommentAutoGenerated" : true,
@@ -57500,6 +59186,17 @@
         }
       }
     },
+    "Provider stats will appear when the provider is enabled." : {
+      "comment" : "Shown in the dashboard widget in place of the provider traffic chart while providing is off.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provider stats will appear when the provider is enabled."
+          }
+        }
+      }
+    },
     "Provider transports" : {
       "comment" : "Title of the transport settings editor for the provider transport policy.",
       "localizations" : {
@@ -57507,6 +59204,80 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Provider transports"
+          }
+        }
+      }
+    },
+    "Providers" : {
+      "comment" : "App connect screen: provider grid section title",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المزوّدون"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provider"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Providers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proveedores"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Провайдеры"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供者"
+          }
+        }
+      }
+    },
+    "Provides only to your own network's devices." : {
+      "comment" : "One-line explanation of the Network provide mode in the onboarding Contribute bandwidth picker: the private provider for the network's own devices.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provides only to your own network's devices."
+          }
+        }
+      }
+    },
+    "Provides to everyone whenever the app is running." : {
+      "comment" : "One-line explanation of the Always provide mode in the onboarding Contribute bandwidth picker.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provides to everyone whenever the app is running."
+          }
+        }
+      }
+    },
+    "Provides to everyone while you're connected, otherwise only to your own devices." : {
+      "comment" : "One-line explanation of the Auto provide mode in the onboarding Contribute bandwidth picker: public providing only while connected, same-network peers otherwise.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provides to everyone while you're connected, otherwise only to your own devices."
           }
         }
       }
@@ -58189,6 +59960,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Purchase found. Confirming your plan — it will update automatically."
+          }
+        }
+      }
+    },
+    "Questions about earlier payouts? Email support@ur.io." : {
+      "comment" : "Line about past payouts.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questions about earlier payouts? Email support@ur.io."
           }
         }
       }
@@ -60384,6 +62166,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "推薦朋友 = +30 GiB/月"
+          }
+        }
+      }
+    },
+    "Refer a friend and you both get free data" : {
+      "comment" : "Heading of the gold referral panel (the ur.io referral panel) before the network has a referral.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أحِل صديقاً واحصلا كلاكما على بيانات مجانية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freunde einladen und Sie beide bekommen kostenlose Daten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refer a friend and you both get free data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refiere a un amigo y los dos consiguen datos gratis"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пригласите друга и вы оба получите бесплатный трафик"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐好友，双方都获得免费流量"
           }
         }
       }
@@ -63697,6 +65520,7 @@
     },
     "Remove wallet" : {
       "comment" : "Used in Main/Account/AccountNavStackView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -66896,6 +68720,17 @@
         }
       }
     },
+    "Send about %@ TAO to %@ to cover gas." : {
+      "comment" : "Instruction to fund the gas key.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send about %1$@ TAO to %2$@ to cover gas."
+          }
+        }
+      }
+    },
     "Send me product updates" : {
       "comment" : "Settings",
       "localizations" : {
@@ -67393,6 +69228,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "直接向我們發送反饋，或[加入我們的 Discord](https://discord.com/invite/RUNZXMwPRK) 獲取直接支持。"
+          }
+        }
+      }
+    },
+    "Sent" : {
+      "comment" : "Claim state: transaction sent.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sent"
           }
         }
       }
@@ -68395,6 +70241,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享你的推薦碼。朋友註冊時輸入即可。"
+          }
+        }
+      }
+    },
+    "Share your internet with other people ❤️" : {
+      "comment" : "Second bullet on the onboarding Contribute bandwidth page, with a heart.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share your internet with other people ❤️"
           }
         }
       }
@@ -70751,8 +72608,35 @@
         }
       }
     },
+    "Skip" : {
+      "comment" : "Small muted button at the top of the post-login onboarding flow that leaves the whole flow.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
+    "SN25α" : {
+      "comment" : "The subnet alpha token symbol.",
+      "shouldTranslate" : false
+    },
+    "SN25α are your earnings on the UR protocol. The UR protocol is an open source protocol from URnetwork. Connect a Bittensor wallet to settle them as SN25α through the UR protocol." : {
+      "comment" : "Note on the earnings screen explaining alpha and the wallet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SN25α are your earnings on the UR protocol. The UR protocol is an open source protocol from URnetwork. Connect a Bittensor wallet to settle them as SN25α through the UR protocol."
+          }
+        }
+      }
+    },
     "Solana USDC addresses and Bittensor (TAO) addresses are supported. Bittensor wallets are stored for future use and can't receive payouts yet." : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/EnterWalletAddress/EnterWalletAddressView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -72258,6 +74142,17 @@
         }
       }
     },
+    "Start free trial" : {
+      "comment" : "Primary button of the plan picker (onboarding and upgrade): starts the paid plan's free trial. Replaces 'Join the movement'.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start free trial"
+          }
+        }
+      }
+    },
     "Stay connected daily = Earn up to 100 GiB/Day" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -72576,6 +74471,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保持聯繫"
+          }
+        }
+      }
+    },
+    "Step %1$d of %2$d" : {
+      "comment" : "Accessibility description of the onboarding step bubbles: the current step and the total.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %1$d of %2$d"
           }
         }
       }
@@ -74253,6 +76159,17 @@
         }
       }
     },
+    "Tap a widget to add it to your home screen." : {
+      "comment" : "Hint under the widget previews on the last onboarding page: tapping a preview asks the launcher to add that widget.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a widget to add it to your home screen."
+          }
+        }
+      }
+    },
     "Tap the edit icon to change your network name" : {
       "comment" : "A description of the action to change the user's network name.",
       "isCommentAutoGenerated" : true,
@@ -74923,6 +76840,28 @@
         }
       }
     },
+    "That is not a valid Bittensor address." : {
+      "comment" : "Validation error for a coldkey address.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That is not a valid Bittensor address."
+          }
+        }
+      }
+    },
+    "The chain RPC is unreachable. Try again." : {
+      "comment" : "Error when the subnet RPC cannot be reached.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The chain RPC is unreachable. Try again."
+          }
+        }
+      }
+    },
     "The default safe settings are not applied" : {
       "comment" : "dns settings",
       "localizations" : {
@@ -75264,6 +77203,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The purchase could not be completed. Please try again."
+          }
+        }
+      }
+    },
+    "The Seeker multiplier applies to points only." : {
+      "comment" : "Note on the Seeker verification action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Seeker multiplier applies to points only."
           }
         }
       }
@@ -75960,6 +77910,7 @@
     },
     "There was an error connecting your wallet: %@" : {
       "comment" : "Snackbar shown when connecting a wallet fails, with the underlying error message. Used in Main/Account/Wallets/WalletsView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -77296,6 +79247,7 @@
     },
     "These wallets are not affiliated or controlled by URnetwork. We will send earnings into the connected wallet." : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/ConnectWalletSheetView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -77457,6 +79409,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這些錢包與URnetwork無關，也不受URnetwork控制。我們將收益發送到已連接的錢包中。"
+          }
+        }
+      }
+    },
+    "This address has no activity on the Bittensor chain yet. It looks like a new wallet. Make sure it is yours before continuing." : {
+      "comment" : "Warning when a wallet address has no activity on the Bittensor chain yet; the user may continue.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This address has no activity on the Bittensor chain yet. It looks like a new wallet. Make sure it is yours before continuing."
           }
         }
       }
@@ -78140,8 +80103,20 @@
         }
       }
     },
+    "This wallet can't be used with URnetwork." : {
+      "comment" : "Error when a wallet address is on the operator's ban list; the user cannot continue.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This wallet can't be used with URnetwork."
+          }
+        }
+      }
+    },
     "To start earning, connect your Solana wallet to URnetwork." : {
       "comment" : "Used in Main/Account/Wallets/EmptyWallets/EmptyWalletsView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -78307,8 +80282,31 @@
         }
       }
     },
+    "Toggle URnetwork VPN" : {
+      "comment" : "Title of the Set-Value intent behind the quick connect control and widget toggle (shown by the system in Shortcuts/debug UI).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle URnetwork VPN"
+          }
+        }
+      }
+    },
+    "Top 200" : {
+      "comment" : "Badge text for the head mining spot.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top 200"
+          }
+        }
+      }
+    },
     "total payouts" : {
       "comment" : "Wallets Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -78476,6 +80474,7 @@
     },
     "Total referrals" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -79344,6 +81343,7 @@
     },
     "Transaction" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -79505,6 +81505,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "交易"
+          }
+        }
+      }
+    },
+    "Transfer balance, connected location and traffic, with quick connect." : {
+      "comment" : "Description of the dashboard widget in the widget gallery.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfer balance, connected location and traffic, with quick connect."
           }
         }
       }
@@ -80032,6 +82043,39 @@
         }
       }
     },
+    "Turn URnetwork on and off from Control Center, and keep an eye on it from your Home Screen." : {
+      "comment" : "Detail line of the last onboarding page on iOS/macOS (Control Center instead of Quick Settings).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn URnetwork on and off from Control Center, and keep an eye on it from your Home Screen."
+          }
+        }
+      }
+    },
+    "Turn URnetwork on and off from Quick Settings, and keep an eye on it from your home screen." : {
+      "comment" : "Detail line of the last onboarding page.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn URnetwork on and off from Quick Settings, and keep an eye on it from your home screen."
+          }
+        }
+      }
+    },
+    "UID %lld · rank #%lld" : {
+      "comment" : "Status row once bound.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UID %1$lld · rank #%2$lld"
+          }
+        }
+      }
+    },
     "Unavailable due to system constraints" : {
       "comment" : "Accessibility label / tooltip on the warning icon next to a transport that is enabled under Auto but not currently eligible under a system constraint (for example the platform memory budget). A runtime warning, not a settings restriction: the toggle stays editable.",
       "localizations" : {
@@ -80039,6 +82083,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unavailable due to system constraints"
+          }
+        }
+      }
+    },
+    "Unclaimed" : {
+      "comment" : "Label of the unclaimed alpha tile.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unclaimed"
           }
         }
       }
@@ -80714,6 +82769,7 @@
     },
     "Unpaid data provided" : {
       "comment" : "Wallet Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -81391,6 +83447,28 @@
         }
       }
     },
+    "Updated %@" : {
+      "comment" : "Dashboard widget footer; the argument is a localized relative time such as '3 min. ago'.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updated %@"
+          }
+        }
+      }
+    },
+    "Updated just now" : {
+      "comment" : "Dashboard widget footer in the widget gallery preview.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updated just now"
+          }
+        }
+      }
+    },
     "Upgrade" : {
       "comment" : "Used in Main/Account/AccountRootView.swift.",
       "localizations" : {
@@ -81554,6 +83632,20 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "升級"
+          }
+        }
+      }
+    },
+    "URnetwork" : {
+      "shouldTranslate" : false
+    },
+    "URnetwork gives you verifiable encryption for everyday use." : {
+      "comment" : "Tagline under 'Welcome to URnetwork' on the first onboarding page. Replaces 'URnetwork is the most local and most private network on the planet.'",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork gives you verifiable encryption for everyday use."
           }
         }
       }
@@ -83230,9 +85322,11 @@
     },
     "USDC" : {
       "comment" : "Used in Main/Account/AccountRootView.swift.",
+      "extractionState" : "stale",
       "shouldTranslate" : false
     },
     "USDC addresses on Solana are currently supported" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -83399,6 +85493,7 @@
       }
     },
     "USDC wallet address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -85234,6 +87329,17 @@
         }
       }
     },
+    "Verify Seeker" : {
+      "comment" : "Standalone Seeker verification action (points multiplier only).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verify Seeker"
+          }
+        }
+      }
+    },
     "Version and Build info" : {
       "comment" : "Used in Main/Account/Settings/SettingsForm-iOS.swift.",
       "localizations" : {
@@ -86072,6 +88178,7 @@
     },
     "Wallet address" : {
       "comment" : "Wallets Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -86239,6 +88346,7 @@
     },
     "Wallet Address" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -86574,6 +88682,7 @@
     },
     "Wallets" : {
       "comment" : "Wallets Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -87932,6 +90041,17 @@
         }
       }
     },
+    "You" : {
+      "comment" : "Left stop label of the onboarding route line the anonymized member travels along (you -> URnetwork -> internet).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You"
+          }
+        }
+      }
+    },
     "You can adjust the setting to Always to fill the free data faster." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -88585,6 +90705,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你每月獲得30 GiB，永久有效"
+          }
+        }
+      }
+    },
+    "You get free data every day." : {
+      "comment" : "Detail line under the onboarding data page title.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You get free data every day."
           }
         }
       }
@@ -89256,8 +91387,20 @@
         }
       }
     },
+    "You qualify" : {
+      "comment" : "Headline of the Top 200 tile when eligible.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You qualify"
+          }
+        }
+      }
+    },
     "You share with others, we share with you. Earn a share of revenue when you provide data to others in the network." : {
       "comment" : "Setup wallet",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -90269,6 +92412,50 @@
         }
       }
     },
+    "Your bandwidth" : {
+      "comment" : "Title of the onboarding data page (was 'Boost your bandwidth').",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your bandwidth"
+          }
+        }
+      }
+    },
+    "Your choice, completely optional:" : {
+      "comment" : "Lead line above the two bullets on the onboarding Contribute bandwidth page.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your choice, completely optional:"
+          }
+        }
+      }
+    },
+    "Your connected providers on the globe." : {
+      "comment" : "Description of the provider globe widget in the widget gallery.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your connected providers on the globe."
+          }
+        }
+      }
+    },
+    "Your device sends the claim to the vault contract. Gas is paid in TAO from your gas key. Alpha lands on your coldkey." : {
+      "comment" : "Explainer under the claim button.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your device sends the claim to the vault contract. Gas is paid in TAO from your gas key. Alpha lands on your coldkey."
+          }
+        }
+      }
+    },
     "Your email" : {
       "comment" : "Label for the empty text field.",
       "isCommentAutoGenerated" : true,
@@ -91106,6 +93293,17 @@
         }
       }
     },
+    "Your network's routable IP breadth ranks about #%lld of %lld head spots. Head miners earn SN25α natively, every tempo." : {
+      "comment" : "Detail of the Top 200 tile when eligible.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your network's routable IP breadth ranks about #%1$lld of %2$lld head spots. Head miners earn SN25α natively, every tempo."
+          }
+        }
+      }
+    },
     "Your purchase needs to be approved before it can complete. UR Pro will turn on by itself once it goes through — there's no need to buy again." : {
       "comment" : "Used in Shared/Views/UpgradeSubscriptionSheet.swift.",
       "localizations" : {
@@ -91273,6 +93471,47 @@
         }
       }
     },
+    "Your referral code" : {
+      "comment" : "Label above the referral code pill in the gold referral panel.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمز الإحالة الخاص بك"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihr Empfehlungscode"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your referral code"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu código de referido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш реферальный код"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的推荐码"
+          }
+        }
+      }
+    },
     "Your referral link" : {
       "comment" : "Used in Shared/Views/Introduction/ParticipateReferView.swift.",
       "localizations" : {
@@ -91436,6 +93675,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的推薦連結"
+          }
+        }
+      }
+    },
+    "Your score is close to the eviction floor. Add routable IPs to keep the spot." : {
+      "comment" : "Warning when the score nears the floor.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your score is close to the eviction floor. Add routable IPs to keep the spot."
           }
         }
       }
@@ -91615,6 +93865,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your subscription was purchased under a different account. Log in to that account to use it."
+          }
+        }
+      }
+    },
+    "Your top client contracts, flowing as they come and go." : {
+      "comment" : "Description of the contracts widget in the widget gallery.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your top client contracts, flowing as they come and go."
           }
         }
       }

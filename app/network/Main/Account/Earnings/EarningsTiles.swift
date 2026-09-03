@@ -140,23 +140,7 @@ struct BittensorWalletCard: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             } else {
-                // the whole sentence opens the protocol site
-                Button(action: {
-                    if let url = URL(string: "https://ur.xyz") {
-                        openURL(url)
-                    }
-                }) {
-                    HStack(alignment: .top, spacing: 4) {
-                        Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
-                            .multilineTextAlignment(.leading)
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .padding(.top, 3)
-                    }
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.accentColor)
-                }
-                .buttonStyle(.plain)
+                WalletNotRetroactiveNote()
                 Spacer().frame(height: 4)
                 UrButton(text: "Connect Bittensor wallet", action: connect)
             }
@@ -254,5 +238,33 @@ struct EpochHistoryRow: View {
             }
         }
         .padding(.vertical, 12)
+    }
+}
+
+/// The not-retroactive sentence as plain body text that opens the protocol site:
+/// no link color, no underline; a small outward-arrow glyph after the last word
+/// (inline, so it wraps with the sentence) says the tap leaves the app.
+struct WalletNotRetroactiveNote: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        Button(action: {
+            if let url = URL(string: "https://ur.xyz") {
+                openURL(url)
+            }
+        }) {
+            (
+                Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
+                    + Text(verbatim: "\u{00A0}")
+                    + Text(Image(systemName: "arrow.up.right.square"))
+            )
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(.isLink)
     }
 }

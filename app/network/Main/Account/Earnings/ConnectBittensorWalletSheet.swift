@@ -36,9 +36,7 @@ struct ConnectBittensorWalletSheet: View {
         switch flow.stage {
 
         case .chooser:
-            Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            WalletNotRetroactiveNote()
             UrButton(text: "Connect Bittensor wallet", action: {
                 Task {
                     await flow.startBridge()
@@ -55,9 +53,7 @@ struct ConnectBittensorWalletSheet: View {
             .buttonStyle(.plain)
 
         case .manualEntry:
-            Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            WalletNotRetroactiveNote()
             TextField("", text: $flow.manualAddress, prompt: Text(verbatim: "5F…"))
                 .textFieldStyle(.roundedBorder)
                 .font(.system(.body, design: .monospaced))

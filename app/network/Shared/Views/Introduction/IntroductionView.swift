@@ -42,8 +42,6 @@ struct IntroductionRouteState: Equatable {
     }
 }
 
-/// The App Store cannot run a 15 day trial: two weeks is the closest offer, and the real length comes from StoreKit when the offer is configured.
-let introductionFallbackTrialDays = 14
 
 struct IntroductionView: View {
     
@@ -84,25 +82,6 @@ struct IntroductionView: View {
         return subscriptionManager.yearlySubscription
     }
 
-    /// The annual plan's free trial in days, from its introductory offer when the store has one.
-    private var yearlyTrialDays: Int {
-        guard let offer = yearlySubscription?.subscription?.introductoryOffer, offer.paymentMode == .freeTrial else {
-            return introductionFallbackTrialDays
-        }
-        let period = offer.period
-        switch period.unit {
-        case .day:
-            return period.value
-        case .week:
-            return period.value * 7
-        case .month:
-            return period.value * 30
-        case .year:
-            return period.value * 365
-        @unknown default:
-            return introductionFallbackTrialDays
-        }
-    }
     
     @State var selectedPaymentOption: PaymentOption = .yearly
     @State var presentRedeemBalanceCodeSheet: Bool = false
@@ -275,33 +254,11 @@ struct IntroductionView: View {
                         
                         if let monthly = monthlySubscription, let yearly = yearlySubscription {
                             
-                            ProductOptionCard(
-                                price: "\(yearly.displayPrice) Annual (Save 33%)",
-                                select: {
-                                    selectedPaymentOption = .yearly
-                                },
-                                isSelected: selectedPaymentOption == .yearly,
-                                trialDays: yearlyTrialDays,
-                                bestValue: true
-                            )
-                            
-                            Spacer().frame(height: 18)
-                            
-                            ProductOptionCard(
-                                price: "\(monthly.displayPrice)/month",
-                                select: {
-                                    selectedPaymentOption = .monthly
-                                },
-                                isSelected: selectedPaymentOption == .monthly
-                            )
-                            
-                            Spacer().frame(height: 18)
-                            
-                            UrButton(
-                                text: selectedPaymentOption == .monthly
-                                    ? "Join the movement"
-                                    : "Start free trial",
-                                action: {
+                            SubscriptionPlanPicker(
+                                monthly: monthly,
+                                yearly: yearly,
+                                selectedPaymentOption: $selectedPaymentOption,
+                                purchase: {
                                 
                                 let product = selectedPaymentOption == .monthly ? monthly : yearly
 

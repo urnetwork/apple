@@ -210,42 +210,25 @@ struct UpgradeSubscriptionSheet: View {
                                     Spacer().frame(height: 18)
                                 }
 
-                                ProductOptionCard(
-                                    price: "\(yearly.displayPrice)/year",
-                                    select: {
-                                        selectedPaymentOption = .yearly
-                                    },
-                                    isSelected: selectedPaymentOption == .yearly,
-                                    includesFreeTrial: true,
-                                    isMostPopular: true
-                                )
+                                // room for the plan box's halo and pill
+                                Spacer().frame(height: 16)
 
-                                Spacer().frame(height: 18)
-
-                                ProductOptionCard(
-                                    price: "\(monthly.displayPrice)/month",
-                                    select: {
-                                        selectedPaymentOption = .monthly
-                                    },
-                                    isSelected: selectedPaymentOption == .monthly,
-                                    includesFreeTrial: false,
-                                    isMostPopular: false
-                                )
-
-                                Spacer().frame(minHeight: 18)
-
-                                VStack(alignment: .leading) {
-
-                                    UrButton(text: "Join the movement", action: {
+                                SubscriptionPlanPicker(
+                                    monthly: monthly,
+                                    yearly: yearly,
+                                    selectedPaymentOption: $selectedPaymentOption,
+                                    purchase: {
                                         if selectedPaymentOption == .monthly {
                                             purchase(monthly)
                                         } else {
                                             purchase(yearly)
                                         }
+                                    }
+                                )
 
-                                    })
+                                Spacer().frame(minHeight: 18)
 
-                                    Spacer().frame(height: 18)
+                                VStack(alignment: .leading) {
 
                                     HStack {
                                         Text("By subscribing, you agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)")

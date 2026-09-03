@@ -15,12 +15,9 @@ struct ProductOptionCard: View {
     let price: String
     let select: () -> Void
     let isSelected: Bool
-    /// The legacy trial line ("Includes 2 week free trial"), used by the upgrade sheet.
-    var includesFreeTrial: Bool = false
-    /// The trial line with its length ("Includes 15 day free trial"); wins over `includesFreeTrial`.
+    /// The trial line with its length ("Includes 14 day free trial"); only the yearly plan has one.
     var trialDays: Int? = nil
     /// The legacy green "Most Popular" pill, used by the upgrade sheet.
-    var isMostPopular: Bool = false
     /// The recommended plan: the Pro-gold dress and the "Best value" pill.
     var bestValue: Bool = false
 
@@ -56,9 +53,6 @@ struct ProductOptionCard: View {
                             Text("Includes \(trialDays) day free trial")
                                 .font(themeManager.currentTheme.secondaryBodyFont)
                                 .foregroundColor(introProGoldLight)
-                        } else if includesFreeTrial {
-                            Text("Includes 2 week free trial")
-                                .font(Font.custom("PP NeueBit", size: 18).weight(.bold))
                         }
                         
                     }
@@ -89,15 +83,6 @@ struct ProductOptionCard: View {
                 BestValuePill()
                     .padding(.horizontal, 8) // inset from edges
                     .offset(y: -16)
-            } else if isMostPopular {
-                Text("Most Popular")
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.urGreen, in: Capsule())
-                    .foregroundStyle(.urBlack)
-                    .padding(.horizontal, 8) // inset from edges
-                    .offset(y: -16)
-                    .font(Font.custom("PP NeueBit", size: 22).weight(.bold))
             }
         }
         .contentShape(Rectangle())

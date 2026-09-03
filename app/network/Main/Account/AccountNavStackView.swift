@@ -139,6 +139,11 @@ struct AccountNavStackView: View {
                     )
                     .navigationTitle("Refer and earn")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
+                case .widgets:
+                    WidgetsView()
+                        .navigationTitle("Widgets")
+                        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     
                 case .blockedLocations:
 

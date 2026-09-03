@@ -247,6 +247,19 @@ struct AccountRootView: View {
                                 }
                             }
                         )
+
+                        /**
+                         * Widgets: the quick connect control and the Home Screen
+                         * widgets with the steps to add them, the same content as
+                         * the last onboarding page
+                         */
+                        AccountNavLink(
+                            name: "Widgets",
+                            iconPath: "ur.symbols.widgets",
+                            action: {
+                                navigate(.widgets)
+                            }
+                        )
                         
                         /**
                          * Review

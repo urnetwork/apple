@@ -23,8 +23,16 @@ final class DeepLinkRouter: ObservableObject {
     }
 
     /// Takes the pending destination, if any.
+    ///
+    /// Writes `pending` only when there is something to take. The connect
+    /// view calls this from `.onReceive(deepLinkRouter.$pending)`, and a
+    /// `@Published` property publishes on every assignment, nil to nil
+    /// included: an unconditional `pending = nil` here re-published, which
+    /// re-ran that closure, which consumed again, forever. That livelock
+    /// pinned the main thread (blank screens after sign-in) until the
+    /// watchdog killed the app (0x8BADF00D, "failed to terminate gracefully").
     func consume() -> WidgetDestination? {
-        let destination = pending
+        guard let destination = pending else { return nil }
         pending = nil
         return destination
     }

@@ -45,13 +45,8 @@ struct DashboardView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            // the solid connector: white when off, the app's connected green
-            // when the tunnel is up (pink is reserved for the quick connect
-            // button and the control)
-            Image(WidgetTheme.connectorSymbolFill)
-                .font(.system(size: 22))
-                .foregroundStyle(entry.isOn ? WidgetTheme.connected : WidgetTheme.text)
-                .widgetAccentable()
+            // the location's country color, as the in-app location list shows it
+            LocationColorDot(location: entry.showsTunnelData ? entry.tunnel.location : nil)
             VStack(alignment: .leading, spacing: 2) {
                 Text(locationTitle)
                     .font(WidgetTheme.title)

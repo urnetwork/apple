@@ -157,9 +157,7 @@ private struct DashboardWidgetPreview: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(WidgetTheme.connectorSymbolFill)
-                .font(.system(size: 22))
-                .foregroundStyle(data.isOn ? WidgetTheme.connected : WidgetTheme.text)
+            LocationColorDot(location: data.showsTunnelData ? data.tunnel.location : nil)
             VStack(alignment: .leading, spacing: 2) {
                 Text(locationTitle)
                     .font(WidgetTheme.title)

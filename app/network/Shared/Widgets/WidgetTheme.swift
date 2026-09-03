@@ -74,6 +74,30 @@ enum WidgetTheme {
     static let label = Font.system(size: 10, weight: .medium).monospacedDigit()
 }
 
+/// The mark next to the location name in the dashboard: a filled disc in the
+/// location's country color, the same color the in-app location list gives
+/// that country. A location the palette has no color for (best available,
+/// no country code) gets the palette's unknown-country blue; when there is
+/// no location to show (off, not configured) the disc turns faint so the
+/// title keeps its place.
+struct LocationColorDot: View {
+    var location: WidgetLocationSnapshot?
+    var size: CGFloat = 22
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: size, height: size)
+    }
+
+    private var color: Color {
+        guard let location else {
+            return WidgetTheme.textFaint
+        }
+        return Color(hexString: location.colorHex)
+    }
+}
+
 extension Color {
 
     /// `0xRRGGBB`.

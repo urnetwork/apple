@@ -137,12 +137,8 @@ struct UpgradeSubscriptionSheet: View {
 
                                 #endif
 
-                                Text("Become a")
-                                    .font(themeManager.currentTheme.titleCondensedFont)
-                                    .foregroundColor(themeManager.currentTheme.textColor)
-
                                 HStack {
-                                    Text("URnetwork Supporter")
+                                    Text("Get Pro")
                                         .font(themeManager.currentTheme.titleFont)
                                         .foregroundColor(themeManager.currentTheme.textColor)
 

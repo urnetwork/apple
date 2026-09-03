@@ -113,7 +113,7 @@ struct AccountRootView: View {
                                 Button(action: {
                                     viewModel.isPresentedUpgradeSheet = true
                                 }) {
-                                    Text("Upgrade")
+                                    Text("Get Pro")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                 }
                                 

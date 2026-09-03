@@ -16138,6 +16138,7 @@
     },
     "Become a" : {
       "comment" : "Used in Shared/Views/UpgradeSubscriptionSheet.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -88064,6 +88065,7 @@
     },
     "URnetwork Supporter" : {
       "comment" : "Used in Shared/Views/UpgradeSubscriptionSheet.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

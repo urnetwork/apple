@@ -241,30 +241,32 @@ struct EpochHistoryRow: View {
     }
 }
 
-/// The not-retroactive sentence as plain body text that opens the protocol site:
-/// no link color, no underline; a small outward-arrow glyph after the last word
-/// (inline, so it wraps with the sentence) says the tap leaves the app.
+/// The not-retroactive sentence as plain body text (not tappable), followed by
+/// a small "Learn more" link in the pink accent with an outward-arrow glyph
+/// that opens the protocol site. The link rides inline after the sentence, so
+/// it shares the line when it fits and wraps to the next otherwise.
 struct WalletNotRetroactiveNote: View {
     @EnvironmentObject var themeManager: ThemeManager
-    @Environment(\.openURL) private var openURL
+
+    private var learnMore: Text {
+        var link = AttributedString(String(localized: "Learn more"))
+        link.link = URL(string: "https://ur.xyz")
+        link.foregroundColor = .urPink
+        return Text(link)
+    }
 
     var body: some View {
-        Button(action: {
-            if let url = URL(string: "https://ur.xyz") {
-                openURL(url)
-            }
-        }) {
-            (
-                Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
-                    + Text(verbatim: "\u{00A0}")
-                    + Text(Image(systemName: "arrow.up.right.square"))
-            )
-            .font(themeManager.currentTheme.secondaryBodyFont)
-            .foregroundColor(themeManager.currentTheme.textMutedColor)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(.isLink)
+        (
+            Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
+                + Text(verbatim: "\u{00A0}")
+                + learnMore
+                + Text(verbatim: "\u{00A0}")
+                + Text(Image(systemName: "arrow.up.right.square")).foregroundColor(.urPink)
+        )
+        .font(themeManager.currentTheme.secondaryBodyFont)
+        .foregroundColor(themeManager.currentTheme.textMutedColor)
+        .tint(.urPink)
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

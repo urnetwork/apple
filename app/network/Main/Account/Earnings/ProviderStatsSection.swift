@@ -13,10 +13,20 @@ struct ProviderStatsSection: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var throughputStore: ThroughputStore
     @EnvironmentObject var transportSettingsStore: TransportSettingsStore
+    @EnvironmentObject var deviceManager: DeviceManager
 
     let navigate: (AccountNavigationPath) -> Void
 
     @State private var presentTransportSettings = false
+
+    /// Whether the provider plots show: the provide mode the user picked (the
+    /// same value the provide-mode row displays) must not be Never, and the
+    /// device must be publishing provider stats. With the mode on Never the
+    /// section shows the providing-disabled message instead, whatever the
+    /// device's live provide state says.
+    private var providerStatsEnabled: Bool {
+        deviceManager.provideControlMode != .Never && throughputStore.hasProviderStats
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -24,7 +34,7 @@ struct ProviderStatsSection: View {
             HStack {
                 UrLabel(text: "Provider statistics")
                 Spacer()
-                if throughputStore.hasProviderStats {
+                if providerStatsEnabled {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(themeManager.currentTheme.textFaintColor)
@@ -39,7 +49,7 @@ struct ProviderStatsSection: View {
 
             Spacer().frame(height: 8)
 
-            if throughputStore.hasProviderStats {
+            if providerStatsEnabled {
                 TransferChart(
                     points: throughputStore.providerPoints,
                     route: .local,
@@ -79,7 +89,7 @@ struct ProviderStatsSection: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if throughputStore.hasProviderStats {
+            if providerStatsEnabled {
                 navigate(.providerContracts)
             }
         }

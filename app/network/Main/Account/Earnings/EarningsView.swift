@@ -18,6 +18,7 @@ struct EarningsView: View {
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var throughputStore: ThroughputStore
+    @EnvironmentObject var deviceManager: DeviceManager
 
     let navigate: (AccountNavigationPath) -> Void
     @ObservedObject var accountPointsStore: AccountPointsStore
@@ -215,7 +216,7 @@ struct EarningsView: View {
             // provider statistics follow the provide mode: with providing off
             // the reliability chart hides and the section says so, the same
             // gate and message as the stats section
-            if throughputStore.hasProviderStats {
+            if deviceManager.provideControlMode != .Never && throughputStore.hasProviderStats {
                 NetworkReliabilityView(
                     reliabilityWindow: networkReliabilityWindow
                 )

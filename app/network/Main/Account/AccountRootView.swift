@@ -32,9 +32,6 @@ struct AccountRootView: View {
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     @ObservedObject var accountPointsStore: AccountPointsStore
 
-    // presents the gold king-frog refer panel
-    @State private var isPresentedReferSheet = false
-    
     private let urnetworkAppStoreID = "6741000606"
     
     private func appStoreWriteReviewURL(appID: String) -> URL? {
@@ -234,59 +231,22 @@ struct AccountRootView: View {
                         )
                         
                         /**
-                         * Refer friends: opens the gold king-frog refer panel
-                         * (same as the ur.io referral panel)
+                         * Referrals: the network's code and share button, friends
+                         * joined, points from referrals and the referral network,
+                         * in its own section (it used to be a sheet here and split
+                         * across Settings)
                          */
-                        Button(action: {
-                            isPresentedReferSheet = true
-                        }) {
-
-                            VStack(spacing: 0) {
-                                HStack {
-
-                                    Image("ur.symbols.heart")
-                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-
-                                    Spacer().frame(width: 16)
-
-                                    Text("Refer friends")
-                                        .font(themeManager.currentTheme.bodyFont)
-                                        .foregroundColor(themeManager.currentTheme.textColor)
-
-                                    Spacer()
-
+                        AccountNavLink(
+                            name: "Referrals",
+                            iconPath: "ur.symbols.heart",
+                            action: {
+                                if isGuest {
+                                    viewModel.isPresentedCreateAccount = true
+                                } else {
+                                    navigate(.referrals)
                                 }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal)
-
-                                Divider()
-                                    .background(themeManager.currentTheme.borderBaseColor)
-
                             }
-
-                        }
-                        .buttonStyle(.plain)
-                        .sheet(isPresented: $isPresentedReferSheet) {
-                            #if os(iOS)
-                            ReferSheet(
-                                referralLinkViewModel: referralLinkViewModel,
-                                dismiss: {
-                                    isPresentedReferSheet = false
-                                }
-                            )
-                            .environmentObject(themeManager)
-                            .presentationDetents([.large])
-                            #elseif os(macOS)
-                            ReferSheet(
-                                referralLinkViewModel: referralLinkViewModel,
-                                dismiss: {
-                                    isPresentedReferSheet = false
-                                }
-                            )
-                            .environmentObject(themeManager)
-                            .frame(minWidth: 480, minHeight: 620)
-                            #endif
-                        }
+                        )
                         
                         /**
                          * Review

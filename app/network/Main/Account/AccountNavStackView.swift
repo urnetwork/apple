@@ -113,7 +113,6 @@ struct AccountNavStackView: View {
                         api: urApiService,
                         clientId: device.getClientId(),
                         accountPreferencesViewModel: accountPreferencesViewModel,
-                        referralLinkViewModel: referralLinkViewModel,
                         navigate: viewModel.navigate,
                         providerCountries: providerCountries,
                         networkUserViewModel: networkUserViewModel
@@ -130,6 +129,15 @@ struct AccountNavStackView: View {
                         viewModel: earningsViewModel
                     )
                     .navigationTitle("Earnings")
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
+                case .referrals:
+                    ReferralsView(
+                        api: urApiService,
+                        referralLinkViewModel: referralLinkViewModel,
+                        accountPointsStore: accountPointsStore
+                    )
+                    .navigationTitle("Refer and earn")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     
                 case .blockedLocations:

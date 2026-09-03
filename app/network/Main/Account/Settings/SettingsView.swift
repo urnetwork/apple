@@ -21,7 +21,6 @@ struct SettingsView: View {
     
     var clientId: SdkId?
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
-    @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
     
     let api: UrApiServiceProtocol
     let navigate: (AccountNavigationPath) -> Void
@@ -32,7 +31,6 @@ struct SettingsView: View {
         api: UrApiServiceProtocol,
         clientId: SdkId?,
         accountPreferencesViewModel: AccountPreferencesViewModel,
-        referralLinkViewModel: ReferralLinkViewModel,
         navigate: @escaping (AccountNavigationPath) -> Void,
         providerCountries: [SdkConnectLocation],
         networkUserViewModel: NetworkUserViewModel? = nil
@@ -40,7 +38,6 @@ struct SettingsView: View {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api, networkUserViewModel: networkUserViewModel))
         self.clientId = clientId
         self.accountPreferencesViewModel = accountPreferencesViewModel
-        self.referralLinkViewModel = referralLinkViewModel
         self.navigate = navigate
         self.providerCountries = providerCountries
         self.api = api
@@ -53,15 +50,9 @@ struct SettingsView: View {
             SettingsForm_iOS(
                 urApiService: api,
                 clientId: clientId,
-                referralCode: referralLinkViewModel.referralCode,
-                totalReferrals: referralLinkViewModel.totalReferrals,
-                referralNetworkName: viewModel.referralNetwork?.name,
                 version: viewModel.version,
                 isUpdatingAccountPreferences: accountPreferencesViewModel.isUpdatingAccountPreferences,
                 copyToPasteboard: copyToPasteboard,
-                presentUpdateReferralNetworkSheet: {
-                    viewModel.presentUpdateReferralNetworkSheet = true
-                },
                 presentDeleteAccountConfirmation: {
                     viewModel.isPresentedDeleteAccountConfirmation = true
                 },
@@ -113,24 +104,6 @@ struct SettingsView: View {
             .onOpenURL { url in
                 handleWalletDeepLink(url)
             }
-            .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
-                UpdateReferralNetworkSheet(
-                    api: api,
-                    onSuccess: {
-                        Task {
-                            await viewModel.fetchReferralNetwork()
-                        }
-                        viewModel.presentUpdateReferralNetworkSheet = false
-                    },
-                    dismiss: {
-                        viewModel.presentUpdateReferralNetworkSheet = false
-                    },
-                    referralNetwork: viewModel.referralNetwork
-                )
-                .environmentObject(themeManager)
-                .presentationDetents([.height(268)])
-                .presentationDragIndicator(.visible)
-            }
             .sheet(isPresented: $viewModel.presentSeedphraseSheet) {
                 SeedphraseDisplayView(
                     seedphrase: viewModel.generatedSeedphrase,
@@ -181,15 +154,9 @@ struct SettingsView: View {
             SettingsForm_macOS(
                 urApiService: api,
                 clientId: clientId,
-                referralCode: referralLinkViewModel.referralCode,
-                totalReferrals: referralLinkViewModel.totalReferrals,
-                referralNetworkName: viewModel.referralNetwork?.name,
                 version: viewModel.version,
                 isUpdatingAccountPreferences: accountPreferencesViewModel.isUpdatingAccountPreferences,
                 copyToPasteboard: copyToPasteboard,
-                presentUpdateReferralNetworkSheet: {
-                    viewModel.presentUpdateReferralNetworkSheet = true
-                },
                 presentDeleteAccountConfirmation: {
                     viewModel.isPresentedDeleteAccountConfirmation = true
                 },
@@ -237,22 +204,6 @@ struct SettingsView: View {
                     
                 }
                 .accessibilityIdentifier("acceptance.account.delete.confirm")
-            }
-            .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
-                UpdateReferralNetworkSheet(
-                    api: api,
-                    onSuccess: {
-                        Task {
-                            await viewModel.fetchReferralNetwork()
-                        }
-                        viewModel.presentUpdateReferralNetworkSheet = false
-                    },
-                    dismiss: {
-                        viewModel.presentUpdateReferralNetworkSheet = false
-                    },
-                    referralNetwork: viewModel.referralNetwork
-                )
-                .environmentObject(themeManager)
             }
             .sheet(isPresented: $viewModel.presentSeedphraseSheet) {
                 SeedphraseDisplayView(

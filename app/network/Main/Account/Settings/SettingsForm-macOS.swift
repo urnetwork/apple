@@ -19,13 +19,9 @@ struct SettingsForm_macOS: View {
 
     let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
-    let referralCode: String?;
-    let totalReferrals: Int
-    let referralNetworkName: String?
     let version: String
     let isUpdatingAccountPreferences: Bool
     let copyToPasteboard: (_ value: String) -> Void
-    let presentUpdateReferralNetworkSheet: () -> Void
     let presentDeleteAccountConfirmation: () -> Void
     let navigate: (AccountNavigationPath) -> Void
     let provideEnabled: Bool
@@ -59,24 +55,6 @@ struct SettingsForm_macOS: View {
 
                 VStack {
 
-                    /**
-                     * referral royalty: networks with at least one referral get
-                     * the crowned frog mascot (same as the ur.io site)
-                     */
-                    if 0 < totalReferrals {
-                        VStack {
-                            Image("ReferralFrog")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 80)
-                            Text("You're referral royalty!")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 16)
-                    }
-
                     HStack {
                         UrLabel(text: "Client ID")
 
@@ -105,71 +83,6 @@ struct SettingsForm_macOS: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    
-                    Spacer().frame(height: 32)
-                    
-                    /**
-                     * Copy Referral Link
-                     */
-                    HStack {
-                        UrLabel(text: "Bonus referral code")
-                        
-                        Spacer()
-                    }
-                    
-                    Button(action: {
-                        if let referralCode = referralCode {
-                            
-                            copyToPasteboard(referralCode)
-                            
-                            snackbarManager.showSnackbar(message: String(localized: "Bonus referral code copied to clipboard"))
-                            
-                        }
-                    }) {
-                        HStack {
-                            Text(referralCode ?? "")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                            Spacer()
-                            Image(systemName: "document.on.document")
-                        }
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        .padding()
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                    Spacer().frame(height: 32)
-                    
-                    /**
-                     * Update referral code
-                     */
-                    HStack {
-                        UrLabel(text: "Referral network")
-                        
-                        Spacer()
-                    }
-                    
-                    Spacer().frame(height: 8)
-                    
-                    HStack {
-                        Text(referralNetworkName ?? "None")
-                            .font(themeManager.currentTheme.bodyFont)
-                        Spacer()
-                        
-                        Button(action: {
-                            presentUpdateReferralNetworkSheet()
-                        }) {
-                            Text("Update")
-                        }
-                    }
-                    .padding()
                     .background(themeManager.currentTheme.tintedBackgroundBase)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     

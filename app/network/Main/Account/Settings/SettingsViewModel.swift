@@ -19,8 +19,6 @@ extension SettingsView {
         
         let api: UrApiServiceProtocol
         
-        @Published var presentUpdateReferralNetworkSheet: Bool = false
-
         @Published var version: String = ""
         
         var networkUserViewModel: NetworkUserViewModel?
@@ -34,10 +32,6 @@ extension SettingsView {
             #endif
             
             checkNotificationSettings()
-            
-            Task {
-                await fetchReferralNetwork()
-            }
             
             self.version = Sdk.version()
             
@@ -70,11 +64,6 @@ extension SettingsView {
         }
         #endif
         
-        /**
-         * Referral network
-         */
-        @Published private(set) var referralNetwork: SdkReferralNetwork? = nil
-
         /**
          * Device
          */
@@ -220,25 +209,6 @@ extension SettingsView {
             
         }
         
-        func fetchReferralNetwork() async {
-            
-            do {
-
-                let result = try await api.getReferralNetwork()
-                
-                if result.error != nil {
-                    print("fetch referral network result.error: \(String(describing: result.error?.message))")
-                    self.referralNetwork = nil
-                    return
-                }
-
-                self.referralNetwork = result.network
-
-            } catch(let error) {
-                print("\(domain) Error fetching transfer stats: \(error)")
-            }
-            
-        }
         
         #if os(macOS)
         private func setLaunchAtStartup(_ enabled: Bool, previousValue: Bool) {

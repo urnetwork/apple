@@ -8,11 +8,25 @@
 import SwiftUI
 import URnetworkSdk
 
+/// The leaderboard's two tabs: the last-4-payments data leaderboard and the
+/// all-time points leaderboard (android/POINTSLEADERBOARD.md).
+enum LeaderboardTab: String, CaseIterable {
+    case data
+    case points
+}
+
 struct LeaderboardView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
     @StateObject private var viewModel: ViewModel
+    
+    // the points tab's store lives as long as the leaderboard does, so a
+    // switch to Data and back keeps the opt-in and tag the user just set;
+    // the sdk controller itself is open only while the Points tab shows
+    @StateObject private var pointsStore = PointsLeaderboardStore()
+    
+    @State private var selectedTab: LeaderboardTab = .data
     
     init(api: UrApiServiceProtocol) {
         _viewModel = .init(wrappedValue: .init(apiService: api))
@@ -21,35 +35,54 @@ struct LeaderboardView: View {
     var body: some View {
         
         NavigationStack {
-         
-            Group {
+            
+            VStack(spacing: 0) {
                 
-                if (viewModel.isInitializing) {
+                Picker("", selection: $selectedTab) {
+                    Text("Data").tag(LeaderboardTab.data)
+                    Text("Points").tag(LeaderboardTab.points)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .padding(.horizontal)
+                .padding(.top, 8)
+                
+                switch selectedTab {
+                case .points:
                     /**
-                     * Initializing
+                     * Points: the all-time points leaderboard
                      */
                     
-                    VStack {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
+                    PointsLeaderboardTab(store: pointsStore)
+                    
+                case .data:
+                    if (viewModel.isInitializing) {
+                        /**
+                         * Initializing
+                         */
+                        
+                        VStack {
+                            Spacer()
+                            ProgressView()
+                            Spacer()
+                        }
+                        
+                    } else {
+                        /**
+                         * Leaderboard initialized
+                         */
+                        
+                        LeaderboardViewPopulated(
+                            leaderboardRank: viewModel.networkRank,
+                            netProvidedFormatted: viewModel.netProvidedFormatted,
+                            fetchLeaderboardData: viewModel.fetchLeaderboardData,
+                            rankingPublic: $viewModel.networkRankingPublic,
+                            leaderboardEntries: viewModel.leaderboardEarners,
+                            isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
+                            isLoading: viewModel.isLoading
+                        )
+                        
                     }
-                            
-                } else {
-                    /**
-                     * Leaderboard initialized
-                     */
-                    
-                    LeaderboardViewPopulated(
-                        leaderboardRank: viewModel.networkRank,
-                        netProvidedFormatted: viewModel.netProvidedFormatted,
-                        fetchLeaderboardData: viewModel.fetchLeaderboardData,
-                        rankingPublic: $viewModel.networkRankingPublic,
-                        leaderboardEntries: viewModel.leaderboardEarners,
-                        isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
-                        isLoading: viewModel.isLoading
-                    )
-                    
                 }
                 
             }

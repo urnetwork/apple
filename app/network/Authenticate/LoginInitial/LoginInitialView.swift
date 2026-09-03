@@ -876,7 +876,7 @@ private struct LoginTiles: View {
         var list: [LoginTileSpec] = [
             LoginTileSpec(
                 id: "secret_key",
-                caption: "Secret key",
+                caption: "Seed",
                 icon: .system("key.fill"),
                 action: presentSeedphraseLogin,
                 loginAction: nil,

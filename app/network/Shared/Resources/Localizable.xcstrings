@@ -79403,6 +79403,7 @@
     },
     "Supporter" : {
       "comment" : "Used in Shared/ViewModels/SubscriptionBalanceViewModel.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

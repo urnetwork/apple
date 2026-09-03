@@ -33,6 +33,12 @@ struct ProviderStatsSection: View {
 
             Spacer().frame(height: 8)
 
+            // the current provide mode, rendered like the settings picker;
+            // tapping the row opens settings to change it
+            ProvideModeRow(action: { navigate(.settings) })
+
+            Spacer().frame(height: 8)
+
             if throughputStore.hasProviderStats {
                 TransferChart(
                     points: throughputStore.providerPoints,

@@ -17,6 +17,7 @@ struct EarningsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @EnvironmentObject var throughputStore: ThroughputStore
 
     let navigate: (AccountNavigationPath) -> Void
     @ObservedObject var accountPointsStore: AccountPointsStore
@@ -211,11 +212,16 @@ struct EarningsView: View {
 
     private var providerCard: some View {
         VStack(spacing: 0) {
-            NetworkReliabilityView(
-                reliabilityWindow: networkReliabilityWindow
-            )
-            Divider()
-            Spacer().frame(height: 12)
+            // provider statistics follow the provide mode: with providing off
+            // the reliability chart hides and the section says so, the same
+            // gate and message as the stats section
+            if throughputStore.hasProviderStats {
+                NetworkReliabilityView(
+                    reliabilityWindow: networkReliabilityWindow
+                )
+                Divider()
+                Spacer().frame(height: 12)
+            }
             ProviderStatsSection(navigate: navigate)
         }
         .padding(.top)

@@ -122,8 +122,9 @@ struct IntroductionParticipateSettingsView: View {
     }
 }
 
-/// The live provide indicator dot (the same encoding as the settings picker).
-private struct ProvideModeIndicator: View {
+/// The live provide indicator dot: one drawing shared by onboarding, the
+/// settings picker and the provide-mode row on the stats and earnings screens.
+struct ProvideModeIndicator: View {
 
     @EnvironmentObject var deviceManager: DeviceManager
 

@@ -13,6 +13,9 @@
 //  the foreground app are applied best-effort. Callers therefore rate-limit
 //  themselves and the widgets show when their data was last written.
 //
+//  Every reload request also posts WidgetSnapshotChange, so the app's own
+//  rendering of the widgets (Account > Widgets) follows the pinned widgets.
+//
 //  Compiled into the app, the packet tunnel extension and the widget
 //  extension.
 //
@@ -42,14 +45,17 @@ enum WidgetRefresh {
 
     static func reloadDashboard() {
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.dashboard)
+        WidgetSnapshotChange.post()
     }
 
     static func reloadProviderGlobe() {
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.providerGlobe)
+        WidgetSnapshotChange.post()
     }
 
     static func reloadContracts() {
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.contracts)
+        WidgetSnapshotChange.post()
     }
 
     /// Everything that shows tunnel state.

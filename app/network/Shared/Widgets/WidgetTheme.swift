@@ -1,8 +1,9 @@
 //
 //  WidgetTheme.swift
-//  URnetworkWidgets
+//  URnetwork
 //
-//  The app's palette, restated for the widget target. The app resolves these
+//  The app's palette, restated for the widget target (and used by the app's
+//  own previews of the widgets, so they render exactly as the widgets do). The app resolves these
 //  from its asset catalog (Color.urGreen etc., synthesized by Xcode); the
 //  widget target does not include that catalog, and the handful of colors it
 //  needs are cheaper as constants than as a second catalog to keep in sync.

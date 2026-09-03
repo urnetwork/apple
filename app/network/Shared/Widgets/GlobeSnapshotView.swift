@@ -1,6 +1,9 @@
 //
 //  GlobeSnapshotView.swift
-//  URnetworkWidgets
+//  URnetwork
+//
+//  Compiled into the app and the widget extension: the app's Account >
+//  Widgets screen draws the globe widget with this very view.
 //
 //  A static rendering of the app's provider globe (Shared/Views/Connect/
 //  ProviderGlobeView.swift): the same 600x600 virtual space, orthographic

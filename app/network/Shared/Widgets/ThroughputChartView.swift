@@ -1,6 +1,9 @@
 //
 //  ThroughputChartView.swift
-//  URnetworkWidgets
+//  URnetwork
+//
+//  Compiled into the app and the widget extension: the app's Account >
+//  Widgets screen draws the dashboard chart with this very view.
 //
 //  A static version of the app's TransferChart for one route: bytes (green,
 //  filled) and packets (pink, a line) sent above the axis and received

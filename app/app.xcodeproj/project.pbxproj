@@ -32,6 +32,12 @@
 		B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */; };
 		B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
 		B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */; };
+		B17E01312F0000010000A031 /* network/Shared/Widgets/WidgetTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01302F0000010000A030 /* network/Shared/Widgets/WidgetTheme.swift */; };
+		B17E01332F0000010000A033 /* network/Shared/Widgets/ThroughputChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01322F0000010000A032 /* network/Shared/Widgets/ThroughputChartView.swift */; };
+		B17E01352F0000010000A035 /* network/Shared/Widgets/GlobeSnapshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01342F0000010000A034 /* network/Shared/Widgets/GlobeSnapshotView.swift */; };
+		B17E01372F0000010000A037 /* network/Shared/Widgets/BalanceBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01362F0000010000A036 /* network/Shared/Widgets/BalanceBarView.swift */; };
+		B17E01392F0000010000A039 /* network/Shared/Widgets/ContractStackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */; };
+		B17E013B2F0000010000A03B /* network/Shared/Widgets/WidgetSnapshotSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
@@ -111,6 +117,12 @@
 		B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */ = {isa = PBXFileReference; lastKnownFileType = file.json; path = "network/Shared/Resources/world-110m.json"; sourceTree = SOURCE_ROOT; };
 		B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = network/Shared/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetDeepLinks.swift; sourceTree = SOURCE_ROOT; };
+		B17E01302F0000010000A030 /* network/Shared/Widgets/WidgetTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetTheme.swift; sourceTree = SOURCE_ROOT; };
+		B17E01322F0000010000A032 /* network/Shared/Widgets/ThroughputChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/ThroughputChartView.swift; sourceTree = SOURCE_ROOT; };
+		B17E01342F0000010000A034 /* network/Shared/Widgets/GlobeSnapshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/GlobeSnapshotView.swift; sourceTree = SOURCE_ROOT; };
+		B17E01362F0000010000A036 /* network/Shared/Widgets/BalanceBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/BalanceBarView.swift; sourceTree = SOURCE_ROOT; };
+		B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/ContractStackViews.swift; sourceTree = SOURCE_ROOT; };
+		B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetSnapshotSample.swift; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -240,6 +252,12 @@
 				B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */,
 				B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */,
 				B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */,
+				B17E01302F0000010000A030 /* network/Shared/Widgets/WidgetTheme.swift */,
+				B17E01322F0000010000A032 /* network/Shared/Widgets/ThroughputChartView.swift */,
+				B17E01342F0000010000A034 /* network/Shared/Widgets/GlobeSnapshotView.swift */,
+				B17E01362F0000010000A036 /* network/Shared/Widgets/BalanceBarView.swift */,
+				B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */,
+				B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */,
 				B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */,
 				B17E01192F0000010000A01A /* network/Shared/Utilities/WorldTopology.swift */,
 				B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */,
@@ -576,6 +594,12 @@
 				B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */,
 				B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */,
 				B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
+				B17E01312F0000010000A031 /* network/Shared/Widgets/WidgetTheme.swift in Sources */,
+				B17E01332F0000010000A033 /* network/Shared/Widgets/ThroughputChartView.swift in Sources */,
+				B17E01352F0000010000A035 /* network/Shared/Widgets/GlobeSnapshotView.swift in Sources */,
+				B17E01372F0000010000A037 /* network/Shared/Widgets/BalanceBarView.swift in Sources */,
+				B17E01392F0000010000A039 /* network/Shared/Widgets/ContractStackViews.swift in Sources */,
+				B17E013B2F0000010000A03B /* network/Shared/Widgets/WidgetSnapshotSample.swift in Sources */,
 				B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
 				B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
 				B17E01182F0000010000A019 /* network/Shared/Utilities/GlobeGeometry.swift in Sources */,

@@ -30,7 +30,8 @@ struct IntroductionQuickConnectView: View {
 
                     Spacer().frame(height: 16)
 
-                    QuickConnectAndWidgetsView()
+                    // sample data: nobody has connected yet at this point
+                    QuickConnectAndWidgetsView(data: .sample())
 
                     Spacer(minLength: 24)
 

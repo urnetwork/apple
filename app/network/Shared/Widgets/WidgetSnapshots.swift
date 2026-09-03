@@ -321,6 +321,27 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
     }
 }
 
+/// The cross-process "a snapshot was published" signal. Posted by whoever
+/// writes a snapshot (the tunnel extension, the app) and by every widget
+/// reload request, so the app's own view of the widgets (Account > Widgets)
+/// re-renders the moment the pinned widgets would. Darwin notifications
+/// carry no payload and cross the app / extension boundary; a listener
+/// re-reads the snapshot files.
+enum WidgetSnapshotChange {
+
+    static let darwinNotificationName = "network.ur.widgets.snapshot-changed"
+
+    static func post() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(darwinNotificationName as CFString),
+            nil,
+            nil,
+            true
+        )
+    }
+}
+
 enum WidgetSnapshotStore {
 
     static let directoryName = "Widgets"
@@ -381,6 +402,7 @@ enum WidgetSnapshotStore {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let data = try encoder.encode(value)
             try data.write(to: directory.appendingPathComponent(fileName), options: .atomic)
+            WidgetSnapshotChange.post()
             return true
         } catch {
             return false

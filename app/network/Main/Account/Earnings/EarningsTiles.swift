@@ -2,45 +2,12 @@
 //  EarningsTiles.swift
 //  URnetwork
 //
-//  The tiles of the Earnings screen: the protocol note, the Top 200 head
+//  The tiles of the Earnings screen: the Top 200 head
 //  spot, the Bittensor wallet block, the unclaimed alpha tile and the epoch
 //  history rows.
 //
 
 import SwiftUI
-
-/// Where the earnings come from, with the link to the protocol site.
-struct ProtocolNoteCard: View {
-
-    @EnvironmentObject var themeManager: ThemeManager
-    @Environment(\.openURL) private var openURL
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("SN25α are your earnings on the UR protocol. The UR protocol is an open source protocol from URnetwork. Connect a Bittensor wallet to settle them as SN25α through the UR protocol.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-            Button(action: {
-                if let url = URL(string: "https://ur.xyz") {
-                    openURL(url)
-                }
-            }) {
-                HStack(spacing: 4) {
-                    Text("Learn how it works at ur.xyz")
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 11, weight: .semibold))
-                }
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.accentColor)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(themeManager.currentTheme.tintedBackgroundBase)
-        .cornerRadius(12)
-    }
-}
 
 /// The head-miner spot. Eligible and not yet bound: the gold call to claim
 /// the spot on ur.io. Bound: the UID and rank, with the eviction warning
@@ -137,6 +104,7 @@ struct Top200Tile: View {
 struct BittensorWalletCard: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.openURL) private var openURL
 
     let wallet: SnWalletInfo?
     let shortAddress: (String) -> String
@@ -172,9 +140,23 @@ struct BittensorWalletCard: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             } else {
-                Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
+                // the whole sentence opens the protocol site
+                Button(action: {
+                    if let url = URL(string: "https://ur.xyz") {
+                        openURL(url)
+                    }
+                }) {
+                    HStack(alignment: .top, spacing: 4) {
+                        Text("Connect a wallet to earn SN25α from the next epoch. Earlier epochs are not settled retroactively.")
+                            .multilineTextAlignment(.leading)
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .padding(.top, 3)
+                    }
                     .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
+                }
+                .buttonStyle(.plain)
                 Spacer().frame(height: 4)
                 UrButton(text: "Connect Bittensor wallet", action: connect)
             }

@@ -60,8 +60,6 @@ struct EarningsView: View {
                     reliabilityPoints: accountPointsStore.reliabilityPoints
                 )
 
-                ProtocolNoteCard()
-
                 if let head = viewModel.head, viewModel.showsTop200Tile {
                     Top200Tile(head: head)
                 }

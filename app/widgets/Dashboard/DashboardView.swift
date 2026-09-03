@@ -107,7 +107,7 @@ struct DashboardView: View {
         return VStack(spacing: 8) {
             ThroughputChartView(
                 title: "Client",
-                color: WidgetTheme.clientSeries,
+                color: WidgetTheme.byteSeries,
                 points: throughput.buckets.map {
                     ThroughputChartView.Point(
                         start: $0.start,
@@ -121,7 +121,7 @@ struct DashboardView: View {
             )
             ThroughputChartView(
                 title: providerTitle,
-                color: WidgetTheme.providerSeries,
+                color: WidgetTheme.byteSeries,
                 points: throughput.buckets.map {
                     ThroughputChartView.Point(
                         start: $0.start,

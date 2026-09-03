@@ -228,9 +228,11 @@ private struct DashboardWidgetPreview: View {
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer()
             // the two peaks in their series colors, as the widget labels them
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 Text(verbatim: WidgetPreviewSample.peakRate)
                     .foregroundColor(.urGreen)
+                Text(verbatim: "·")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
                 Text(verbatim: WidgetPreviewSample.peakPacketRate)
                     .foregroundColor(.urPink)
                 Text("peak")

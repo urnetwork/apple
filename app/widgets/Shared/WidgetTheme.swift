@@ -51,10 +51,10 @@ enum WidgetTheme {
     static let balancePending = urCoral
     static let balanceAvailable = textFaint
 
-    /// Chart series colors, as the app's TransferChart draws them: bytes per
-    /// route, and the packet line shared by every chart.
-    static let clientSeries = urGreen
-    static let providerSeries = urLightBlue
+    /// Chart series colors, as the app's TransferChart draws them on every
+    /// route: bytes in green, packets in pink (the client and provider charts
+    /// use the same pair, as on Android).
+    static let byteSeries = urGreen
     static let packetSeries = urPink
 
     /// Contract stacks, as the app's contract details view draws them:

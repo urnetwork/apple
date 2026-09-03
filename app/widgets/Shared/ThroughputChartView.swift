@@ -52,10 +52,12 @@ struct ThroughputChartView: View {
                 if placeholder == nil || peak > 0 || peakPackets > 0 {
                     // the two peaks in their series colors, as the app labels
                     // its chart: bytes in green, packets in pink
-                    HStack(spacing: 6) {
-                        Text(peakRate)
+                    HStack(spacing: 4) {
+                        Text(verbatim: peakRate)
                             .foregroundStyle(color)
-                        Text(peakPacketRate)
+                        Text(verbatim: "·")
+                            .foregroundStyle(WidgetTheme.textMuted)
+                        Text(verbatim: peakPacketRate)
                             .foregroundStyle(Self.packetColor)
                         Text("peak")
                             .foregroundStyle(WidgetTheme.textMuted)

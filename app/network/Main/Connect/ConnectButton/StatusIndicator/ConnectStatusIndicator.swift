@@ -16,21 +16,22 @@ struct ConnectStatusIndicator: View {
     let windowCurrentSize: Int32
     let isPollingSubscriptionBalance: Bool
     let currentPlan: Plan
-    // opens the provider-locations detail view; the label is the tap target,
-    // and only while it genuinely reads "Connected to N providers"
+    // opens the provider-locations detail view; the label is the tap target
+    // while it reads "Connected to N providers" or "Connecting to providers"
     var showProviderLocations: (() -> Void)? = nil
 
     @EnvironmentObject var themeManager: ThemeManager
 
     /**
-     * Whether the status line is the live "Connected to N providers" label.
-     * Every other state — connecting, reconnecting the tunnel, polling a
-     * subscription balance, insufficient balance — has no window to show, so
-     * the row must not be tappable there.
+     * Whether the status line is a provider status: the live "Connected to N
+     * providers" label, or "Connecting to providers" (the detail then shows the
+     * providers known so far). Reconnecting the tunnel, polling a subscription
+     * balance and insufficient balance have no window to show, so the row is
+     * not tappable there.
      */
     var canShowProviderLocations: Bool {
         showProviderLocations != nil
-            && connectionStatus == .connected
+            && (connectionStatus == .connected || connectionStatus == .connecting || connectionStatus == .destinationSet)
             && !displayReconnectTunnel
             && !isPollingSubscriptionBalance
             && !(contractStatus?.insufficientBalance == true && currentPlan == .none)

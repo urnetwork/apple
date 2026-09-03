@@ -24,6 +24,16 @@
 //  connected/disconnected value text.
 //
 
+//  iOS only at compile time: ControlWidget, StaticControlConfiguration,
+//  ControlWidgetToggle and ControlValueProvider are macOS 26 symbols, absent
+//  from the macOS 15 SDK that the CI toolchain (Xcode 16.4) builds against.
+//  The `@available` annotations below stay because they are still the correct
+//  runtime guard on iOS; only the compile-time platform test can keep the
+//  macOS leg from needing declarations its SDK does not have.
+//
+
+#if os(iOS)
+
 import AppIntents
 import SwiftUI
 import WidgetKit
@@ -79,3 +89,5 @@ extension QuickConnectControl {
         }
     }
 }
+
+#endif

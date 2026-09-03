@@ -176,8 +176,10 @@ reconciler (the shared tunnel intent, section 3). The July draft in
   else, so `widgets/Assets.xcassets/gen_connector_symbols.py` rebuilds the
   connector mark analytically (a 128-unit square whose corners are five
   quarter-circle arcs of radius 8, alternating convex/concave) and emits two
-  Template v7 symbol SVGs with the interpolation sources Ultralight-S,
-  Regular-S, Black-S and Regular-M. The outline variant is a true filled ring
+  Template v6 symbol SVGs (SF Symbols 6 / Xcode 16 -- CI pins Xcode 16.4 and
+  its actool rejects a newer template outright) with the interpolation
+  sources Ultralight-S, Regular-S, Black-S and Regular-M. The outline
+  variant is a true filled ring
   (lines inset by w, convex arcs shrunk to 8−w, concave arcs grown to 8+w),
   because symbols must be path-based, not stroked. `actool` validates both.
 - **State** (`ControlValueProvider.currentValue`): the app's configuration is

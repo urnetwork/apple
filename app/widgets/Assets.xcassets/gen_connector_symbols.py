@@ -10,9 +10,15 @@ paths. So this script rebuilds the mark analytically and offsets it inward to
 produce true outline rings per weight (lines shift by w, convex arcs shrink to
 8-w, concave arcs grow to 8+w; tangency is preserved).
 
-Output: two symbol template SVGs (Template v.7.0 layout, as exported by the
-SF Symbols app) with the interpolation sources Ultralight-S, Regular-S,
-Black-S plus Regular-M.
+Output: two symbol template SVGs (Template v.6.0, i.e. SF Symbols 6 / Xcode
+16) with the interpolation sources Ultralight-S, Regular-S, Black-S plus
+Regular-M.
+
+The version has to stay at 6.0: CI pins Xcode 16.4, and its actool rejects a
+newer template outright -- "Template format 7.0 is newer than the version that
+this software supports (6.0)" -- before it reads any of the artwork. The SF
+Symbols app on a current machine exports 7.0, so if you re-export from it,
+re-apply the 6.0 changes here rather than committing its output.
 """
 import math
 import os
@@ -133,7 +139,9 @@ def glyph(size, inset, y_center):
     return d
 
 
-# Template geometry copied from an SF Symbols app v7 export (viewBox 3300x2200).
+# Artboard geometry as exported by the SF Symbols app (viewBox 3300x2200).
+# Only the version banner and the v7-only style metadata (see STYLE below)
+# were changed to target 6.0; these coordinates are left exactly as exported.
 BASELINE = {"S": 696.0, "M": 1126.0, "L": 1556.0}
 CAPLINE = {"S": 625.541, "M": 1055.54, "L": 1485.54}
 CAP_HEIGHT = BASELINE["M"] - CAPLINE["M"]  # 70.46
@@ -150,13 +158,24 @@ INSET = {"Ultralight": 2.2, "Regular": 5.6, "Black": 7.6}
 H_REFERENCE = ("M0.7 0L0.7-70.5L11.4-70.5L11.4-40.7L44.8-40.7L44.8-70.5L55.5-70.5L55.5 0"
                "L44.8 0L44.8-31.8L11.4-31.8L11.4 0Z")
 
-STYLE = """.defaults {-sfsymbols-variable-value-mode:color;-sfsymbols-draw-reverses-motion-groups:true}
+# Style block for a 6.0 template. The four -sfsymbols-* properties a v7 export
+# writes here are all v7 vocabulary and are omitted: -sfsymbols-motion-group and
+# -sfsymbols-draw-reverses-motion-groups configure the SF Symbols 7 Draw
+# animation, -sfsymbols-layer-tags is v7's per-layer identity token, and
+# -sfsymbols-variable-value-mode selects between color and draw as the thing
+# variable value drives, which is only a choice once draw exists. None of the
+# four does anything for this symbol -- it is a single static layer with no
+# variable value and no Draw animation -- so dropping them costs nothing.
+#
+# The three layer classes stay, with empty bodies: they are what each path's
+# class attribute binds to, naming the monochrome / hierarchical / multicolor
+# layers. .defaults goes entirely -- it carried nothing but the two v7
+# document-level properties.
+STYLE = """.monochrome-0 {}
 
-.monochrome-0 {-sfsymbols-motion-group:0;-sfsymbols-layer-tags:564789760d3a318d}
+.multicolor-0:tintColor {}
 
-.multicolor-0:tintColor {-sfsymbols-motion-group:0;-sfsymbols-layer-tags:564789760d3a318d}
-
-.hierarchical-0:primary {-sfsymbols-motion-group:0;-sfsymbols-layer-tags:564789760d3a318d}
+.hierarchical-0:primary {}
 
 .SFSymbolsPreviewWireframe {fill:none;opacity:1.0;stroke:black;stroke-width:0.5}
 """
@@ -210,8 +229,8 @@ PUBLIC "-//W3C//DTD SVG 1.1//EN"
   <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 559.711 322)">Ultralight</text>
   <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 1449.84 322)">Regular</text>
   <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 2933.4 322)">Black</text>
-  <text id="template-version" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1933)">Template v.7.0</text>
-  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1951)">Requires Xcode 26 or greater</text>
+  <text id="template-version" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1933)">Template v.6.0</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1951)">Requires Xcode 16 or greater</text>
   <text id="descriptive-name" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1969)">Generated from %s</text>
   <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1987)">Typeset at 100.0 points</text>
   <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 726)">Small</text>

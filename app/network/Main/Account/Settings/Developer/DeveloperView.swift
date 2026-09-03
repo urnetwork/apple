@@ -48,6 +48,10 @@ struct DeveloperView: View {
     // not of this screen, and a write is an rpc that must not be abandoned
     // half-way by navigating back
     @ObservedObject private var verbosityState = LogVerbosityState.shared
+    // held outside the view for the same reason, and for one more: the write
+    // may be an rpc into the extension, and the row it drives is the one a
+    // user reaches for when the api is unreachable
+    @ObservedObject private var ipFamilyState = IpFamilyState.shared
     @State private var showLogPicker = false
     @State private var selectedLogNames: Set<String> = []
 
@@ -86,6 +90,23 @@ struct DeveloperView: View {
             reliabilityStore.setActive(presentationActive)
         }
         .task {
+            // FIRST, ahead of the inventory's disk enumeration: restored by
+            // the sdk across a relaunch and settable from three different
+            // places, so what the row shows has to be re-read here rather than
+            // carried over from the last appearance -- and until it resolves
+            // the row renders its initial Automatic, which a tap in that
+            // window would advance from as if it were the value in force, so
+            // it goes first to close that window as early as possible.
+            //
+            // NOT free, unlike the rest of this screen's reads. The learned
+            // demotion belongs to whichever process dialed, so with a device
+            // the status half is an rpc into the extension rather than a cgo
+            // call. Over the live loopback connection the app already holds
+            // that is a sub-millisecond round trip, but a wedged extension
+            // makes it the head of this chain -- bounded by the rpc keepalive
+            // reaping the connection, after which the read falls back to this
+            // process's own ledger.
+            await ipFamilyState.refresh(device: deviceManager.device)
             // the inventory (and with it the total size and any unavailable
             // source) has to be on screen BEFORE the user commits to an
             // export, so it is read here rather than when the picker opens
@@ -138,6 +159,7 @@ struct DeveloperView: View {
             if LogVerbosity.revealsDestinations(verbosityState.level) {
                 destinationWarning
             }
+            ipFamilyRow
             if let inventoryLabel = exportState.inventoryLabel {
                 Text(inventoryLabel)
                     .font(themeManager.currentTheme.secondaryBodyFont)
@@ -304,6 +326,76 @@ struct DeveloperView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 2)
+    }
+
+    /**
+     * Which address family the control plane dials over, as a row that cycles
+     * Automatic -> Force IPv4 -> Force IPv6 on tap.
+     *
+     * ENABLED WITH NO DEVICE, unlike the verbosity row above it -- and that is
+     * the point of the row, not an oversight. A user reaches for this when the
+     * api is unreachable: signed out at the login screen, or with the tunnel
+     * down and no device constructed. Gating it on a device would make it
+     * inert in exactly the state it exists to rescue. `IpFamilyState.cycle`
+     * falls back from the device to the network space to the process-global
+     * setter so that there is always somewhere for the write to land.
+     *
+     * Held only while a write is in flight: with a device that write is an rpc
+     * into the packet tunnel extension, so a second tap is refused rather than
+     * queued behind it.
+     */
+    private var ipFamilyRow: some View {
+        // `.disabled` alone is invisible here: `.plain` dims nothing of its
+        // own and does not override an explicit `foregroundColor`, so the row
+        // would look fully tappable while every tap is dropped by cycle's
+        // in-flight guard. Muted the same way `actionRow` mutes a disabled
+        // action -- one demoted-to-textMutedColor idiom for the whole screen.
+        let isEnabled = !ipFamilyState.isApplying
+        return VStack(alignment: .leading, spacing: 4) {
+            Button(action: cycleIpFamily) {
+                HStack {
+                    // same words as android's dev_ip_family, the way "Log
+                    // detail" is shared with dev_log_verbosity -- one name for
+                    // one setting across the two support threads
+                    Text("Control connections")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(
+                            isEnabled
+                                ? themeManager.currentTheme.textColor
+                                : themeManager.currentTheme.textMutedColor)
+                    Spacer()
+                    Text(IpFamily.valueLabel(ipFamilyState.policy))
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(
+                            isEnabled
+                                ? themeManager.currentTheme.accentColor
+                                : themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!isEnabled)
+
+            Text(IpFamily.detail(ipFamilyState.policy, status: ipFamilyState.status))
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 2)
+    }
+
+    /**
+     * Advances the policy. Both the device AND the network space are read
+     * here, on the main actor, before the hop -- `DeviceManager` is main-actor
+     * isolated, and the space is an independent published property rather than
+     * something the state could re-derive from the device off the main actor.
+     */
+    private func cycleIpFamily() {
+        let device = deviceManager.device
+        let networkSpace = deviceManager.networkSpace
+        Task {
+            await ipFamilyState.cycle(device: device, networkSpace: networkSpace)
+        }
     }
 
     /**

@@ -109,7 +109,11 @@ struct DashboardView: View {
                 title: "Client",
                 color: WidgetTheme.clientSeries,
                 points: throughput.buckets.map {
-                    ThroughputChartView.Point(start: $0.start, egress: $0.clientEgress, ingress: $0.clientIngress)
+                    ThroughputChartView.Point(
+                        start: $0.start,
+                        egress: $0.clientEgress, ingress: $0.clientIngress,
+                        egressPackets: $0.clientEgressPackets, ingressPackets: $0.clientIngressPackets
+                    )
                 },
                 bucketSeconds: throughput.bucketSeconds,
                 now: entry.date,
@@ -119,7 +123,11 @@ struct DashboardView: View {
                 title: providerTitle,
                 color: WidgetTheme.providerSeries,
                 points: throughput.buckets.map {
-                    ThroughputChartView.Point(start: $0.start, egress: $0.providerEgress, ingress: $0.providerIngress)
+                    ThroughputChartView.Point(
+                        start: $0.start,
+                        egress: $0.providerEgress, ingress: $0.providerIngress,
+                        egressPackets: $0.providerEgressPackets, ingressPackets: $0.providerIngressPackets
+                    )
                 },
                 bucketSeconds: throughput.bucketSeconds,
                 now: entry.date,

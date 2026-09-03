@@ -118,12 +118,19 @@ extension SnapshotEntry {
             let start = ((now / bucketSeconds) - Int64(count - 1 - i)) * bucketSeconds
             let client = clientBursts[i]
             let provider = providerBursts[i]
+            // packets follow the bytes at a typical ~900 B payload, with the
+            // small-packet chatter (acks, DNS, handshakes) that keeps the pink
+            // line livelier than the green one
             buckets.append(WidgetThroughputBucket(
                 start: start,
                 clientEgress: Int64(client * 0.18),
                 clientIngress: Int64(client),
                 providerEgress: Int64(provider),
-                providerIngress: Int64(provider * 0.3)
+                providerIngress: Int64(provider * 0.3),
+                clientEgressPackets: Int64(client * 0.18 / 900 + client / 1400),
+                clientIngressPackets: Int64(client / 900 + 40),
+                providerEgressPackets: Int64(provider / 900 + 25),
+                providerIngressPackets: Int64(provider * 0.3 / 900 + provider / 1400)
             ))
         }
         let providers = [

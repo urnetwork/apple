@@ -135,14 +135,29 @@ private struct WidgetPreviewCard<Content: View>: View {
 /// Sample traffic shaped like the real thing: a quiet floor with bursts that spike and decay.
 private enum WidgetPreviewSample {
 
+    /// Bytes per bucket (arbitrary units; the chart scales to the peak).
     static let buckets: [Double] = burstSeries(
         count: 60,
-        bursts: [(7, 5.2, 0.62), (19, 2.4, 0.5), (31, 8.1, 0.7), (46, 3.6, 0.55), (55, 1.5, 0.45)],
+        bursts: [(7, 5.2, 0.62), (19, 2.4, 0.5), (31, 8.1, 0.7), (46, 3.6, 0.7), (55, 1.5, 0.45)],
         floor: 0.06,
         seed: 17
     )
 
+    /// Packets per bucket: they follow the bytes, plus the small-packet
+    /// chatter (acks, DNS, handshakes) that keeps the pink line busier than
+    /// the green one and lets it peak on its own, as on a real connection.
+    static let packets: [Double] = {
+        let chatter = burstSeries(
+            count: 60,
+            bursts: [(3, 1.4, 0.5), (14, 2.6, 0.6), (27, 1.1, 0.45), (40, 3.2, 0.65), (51, 1.8, 0.5)],
+            floor: 0.35,
+            seed: 29
+        )
+        return zip(buckets, chatter).map { bytes, extra in bytes * 0.7 + extra }
+    }()
+
     static let peakRate = "146 KiB/s"
+    static let peakPacketRate = "212 pkt/s"
 
     private static func burstSeries(count: Int, bursts: [(Int, Double, Double)], floor: Double, seed: UInt64) -> [Double] {
         var state = seed
@@ -212,53 +227,109 @@ private struct DashboardWidgetPreview: View {
                 .font(.system(size: 12))
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer()
-            Text("\(WidgetPreviewSample.peakRate) peak")
-                .font(.system(size: 12))
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            // the two peaks in their series colors, as the widget labels them
+            HStack(spacing: 6) {
+                Text(verbatim: WidgetPreviewSample.peakRate)
+                    .foregroundColor(.urGreen)
+                Text(verbatim: WidgetPreviewSample.peakPacketRate)
+                    .foregroundColor(.urPink)
+                Text("peak")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            .font(.system(size: 12))
         }
         Spacer().frame(height: 4)
-        ThroughputPreviewChart(values: WidgetPreviewSample.buckets, color: .urGreen)
-            .frame(height: 52)
+        ThroughputPreviewChart(
+            bytes: WidgetPreviewSample.buckets,
+            packets: WidgetPreviewSample.packets,
+            byteColor: .urGreen,
+            packetColor: .urPink
+        )
+        .frame(height: 52)
     }
 }
 
-/// The widget's mirrored traffic chart: download below the line, upload above, smoothed.
+/// The widget's mirrored traffic chart: download below the line, upload above,
+/// bytes filled in green and packets as a pink line over them, each on its
+/// own scale, smoothed like the widget's chart.
 private struct ThroughputPreviewChart: View {
 
-    let values: [Double]
-    let color: Color
+    let bytes: [Double]
+    let packets: [Double]
+    let byteColor: Color
+    let packetColor: Color
 
     var body: some View {
         Canvas { context, size in
-            guard let peak = values.max(), peak > 0, values.count > 1 else { return }
+            guard let bytePeak = bytes.max(), bytePeak > 0, bytes.count > 1 else { return }
+            let packetPeak = max(packets.max() ?? 0, 0.000_001)
             let centerY = size.height / 2
-            let step = size.width / CGFloat(values.count - 1)
-            func point(_ i: Int, up: Bool) -> CGPoint {
-                let v = values[i] / peak
-                let half = (size.height / 2 - 1)
-                let y = up ? centerY - CGFloat(v * 0.18) * half : centerY + CGFloat(v) * half
-                return CGPoint(x: CGFloat(i) * step, y: y)
+            let half = size.height / 2 - 1
+            let step = size.width / CGFloat(bytes.count - 1)
+            // upload is a fraction of download in the sample, on both series
+            func points(_ values: [Double], peak: Double, up: Bool) -> [CGPoint] {
+                values.enumerated().map { i, value in
+                    let v = CGFloat(value / peak) * (up ? 0.18 : 1)
+                    return CGPoint(x: CGFloat(i) * step, y: up ? centerY - v * half : centerY + v * half)
+                }
             }
-            var down = Path()
-            var up = Path()
-            down.move(to: CGPoint(x: 0, y: centerY))
-            up.move(to: CGPoint(x: 0, y: centerY))
-            for i in 0..<values.count {
-                down.addLine(to: point(i, up: false))
-                up.addLine(to: point(i, up: true))
-            }
-            down.addLine(to: CGPoint(x: size.width, y: centerY))
-            up.addLine(to: CGPoint(x: size.width, y: centerY))
-            context.fill(down, with: .color(color.opacity(0.25)))
-            context.fill(up, with: .color(color.opacity(0.25)))
-            context.stroke(down, with: .color(color), lineWidth: 1.5)
-            context.stroke(up, with: .color(color), lineWidth: 1.5)
+            let top = CGRect(x: 0, y: 0, width: size.width, height: centerY)
+            let bottom = CGRect(x: 0, y: centerY, width: size.width, height: size.height - centerY)
+            draw(&context, points(bytes, peak: bytePeak, up: true), clip: top, color: byteColor, lineWidth: 1.5, fillTo: centerY)
+            draw(&context, points(bytes, peak: bytePeak, up: false), clip: bottom, color: byteColor, lineWidth: 1.5, fillTo: centerY)
+            draw(&context, points(packets, peak: packetPeak, up: true), clip: top, color: packetColor, lineWidth: 1, fillTo: nil)
+            draw(&context, points(packets, peak: packetPeak, up: false), clip: bottom, color: packetColor, lineWidth: 1, fillTo: nil)
             context.stroke(
                 Path { $0.move(to: CGPoint(x: 0, y: centerY)); $0.addLine(to: CGPoint(x: size.width, y: centerY)) },
                 with: .color(Color.white.opacity(0.25)),
                 lineWidth: 1
             )
         }
+    }
+
+    private func draw(
+        _ context: inout GraphicsContext,
+        _ points: [CGPoint],
+        clip: CGRect,
+        color: Color,
+        lineWidth: CGFloat,
+        fillTo axisY: CGFloat?
+    ) {
+        guard let first = points.first, let last = points.last else { return }
+        var clipped = context
+        clipped.clip(to: Path(clip))
+        let line = smoothPath(points)
+        if let axisY {
+            var area = line
+            area.addLine(to: CGPoint(x: last.x, y: axisY))
+            area.addLine(to: CGPoint(x: first.x, y: axisY))
+            area.closeSubpath()
+            clipped.fill(area, with: .color(color.opacity(0.25)))
+        }
+        clipped.stroke(line, with: .color(color), lineWidth: lineWidth)
+    }
+
+    /// Catmull-Rom smoothing with x-clamped control points, as the widget draws it.
+    private func smoothPath(_ points: [CGPoint]) -> Path {
+        var path = Path()
+        guard let first = points.first else { return path }
+        path.move(to: first)
+        guard points.count > 2 else {
+            if points.count == 2 { path.addLine(to: points[1]) }
+            return path
+        }
+        for i in 1..<points.count {
+            let p0 = points[max(i - 2, 0)]
+            let p1 = points[i - 1]
+            let p2 = points[i]
+            let p3 = points[min(i + 1, points.count - 1)]
+            var c1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6)
+            var c2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6)
+            c1.x = min(max(c1.x, p1.x), p2.x)
+            c2.x = min(max(c2.x, p1.x), p2.x)
+            path.addCurve(to: p2, control1: c1, control2: c2)
+        }
+        return path
     }
 }
 

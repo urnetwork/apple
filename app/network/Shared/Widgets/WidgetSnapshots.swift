@@ -103,7 +103,7 @@ struct WidgetProviderSnapshot: Codable, Equatable, Identifiable {
     }
 }
 
-/// One fixed-width bucket of bytes moved, per side.
+/// One fixed-width bucket of bytes and packets moved, per side.
 struct WidgetThroughputBucket: Codable, Equatable {
     /// Bucket start, unix seconds.
     var start: Int64
@@ -114,11 +114,50 @@ struct WidgetThroughputBucket: Codable, Equatable {
     /// blocked routes, as the app's provider charts draw them).
     var providerEgress: Int64
     var providerIngress: Int64
+    /// Packet counts for the same routes, drawn as the chart's second series
+    /// (pink) next to the bytes (green), as the app's TransferChart does.
+    /// Absent in snapshots written before packets were recorded: they decode
+    /// as zero, which draws as a flat packet line.
+    var clientEgressPackets: Int64 = 0
+    var clientIngressPackets: Int64 = 0
+    var providerEgressPackets: Int64 = 0
+    var providerIngressPackets: Int64 = 0
 
     static func empty(start: Int64) -> WidgetThroughputBucket {
         WidgetThroughputBucket(
             start: start, clientEgress: 0, clientIngress: 0, providerEgress: 0, providerIngress: 0
         )
+    }
+
+    init(
+        start: Int64,
+        clientEgress: Int64, clientIngress: Int64,
+        providerEgress: Int64, providerIngress: Int64,
+        clientEgressPackets: Int64 = 0, clientIngressPackets: Int64 = 0,
+        providerEgressPackets: Int64 = 0, providerIngressPackets: Int64 = 0
+    ) {
+        self.start = start
+        self.clientEgress = clientEgress
+        self.clientIngress = clientIngress
+        self.providerEgress = providerEgress
+        self.providerIngress = providerIngress
+        self.clientEgressPackets = clientEgressPackets
+        self.clientIngressPackets = clientIngressPackets
+        self.providerEgressPackets = providerEgressPackets
+        self.providerIngressPackets = providerIngressPackets
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        start = try c.decode(Int64.self, forKey: .start)
+        clientEgress = try c.decode(Int64.self, forKey: .clientEgress)
+        clientIngress = try c.decode(Int64.self, forKey: .clientIngress)
+        providerEgress = try c.decode(Int64.self, forKey: .providerEgress)
+        providerIngress = try c.decode(Int64.self, forKey: .providerIngress)
+        clientEgressPackets = try c.decodeIfPresent(Int64.self, forKey: .clientEgressPackets) ?? 0
+        clientIngressPackets = try c.decodeIfPresent(Int64.self, forKey: .clientIngressPackets) ?? 0
+        providerEgressPackets = try c.decodeIfPresent(Int64.self, forKey: .providerEgressPackets) ?? 0
+        providerIngressPackets = try c.decodeIfPresent(Int64.self, forKey: .providerIngressPackets) ?? 0
     }
 }
 
@@ -177,7 +216,7 @@ struct WidgetBalanceSnapshot: Codable, Equatable {
     }
 }
 
-/// Folds cumulative packet counters into fixed one-minute buckets. Pure
+/// Folds cumulative byte and packet counters into fixed one-minute buckets. Pure
 /// value type so the extension can persist it inside the snapshot and pick
 /// up where it left off after a restart (the chart then survives a tunnel
 /// restart instead of resetting to flat).
@@ -193,6 +232,10 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
     private var lastClientIngress: Int64?
     private var lastProviderEgress: Int64?
     private var lastProviderIngress: Int64?
+    private var lastClientEgressPackets: Int64?
+    private var lastClientIngressPackets: Int64?
+    private var lastProviderEgressPackets: Int64?
+    private var lastProviderIngressPackets: Int64?
 
     init() {}
 
@@ -206,29 +249,49 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
         WidgetThroughputSnapshot(bucketSeconds: Self.bucketSeconds, buckets: buckets)
     }
 
-    /// Record the client-side cumulative counters as of `date`.
-    mutating func recordClient(egress: Int64, ingress: Int64, at date: Date = Date()) {
+    /// Record the client-side cumulative counters (bytes and packets) as of `date`.
+    mutating func recordClient(
+        egress: Int64, ingress: Int64,
+        egressPackets: Int64, ingressPackets: Int64,
+        at date: Date = Date()
+    ) {
         let dEgress = Self.delta(from: lastClientEgress, to: egress)
         let dIngress = Self.delta(from: lastClientIngress, to: ingress)
+        let dEgressPackets = Self.delta(from: lastClientEgressPackets, to: egressPackets)
+        let dIngressPackets = Self.delta(from: lastClientIngressPackets, to: ingressPackets)
         lastClientEgress = egress
         lastClientIngress = ingress
-        guard 0 < dEgress || 0 < dIngress else { return }
+        lastClientEgressPackets = egressPackets
+        lastClientIngressPackets = ingressPackets
+        guard 0 < dEgress || 0 < dIngress || 0 < dEgressPackets || 0 < dIngressPackets else { return }
         var bucket = currentBucket(at: date)
         bucket.clientEgress += dEgress
         bucket.clientIngress += dIngress
+        bucket.clientEgressPackets += dEgressPackets
+        bucket.clientIngressPackets += dIngressPackets
         buckets[buckets.count - 1] = bucket
     }
 
-    /// Record the provider-side cumulative counters as of `date`.
-    mutating func recordProvider(egress: Int64, ingress: Int64, at date: Date = Date()) {
+    /// Record the provider-side cumulative counters (bytes and packets) as of `date`.
+    mutating func recordProvider(
+        egress: Int64, ingress: Int64,
+        egressPackets: Int64, ingressPackets: Int64,
+        at date: Date = Date()
+    ) {
         let dEgress = Self.delta(from: lastProviderEgress, to: egress)
         let dIngress = Self.delta(from: lastProviderIngress, to: ingress)
+        let dEgressPackets = Self.delta(from: lastProviderEgressPackets, to: egressPackets)
+        let dIngressPackets = Self.delta(from: lastProviderIngressPackets, to: ingressPackets)
         lastProviderEgress = egress
         lastProviderIngress = ingress
-        guard 0 < dEgress || 0 < dIngress else { return }
+        lastProviderEgressPackets = egressPackets
+        lastProviderIngressPackets = ingressPackets
+        guard 0 < dEgress || 0 < dIngress || 0 < dEgressPackets || 0 < dIngressPackets else { return }
         var bucket = currentBucket(at: date)
         bucket.providerEgress += dEgress
         bucket.providerIngress += dIngress
+        bucket.providerEgressPackets += dEgressPackets
+        bucket.providerIngressPackets += dIngressPackets
         buckets[buckets.count - 1] = bucket
     }
 

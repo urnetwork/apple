@@ -6,7 +6,7 @@
 //  network/Shared/Widgets/WidgetSnapshots.swift) from the process that owns
 //  the truth: the connected location, the connected providers with their
 //  coordinates and country colors, the per-minute throughput folded from the
-//  device's cumulative packet counters, and, on a slow cadence, the transfer
+//  device's cumulative byte and packet counters, and, on a slow cadence, the transfer
 //  balance. Everything is written into the App Group container and WidgetKit
 //  is asked to re-render, within a budget.
 //
@@ -101,12 +101,17 @@ final class WidgetSnapshotWriter {
             provideMode = device.getProvideControlMode()
             providers = Self.providerSnapshots(Self.orderedProviders(device))
             if let stats = device.getPacketStats() {
-                accumulator.recordClient(egress: stats.remoteEgressByteCount, ingress: stats.remoteIngressByteCount)
+                accumulator.recordClient(
+                    egress: stats.remoteEgressByteCount, ingress: stats.remoteIngressByteCount,
+                    egressPackets: stats.remoteEgressPacketCount, ingressPackets: stats.remoteIngressPacketCount
+                )
             }
             if let stats = device.getProviderPacketStats() {
                 accumulator.recordProvider(
                     egress: stats.localEgressByteCount + stats.blockEgressByteCount,
-                    ingress: stats.localIngressByteCount + stats.blockIngressByteCount
+                    ingress: stats.localIngressByteCount + stats.blockIngressByteCount,
+                    egressPackets: stats.localEgressPacketCount + stats.blockEgressPacketCount,
+                    ingressPackets: stats.localIngressPacketCount + stats.blockIngressPacketCount
                 )
             }
 
@@ -161,9 +166,14 @@ final class WidgetSnapshotWriter {
                 guard let stats else { return }
                 let egress = stats.remoteEgressByteCount
                 let ingress = stats.remoteIngressByteCount
+                let egressPackets = stats.remoteEgressPacketCount
+                let ingressPackets = stats.remoteIngressPacketCount
                 self?.queue.async {
                     guard let self, self.active else { return }
-                    self.accumulator.recordClient(egress: egress, ingress: ingress)
+                    self.accumulator.recordClient(
+                        egress: egress, ingress: ingress,
+                        egressPackets: egressPackets, ingressPackets: ingressPackets
+                    )
                 }
             }) {
                 subs.append(sub)
@@ -172,9 +182,14 @@ final class WidgetSnapshotWriter {
                 guard let stats else { return }
                 let egress = stats.localEgressByteCount + stats.blockEgressByteCount
                 let ingress = stats.localIngressByteCount + stats.blockIngressByteCount
+                let egressPackets = stats.localEgressPacketCount + stats.blockEgressPacketCount
+                let ingressPackets = stats.localIngressPacketCount + stats.blockIngressPacketCount
                 self?.queue.async {
                     guard let self, self.active else { return }
-                    self.accumulator.recordProvider(egress: egress, ingress: ingress)
+                    self.accumulator.recordProvider(
+                        egress: egress, ingress: ingress,
+                        egressPackets: egressPackets, ingressPackets: ingressPackets
+                    )
                 }
             }) {
                 subs.append(sub)

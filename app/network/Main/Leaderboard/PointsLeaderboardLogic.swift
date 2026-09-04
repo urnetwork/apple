@@ -22,15 +22,22 @@ enum PointsLeaderboardPaging {
      * ROWS (header and footer excluded); -1 when no row is visible. The
      * controller itself refuses a second in-flight page and a page past the
      * end, so this only avoids asking in the first place.
+     *
+     * A failed page parks the list: `hasError` holds the trigger off until
+     * the footer's Retry re-requests it. Keyed on `isLoading` alone, a failed
+     * page flipped loading back to false, the trigger re-evaluated as true,
+     * and the same request was fired again without pause (a request storm
+     * against an unreachable server on the other platforms).
      */
     static func shouldLoadMore(
         lastVisibleRowIndex: Int,
         rowCount: Int,
         isLoading: Bool,
         isEndReached: Bool,
+        hasError: Bool,
         threshold: Int = loadMoreThreshold
     ) -> Bool {
-        if rowCount <= 0 || isLoading || isEndReached || lastVisibleRowIndex < 0 {
+        if rowCount <= 0 || isLoading || isEndReached || hasError || lastVisibleRowIndex < 0 {
             return false
         }
         return lastVisibleRowIndex >= rowCount - 1 - threshold

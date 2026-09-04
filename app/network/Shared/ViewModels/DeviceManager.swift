@@ -1134,7 +1134,9 @@ extension DeviceManager {
             }
             
             DispatchQueue.main.async {
-                self.providePaused = providePaused
+                if self.providePaused != providePaused {
+                    self.providePaused = providePaused
+                }
             }
         })
         
@@ -1144,7 +1146,9 @@ extension DeviceManager {
             }
             
             DispatchQueue.main.async {
-                self.provideEnabled = provideEnabled
+                if self.provideEnabled != provideEnabled {
+                    self.provideEnabled = provideEnabled
+                }
             }
         })
         
@@ -1219,7 +1223,9 @@ extension DeviceManager {
         self.deviceProvideModeSub = device.add(ProvideModeChangeListener { [weak self] provideMode in
             try? self?.asyncLocalState?.getLocalState()?.setProvideMode(provideMode)
             DispatchQueue.main.async { [weak self] in
-                self?.currentProvideMode = provideMode
+                if self?.currentProvideMode != provideMode {
+                    self?.currentProvideMode = provideMode
+                }
             }
         })
 

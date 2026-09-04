@@ -5,17 +5,24 @@ struct PointsLeaderboardLogicTests {
 
     @Test func loadMoreOnlyNearTheEndOfALoadedList() {
         // 50 rows, threshold 10: rows 39 and up ask for more
-        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 20, rowCount: 50, isLoading: false, isEndReached: false))
-        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 38, rowCount: 50, isLoading: false, isEndReached: false))
-        #expect(PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 39, rowCount: 50, isLoading: false, isEndReached: false))
-        #expect(PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: false, isEndReached: false))
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 20, rowCount: 50, isLoading: false, isEndReached: false, hasError: false))
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 38, rowCount: 50, isLoading: false, isEndReached: false, hasError: false))
+        #expect(PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 39, rowCount: 50, isLoading: false, isEndReached: false, hasError: false))
+        #expect(PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: false, isEndReached: false, hasError: false))
     }
 
     @Test func loadMoreNeverAsksWhileLoadingAtTheEndOrWithNothingVisible() {
-        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: true, isEndReached: false))
-        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: false, isEndReached: true))
-        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: -1, rowCount: 50, isLoading: false, isEndReached: false))
-        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 0, rowCount: 0, isLoading: false, isEndReached: false))
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: true, isEndReached: false, hasError: false))
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: false, isEndReached: true, hasError: false))
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: -1, rowCount: 50, isLoading: false, isEndReached: false, hasError: false))
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 0, rowCount: 0, isLoading: false, isEndReached: false, hasError: false))
+    }
+
+    @Test func loadMoreWaitsForRetryAfterAFailedPage() {
+        // a failed page leaves loading false and the error set: only the
+        // footer's Retry may ask again, never the scroll trigger
+        #expect(!PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: false, isEndReached: false, hasError: true))
+        #expect(PointsLeaderboardPaging.shouldLoadMore(lastVisibleRowIndex: 49, rowCount: 50, isLoading: false, isEndReached: false, hasError: false))
     }
 
     @Test func validationReasonsMapToEditorErrors() {

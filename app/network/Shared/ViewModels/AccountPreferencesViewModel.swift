@@ -39,6 +39,8 @@ class AccountPreferencesViewModel: ObservableObject {
     @Published private(set) var saveErrorMessage: String?
 
     func clearSaveErrorMessage() {
+        // called from the settings view's observer of this value
+        guard saveErrorMessage != nil else { return }
         saveErrorMessage = nil
     }
 

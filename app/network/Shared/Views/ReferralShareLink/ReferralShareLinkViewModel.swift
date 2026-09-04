@@ -38,6 +38,9 @@ class ReferralLinkViewModel: ObservableObject {
     @Published private(set) var pendingCelebration: ReferralCelebration?
 
     func clearCelebration() {
+        // its observer (onChange in the tab views) calls this; write only on
+        // an actual change so the clear cannot re-publish into itself
+        guard pendingCelebration != nil else { return }
         pendingCelebration = nil
     }
 

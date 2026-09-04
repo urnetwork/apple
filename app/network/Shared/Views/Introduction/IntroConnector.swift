@@ -57,10 +57,11 @@ private struct IntroConnectorSlotModifier: ViewModifier {
 
     private func report(_ frame: CGRect) {
         guard let state, frame.width > 0 else { return }
+        // onAppear re-reports the same frame after a rebuild; publish only a change
         if hero {
-            state.heroFrame = frame
+            if state.heroFrame != frame { state.heroFrame = frame }
         } else {
-            state.headerFrame = frame
+            if state.headerFrame != frame { state.headerFrame = frame }
         }
     }
 }

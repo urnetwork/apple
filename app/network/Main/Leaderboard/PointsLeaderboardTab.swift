@@ -60,7 +60,8 @@ struct PointsLeaderboardTab: View {
                             lastVisibleRowIndex: index,
                             rowCount: store.rows.count,
                             isLoading: store.isLoading,
-                            isEndReached: store.isEndReached
+                            isEndReached: store.isEndReached,
+                            hasError: !store.errorMessage.isEmpty
                         ) {
                             store.loadMore()
                         }

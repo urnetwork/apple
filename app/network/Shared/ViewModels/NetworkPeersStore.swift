@@ -134,7 +134,9 @@ class NetworkPeersStore: ObservableObject {
         })
         self.remoteSub = device.add(RemotePresenceListener { [weak self] remoteConnected in
             DispatchQueue.main.async {
-                self?.peersAvailable = remoteConnected
+                if self?.peersAvailable != remoteConnected {
+                    self?.peersAvailable = remoteConnected
+                }
                 if remoteConnected {
                     // the reconnect listener-sync pushes fresh peers; refresh
                     // defensively so a just-enabled line never shows a stale zero

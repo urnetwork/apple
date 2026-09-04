@@ -192,7 +192,9 @@ class ConnectViewModel: ObservableObject {
             }
 
             DispatchQueue.main.async {
-                self.tunnelConnected = tunnelStarted
+                if self.tunnelConnected != tunnelStarted {
+                    self.tunnelConnected = tunnelStarted
+                }
             }
         })
 
@@ -285,12 +287,22 @@ class ConnectViewModel: ObservableObject {
     }
 
     private func updateBackgroundConnectionState(_ location: SdkConnectLocation?) {
-        selectedProvider = location ?? selectedProvider
-        connectionStatus = location == nil ? .disconnected : .destinationSet
+        // the device fires this on every location-state event; publish only
+        // what changed so the tray/view is not re-rendered for a no-op
+        if let location {
+            selectedProvider = location
+        }
+        let status: ConnectionStatus = location == nil ? .disconnected : .destinationSet
+        if connectionStatus != status {
+            connectionStatus = status
+        }
     }
     
     func refreshTunnelStatus() {
-        self.tunnelConnected = self.device?.getTunnelStarted() ?? false
+        let tunnelConnected = self.device?.getTunnelStarted() ?? false
+        if self.tunnelConnected != tunnelConnected {
+            self.tunnelConnected = tunnelConnected
+        }
     }
     
     /**

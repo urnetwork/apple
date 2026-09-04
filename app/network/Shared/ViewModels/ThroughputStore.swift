@@ -12,7 +12,7 @@ import URnetworkSdk
 /**
  * Throughput deltas for one route over one sample interval
  */
-struct ThroughputSample {
+struct ThroughputSample: Equatable {
     let egressByteCount: Int64
     let ingressByteCount: Int64
     let egressPacketCount: Int64
@@ -48,7 +48,7 @@ struct ThroughputSample {
 /**
  * One throughput sample, split by route
  */
-struct ThroughputPoint: Identifiable {
+struct ThroughputPoint: Identifiable, Equatable {
     /**
      * sample end time, unix seconds
      */
@@ -313,8 +313,16 @@ class ThroughputStore: ObservableObject {
         guard let contractViewController = self.contractViewController else {
             return
         }
-        clientPoints = Self.mapPoints(contractViewController.getThroughputPoints())
-        providerPoints = Self.mapPoints(contractViewController.getProviderThroughputPoints())
+        // the listener fires per sample; an idle window hands back the same
+        // points, so publish only real changes (the chart re-renders on each)
+        let clientPoints = Self.mapPoints(contractViewController.getThroughputPoints())
+        if clientPoints != self.clientPoints {
+            self.clientPoints = clientPoints
+        }
+        let providerPoints = Self.mapPoints(contractViewController.getProviderThroughputPoints())
+        if providerPoints != self.providerPoints {
+            self.providerPoints = providerPoints
+        }
         // the distribution is inactive while the window is idle; only publish a
         // real change so an idle tick doesn't retrigger the bar
         let clientTransportDistribution = TransportDistribution(contractViewController.getTransportDistribution())
@@ -325,7 +333,10 @@ class ThroughputStore: ObservableObject {
         if providerTransportDistribution != self.providerTransportDistribution {
             self.providerTransportDistribution = providerTransportDistribution
         }
-        hasProviderStats = contractViewController.getProviderPacketStats() != nil
+        let hasProviderStats = contractViewController.getProviderPacketStats() != nil
+        if hasProviderStats != self.hasProviderStats {
+            self.hasProviderStats = hasProviderStats
+        }
     }
 
     private static func mapPoints(_ list: SdkThroughputPointList?) -> [ThroughputPoint] {

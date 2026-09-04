@@ -480,10 +480,12 @@ class AppStoreSubscriptionManager: ObservableObject {
      */
     @MainActor
     func resetPurchaseState() {
-        self.purchaseSuccess = false
-        self.purchasePending = false
-        self.purchaseError = nil
-        self.restoreResultMessage = nil
+        // publish only what actually changes: the sheets that call this also
+        // observe these values
+        if self.purchaseSuccess { self.purchaseSuccess = false }
+        if self.purchasePending { self.purchasePending = false }
+        if self.purchaseError != nil { self.purchaseError = nil }
+        if self.restoreResultMessage != nil { self.restoreResultMessage = nil }
     }
 
     private func logTransactionDetails(_ transaction: Transaction) {

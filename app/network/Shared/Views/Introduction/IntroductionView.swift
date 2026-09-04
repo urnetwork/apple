@@ -213,7 +213,10 @@ struct IntroductionView: View {
         .environmentObject(introConnector)
         .environment(\.introConnector, introConnector)
         .onChange(of: routeState.path) { path in
-            introConnector.inHeader = !path.isEmpty
+            let inHeader = !path.isEmpty
+            if introConnector.inHeader != inHeader {
+                introConnector.inHeader = inHeader
+            }
         }
         .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
         .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)

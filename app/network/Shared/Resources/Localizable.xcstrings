@@ -55459,167 +55459,6 @@
         }
       }
     },
-    "Only you can see this. Turn it on to appear on the leaderboard." : {
-      "comment" : "Points leaderboard: shown under the own-stats card while the network has not opted in.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أنت وحدك من يرى هذا. فعّل الخيار للظهور في لوحة الصدارة."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vidíte to jen vy. Zapněte, abyste se objevili v žebříčku."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nur du siehst das. Schalte es ein, um in der Bestenliste zu erscheinen."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Μόνο εσείς το βλέπετε. Ενεργοποιήστε το για να εμφανιστείτε στον πίνακα."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only you can see this. Turn it on to appear on the leaderboard."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo tú puedes ver esto. Actívalo para aparecer en la clasificación."
-          }
-        },
-        "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo tú puedes ver esto. Actívalo para aparecer en la tabla."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous seul voyez ceci. Activez-le pour apparaître dans le classement."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "רק אתה רואה זאת. הפעל כדי להופיע בטבלה."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "यह सिर्फ आप देख सकते हैं। लीडरबोर्ड पर दिखने के लिए इसे चालू करें।"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hanya Anda yang bisa melihat ini. Aktifkan untuk tampil di papan peringkat."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo tu puoi vederlo. Attivalo per comparire in classifica."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "これはあなただけに表示されます。オンにするとリーダーボードに表示されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "나만 볼 수 있습니다. 켜면 리더보드에 표시됩니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alleen jij ziet dit. Zet het aan om op het scorebord te verschijnen."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Widzisz to tylko Ty. Włącz, aby pojawić się w rankingu."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Só você vê isto. Ative para aparecer na tabela."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Só você vê isso. Ative para aparecer no placar."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Só você vê isto. Ative para aparecer na tabela."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Это видите только вы. Включите, чтобы появиться в таблице лидеров."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bara du ser detta. Slå på för att synas på topplistan."
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "มีเพียงคุณที่เห็นสิ่งนี้ เปิดเพื่อแสดงบนกระดาน"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Це бачите лише ви. Увімкніть, щоб з’явитися в таблиці лідерів."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chỉ bạn thấy điều này. Bật để xuất hiện trên bảng xếp hạng."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "只有你能看到。开启后即可出现在排行榜上。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "只有你能看到。開啟後即可出現在排行榜上。"
-          }
-        }
-      }
-    },
     "Open" : {
       "comment" : "Button on the Home Screen widget that opens the app when the tunnel is not configured yet.",
       "localizations" : {
@@ -74014,163 +73853,163 @@
         }
       }
     },
-    "Show on the points leaderboard" : {
-      "comment" : "Points leaderboard: the opt-in switch label. Only opted-in networks are listed.",
+    "Show my network name" : {
+      "comment" : "Points leaderboard: the switch that reveals this network's name on the list. Every ranked network is listed; off = shown as Anonymous.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "العرض في لوحة صدارة النقاط"
+            "value" : "إظهار اسم شبكتي"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zobrazit v žebříčku bodů"
+            "value" : "Zobrazit název mé sítě"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In der Punkte-Bestenliste anzeigen"
+            "value" : "Meinen Netzwerknamen anzeigen"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εμφάνιση στον πίνακα πόντων"
+            "value" : "Εμφάνιση του ονόματος του δικτύου μου"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show on the points leaderboard"
+            "value" : "Show my network name"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostrar en la clasificación de puntos"
+            "value" : "Mostrar el nombre de mi red"
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostrar en la tabla de puntos"
+            "value" : "Mostrar el nombre de mi red"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher dans le classement des points"
+            "value" : "Afficher le nom de mon réseau"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הצג בטבלת הנקודות"
+            "value" : "הצג את שם הרשת שלי"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "पॉइंट लीडरबोर्ड पर दिखाएँ"
+            "value" : "मेरे नेटवर्क का नाम दिखाएँ"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tampilkan di papan peringkat poin"
+            "value" : "Tampilkan nama jaringan saya"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra nella classifica punti"
+            "value" : "Mostra il nome della mia rete"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ポイントリーダーボードに表示"
+            "value" : "ネットワーク名を表示"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "포인트 리더보드에 표시"
+            "value" : "내 네트워크 이름 표시"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toon op het puntenscorebord"
+            "value" : "Mijn netwerknaam tonen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pokaż w rankingu punktów"
+            "value" : "Pokaż nazwę mojej sieci"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostrar na tabela de pontos"
+            "value" : "Mostrar o nome da minha rede"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostrar no placar de pontos"
+            "value" : "Mostrar o nome da minha rede"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostrar na tabela de pontos"
+            "value" : "Mostrar o nome da minha rede"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показывать в таблице лидеров по очкам"
+            "value" : "Показывать название моей сети"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visa på poängtopplistan"
+            "value" : "Visa mitt nätverksnamn"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "แสดงบนกระดานคะแนน"
+            "value" : "แสดงชื่อเครือข่ายของฉัน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показувати в таблиці лідерів за балами"
+            "value" : "Показувати назву моєї мережі"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hiển thị trên bảng xếp hạng điểm"
+            "value" : "Hiển thị tên mạng của tôi"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在积分排行榜上显示"
+            "value" : "显示我的网络名称"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在積分排行榜上顯示"
+            "value" : "顯示我的網絡名稱"
           }
         }
       }
@@ -97693,6 +97532,167 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的身份密鑰儲存在本裝置。如果任何對等節點的密鑰與本機儲存的密鑰不同，即表示網絡營運者不可信。"
+          }
+        }
+      }
+    },
+    "Your network appears as Anonymous until you turn this on." : {
+      "comment" : "Points leaderboard: shown under the own-stats card while the name switch is off. The network is listed either way, as Anonymous until the switch is on.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تظهر شبكتك باسم «مجهول» حتى تفعّل هذا الخيار."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaše síť se zobrazuje jako Anonymní, dokud to nezapnete."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Netzwerk erscheint als Anonym, bis du das einschaltest."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το δίκτυό σας εμφανίζεται ως Ανώνυμο μέχρι να το ενεργοποιήσετε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your network appears as Anonymous until you turn this on."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu red aparece como Anónimo hasta que actives esta opción."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu red aparece como Anónimo hasta que actives esta opción."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre réseau apparaît comme Anonyme tant que cette option est désactivée."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרשת שלך מופיעה כאנונימי עד שתפעיל זאת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जब तक आप इसे चालू नहीं करते, आपका नेटवर्क अनाम के रूप में दिखता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaringan Anda tampil sebagai Anonim sampai Anda mengaktifkan ini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua rete compare come Anonimo finché non attivi questa opzione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オンにするまで、あなたのネットワークは匿名として表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 옵션을 켜기 전까지 내 네트워크는 익명으로 표시됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je netwerk wordt als Anoniem getoond totdat je dit aanzet."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoja sieć jest wyświetlana jako Anonimowy, dopóki tego nie włączysz."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sua rede aparece como Anónimo até ativar esta opção."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua rede aparece como Anônimo até você ativar esta opção."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sua rede aparece como Anónimo até ativar esta opção."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша сеть отображается как Анонимно, пока вы не включите это."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt nätverk visas som Anonym tills du slår på detta."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เครือข่ายของคุณจะแสดงเป็นไม่ระบุชื่อจนกว่าคุณจะเปิดตัวเลือกนี้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша мережа відображається як Анонімно, доки ви не ввімкнете це."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mạng của bạn hiển thị là Ẩn danh cho đến khi bạn bật tùy chọn này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你开启此项之前，你的网络显示为匿名。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你開啟此項之前，你的網絡顯示為匿名。"
           }
         }
       }

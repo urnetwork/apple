@@ -29,11 +29,21 @@ struct PointsLeaderboardTab: View {
         return deviceManager.parsedJwt?.networkId?.idStr
     }
 
+    /// The caller always sees their own name: the me row's, or the jwt's until
+    /// me lands; the own list row shows it too when it is anonymous to others.
+    private var ownName: String {
+        if let name = store.me?.row?.displayName, !name.isEmpty {
+            return name
+        }
+        return deviceManager.parsedJwt?.networkName ?? ""
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 PointsHeader(
                     store: store,
+                    ownName: ownName,
                     onEditEmoji: {
                         emojiSaveError = nil
                         showEmojiSheet = true
@@ -51,7 +61,8 @@ struct PointsLeaderboardTab: View {
                         PointsRow(
                             row: row,
                             sort: store.sort,
-                            isNetworkRow: ownNetworkId != nil && ownNetworkId == row.networkId
+                            isNetworkRow: ownNetworkId != nil && ownNetworkId == row.networkId,
+                            ownName: ownName
                         )
                     }
                     .onAppear {
@@ -174,34 +185,28 @@ private struct PointsHeader: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     @ObservedObject var store: PointsLeaderboardStore
+    let ownName: String
     let onEditEmoji: () -> Void
 
     var body: some View {
         let ownRow = store.me?.row
-        let ownName = ownRow.map { $0.displayName }.flatMap { $0.isEmpty ? nil : $0 }
 
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                // identity line: the emoji tag, the network's own name, the
-                // pencil that opens the editor
-                HStack(spacing: 12) {
+                // identity line: the emoji tag, a clear gap, the network's own
+                // name, the pencil that opens the editor; the ranked count sits
+                // on its own line below, left-aligned under the emoji
+                HStack(spacing: 10) {
                     if !store.emojiTag.isEmpty {
                         Text(store.emojiTag)
                             .font(.system(size: 28))
                             .lineLimit(1)
                     }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(ownName ?? "-")
-                            .font(themeManager.currentTheme.bodyFontLarge)
-                            .fontWeight(.bold)
-                            .foregroundStyle(themeManager.currentTheme.textColor)
-                            .lineLimit(1)
-                        if store.totalRanked > 0 {
-                            Text(String(format: String(localized: "%@ ranked networks"), SdkFormatPoints(Double(store.totalRanked))))
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundStyle(themeManager.currentTheme.textMutedColor)
-                        }
-                    }
+                    Text(ownName)
+                        .font(themeManager.currentTheme.bodyFontLarge)
+                        .fontWeight(.bold)
+                        .foregroundStyle(themeManager.currentTheme.textColor)
+                        .lineLimit(1)
                     Spacer(minLength: 0)
                     Button(action: onEditEmoji) {
                         Image(systemName: "pencil")
@@ -210,6 +215,12 @@ private struct PointsHeader: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(store.emojiTag.isEmpty ? Text("Add emoji") : Text("Edit emoji"))
+                }
+                if store.totalRanked > 0 {
+                    Text(String(format: String(localized: "%@ ranked networks"), SdkFormatPoints(Double(store.totalRanked))))
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                        .padding(.top, 4)
                 }
 
                 Spacer().frame(height: 16)
@@ -258,14 +269,14 @@ private struct PointsHeader: View {
                     ),
                     isEnabled: !store.isSettingPublic
                 ) {
-                    Text("Show on the points leaderboard")
+                    Text("Show my network name")
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundStyle(themeManager.currentTheme.textColor)
                 }
 
                 if !store.isPointsPublic {
                     Spacer().frame(height: 8)
-                    Text("Only you can see this. Turn it on to appear on the leaderboard.")
+                    Text("Your network appears as Anonymous until you turn this on.")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundStyle(themeManager.currentTheme.textMutedColor)
                 }
@@ -348,6 +359,8 @@ private struct PointsRow: View {
     let row: PointsLeaderboardRowItem
     let sort: String
     let isNetworkRow: Bool
+    /// the caller's own name, shown on their row even when it is anonymous to others
+    var ownName: String = ""
 
     private var rank: String {
         switch sort {
@@ -386,7 +399,7 @@ private struct PointsRow: View {
                         .lineLimit(1)
                 }
                 if row.anonymous || row.displayName.isEmpty {
-                    Text("Anonymous")
+                    Text(isNetworkRow && !ownName.isEmpty ? ownName : String(localized: "Anonymous"))
                         .font(themeManager.currentTheme.bodyFont)
                         .fontWeight(isNetworkRow ? .heavy : .regular)
                         .foregroundStyle(nameColor)

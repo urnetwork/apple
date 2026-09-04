@@ -19,6 +19,8 @@ struct LoginInitialView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @StateObject private var viewModel: ViewModel
     @State private var initialIsLandscape: Bool = false
+    // the Solana tile without a wallet app to hand off to (iOS only)
+    @State private var presentNoSolanaWalletAlert: Bool = false
     
     let navigate: (LoginInitialNavigationPath) -> Void
     let cancel: (() -> Void)?
@@ -70,12 +72,7 @@ struct LoginInitialView: View {
                             loginErrorMessage: viewModel.loginErrorMessage,
                             deviceExists: deviceExists,
                             presentSignInWithSolanaSheet: {
-                                Task {
-                                    let ok = await viewModel.prepareSolanaChallenge()
-                                    if ok {
-                                        viewModel.setPresentSigninWithSolanaSheet(true)
-                                    }
-                                }
+                                startSolanaSignIn()
                             },
                             signInWithBittensor: {
                                 handleBittensorSignIn()
@@ -114,12 +111,7 @@ struct LoginInitialView: View {
                             loginErrorMessage: viewModel.loginErrorMessage,
                             deviceExists: deviceExists,
                             presentSignInWithSolanaSheet: {
-                                Task {
-                                    let ok = await viewModel.prepareSolanaChallenge()
-                                    if ok {
-                                        viewModel.setPresentSigninWithSolanaSheet(true)
-                                    }
-                                }
+                                startSolanaSignIn()
                             },
                             signInWithBittensor: {
                                 handleBittensorSignIn()
@@ -143,6 +135,11 @@ struct LoginInitialView: View {
                     
                 }
                 
+            }
+            .alert(String(localized: "No Solana Wallets Found"), isPresented: $presentNoSolanaWalletAlert) {
+                Button(String(localized: "Got it")) {}
+            } message: {
+                Text("No Solana wallets were found installed on this device. Please install a wallet and try again.")
             }
             .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
                 
@@ -263,6 +260,26 @@ struct LoginInitialView: View {
         
     }
     
+    /// The Solana tile's tap: the sign-in sheet when a wallet app can take the
+    /// hand-off, otherwise the no-wallet alert (iOS probes Phantom and Solflare;
+    /// macOS always has the bridge).
+    private func startSolanaSignIn() {
+        #if os(iOS)
+        let walletInstalled = connectWalletProviderViewModel.isWalletAppInstalled(.phantom)
+            || connectWalletProviderViewModel.isWalletAppInstalled(.solflare)
+        if !walletInstalled {
+            presentNoSolanaWalletAlert = true
+            return
+        }
+        #endif
+        Task {
+            let ok = await viewModel.prepareSolanaChallenge()
+            if ok {
+                viewModel.setPresentSigninWithSolanaSheet(true)
+            }
+        }
+    }
+
     private func handleSolanaWalletResult(message: String, signature: String, publicKey: String) async {
         print("handleSolanaWalletResult")
 
@@ -860,17 +877,11 @@ private struct LoginTiles: View {
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
     
-    // Solana sign in on iOS deep links into an installed wallet app (Phantom
-    // or Solflare); without one the tile is not offered. macOS routes through
-    // the ur.io/wallet-connect bridge, so it is always offered there.
-    private var showSolana: Bool {
-        #if os(iOS)
-        return connectWalletProviderViewModel.isWalletAppInstalled(.phantom)
-            || connectWalletProviderViewModel.isWalletAppInstalled(.solflare)
-        #else
-        return true
-        #endif
-    }
+    // The Solana tile is always the fourth small button, like every other
+    // platform's login stack. iOS deep links into an installed wallet app
+    // (Phantom or Solflare); the tap tells the user when there is none.
+    // macOS routes through the ur.io/wallet-connect bridge.
+    private var showSolana: Bool { true }
     
     private var tiles: [LoginTileSpec] {
         var list: [LoginTileSpec] = [

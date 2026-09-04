@@ -193,15 +193,11 @@ private struct PointsHeader: View {
 
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                // identity line: the emoji tag, a clear gap, the network's own
-                // name, the pencil that opens the editor; the ranked count sits
-                // on its own line below, left-aligned under the emoji
+                // identity: the network's own name with the pencil that opens
+                // the editor on the first line, the emoji tag on its own line
+                // below it, then the ranked count; the rows stack name over tag
+                // the same way
                 HStack(spacing: 10) {
-                    if !store.emojiTag.isEmpty {
-                        Text(store.emojiTag)
-                            .font(.system(size: 28))
-                            .lineLimit(1)
-                    }
                     Text(ownName)
                         .font(themeManager.currentTheme.bodyFontLarge)
                         .fontWeight(.bold)
@@ -215,6 +211,12 @@ private struct PointsHeader: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(store.emojiTag.isEmpty ? Text("Add emoji") : Text("Edit emoji"))
+                }
+                if !store.emojiTag.isEmpty {
+                    Text(store.emojiTag)
+                        .font(.system(size: 28))
+                        .lineLimit(1)
+                        .padding(.top, 4)
                 }
                 if store.totalRanked > 0 {
                     Text(String(format: String(localized: "%@ ranked networks"), SdkFormatPoints(Double(store.totalRanked))))
@@ -392,15 +394,10 @@ private struct PointsRow: View {
                 .frame(width: 56, alignment: .leading)
                 .lineLimit(1)
 
-            // identity cell: the emoji tag on its own line above the name, so a
-            // long tag never squeezes the name on a narrow screen (the own-stats
-            // header stacks the tag over its text the same way)
+            // identity cell: the name on the first line, the emoji tag on its
+            // own line below it, so a long tag never squeezes the name on a
+            // narrow screen (the own-stats header stacks name over tag the same way)
             VStack(alignment: .leading, spacing: 2) {
-                if !row.emojiTag.isEmpty {
-                    Text(row.emojiTag)
-                        .font(themeManager.currentTheme.bodyFont)
-                        .lineLimit(1)
-                }
                 if row.anonymous || row.displayName.isEmpty {
                     Text(isNetworkRow && !ownName.isEmpty ? ownName : String(localized: "Anonymous"))
                         .font(themeManager.currentTheme.bodyFont)
@@ -412,6 +409,11 @@ private struct PointsRow: View {
                         .font(themeManager.currentTheme.bodyFont)
                         .fontWeight(isNetworkRow ? .heavy : .regular)
                         .foregroundStyle(nameColor)
+                        .lineLimit(1)
+                }
+                if !row.emojiTag.isEmpty {
+                    Text(row.emojiTag)
+                        .font(themeManager.currentTheme.bodyFont)
                         .lineLimit(1)
                 }
             }

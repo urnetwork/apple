@@ -47,7 +47,13 @@ private struct IntroConnectorSlotModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.background(
             GeometryReader { proxy in
-                let frame = proxy.frame(in: .named(IntroConnectorState.coordinateSpace))
+                // window space on purpose: the step pages are pushed by a
+                // NavigationStack, where the host's named coordinate space is not
+                // reachable, so a named lookup silently fell back to the window
+                // space while the overlay positioned in its own inset space —
+                // the mark landed one safe-area inset too low. Both sides now
+                // speak window coordinates.
+                let frame = proxy.frame(in: .global)
                 Color.clear
                     .onAppear { report(frame) }
                     .onChange(of: frame) { next in report(next) }
@@ -101,21 +107,40 @@ struct FloatingIntroConnector: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var frame: CGRect = .zero
 
+    // the overlay's own window-space origin, subtracted from the window-space
+    // slot frames so the mark lands on the slot whatever inset the host has
+    @State private var origin: CGPoint = .zero
+    // true once the mark has settled on the header slot; from then on a slot
+    // that moves (the page scrolls) is followed by a snap, not a new flight
+    @State private var settledInHeader = false
+
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            if state.floating {
-                IntroConnectorMark()
-                    .frame(width: frame.width, height: frame.height)
-                    .offset(x: frame.minX, y: frame.minY)
-                    .allowsHitTesting(false)
+        GeometryReader { proxy in
+            ZStack(alignment: .topLeading) {
+                if state.floating {
+                    IntroConnectorMark()
+                        .frame(width: frame.width, height: frame.height)
+                        .offset(x: frame.minX - origin.x, y: frame.minY - origin.y)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .onAppear { origin = proxy.frame(in: .global).origin }
+            .onChange(of: proxy.frame(in: .global).origin) { next in
+                if origin != next { origin = next }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
         .onChange(of: state.inHeader) { inHeader in
             retarget(inHeader: inHeader)
         }
-        .onChange(of: state.headerFrame) { _ in
-            if state.inHeader {
+        .onChange(of: state.headerFrame) { target in
+            guard state.inHeader, let target else { return }
+            if settledInHeader {
+                // the header slot moved with its page; keep the mark on it
+                frame = target
+            } else {
                 retarget(inHeader: true)
             }
         }
@@ -136,8 +161,11 @@ struct FloatingIntroConnector: View {
                 }
                 state.floating = true
             }
-            fly(to: target)
+            fly(to: target) {
+                settledInHeader = true
+            }
         } else if state.floating {
+            settledInHeader = false
             guard let target = state.heroFrame else { return }
             fly(to: target) {
                 state.floating = false

@@ -5,8 +5,9 @@
 //  The sample the widgets render in the gallery and as their placeholder,
 //  and the app renders on the onboarding page (before anyone has connected)
 //  and on Account > Widgets until a real snapshot exists: a connected tunnel
-//  with a few providers, an hour of traffic and a handful of contracts, so
-//  the widgets' purpose reads at a glance. One definition, compiled into the
+//  with a few providers, an hour of bursty client traffic, provide mode
+//  Never and a handful of contracts, so the widgets' purpose reads at a
+//  glance. One definition, compiled into the
 //  app and the widget extension, so the two never drift.
 //
 
@@ -14,42 +15,37 @@ import Foundation
 
 enum WidgetSnapshotSample {
 
-    /// A connected, providing tunnel snapshot as of `date`.
+    /// A connected tunnel snapshot as of `date`: an hour of client traffic
+    /// and provide mode Never (what a fresh install has), so the provider
+    /// chart shows its "enable the provider" note as it does on a new device.
     static func tunnel(at date: Date) -> WidgetTunnelSnapshot {
         let now = Int64(date.timeIntervalSince1970)
         let bucketSeconds = WidgetThroughputAccumulator.bucketSeconds
         let count = WidgetThroughputAccumulator.bucketCount
-        // real traffic: a quiet floor with a few bursts that spike and decay
-        let clientBursts = burstSeries(
-            count: count,
-            bursts: [(7, 5_200_000, 0.62), (19, 2_400_000, 0.5), (31, 8_100_000, 0.7), (46, 3_600_000, 0.55), (55, 1_500_000, 0.45)],
-            floor: 60_000,
-            seed: 17
-        )
-        let providerBursts = burstSeries(
-            count: count,
-            bursts: [(11, 1_300_000, 0.6), (38, 900_000, 0.55), (52, 1_900_000, 0.65)],
-            floor: 25_000,
-            seed: 41
-        )
+        // an hour of real-looking client traffic: a quiet floor with a
+        // handful of sharp bursts of different heights, a long idle stretch,
+        // and the biggest burst still under way at the right edge
+        let clientBytesPerSecond = burstSeries(count: count, floor: sampleByteFloor, bursts: sampleByteBursts)
+            .map { $0 * 1024 }
+        let clientPacketsPerSecond = burstSeries(count: count, floor: samplePacketFloor, bursts: samplePacketBursts)
         var buckets: [WidgetThroughputBucket] = []
         for i in 0..<count {
             let start = ((now / bucketSeconds) - Int64(count - 1 - i)) * bucketSeconds
-            let client = clientBursts[i]
-            let provider = providerBursts[i]
-            // packets follow the bytes at a typical ~900 B payload, with the
-            // small-packet chatter (acks, DNS, handshakes) that keeps the pink
-            // line livelier than the green one
+            // the bucket holds a minute of the rate; downloads dominate, with
+            // a fraction going up (requests and acks: fewer bytes, more
+            // packets per byte)
+            let ingress = clientBytesPerSecond[i] * Double(bucketSeconds)
+            let ingressPackets = clientPacketsPerSecond[i] * Double(bucketSeconds)
             buckets.append(WidgetThroughputBucket(
                 start: start,
-                clientEgress: Int64(client * 0.18),
-                clientIngress: Int64(client),
-                providerEgress: Int64(provider),
-                providerIngress: Int64(provider * 0.3),
-                clientEgressPackets: Int64(client * 0.18 / 900 + client / 1400),
-                clientIngressPackets: Int64(client / 900 + 40),
-                providerEgressPackets: Int64(provider / 900 + 25),
-                providerIngressPackets: Int64(provider * 0.3 / 900 + provider / 1400)
+                clientEgress: Int64(ingress * 0.18),
+                clientIngress: Int64(ingress),
+                providerEgress: 0,
+                providerIngress: 0,
+                clientEgressPackets: Int64(ingressPackets * 0.45),
+                clientIngressPackets: Int64(ingressPackets),
+                providerEgressPackets: 0,
+                providerIngressPackets: 0
             ))
         }
         let providers = [
@@ -99,7 +95,8 @@ enum WidgetSnapshotSample {
         return WidgetTunnelSnapshot(
             updatedAt: date,
             tunnelActive: true,
-            providing: true,
+            providing: false,
+            provideMode: "never",
             location: WidgetLocationSnapshot(
                 name: "Japan", countryCode: "jp", city: "", region: "", country: "Japan",
                 bestAvailable: false, networkPeer: false, providerCount: 3, colorHex: "F94144"
@@ -122,28 +119,50 @@ enum WidgetSnapshotSample {
     }
 }
 
-/// A bytes-per-bucket series shaped like real traffic: a low, jittery floor
-/// with bursts that jump up and tail off (each burst: start bucket, peak
-/// bytes, decay per bucket). Deterministic for a given seed so the gallery
-/// preview never flickers.
-private func burstSeries(count: Int, bursts: [(Int, Double, Double)], floor: Double, seed: UInt64) -> [Double] {
-    var state = seed
-    func noise() -> Double {
-        // a small linear congruential generator: enough for jitter
-        state = state &* 6364136223846793005 &+ 1442695040888963407
-        return Double((state >> 33) % 1000) / 1000.0
-    }
-    var series = (0..<count).map { _ in floor * (0.6 + 0.8 * noise()) }
-    for (at, peak, decay) in bursts {
-        var level = peak
-        var i = at
-        while i < count && 0.02 * peak < level {
-            series[i] += level * (0.85 + 0.3 * noise())
-            level *= decay
-            i += 1
+/// One burst of the sample curve: where it sits in the window (0 an hour
+/// ago, 1 now), how wide it is, and how far it rises above the floor.
+private struct SampleBurst {
+    let center: Double
+    let width: Double
+    let amplitude: Double
+}
+
+/// The client byte rate over the window in KiB/s: a 6 KiB/s floor and six
+/// bursts, the tallest at the right edge (about 410 KiB/s at its center).
+/// Shared term for term with the Android sample so both previews draw the
+/// same curve.
+private let sampleByteFloor: Double = 6
+private let sampleByteBursts: [SampleBurst] = [
+    SampleBurst(center: 0.13, width: 0.012, amplitude: 60),
+    SampleBurst(center: 0.26, width: 0.010, amplitude: 330),
+    SampleBurst(center: 0.37, width: 0.012, amplitude: 190),
+    SampleBurst(center: 0.45, width: 0.010, amplitude: 160),
+    SampleBurst(center: 0.80, width: 0.015, amplitude: 45),
+    SampleBurst(center: 0.97, width: 0.012, amplitude: 404),
+]
+
+/// The client packet rate in packets/s over the same bursts, with a
+/// different height per burst so the two lines stay distinguishable
+/// (about 594 pkt/s at the tallest).
+private let samplePacketFloor: Double = 9
+private let samplePacketBursts: [SampleBurst] = [
+    SampleBurst(center: 0.13, width: 0.014, amplitude: 110),
+    SampleBurst(center: 0.26, width: 0.011, amplitude: 470),
+    SampleBurst(center: 0.37, width: 0.013, amplitude: 300),
+    SampleBurst(center: 0.45, width: 0.012, amplitude: 260),
+    SampleBurst(center: 0.80, width: 0.016, amplitude: 90),
+    SampleBurst(center: 0.97, width: 0.013, amplitude: 585),
+]
+
+/// The curve sampled once per bucket, oldest first, with `t` running from
+/// 0 to 1 across the buckets: floor + Σ amplitude · exp(−((t − center) / width)²).
+/// Deterministic, so the gallery preview never flickers.
+private func burstSeries(count: Int, floor: Double, bursts: [SampleBurst]) -> [Double] {
+    (0..<count).map { i in
+        let t = Double(i) / Double(max(1, count - 1))
+        return bursts.reduce(floor) { value, burst in
+            let d = (t - burst.center) / burst.width
+            return value + burst.amplitude * exp(-d * d)
         }
-        // a short ramp into the burst, one bucket before the peak
-        if 0 < at { series[at - 1] += peak * 0.3 * noise() }
     }
-    return series
 }

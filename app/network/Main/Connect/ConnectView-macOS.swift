@@ -119,6 +119,9 @@ import URnetworkSdk
                                 pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                                 usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
                                 promptMoreDataFlow: promptMoreDataFlow,
+                                openUpgradeSheet: {
+                                    connectViewModel.isPresentedUpgradeSheet = true
+                                },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: totalReferrals,
                                 referralCode: referralCode,

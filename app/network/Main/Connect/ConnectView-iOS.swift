@@ -236,6 +236,10 @@ struct ConnectView_iOS: View {
                                     promptMoreDataFlow()
                                     isSheetExpanded = false
                                 },
+                                openUpgradeSheet: {
+                                    isSheetExpanded = false
+                                    connectViewModel.isPresentedUpgradeSheet = true
+                                },
                                 meanReliabilityWeight: meanReliabilityWeight,
                                 totalReferrals: referralLinkViewModel.totalReferrals,
                                 referralCode: referralLinkViewModel.referralCode,

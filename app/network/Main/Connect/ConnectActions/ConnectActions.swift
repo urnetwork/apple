@@ -59,7 +59,10 @@ struct ConnectActions: View {
     let availableByteCount: Int
     let pendingByteCount: Int
     let usedByteCount: Int
+    // insufficient balance: the participate flow (introduction) for more data
     let promptMoreDataFlow: () -> Void
+    // Get Pro: the same upgrade sheet Account presents from its plan row
+    let openUpgradeSheet: () -> Void
     let meanReliabilityWeight: Double
     let totalReferrals: Int
     // when set, the usage bar referral row shares the referral link
@@ -299,7 +302,7 @@ struct ConnectActions: View {
 
                             if (!isPro) {
                                 Button(action: {
-                                    promptMoreDataFlow()
+                                    openUpgradeSheet()
                                 }) {
                                     Text("Get Pro")
                                         .font(themeManager.currentTheme.secondaryBodyFont)

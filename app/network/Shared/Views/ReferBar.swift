@@ -50,17 +50,13 @@ struct ReferBar: View {
             )
             
         }
-//        .chartXScale(domain: 0...5)
-        .chartXAxis {
-            AxisMarks(values: Array(0...5)) { value in
-                AxisGridLine()
-                AxisTick()
-                AxisValueLabel()
-            }
-        }
-//        .chartXAxis(.hidden)
-//        .frame(height: 32)
-        .frame(height: 44)
+        // A plain filled bar like the other platforms: no axis, ticks or labels.
+        // The 0...5 axis this replaced was a leftover from the first draft, when
+        // the cap was hardcoded to 5; the cap now comes from the referral terms.
+        .chartXScale(domain: 0...total)
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: 12)
         .chartForegroundStyleScale([
             "Referrals": .urReferralGold, "Available": themeManager.currentTheme.textFaintColor
         ])

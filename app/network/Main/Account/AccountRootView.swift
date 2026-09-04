@@ -437,6 +437,7 @@ struct AccountRootView: View {
             UpgradeSubscriptionSheet(
                 monthlyProduct: subscriptionManager.monthlySubscription,
                 yearlyProduct: subscriptionManager.yearlySubscription,
+                purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
                 purchase: { product in
 
                     let initiallyConnected = deviceManager.device?.getConnected() ?? false

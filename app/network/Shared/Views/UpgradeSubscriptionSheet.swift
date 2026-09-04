@@ -14,6 +14,8 @@ struct UpgradeSubscriptionSheet: View {
 
     var monthlyProduct: Product?
     var yearlyProduct: Product?
+    /// A tap on a plan whose product has not arrived from the store (see SubscriptionPlanPrices).
+    var purchaseUnavailable: () -> Void = {}
     var purchase: (Product) -> Void
     var isPurchasing: Bool
     var purchaseSuccess: Bool
@@ -116,7 +118,6 @@ struct UpgradeSubscriptionSheet: View {
                             .progressViewStyle(CircularProgressViewStyle())
                     } else {
 
-                        if let monthly = monthlyProduct, let yearly = yearlyProduct {
 
                             VStack(alignment: .leading) {
 
@@ -206,18 +207,42 @@ struct UpgradeSubscriptionSheet: View {
                                     Spacer().frame(height: 18)
                                 }
 
+                                if productsLoadFailed {
+
+                                    // the store did not answer; the plans still render
+                                    // from their list prices, and this offers a retry
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Couldn't load subscription options. Check your connection and retry.")
+                                            .font(themeManager.currentTheme.secondaryBodyFont)
+                                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+
+                                        Button(action: retryFetchProducts) {
+                                            Text("Retry")
+                                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                        .underline()
+                                    }
+
+                                    Spacer().frame(height: 18)
+                                }
+
                                 // room for the plan box's halo and pill
                                 Spacer().frame(height: 16)
 
                                 SubscriptionPlanPicker(
-                                    monthly: monthly,
-                                    yearly: yearly,
+                                    monthly: monthlyProduct,
+                                    yearly: yearlyProduct,
                                     selectedPaymentOption: $selectedPaymentOption,
                                     purchase: {
-                                        if selectedPaymentOption == .monthly {
-                                            purchase(monthly)
+                                        let product = selectedPaymentOption == .monthly
+                                            ? monthlyProduct
+                                            : yearlyProduct
+                                        if let product {
+                                            purchase(product)
                                         } else {
-                                            purchase(yearly)
+                                            purchaseUnavailable()
                                         }
                                     }
                                 )
@@ -238,59 +263,6 @@ struct UpgradeSubscriptionSheet: View {
 
                             }
 
-                        } else if productsLoadFailed {
-
-                            /**
-                             * The init-time product fetch failed and was never
-                             * retried, so this branch used to be an eternal
-                             * spinner (finding A5). Say what happened and let
-                             * the user retry; restore stays available for a
-                             * user whose purchase already exists.
-                             */
-                            VStack(spacing: 12) {
-
-                                Spacer()
-
-                                Text("Couldn't load subscription options. Check your connection and retry.")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                    .foregroundColor(themeManager.currentTheme.textColor)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 24)
-
-                                UrButton(
-                                    text: "Retry",
-                                    action: retryFetchProducts
-                                )
-                                .padding(.horizontal, 16)
-
-                                Button(action: restorePurchases) {
-                                    if isRestoringPurchases {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle())
-                                    } else {
-                                        Text("Restore purchases")
-                                            .font(themeManager.currentTheme.secondaryBodyFont)
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .underline()
-
-                                if let restoreMessage {
-                                    Text(restoreMessage)
-                                        .font(themeManager.currentTheme.secondaryBodyFont)
-                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 24)
-                                }
-
-                                Spacer()
-                            }
-
-                        } else {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                        }
 
                     }
 

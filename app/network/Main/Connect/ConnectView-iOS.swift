@@ -430,6 +430,7 @@ struct ConnectView_iOS: View {
                 UpgradeSubscriptionSheet(
                     monthlyProduct: subscriptionManager.monthlySubscription,
                     yearlyProduct: subscriptionManager.yearlySubscription,
+                    purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
                     purchase: { product in
 
                         // note: no VPN disconnect around the purchase on iOS —

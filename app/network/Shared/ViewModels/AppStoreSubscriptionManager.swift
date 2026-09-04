@@ -488,6 +488,18 @@ class AppStoreSubscriptionManager: ObservableObject {
         if self.restoreResultMessage != nil { self.restoreResultMessage = nil }
     }
 
+    /**
+     * The picker renders the plans before StoreKit answers (and when it never does), so a
+     * tap can land with no product to buy. Say so where a failed purchase reports itself and
+     * ask the store again, rather than ignoring the tap.
+     */
+    @MainActor
+    func reportProductsUnavailable() {
+        let message = String(localized: "Couldn't load subscription options. Check your connection and retry.")
+        if self.purchaseError != message { self.purchaseError = message }
+        retryFetchProductsIfNeeded()
+    }
+
     private func logTransactionDetails(_ transaction: Transaction) {
         print("Transaction ID: \(transaction.id)")
         print("Product ID: \(transaction.productID)")

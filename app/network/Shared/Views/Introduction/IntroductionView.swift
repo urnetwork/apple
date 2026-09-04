@@ -255,15 +255,20 @@ struct IntroductionView: View {
                      */
                     VStack(alignment: .leading) {
                         
-                        if let monthly = monthlySubscription, let yearly = yearlySubscription {
                             
                             SubscriptionPlanPicker(
-                                monthly: monthly,
-                                yearly: yearly,
+                                monthly: monthlySubscription,
+                                yearly: yearlySubscription,
                                 selectedPaymentOption: $selectedPaymentOption,
                                 purchase: {
-                                
-                                let product = selectedPaymentOption == .monthly ? monthly : yearly
+
+                                let product = selectedPaymentOption == .monthly ? monthlySubscription : yearlySubscription
+                                guard let product else {
+                                    // the store has not answered; say so where a failed
+                                    // purchase would, and ask it again
+                                    subscriptionManager.reportProductsUnavailable()
+                                    return
+                                }
 
                                 let initiallyConnected = deviceManager.device?.getConnected() ?? false
 
@@ -344,27 +349,27 @@ struct IntroductionView: View {
                                 }
                             }
 
-                        } else if subscriptionManager.fetchProductsError {
+                        if subscriptionManager.fetchProductsError {
 
-                            // the init-time product fetch failed; this
-                            // used to be an eternal spinner (finding A5)
-                            VStack(alignment: .center, spacing: 12) {
-                                Text("Couldn't load subscription options. Check your connection and retry.")
-                                    .font(themeManager.currentTheme.bodyFont)
-                                    .multilineTextAlignment(.center)
+                            // the store did not answer; the plans still render from
+                            // their list prices, and this offers a retry
+                            Spacer().frame(height: 12)
 
-                                UrButton(
-                                    text: "Retry",
-                                    action: {
-                                        subscriptionManager.retryFetchProductsIfNeeded()
-                                    }
-                                )
+                            Text("Couldn't load subscription options. Check your connection and retry.")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+
+                            Spacer().frame(height: 8)
+
+                            Button(action: {
+                                subscriptionManager.retryFetchProductsIfNeeded()
+                            }) {
+                                Text("Retry")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
                             }
-                            .frame(maxWidth: .infinity)
-
-                        } else {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
+                            .buttonStyle(.plain)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .underline()
                         }
 
                     }

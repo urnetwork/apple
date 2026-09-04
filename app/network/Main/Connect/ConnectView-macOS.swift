@@ -258,6 +258,7 @@ import URnetworkSdk
                 UpgradeSubscriptionSheet(
                     monthlyProduct: subscriptionManager.monthlySubscription,
                     yearlyProduct: subscriptionManager.yearlySubscription,
+                    purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
                     purchase: { product in
 
                         // purchase fails in the Mac App Store if the vpn is

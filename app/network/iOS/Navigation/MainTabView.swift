@@ -30,6 +30,7 @@ struct MainTabView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+    @EnvironmentObject var deviceManager: DeviceManager
     @Environment(\.presentationActive) private var presentationActive
     
     @State private var selectedTab = 0
@@ -67,17 +68,11 @@ struct MainTabView: View {
         /**
          * Prompt introduction
          */
-        if (isPro || errorFetchingSubscriptionBalance) {
-            self.displayIntroduction = false
-        } else {
-            
-            if introductionComplete.wrappedValue {
-                self.displayIntroduction = false
-            } else {
-                self.displayIntroduction = true
-            }
-            
-        }
+        self.displayIntroduction = IntroductionGate.shouldDisplay(
+            introductionComplete: introductionComplete.wrappedValue,
+            isPro: isPro,
+            balanceUnavailable: errorFetchingSubscriptionBalance
+        )
         
         setupTabBar()
     }
@@ -227,6 +222,12 @@ struct MainTabView: View {
 
                 IntroductionView(
                     close: {
+                        // finished or skipped: persist it before the cover
+                        // goes away, so a rebuilt tab view never re-prompts
+                        IntroductionGate.finish(
+                            introductionComplete: introductionComplete,
+                            persist: deviceManager.completeIntroFunnel
+                        )
                         displayIntroduction = false
                     },
                     totalReferrals: referralLinkViewModel.totalReferrals,

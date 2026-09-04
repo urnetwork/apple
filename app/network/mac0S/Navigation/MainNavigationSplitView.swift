@@ -35,6 +35,8 @@ struct MainNavigationSplitView: View {
     let device: SdkDeviceRemote
     let logout: () -> Void
     let isPro: Bool
+    // owned by ContentView; finishing the introduction writes it back
+    let introductionComplete: Binding<Bool>
 
     var iconWidth: CGFloat = 16
     
@@ -69,17 +71,15 @@ struct MainNavigationSplitView: View {
         _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
         
         self.isPro = isPro
+        self.introductionComplete = introductionComplete
 
         /**
          * Prompt introduction (mirrors iOS MainTabView gating)
          */
-        if isPro {
-            self.displayIntroduction = false
-        } else if introductionComplete.wrappedValue {
-            self.displayIntroduction = false
-        } else {
-            self.displayIntroduction = true
-        }
+        self.displayIntroduction = IntroductionGate.shouldDisplay(
+            introductionComplete: introductionComplete.wrappedValue,
+            isPro: isPro
+        )
     }
     
     var body: some View {
@@ -199,9 +199,26 @@ struct MainNavigationSplitView: View {
                 }
             }
         }
-        .sheet(isPresented: $displayIntroduction) {
+        .sheet(
+            isPresented: $displayIntroduction,
+            // a sheet the system dismisses, Escape included, still counts as finished
+            onDismiss: {
+                IntroductionGate.finish(
+                    introductionComplete: introductionComplete,
+                    persist: deviceManager.completeIntroFunnel
+                )
+            }
+        ) {
             IntroductionView(
-                close: { displayIntroduction = false },
+                close: {
+                    // finished or skipped: persist it before the sheet goes
+                    // away, so a rebuilt split view never re-prompts
+                    IntroductionGate.finish(
+                        introductionComplete: introductionComplete,
+                        persist: deviceManager.completeIntroFunnel
+                    )
+                    displayIntroduction = false
+                },
                 totalReferrals: referralLinkViewModel.totalReferrals,
                 referralCode: referralLinkViewModel.referralCode ?? "",
                 meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,

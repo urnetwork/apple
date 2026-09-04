@@ -1494,6 +1494,16 @@ extension DeviceManager {
         
     }
 
+    /**
+     * Records that the post-signup introduction finished or was skipped. The
+     * flag is written to the local state directly and pushed to the device, so
+     * a rebuilt view or a later launch never prompts again for this network.
+     */
+    func completeIntroFunnel() {
+        try? asyncLocalState?.getLocalState()?.setCanPromptIntroFunnel(false)
+        device?.setCanPromptIntroFunnel(false)
+    }
+
     private func rollbackFailedNetworkClientAuthentication() async {
         api?.setByJwt(nil)
 

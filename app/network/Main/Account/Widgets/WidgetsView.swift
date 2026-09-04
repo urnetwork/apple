@@ -15,9 +15,15 @@ import SwiftUI
 struct WidgetsView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var deviceManager: DeviceManager
     @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var model = WidgetPreviewModel()
+
+    // a guest has nothing real to preview; an account does, connected or not
+    private var hasAccount: Bool {
+        !(deviceManager.parsedJwt?.guestMode ?? true)
+    }
 
     var body: some View {
         ScrollView {
@@ -25,7 +31,11 @@ struct WidgetsView: View {
                 .padding()
         }
         .onAppear {
+            model.hasAccount = hasAccount
             model.start()
+        }
+        .onChange(of: hasAccount) { value in
+            model.hasAccount = value
         }
         .onDisappear {
             model.stop()
@@ -46,4 +56,5 @@ struct WidgetsView: View {
     WidgetsView()
         .background(Color.urBlack)
         .environmentObject(ThemeManager.shared)
+        .environmentObject(DeviceManager())
 }

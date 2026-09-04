@@ -342,6 +342,64 @@ enum WidgetSnapshotChange {
     }
 }
 
+/// Account > Widgets is on screen: the app marks this while its live previews
+/// are visible, so the tunnel extension publishes at a preview cadence (every
+/// couple of seconds instead of once a minute) and the previews move like the
+/// pinned widgets would. The mark carries an expiry and the app re-arms it
+/// while the screen stays up, so an app that dies with the screen open cannot
+/// leave the extension writing fast forever. Posted as a Darwin notification,
+/// the one channel that crosses from the app to the extension.
+enum WidgetPreviewVisibility {
+
+    static let darwinNotificationName = "network.ur.widgets.preview-visibility"
+    static let fileName = "preview-visible.json"
+    /// How long one mark lasts; the app re-arms every `heartbeatInterval`.
+    static let markInterval: TimeInterval = 90
+    static let heartbeatInterval: TimeInterval = 30
+
+    private struct Mark: Codable {
+        var until: Date
+    }
+
+    /// True while an unexpired mark is on disk.
+    static var isVisible: Bool {
+        guard let url = WidgetSnapshotStore.directoryURL?.appendingPathComponent(fileName),
+              let data = try? Data(contentsOf: url),
+              let mark = try? WidgetSnapshotStore.decoder.decode(Mark.self, from: data) else {
+            return false
+        }
+        return Date() < mark.until
+    }
+
+    /// The previews are showing: mark (or re-arm) and tell the extension.
+    static func mark() {
+        guard let directory = WidgetSnapshotStore.directoryURL else { return }
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let data = try WidgetSnapshotStore.encoder.encode(Mark(until: Date().addingTimeInterval(markInterval)))
+            try data.write(to: directory.appendingPathComponent(fileName), options: .atomic)
+        } catch {
+            return
+        }
+        post()
+    }
+
+    /// The previews are gone: clear the mark and tell the extension.
+    static func clear() {
+        guard let url = WidgetSnapshotStore.directoryURL?.appendingPathComponent(fileName) else { return }
+        try? FileManager.default.removeItem(at: url)
+        post()
+    }
+
+    private static func post() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(darwinNotificationName as CFString),
+            nil, nil, true
+        )
+    }
+}
+
 enum WidgetSnapshotStore {
 
     static let directoryName = "Widgets"
@@ -381,7 +439,7 @@ enum WidgetSnapshotStore {
         guard let directory = directoryURL else {
             return
         }
-        for fileName in [tunnelFileName, balanceFileName] {
+        for fileName in [tunnelFileName, balanceFileName, WidgetPreviewVisibility.fileName] {
             try? FileManager.default.removeItem(at: directory.appendingPathComponent(fileName))
         }
     }
@@ -409,13 +467,13 @@ enum WidgetSnapshotStore {
         }
     }
 
-    private static var encoder: JSONEncoder {
+    static var encoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .secondsSince1970
         return encoder
     }
 
-    private static var decoder: JSONDecoder {
+    static var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         return decoder

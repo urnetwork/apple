@@ -260,6 +260,7 @@ struct AccountRootView: View {
                                 navigate(.widgets)
                             }
                         )
+                        .accessibilityIdentifier("acceptance.account.widgets")
                         
                         /**
                          * Review

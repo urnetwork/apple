@@ -22,6 +22,11 @@ final class WidgetSnapshotWriter {
     /// How often the snapshot file is rewritten while the tunnel is up. Cheap
     /// (a few KB, atomic), so the next reload always finds fresh buckets.
     static let writeInterval: TimeInterval = 60
+    /// The write cadence while the app's Account > Widgets previews are on
+    /// screen (WidgetPreviewVisibility): the previews read every write, so
+    /// they move like the real widgets would if WidgetKit re-rendered that
+    /// often. Back to `writeInterval` when the mark clears or expires.
+    static let previewWriteInterval: TimeInterval = 2
     /// Routine widget reload cadence while the tunnel is up. WidgetKit
     /// budgets roughly 40-70 reloads a day per widget instance.
     static let routineReloadInterval: TimeInterval = 15 * 60
@@ -58,6 +63,11 @@ final class WidgetSnapshotWriter {
     private var provideMode: String? = nil
     private var active = false
     private var lastWritten: WidgetTunnelSnapshot?
+    /// Mirrors WidgetPreviewVisibility; owned by `queue`.
+    private var previewVisible = false
+    /// The writer the process-wide Darwin observer forwards to.
+    private static weak var current: WidgetSnapshotWriter?
+    private static var previewObserverRegistered = false
 
     private var contracts = ContractTracker()
     private var contractRefreshPending = false
@@ -214,12 +224,20 @@ final class WidgetSnapshotWriter {
             writeTimer.schedule(deadline: .now() + Self.writeInterval, repeating: Self.writeInterval, leeway: .seconds(5))
             writeTimer.setEventHandler { [weak self] in
                 guard let self, self.active else { return }
+                if self.previewVisible && !WidgetPreviewVisibility.isVisible {
+                    // the app died with the previews open: the mark expired
+                    self.applyPreviewVisibility()
+                }
                 if self.write() {
                     self.routineReload.request()
                 }
             }
             writeTimer.resume()
             self.writeTimer = writeTimer
+
+            Self.current = self
+            Self.registerPreviewObserver()
+            applyPreviewVisibility()
 
             let balanceTimer = DispatchSource.makeTimerSource(queue: queue)
             balanceTimer.schedule(
@@ -264,6 +282,10 @@ final class WidgetSnapshotWriter {
     }
 
     private func teardown() {
+        if Self.current === self {
+            Self.current = nil
+        }
+        previewVisible = false
         for sub in subs {
             sub.close()
         }
@@ -275,6 +297,52 @@ final class WidgetSnapshotWriter {
         routineReload.cancel()
         providerReload.cancel()
         contractReload.cancel()
+    }
+
+    // MARK: Preview visibility
+
+    /// One Darwin observer per process; the callback is a C function pointer,
+    /// so it reaches the live writer through `current`.
+    private static func registerPreviewObserver() {
+        guard !previewObserverRegistered else { return }
+        previewObserverRegistered = true
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            nil,
+            { _, _, _, _, _ in
+                WidgetSnapshotWriter.current?.previewVisibilityChanged()
+            },
+            WidgetPreviewVisibility.darwinNotificationName as CFString,
+            nil,
+            .deliverImmediately
+        )
+    }
+
+    private func previewVisibilityChanged() {
+        queue.async { [weak self] in
+            self?.applyPreviewVisibility()
+        }
+    }
+
+    /// Re-reads the mark and moves the write timer to the matching cadence.
+    /// Becoming visible publishes right away and refreshes what the previews
+    /// show that the routine cadence leaves stale: the contracts and the
+    /// balance.
+    private func applyPreviewVisibility() {
+        guard active else { return }
+        let visible = WidgetPreviewVisibility.isVisible
+        guard visible != previewVisible else { return }
+        previewVisible = visible
+        let interval = visible ? Self.previewWriteInterval : Self.writeInterval
+        writeTimer?.schedule(
+            deadline: .now() + interval, repeating: interval,
+            leeway: visible ? .milliseconds(500) : .seconds(5)
+        )
+        if visible {
+            write()
+            scheduleContractRefresh()
+            refreshBalance()
+        }
     }
 
     // MARK: Contracts

@@ -64,7 +64,17 @@ final class WidgetPreviewModel: ObservableObject {
     private static let tickInterval: TimeInterval = 60
 
     private var running = false
+    /// Signed in with an account (not a guest): the previews show the real
+    /// snapshots, which for a device that never connected is the widgets' own
+    /// off state. Without an account there is nothing real to show, so the
+    /// gallery sample stands in, the way onboarding shows it.
+    var hasAccount = false {
+        didSet {
+            if hasAccount != oldValue { reload() }
+        }
+    }
     private var manager: NETunnelProviderManager?
+    private var heartbeat: Timer?
     private var observers: [NSObjectProtocol] = []
     private var directorySource: DispatchSourceFileSystemObject?
     private var reloadWork: DispatchWorkItem?
@@ -96,6 +106,13 @@ final class WidgetPreviewModel: ObservableObject {
         }
         Task { await loadManager() }
         reload()
+        // tell the extension the previews are showing, and keep telling it
+        WidgetPreviewVisibility.mark()
+        heartbeat = Timer.scheduledTimer(
+            withTimeInterval: WidgetPreviewVisibility.heartbeatInterval, repeats: true
+        ) { _ in
+            WidgetPreviewVisibility.mark()
+        }
     }
 
     func stop() {
@@ -111,25 +128,31 @@ final class WidgetPreviewModel: ObservableObject {
         reloadWork = nil
         tick?.invalidate()
         tick = nil
+        heartbeat?.invalidate()
+        heartbeat = nil
+        WidgetPreviewVisibility.clear()
     }
 
     /// Re-read the snapshots and the tunnel state.
     func reload() {
         guard running else { return }
         let now = Date()
-        let tunnel = WidgetSnapshotStore.loadTunnel()
-        let balance = WidgetSnapshotStore.loadBalance()
-        guard tunnel != nil || balance != nil else {
-            // nothing has been written yet (fresh install, never connected):
-            // show what the widgets themselves show in that state, the sample
+        guard hasAccount else {
             data = .sample(at: now)
             return
         }
+        // the widgets' own reading: a missing tunnel snapshot is the off state,
+        // a missing balance draws the empty bar
+        let tunnel = WidgetSnapshotStore.loadTunnel()
+        let balance = WidgetSnapshotStore.loadBalance()
         data = WidgetPreviewData(
             tunnel: tunnel ?? .inactive(at: now),
             balance: balance,
             isOn: manager.map { Self.isActive($0.connection.status) } ?? false,
-            isConfigured: manager != nil,
+            // the widgets infer "signed in" from the tunnel profile; here the
+            // account is known, so a signed-in device without the profile yet
+            // reads as disconnected, not as "not signed in"
+            isConfigured: manager != nil || hasAccount,
             now: now,
             isSample: false
         )

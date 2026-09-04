@@ -159,12 +159,12 @@ struct MainNavigationSplitView: View {
             switch selectedTab {
             case .connect:
                 ConnectView_macOS(
+                    api: api,
                     urApiService: urApiService,
                     providerStore: providerListStore,
                     promptMoreDataFlow: { displayIntroduction = true },
                     meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,
-                    totalReferrals: referralLinkViewModel.totalReferrals,
-                    referralCode: referralLinkViewModel.referralCode,
+                    referralLinkViewModel: referralLinkViewModel,
                     isPro: isPro
                 )
             case .account:

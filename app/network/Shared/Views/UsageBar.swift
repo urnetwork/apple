@@ -26,8 +26,9 @@ struct UsageBar: View {
     let totalReferrals: Int
     let cappedReliabilityData: Double
     let dailyBalanceByteCount: Int
-    // when set, the referral row is a share link that opens the referral flow
-    let referralCode: String?
+    // when set, the referral row is a tap target that opens the one Referrals
+    // screen (the Account section's); there is no separate referral flow
+    let openReferrals: (() -> Void)?
     // the referral row; off where referrals have their own screen
     let showReferrals: Bool
     // the referral cap and bonus, from the server
@@ -40,7 +41,7 @@ struct UsageBar: View {
         meanReliabilityWeight: Double,
         totalReferrals: Int,
         dailyBalanceByteCount: Int,
-        referralCode: String? = nil,
+        openReferrals: (() -> Void)? = nil,
         showReferrals: Bool = true,
         terms: ReferralTerms = .default
     ) {
@@ -58,7 +59,7 @@ struct UsageBar: View {
         
         cappedReliabilityData = min(meanReliabilityWeight * 100, 100)
         self.dailyBalanceByteCount = dailyBalanceByteCount
-        self.referralCode = referralCode
+        self.openReferrals = openReferrals
         self.showReferrals = showReferrals
         self.terms = terms
     }
@@ -166,20 +167,17 @@ struct UsageBar: View {
             Spacer().frame(height: 8)
 
             /**
-             * referrals. tapping shares the referral link, to make it easy to
-             * refer people from anywhere the bar is shown
+             * referrals. tapping opens the Referrals screen, the same one the
+             * Account section shows, so every entry point lands on one design
              */
-            if let referralCode = referralCode {
-                ShareLink(
-                    item: referralShareMessage(referralCode),
-                    subject: Text("URnetwork Referral Code")
-                ) {
-                    referralRow(showsShareIcon: true)
+            if let openReferrals = openReferrals {
+                Button(action: openReferrals) {
+                    referralRow(showsChevron: true)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .contentShape(Rectangle())
             } else {
-                referralRow(showsShareIcon: false)
+                referralRow(showsChevron: false)
             }
 
             }
@@ -188,16 +186,7 @@ struct UsageBar: View {
 
     }
 
-    private func referralShareMessage(_ code: String) -> String {
-        // referrals no longer use deep links; friends enter the code on sign up.
-        // share a generic invite until the code loads (see ReferralShareLink)
-        if !code.isEmpty {
-            return String(localized: "Join me on URnetwork! Get the app and enter referral code \(code) when you sign up.")
-        }
-        return String(localized: "Join me on URnetwork! Get the app and enter my referral code when you sign up.")
-    }
-
-    private func referralRow(showsShareIcon: Bool) -> some View {
+    private func referralRow(showsChevron: Bool) -> some View {
         HStack {
 
             // real plural rules live in Localizable.xcstrings
@@ -212,8 +201,8 @@ struct UsageBar: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundStyle(themeManager.currentTheme.textMutedColor)
 
-            if showsShareIcon {
-                Image(systemName: "square.and.arrow.up")
+            if showsChevron {
+                Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
             }

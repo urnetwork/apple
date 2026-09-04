@@ -70,6 +70,18 @@ struct AccountRootView: View {
     }
     
     
+    /**
+     * Opens the one Referrals screen. Guests create an account first, so the
+     * usage bar row, the Referrals row and the account menu all behave alike.
+     */
+    private func openReferrals(isGuest: Bool) {
+        if isGuest {
+            viewModel.isPresentedCreateAccount = true
+        } else {
+            navigate(.referrals)
+        }
+    }
+
     var body: some View {
         
         let isGuest = deviceManager.parsedJwt?.guestMode ?? true
@@ -130,7 +142,7 @@ struct AccountRootView: View {
                             meanReliabilityWeight: meanReliabilityWeight,
                             totalReferrals: referralLinkViewModel.totalReferrals,
                             dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
-                            referralCode: referralLinkViewModel.referralCode
+                            openReferrals: { openReferrals(isGuest: isGuest) }
                         )
                         
                         /**
@@ -239,13 +251,7 @@ struct AccountRootView: View {
                         AccountNavLink(
                             name: "Referrals",
                             iconPath: "ur.symbols.heart",
-                            action: {
-                                if isGuest {
-                                    viewModel.isPresentedCreateAccount = true
-                                } else {
-                                    navigate(.referrals)
-                                }
-                            }
+                            action: { openReferrals(isGuest: isGuest) }
                         )
 
                         /**
@@ -523,7 +529,7 @@ struct AccountRootView: View {
                     logout: logout,
                     networkName: networkName,
                     isPresentedCreateAccount: $viewModel.isPresentedCreateAccount,
-                    referralLinkViewModel: referralLinkViewModel
+                    openReferrals: { openReferrals(isGuest: isGuest) }
                 )
             }
         }
@@ -557,7 +563,7 @@ struct AccountRootView: View {
                     logout: logout,
                     networkName: networkName,
                     isPresentedCreateAccount: $viewModel.isPresentedCreateAccount,
-                    referralLinkViewModel: referralLinkViewModel
+                    openReferrals: { openReferrals(isGuest: isGuest) }
                 )
             }
             ToolbarItem(placement: .automatic) {

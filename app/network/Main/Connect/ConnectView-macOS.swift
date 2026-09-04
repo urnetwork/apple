@@ -45,24 +45,28 @@ import URnetworkSdk
         
         let promptMoreDataFlow: () -> Void
         let meanReliabilityWeight: Double
-        let totalReferrals: Int
-        let referralCode: String?
         let isPro: Bool
+        let api: SdkApi
+        let urApiService: UrApiServiceProtocol
+        @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
+        // the one Referrals screen, presented from the drawer's referral row
+        @State private var isPresentedReferrals = false
 
         init(
+            api: SdkApi,
             urApiService: UrApiServiceProtocol,
             providerStore: ProviderListStore,
             promptMoreDataFlow: @escaping () -> Void,
             meanReliabilityWeight: Double,
-            totalReferrals: Int,
-            referralCode: String?,
+            referralLinkViewModel: ReferralLinkViewModel,
             isPro: Bool
         ) {
+            self.api = api
+            self.urApiService = urApiService
             self.providerListStore = providerStore
             self.promptMoreDataFlow = promptMoreDataFlow
             self.meanReliabilityWeight = meanReliabilityWeight
-            self.totalReferrals = totalReferrals
-            self.referralCode = referralCode
+            self.referralLinkViewModel = referralLinkViewModel
             self.isPro = isPro
         }
 
@@ -123,8 +127,10 @@ import URnetworkSdk
                                     connectViewModel.isPresentedUpgradeSheet = true
                                 },
                                 meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: totalReferrals,
-                                referralCode: referralCode,
+                                totalReferrals: referralLinkViewModel.totalReferrals,
+                                openReferrals: {
+                                    isPresentedReferrals = true
+                                },
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
@@ -235,6 +241,17 @@ import URnetworkSdk
             }
             .onAppear {
                 presentWidgetDestination()
+            }
+            // referrals: the Account section's screen, unchanged, in a sheet
+            .sheet(isPresented: $isPresentedReferrals) {
+                ReferralsSheet(
+                    api: urApiService,
+                    sdkApi: api,
+                    referralLinkViewModel: referralLinkViewModel,
+                    dismiss: { isPresentedReferrals = false }
+                )
+                .environmentObject(themeManager)
+                .frame(minWidth: 560, minHeight: 640)
             }
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {

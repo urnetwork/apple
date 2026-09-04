@@ -22,7 +22,8 @@ struct AccountMenu: View {
     var networkName: String?
     @Binding var isPresentedCreateAccount: Bool
     
-    @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
+    // opens the one Referrals screen (the Account section's)
+    var openReferrals: () -> Void
     
     var body: some View {
     
@@ -55,8 +56,10 @@ struct AccountMenu: View {
             }
             .accessibilityIdentifier("acceptance.account.logout")
             
-            ReferralShareLink(referralLinkViewModel: referralLinkViewModel) {
-                Label("Share URnetwork", systemImage: "square.and.arrow.up")
+            Button(action: {
+                openReferrals()
+            }) {
+                Label("Refer and earn", systemImage: "heart")
             }
             
         } label: {

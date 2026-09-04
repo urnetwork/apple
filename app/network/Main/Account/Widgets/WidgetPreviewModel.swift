@@ -78,6 +78,8 @@ final class WidgetPreviewModel: ObservableObject {
     private var observers: [NSObjectProtocol] = []
     private var directorySource: DispatchSourceFileSystemObject?
     private var reloadWork: DispatchWorkItem?
+    private var reloadGeneration: UInt64 = 0
+    private static let readQueue = DispatchQueue(label: "network.ur.widget-preview-read", qos: .userInitiated)
     private var tick: Timer?
 
     func start() {
@@ -141,21 +143,35 @@ final class WidgetPreviewModel: ObservableObject {
             data = .sample(at: now)
             return
         }
-        // the widgets' own reading: a missing tunnel snapshot is the off state,
-        // a missing balance draws the empty bar
-        let tunnel = WidgetSnapshotStore.loadTunnel()
-        let balance = WidgetSnapshotStore.loadBalance()
-        data = WidgetPreviewData(
-            tunnel: tunnel ?? .inactive(at: now),
-            balance: balance,
-            isOn: manager.map { Self.isActive($0.connection.status) } ?? false,
-            // the widgets infer "signed in" from the tunnel profile; here the
-            // account is known, so a signed-in device without the profile yet
-            // reads as disconnected, not as "not signed in"
-            isConfigured: manager != nil || hasAccount,
-            now: now,
-            isSample: false
-        )
+        // the snapshot files live in the App Group container, which the tunnel
+        // extension rewrites every couple of seconds while this screen is open.
+        // Read and decode them off the main thread: the main thread only ever
+        // publishes the result, so a slow container read can never stall the
+        // UI. The generation drops a read that another reload has overtaken.
+        reloadGeneration &+= 1
+        let generation = reloadGeneration
+        let isOn = manager.map { Self.isActive($0.connection.status) } ?? false
+        // the widgets infer "signed in" from the tunnel profile; here the
+        // account is known, so a signed-in device without the profile yet
+        // reads as disconnected, not as "not signed in"
+        let isConfigured = manager != nil || hasAccount
+        Self.readQueue.async { [weak self] in
+            // the widgets' own reading: a missing tunnel snapshot is the off
+            // state, a missing balance draws the empty bar
+            let tunnel = WidgetSnapshotStore.loadTunnel()
+            let balance = WidgetSnapshotStore.loadBalance()
+            DispatchQueue.main.async {
+                guard let self, self.running, self.reloadGeneration == generation else { return }
+                self.data = WidgetPreviewData(
+                    tunnel: tunnel ?? .inactive(at: now),
+                    balance: balance,
+                    isOn: isOn,
+                    isConfigured: isConfigured,
+                    now: now,
+                    isSample: false
+                )
+            }
+        }
     }
 
     private func scheduleReload() {

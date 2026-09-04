@@ -53587,7 +53587,7 @@
       }
     },
     "No one is on the points leaderboard yet." : {
-      "comment" : "Points leaderboard: shown when no network has opted in yet.",
+      "comment" : "Points leaderboard: shown when no network has points yet (every ranked network is listed, so the list is empty only before the first snapshot).",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

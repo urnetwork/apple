@@ -138,7 +138,9 @@ struct SeedphraseDisplayView: View {
                     hasCopied = false
                 }
             },
+            style: .outlineSecondary,
             enabled: !hasCopied,
+            leadingSystemImage: hasCopied ? "checkmark" : "doc.on.doc",
             accessibilityIdentifier: "acceptance.instant.copy"
         )
     }

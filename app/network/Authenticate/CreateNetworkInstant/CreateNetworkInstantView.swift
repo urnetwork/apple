@@ -156,6 +156,7 @@ struct CreateNetworkInstantView: View {
                                 self.handleValidateReferralResult(result)
                             }
                         },
+                        style: .outlineSecondary,
                         enabled: !viewModel.isValidatingReferralCode && !viewModel.bonusReferralCode.isEmpty,
                         isProcessing: viewModel.isValidatingReferralCode
                     )

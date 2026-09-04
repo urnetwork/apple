@@ -24,6 +24,8 @@ struct UrButton: View {
     var enabled: Bool = true
     var isFullWidth: Bool = true
     var trailingIcon: String?
+    // an SF Symbol drawn before the label, for secondary actions like copy
+    var leadingSystemImage: String? = nil
     var isProcessing: Bool = false
     var accessibilityIdentifier: String = ""
     
@@ -73,6 +75,12 @@ struct UrButton: View {
     
     private var buttonText: some View {
         HStack(spacing: 8) {
+            if let leadingSystemImage {
+                Image(systemName: leadingSystemImage)
+                    .font(themeManager.currentTheme.toolbarTitleFont.bold())
+                    .foregroundColor(foregroundColor)
+            }
+
             Text(text)
                 .foregroundColor(foregroundColor)
                 .font(

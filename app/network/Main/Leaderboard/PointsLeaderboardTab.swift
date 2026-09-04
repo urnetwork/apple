@@ -392,7 +392,10 @@ private struct PointsRow: View {
                 .frame(width: 56, alignment: .leading)
                 .lineLimit(1)
 
-            HStack(spacing: 6) {
+            // identity cell: the emoji tag on its own line above the name, so a
+            // long tag never squeezes the name on a narrow screen (the own-stats
+            // header stacks the tag over its text the same way)
+            VStack(alignment: .leading, spacing: 2) {
                 if !row.emojiTag.isEmpty {
                     Text(row.emojiTag)
                         .font(themeManager.currentTheme.bodyFont)
@@ -411,8 +414,8 @@ private struct PointsRow: View {
                         .foregroundStyle(nameColor)
                         .lineLimit(1)
                 }
-                Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer().frame(width: 8)
 

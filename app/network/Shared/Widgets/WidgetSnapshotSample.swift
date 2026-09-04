@@ -32,17 +32,17 @@ enum WidgetSnapshotSample {
         for i in 0..<count {
             let start = ((now / bucketSeconds) - Int64(count - 1 - i)) * bucketSeconds
             // the bucket holds a minute of the rate; downloads dominate, with
-            // a fraction going up (requests and acks: fewer bytes, more
-            // packets per byte)
+            // a tenth of the bytes and half the packets going up (requests
+            // and acks: fewer bytes, more packets per byte)
             let ingress = clientBytesPerSecond[i] * Double(bucketSeconds)
             let ingressPackets = clientPacketsPerSecond[i] * Double(bucketSeconds)
             buckets.append(WidgetThroughputBucket(
                 start: start,
-                clientEgress: Int64(ingress * 0.18),
+                clientEgress: Int64(ingress * 0.10),
                 clientIngress: Int64(ingress),
                 providerEgress: 0,
                 providerIngress: 0,
-                clientEgressPackets: Int64(ingressPackets * 0.45),
+                clientEgressPackets: Int64(ingressPackets * 0.50),
                 clientIngressPackets: Int64(ingressPackets),
                 providerEgressPackets: 0,
                 providerIngressPackets: 0
@@ -120,7 +120,9 @@ enum WidgetSnapshotSample {
 }
 
 /// One burst of the sample curve: where it sits in the window (0 an hour
-/// ago, 1 now), how wide it is, and how far it rises above the floor.
+/// ago, 1 now), how wide it is, and how far it rises above the floor. The
+/// centers sit exactly on sample points of the 60-bucket grid (`k / 59`),
+/// so each peak lands in one bucket and the labels read the full heights.
 private struct SampleBurst {
     let center: Double
     let width: Double
@@ -128,30 +130,30 @@ private struct SampleBurst {
 }
 
 /// The client byte rate over the window in KiB/s: a 6 KiB/s floor and six
-/// bursts, the tallest at the right edge (about 410 KiB/s at its center).
+/// bursts, the tallest at the right edge (410 KiB/s at its peak).
 /// Shared term for term with the Android sample so both previews draw the
 /// same curve.
 private let sampleByteFloor: Double = 6
 private let sampleByteBursts: [SampleBurst] = [
-    SampleBurst(center: 0.13, width: 0.012, amplitude: 60),
-    SampleBurst(center: 0.26, width: 0.010, amplitude: 330),
-    SampleBurst(center: 0.37, width: 0.012, amplitude: 190),
-    SampleBurst(center: 0.45, width: 0.010, amplitude: 160),
-    SampleBurst(center: 0.80, width: 0.015, amplitude: 45),
-    SampleBurst(center: 0.97, width: 0.012, amplitude: 404),
+    SampleBurst(center: 8.0 / 59, width: 0.012, amplitude: 60),
+    SampleBurst(center: 15.0 / 59, width: 0.010, amplitude: 330),
+    SampleBurst(center: 22.0 / 59, width: 0.012, amplitude: 190),
+    SampleBurst(center: 27.0 / 59, width: 0.010, amplitude: 160),
+    SampleBurst(center: 47.0 / 59, width: 0.015, amplitude: 45),
+    SampleBurst(center: 57.0 / 59, width: 0.012, amplitude: 404),
 ]
 
 /// The client packet rate in packets/s over the same bursts, with a
 /// different height per burst so the two lines stay distinguishable
-/// (about 594 pkt/s at the tallest).
+/// (594 pkt/s at the tallest).
 private let samplePacketFloor: Double = 9
 private let samplePacketBursts: [SampleBurst] = [
-    SampleBurst(center: 0.13, width: 0.014, amplitude: 110),
-    SampleBurst(center: 0.26, width: 0.011, amplitude: 470),
-    SampleBurst(center: 0.37, width: 0.013, amplitude: 300),
-    SampleBurst(center: 0.45, width: 0.012, amplitude: 260),
-    SampleBurst(center: 0.80, width: 0.016, amplitude: 90),
-    SampleBurst(center: 0.97, width: 0.013, amplitude: 585),
+    SampleBurst(center: 8.0 / 59, width: 0.014, amplitude: 110),
+    SampleBurst(center: 15.0 / 59, width: 0.011, amplitude: 470),
+    SampleBurst(center: 22.0 / 59, width: 0.013, amplitude: 300),
+    SampleBurst(center: 27.0 / 59, width: 0.012, amplitude: 260),
+    SampleBurst(center: 47.0 / 59, width: 0.016, amplitude: 90),
+    SampleBurst(center: 57.0 / 59, width: 0.013, amplitude: 585),
 ]
 
 /// The curve sampled once per bucket, oldest first, with `t` running from

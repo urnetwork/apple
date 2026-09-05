@@ -125,7 +125,13 @@ struct ConnectView_iOS: View {
             let bottomExtension = drawerFloats ? 0 : geometry.safeAreaInsets.bottom
             let floatingMargin: CGFloat = drawerFloats ? 12 : 0
             let screenHeight = geometry.size.height + bottomExtension - floatingMargin
-            let sheetCollapsedHeight = collapsedSheetHeight(safeAreaBottom: bottomExtension)
+            // a floating drawer never rises under the tab bar: on a short
+            // landscape screen (tablet mini) the expanded height is capped so
+            // its top edge stays a clear margin below the top safe area
+            let sheetExpandedHeight = drawerFloats
+                ? max(sheetMinHeightFallback, min(sheetMaxHeight, screenHeight - geometry.safeAreaInsets.top - 24))
+                : sheetMaxHeight
+            let sheetCollapsedHeight = collapsedSheetHeight(safeAreaBottom: bottomExtension, maxHeight: sheetExpandedHeight)
 
             ZStack(alignment: .top) {
                 
@@ -306,7 +312,7 @@ struct ConnectView_iOS: View {
                 .onPreferenceChange(SheetHeaderHeightKey.self) { height in
                     sheetHeaderHeight = height
                 }
-                .frame(height: currentSheetHeight(collapsedHeight: sheetCollapsedHeight))
+                .frame(height: currentSheetHeight(collapsedHeight: sheetCollapsedHeight, maxHeight: sheetExpandedHeight))
                 // tablets: the drawer wraps its content at the readable column
                 // width and rises from the bottom center (the ZStack centers
                 // it); phones are narrower than the column, so it spans them
@@ -330,10 +336,10 @@ struct ConnectView_iOS: View {
                 // at its top and the drag is downward (closing)
                 .verticalPanGesture(
                     onChanged: { translation in
-                        sheetDragOnChanged(translation, collapsedHeight: sheetCollapsedHeight)
+                        sheetDragOnChanged(translation, collapsedHeight: sheetCollapsedHeight, maxHeight: sheetExpandedHeight)
                     },
                     onEnded: { translation in
-                        sheetDragOnEnded(translation, collapsedHeight: sheetCollapsedHeight)
+                        sheetDragOnEnded(translation, collapsedHeight: sheetCollapsedHeight, maxHeight: sheetExpandedHeight)
                     },
                     shouldBegin: { translation, location in
                         if !isSheetExpanded {
@@ -346,7 +352,7 @@ struct ConnectView_iOS: View {
                         return sheetScrollAtTop && 0 < translation
                     }
                 )
-                .offset(y: sheetY(screenHeight: screenHeight, collapsedHeight: sheetCollapsedHeight))
+                .offset(y: sheetY(screenHeight: screenHeight, collapsedHeight: sheetCollapsedHeight, maxHeight: sheetExpandedHeight))
                 .ignoresSafeArea(edges: drawerFloats ? [] : .bottom)
                 .animation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2),
                            value: isSheetExpanded)
@@ -562,7 +568,7 @@ struct ConnectView_iOS: View {
     // screenHeight extends past that area by exactly safeAreaBottom, so
     // whatever the inset reports, the fold lands 12pt above the tab bar —
     // consistent across devices (Android parity).
-    private func collapsedSheetHeight(safeAreaBottom: CGFloat) -> CGFloat {
+    private func collapsedSheetHeight(safeAreaBottom: CGFloat, maxHeight: CGFloat) -> CGFloat {
         guard let foldMaxY = sheetFoldMaxY, 0 < sheetHeaderHeight else {
             return sheetMinHeightFallback
         }
@@ -570,29 +576,29 @@ struct ConnectView_iOS: View {
         // which would invert the drag range
         return min(
             sheetHeaderHeight + foldMaxY + sheetFoldGap + safeAreaBottom,
-            sheetMaxHeight
+            maxHeight
         )
     }
 
-    private func currentSheetHeight(collapsedHeight: CGFloat) -> CGFloat {
-        let base = isSheetExpanded ? sheetMaxHeight : collapsedHeight
+    private func currentSheetHeight(collapsedHeight: CGFloat, maxHeight: CGFloat) -> CGFloat {
+        let base = isSheetExpanded ? maxHeight : collapsedHeight
         let dragged = base - sheetDragTranslation
-        return max(collapsedHeight, min(sheetMaxHeight, dragged))
+        return max(collapsedHeight, min(maxHeight, dragged))
     }
 
-    private func sheetY(screenHeight: CGFloat, collapsedHeight: CGFloat) -> CGFloat {
-        let height = currentSheetHeight(collapsedHeight: collapsedHeight)
+    private func sheetY(screenHeight: CGFloat, collapsedHeight: CGFloat, maxHeight: CGFloat) -> CGFloat {
+        let height = currentSheetHeight(collapsedHeight: collapsedHeight, maxHeight: maxHeight)
         return screenHeight - height
     }
 
-    private func sheetDragOnChanged(_ translation: CGFloat, collapsedHeight: CGFloat) {
-        let range = sheetMaxHeight - collapsedHeight
+    private func sheetDragOnChanged(_ translation: CGFloat, collapsedHeight: CGFloat, maxHeight: CGFloat) {
+        let range = maxHeight - collapsedHeight
         // Allow both directions: negative when dragging up, positive when dragging down
         sheetDragTranslation = max(-range, min(range, translation))
     }
 
-    private func sheetDragOnEnded(_ translation: CGFloat, collapsedHeight: CGFloat) {
-        let range = sheetMaxHeight - collapsedHeight
+    private func sheetDragOnEnded(_ translation: CGFloat, collapsedHeight: CGFloat, maxHeight: CGFloat) {
+        let range = maxHeight - collapsedHeight
         let threshold = range * 0.25
         if isSheetExpanded {
             if translation > threshold { isSheetExpanded = false }

@@ -54,7 +54,10 @@ struct SeedphraseDisplayView: View {
 
                 }
                 .padding()
-                .tabletForm()
+                // tablets: the 24-word grid needs three columns to fit a tablet mini
+                // in landscape without pushing the buttons off-screen, and three
+                // monospaced words need the readable column, not the form column
+                .tabletReadableColumn()
             }
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .interactiveDismissDisabled(true)
@@ -88,7 +91,11 @@ struct SeedphraseDisplayView: View {
     }
 
     private var wordGridView: some View {
-        let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
+        // two columns on a phone; three on a tablet, where the readable column is
+        // wide enough and the short landscape height of a tablet mini needs the
+        // eight-row grid so the confirm button stays on screen
+        let columnCount = TabletLayout.isTablet ? 3 : 2
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: columnCount)
         return LazyVGrid(columns: columns, spacing: 8) {
             ForEach(words) { seedWord in
                 wordRowView(index: seedWord.id, word: seedWord.word)

@@ -92,14 +92,16 @@ struct ProductOptionCard: View {
     }
 }
 
-/// The gold dress when the card is the recommended plan, nothing otherwise.
+/// The gold dress when the card is the recommended plan, nothing otherwise. When that plan is
+/// the selected one the dress blends in the purple selection language, so the pick reads as
+/// selected and not only through the radio dot.
 private struct OptionalGoldDress: ViewModifier {
     let enabled: Bool
     let selected: Bool
     func body(content: Content) -> some View {
         if enabled {
             // no clip here: the halo spills past the card on purpose
-            content.goldPlanDress(selected: selected)
+            content.goldPlanDress(selected: selected, blendSelection: selected)
         } else {
             content.cornerRadius(8)
         }

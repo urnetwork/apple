@@ -94,7 +94,7 @@ struct FeedbackView: View {
                         )
                     }
                     .padding()
-                    .frame(maxWidth: 600)
+                    .tabletReadableColumn()
                     .frame(minHeight: geometry.size.height)
                     .onTapGesture {
                         isFocused = false

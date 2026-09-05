@@ -47,8 +47,7 @@ struct ReferralsView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 16)
-            .frame(maxWidth: 600)
-            .frame(maxWidth: .infinity)
+            .tabletReadableColumn()
         }
         .refreshable {
             await refresh()

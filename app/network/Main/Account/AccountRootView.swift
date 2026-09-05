@@ -377,7 +377,7 @@ struct AccountRootView: View {
                     }
                     
                 }
-                .frame(maxWidth: 600)
+                .frame(maxWidth: TabletLayout.contentWidth)
                 
                 Spacer(minLength: 0)
             }

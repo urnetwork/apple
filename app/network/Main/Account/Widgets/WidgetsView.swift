@@ -29,6 +29,7 @@ struct WidgetsView: View {
         ScrollView {
             QuickConnectAndWidgetsView(data: model.data)
                 .padding()
+                .tabletReadableColumn()
         }
         .onAppear {
             model.hasAccount = hasAccount

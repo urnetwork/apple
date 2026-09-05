@@ -413,6 +413,8 @@ struct IntroductionView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .padding()
+                // tablets: a readable centered column, not the full width
+                .tabletReadableColumn()
                 .frame(minHeight: proxy.size.height)
             }
         }

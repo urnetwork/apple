@@ -87,8 +87,7 @@ struct ContractDetailsView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .frame(maxWidth: 600)
-                        .frame(maxWidth: .infinity)
+                        .tabletReadableColumn()
                     }
                     .coordinateSpace(name: "contractList")
                     .onPreferenceChange(ContractTopOffsetKey.self) { minY in

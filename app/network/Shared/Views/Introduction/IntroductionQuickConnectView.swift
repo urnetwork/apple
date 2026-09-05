@@ -39,6 +39,7 @@ struct IntroductionQuickConnectView: View {
                         .accessibilityIdentifier("acceptance.introduction.finish")
                 }
                 .padding()
+                .tabletReadableColumn()
                 .frame(minHeight: proxy.size.height)
             }
         }

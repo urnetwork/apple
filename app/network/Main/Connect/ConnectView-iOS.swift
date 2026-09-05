@@ -17,7 +17,10 @@ struct ConnectView_iOS: View {
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @Environment(\.requestReview) private var requestReview
-    
+    // regular widths (iPad) float the drawer as a centered panel above the
+    // bottom safe area; compact widths run it edge to edge behind the tab bar
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
 
@@ -114,8 +117,15 @@ struct ConnectView_iOS: View {
         
         GeometryReader { geometry in
 
-            let screenHeight = geometry.size.height + geometry.safeAreaInsets.bottom
-            let sheetCollapsedHeight = collapsedSheetHeight(safeAreaBottom: geometry.safeAreaInsets.bottom)
+            // on a regular width the drawer floats: it wraps its content at the
+            // readable column, stops above the bottom safe area with a small
+            // margin, and shows rounded corners all round. compact widths keep
+            // the phone drawer that extends behind the tab bar.
+            let drawerFloats = horizontalSizeClass == .regular
+            let bottomExtension = drawerFloats ? 0 : geometry.safeAreaInsets.bottom
+            let floatingMargin: CGFloat = drawerFloats ? 12 : 0
+            let screenHeight = geometry.size.height + bottomExtension - floatingMargin
+            let sheetCollapsedHeight = collapsedSheetHeight(safeAreaBottom: bottomExtension)
 
             ZStack(alignment: .top) {
                 
@@ -266,7 +276,7 @@ struct ConnectView_iOS: View {
                             // leaves the last card ending at the tab bar with
                             // its own 16pt bottom padding as the standard gap
                             Spacer()
-                                .frame(height: geometry.safeAreaInsets.bottom)
+                                .frame(height: drawerFloats ? 16 : geometry.safeAreaInsets.bottom)
                         }
                     }
                     .scrollIndicators(.hidden)
@@ -297,7 +307,10 @@ struct ConnectView_iOS: View {
                     sheetHeaderHeight = height
                 }
                 .frame(height: currentSheetHeight(collapsedHeight: sheetCollapsedHeight))
-                .frame(maxWidth: .infinity)
+                // tablets: the drawer wraps its content at the readable column
+                // width and rises from the bottom center (the ZStack centers
+                // it); phones are narrower than the column, so it spans them
+                .frame(maxWidth: TabletLayout.contentWidth)
                 .background(
                     Rectangle()
                         .fill(themeManager.currentTheme.tintedBackgroundBase)
@@ -334,7 +347,7 @@ struct ConnectView_iOS: View {
                     }
                 )
                 .offset(y: sheetY(screenHeight: screenHeight, collapsedHeight: sheetCollapsedHeight))
-                .ignoresSafeArea(edges: .bottom)
+                .ignoresSafeArea(edges: drawerFloats ? [] : .bottom)
                 .animation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2),
                            value: isSheetExpanded)
                 .animation(.spring(response: 0.25, dampingFraction: 0.85, blendDuration: 0.1),

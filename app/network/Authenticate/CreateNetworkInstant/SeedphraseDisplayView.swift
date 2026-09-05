@@ -54,8 +54,7 @@ struct SeedphraseDisplayView: View {
 
                 }
                 .padding()
-                .frame(maxWidth: .infinity)
-                .frame(maxWidth: 400)
+                .tabletForm()
             }
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .interactiveDismissDisabled(true)

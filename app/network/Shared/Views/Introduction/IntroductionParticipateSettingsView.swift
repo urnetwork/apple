@@ -111,6 +111,7 @@ struct IntroductionParticipateSettingsView: View {
                     
                 }
                 .padding()
+                .tabletReadableColumn()
                 .frame(minHeight: proxy.size.height)
                 
             }

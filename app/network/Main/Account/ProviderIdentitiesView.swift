@@ -44,8 +44,7 @@ struct ProviderIdentitiesView: View {
                 }
             }
             .padding(.horizontal)
-            .frame(maxWidth: 600)
-            .frame(maxWidth: .infinity)
+            .tabletReadableColumn()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {

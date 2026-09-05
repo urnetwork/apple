@@ -38,7 +38,9 @@ struct CreateNetworkInstantView: View {
     }
 
     var body: some View {
-        ScrollView {
+        // the sign-in page's tablet treatment: carousel beside the form in
+        // landscape, the form column centered in portrait
+        AuthTabletLayout {
             VStack(alignment: .center) {
 
                 Text("Create Instant Account")
@@ -105,8 +107,6 @@ struct CreateNetworkInstantView: View {
 
             }
             .padding()
-            .frame(maxWidth: .infinity)
-            .frame(maxWidth: 400)
         }
         .sheet(isPresented: $viewModel.isPresentedAddBonusSheet, onDismiss: {
             showRoyalWelcome = false

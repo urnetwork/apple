@@ -338,7 +338,7 @@ struct ConnectActions: View {
             // from the top of the ConnectActions content, immune to any
             // centering slack a host's frame could introduce
             .coordinateSpace(name: connectActionsFoldCoordinateSpace)
-            .frame(maxWidth: 600)
+            .tabletReadableColumn()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 Rectangle()

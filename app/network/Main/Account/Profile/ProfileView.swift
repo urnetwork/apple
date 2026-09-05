@@ -146,7 +146,7 @@ struct ProfileView: View {
             Spacer()
         }
         .padding()
-        .frame(maxWidth: 600)
+        .tabletReadableColumn()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     

@@ -84,9 +84,10 @@ struct LeaderboardView: View {
                         
                     }
                 }
-                
+
             }
-            .frame(maxWidth: .infinity)
+            // tablets: the picker and the ranked list share the readable column
+            .tabletReadableColumn()
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationTitle("Leaderboard")
             

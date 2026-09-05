@@ -84,6 +84,7 @@ struct ParticipateReferView: View {
                     
                 }
                 .padding()
+                .tabletReadableColumn()
                 .frame(minHeight: proxy.size.height)
                 
             }

@@ -57,9 +57,10 @@ network_test_gate="$root/tests/network-intensive-suite-lock.sh"
   exit 127
 }
 if [ "${URNETWORK_NETWORK_TEST_LOCK_HELD:-}" != 1 ]; then
-  exec "$network_test_gate" apple-ios-device-startup -- "$here/test-hardware-startup.sh" "$@"
+  exec "$network_test_gate" main-acceptance apple-ios-device-startup -- \
+    "$here/test-hardware-startup.sh" "$@"
 fi
-if ! "$network_test_gate" --verify-held; then
+if ! "$network_test_gate" --verify-held main-acceptance; then
   echo "[apple hardware startup] inherited suite-gate ownership is invalid" >&2
   exit 70
 fi

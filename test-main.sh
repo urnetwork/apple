@@ -55,6 +55,20 @@ case "$repeat_count" in
   0) echo "--repeat must be at least 1" >&2; exit 2 ;;
 esac
 
+network_test_gate="$root/tests/network-intensive-suite-lock.sh"
+if [ ! -x "$network_test_gate" ]; then
+  echo "Apple acceptance suite gate is missing or not executable: $network_test_gate" >&2
+  exit 127
+fi
+if [ "${URNETWORK_NETWORK_TEST_LOCK_HELD:-}" != 1 ]; then
+  exec "$network_test_gate" main-acceptance apple-acceptance -- \
+    "$here/test-main.sh" "$@"
+fi
+if ! "$network_test_gate" --verify-held main-acceptance; then
+  echo "Apple acceptance inherited an invalid network-intensive lock" >&2
+  exit 70
+fi
+
 die() { echo "[apple acceptance] ERROR: $*" >&2; exit 1; }
 command -v timeout >/dev/null 2>&1 || die "GNU timeout is required (brew install coreutils)"
 node "$root/build/all/acceptance/preflight-main.mjs" || exit 1

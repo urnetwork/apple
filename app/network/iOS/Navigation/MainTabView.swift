@@ -244,7 +244,7 @@ struct MainTabView: View {
                 .padding(.bottom, 50)
 
             }
-            .presentationBackground(themeManager.currentTheme.backgroundColor)
+            .presentationBackgroundIfAvailable(themeManager.currentTheme.backgroundColor)
 
         }
 

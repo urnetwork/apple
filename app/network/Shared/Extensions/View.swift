@@ -8,6 +8,18 @@
 import Foundation
 import SwiftUI
 
+extension View {
+    // Keep the system presentation background on the supported older OSes.
+    @ViewBuilder
+    func presentationBackgroundIfAvailable<S: ShapeStyle>(_ style: S) -> some View {
+        if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
+            presentationBackground(style)
+        } else {
+            self
+        }
+    }
+}
+
 #if canImport(UIKit)
 import UIKit
 

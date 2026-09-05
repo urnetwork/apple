@@ -51,7 +51,7 @@ enum TunnelDiagnosticsFlush {
                 once.resume()
             }
 
-            NETunnelProviderManager.loadAllFromPreferences { managers, _ in
+            VPNProfileSystem.loadAllFromPreferences { managers, _ in
                 let session = (managers ?? [])
                     .compactMap { $0.connection as? NETunnelProviderSession }
                     .first { session in

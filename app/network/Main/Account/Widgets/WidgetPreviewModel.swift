@@ -196,7 +196,7 @@ final class WidgetPreviewModel: ObservableObject {
     }
 
     private func loadManager() async {
-        let managers = (try? await NETunnelProviderManager.loadAllFromPreferences()) ?? []
+        let managers = (try? await VPNProfileSystem.loadAllFromPreferences()) ?? []
         manager = managers.first {
             ($0.protocolConfiguration as? NETunnelProviderProtocol)?.providerBundleIdentifier
                 == Self.providerBundleIdentifier

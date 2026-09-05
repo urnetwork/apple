@@ -65,7 +65,9 @@ struct ContentView: View {
                     .opacity(opacity)
 
                 case .main:
-                    if let device = deviceManager.device, let _ = deviceManager.vpnManager {
+                    if let device = deviceManager.device,
+                       deviceManager.vpnManager != nil
+                        || deviceManager.startupMode == .hardwareNoVPN {
                         
                         let networkId = deviceManager.parsedJwt?.networkId
                         
@@ -125,6 +127,23 @@ struct ContentView: View {
                     )
                 }
             }
+
+            #if DEBUG && URNETWORK_HARDWARE_UI_TESTING && os(iOS)
+            if deviceManager.startupMode == .hardwareNoVPN {
+                AcceptanceMarker(
+                    identifier: "hardware.startup.no-vpn.active",
+                    value: "ready"
+                )
+                AcceptanceMarker(
+                    identifier: "hardware.startup.device-initializer-invocation-count",
+                    value: "\(deviceManager.startupInitializationInvocationCount)"
+                )
+                AcceptanceMarker(
+                    identifier: "hardware.startup.vpn-manager-invocation-count",
+                    value: "\(deviceManager.vpnManagerInitializationInvocationCount)"
+                )
+            }
+            #endif
             
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

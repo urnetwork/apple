@@ -552,10 +552,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let appVersionString: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "unknown"
         let buildNumber: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "0"
 
-        let localStateIsStale = hasStaleLocalState(localState, byJwt: byJwt, instanceId: instanceId)
-        // device identity is device-scoped, not session-scoped: load the key
-        // material even when the auth state is stale (token rotation,
-        // re-login), so peers can keep verifying this device across sessions.
+        let localStateIsStale = tunnelLocalStateRequiresReset(
+            storedByJwt: localState.getByJwt(),
+            storedInstanceId: localState.getInstanceId()?.string(),
+            configuredByJwt: byJwt,
+            configuredInstanceId: instanceId.string()
+        )
+        // Device identity is device-scoped, not credential-scoped: load the key
+        // material before clearing state that cannot be attributed to this
+        // instance, so peers can keep verifying this device across sessions.
         // Only the explicit logout app message rotates the identity.
         let keyMaterial: SdkDeviceLocalKeyMaterial? = localState.getDeviceLocalKeyMaterial()
 
@@ -665,9 +670,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.beginTunnelSettingsSession()
         self.reasserting = true
 
-        // a stale auth state wipes the session state below, but never the
-        // device identity: the loaded key material is re-persisted after the
-        // wipe (see saveKeyMaterial() at the end of setup)
+        // State without this exact stable instance identity is cleared below,
+        // but the device identity is retained: the loaded key material is
+        // re-persisted after the wipe (see saveKeyMaterial() at the end of setup).
+        // A JWT rotation for the same instance deliberately does not clear state.
         prepareLocalStateForStart(localState, byJwt: byJwt, instanceId: instanceId, hasStaleLocalState: localStateIsStale)
 
         self.deviceConfiguration = deviceConfiguration
@@ -1369,15 +1375,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             servers = [SdkGetDefaultTunnelDnsAddressIpv4()]
         }
         return servers
-    }
-
-    private func hasStaleLocalState(_ localState: SdkLocalState, byJwt: String, instanceId: SdkId) -> Bool {
-        let storedByJwt = localState.getByJwt()
-        let storedInstanceId = localState.getInstanceId()?.string()
-        let instanceIdString = instanceId.string()
-
-        return (!storedByJwt.isEmpty && storedByJwt != byJwt) ||
-            (storedInstanceId != nil && storedInstanceId != instanceIdString)
     }
 
     private func prepareLocalStateForStart(_ localState: SdkLocalState, byJwt: String, instanceId: SdkId, hasStaleLocalState: Bool) {

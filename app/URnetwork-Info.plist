@@ -51,6 +51,8 @@
 	<string>c9e8eb687dd18c83739e81715fe055af</string>
 	<key>URAcceptanceBuildID</key>
 	<string>$(URNETWORK_ACCEPTANCE_BUILD_ID)</string>
+	<key>URHardwareUITestNonce</key>
+	<string>$(URNETWORK_HARDWARE_UI_TEST_NONCE)</string>
 	<key>NEVPNConfiguration</key>
 	<array>
 		<string>network.ur.extension</string>

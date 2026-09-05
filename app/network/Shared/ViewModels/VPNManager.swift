@@ -1047,7 +1047,7 @@ class VPNManager: ObservableObject {
         completion: @escaping (Result<[NETunnelProviderManager], Error>) -> Void
     ) {
         performVPNOperation(operation: operation) { resolve in
-            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -1078,7 +1078,7 @@ class VPNManager: ObservableObject {
                 }
             }
         ) { resolve in
-            manager.saveToPreferences { error in
+            VPNProfileSystem.saveToPreferences(manager) { error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -1150,7 +1150,7 @@ class VPNManager: ObservableObject {
         completion: @escaping (Error?) -> Void
     ) {
         performVPNOperation(operation: operation) { resolve in
-            manager.loadFromPreferences { error in
+            VPNProfileSystem.loadFromPreferences(manager) { error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -1172,7 +1172,7 @@ class VPNManager: ObservableObject {
         completion: @escaping (Error?) -> Void
     ) {
         performVPNOperation(operation: operation) { resolve in
-            manager.removeFromPreferences { error in
+            VPNProfileSystem.removeFromPreferences(manager) { error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -1482,7 +1482,7 @@ class VPNManager: ObservableObject {
             // a restart in place, not a user disconnect: the extension must
             // not record this stop as a shared disconnect intent
             TunnelIntentStore.markAppInitiatedStop()
-            tunnelManager.connection.stopVPNTunnel()
+            VPNProfileSystem.stopVPNTunnel(tunnelManager)
             self.waitForTunnelManagerToStop(
                 tunnelManager,
                 tunnelInstance: tunnelInstance,
@@ -1598,7 +1598,7 @@ class VPNManager: ObservableObject {
             operation: "bootstrap.loadAllFromPreferences",
             timeout: VPNBootstrapLookupTimeout
         ) { resolve in
-            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -1687,7 +1687,7 @@ class VPNManager: ObservableObject {
             operation: "jwtRefresh.loadAllFromPreferences",
             timeout: VPNBootstrapLookupTimeout
         ) { resolve in
-            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -1723,7 +1723,7 @@ class VPNManager: ObservableObject {
                     operation: "jwtRefresh.saveToPreferences",
                     timeout: TunnelCheckTimeout
                 ) { resolve in
-                    manager.saveToPreferences { error in
+                    VPNProfileSystem.saveToPreferences(manager) { error in
                         if let error {
                             resolve(.failure(error))
                         } else {
@@ -2162,8 +2162,22 @@ class VPNManager: ObservableObject {
                 print("[VPNManager]no running tunnel adoption reset=\(reset) profiles=\(n) [\(candidateSummary)]")
                 #endif
 
-                var tunnelManager: NETunnelProviderManager
-                tunnelManager = index < n ? managers[index] : NETunnelProviderManager()
+                let tunnelManager: NETunnelProviderManager
+                if index < n {
+                    tunnelManager = managers[index]
+                } else {
+                    do {
+                        tunnelManager = try VPNProfileSystem.makeManager()
+                    } catch {
+                        self.failVpnUpdate(
+                            error,
+                            operation: "start.makeManager",
+                            tunnelInstance: tunnelInstance,
+                            completion: completion
+                        )
+                        return
+                    }
+                }
                 if index >= n {
                     self.trackVpnManagers(managers + [tunnelManager])
                 }
@@ -2236,8 +2250,10 @@ class VPNManager: ObservableObject {
                     tunnelProtocol.providerBundleIdentifier = "network.ur.extension"
                     tunnelProtocol.disconnectOnSleep = false
                     tunnelProtocol.excludeLocalNetworks = true
-                    tunnelProtocol.excludeCellularServices = true
-                    tunnelProtocol.excludeAPNs = true
+                    if #available(iOS 16.4, macOS 13.3, *) {
+                        tunnelProtocol.excludeCellularServices = true
+                        tunnelProtocol.excludeAPNs = true
+                    }
                     if #available(iOS 17.4, macOS 14.4, *) {
                         tunnelProtocol.excludeDeviceCommunication = true
                     }
@@ -2319,7 +2335,7 @@ class VPNManager: ObservableObject {
                                     }
 
                                     do {
-                                        try tunnelManager.connection.startVPNTunnel()
+                                        try VPNProfileSystem.startVPNTunnel(tunnelManager)
                                         self.clearVpnError()
                                         // point the app's rpc transport at the extension's listener
                                         // (pinning the matching client cert) and watch for a
@@ -2460,7 +2476,7 @@ class VPNManager: ObservableObject {
                             return
                         }
 
-                        tunnelManager.connection.stopVPNTunnel()
+                        VPNProfileSystem.stopVPNTunnel(tunnelManager)
 
                         // A normal stop or health retry must retain the
                         // installed profile. Removing it here makes the next
@@ -2547,7 +2563,7 @@ class VPNManager: ObservableObject {
 
     private static func sendLogoutMessageToTunnelProviders(completion: @escaping () -> Void) {
         performVPNOperation(operation: "logout.loadAllFromPreferences") { resolve in
-            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -2625,7 +2641,7 @@ class VPNManager: ObservableObject {
         }
 
         performVPNOperation(operation: "removeAll.loadAllFromPreferences") { resolve in
-            NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
                 } else {
@@ -2652,7 +2668,7 @@ class VPNManager: ObservableObject {
 
                 let tunnelManager = managers[0]
                 performVPNOperation(operation: "removeAll.removeFromPreferences") { resolve in
-                    tunnelManager.removeFromPreferences { error in
+                    VPNProfileSystem.removeFromPreferences(tunnelManager) { error in
                         if let error {
                             resolve(.failure(error))
                         } else {

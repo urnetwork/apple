@@ -69,3 +69,5 @@ app/build.xcarchive
 app/URnetworkSdk/build
 
 build
+
+tests/__hardware_startup__/

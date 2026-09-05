@@ -80,6 +80,7 @@ struct NetworkApp: App {
     @State private var presentationLifecycle = PresentationLifecycleState()
     
     let themeManager = ThemeManager.shared
+    let startupMode: AppStartupMode
     
     @StateObject var deviceManager: DeviceManager
 
@@ -100,7 +101,9 @@ struct NetworkApp: App {
         // would be empty
         DiagnosticsLogLocation.configure(processName: DiagnosticsLogLocation.appProcessName)
 
-        let deviceManager = DeviceManager()
+        let startupMode = HardwareNoVPNLaunchContract.current
+        self.startupMode = startupMode
+        let deviceManager = DeviceManager(startupMode: startupMode)
         _deviceManager = StateObject(wrappedValue: deviceManager)
         appDelegate.deviceManager = deviceManager
 
@@ -114,9 +117,11 @@ struct NetworkApp: App {
          * the monitor whatever session api exists at report time (an empty
          * byJwt means logged out, and reporting defers until login).
          */
-        AppStoreTransactionMonitor.shared.start(apiProvider: { [weak deviceManager] in
-            deviceManager?.api
-        })
+        if startupMode != .rejectedHardwareTestRequest {
+            AppStoreTransactionMonitor.shared.start(apiProvider: { [weak deviceManager] in
+                deviceManager?.api
+            })
+        }
 
         #if os(iOS)
         // for styling NavigationTitle
@@ -267,7 +272,15 @@ struct NetworkApp: App {
             
             #if os(iOS)
             Group {
-                #if DEBUG
+                #if DEBUG && URNETWORK_HARDWARE_UI_TESTING
+                if startupMode == .rejectedHardwareTestRequest {
+                    HardwareNoVPNRejectedView()
+                } else if let result = ColdRelaunchIntegrationHarness.result {
+                    ColdRelaunchIntegrationView(result: result)
+                } else {
+                    ContentView()
+                }
+                #elseif DEBUG
                 if let result = ColdRelaunchIntegrationHarness.result {
                     ColdRelaunchIntegrationView(result: result)
                 } else {
@@ -579,6 +592,15 @@ struct NetworkApp: App {
     #endif
     
 }
+
+#if DEBUG && URNETWORK_HARDWARE_UI_TESTING && os(iOS)
+private struct HardwareNoVPNRejectedView: View {
+    var body: some View {
+        Text("rejected")
+            .accessibilityIdentifier("hardware.startup.request-rejected")
+    }
+}
+#endif
 
 #if DEBUG && os(iOS)
 private enum ColdRelaunchIntegrationHarness {

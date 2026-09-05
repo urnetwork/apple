@@ -59,6 +59,9 @@ struct NetworkSpaceSelection {
 class DeviceManager: ObservableObject {
     
     let domain = "GlobalStore"
+    let startupMode: AppStartupMode
+    private(set) var startupInitializationInvocationCount = 0
+    private(set) var vpnManagerInitializationInvocationCount = 0
     
     @Published private(set) var networkSpace: SdkNetworkSpace? {
         didSet {
@@ -422,7 +425,10 @@ class DeviceManager: ObservableObject {
                 loadPerformanceProfileFromDevice(device)
                 
                 self.deviceInitialized = true
-                self.vpnManager = VPNManager(device: device)
+                if startupMode.allowsVPNProfileSystemAccess {
+                    vpnManagerInitializationInvocationCount += 1
+                    self.vpnManager = VPNManager(device: device)
+                }
             } else {
                 withDeviceStateLoad {
                     self.provideControlMode = ProvideControlMode.Never
@@ -485,12 +491,22 @@ class DeviceManager: ObservableObject {
         return DeviceModelNames.name(forIdentifier: identifier) ?? identifier
     }
     
-    init() {
-        
-        Task {
-            await self.initializeNetworkSpace()
+    init(startupMode: AppStartupMode = HardwareNoVPNLaunchContract.current) {
+        self.startupMode = startupMode
+
+        let initializationScheduled = AppStartupInitializationGate.performIfAllowed(
+            mode: startupMode
+        ) {
+            self.startupInitializationInvocationCount += 1
+            Task {
+                await self.initializeNetworkSpace()
+            }
         }
-        
+        if !initializationScheduled {
+            // Test-only startup owns a dedicated UI and must not leave
+            // background handlers waiting for production initialization.
+            self.deviceInitialized = true
+        }
     }
     
     /**
@@ -707,6 +723,10 @@ extension DeviceManager {
     }
 
     private func removeVpnProfilesAndMarkInitializedWithoutDevice() {
+        guard startupMode.allowsVPNProfileSystemAccess else {
+            markInitializedWithoutDevice()
+            return
+        }
         VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles { error in
             DispatchQueue.main.async {
                 if let error = error {
@@ -908,6 +928,13 @@ extension DeviceManager {
             }
         }
 
+        // Hardware UI acceptance exercises normal API/authentication startup,
+        // but never consults an installed profile or the tunnel RPC bootstrap.
+        guard startupMode.allowsVPNProfileSystemAccess else {
+            finishInitialization(nil)
+            return
+        }
+
         guard let networkSpace else {
             finishInitialization(nil)
             return
@@ -958,7 +985,9 @@ extension DeviceManager {
         // a quick connect or disconnect made from Control Center, the widget
         // or Settings since the app last ran is the newest decision: fold it
         // into the saved connect location before it is pushed to the device
-        TunnelIntentAdoption.adoptPending(localState: localState, device: nil)
+        if startupMode.allowsVPNProfileSystemAccess {
+            TunnelIntentAdoption.adoptPending(localState: localState, device: nil)
+        }
 
         let routeLocal = localState.getRouteLocal()
         let blockerEnabled = localState.getBlockerEnabled()
@@ -1010,7 +1039,8 @@ extension DeviceManager {
         // upgraded installations the bootstrap above has already restored the
         // running profile's exact instance into LocalState, so this also closes
         // the one-restart migration gap for a token refreshed by an older build.
-        if let activeInstanceId = device.getInstanceId()?.string(),
+        if startupMode.allowsVPNProfileSystemAccess,
+           let activeInstanceId = device.getInstanceId()?.string(),
            !activeInstanceId.isEmpty {
             VPNManager.seedCurrentTunnelJwtIfMissing(
                 clientJwt,
@@ -1021,7 +1051,8 @@ extension DeviceManager {
         // point the rpc transport at the last known good session (if any) so the
         // device can connect to an already-running extension immediately, instead
         // of the default 127.0.0.1:12025 ws until the vpn is (re)started
-        if let rpcSession = RpcSessionStore.loadResult().session {
+        if startupMode.allowsVPNProfileSystemAccess,
+           let rpcSession = RpcSessionStore.loadResult().session {
             do {
                 try device.setRpcServer(rpcSession.clientPem, serverCertPem: rpcSession.serverCertPem, hostPort: rpcSession.hostPort)
             } catch {
@@ -1159,6 +1190,9 @@ extension DeviceManager {
 
             DispatchQueue.main.async {
                 self.updateParsedJwt()
+                guard self.startupMode.allowsVPNProfileSystemAccess else {
+                    return
+                }
                 guard let jwt, !jwt.isEmpty,
                       let instanceId = device.getInstanceId()?.string(),
                       !instanceId.isEmpty else {
@@ -1550,7 +1584,9 @@ extension DeviceManager {
         }
 
         isLoggingOut = true
-        SharedTunnelJwtStore.clear()
+        if startupMode.allowsVPNProfileSystemAccess {
+            SharedTunnelJwtStore.clear()
+        }
 
         let finishLocalStateLogout = {
             guard let asyncLocalState = self.asyncLocalState else {
@@ -1571,6 +1607,11 @@ extension DeviceManager {
             }
 
             asyncLocalState.logout(callback)
+        }
+
+        guard startupMode.allowsVPNProfileSystemAccess else {
+            finishLocalStateLogout()
+            return
         }
 
         guard let vpnManager = vpnManager else {

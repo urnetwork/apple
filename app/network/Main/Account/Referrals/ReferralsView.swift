@@ -3,10 +3,10 @@
 //  URnetwork
 //
 //  Account › Referrals ("Refer and earn"). Everything about referring lives
-//  here, top to bottom: the onboarding referral card as-is (progress toward the
-//  code's cap, then the gold king-frog panel with the code, share and the crown
-//  once a friend has joined), the totals (friends joined, points from
-//  referrals), and the referral network this network signed up with. It used
+//  here, top to bottom: the gold king-frog panel (the code, share, the
+//  progress toward the code's cap and the crown once a friend has joined), the
+//  totals (friends joined, points from referrals), and the referral network
+//  this network signed up with. The order matches the Android screen. It used
 //  to be spread over the account root (a refer sheet), Settings (code +
 //  referral network) and Earnings.
 //
@@ -93,60 +93,17 @@ struct ReferralsView: View {
     }
 
     /**
-     * The onboarding referral card, reused as-is (ParticipateReferView): the
-     * progress bar toward the code's cap, then the gold king-frog panel with
-     * the code, share and the crown once a friend has joined. The bonus
-     * figures come from the server's referral terms, never a literal.
+     * The gold king-frog panel with the code, share, the progress bar toward
+     * the code's cap and the crown once a friend has joined, exactly as the
+     * Android screen shows it. The bonus figures come from the server's
+     * referral terms, never a literal.
      */
     private var referralCard: some View {
-
-        let totalReferrals = referralLinkViewModel.totalReferrals
-        let terms = referralLinkViewModel.terms
-        let capped = terms.maxReferrals > 0 && terms.maxReferrals <= totalReferrals
-
-        return VStack(spacing: 24) {
-
-            VStack {
-
-                HStack {
-
-                    Text("Refer friends")
-                        .font(themeManager.currentTheme.toolbarTitleFont)
-
-                    Spacer()
-
-                    Text(verbatim: "\(totalReferrals)/\(terms.maxReferrals)")
-                        .font(themeManager.currentTheme.toolbarTitleFont)
-
-                }
-
-                Spacer().frame(height: 8)
-
-                ReferBar(referralCount: totalReferrals, total: terms.maxReferrals)
-
-                if capped {
-
-                    Spacer().frame(height: 8)
-
-                    HStack {
-                        Text("This code has been used up")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        Spacer()
-                    }
-                }
-
-            }
-            .padding()
-            .background(themeManager.currentTheme.tintedBackgroundBase)
-            .cornerRadius(16)
-
-            ReferralGoldPanel(
-                referralCode: referralLinkViewModel.referralCode ?? "",
-                totalReferrals: totalReferrals,
-                terms: terms
-            )
-        }
+        ReferralGoldPanel(
+            referralCode: referralLinkViewModel.referralCode ?? "",
+            totalReferrals: referralLinkViewModel.totalReferrals,
+            terms: referralLinkViewModel.terms
+        )
     }
 
     /**

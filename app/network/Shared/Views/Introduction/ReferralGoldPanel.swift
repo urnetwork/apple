@@ -6,9 +6,11 @@
 //  narrow layout) in SwiftUI: a gold-washed rounded surface with a pulsing
 //  aura, the bobbing king frog, kicker / heading / detail copy, the dashed
 //  code pill with its gold copy button, a gold share button and a status
-//  line. Once the network has a referral the panel is crowned: royal heading,
-//  brighter border, faster pulse and the crown line. Shown on the onboarding
-//  referral page.
+//  line. Under the share button sits the progress bar toward the code's cap
+//  with "joined / cap" beneath it, then the status line. Once the network has
+//  a referral the panel is crowned: royal heading, brighter border, faster
+//  pulse and the crown line. Shown on the onboarding referral page and on
+//  Account › Referrals, in the same order as the Android panel.
 //
 
 import SwiftUI
@@ -91,6 +93,10 @@ struct ReferralGoldPanel: View {
             }
 
             Spacer().frame(height: 16)
+
+            ReferralProgressBar(count: totalReferrals, maxReferrals: terms.maxReferrals)
+
+            Spacer().frame(height: 12)
 
             if crowned {
                 HStack(spacing: 8) {
@@ -237,6 +243,62 @@ struct ReferralGoldCodeCopyPill: View {
             try? await Task.sleep(nanoseconds: 1_800_000_000)
             copied = false
         }
+    }
+}
+
+/**
+ * Referrals toward the code's cap (the referral terms, never a literal): a
+ * thin gold track that fills per friend, with "joined / cap" under it, and
+ * the used-up line once the cap is reached. Sits under the share button and
+ * above the crown line, the same place the Android panel puts it.
+ */
+struct ReferralProgressBar: View {
+
+    let count: Int
+    let maxReferrals: Int
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var cap: Int { max(1, maxReferrals) }
+    private var joined: Int { min(max(0, count), cap) }
+    private var capped: Bool { cap <= joined }
+    private var fraction: CGFloat { CGFloat(joined) / CGFloat(cap) }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.urReferralGold.opacity(0.18))
+                    if fraction > 0 {
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.urReferralGold, .urReferralGoldLight],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: proxy.size.width * fraction)
+                    }
+                }
+            }
+            .frame(height: 6)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.6), value: fraction)
+
+            Group {
+                if capped {
+                    Text("This code has been used up")
+                        .foregroundColor(.urReferralGoldLight)
+                } else {
+                    Text(verbatim: "\(joined) / \(cap)")
+                        .foregroundColor(Color.urLightBlue.opacity(0.7))
+                }
+            }
+            .font(.system(size: 12))
+            .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

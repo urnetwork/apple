@@ -22,7 +22,7 @@ struct ReferBar: View {
     
     let data: [ReferDataUsage]
     let total: Int
-    let cornerRadius: CGFloat = 12
+    let cornerRadius: CGFloat = 6
     
     init(referralCount: Int, total: Int = referralMaxReferrals) {
         
@@ -36,7 +36,9 @@ struct ReferBar: View {
     }
     
     var body: some View {
-        
+
+        VStack(alignment: .leading, spacing: 4) {
+
         Chart(data.indices, id: \.self) { index in
                
             BarMark(
@@ -60,7 +62,15 @@ struct ReferBar: View {
         .chartForegroundStyleScale([
             "Referrals": .urReferralGold, "Available": themeManager.currentTheme.textFaintColor
         ])
-        
+
+        // the key under the bar, the same row the Android ReferralBar draws
+        HStack(spacing: 8) {
+            ReferBarKey(label: "Referrals", color: .urReferralGold)
+            ReferBarKey(label: "Available", color: themeManager.currentTheme.textFaintColor)
+        }
+
+        }
+
     }
     
     func getCornerRadii(_ index: Int) -> RectangleCornerRadii {
@@ -95,6 +105,26 @@ struct ReferBar: View {
             bottomTrailing: cornerRadius,
             topTrailing: cornerRadius
         )
+    }
+}
+
+/// One entry of the bar's key: a colored dot and its label.
+struct ReferBarKey: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let label: LocalizedStringKey
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+        }
     }
 }
 

@@ -43243,7 +43243,7 @@
         }
       }
     },
-    "Identity key hash copied" : {
+    "Provider identity key hash copied" : {
       "comment" : "Post quantum identity: toast after tapping an identity key hash to copy it.",
       "localizations" : {
         "ar" : {
@@ -43273,7 +43273,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identity key hash copied"
+            "value" : "Provider identity key hash copied"
           }
         },
         "es" : {
@@ -60247,7 +60247,7 @@
         }
       }
     },
-    "Post Quantum Identity" : {
+    "Post Quantum Provider Identity" : {
       "comment" : "Account tab: post quantum identity panel title.",
       "localizations" : {
         "ar" : {
@@ -60277,7 +60277,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Post Quantum Identity"
+            "value" : "Post Quantum Provider Identity"
           }
         },
         "es" : {
@@ -97369,7 +97369,7 @@
         }
       }
     },
-    "Your identity key is stored locally on this device. If any peer's key appears different than their locally stored key, it means the network operator cannot be trusted." : {
+    "Your provider identity key is stored locally on this device. If any peer's key appears different than their locally stored key, it means the network operator cannot be trusted." : {
       "comment" : "Account tab: explanation under the post quantum identity panel — what the identity key is and how verifying provider keys detects interception.",
       "localizations" : {
         "ar" : {
@@ -97399,7 +97399,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your identity key is stored locally on this device. If any peer's key appears different than their locally stored key, it means the network operator cannot be trusted."
+            "value" : "Your provider identity key is stored locally on this device. If any peer's key appears different than their locally stored key, it means the network operator cannot be trusted."
           }
         },
         "es" : {

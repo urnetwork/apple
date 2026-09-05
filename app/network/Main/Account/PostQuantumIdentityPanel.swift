@@ -40,7 +40,7 @@ struct PostQuantumIdentityPanel: View {
         VStack(alignment: .leading, spacing: 0) {
 
             HStack {
-                Text("Post Quantum Identity")
+                Text("Post Quantum Provider Identity")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                 Spacer()
@@ -71,7 +71,7 @@ struct PostQuantumIdentityPanel: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        copy(ownRow.publicKeyHash, message: String(localized: "Identity key hash copied"))
+                        copy(ownRow.publicKeyHash, message: String(localized: "Provider identity key hash copied"))
                     }
 
                 Spacer().frame(height: 4)
@@ -94,7 +94,7 @@ struct PostQuantumIdentityPanel: View {
             providerDeck
             Spacer().frame(height: 12)
 
-            Text("Your identity key is stored locally on this device. If any peer's key appears different than their locally stored key, it means the network operator cannot be trusted.")
+            Text("Your provider identity key is stored locally on this device. If any peer's key appears different than their locally stored key, it means the network operator cannot be trusted.")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .fixedSize(horizontal: false, vertical: true)

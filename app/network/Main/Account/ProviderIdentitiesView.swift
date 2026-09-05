@@ -97,7 +97,7 @@ struct ProviderIdentityRowView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        copy(row.publicKeyHash, message: String(localized: "Identity key hash copied"))
+                        copy(row.publicKeyHash, message: String(localized: "Provider identity key hash copied"))
                     }
 
                 // the client id, tap to copy

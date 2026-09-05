@@ -31,7 +31,7 @@ struct PostQuantumIdentityShareSheet: View {
 
             Spacer().frame(height: 32)
 
-            Text("Post Quantum Identity")
+            Text("Post Quantum Provider Identity")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
 
@@ -64,7 +64,7 @@ struct PostQuantumIdentityShareSheet: View {
             ShareLink(
                 item: IdentityIdenticonTransferable(publicKey: row.publicKey),
                 message: Text(verbatim: "\(row.publicKeyHash)\n\(row.clientId)"),
-                preview: SharePreview(Text("Post Quantum Identity"))
+                preview: SharePreview(Text("Post Quantum Provider Identity"))
             ) {
                 HStack(spacing: 8) {
                     Image(systemName: "square.and.arrow.up")

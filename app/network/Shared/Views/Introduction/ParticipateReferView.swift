@@ -43,34 +43,11 @@ struct ParticipateReferView: View {
                     IntroBulletPoint(text: "You get +\(terms.bonusGiBPerDay) GiB/day for life")
 
                     IntroBulletPoint(text: "Your friend gets +\(terms.referredBonusGiBPerDay) GiB/day for life")
-                    
-                    Spacer().frame(height: 16)
-                    
-                    VStack {
-                     
-                        HStack {
-                            
-                            Text("Refer friends")
-                                .font(themeManager.currentTheme.toolbarTitleFont)
-                            
-                            Spacer()
-                            
-                            Text(verbatim: "\(totalReferrals)/\(terms.maxReferrals)")
-                                .font(themeManager.currentTheme.toolbarTitleFont)
-                            
-                        }
-                        
-                        Spacer().frame(height: 8)
-                        
-                        ReferBar(referralCount: totalReferrals, total: terms.maxReferrals)
-                        
-                    }
-                    .padding()
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .cornerRadius(16)
-                    
+
                     Spacer().frame(height: 24)
 
+                    // the gold panel carries the referral count bar; there is
+                    // no separate progress card above it
                     ReferralGoldPanel(
                         referralCode: referralCode,
                         totalReferrals: totalReferrals,

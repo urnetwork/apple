@@ -46,20 +46,25 @@ private struct LegacySharedTunnelJwtEnvelope: Codable {
     let byJwt: String
 }
 
-private struct SharedTunnelJwtCandidate {
-    let account: String
-    let byJwt: String
-    let issuedAt: Int64?
-    let expiresAt: Int64?
-}
-
 private enum SharedTunnelJwtStore {
     private static let service = "network.ur.shared-tunnel-jwt"
     private static let accountPrefix = "v2-"
     private static let retainedTokensPerInstance = 3
 
-    static func load(expectedInstanceId: String) -> String? {
-        freshest(loadCandidates(expectedInstanceId: expectedInstanceId))?.byJwt
+    static func load(expectedInstanceId: String, configuredByJwt: String) -> String? {
+        let dates = jwtDates(configuredByJwt)
+        let configured = account(byJwt: configuredByJwt, instanceId: expectedInstanceId).map {
+            TunnelStartupJwtCandidate(
+                account: $0,
+                byJwt: configuredByJwt,
+                issuedAt: dates.issuedAt,
+                expiresAt: dates.expiresAt
+            )
+        }
+        return selectTunnelStartupClient(
+            configured: configured,
+            persisted: loadCandidates(expectedInstanceId: expectedInstanceId)
+        )
     }
 
     @discardableResult
@@ -95,7 +100,7 @@ private enum SharedTunnelJwtStore {
 
     private static func loadCandidates(
         expectedInstanceId: String
-    ) -> [SharedTunnelJwtCandidate] {
+    ) -> [TunnelStartupJwtCandidate] {
         guard var query = keychainIdentityQuery() else { return [] }
         query[kSecReturnAttributes as String] = true
         query[kSecReturnData as String] = true
@@ -129,7 +134,7 @@ private enum SharedTunnelJwtStore {
         data: Data,
         account: String,
         expectedInstanceId: String
-    ) -> SharedTunnelJwtCandidate? {
+    ) -> TunnelStartupJwtCandidate? {
         let decoder = JSONDecoder()
         if let envelope = try? decoder.decode(
             SharedTunnelJwtEnvelope.self,
@@ -137,7 +142,7 @@ private enum SharedTunnelJwtStore {
         ), envelope.version == SharedTunnelJwtEnvelope.currentVersion,
            envelope.instanceId == expectedInstanceId,
            !envelope.byJwt.isEmpty {
-            return SharedTunnelJwtCandidate(
+            return TunnelStartupJwtCandidate(
                 account: account,
                 byJwt: envelope.byJwt,
                 issuedAt: envelope.issuedAt,
@@ -151,7 +156,7 @@ private enum SharedTunnelJwtStore {
            legacy.instanceId == expectedInstanceId,
            !legacy.byJwt.isEmpty {
             let dates = jwtDates(legacy.byJwt)
-            return SharedTunnelJwtCandidate(
+            return TunnelStartupJwtCandidate(
                 account: account,
                 byJwt: legacy.byJwt,
                 issuedAt: dates.issuedAt,
@@ -161,38 +166,12 @@ private enum SharedTunnelJwtStore {
         return nil
     }
 
-    private static func freshest(
-        _ candidates: [SharedTunnelJwtCandidate],
-        now: Int64 = Int64(Date().timeIntervalSince1970)
-    ) -> SharedTunnelJwtCandidate? {
-        candidates.max { lhs, rhs in
-            isPreferred(rhs, over: lhs, now: now)
-        }
-    }
-
-    private static func isPreferred(
-        _ lhs: SharedTunnelJwtCandidate,
-        over rhs: SharedTunnelJwtCandidate,
-        now: Int64
-    ) -> Bool {
-        let lhsExpired = lhs.expiresAt.map { $0 <= now } ?? false
-        let rhsExpired = rhs.expiresAt.map { $0 <= now } ?? false
-        if lhsExpired != rhsExpired { return !lhsExpired }
-        let lhsIssuedAt = lhs.issuedAt ?? Int64.min
-        let rhsIssuedAt = rhs.issuedAt ?? Int64.min
-        if lhsIssuedAt != rhsIssuedAt { return lhsIssuedAt > rhsIssuedAt }
-        let lhsExpiresAt = lhs.expiresAt ?? Int64.min
-        let rhsExpiresAt = rhs.expiresAt ?? Int64.min
-        if lhsExpiresAt != rhsExpiresAt { return lhsExpiresAt > rhsExpiresAt }
-        return lhs.account > rhs.account
-    }
-
     private static func prune(expectedInstanceId: String) {
         let candidates = loadCandidates(expectedInstanceId: expectedInstanceId)
         guard candidates.count > retainedTokensPerInstance else { return }
         let now = Int64(Date().timeIntervalSince1970)
         let keep = Set(
-            candidates.sorted { isPreferred($0, over: $1, now: now) }
+            candidates.sorted { TunnelStartupJwtCandidate.isPreferred($0, over: $1, now: now) }
                 .prefix(retainedTokensPerInstance)
                 .map(\.account)
         )
@@ -277,16 +256,37 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private let lifecycleLock = NSLock()
     private var sleepStartedAt: Date?
 
-    private var deviceConfiguration: [String: String]?
-    private var device: SdkDeviceLocal?
-    private var localState: SdkLocalState?
-    private var close: (() -> Void)?
-    /// Publishes the widgets' snapshot for the life of the tunnel session.
-    private var snapshotWriter: WidgetSnapshotWriter?
+    private struct ProviderSession {
+        let device: SdkDeviceLocal
+        let localState: SdkLocalState
+        var configuration: [String: String]?
+        var close: (() -> Void)?
+        var snapshotWriter: WidgetSnapshotWriter?
+        var networkStateRefresh: (() -> Void)?
+        var destinationRecovery: DestinationRecovery?
+        var recoveryEffects: RecoveryEffects?
+        var connected = false
+        var started = false
+        var shouldSaveKeyMaterial = true
+    }
+    private let providerSessions = TunnelProviderSessionOwner<ProviderSession>()
+    // Readers take retained, coherent references. Publication/update/take below
+    // carries the reservation ticket; a stale callback cannot write a new slot.
+    private var device: SdkDeviceLocal? { providerSessions.snapshot()?.value.device }
+    private var localState: SdkLocalState? { providerSessions.snapshot()?.value.localState }
+    private var deviceConfiguration: [String: String]? { providerSessions.snapshot()?.value.configuration }
+    private var shouldSaveKeyMaterial: Bool { providerSessions.snapshot()?.value.shouldSaveKeyMaterial ?? false }
+    private var networkStateRefresh: (() -> Void)? { providerSessions.snapshot()?.value.networkStateRefresh }
+    private var connected: Bool { providerSessions.snapshot()?.value.connected ?? false }
     private var memoryPressureSource: DispatchSourceMemoryPressure?
     private var memoryMonitor: ExtensionMemoryMonitor?
     private var fips140Enabled = false
-    private var connected: Bool = false
+    private typealias RecoverySession = TunnelRecoverySession<TunnelIntentOwner, TunnelIntent>
+    private typealias DestinationRecovery = TunnelAuthRecoveryContinuation<RecoverySession.DestinationTicket>
+    private typealias RecoveryEffects = TunnelRecoveryEffectScheduler<RecoverySession.DestinationTicket>
+    private let recoverySession = RecoverySession()
+    private var recoveryBreadcrumbs: [String: String] = [:]
+    private let recoveryBreadcrumbLock = NSLock()
     // NetworkExtension applies settings asynchronously. Listener bursts during
     // connect/reconnect used to overlap several identical applies; serialize
     // them and retain only the newest distinct pending plan.
@@ -299,21 +299,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var pendingTunnelSettings: TunnelNetworkSettingsPlan?
     private var pendingTunnelSettingsForce = false
     private var pendingTunnelSettingsCompletions: [((Error?) -> Void)] = []
-    private var stopped: Bool = false
-    private var shouldSaveKeyMaterial: Bool = true
-    private let packetReadLock = NSLock()
-    // re-checks the network path + power state on demand (set per tunnel
-    // session; used by wake() after sleep, when the sockets are stale)
-    private var networkStateRefresh: (() -> Void)?
+    private let packetReads = TunnelPacketReadOwner()
     // Main-queue-only recovery state. Path and lifecycle signals are coalesced
     // here so wake + NWPath cannot tear down the same reconnect attempt twice.
     private var transportRecoveryWork: DispatchWorkItem?
+    private var recoveryNeedsTransportChange = false
+    private var recoveryWorkGeneration: UInt64 = 0
     private var wakeHealthWork: DispatchWorkItem?
     private var lastTransportRecoveryAt: Date?
     private let transportRecoveryDebounce: TimeInterval = 0.350
     private let minimumTransportRecoveryInterval: TimeInterval = 2
     private let wakeHealthGrace: TimeInterval = 5
-    private var packetReadGeneration: UInt64 = 0
     private let logoutProviderMessage = "logout"
     // the app asks for this immediately before it reads this process's log
     // files for a diagnostic export
@@ -399,10 +395,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func startTunnel(options: [String : NSObject]? = nil, completionHandler: @escaping ((any Error)?) -> Void) {
         logger.info("[PacketTunnelProvider][\(self.lifecycleId)] start")
+        recordRecoveryStage("startup", "started")
         memoryMonitor?.sample(event: "start-requested")
-        DispatchQueue.main.async { [weak self] in
-            self?.cancelPendingTransportRecovery()
-        }
 
         guard !fips140Enabled else {
             completionHandler(NSError(domain: "network.ur.extension", code: 11, userInfo: [NSLocalizedDescriptionKey: "FIPS 140 exceeds the network extension memory budget"]))
@@ -428,18 +422,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return
         }
 
-        // Add the profile snapshot to the immutable shared history before
-        // selecting. This handles an OS-driven launch after the app refreshed
-        // the profile but before either process wrote the v2 Keychain format.
-        if !SharedTunnelJwtStore.save(
-            byJwt: configuredByJwt,
-            instanceId: configuredInstanceId
-        ) {
-            logger.error("[PacketTunnelProvider]could not migrate configured tunnel JWT")
-        }
-        // Prefer the freshest exact-instance token written by either process.
+        // Include the profile snapshot in read-only freshness selection. An
+        // aborted startup must not publish a speculative shared-history item.
         let byJwt = SharedTunnelJwtStore.load(
-            expectedInstanceId: configuredInstanceId
+            expectedInstanceId: configuredInstanceId,
+            configuredByJwt: configuredByJwt
         ) ?? configuredByJwt
 
         guard let networkSpaceJson = providerConfiguration["network_space"] as? String else {
@@ -476,17 +463,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             completionHandler(NSError(domain: "network.ur.extension", code: 5, userInfo: [NSLocalizedDescriptionKey: "Failed to parse instance_id"]))
             return
         }
-        if !SharedTunnelJwtStore.save(
-            byJwt: byJwt,
-            instanceId: configuredInstanceId
-        ) {
-            logger.error("[PacketTunnelProvider]could not persist shared tunnel JWT")
-        }
-
-
         // include the rpc material (cert + listen host/port) so a change across
         // launches recreates the device
-        let deviceConfiguration = [
+        var deviceConfiguration = [
             "by_jwt": byJwt,
             "network_space": networkSpaceJson,
             "rpc_server_pem": rpcServerPem,
@@ -496,32 +475,57 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         ]
 
 
-        if let device = self.device {
-            if self.deviceConfiguration == deviceConfiguration && !device.getDone() {
-                // already running
-                // this would theoretically happen if start was called multiple times without stop
-                completionHandler(nil)
-                return
-            }
+        // Reservation and old bookkeeping retirement share one admission.
+        // Detached settings/cancellation callbacks run only after owner unlock.
+        var previousRecovery: RecoverySession.Snapshot?
+        var previousSettings: TunnelSettingsSessionTransition?
+        let providerTicket: TunnelProviderSessionOwner<ProviderSession>.Ticket
+        let previousProvider: ProviderSession?
+        switch providerSessions.beginStartup(isAlreadyRunning: { existing in
+            existing.started && existing.configuration == deviceConfiguration && !existing.device.getDone()
+        }, prepareWithLock: {
+            self.stopPacketReads()
+            previousSettings = self.prepareTunnelSettingsSession(active: false)
+            previousRecovery = self.recoverySession.prepareRetire()
+            self.recoveryBreadcrumbLock.lock()
+            self.recoveryBreadcrumbs.removeAll()
+            self.recoveryBreadcrumbLock.unlock()
+        }, enqueue: { work in
+            DispatchQueue.main.async(execute: work)
+        }, cancelRecovery: { [weak self] in
+            self?.cancelPendingTransportRecovery()
+        }) {
+        case .alreadyRunning:
+            finishTunnelStartup(
+                recordOutcome: {
+                    self.recordRecoveryStage("startup", "preserved")
+                },
+                flushLogs: {
+                    SdkFlushGlog()
+                },
+                completion: {
+                    completionHandler(nil)
+                }
+            )
+            return
+        case .unavailable:
+            completionHandler(TunnelLocalAuthIdentityError.superseded)
+            return
+        case .reserved(let ticket, let previous):
+            providerTicket = ticket
+            previousProvider = previous
         }
-
-        // Supersede all reads and settings work from a previous tunnel before
-        // replacing its device. Generation guards keep late callbacks from
-        // tearing down the new session.
-        self.stopPacketReads()
-        self.endTunnelSettingsSession()
-
-//        self.reasserting = true
-
-
-        // create new device with latest config
-        
-        self.connected = false
-        self.close?()
-        self.close = nil
-        self.device = nil
-        self.deviceConfiguration = nil
-        self.localState = nil
+        defer {
+            // An early constructor/read failure also retires its unpublished
+            // reservation, without touching a newer start's slot.
+            if providerSessions.snapshot(ticket: providerTicket) == nil { providerSessions.take(providerTicket) }
+        }
+        previousProvider?.destinationRecovery?.cancel()
+        previousProvider?.recoveryEffects?.cancel()
+        self.recoverySession.completeRetirement(previousRecovery)
+        self.completeTunnelSettingsTransition(previousSettings, errorDescription: "Tunnel network settings session was superseded")
+        if let close = previousProvider?.close { close() }
+        else { previousProvider?.device.close() }
         
 
 
@@ -530,6 +534,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             in: .userDomainMask
         )[0].path()
         let networkSpaceManager = SdkNewNetworkSpaceManager(documentsPath)
+        // Import, auth reads and selection can fail before a device owns
+        // this manager. Release those workers on every early return.
+        let managerStartupCleanup = TunnelStartupCleanup {
+            networkSpaceManager?.close()
+        }
 
         var networkSpace: SdkNetworkSpace?
         do {
@@ -552,17 +561,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let appVersionString: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "unknown"
         let buildNumber: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "0"
 
-        let localStateIsStale = tunnelLocalStateRequiresReset(
-            storedByJwt: localState.getByJwt(),
-            storedInstanceId: localState.getInstanceId()?.string(),
-            configuredByJwt: byJwt,
-            configuredInstanceId: instanceId.string()
+        // Conditional reset returns the exact keys it preserved under its
+        // auth/storage lock. A failed ordinary read cannot become fresh keys.
+        var keyMaterial: SdkDeviceLocalKeyMaterial?
+        var initialAuthSnapshot: SdkLocalAuthStateSnapshot?
+        var didResetAuth = false
+        let configuredOwner = TunnelIntentOwner.make(
+            instanceId: configuredInstanceId, clientJwt: byJwt, networkSpaceJson: networkSpaceJson
         )
-        // Device identity is device-scoped, not credential-scoped: load the key
-        // material before clearing state that cannot be attributed to this
-        // instance, so peers can keep verifying this device across sessions.
-        // Only the explicit logout app message rotates the identity.
-        let keyMaterial: SdkDeviceLocalKeyMaterial? = localState.getDeviceLocalKeyMaterial()
 
         // KNOWN LIMITATION -- the control-plane ip family force is Auto here
         // for the FIRST connect after it is set with the tunnel down, and
@@ -619,495 +625,880 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // seeds from its own local state, and those values hold "until the app
         // connects and sets the user values".
 
-        let newDevice = SdkNewDeviceLocalWithMemoryTarget(
-            networkSpace,
-            byJwt,
-            "ios-network-extension",
-            deviceModel() ?? "ios-unknown",
-            "\(appVersionString)-\(buildNumber)",
-            instanceId,
-            // rpc is started explicitly below with the per-session server pem
-            false,
-            keyMaterial,
-            // the per-device memory target (split dns 2 : client 14 :
-            // provider 4 inside the sdk, with the provider share backing the
-            // client pair while providing is off), set explicitly where the
-            // device is created; the process-level SdkSetMemoryLimit above
-            // sizes the shared message pools and go soft limit
-            20 * 1024 * 1024,
-            &err
-        )
-        if let err {
-            completionHandler(err)
-            return
-        }
-
-        guard let device = newDevice else {
-            completionHandler(NSError(domain: "network.ur.extension", code: 8, userInfo: [NSLocalizedDescriptionKey: "Failed to create device"]))
-            return
-        }
-
-        // DeviceLocal starts background work during construction. Until the
-        // complete session close closure is installed below, any early return
-        // must close it rather than leaving its Go graph alive in the extension.
-        let startupCleanup = TunnelStartupCleanup {
-            device.close()
-        }
-
-        // start the rpc server listening on the per-session host/port,
-        // presenting the self-signed server certificate and requiring + pinning
-        // the client certificate (mTLS) from the app
+        let device: SdkDeviceLocal
         do {
-            try device.setRpcServer(rpcServerPem, clientCertPem: rpcClientPem, hostPort: rpcListenHostPort)
+            device = try prepareTunnelLocalAuthState(
+                configuredInstanceId: instanceId.string(),
+                readAuthIdentity: {
+                    do {
+                        let snapshot = try networkSpace.getAuthStateSnapshot()
+                        initialAuthSnapshot = snapshot
+                        let storedClient = snapshot.getByClientJwt()
+                        let storedOwner = snapshot.getInstanceId().flatMap {
+                            TunnelIntentOwner.make(
+                                instanceId: $0.string(), clientJwt: storedClient,
+                                networkSpaceJson: networkSpaceJson
+                            )
+                        }
+                        if !storedClient.isEmpty && storedOwner == nil {
+                            throw TunnelLocalAuthIdentityError.incomplete
+                        }
+                        self.recordRecoveryStage("auth-observation", "accepted")
+                        return TunnelLocalAuthIdentitySnapshot(
+                            isEmpty: snapshot.getEmpty(),
+                            instanceId: snapshot.getInstanceId()?.string(),
+                            knownClientOwnerConflict: storedOwner.flatMap { stored in
+                                configuredOwner.map { !stored.matches($0) }
+                            } ?? false
+                        )
+                    } catch {
+                        self.recordRecoveryStage("auth-observation", "failed")
+                        throw error
+                    }
+                },
+                clearStaleState: {
+                    do {
+                        guard let initialAuthSnapshot else {
+                            throw TunnelLocalAuthIdentityError.superseded
+                        }
+                        let result = try networkSpace.resetLocalStateIfCurrent(initialAuthSnapshot)
+                        try requireTunnelResetCompleted(result.getReset())
+                        didResetAuth = true
+                        keyMaterial = result.getDeviceLocalKeyMaterial()
+                        self.recordRecoveryStage("auth-reset", "completed")
+                    } catch {
+                        self.recordRecoveryStage("auth-reset", "failed")
+                        throw error
+                    }
+                },
+                selectClientJwt: {
+                    // Read-only selection. The constructor commits its client
+                    // and instance only when the replacement can publish.
+                    try checkedTunnelSdkValue {
+                        localState.selectClientJwt(forInstance: byJwt, instanceId: instanceId, error: $0)
+                    }
+                },
+                startSession: { selectedClientJwt in
+                    if !didResetAuth {
+                        self.recordRecoveryStage("auth-reset", "preserved")
+                        do {
+                            keyMaterial = try localState.readDeviceLocalKeyMaterial().getKeyMaterial()
+                            self.recordRecoveryStage("key-load", keyMaterial == nil ? "missing" : "present")
+                        } catch {
+                            self.recordRecoveryStage("key-load", "failed")
+                            throw error
+                        }
+                    }
+                    self.recordRecoveryStage("auth-observation", "accepted")
+                    let newDevice = SdkNewDeviceLocalWithMemoryTarget(
+                        networkSpace,
+                        selectedClientJwt,
+                        "ios-network-extension",
+                        deviceModel() ?? "ios-unknown",
+                        "\(appVersionString)-\(buildNumber)",
+                        instanceId,
+                        // rpc is started explicitly below with the per-session server pem
+                        false,
+                        keyMaterial,
+                        // the per-device memory target (split dns 2 : client 14 :
+                        // provider 4 inside the sdk, with the provider share backing the
+                        // client pair while providing is off), set explicitly where the
+                        // device is created; the process-level SdkSetMemoryLimit above
+                        // sizes the shared message pools and go soft limit
+                        20 * 1024 * 1024,
+                        &err
+                    )
+                    if let err {
+                        newDevice?.close()
+                        throw err
+                    }
+                    guard let newDevice else {
+                        throw NSError(
+                            domain: "network.ur.extension", code: 8,
+                            userInfo: [NSLocalizedDescriptionKey: "Failed to create device"]
+                        )
+                    }
+                    return newDevice
+                }
+            )
         } catch {
-            startupCleanup.cleanUpNow()
+            self.recordRecoveryStage("startup", "failed")
+            logger.error("[PacketTunnelProvider]failed to prepare local auth state")
             completionHandler(error)
             return
         }
+        // DeviceLocal starts background work during construction. Until the
+        // complete session close closure is installed below, any early return
+        // must close it and its manager. This owner is later retained by the
+        // session close closure, not disarmed before RPC/settings setup.
+        let startupCleanup = TunnelStartupCleanup {
+            device.close()
+            // The manager joins its API and async-storage workers. This
+            // lifecycle path is outside SDK auth callbacks; it must not be
+            // moved into one of those callbacks, where it could self-join.
+            networkSpaceManager?.close()
+        }
+        managerStartupCleanup.commit()
 
-        
-        let packetReadGeneration = self.beginPacketReads()
-        self.beginTunnelSettingsSession()
+        let acceptedOwner = TunnelIntentOwner.make(
+            instanceId: configuredInstanceId, clientJwt: device.getClientJwt(),
+            networkSpaceJson: networkSpaceJson
+        )
+        let savedLocationHasCurrentOwner = !(initialAuthSnapshot?.getEmpty() ?? true) && !didResetAuth
+        let readDiagnostics = {
+            RecoverySession.Diagnostics(
+                consumerPresent: device.getConnectEnabled(),
+                hasLocation: device.getConnectLocation() != nil,
+                providerCount: Int64(device.getWindowStatus()?.providerStateAdded ?? -1)
+            )
+        }
+        var admitted: (packet: UInt64, recovery: RecoverySession.Ticket)?
+        var publicationRecovery: RecoverySession.Snapshot?
+        var publicationSettings: TunnelSettingsSessionTransition?
+        guard providerSessions.publish(
+            ProviderSession(device: device, localState: localState, configuration: deviceConfiguration),
+            ticket: providerTicket,
+            prepareWithLock: {
+                let packet = self.beginPacketReads()
+                let settings = self.prepareTunnelSettingsSession(active: true)
+                let (recovery, previous) = self.recoverySession.prepareBegin(
+                    owner: acceptedOwner, savedLocationHasCurrentOwner: savedLocationHasCurrentOwner,
+                    readDiagnostics: readDiagnostics
+                )
+                publicationSettings = settings
+                publicationRecovery = previous
+                admitted = (packet, recovery)
+            }
+        ), let admitted else {
+            startupCleanup.cleanUpNow()
+            completionHandler(TunnelLocalAuthIdentityError.superseded)
+            return
+        }
+        let packetReadGeneration = admitted.packet
+        let packetOrigin = TunnelPacketReadOrigin(device: device, generation: packetReadGeneration)
+        let sessionTicket = admitted.recovery
+        self.recoverySession.completeRetirement(publicationRecovery)
+        self.completeTunnelSettingsTransition(publicationSettings, errorDescription: "Tunnel network settings session was superseded")
         self.reasserting = true
-
-        // State without this exact stable instance identity is cleared below,
-        // but the device identity is retained: the loaded key material is
-        // re-persisted after the wipe (see saveKeyMaterial() at the end of setup).
-        // A JWT rotation for the same instance deliberately does not clear state.
-        prepareLocalStateForStart(localState, byJwt: byJwt, instanceId: instanceId, hasStaleLocalState: localStateIsStale)
-
-        self.deviceConfiguration = deviceConfiguration
-        self.device = device
-        self.localState = localState
-        self.shouldSaveKeyMaterial = true
         memoryMonitor?.sample(event: "device-created")
+        let currentProvider = {
+            guard let state = self.providerSessions.snapshot(ticket: providerTicket) else { return false }
+            return state.value.shouldSaveKeyMaterial && !device.getDone()
+        }
+        let currentAuthSnapshot = { () throws -> SdkLocalAuthStateSnapshot in
+            do {
+                guard self.recoverySession.isCurrent(sessionTicket),
+                      currentProvider() else {
+                    throw TunnelLocalAuthIdentityError.superseded
+                }
+                let snapshot = try networkSpace.getAuthStateSnapshot()
+                guard snapshot.getInstanceId()?.string() == configuredInstanceId else {
+                    throw TunnelLocalAuthIdentityError.superseded
+                }
+                if let acceptedOwner {
+                    guard let currentOwner = TunnelIntentOwner.make(
+                        instanceId: configuredInstanceId, clientJwt: snapshot.getByClientJwt(),
+                        networkSpaceJson: networkSpaceJson
+                    ), acceptedOwner.matches(currentOwner) else {
+                        throw TunnelLocalAuthIdentityError.superseded
+                    }
+                } else if snapshot.getByClientJwt() != device.getClientJwt() {
+                    throw TunnelLocalAuthIdentityError.superseded
+                }
+                self.recordRecoveryStage("auth-observation", "accepted")
+                return snapshot
+            } catch {
+                let result = (error as NSError).localizedDescription == "auth snapshot was superseded or is not settled"
+                    ? "superseded" : "failed"
+                self.recordRecoveryStage("auth-observation", result)
+                throw error
+            }
+        }
+        let readSharedIntent = { () throws -> TunnelIntent? in
+            do {
+                let intent = try TunnelIntentStore.loadChecked()
+                self.recordRecoveryStage("intent-load", intent == nil ? "missing" : "present")
+                return intent
+            } catch {
+                self.recordRecoveryStage("intent-load", "failed")
+                throw error
+            }
+        }
+        let restoreDestinationOnce = { (expected: RecoverySession.DestinationTicket?) throws -> Void in
+            guard let state = self.recoverySession.snapshot(ticket: sessionTicket),
+                  expected == nil || expected == state.destinationTicket else {
+                throw TunnelLocalAuthIdentityError.superseded
+            }
+            let destinationTicket = state.destinationTicket
+            let currentDestinationTicket = {
+                self.recoverySession.isCurrent(destinationTicket)
+                    && currentProvider() && self.isPacketReadActive(generation: packetReadGeneration)
+            }
+            _ = try currentAuthSnapshot()
+            let sharedIntent = try readSharedIntent()
+            let intent: TunnelDestinationIntent
+            if let sharedIntent, sharedIntent.applies(to: acceptedOwner) {
+                intent = sharedIntent.connect ? .connect : .disconnect
+            } else {
+                intent = .none
+            }
+            let plan = try restoreTunnelDestination(
+                intent: intent,
+                savedLocationHasCurrentOwner: state.savedLocationHasCurrentOwner,
+                loadSaved: { device.getConnectLocation() },
+                loadDefault: {
+                    guard !state.defaultPreferenceUnavailable else {
+                        throw TunnelLocalAuthIdentityError.unavailable
+                    }
+                    return device.getDefaultLocation()
+                },
+                bestAvailable: {
+                    let id = SdkConnectLocationId()
+                    id.bestAvailable = true
+                    let location = SdkConnectLocation()
+                    location.connectLocationId = id
+                    return location
+                },
+                isCurrent: {
+                    guard currentDestinationTicket() else { return false }
+                    do { return try TunnelIntentStore.loadChecked() == sharedIntent }
+                    catch {
+                        self.recordRecoveryStage("intent-load", "failed")
+                        return false
+                    }
+                },
+                apply: { plan in
+                    let location = plan.location
+                    guard self.recoverySession.acceptDestination(
+                        destinationTicket, present: location != nil, observedIntent: sharedIntent,
+                        savedLocationIsVerified: plan.stage == .saved
+                    ) else { throw TunnelLocalAuthIdentityError.superseded }
+                    if plan.stage == .saved && device.getConnectEnabled() { return }
+                    if plan.stage == .localOnly && device.getConnectLocation() == nil { return }
+                    // Only a missing consumer for a current intended route
+                    // needs reconstruction. Healthy existing clients retain
+                    // the SDK's idempotent destination path.
+                    do {
+                        try applyTunnelRecoveryDestination(device, location: location)
+                        if let current = self.recoverySession.snapshot(ticket: sessionTicket) {
+                            self.recoverySession.savedLocationPersisted(current.destinationTicket)
+                            self.recordRecoveryStage("destination-persist", "completed", snapshot: current)
+                        }
+                    } catch {
+                        // A checked mutation can commit storage and then
+                        // fail during live application. Its SDK operation
+                        // record distinguishes those stages; error alone
+                        // cannot establish whether persistence completed.
+                        if let current = self.recoverySession.snapshot(ticket: sessionTicket) {
+                            self.recordRecoveryStage("destination", "failed", snapshot: current)
+                        }
+                        throw error
+                    }
+                },
+                report: { self.recordRecoveryStage($0, $1) }
+            )
+            self.recordRecoveryStage("destination", plan.location == nil ? "local" : "restored")
+        }
+        // Retain the existing callback shape. Post-start work below supplies
+        // its original destination ticket and waits for actual publication.
+        let restoreDestination = { () throws -> Void in
+            try restoreDestinationOnce(nil)
+        }
 
-        // load initial device settings
-        // these will be in effect until the app connects and sets the user values
+        // Load only authenticated existing preferences (or the known-empty
+        // result of a completed reset). Fresh auth cannot adopt orphan files.
+        // The SDK owns current/default read, atomic save, and live adoption.
         device.setTunnelStarted(true)
         device.setProvidePaused(true)
-        if let location = localState.getConnectLocation() {
-            device.setConnectLocation(location)
-        } else if let location = WidgetSnapshotWriter.connectLocationForSharedIntent(localState: localState) {
-            // a quick connect from Control Center or the widget on a device
-            // whose last in-app action was a disconnect: nothing is saved
-            // here, so honor the newer shared intent with the last selected
-            // location, else the best available provider
-            logger.info("[PacketTunnelProvider][\(self.lifecycleId)] connecting for the shared quick connect intent")
-            device.setConnectLocation(location)
-        }
-        device.setProvideMode(localState.getProvideMode())
-        device.setProvideControlMode(localState.getProvideControlMode())
-        device.setProvideNetworkMode(localState.getProvideNetworkMode())
-        device.setRouteLocal(localState.getRouteLocal())
-        // the device restores the blocker from its own local state at creation,
-        // but seed it here too: when the app and the extension do not share
-        // storage, a toggle made before the tunnel ever ran would otherwise be
-        // lost on the first start
-        device.setBlockerEnabled(localState.getBlockerEnabled())
-        device.setCanShowRatingDialog(localState.getCanShowRatingDialog())
-        device.setCanPromptIntroFunnel(localState.getCanPromptIntroFunnel())
-        device.setCanRefer(localState.getCanRefer())
-        device.setAllowForeground(localState.getAllowForeground())
-        device.setVpnInterfaceWhileOffline(localState.getVpnInterfaceWhileOffline())
-        if let defaultLocation = localState.getDefaultLocation() {
-            device.setDefaultLocation(defaultLocation)
-        }
-        if let performanceProfile = localState.getPerformanceProfile() {
-            device.setPerformanceProfile(performanceProfile)
-        }
-
-//        let packetContext = ManagedAtomic<Int>(0)
-//        let startPacketFlow = {
-////            packetContext.wrappingIncrement(ordering: .relaxed)
-//            self.readToDevice()
-//        }
-
-        let setLocal = {
-            if device.getConnectLocation() == nil {
-                // reset to local if available
-                self.applyTunnelNetworkSettings { error in
-                    if let error = error {
-                        self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
-                        return
-                    }
-                    if device.getConnectLocation() == nil {
-                        self.reasserting = false
-                        //                    readToDevice(packetFlow: self.packetFlow, device: device)
-//                        self.readToDevice()
-                    }
-                }
-            }
-        }
-
-        let locationChangeSub = device.add(ConnectLocationChangeListener { location in
-            try? localState.setConnectLocation(location)
-
-            if device.getConnectLocation() == nil {
-                DispatchQueue.main.async {
-                    setLocal()
-                }
-            }
-        })
-        let saveKeyMaterial = {
-            guard self.shouldSaveKeyMaterial else {
+        // Confined to the initial caller and then the serial startup worker.
+        // A changed finish-time intent repeats destination reconciliation,
+        // never a successful Load/autosave preparation.
+        var initialPreferencesPrepared = false
+        let restoreInitialPreferences = { () throws -> Void in
+            if initialPreferencesPrepared {
+                try restoreDestinationOnce(nil)
                 return
             }
-
-            guard let keyMaterial = device.getKeyMaterial(), !keyMaterial.isEmpty() else {
-                return
+            let initialSharedIntent = try readSharedIntent()
+            let initialIntent: TunnelDestinationIntent
+            if let initialSharedIntent, initialSharedIntent.applies(to: acceptedOwner) {
+                initialIntent = initialSharedIntent.connect ? .connect : .disconnect
+            } else {
+                initialIntent = .none
             }
-
-            do {
-                try localState.setDeviceLocalKeyMaterial(keyMaterial)
-            } catch {
-                self.logger.error("[PacketTunnelProvider]failed to save device key material: \(error.localizedDescription)")
+            let currentStartup = {
+                self.recoverySession.isCurrent(sessionTicket)
+                    && currentProvider()
+                    && self.isPacketReadActive(generation: packetReadGeneration)
             }
-        }
-        let provideSecretKeysSub = device.add(ProvideSecretKeysListener { _ in
-            saveKeyMaterial()
-        })
-        let jwtRefreshSub = device.add(TunnelJwtRefreshListener { jwt in
-            guard let jwt, !jwt.isEmpty else { return }
-            if !SharedTunnelJwtStore.save(
-                byJwt: jwt,
-                instanceId: configuredInstanceId
-            ) {
-                self.logger.error("[PacketTunnelProvider]could not save refreshed shared tunnel JWT")
-            }
-        })
-        if let keyMaterial {
-            device.setKeyMaterial(keyMaterial)
-        }
-        // persist the identity immediately: a freshly generated key must
-        // survive this session even if no provide-key event fires, and a
-        // loaded key must be re-written after a stale-state wipe
-        saveKeyMaterial()
-
-        let canShowRatingDialogChangeSub = device.add(CanShowRatingDialogChangeListener { canShowRatingDialog in
-            try? localState.setCanShowRatingDialog(canShowRatingDialog)
-        })
-        let canPromptIntroFunnelChangeSub = device.add(CanPromptIntroFunnelChangeListener { canPromptIntroFunnel in
-            try? localState.setCanPromptIntroFunnel(canPromptIntroFunnel)
-        })
-        let allowForegroundChangeSub = device.add(AllowForegroundChangeListener { allowForeground in
-            try? localState.setAllowForeground(allowForeground)
-        })
-        let canReferChangeSub = device.add(CanReferChangeListener { canRefer in
-            try? localState.setCanRefer(canRefer)
-        })
-        let provideModeChangeSub = device.add(ProvideModeChangeListener { provideMode in
-            try? localState.setProvideMode(provideMode)
-        })
-        let provideChangeSub = device.add(ProvideChangeListener { provideEnabled in
-            if provideEnabled && device.getConnectLocation() == nil {
-                DispatchQueue.main.async {
-                    setLocal()
-                }
-            }
-        })
-        let provideControlModeChangeSub = device.add(ProvideControlModeChangeListener { provideControlMode in
-            guard let provideControlMode else {
-                return
-            }
-            try? localState.setProvideControlMode(provideControlMode)
-        })
-        let performanceProfileChangeSub = device.add(PerformanceProfileChangeListener { performanceProfile in
-            try? localState.setPerformanceProfile(performanceProfile)
-        })
-        let routeLocalChangeSub = device.add(RouteLocalChangeListener { routeLocal in
-            try? localState.setRouteLocal(routeLocal)
-        })
-        let vpnInterfaceWhileOfflineChangeSub = device.add(VpnInterfaceWhileOfflineChangeListener { vpnInterfaceWhileOffline in
-            try? localState.setVpnInterfaceWhileOffline(vpnInterfaceWhileOffline)
-        })
-        let defaultLocationChangeSub = device.add(DefaultLocationChangeListener { location in
-            try? localState.setDefaultLocation(location)
-        })
-        // re-apply the network settings when the dns settings change the tunnel
-        // dns servers (e.g. unencrypted local servers set or cleared)
-        let dnsResolverSettingsChangeSub = device.add(DnsResolverSettingsChangeListener { _ in
-            DispatchQueue.main.async {
-                self.applyTunnelNetworkSettings { error in
-                    if let error = error {
-                        self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
+            let snapshot = try currentAuthSnapshot()
+            let loaded: SdkDeviceLocalLoadResult? = try loadTunnelPreferences(
+                intent: initialIntent,
+                loadOwnedPreferences: !(initialAuthSnapshot?.getEmpty() ?? true) || didResetAuth,
+                isCurrent: {
+                    guard currentStartup() else { return false }
+                    return try readSharedIntent() == initialSharedIntent
+                },
+                persistDisconnect: { try snapshot.setConnectLocation(nil) },
+                load: {
+                    let result = try device.load()
+                    guard result.getLoaded() else {
+                        throw TunnelLocalAuthIdentityError.unavailable
                     }
-                }
+                    return result
+                },
+                enableAutoSave: { try device.setAutoSave(true) },
+                report: { self.recordRecoveryStage($0, $1) }
+            )
+            let defaultUnavailable = loaded.map { !$0.getDefaultError().isEmpty } ?? false
+            guard self.recoverySession.observeDefaultPreference(sessionTicket, unavailable: defaultUnavailable) else {
+                throw TunnelLocalAuthIdentityError.superseded
             }
-        })
-        let updateWindowStatus = { (windowStatus: SdkWindowStatus?) in
-            var connected = false
-            var providerCount = 0
-            if let windowStatus = windowStatus {
-                providerCount = windowStatus.providerStateAdded
-                connected = 0 < providerCount
+            if let loaded {
+                self.recordRecoveryStage("saved-load", loaded.getHasConnectLocation() ? "present" : "missing")
+                self.recordRecoveryStage("default-load", defaultUnavailable ? "failed" : (loaded.getHasDefaultLocation() ? "present" : "missing"))
+                if defaultUnavailable { self.recordRecoveryStage("consumer", "preserved") }
             }
-            if self.connected != connected {
-                self.logger.info(
-                    "[PacketTunnelProvider][\(self.lifecycleId)] window connected=\(connected) providers=\(providerCount)"
+            initialPreferencesPrepared = true
+            try restoreDestinationOnce(nil)
+        }
+        let finishStartup = { [self] in
+            // The SDK's checked Load owns the full local preference catalog.
+            // Native code retains intent, keys/auth and OS/path observations;
+            // it must not replay orphan preferences after an unowned skip.
+
+    //        let packetContext = ManagedAtomic<Int>(0)
+    //        let startPacketFlow = {
+    ////            packetContext.wrappingIncrement(ordering: .relaxed)
+    //            self.readToDevice()
+    //        }
+
+            let reconcileReadiness = {
+                guard let state = self.recoverySession.snapshot(ticket: sessionTicket),
+                      self.device === device, !device.getDone(),
+                      self.isPacketReadActive(generation: packetReadGeneration) else { return }
+                let providerCount = device.getWindowStatus()?.providerStateAdded ?? 0
+                let next = tunnelReadiness(
+                    connectIntended: state.connectIntended || device.getConnectLocation() != nil,
+                    consumerPresent: device.getConnectEnabled(), providerCount: providerCount
                 )
-                self.connected = connected
-                if !connected {
-                    if device.getConnectLocation() == nil {
-                        setLocal()
-                    } else {
-                        self.reasserting = true
-//                        self.setTunnelNetworkSettings(self.networkSettings()) { error in
-//                            if let error = error {
-//                                self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
-//                                return
-//                            }
-////                            readToDevice(packetFlow: self.packetFlow, device: device)
-////                            startPacketFlow()
-//                            self.readToDevice()
-//                        }
+                let dnsOwned = device.getTunnelDnsInterceptorActive()
+                guard let ticket = state.readiness.begin(.init(readiness: next, dnsOwned: dnsOwned)) else { return }
+                guard self.providerSessions.update(providerTicket, { $0.connected = next == .connected }) else { return }
+                self.reasserting = true
+                self.recordRecoveryStage("readiness", next.rawValue)
+                self.recordRecoveryStage("dns", dnsOwned ? "owned" : "unowned")
+                self.applyTunnelNetworkSettings(device: device, providerTicket: providerTicket) { error in
+                    guard self.recoverySession.isCurrent(sessionTicket), self.device === device,
+                          self.isPacketReadActive(generation: packetReadGeneration) else { return }
+                    switch state.readiness.complete(ticket, succeeded: error == nil) {
+                    case .stale:
+                        return
+                    case .failed(let retry):
+                        self.recordRecoveryStage("settings", "failed")
+                        if retry { self.scheduleTransportRecovery(reason: "settings-retry", changeTransport: false) }
+                    case .applied:
+                        self.reasserting = next == .establishing
+                        self.recordRecoveryStage("settings", "applied")
                     }
-                } else {
-                    self.applyTunnelNetworkSettings { error in
+                }
+            }
+            guard recoverySession.installCallbacks(
+                ticket: sessionTicket, restoreDestination: restoreDestination,
+                reconcileReadiness: reconcileReadiness
+            ) else {
+                startupCleanup.cleanUpNow()
+                completionHandler(TunnelLocalAuthIdentityError.superseded)
+                return
+            }
+            let setLocal = { self.recoverySession.snapshot(ticket: sessionTicket)?.reconcileReadiness?() }
+
+            let recoveryQueue = DispatchQueue(label: "network.ur.extension.destination-recovery", qos: .utility)
+            let currentRecovery = { (ticket: RecoverySession.DestinationTicket) in
+                ticket.session == sessionTicket && self.recoverySession.isCurrent(ticket)
+                    && currentProvider() && self.isPacketReadActive(generation: packetReadGeneration)
+            }
+            let recoveryEffects = RecoveryEffects(
+                enqueue: { action in recoveryQueue.async { action() } },
+                schedule: { delay, fire in
+                    let work = DispatchWorkItem(block: fire)
+                    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + delay, execute: work)
+                    return { work.cancel() }
+                },
+                now: { ProcessInfo.processInfo.systemUptime },
+                minimumInterval: self.minimumTransportRecoveryInterval,
+                isCurrent: currentRecovery,
+                perform: { ticket, reasons in
+                    self.completeDestinationRecovery(
+                        device: device, providerTicket: providerTicket, ticket: ticket,
+                        reasons: reasons, isCurrent: { currentRecovery(ticket) }
+                    )
+                }
+            )
+            let destinationRecovery = DestinationRecovery(
+                enqueue: { action in recoveryQueue.async { action() } },
+                scheduleDeadline: { expire in
+                    let deadline = DispatchWorkItem(block: expire)
+                    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 15, execute: deadline)
+                    return { deadline.cancel() }
+                },
+                isCurrent: currentRecovery,
+                observe: { ticket in
+                    try self.reconcileIntendedDestinationIfNeeded(
+                        device: device, ticket: ticket, isCurrent: { currentRecovery(ticket) },
+                        restoreDestination: { try restoreDestinationOnce(ticket) }
+                    )
+                },
+                completed: { ticket, reasons in
+                    recoveryEffects.submit(ticket, reasons: reasons)
+                },
+                failed: { ticket in
+                    DispatchQueue.main.async {
+                        guard currentRecovery(ticket) else { return }
+                        self.reasserting = true
+                        self.recordRecoveryStage("destination", "failed")
+                    }
+                },
+                report: { ticket, phase in
+                    guard currentRecovery(ticket) else { return }
+                    self.recordRecoveryStage("auth-observation", phase == .waiting ? "waiting" : "timeout")
+                }
+            )
+            // Subscribe before publishing the request entry point. Healthy
+            // refreshes only maintain the existing mirror; no pending request
+            // means no recovery work. A failed mirror cannot lose settlement.
+            let jwtRefreshSub = device.add(TunnelDeviceAuthSettlementObserver(
+                device: device, isCurrent: currentProvider,
+                settled: { destinationRecovery.settled() },
+                accepted: { jwt in
+                    if !SharedTunnelJwtStore.save(byJwt: jwt, instanceId: configuredInstanceId) {
+                        self.logger.error("[PacketTunnelProvider]could not save refreshed shared tunnel JWT")
+                    }
+                }
+            ))
+            let recoveryLogoutSub = device.add(TunnelStartupAuthLogoutListener {
+                destinationRecovery.cancel()
+                recoveryEffects.cancel()
+            })
+            guard self.providerSessions.update(providerTicket, {
+                $0.destinationRecovery = destinationRecovery
+                $0.recoveryEffects = recoveryEffects
+            }) else {
+                destinationRecovery.cancel()
+                recoveryEffects.cancel()
+                jwtRefreshSub?.close()
+                recoveryLogoutSub?.close()
+                startupCleanup.cleanUpNow()
+                completionHandler(TunnelLocalAuthIdentityError.superseded)
+                return
+            }
+
+            let locationChangeSub = device.add(ConnectLocationChangeListener { _ in
+                // Reserve the choice ticket at callback receipt, before main.
+                guard let destinationTicket = self.recoverySession.noteDestinationChange(ticket: sessionTicket) else { return }
+                destinationRecovery.retireStalePending()
+                recoveryEffects.retireStalePending()
+                DispatchQueue.main.async {
+                    guard self.recoverySession.isCurrent(destinationTicket),
+                          self.device === device, !device.getDone(), self.shouldSaveKeyMaterial else { return }
+                    // Consume the current level, not a queued obsolete payload.
+                    let location = device.getConnectLocation()
+                    guard self.recoverySession.observeLocation(destinationTicket, present: location != nil, at: Date()) else { return }
+                    if location == nil {
+                        // An explicit live nil destination is local/disconnected,
+                        // not a request to replay the same old connect intent.
+                        do {
+                            try self.recoverySession.observeIntentAfterLiveDisconnect(
+                                destinationTicket, readIntent: { try TunnelIntentStore.loadChecked() }
+                            )
+                        } catch { self.recordRecoveryStage("intent-load", "failed") }
+                    }
+                    self.recoverySession.snapshot(ticket: sessionTicket)?.reconcileReadiness?()
+                }
+            })
+            let localStateSaveSub = device.add(TunnelLocalStateSaveListener { result in
+                guard let result, let state = self.recoverySession.snapshot(ticket: sessionTicket),
+                      self.device === device, !device.getDone(), self.shouldSaveKeyMaterial else { return }
+                // Consume this callback's immutable operation, not the last-result
+                // getter, which a later mutation may already have replaced. The
+                // SDK's fixed failure record also preserves its local sequence.
+                let succeeded = reportTunnelPreferenceSave(
+                    preference: result.getPreference(), autoSaveEnabled: result.getAutoSaveEnabled(),
+                    saved: result.getSaved(), hasError: !result.getError().isEmpty,
+                    report: { self.recordRecoveryStage($0, $1, snapshot: state) }
+                )
+                switch result.getPreference() {
+                case "connect-location":
+                    if succeeded {
+                        self.recoverySession.savedLocationPersisted(state.destinationTicket)
+                    }
+                case "default-location":
+                    if succeeded {
+                        self.recoverySession.observeDefaultPreference(sessionTicket, unavailable: false)
+                    }
+                default:
+                    break
+                }
+            })
+            let keyPersistence = TunnelDeviceKeyPersistence(
+                device: device, isCurrent: currentProvider,
+                reportFailure: {
+                    self.logger.error("[PacketTunnelProvider]failed to save device key material")
+                }
+            )
+            let provideSecretKeysSub = device.add(keyPersistence)
+            if let keyMaterial {
+                device.setKeyMaterial(keyMaterial)
+            }
+            // persist the identity immediately: a freshly generated key must
+            // survive this session even if no provide-key event fires, and a
+            // loaded key must be re-written after a stale-state wipe
+            keyPersistence.save()
+
+            let provideChangeSub = device.add(ProvideChangeListener { provideEnabled in
+                if provideEnabled && device.getConnectLocation() == nil {
+                    DispatchQueue.main.async {
+                        setLocal()
+                    }
+                }
+            })
+            // re-apply the network settings when the dns settings change the tunnel
+            // dns servers (e.g. unencrypted local servers set or cleared)
+            let dnsResolverSettingsChangeSub = device.add(DnsResolverSettingsChangeListener { _ in
+                DispatchQueue.main.async {
+                    guard self.device === device, !device.getDone() else { return }
+                    self.applyTunnelNetworkSettings(device: device, providerTicket: providerTicket) { error in
                         if let error = error {
                             self.logger.error("[PacketTunnelProvider]failed to set tunnel network settings: \(error.localizedDescription)")
-                            return
-                        }
-                        if connected {
-                            self.reasserting = false
-                            //                        readToDevice(packetFlow: self.packetFlow, device: device)
-                            //                        startPacketFlow()
-//                            self.readToDevice()
                         }
                     }
-    //                self.reasserting = false
                 }
-            }
-        }
-        let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
-            DispatchQueue.main.async {
-                updateWindowStatus(windowStatus)
-            }
-        })
+            })
+            let updateWindowStatus = { (_: SdkWindowStatus?) in self.recoverySession.snapshot(ticket: sessionTicket)?.reconcileReadiness?() }
+            let windowStatusChangeSub = device.add(WindowStatusChangeListener { windowStatus in
+                DispatchQueue.main.async {
+                    updateWindowStatus(windowStatus)
+                }
+            })
 
-        let updatePath = { (path: Network.NWPath) in
-            let canProvideOnCell = device.getProvideNetworkMode() == "all"
-            let canProvideOnNetwork = canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell)
-            self.logger.info(
-                "[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) expensive=\(path.isExpensive) constrained=\(path.isConstrained) provide=\(canProvideOnNetwork)"
-            )
-            device.setProvidePaused(!canProvideOnNetwork)
-        }
-        let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
-        let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
-        // Signature of the physical path (the tunnel's utun is .other, excluded
-        // above). Compare only interfaces the path actually uses, not every
-        // available interface in preference order. Commit a satisfied signature
-        // only after it is stable so Wi-Fi/cellular transition bursts produce one
-        // transport recovery at most. Mutable state is pathMonitorQueue-confined.
-        var stablePathSignature: String? = nil
-        var pathSignatureGeneration: UInt64 = 0
-        var physicalPathWasUnavailable = false
-        var lastPathConstrained: Bool = false
-        // degraded performance: a device in low power mode, thermally throttled, or on
-        // a constrained (Low Data Mode) path answers control pings slowly — ease the
-        // SDK's liveness probe timings so slow is not misread as dead
-        let updatePerformanceDegraded = {
-            let processInfo = ProcessInfo.processInfo
-            let degraded = processInfo.isLowPowerModeEnabled
-                || processInfo.thermalState == .serious
-                || processInfo.thermalState == .critical
-                || lastPathConstrained
-            device.setPerformanceDegraded(degraded)
-        }
-        let handlePathUpdate = { (path: Network.NWPath) in
-            updatePath(path)
-            lastPathConstrained = path.isConstrained
-            updatePerformanceDegraded()
-            pathSignatureGeneration &+= 1
-            let generation = pathSignatureGeneration
-            guard path.status == .satisfied else {
-                // A Wi-Fi sleep/rejoin can return with the same interface and
-                // gateway. Remember the unavailable edge so signature equality
-                // cannot hide the fact that existing sockets crossed a dead path.
-                if stablePathSignature != nil {
-                    physicalPathWasUnavailable = true
+            let updatePath = { (path: Network.NWPath) in
+                let canProvideOnCell = device.getProvideNetworkMode() == "all"
+                let canProvideOnNetwork = canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell)
+                self.logger.info(
+                    "[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) expensive=\(path.isExpensive) constrained=\(path.isConstrained) provide=\(canProvideOnNetwork)"
+                )
+                device.setProvidePaused(!canProvideOnNetwork)
+            }
+            let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
+            let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
+            // Signature of the physical path (the tunnel's utun is .other, excluded
+            // above). Compare only interfaces the path actually uses, not every
+            // available interface in preference order. Commit a satisfied signature
+            // only after it is stable so Wi-Fi/cellular transition bursts produce one
+            // transport recovery at most. Mutable state is pathMonitorQueue-confined.
+            var stablePathSignature: String? = nil
+            var pathSignatureGeneration: UInt64 = 0
+            var physicalPathWasUnavailable = false
+            var lastPathConstrained: Bool = false
+            // degraded performance: a device in low power mode, thermally throttled, or on
+            // a constrained (Low Data Mode) path answers control pings slowly — ease the
+            // SDK's liveness probe timings so slow is not misread as dead
+            let updatePerformanceDegraded = {
+                let processInfo = ProcessInfo.processInfo
+                let degraded = processInfo.isLowPowerModeEnabled
+                    || processInfo.thermalState == .serious
+                    || processInfo.thermalState == .critical
+                    || lastPathConstrained
+                device.setPerformanceDegraded(degraded)
+            }
+            let handlePathUpdate = { (path: Network.NWPath) in
+                updatePath(path)
+                lastPathConstrained = path.isConstrained
+                updatePerformanceDegraded()
+                pathSignatureGeneration &+= 1
+                let generation = pathSignatureGeneration
+                guard path.status == .satisfied else {
+                    // A Wi-Fi sleep/rejoin can return with the same interface and
+                    // gateway. Remember the unavailable edge so signature equality
+                    // cannot hide the fact that existing sockets crossed a dead path.
+                    if stablePathSignature != nil {
+                        physicalPathWasUnavailable = true
+                    }
+                    return
                 }
+
+                let interfaces = path.availableInterfaces
+                    .filter { path.usesInterfaceType($0.type) }
+                    .map { "\($0.name):\($0.type)" }
+                    .sorted()
+                    .joined(separator: ",")
+                let gateways = path.gateways
+                    .map { "\($0)" }
+                    .sorted()
+                    .joined(separator: ",")
+                let pathSignature = "interfaces=\(interfaces)|gateways=\(gateways)"
+
+                pathMonitorQueue.asyncAfter(
+                    deadline: .now() + self.transportRecoveryDebounce
+                ) {
+                    guard generation == pathSignatureGeneration else { return }
+                    if let previous = stablePathSignature,
+                       previous != pathSignature || physicalPathWasUnavailable {
+                        let reason = physicalPathWasUnavailable
+                            ? "physical-path-restored"
+                            : "physical-path-change"
+                        self.logger.info(
+                            "[PacketTunnelProvider][\(self.lifecycleId)] stable physical path transition=\(reason); scheduling transport recovery"
+                        )
+                        self.requestTransportRecovery(reason: reason)
+                    }
+                    stablePathSignature = pathSignature
+                    physicalPathWasUnavailable = false
+                }
+            }
+            pathMonitor.pathUpdateHandler = { path in
+                handlePathUpdate(path)
+            }
+            pathMonitor.start(queue: pathMonitorQueue)
+            // NEProvider.defaultPath is the VPN-aware default-path signal; it can lead the
+            // physical monitor on transitions, so a change prompts a re-check of the
+            // physical path signature (the signature dedups the double notification)
+            let defaultPathObservation = self.observe(\.defaultPath) { _, _ in
+                pathMonitorQueue.async {
+                    handlePathUpdate(pathMonitor.currentPath)
+                }
+            }
+            // low power / thermal transitions ease or restore the probe timings
+            let powerStateObserver = NotificationCenter.default.addObserver(
+                forName: Notification.Name.NSProcessInfoPowerStateDidChange,
+                object: nil,
+                queue: nil
+            ) { _ in
+                pathMonitorQueue.async { updatePerformanceDegraded() }
+            }
+            let thermalStateObserver = NotificationCenter.default.addObserver(
+                forName: ProcessInfo.thermalStateDidChangeNotification,
+                object: nil,
+                queue: nil
+            ) { _ in
+                pathMonitorQueue.async { updatePerformanceDegraded() }
+            }
+            pathMonitorQueue.async { updatePerformanceDegraded() }
+            // wake() refreshes path/power state. A stable signature change requests
+            // one transport recovery; an unchanged healthy path remains untouched.
+            let networkStateRefresh = {
+                pathMonitorQueue.async {
+                    handlePathUpdate(pathMonitor.currentPath)
+                }
+            }
+            let provideNetworkModeChangeSub = device.add(ProvideNetworkModeChangeListener { _ in
+                DispatchQueue.main.async {
+                    updatePath(pathMonitor.currentPath)
+                }
+            })
+
+
+    //        let packetWriteLock = NSLock()
+            let packetReceiverSub = device.add(PacketBatchBytesReceiver { packetBatchBytes in
+                packetOrigin.withActiveDevice(self.packetReads) { _ in
+                    autoreleasepool {
+                        var packets: [Data] = []
+                        var protocols: [NSNumber] = []
+                        packets.reserveCapacity(TunnelPacketBatchCodec.maxPacketCount)
+                        protocols.reserveCapacity(TunnelPacketBatchCodec.maxPacketCount)
+                        let valid = TunnelPacketBatchCodec.decode(packetBatchBytes) { packet, ipVersion in
+                            packets.append(packet)
+                            protocols.append((ipVersion == 4 ? AF_INET : AF_INET6) as NSNumber)
+                        }
+                        if valid && !packets.isEmpty {
+                            // Retired callbacks never decode/inject. Admission
+                            // cannot preempt a write already in progress. This
+                            // remains Connect's synchronous TUN receive exception;
+                            // no native lock spans the NE write/Transfer handoff.
+                            self.packetFlow.writePackets(packets, withProtocols: protocols)
+                        }
+                    }
+                }
+            })
+
+            // publish location, providers, throughput and balance for the widgets
+            let snapshotWriter = WidgetSnapshotWriter(device: device, logger: logger)
+            snapshotWriter.start()
+
+            let closeSession = {
+                destinationRecovery.cancel()
+                recoveryEffects.cancel()
+                snapshotWriter.close()
+                packetReceiverSub?.close()
+                defaultPathObservation.invalidate()
+                NotificationCenter.default.removeObserver(powerStateObserver)
+                NotificationCenter.default.removeObserver(thermalStateObserver)
+                self.recoverySession.retire(sessionTicket)
+                pathMonitor.cancel()
+                provideChangeSub?.close()
+                provideSecretKeysSub?.close()
+                jwtRefreshSub?.close()
+                recoveryLogoutSub?.close()
+                locationChangeSub?.close()
+                localStateSaveSub?.close()
+                dnsResolverSettingsChangeSub?.close()
+                windowStatusChangeSub?.close()
+                provideNetworkModeChangeSub?.close()
+    //            packetContext.wrappingIncrement(ordering: .relaxed)
+                startupCleanup.cleanUpNow()
+            }
+            guard self.providerSessions.update(providerTicket, {
+                $0.close = closeSession
+                $0.snapshotWriter = snapshotWriter
+                $0.networkStateRefresh = networkStateRefresh
+            }) else {
+                closeSession()
+                completionHandler(TunnelLocalAuthIdentityError.superseded)
                 return
             }
 
-            let interfaces = path.availableInterfaces
-                .filter { path.usesInterfaceType($0.type) }
-                .map { "\($0.name):\($0.type)" }
-                .sorted()
-                .joined(separator: ",")
-            let gateways = path.gateways
-                .map { "\($0)" }
-                .sorted()
-                .joined(separator: ",")
-            let pathSignature = "interfaces=\(interfaces)|gateways=\(gateways)"
-
-            pathMonitorQueue.asyncAfter(
-                deadline: .now() + self.transportRecoveryDebounce
-            ) {
-                guard generation == pathSignatureGeneration else { return }
-                if let previous = stablePathSignature,
-                   previous != pathSignature || physicalPathWasUnavailable {
-                    let reason = physicalPathWasUnavailable
-                        ? "physical-path-restored"
-                        : "physical-path-change"
-                    self.logger.info(
-                        "[PacketTunnelProvider][\(self.lifecycleId)] stable physical path transition=\(reason); scheduling transport recovery"
-                    )
-                    self.requestTransportRecovery(reason: reason)
-                }
-                stablePathSignature = pathSignature
-                physicalPathWasUnavailable = false
-            }
-        }
-        pathMonitor.pathUpdateHandler = { path in
-            handlePathUpdate(path)
-        }
-        pathMonitor.start(queue: pathMonitorQueue)
-        // NEProvider.defaultPath is the VPN-aware default-path signal; it can lead the
-        // physical monitor on transitions, so a change prompts a re-check of the
-        // physical path signature (the signature dedups the double notification)
-        let defaultPathObservation = self.observe(\.defaultPath) { _, _ in
-            pathMonitorQueue.async {
-                handlePathUpdate(pathMonitor.currentPath)
-            }
-        }
-        // low power / thermal transitions ease or restore the probe timings
-        let powerStateObserver = NotificationCenter.default.addObserver(
-            forName: Notification.Name.NSProcessInfoPowerStateDidChange,
-            object: nil,
-            queue: nil
-        ) { _ in
-            pathMonitorQueue.async { updatePerformanceDegraded() }
-        }
-        let thermalStateObserver = NotificationCenter.default.addObserver(
-            forName: ProcessInfo.thermalStateDidChangeNotification,
-            object: nil,
-            queue: nil
-        ) { _ in
-            pathMonitorQueue.async { updatePerformanceDegraded() }
-        }
-        pathMonitorQueue.async { updatePerformanceDegraded() }
-        // wake() refreshes path/power state. A stable signature change requests
-        // one transport recovery; an unchanged healthy path remains untouched.
-        self.networkStateRefresh = {
-            pathMonitorQueue.async {
-                handlePathUpdate(pathMonitor.currentPath)
-            }
-        }
-        let provideNetworkModeChangeSub = device.add( ProvideNetworkModeChangeListener { mode in
-            if let mode {
-                try? localState.setProvideNetworkMode(mode)
-            }
-            DispatchQueue.main.async {
-                updatePath(pathMonitor.currentPath)
-            }
-        })
-
-
-//        let packetWriteLock = NSLock()
-        let packetReceiverSub = device.add(PacketBatchBytesReceiver { packetBatchBytes in
-            autoreleasepool {
-                var packets: [Data] = []
-                var protocols: [NSNumber] = []
-                packets.reserveCapacity(TunnelPacketBatchCodec.maxPacketCount)
-                protocols.reserveCapacity(TunnelPacketBatchCodec.maxPacketCount)
-                let valid = TunnelPacketBatchCodec.decode(packetBatchBytes) { packet, ipVersion in
-                    packets.append(packet)
-                    protocols.append((ipVersion == 4 ? AF_INET : AF_INET6) as NSNumber)
-                }
-                if valid && !packets.isEmpty {
-                    // This is Connect's deliberate device-TUN receive
-                    // exception: keep final NEPacketTunnelFlow injection
-                    // synchronous so Transfer ACK follows accepted delivery.
-                    self.packetFlow.writePackets(packets, withProtocols: protocols)
-                }
-            }
-        })
-
-        // publish location, providers, throughput and balance for the widgets
-        let snapshotWriter = WidgetSnapshotWriter(device: device, logger: logger)
-        self.snapshotWriter = snapshotWriter
-        snapshotWriter.start()
-
-        self.close = {
-            snapshotWriter.close()
-            packetReceiverSub?.close()
-            defaultPathObservation.invalidate()
-            NotificationCenter.default.removeObserver(powerStateObserver)
-            NotificationCenter.default.removeObserver(thermalStateObserver)
-            self.networkStateRefresh = nil
-            pathMonitor.cancel()
-            routeLocalChangeSub?.close()
-            vpnInterfaceWhileOfflineChangeSub?.close()
-            provideChangeSub?.close()
-            provideModeChangeSub?.close()
-            provideControlModeChangeSub?.close()
-            canShowRatingDialogChangeSub?.close()
-            canPromptIntroFunnelChangeSub?.close()
-            allowForegroundChangeSub?.close()
-            canReferChangeSub?.close()
-            performanceProfileChangeSub?.close()
-            provideSecretKeysSub?.close()
-            jwtRefreshSub?.close()
-            locationChangeSub?.close()
-            defaultLocationChangeSub?.close()
-            dnsResolverSettingsChangeSub?.close()
-            windowStatusChangeSub?.close()
-            provideNetworkModeChangeSub?.close()
-//            packetContext.wrappingIncrement(ordering: .relaxed)
-            device.close()
-        }
-        startupCleanup.commit()
-
-//        Thread.setThreadPriority(1.0)
-//        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
-////            startPacketFlow()
-//            self.readToDevice()
-//            updateWindowStatus(device.getWindowStatus())
-//            completionHandler(nil)
-//        }
-
-        self.applyTunnelNetworkSettings(force: true) { error in
-            DispatchQueue.main.async {
-                guard self.isPacketReadActive(generation: packetReadGeneration) else {
-                    completionHandler(NSError(domain: "network.ur.extension", code: 9, userInfo: [NSLocalizedDescriptionKey: "Tunnel start was superseded"]))
-                    return
-                }
-
-                if let error {
-                    self.logger.error("[PacketTunnelProvider]failed to set initial tunnel network settings: \(error.localizedDescription)")
-                    self.stopPacketReads()
-                    self.endTunnelSettingsSession()
-                    if let close = self.close {
-                        close()
-                        self.close = nil
-                    } else {
-                        device.close()
+            // Open RPC only after explicit Load, autosave, intent reconciliation and
+            // observation/readiness listeners. Its first preference mutation cannot
+            // predate autosave. Publish only the accepted client after RPC works.
+            do {
+                try finishTunnelLocalAuthSession(
+                    configureRpc: {
+                        try device.setRpcServer(rpcServerPem, clientCertPem: rpcClientPem, hostPort: rpcListenHostPort)
+                    },
+                    publishedClientJwt: { device.getClientJwt() },
+                    publishClient: { publishedClientJwt in
+                        deviceConfiguration["by_jwt"] = publishedClientJwt
+                        guard self.providerSessions.update(providerTicket, { $0.configuration = deviceConfiguration }) else {
+                            throw TunnelLocalAuthIdentityError.superseded
+                        }
+                        if !SharedTunnelJwtStore.save(byJwt: publishedClientJwt, instanceId: configuredInstanceId) {
+                            self.recordRecoveryStage("auth-observation", "failed")
+                        }
                     }
-                    self.device = nil
-                    self.deviceConfiguration = nil
-                    self.localState = nil
-                    completionHandler(error)
-                    return
-                }
+                )
+                self.recordRecoveryStage("rpc", "completed")
+            } catch {
+                self.retireProviderSession(providerTicket).provider?.close?()
+                completionHandler(error)
+                return
+            }
 
-                updateWindowStatus(device.getWindowStatus())
-                self.readToDevice(generation: packetReadGeneration)
-                self.memoryMonitor?.sample(event: "tunnel-started")
-                completionHandler(nil)
-                // the tunnel is up: re-render the quick connect control and
-                // the widgets now that NEVPNStatus reads connected
-                snapshotWriter.tunnelStarted()
+    //        Thread.setThreadPriority(1.0)
+    //        self.setTunnelNetworkSettings(self.networkSettings()) { _ in
+    ////            startPacketFlow()
+    //            self.readToDevice()
+    //            updateWindowStatus(device.getWindowStatus())
+    //            completionHandler(nil)
+    //        }
+
+            self.applyTunnelNetworkSettings(device: device, providerTicket: providerTicket, force: true) { error in
+                DispatchQueue.main.async {
+                    guard self.isPacketReadActive(generation: packetReadGeneration) else {
+                        completionHandler(NSError(domain: "network.ur.extension", code: 9, userInfo: [NSLocalizedDescriptionKey: "Tunnel start was superseded"]))
+                        return
+                    }
+
+                    if let error {
+                        self.logger.error("[PacketTunnelProvider]failed to set initial tunnel network settings: \(error.localizedDescription)")
+                        if let close = self.retireProviderSession(providerTicket).provider?.close {
+                            close()
+                        } else {
+                            startupCleanup.cleanUpNow()
+                        }
+                        completionHandler(error)
+                        return
+                    }
+
+                    updateWindowStatus(device.getWindowStatus())
+                    self.readToDevice(packetOrigin)
+                    self.memoryMonitor?.sample(event: "tunnel-started")
+                    guard self.providerSessions.update(providerTicket, { $0.started = true }) else {
+                        completionHandler(TunnelLocalAuthIdentityError.superseded)
+                        return
+                    }
+                    finishTunnelStartup(
+                        recordOutcome: {
+                            self.recordRecoveryStage("startup", "completed")
+                        },
+                        flushLogs: {
+                            SdkFlushGlog()
+                        },
+                        completion: {
+                            completionHandler(nil)
+                        }
+                    )
+                    // the tunnel is up: re-render the quick connect control and
+                    // the widgets now that NEVPNStatus reads connected
+                    snapshotWriter.tunnelStarted()
+                }
             }
         }
+
+        let startupQueue = DispatchQueue(label: "network.ur.extension.auth-startup", qos: .utility)
+        let failStartup = { (error: Error) in
+            // Failure is delivered on startupQueue after admitted reads join.
+            // Retirement already dispatches NE/settings callbacks to main;
+            // SDK cleanup must not wait for a held main finish queue.
+            let retiring = self.retireProviderSession(providerTicket).recovery
+            if let retiring {
+                if error is TunnelAuthStartupError { self.recordRecoveryStage("auth-observation", "timeout", snapshot: retiring) }
+                self.recordRecoveryStage("startup", "failed", snapshot: retiring)
+            }
+            startupCleanup.cleanUpNow()
+            completionHandler(error)
+        }
+        let startup = TunnelAuthStartupContinuation(
+            enqueue: { work in startupQueue.async(execute: work) },
+            subscribe: { settled, cancelled in
+                let refresh = device.add(TunnelJwtRefreshListener { jwt in
+                    guard let jwt, !jwt.isEmpty else { return }
+                    settled()
+                })
+                let logout = device.add(TunnelStartupAuthLogoutListener { cancelled() })
+                return { refresh?.close(); logout?.close() }
+            },
+            scheduleDeadline: { expired in
+                let work = DispatchWorkItem(block: expired)
+                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 15, execute: work)
+                return { work.cancel() }
+            },
+            isCurrent: {
+                self.recoverySession.isCurrent(sessionTicket) && currentProvider()
+                    && self.isPacketReadActive(generation: packetReadGeneration)
+            },
+            observe: restoreInitialPreferences,
+            finishAdmission: self.recoverySession.startupFinishAdmission(
+                ticket: sessionTicket,
+                enqueue: { work in DispatchQueue.main.async(execute: work) },
+                readIntent: readSharedIntent
+            ),
+            waiting: {
+                if let state = self.recoverySession.snapshot(ticket: sessionTicket) {
+                    self.recordRecoveryStage("auth-observation", "waiting", snapshot: state)
+                }
+            },
+            completion: { result in
+                self.recoverySession.clearAuthStartup(sessionTicket)
+                switch result {
+                case .success:
+                    finishStartup()
+                case .failure(let failure):
+                    failStartup(failure)
+                }
+            }
+        )
+        guard recoverySession.installAuthStartup(startup, ticket: sessionTicket) else {
+            startup.cancel()
+            return
+        }
+        startup.start()
     }
 
-    private func makeTunnelNetworkSettingsPlan() -> TunnelNetworkSettingsPlan {
+    private func makeTunnelNetworkSettingsPlan(device: SdkDeviceLocal) -> TunnelNetworkSettingsPlan {
         let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
 
         // IPv4 Configuration
-        let tunnelLocalAddress = self.device?.tunnelLocalAddress() ?? "169.254.2.1"
+        let tunnelLocalAddress = device.tunnelLocalAddress()
         let ipv4Settings = NEIPv4Settings(addresses: [tunnelLocalAddress], subnetMasks: ["255.255.255.0"])
         ipv4Settings.includedRoutes = [NEIPv4Route.default()]
         // exclude the local network from the tunnel, matching Android (MainService's
@@ -1134,13 +1525,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // unencrypted-DNS -> DoH upgrade itself, so enabling encrypted DNS at the OS
         // level here (e.g. NEDNSOverHTTPSSettings/NEDNSOverTLSSettings) would bypass
         // the mux and hide queries from it.
-        let dnsServers = self.tunnelDnsServers()
-        let dnsSettings = NEDNSSettings(servers: dnsServers)
-        // route every DNS query to the tunnel resolver (empty string matches all
-        // domains). without this the OS may not send :53 queries into the tunnel, so
-        // the UpgradeMux never sees them and resolution fails.
-        dnsSettings.matchDomains = [""]
-        networkSettings.dnsSettings = dnsSettings
+        let dnsServers = self.tunnelDnsServers(device: device)
+        if !dnsServers.isEmpty {
+            let dnsSettings = NEDNSSettings(servers: dnsServers)
+            dnsSettings.matchDomains = [""]
+            networkSettings.dnsSettings = dnsSettings
+        }
 
         // Keep one full encrypted tunnel packet eligible for H3's single-
         // DATAGRAM lane. This is the same value used by provider packetization.
@@ -1154,43 +1544,60 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         )
     }
 
-    private func beginTunnelSettingsSession() {
-        resetTunnelSettingsSession(
-            active: true,
-            errorDescription: "Tunnel network settings session was superseded"
-        )
+    // A provider-owner admission may call preparation while holding that
+    // owner lock. Detach callbacks/plans without applying NE settings, invoking
+    // callbacks or releasing their captures until both locks are released.
+    private struct TunnelSettingsSessionTransition {
+        let callbacks: [((Error?) -> Void)]
+        let retiredPlans: [TunnelNetworkSettingsPlan]
     }
 
-    private func endTunnelSettingsSession() {
-        resetTunnelSettingsSession(
-            active: false,
-            errorDescription: "Tunnel network settings session stopped"
-        )
-    }
-
-    private func resetTunnelSettingsSession(active: Bool, errorDescription: String) {
+    private func prepareTunnelSettingsSession(active: Bool) -> TunnelSettingsSessionTransition {
         tunnelSettingsLock.lock()
         tunnelSettingsGeneration &+= 1
         tunnelSettingsSessionActive = active
         appliedTunnelSettingsSignature = nil
 
         let callbacks = tunnelSettingsInFlightCompletions + pendingTunnelSettingsCompletions
+        let retiredPlans = [tunnelSettingsInFlight, pendingTunnelSettings].compactMap { $0 }
         tunnelSettingsInFlight = nil
         tunnelSettingsInFlightCompletions = []
         pendingTunnelSettings = nil
         pendingTunnelSettingsForce = false
         pendingTunnelSettingsCompletions = []
         tunnelSettingsLock.unlock()
+        return TunnelSettingsSessionTransition(callbacks: callbacks, retiredPlans: retiredPlans)
+    }
 
-        guard !callbacks.isEmpty else {
-            return
-        }
+    private func completeTunnelSettingsTransition(_ transition: TunnelSettingsSessionTransition?, errorDescription: String) {
+        guard let transition, !transition.callbacks.isEmpty else { return }
         let error = NSError(
             domain: "network.ur.extension",
             code: 11,
             userInfo: [NSLocalizedDescriptionKey: errorDescription]
         )
-        completeTunnelSettingsCallbacks(callbacks, error: error)
+        completeTunnelSettingsCallbacks(transition.callbacks, error: error)
+        withExtendedLifetime(transition.retiredPlans) {}
+    }
+
+    // The provider ticket, not a settings transaction generation, owns all
+    // session retirement. Preparation is callback-free; cancellation and NE
+    // completion delivery occur after the provider owner releases its lock.
+    private func retireProviderSession(
+        _ ticket: TunnelProviderSessionOwner<ProviderSession>.Ticket? = nil
+    ) -> (provider: ProviderSession?, recovery: RecoverySession.Snapshot?) {
+        var recovery: RecoverySession.Snapshot?
+        var settings: TunnelSettingsSessionTransition?
+        let provider = providerSessions.take(ticket, prepareWithLock: {
+            self.stopPacketReads()
+            settings = self.prepareTunnelSettingsSession(active: false)
+            recovery = self.recoverySession.prepareRetire()
+        })
+        provider?.destinationRecovery?.cancel()
+        provider?.recoveryEffects?.cancel()
+        recoverySession.completeRetirement(recovery)
+        completeTunnelSettingsTransition(settings, errorDescription: "Tunnel network settings session stopped")
+        return (provider, recovery)
     }
 
     /**
@@ -1199,58 +1606,63 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
      * is active, only the newest plan is retained and applied next.
      */
     private func applyTunnelNetworkSettings(
+        device: SdkDeviceLocal, providerTicket: TunnelProviderSessionOwner<ProviderSession>.Ticket,
         force: Bool = false,
         completion: ((Error?) -> Void)? = nil
     ) {
-        let plan = makeTunnelNetworkSettingsPlan()
+        // All SDK reads use one retained origin, before either native lock.
+        let plan = makeTunnelNetworkSettingsPlan(device: device)
         var start: (TunnelNetworkSettingsPlan, UInt64)?
-        var immediateError: Error?
+        var inactive = false
         var completeImmediately = false
-
-        tunnelSettingsLock.lock()
-        if !tunnelSettingsSessionActive {
-            immediateError = NSError(
-                domain: "network.ur.extension",
-                code: 12,
-                userInfo: [NSLocalizedDescriptionKey: "Tunnel network settings session is not active"]
-            )
-        } else if let inFlight = tunnelSettingsInFlight {
-            if inFlight.signature == plan.signature {
-                // Latest state has returned to the plan already in flight.
-                // Cancel a different pending plan and let all its callers join
-                // this transaction.
-                tunnelSettingsInFlightCompletions.append(contentsOf: pendingTunnelSettingsCompletions)
-                pendingTunnelSettings = nil
-                pendingTunnelSettingsForce = false
-                pendingTunnelSettingsCompletions = []
-                if let completion {
-                    tunnelSettingsInFlightCompletions.append(completion)
+        var retainedCallbacks: [((Error?) -> Void)] = []
+        var retainedPlans: [TunnelNetworkSettingsPlan] = []
+        let admitted = providerSessions.admitPrepared(providerTicket) {
+            // Same lock order as provider publication/retirement. Retain all
+            // replaced captures until both locks are released.
+            tunnelSettingsLock.lock()
+            retainedCallbacks = tunnelSettingsInFlightCompletions + pendingTunnelSettingsCompletions
+            retainedPlans = [tunnelSettingsInFlight, pendingTunnelSettings].compactMap { $0 }
+            if !tunnelSettingsSessionActive {
+                inactive = true
+            } else if let inFlight = tunnelSettingsInFlight {
+                if inFlight.signature == plan.signature {
+                    // Latest state has returned to the plan already in flight.
+                    // Cancel a different pending plan and join this transaction.
+                    tunnelSettingsInFlightCompletions.append(contentsOf: pendingTunnelSettingsCompletions)
+                    pendingTunnelSettings = nil
+                    pendingTunnelSettingsForce = false
+                    pendingTunnelSettingsCompletions = []
+                    if let completion {
+                        tunnelSettingsInFlightCompletions.append(completion)
+                    }
+                } else {
+                    pendingTunnelSettings = plan
+                    pendingTunnelSettingsForce = force
+                    if let completion {
+                        pendingTunnelSettingsCompletions.append(completion)
+                    }
                 }
+            } else if !force, appliedTunnelSettingsSignature == plan.signature {
+                completeImmediately = true
             } else {
-                pendingTunnelSettings = plan
-                pendingTunnelSettingsForce = force
+                tunnelSettingsGeneration &+= 1
+                let generation = tunnelSettingsGeneration
+                tunnelSettingsInFlight = plan
                 if let completion {
-                    pendingTunnelSettingsCompletions.append(completion)
+                    tunnelSettingsInFlightCompletions = [completion]
+                } else {
+                    tunnelSettingsInFlightCompletions = []
                 }
+                start = (plan, generation)
             }
-        } else if !force, appliedTunnelSettingsSignature == plan.signature {
-            completeImmediately = true
-        } else {
-            tunnelSettingsGeneration &+= 1
-            let generation = tunnelSettingsGeneration
-            tunnelSettingsInFlight = plan
-            if let completion {
-                tunnelSettingsInFlightCompletions = [completion]
-            } else {
-                tunnelSettingsInFlightCompletions = []
-            }
-            start = (plan, generation)
+            tunnelSettingsLock.unlock()
         }
-        tunnelSettingsLock.unlock()
+        withExtendedLifetime((retainedCallbacks, retainedPlans)) {}
 
-        if let immediateError {
+        if !admitted || inactive {
             if let completion {
-                completeTunnelSettingsCallbacks([completion], error: immediateError)
+                completeTunnelSettingsCallbacks([completion], error: TunnelLocalAuthIdentityError.superseded)
             }
             return
         }
@@ -1361,37 +1773,102 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     /// default plain-DNS resolvers (which the UpgradeMux can intercept and upgrade).
     /// The tunnel is ipv4-only (no ipv6 addresses or routes), so only the ipv4
     /// resolvers apply.
-    func tunnelDnsServers() -> [String] {
+    private func tunnelDnsServers(device: SdkDeviceLocal) -> [String] {
         var servers: [String] = []
-        if let addresses = self.device?.tunnelDnsAddressesIpv4() {
+        if let addresses = device.tunnelDnsAddressesIpv4() {
             for i in 0..<addresses.len() {
                 servers.append(addresses.get(i))
             }
         }
-        if servers.isEmpty {
-            // If the device-scoped value is unavailable, use the SDK's
-            // URnetwork-owned UpgradeMux identity rather than advertising a
-            // third-party resolver the OS could classify or reach directly.
-            servers = [SdkGetDefaultTunnelDnsAddressIpv4()]
-        }
-        return servers
+        return tunnelOwnedDnsServers(
+            interceptorPresent: device.getTunnelDnsInterceptorActive(),
+            advertised: servers
+        )
     }
 
-    private func prepareLocalStateForStart(_ localState: SdkLocalState, byJwt: String, instanceId: SdkId, hasStaleLocalState: Bool) {
-        if hasStaleLocalState {
-            do {
-                try localState.logout()
-            } catch {
-                logger.error("[PacketTunnelProvider]failed to clear stale local state: \(error.localizedDescription)")
+    private func reconcileIntendedDestinationIfNeeded(
+        device: SdkDeviceLocal, ticket: RecoverySession.DestinationTicket,
+        isCurrent: () -> Bool, restoreDestination: () throws -> Void
+    ) throws {
+        guard isCurrent(), let state = recoverySession.snapshot(ticket: ticket.session),
+              state.destinationTicket == ticket else { throw TunnelLocalAuthIdentityError.superseded }
+        let sharedIntent: TunnelIntent?
+        do {
+            sharedIntent = try TunnelIntentStore.loadChecked()
+            recordRecoveryStage("intent-load", sharedIntent == nil ? "missing" : "present")
+        } catch {
+            recordRecoveryStage("intent-load", "failed")
+            throw error
+        }
+        let hasNewCurrentIntent = sharedIntent != state.observedIntent
+            && (sharedIntent?.applies(to: state.owner) ?? false)
+            && (sharedIntent.map { !$0.connect || tunnelConnectIntentIsNewer(changedAt: $0.changedAt, liveDisconnectAt: state.liveDisconnectAt) } ?? false)
+        let missingIntendedConsumer = state.connectIntended
+            && (device.getConnectLocation() == nil || !device.getConnectEnabled())
+        if hasNewCurrentIntent || missingIntendedConsumer {
+            guard isCurrent() else { throw TunnelLocalAuthIdentityError.superseded }
+            try restoreDestination()
+        }
+    }
+
+    // Called only by the serial recovery worker. Network operations remain
+    // outside the main/lifecycle queues and all native locks. The original
+    // destination must still own effects after an admitted SDK call returns.
+    private func completeDestinationRecovery(
+        device: SdkDeviceLocal, providerTicket: TunnelProviderSessionOwner<ProviderSession>.Ticket,
+        ticket: RecoverySession.DestinationTicket, reasons: TunnelDestinationRecoveryReason,
+        isCurrent: @escaping () -> Bool
+    ) {
+        guard isCurrent() else { return }
+        let recoveryStartedAt = Date()
+        if reasons.contains(.path) {
+            device.networkChanged()
+        }
+        guard isCurrent() else { return }
+        if !reasons.intersection([.wake, .wakeGrace]).isEmpty {
+            _ = device.probeAllExits()
+        }
+        DispatchQueue.main.async {
+            guard isCurrent() else { return }
+            if reasons.contains(.path) {
+                self.lastTransportRecoveryAt = recoveryStartedAt
+                self.memoryMonitor?.sample(event: "transport-recovery")
+                self.recordRecoveryStage("path-recovery", "completed")
+            }
+            self.recoverySession.snapshot(ticket: ticket.session)?.reconcileReadiness?()
+            if reasons.contains(.wake) {
+                self.scheduleWakeHealthCheck(
+                    device: device, providerTicket: providerTicket, ticket: ticket,
+                    wakeStartedAt: recoveryStartedAt
+                )
             }
         }
+    }
 
-        do {
-            try localState.setByJwt(byJwt)
-            try localState.setInstanceId(instanceId)
-        } catch {
-            logger.error("[PacketTunnelProvider]failed to update local auth markers: \(error.localizedDescription)")
-        }
+    // Sparse transition breadcrumbs share the existing SDK/glog export path.
+    // The SDK validates the vocabulary and clamps counters; no error text,
+    // auth bytes, path, address or peer identifier is accepted here.
+    private func recordRecoveryStage(_ stage: String, _ result: String) {
+        recordRecoveryStage(stage, result, snapshot: recoverySession.snapshot())
+    }
+
+    private func recordRecoveryStage(
+        _ stage: String, _ result: String, snapshot state: RecoverySession.Snapshot?
+    ) {
+        let diagnostics = state?.readDiagnostics?()
+        let intended = state?.connectIntended ?? false
+        let consumer = diagnostics?.consumerPresent ?? false
+        let location = diagnostics?.hasLocation ?? false
+        let providers = diagnostics?.providerCount ?? -1
+        let generation = Int64(min(state?.readiness.generation ?? 0, UInt64(Int64.max)))
+        let fingerprint = "\(result)|\(intended)|\(consumer)|\(location)|\(providers)|\(generation)"
+        recoveryBreadcrumbLock.lock()
+        let duplicate = recoveryBreadcrumbs[stage] == fingerprint
+        recoveryBreadcrumbs[stage] = fingerprint
+        recoveryBreadcrumbLock.unlock()
+        guard !duplicate else { return }
+        let line = SdkRecordTunnelRecoveryStage(stage, result, intended, consumer, location, providers, generation)
+        logger.info("\(line, privacy: .public)")
     }
 
     private func requestTransportRecovery(reason: String) {
@@ -1400,34 +1877,50 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
     }
 
-    private func scheduleTransportRecovery(reason: String) {
-        guard let device, !device.getDone() else { return }
+    private func scheduleTransportRecovery(reason: String, changeTransport: Bool = true) {
+        guard let provider = providerSessions.snapshot(), !provider.value.device.getDone() else { return }
+        let device = provider.value.device
+        // A settings retry can share the existing debounce but cannot erase a
+        // real pending path recovery or reset otherwise healthy transports.
+        recoveryNeedsTransportChange = recoveryNeedsTransportChange || changeTransport
 
-        var delay = transportRecoveryDebounce
-        if let lastTransportRecoveryAt {
-            delay = max(
-                delay,
-                minimumTransportRecoveryInterval -
-                    Date().timeIntervalSince(lastTransportRecoveryAt)
-            )
-        }
-        delay = max(0, delay)
+        // Burst coalescing precedes observation. The final-effects owner uses
+        // a monotonic clock for the sole two-second reset admission check.
+        let delay = transportRecoveryDebounce
 
         transportRecoveryWork?.cancel()
+        recoveryWorkGeneration &+= 1
+        let generation = recoveryWorkGeneration
         let work = DispatchWorkItem { [weak self, weak device] in
             guard let self,
                   let device,
-                  self.device === device,
+                  self.providerSessions.snapshot(ticket: provider.ticket)?.value.device === device,
+                  self.recoveryWorkGeneration == generation,
                   !device.getDone() else {
                 return
             }
             self.transportRecoveryWork = nil
-            self.lastTransportRecoveryAt = Date()
-            self.logger.info(
-                "[PacketTunnelProvider][\(self.lifecycleId)] transport recovery reason=\(reason)"
-            )
-            self.memoryMonitor?.sample(event: "transport-recovery")
-            device.networkChanged()
+            let changeTransport = self.recoveryNeedsTransportChange
+            self.recoveryNeedsTransportChange = false
+            self.recordRecoveryStage(changeTransport ? "path-recovery" : "settings", changeTransport ? "started" : "retry")
+            if changeTransport {
+                guard let state = self.recoverySession.snapshot(),
+                      let recovery = self.providerSessions.snapshot(ticket: provider.ticket)?.value.destinationRecovery else { return }
+                recovery.request(state.destinationTicket, reason: .path)
+                return
+            }
+            do {
+                try performTunnelRecovery(
+                    changeTransport: false,
+                    isCurrent: { self.device === device && !device.getDone() && self.recoveryWorkGeneration == generation },
+                    restoreDestination: {},
+                    networkChanged: {},
+                    reconcileReadiness: { self.recoverySession.snapshot()?.reconcileReadiness?() }
+                )
+            } catch {
+                self.reasserting = true
+                self.recordRecoveryStage("settings", "failed")
+            }
         }
         transportRecoveryWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
@@ -1436,64 +1929,67 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private func cancelPendingTransportRecovery() {
         transportRecoveryWork?.cancel()
         transportRecoveryWork = nil
+        recoveryWorkGeneration &+= 1
+        recoveryNeedsTransportChange = false
         wakeHealthWork?.cancel()
         wakeHealthWork = nil
     }
 
     private func refreshAndProbeAfterWake() {
-        guard let device, !device.getDone() else { return }
+        guard let provider = providerSessions.snapshot(),
+              let recovery = provider.value.destinationRecovery,
+              !provider.value.device.getDone(), let state = recoverySession.snapshot() else { return }
+        recordRecoveryStage("wake", "started")
+        provider.value.networkStateRefresh?()
+        recovery.request(state.destinationTicket, reason: .wake)
+    }
 
-        let wakeStartedAt = Date()
-        networkStateRefresh?()
-        let scheduledProbes = device.probeAllExits()
-        logger.info(
-            "[PacketTunnelProvider][\(self.lifecycleId)] wake probe passes=\(scheduledProbes)"
-        )
-
+    private func scheduleWakeHealthCheck(
+        device: SdkDeviceLocal, providerTicket: TunnelProviderSessionOwner<ProviderSession>.Ticket,
+        ticket: RecoverySession.DestinationTicket, wakeStartedAt: Date
+    ) {
         wakeHealthWork?.cancel()
         let work = DispatchWorkItem { [weak self, weak device] in
             guard let self,
                   let device,
-                  self.device === device,
+                  self.providerSessions.snapshot(ticket: providerTicket)?.value.device === device,
+                  self.recoverySession.isCurrent(ticket),
                   !device.getDone() else {
                 return
             }
             self.wakeHealthWork = nil
 
-            // A real path change already owns the transport reset. Do not issue
-            // a second reset while its reconnect is forming a provider window.
-            if let lastRecovery = self.lastTransportRecoveryAt,
-               lastRecovery >= wakeStartedAt {
+            guard let state = self.recoverySession.snapshot(ticket: ticket.session) else { return }
+            let providerCount = device.getWindowStatus()?.providerStateAdded ?? 0
+            let action = tunnelWakeAction(
+                connectIntended: state.connectIntended,
+                destinationPresent: device.getConnectLocation() != nil,
+                consumerPresent: device.getConnectEnabled(),
+                providerCount: providerCount, afterGrace: true,
+                pathRecoveryAlreadyRequested: self.lastTransportRecoveryAt.map { $0 >= wakeStartedAt } ?? false
+            )
+            switch action {
+            case .restoreDestination:
+                self.providerSessions.snapshot(ticket: providerTicket)?.value.destinationRecovery?
+                    .request(state.destinationTicket, reason: .wakeGrace)
+            case .coveredByPathRecovery:
                 self.logger.info(
                     "[PacketTunnelProvider][\(self.lifecycleId)] wake health covered by path recovery"
                 )
-                return
-            }
-
-            // Local/provide-only operation has no remote provider window to
-            // validate. The SDK's suspend detector has already rebased its
-            // liveness clocks, and a physical path change is handled above.
-            guard device.getConnectLocation() != nil else {
+            case .local:
+                self.recordRecoveryStage("wake", "local")
                 self.logger.info(
                     "[PacketTunnelProvider][\(self.lifecycleId)] wake healthy local mode"
                 )
-                return
-            }
-
-            let providerCount = device.getWindowStatus()?.providerStateAdded ?? 0
-            guard providerCount <= 0 else {
+            case .probeExisting:
+                self.recordRecoveryStage("wake", "present")
                 self.logger.info(
-                    "[PacketTunnelProvider][\(self.lifecycleId)] wake healthy providers=\(providerCount)"
+                    "[PacketTunnelProvider][\(self.lifecycleId)] wake window present providers=\(providerCount)"
                 )
-                return
+            case .recoverTransport:
+                self.recordRecoveryStage("wake", "empty-window")
+                self.scheduleTransportRecovery(reason: "wake-unhealthy")
             }
-
-            // The unchanged path did not recover within the grace period. This
-            // is the bounded fallback for genuinely stale sockets.
-            self.logger.error(
-                "[PacketTunnelProvider][\(self.lifecycleId)] wake unhealthy after grace; providers=0"
-            )
-            self.scheduleTransportRecovery(reason: "wake-unhealthy")
         }
         wakeHealthWork = work
         DispatchQueue.main.asyncAfter(
@@ -1504,33 +2000,61 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         logger.info("[PacketTunnelProvider][\(self.lifecycleId)] stop reason=\(String(describing: reason))")
-        memoryMonitor?.sample(event: "tunnel-stopping")
-        DispatchQueue.main.async { [weak self] in
-            self?.cancelPendingTransportRecovery()
+        let reasonKind: TunnelStopReasonKind
+        switch reason {
+        case .userInitiated, .providerDisabled, .configurationDisabled, .configurationRemoved:
+            reasonKind = .userDisabled
+        case .superceded:
+            reasonKind = .superseded
+        case .appUpdate:
+            reasonKind = .appUpdate
+        case .providerFailed, .connectionFailed, .configurationFailed, .authenticationCanceled:
+            reasonKind = .failure
+        default:
+            reasonKind = .other
         }
+        let reasonClass = tunnelStopReasonClass(reasonKind)
+        var retiringProvider: ProviderSession?
+        var retiringState: RecoverySession.Snapshot?
+        finishTunnelStop(
+            cleanup: {
+                let retirement = self.retireProviderSession()
+                retiringProvider = retirement.provider
+                retiringState = retirement.recovery
+                self.recordRecoveryStage("stop", reasonClass, snapshot: retiringState)
+                self.memoryMonitor?.sample(event: "tunnel-stopping")
+                DispatchQueue.main.async { [weak self] in
+                    self?.cancelPendingTransportRecovery()
+                }
 
-        recordSharedIntentForStop(reason: reason)
-        if let snapshotWriter = self.snapshotWriter {
-            self.snapshotWriter = nil
-            // writes the widgets' snapshot as inactive and re-renders the
-            // control and widgets; synchronous, since this process may be
-            // reaped as soon as the completion handler runs
-            snapshotWriter.tunnelStopped()
-        }
+                self.recordSharedIntentForStop(reason: reason, owner: retiringState?.owner)
+                if let snapshotWriter = retiringProvider?.snapshotWriter {
+                    // writes the widgets' snapshot as inactive and re-renders the
+                    // control and widgets; synchronous, since this process may be
+                    // reaped as soon as the completion handler runs
+                    snapshotWriter.tunnelStopped()
+                }
 
-        self.stopPacketReads()
-        self.endTunnelSettingsSession()
-        if let close = self.close {
-            close()
-            self.close = nil
-        } else {
-            self.device?.close()
-        }
-        self.device = nil
-        self.localState = nil
-        self.shouldSaveKeyMaterial = true
-        memoryMonitor?.sample(event: "tunnel-stopped")
-        completionHandler()
+                if let close = retiringProvider?.close {
+                    close()
+                } else {
+                    retiringProvider?.device.close()
+                }
+            },
+            joinCleanup: {
+                retiringProvider?.device.wait(forClose: tunnelStopCloseJoinTimeoutMilliseconds) ?? true
+            },
+            reportCleanupJoin: { joined in
+                self.recordRecoveryStage("stop", joined ? "completed" : "timeout", snapshot: retiringState)
+            },
+            sampleFinalState: {
+                self.memoryMonitor?.sample(event: "tunnel-stopped")
+            },
+            flushLogs: {
+                SdkFlushGlog()
+            },
+            completion: completionHandler
+        )
     }
 
     /// A stop the user made outside the app (Settings > VPN, the system's VPN
@@ -1538,7 +2062,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     /// undo on its next foreground. The app marks the stops it makes itself
     /// (TunnelIntentStore.markAppInitiatedStop) so they are not mistaken for
     /// one; the quick connect control records its own intent before stopping.
-    private func recordSharedIntentForStop(reason: NEProviderStopReason) {
+    private func recordSharedIntentForStop(reason: NEProviderStopReason, owner: TunnelIntentOwner?) {
         let appInitiated = TunnelIntentStore.consumeAppInitiatedStop()
         switch reason {
         case .userInitiated, .configurationDisabled, .providerDisabled, .superceded:
@@ -1549,7 +2073,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 // the control or the widget already recorded this disconnect
                 return
             }
-            TunnelIntentStore.record(connect: false, source: TunnelIntentStore.sourceSystem)
+            TunnelIntentStore.record(connect: false, source: TunnelIntentStore.sourceSystem, owner: owner)
             logger.info("[PacketTunnelProvider][\(self.lifecycleId)] recorded a system disconnect intent")
         default:
             return
@@ -1601,14 +2125,31 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         if String(data: messageData, encoding: .utf8) == logoutProviderMessage {
-            shouldSaveKeyMaterial = false
-            SharedTunnelJwtStore.clear()
+            var retiringState: RecoverySession.Snapshot?
+            var retiringSettings: TunnelSettingsSessionTransition?
             do {
-                try localState?.logout()
-                deviceConfiguration = nil
+                try providerSessions.withLogout(prepareWithLock: {
+                    self.stopPacketReads()
+                    retiringSettings = self.prepareTunnelSettingsSession(active: false)
+                    retiringState = self.recoverySession.prepareRetire()
+                }, clear: { provider in
+                    // New starts reject until these outside-lock clears finish.
+                    // A missing published LocalState does not skip shared logout.
+                    provider?.destinationRecovery?.cancel()
+                    provider?.recoveryEffects?.cancel()
+                    self.recoverySession.completeRetirement(retiringState)
+                    self.completeTunnelSettingsTransition(retiringSettings, errorDescription: "Tunnel network settings session stopped")
+                    defer {
+                        if let close = provider?.close { close() }
+                        else { provider?.device.close() }
+                    }
+                    TunnelIntentStore.record(connect: false, source: TunnelIntentStore.sourceApp, owner: retiringState?.owner)
+                    SharedTunnelJwtStore.clear()
+                    try provider?.localState.logout()
+                })
                 completionHandler?(Data("ok".utf8))
             } catch {
-                logger.error("[PacketTunnelProvider]failed to clear local state on logout: \(error.localizedDescription)")
+                logger.error("[PacketTunnelProvider]failed to clear local state on logout")
                 completionHandler?(Data("error".utf8))
             }
             return
@@ -1621,42 +2162,29 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
 
     private func beginPacketReads() -> UInt64 {
-        packetReadLock.lock()
-        defer { packetReadLock.unlock() }
-
-        stopped = false
-        packetReadGeneration &+= 1
-        return packetReadGeneration
+        packetReads.begin()
     }
 
-    private func stopPacketReads() {
-        packetReadLock.lock()
-        stopped = true
-        packetReadGeneration &+= 1
-        packetReadLock.unlock()
+    private func stopPacketReads(generation: UInt64? = nil) {
+        packetReads.stop(generation: generation)
     }
 
     private func isPacketReadActive(generation: UInt64) -> Bool {
-        packetReadLock.lock()
-        defer { packetReadLock.unlock() }
-
-        return !stopped && generation == packetReadGeneration
+        packetReads.isActive(generation: generation)
     }
 
-    private func readToDevice(generation: UInt64) {
-        guard isPacketReadActive(generation: generation) else { return }
+    private func readToDevice(_ origin: TunnelPacketReadOrigin<SdkDeviceLocal>) {
+        guard isPacketReadActive(generation: origin.generation) else { return }
 
         self.packetFlow.readPackets { packets, protocols in
-            guard self.isPacketReadActive(generation: generation) else { return }
-
-            if let device = self.device {
+            origin.withActiveDevice(self.packetReads) { device in
                 TunnelPacketBatchCodec.encode(packets) { packetBatchBytes in
                     autoreleasepool {
                         _ = device.sendPacketBatch(packetBatchBytes)
                     }
                 }
             }
-            self.readToDevice(generation: generation)
+            self.readToDevice(origin)
         }
     }
 
@@ -1676,20 +2204,23 @@ private final class TunnelJwtRefreshListener: NSObject,
 }
 
 
-private class ProvideSecretKeysListener: NSObject, SdkProvideSecretKeysListenerProtocol {
-    private let c: (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void
-
-    init(c: @escaping (_ provideSecretKeysList: SdkProvideSecretKeyList?) -> Void) {
-        self.c = c
-    }
-
-    func provideSecretKeysChanged(_ provideSecretKeysList: SdkProvideSecretKeyList?) {
-        c(provideSecretKeysList)
-    }
+private final class TunnelStartupAuthLogoutListener: NSObject, SdkAuthLogoutListenerProtocol {
+    private let callback: () -> Void
+    init(_ callback: @escaping () -> Void) { self.callback = callback }
+    func authLogout() { callback() }
 }
 
+private final class TunnelLocalStateSaveListener: NSObject, SdkLocalStateSaveListenerProtocol {
+    private let callback: (SdkDeviceLocalSaveResult?) -> Void
 
+    init(_ callback: @escaping (SdkDeviceLocalSaveResult?) -> Void) {
+        self.callback = callback
+    }
 
+    func localStateSaved(_ result: SdkDeviceLocalSaveResult?) {
+        callback(result)
+    }
+}
 
 private class PacketBatchBytesReceiver: NSObject, SdkReceivePacketBatchProtocol {
     func receivePacketBatch(_ packetBatchBytes: Data?) {
@@ -1848,19 +2379,6 @@ private class VpnInterfaceWhileOfflineChangeListener: NSObject, SdkVpnInterfaceW
 
     func vpnInterfaceWhileOfflineChanged(_ vpnInterfaceWhileOffline: Bool) {
         c(vpnInterfaceWhileOffline)
-    }
-}
-
-private class DefaultLocationChangeListener: NSObject, SdkDefaultLocationChangeListenerProtocol {
-
-    private let c: (_ location: SdkConnectLocation?) -> Void
-
-    init(c: @escaping (_ location: SdkConnectLocation?) -> Void) {
-        self.c = c
-    }
-
-    func defaultLocationChanged(_ location: SdkConnectLocation?) {
-        c(location)
     }
 }
 

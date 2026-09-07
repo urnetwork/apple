@@ -313,7 +313,7 @@ class ConnectViewModel: ObservableObject {
             viewController.connect(provider)
         }
         try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
-        TunnelIntentAdoption.recordAppIntent(connect: true)
+        TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
     }
 
     /**
@@ -324,7 +324,7 @@ class ConnectViewModel: ObservableObject {
             withCommandViewController { viewController in
                 viewController.connect(selectedProvider)
             }
-            TunnelIntentAdoption.recordAppIntent(connect: true)
+            TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
         } else {
             connectBestAvailable()
         }
@@ -334,7 +334,7 @@ class ConnectViewModel: ObservableObject {
         withCommandViewController { viewController in
             viewController.connectBestAvailable()
         }
-        TunnelIntentAdoption.recordAppIntent(connect: true)
+        TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
     }
 
     func disconnect() {
@@ -343,7 +343,7 @@ class ConnectViewModel: ObservableObject {
         }
         // the in-app decision: the quick connect surfaces and the tunnel
         // extension see it through the shared intent
-        TunnelIntentAdoption.recordAppIntent(connect: false)
+        TunnelIntentAdoption.recordAppIntent(connect: false, device: device)
     }
 
     private func withCommandViewController(_ command: (SdkConnectViewController) -> Void) {

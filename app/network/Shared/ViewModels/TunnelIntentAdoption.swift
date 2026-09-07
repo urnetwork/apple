@@ -35,15 +35,31 @@ enum TunnelIntentAdoption {
 
     /// Records an in-app connect or disconnect for the other processes and
     /// marks it applied.
-    static func recordAppIntent(connect: Bool) {
-        let intent = TunnelIntentStore.record(connect: connect, source: TunnelIntentStore.sourceApp)
+    static func recordAppIntent(connect: Bool, device: SdkDeviceRemote?) {
+        let intent = TunnelIntentStore.record(
+            connect: connect, source: TunnelIntentStore.sourceApp,
+            owner: owner(device: device)
+        )
         markApplied(intent.changedAt)
     }
 
+    static func owner(device: SdkDeviceRemote?) -> TunnelIntentOwner? {
+        guard let device, !device.getDone(),
+              let instanceId = device.getInstanceId()?.string(),
+              let space = device.getNetworkSpace() else { return nil }
+        var error: NSError?
+        let json = space.toJson(&error)
+        guard error == nil else { return nil }
+        return TunnelIntentOwner.make(
+            instanceId: instanceId, clientJwt: device.getClientJwt(), networkSpaceJson: json
+        )
+    }
+
     /// The newest shared intent the app has not applied yet, if any.
-    static func pendingIntent() -> TunnelIntent? {
-        guard let intent = TunnelIntentStore.load(),
+    static func pendingIntent(owner: TunnelIntentOwner?) -> TunnelIntent? {
+        guard let intent = try? TunnelIntentStore.loadChecked(),
               intent.source != TunnelIntentStore.sourceApp,
+              intent.applies(to: owner),
               TunnelIntentStore.supersedes(intent, localChangedAt: appliedAt) else {
             return nil
         }
@@ -53,27 +69,34 @@ enum TunnelIntentAdoption {
     /// Applies a pending shared intent to the local state and, when present,
     /// the device. Returns the intent that was applied.
     @discardableResult
-    static func adoptPending(localState: SdkLocalState?, device: SdkDeviceRemote?) -> TunnelIntent? {
-        guard let intent = pendingIntent() else {
+    static func adoptPending(
+        localState: SdkLocalState?,
+        device: SdkDeviceRemote?,
+        owner initialOwner: TunnelIntentOwner? = nil
+    ) -> TunnelIntent? {
+        let owner = device == nil ? initialOwner : owner(device: device)
+        guard let localState, let intent = pendingIntent(owner: owner) else {
             return nil
         }
-        if intent.connect {
-            let current = device?.getConnectLocation() ?? localState?.getConnectLocation()
-            let location = current ?? localState?.getDefaultLocation() ?? bestAvailableLocation()
-            if localState?.getConnectLocation() == nil {
-                try? localState?.setConnectLocation(location)
+        do {
+            if intent.connect {
+                let saved = try localState.readConnectLocation().getLocation()
+                let current = device?.getConnectLocation() ?? saved
+                let location = try current ?? localState.readDefaultLocation().getLocation() ?? bestAvailableLocation()
+                // Persist before publishing; a failed read/write neither
+                // invents a destination nor marks this decision applied.
+                if saved == nil { try localState.setConnectLocation(location) }
+                if current == nil { device?.setConnectLocation(location) }
+            } else {
+                try localState.setConnectLocation(nil)
+                if device?.getConnectLocation() != nil { device?.setConnectLocation(nil) }
             }
-            if current == nil {
-                device?.setConnectLocation(location)
-            }
-        } else {
-            try? localState?.setConnectLocation(nil)
-            if device?.getConnectLocation() != nil {
-                device?.setConnectLocation(nil)
-            }
+        } catch {
+            print("[TunnelIntentAdoption] stage=persist result=failed")
+            return nil
         }
         markApplied(intent.changedAt)
-        print("[TunnelIntentAdoption] adopted \(intent.connect ? "connect" : "disconnect") from \(intent.source)")
+        print("[TunnelIntentAdoption] stage=adopt connect=\(intent.connect)")
         return intent
     }
 

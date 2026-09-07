@@ -66,4 +66,41 @@ final class TunnelMemoryBoundsTests: XCTestCase {
         }
         XCTAssertEqual(cleanupCount, 2)
     }
+
+    func testConcurrentStartupCleanupHasExactlyOneOwner() {
+        let lock = NSLock()
+        var count = 0
+        let cleanup = TunnelStartupCleanup {
+            lock.lock()
+            count += 1
+            lock.unlock()
+        }
+        let group = DispatchGroup()
+        for _ in 0..<24 {
+            group.enter()
+            DispatchQueue.global().async {
+                cleanup.cleanUpNow()
+                group.leave()
+            }
+        }
+        XCTAssertEqual(group.wait(timeout: .now() + 5), .success)
+        lock.lock()
+        let completed = count
+        lock.unlock()
+        XCTAssertEqual(completed, 1)
+    }
+
+    func testStartupCleanupRunsOutsideItsDisarmLock() {
+        var cleanup: TunnelStartupCleanup?
+        var count = 0
+        cleanup = TunnelStartupCleanup {
+            count += 1
+            cleanup?.commit()
+            cleanup?.cleanUpNow()
+        }
+        cleanup?.cleanUpNow()
+        XCTAssertEqual(count, 1)
+        cleanup = nil
+        XCTAssertEqual(count, 1)
+    }
 }

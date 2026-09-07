@@ -55,6 +55,51 @@ struct NetworkSpaceSelection {
     }
 }
 
+// Only device-auth callbacks cross this seam. The normal source is the actual
+// SDK remote; tests retain the same registered callbacks without starting RPC.
+protocol DeviceAuthCallbackSource: AnyObject {
+    func authCallbackInstanceId() -> String?
+    func observeAuthRefresh(_ callback: @escaping @Sendable (String?) -> Void) -> () -> Void
+    func observeAuthLogout(_ callback: @escaping @Sendable () -> Void) -> () -> Void
+}
+
+extension SdkDeviceRemote: DeviceAuthCallbackSource {
+    func authCallbackInstanceId() -> String? { getInstanceId()?.string() }
+
+    func observeAuthRefresh(_ callback: @escaping @Sendable (String?) -> Void) -> () -> Void {
+        let subscription = add(JwtRefreshListener(c: callback))
+        return { subscription?.close() }
+    }
+
+    func observeAuthLogout(_ callback: @escaping @Sendable () -> Void) -> () -> Void {
+        let subscription = add(AuthLogoutListener(c: callback))
+        return { subscription?.close() }
+    }
+}
+
+typealias DeviceAuthCallbackWork = @MainActor @Sendable () -> Void
+typealias DeviceAuthCallbackDispatch = @Sendable (@escaping DeviceAuthCallbackWork) -> Void
+
+// Side effects remain the existing implementations. Injected sinks let the
+// callback admission tests avoid Keychain and NetworkExtension preferences.
+struct DeviceAuthCallbackEffects {
+    let persistRefresh: @MainActor (String, String) -> Void
+    let logout: @MainActor (DeviceManager) -> Void
+
+    static var live: DeviceAuthCallbackEffects {
+        DeviceAuthCallbackEffects(
+            persistRefresh: { jwt, instanceId in
+                VPNManager.persistRefreshedTunnelJwt(jwt, instanceId: instanceId)
+            },
+            logout: { manager in manager.logout() }
+        )
+    }
+}
+
+// Reference identity names one registration, even when device/token bytes are
+// reused. Only the main actor reads or changes the manager's current owner.
+private final class DeviceAuthCallbackOwner: Sendable {}
+
 @MainActor
 class DeviceManager: ObservableObject {
     
@@ -65,6 +110,7 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var networkSpace: SdkNetworkSpace? {
         didSet {
+            retireDeviceAuthCallbacks()
 //            setApi(networkSpace?.getApi())
             // updateParsedJwt()
         }
@@ -102,6 +148,9 @@ class DeviceManager: ObservableObject {
     }
     private var applicationIsActive = false
     private var isLoggingOut = false
+    private var deviceAuthCallbackOwner: DeviceAuthCallbackOwner?
+    private let authCallbackDispatch: DeviceAuthCallbackDispatch
+    private let authCallbackEffects: DeviceAuthCallbackEffects
 
     func applicationDidBecomeActive() {
         applicationIsActive = true
@@ -372,8 +421,8 @@ class DeviceManager: ObservableObject {
     
     private var deviceProvideSub: SdkSubProtocol?
     private var deviceProvidePausedSub: SdkSubProtocol?
-    private var deviceJwtRefreshSub: SdkSubProtocol?
-    private var deviceAuthLogoutSub: SdkSubProtocol?
+    private var closeDeviceJwtRefreshListener: (() -> Void)?
+    private var closeDeviceAuthLogoutListener: (() -> Void)?
     private var deviceCanShowRatingDialogSub: SdkSubProtocol?
     private var deviceCanPromptIntroFunnelSub: SdkSubProtocol?
     private var deviceAllowForegroundSub: SdkSubProtocol?
@@ -441,6 +490,7 @@ class DeviceManager: ObservableObject {
     }
     
     func clearDevice() {
+        retireDeviceAuthCallbacks()
         setDevice(device: nil)
     }
     
@@ -491,16 +541,29 @@ class DeviceManager: ObservableObject {
         return DeviceModelNames.name(forIdentifier: identifier) ?? identifier
     }
     
-    init(startupMode: AppStartupMode = HardwareNoVPNLaunchContract.current) {
+    init(
+        startupMode: AppStartupMode = HardwareNoVPNLaunchContract.current,
+        automaticallyInitialize: Bool = true,
+        scheduleStartupInitialization: @MainActor (DeviceManager) -> Void = { manager in
+            Task { await manager.initializeNetworkSpace() }
+        },
+        authCallbackDispatch: @escaping DeviceAuthCallbackDispatch = { work in
+            DispatchQueue.main.async { work() }
+        },
+        authCallbackEffects: DeviceAuthCallbackEffects = .live
+    ) {
         self.startupMode = startupMode
+        self.authCallbackDispatch = authCallbackDispatch
+        self.authCallbackEffects = authCallbackEffects
 
+        // This constructor-only opt-out permits memory tests. NetworkApp never
+        // supplies it: both production and hardwareNoVPN retain normal startup.
+        guard automaticallyInitialize else { return }
         let initializationScheduled = AppStartupInitializationGate.performIfAllowed(
             mode: startupMode
         ) {
             self.startupInitializationInvocationCount += 1
-            Task {
-                await self.initializeNetworkSpace()
-            }
+            scheduleStartupInitialization(self)
         }
         if !initializationScheduled {
             // Test-only startup owns a dedicated UI and must not leave
@@ -586,6 +649,7 @@ class DeviceManager: ObservableObject {
     
     
     func closeOnQuit(completion: @escaping (Error?) -> Void) {
+        retireDeviceAuthCallbacks()
         self.device?.close()
         
         if let vpnManager = self.vpnManager {
@@ -795,8 +859,10 @@ extension DeviceManager {
         // state is corrupt or unreadable the active lookup returns nil, and without it
         // the app would come up bound to no space at all -- no api, no auth, no way
         // back.
-        self.networkSpace = networkSpaceManager?.getActiveNetworkSpace()
-            ?? networkSpaceManager?.getNetworkSpace(networkSpaceKey)
+        setActiveNetworkSpace(
+            networkSpaceManager?.getActiveNetworkSpace()
+                ?? networkSpaceManager?.getNetworkSpace(networkSpaceKey)
+        )
         
         let getJwtCallback = GetJwtInitDeviceCallback(
             networkStore: self,
@@ -832,6 +898,12 @@ extension DeviceManager {
 // MARK: Network server selection
 @MainActor
 extension DeviceManager {
+
+    // All accepted network-space assignments share the callback-retirement
+    // boundary, including an unavailable space during initialization.
+    func setActiveNetworkSpace(_ networkSpace: SdkNetworkSpace?) {
+        self.networkSpace = networkSpace
+    }
 
     var activeHostName: String {
         networkSpace?.getHostName() ?? NetworkConfig.officialHostName
@@ -891,7 +963,7 @@ extension DeviceManager {
         }
 
         networkSpaceManager.setActiveNetworkSpace(updated)
-        self.networkSpace = updated
+        setActiveNetworkSpace(updated)
         return true
     }
 }
@@ -982,17 +1054,8 @@ extension DeviceManager {
             return false
         }
 
-        // a quick connect or disconnect made from Control Center, the widget
-        // or Settings since the app last ran is the newest decision: fold it
-        // into the saved connect location before it is pushed to the device
-        if startupMode.allowsVPNProfileSystemAccess {
-            TunnelIntentAdoption.adoptPending(localState: localState, device: nil)
-        }
-
         let routeLocal = localState.getRouteLocal()
         let blockerEnabled = localState.getBlockerEnabled()
-        let connectLocation = localState.getConnectLocation()
-        let defaultLocation = localState.getDefaultLocation()
         let canShowRatingDialog = localState.getCanShowRatingDialog()
         let canPromptIntroFunnel = localState.getCanPromptIntroFunnel()
         let allowForeground = localState.getAllowForeground()
@@ -1008,10 +1071,18 @@ extension DeviceManager {
         let canRefer = localState.getCanRefer()
         let vpnInterfaceWhileOffline = localState.getVpnInterfaceWhileOffline()
 
-        var instanceId = localState.getInstanceId()
-        if instanceId == nil {
-            instanceId = SdkNewId()
-            try? localState.setInstanceId(instanceId)
+        var instanceId: SdkId?
+        do {
+            let snapshot = try localState.getAuthStateSnapshot()
+            instanceId = snapshot.getInstanceId()
+            if instanceId == nil {
+                instanceId = SdkNewId()
+                try localState.setInstanceId(instanceId)
+            }
+        } catch {
+            print("[DeviceManager] stage=auth-observation result=failed")
+            markInitializedWithoutDevice()
+            return false
         }
 
         var newDeviceError: NSError?
@@ -1024,7 +1095,10 @@ extension DeviceManager {
         )
 
         if let error = newDeviceError {
+            device?.close()
             print("Error occurred: \(error.localizedDescription)")
+            markInitializedWithoutDevice()
+            return false
         } else {
             print("Device created successfully")
         }
@@ -1034,18 +1108,33 @@ extension DeviceManager {
             return false
         }
 
+        // Shared intent is admitted only after the SDK has accepted this
+        // device-owned client. Failed checked reads never queue a nil location
+        // into the extension and erase its surviving destination.
+        if startupMode.allowsVPNProfileSystemAccess {
+            TunnelIntentAdoption.adoptPending(localState: localState, device: device)
+        }
+        let connectLocation: SdkConnectLocation?
+        let defaultLocation: SdkConnectLocation?
+        do {
+            connectLocation = try localState.readConnectLocation().getLocation()
+            defaultLocation = try localState.readDefaultLocation().getLocation()
+        } catch {
+            device.close()
+            print("[DeviceManager] stage=destination-observation result=failed")
+            markInitializedWithoutDevice()
+            return false
+        }
+
         // Populate the shared restart credential on every authenticated cold
         // launch, not only when this build observes the next JWT rotation. For
         // upgraded installations the bootstrap above has already restored the
         // running profile's exact instance into LocalState, so this also closes
         // the one-restart migration gap for a token refreshed by an older build.
-        if startupMode.allowsVPNProfileSystemAccess,
-           let activeInstanceId = device.getInstanceId()?.string(),
-           !activeInstanceId.isEmpty {
-            VPNManager.seedCurrentTunnelJwtIfMissing(
-                clientJwt,
-                instanceId: activeInstanceId
-            )
+        // Use the successfully published device client, not the preliminary
+        // input or the shared API slot an admin login can own.
+        if startupMode.allowsVPNProfileSystemAccess {
+            VPNManager.seedCurrentTunnelJwtIfMissing(device: device)
         }
 
         // point the rpc transport at the last known good session (if any) so the
@@ -1183,46 +1272,7 @@ extension DeviceManager {
             }
         })
         
-        self.deviceJwtRefreshSub = device.add(JwtRefreshListener { [weak self] jwt in
-            guard let self = self else {
-                return
-            }
-
-            DispatchQueue.main.async {
-                self.updateParsedJwt()
-                guard self.startupMode.allowsVPNProfileSystemAccess else {
-                    return
-                }
-                guard let jwt, !jwt.isEmpty,
-                      let instanceId = device.getInstanceId()?.string(),
-                      !instanceId.isEmpty else {
-                    return
-                }
-                VPNManager.persistRefreshedTunnelJwt(
-                    jwt,
-                    instanceId: instanceId
-                )
-            }
-
-        })
-
-        // the sdk fires this when the jwt refresh finds the client no longer
-        // exists on the server (e.g. the client was removed): the sdk has
-        // already cleared its local auth state; log the user out so the ui
-        // returns to the login flow
-        self.deviceAuthLogoutSub = device.add(AuthLogoutListener { [weak self] in
-
-            print("AuthLogoutListener hit")
-
-            guard let self = self else {
-                return
-            }
-
-            DispatchQueue.main.async {
-                self.logout()
-            }
-
-        })
+        setupDeviceAuthListeners(source: device)
 
         self.deviceCanShowRatingDialogSub = device.add(CanShowRatingDialogChangeListener { [weak self] canShowRatingDialog in
             try? self?.asyncLocalState?.getLocalState()?.setCanShowRatingDialog(canShowRatingDialog)
@@ -1283,19 +1333,61 @@ extension DeviceManager {
         self.currentProvideMode = device.getProvideMode()
     }
 
+    // Registration and delivery are separate boundaries: removing an SDK
+    // listener cannot recall work already queued on the main actor.
+    func setupDeviceAuthListeners(source: DeviceAuthCallbackSource) {
+        cleanupDeviceAuthListeners()
+        let owner = DeviceAuthCallbackOwner()
+        deviceAuthCallbackOwner = owner
+        let instanceId = source.authCallbackInstanceId()
+        let dispatch = authCallbackDispatch
+
+        closeDeviceJwtRefreshListener = source.observeAuthRefresh { [weak self] jwt in
+            dispatch { [weak self] in
+                guard let self, self.deviceAuthCallbackOwner === owner else { return }
+                self.updateParsedJwt()
+                guard self.startupMode.allowsVPNProfileSystemAccess else { return }
+                guard let jwt, !jwt.isEmpty,
+                      let instanceId, !instanceId.isEmpty else { return }
+                self.authCallbackEffects.persistRefresh(jwt, instanceId)
+            }
+        }
+        closeDeviceAuthLogoutListener = source.observeAuthLogout { [weak self] in
+            dispatch { [weak self] in
+                guard let self, self.deviceAuthCallbackOwner === owner else { return }
+                self.retireDeviceAuthCallbacks()
+                self.authCallbackEffects.logout(self)
+            }
+        }
+    }
+
+    // An accepted explicit login owns auth before its replacement remote is
+    // ready. A pending request or failed write must leave serving auth alone.
+    func acceptNetworkLogin(_ commitAdmin: () throws -> Void) rethrows {
+        try commitAdmin()
+        retireDeviceAuthCallbacks()
+    }
+
+    func retireDeviceAuthCallbacks() {
+        deviceAuthCallbackOwner = nil
+    }
+
+    private func cleanupDeviceAuthListeners() {
+        retireDeviceAuthCallbacks()
+        closeDeviceJwtRefreshListener?()
+        closeDeviceJwtRefreshListener = nil
+        closeDeviceAuthLogoutListener?()
+        closeDeviceAuthLogoutListener = nil
+    }
+
     private func cleanupDeviceListeners() {
+        cleanupDeviceAuthListeners()
         deviceProvideSub?.close()
         deviceProvideSub = nil
         
         deviceProvidePausedSub?.close()
         deviceProvidePausedSub = nil
         
-        deviceJwtRefreshSub?.close()
-        deviceJwtRefreshSub = nil
-
-        deviceAuthLogoutSub?.close()
-        deviceAuthLogoutSub = nil
-
         deviceCanShowRatingDialogSub?.close()
         deviceCanShowRatingDialogSub = nil
 
@@ -1452,7 +1544,9 @@ extension DeviceManager {
         }
 
         do {
-            try localState.setByJwt(jwt)
+            try acceptNetworkLogin {
+                try localState.setByJwt(jwt)
+            }
             try localState.setCanPromptIntroFunnel(newNetwork)
         } catch {
             return .failure(error)
@@ -1578,12 +1672,19 @@ extension DeviceManager {
         }
     }
     
-    func logout() {
+    // Admission is synchronous. Ownership of already-started asynchronous
+    // profile/logout completion remains a separate boundary.
+    func beginLogout() -> Bool {
         guard !isLoggingOut else {
-            return
+            return false
         }
-
+        retireDeviceAuthCallbacks()
         isLoggingOut = true
+        return true
+    }
+
+    func logout() {
+        guard beginLogout() else { return }
         if startupMode.allowsVPNProfileSystemAccess {
             SharedTunnelJwtStore.clear()
         }

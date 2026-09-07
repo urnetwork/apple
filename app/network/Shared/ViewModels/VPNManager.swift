@@ -129,6 +129,15 @@ private final class VPNUpdateWaiter {
     }
 }
 
+// The tunnel seed may read only a device-owned client and its immutable
+// instance, not a shared API slot or a captured pre-construction credential.
+protocol VPNClientAuthSource: AnyObject {
+    func getClientJwt() -> String
+    func getInstanceId() -> SdkId?
+}
+
+extension SdkDeviceRemote: VPNClientAuthSource {}
+
 @MainActor
 class VPNManager: ObservableObject {
     
@@ -1660,6 +1669,23 @@ class VPNManager: ObservableObject {
     // token for this exact DeviceLocal, that value is authoritative and must
     // not be replaced by an older app-container snapshot during cold launch.
     static func seedCurrentTunnelJwtIfMissing(
+        device: VPNClientAuthSource,
+        seed: @MainActor (String, String) -> Void = { byJwt, instanceId in
+            seedCurrentTunnelJwtIfMissing(byJwt, instanceId: instanceId)
+        }
+    ) {
+        let clientJwt = device.getClientJwt()
+        guard !clientJwt.isEmpty,
+              let instanceId = device.getInstanceId()?.string(),
+              !instanceId.isEmpty else {
+            return
+        }
+        // The injected sink keeps regression tests away from Keychain and
+        // NetworkExtension preferences; normal callers use the existing sink.
+        seed(clientJwt, instanceId)
+    }
+
+    static func seedCurrentTunnelJwtIfMissing(
         _ byJwt: String,
         instanceId: String
     ) {
@@ -2215,7 +2241,8 @@ class VPNManager: ObservableObject {
                         )
                         return
                     }
-                    guard let byJwt = device.getApi()?.getByJwt(), !byJwt.isEmpty else {
+                    let byJwt = device.getClientJwt()
+                    guard !byJwt.isEmpty else {
                         self.failVpnUpdate(
                             makeVPNManagerError("Missing by_jwt", code: 3),
                             operation: "start.buildProviderConfiguration",

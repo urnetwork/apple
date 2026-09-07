@@ -83,7 +83,11 @@ enum TunnelControlSupport {
 
         // record first: even if the system call below fails, the app should
         // learn what the user wanted
-        TunnelIntentStore.record(connect: on, source: source)
+        let configuration = (manager.protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration
+        TunnelIntentStore.record(
+            connect: on, source: source,
+            owner: configuration.flatMap(TunnelIntentOwner.fromProviderConfiguration)
+        )
 
         do {
             if on {

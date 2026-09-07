@@ -3,8 +3,10 @@ import Foundation
 // Owns cleanup while PacketTunnelProvider is assembling a session. If setup
 // returns early, deinit closes the partially-started SDK device. Once the
 // provider has installed its full session close closure, commit transfers that
-// responsibility to the provider.
+// responsibility to the provider. Lifecycle and deferred startup callers share
+// only the short take/disarm lock; cleanup itself never runs under that lock.
 final class TunnelStartupCleanup {
+    private let lock = NSLock()
     private var cleanup: (() -> Void)?
 
     init(_ cleanup: @escaping () -> Void) {
@@ -12,12 +14,18 @@ final class TunnelStartupCleanup {
     }
 
     func commit() {
+        lock.lock()
+        let previous = cleanup
         cleanup = nil
+        lock.unlock()
+        withExtendedLifetime(previous) {}
     }
 
     func cleanUpNow() {
+        lock.lock()
         let cleanup = cleanup
         self.cleanup = nil
+        lock.unlock()
         cleanup?()
     }
 

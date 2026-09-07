@@ -477,28 +477,6 @@ final class WidgetSnapshotWriter {
         return providers
     }
 
-    // MARK: Shared connect intent
-
-    /// The location a tunnel started with no saved location should connect
-    /// to, when the newest shared intent (a quick connect from Control Center
-    /// or the widget after an in-app disconnect) asks for a connection: the
-    /// last location selected in the app, else the best available provider.
-    /// Nil when the newest intent is not a connect, or was the app's own.
-    static func connectLocationForSharedIntent(localState: SdkLocalState) -> SdkConnectLocation? {
-        guard let intent = TunnelIntentStore.load(),
-              intent.connect,
-              intent.source != TunnelIntentStore.sourceApp else {
-            return nil
-        }
-        if let defaultLocation = localState.getDefaultLocation() {
-            return defaultLocation
-        }
-        let id = SdkConnectLocationId()
-        id.bestAvailable = true
-        let location = SdkConnectLocation()
-        location.connectLocationId = id
-        return location
-    }
 }
 
 // MARK: - Contract tracking

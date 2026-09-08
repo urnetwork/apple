@@ -42,6 +42,7 @@ struct SplitRulesView: View {
     @State private var topBaseline: CGFloat? = nil
 
     private static let topMarkerId = "split-rules-top"
+    private static let newRuleTargetId = "split-rules-new"
 
     private var pendingCount: Int {
         let displayedIds = Set(displayedActions.map { $0.id })
@@ -99,8 +100,10 @@ struct SplitRulesView: View {
                 header: sectionHeader("Rules")
             ) {
 
+                addRuleRow
+
                 if blockActionsStore.splitRules.isEmpty {
-                    Text("Tap traffic below to route it locally or hold it to one provider.")
+                    Text("Add a host above, or tap traffic below to route it locally or hold it to one provider.")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textFaintColor)
                         .listRowBackground(Color.clear)
@@ -318,6 +321,61 @@ struct SplitRulesView: View {
             }
         }
         return values
+    }
+
+    /**
+     * Adds a rule for a host that has not been seen in the activity below --
+     * the only way to write a rule for traffic that has not happened yet.
+     *
+     * Disabled until the store has a list it can vouch for: creating against
+     * a list this process has not seen would replace the extension's saved
+     * rules rather than join them (see `BlockActionsStore.createRule`). That
+     * is one connect away, and the note below says so.
+     */
+    @ViewBuilder
+    private var addRuleRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button(action: {
+                editorTarget = EditorTarget(
+                    id: Self.newRuleTargetId,
+                    candidates: [],
+                    selected: [],
+                    ruleId: nil,
+                    // route-locally is the only mode that always takes effect
+                    // on its own: a merge replaces an existing route override
+                    // when the incoming one is local, so a first hand-written
+                    // rule in another mode could silently do nothing
+                    mode: .excluded
+                )
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(
+                            blockActionsStore.canCreateRule
+                                ? .urGreen
+                                : themeManager.currentTheme.textFaintColor
+                        )
+                    Text("Add a rule")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(
+                            blockActionsStore.canCreateRule
+                                ? themeManager.currentTheme.textColor
+                                : themeManager.currentTheme.textFaintColor
+                        )
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!blockActionsStore.canCreateRule)
+
+            if !blockActionsStore.canCreateRule {
+                Text("Connect once to load the rules you already have.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textFaintColor)
+            }
+        }
+        .listRowBackground(Color.clear)
     }
 
     private func sectionHeader(_ text: LocalizedStringKey) -> some View {
@@ -620,6 +678,11 @@ struct SplitRuleEditorView: View {
 
     @State private var selection: Set<String>
     @State private var mode: SplitRuleMode
+    /// Hosts typed here, newest first, ahead of the ones this rule was opened
+    /// with. Kept separate from `candidates` so the list is a plain function
+    /// of both and there is no state to keep in step.
+    @State private var addedHosts: [String] = []
+    @State private var newHost: String = ""
 
     init(candidates: [String], initialSelection: Set<String>, ruleId: String?, initialMode: SplitRuleMode) {
         self.candidates = candidates
@@ -630,6 +693,26 @@ struct SplitRuleEditorView: View {
 
     private var isEditing: Bool {
         ruleId != nil
+    }
+
+    private var editableCandidates: [String] {
+        addedHosts + candidates
+    }
+
+    private var validation: SplitRuleHostValidation {
+        SplitRuleHostInput.validate(newHost, existing: editableCandidates)
+    }
+
+    /// Adds the typed host and selects it: a value typed by hand is one the
+    /// user wants in the rule, so making them tick it as well is a step that
+    /// only ever costs them the rule silently doing nothing.
+    private func addTypedHost() {
+        guard let host = validation.normalized else {
+            return
+        }
+        addedHosts.insert(host, at: 0)
+        selection.insert(host)
+        newHost = ""
     }
 
     var body: some View {
@@ -675,7 +758,9 @@ struct SplitRuleEditorView: View {
             .padding(.horizontal)
 
             List {
-                ForEach(candidates, id: \.self) { host in
+                hostEntryRow
+
+                ForEach(editableCandidates, id: \.self) { host in
                     HStack {
                         Text(host)
                             .font(themeManager.currentTheme.bodyFont)
@@ -709,7 +794,7 @@ struct SplitRuleEditorView: View {
                 UrButton(
                     text: isEditing ? "Update" : "Create",
                     action: {
-                        let hosts = candidates.filter { selection.contains($0) }
+                        let hosts = editableCandidates.filter { selection.contains($0) }
                         if let ruleId = ruleId {
                             blockActionsStore.updateRule(id: ruleId, hosts: hosts, mode: mode)
                         } else {
@@ -743,6 +828,55 @@ struct SplitRuleEditorView: View {
      * one exclusive mode choice: a radio-style circle with the mode title
      * and what it does
      */
+    /**
+     * Type a host, a wildcard or an IP range into the rule.
+     *
+     * The matcher has no error channel -- a value it cannot parse is filed as
+     * an exact host name and simply never matches -- so the grammar is
+     * checked here and the reason is said out loud. See `SplitRuleHostInput`.
+     */
+    @ViewBuilder
+    private var hostEntryRow: some View {
+        let validation = self.validation
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                TextField("example.com, *.example.com, 10.0.0.0/8", text: $newHost)
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .autocorrectionDisabled()
+                    #if os(iOS)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    #endif
+                    .onSubmit { addTypedHost() }
+
+                Button(action: { addTypedHost() }) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(
+                            validation.isAccepted
+                                ? .urGreen
+                                : themeManager.currentTheme.textFaintColor
+                        )
+                }
+                .buttonStyle(.plain)
+                .disabled(!validation.isAccepted)
+            }
+
+            // silent while the field is empty: a rejection reason before
+            // anything has been typed reads as an error the user caused
+            if let error = validation.error {
+                Text(SplitRuleHostInput.message(for: error))
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.dangerColor)
+            } else if let note = validation.note {
+                Text(String(format: String(localized: "Saved as %@"), note))
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+        }
+        .listRowBackground(Color.clear)
+    }
+
     private func modeRow(
         _ rowMode: SplitRuleMode,
         title: LocalizedStringKey,

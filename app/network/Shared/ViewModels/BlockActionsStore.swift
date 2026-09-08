@@ -176,6 +176,9 @@ class BlockActionsStore: ObservableObject {
      */
     @Published private(set) var blockActions: [BlockActionItem] = []
     @Published private(set) var splitRules: [SplitRuleItem] = []
+    /// A rule may be created from here only once this process has a list it
+    /// can vouch for -- see `createRule`.
+    @Published private(set) var canCreateRule: Bool = false
     @Published private(set) var allowedCount: Int = 0
     @Published private(set) var blockedCount: Int = 0
 
@@ -322,6 +325,7 @@ class BlockActionsStore: ObservableObject {
         blockActions = []
         splitRules = []
         sdkOverrides = []
+        canCreateRule = false
         allowedCount = 0
         blockedCount = 0
         exitsByIp = [:]
@@ -590,6 +594,16 @@ class BlockActionsStore: ObservableObject {
         if afterEdit || device.getConnected() {
             persistOverrides()
         }
+        // Latched here rather than in `setup` because the change listeners are
+        // registered before the first read, so a connect landing in between
+        // cannot be missed. Monotonic: a disconnect clears the remote's
+        // service but never its last known list, so a base that was real stays
+        // real for this device's life. The local state is optional -- a build
+        // with no app group has none -- and that degrades correctly, to
+        // "connected only", which is the safe half of the test.
+        if !canCreateRule, device.getConnected() || localState?.getBlockActionOverrides() != nil {
+            canCreateRule = true
+        }
     }
 
     /**
@@ -634,8 +648,19 @@ class BlockActionsStore: ObservableObject {
      * creates a split rule applying `mode` to the selected host values;
      * see `SplitRuleMode`
      */
+    /// Refuses to create until this process has seen the whole list, because
+    /// creating against a list it has not seen would DELETE the rest.
+    ///
+    /// With the rpc down the remote builds the full list it will push on the
+    /// next connect out of whatever base it can see, and an unseeded base is
+    /// empty -- so a rule created then would replace the extension's saved
+    /// rules rather than join them (see `DeviceManager.initDevice`). The base
+    /// is real once either the mirror exists or the device has connected, and
+    /// tapping an activity row could never reach this state because the
+    /// activity list is empty with no rpc. A hand-written rule can, so the
+    /// check has to live here and not only on the affordance.
     func createRule(hosts: [String], mode: SplitRuleMode) {
-        guard let device = self.device, !hosts.isEmpty else {
+        guard let device = self.device, !hosts.isEmpty, canCreateRule else {
             return
         }
         let override = SdkBlockActionOverride()

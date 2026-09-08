@@ -29,8 +29,8 @@ struct PointsLeaderboardTab: View {
         return deviceManager.parsedJwt?.networkId?.idStr
     }
 
-    /// The caller always sees their own name: the me row's, or the jwt's until
-    /// me lands; the own list row shows it too when it is anonymous to others.
+    /// The own-stats card always shows the caller's own name: the me row's, or
+    /// the jwt's until me lands. The list row is what everyone else sees.
     private var ownName: String {
         if let name = store.me?.row?.displayName, !name.isEmpty {
             return name
@@ -61,8 +61,7 @@ struct PointsLeaderboardTab: View {
                         PointsRow(
                             row: row,
                             sort: store.sort,
-                            isNetworkRow: ownNetworkId != nil && ownNetworkId == row.networkId,
-                            ownName: ownName
+                            isNetworkRow: ownNetworkId != nil && ownNetworkId == row.networkId
                         )
                     }
                     .onAppear {
@@ -361,8 +360,6 @@ private struct PointsRow: View {
     let row: PointsLeaderboardRowItem
     let sort: String
     let isNetworkRow: Bool
-    /// the caller's own name, shown on their row even when it is anonymous to others
-    var ownName: String = ""
 
     private var rank: String {
         switch sort {
@@ -399,7 +396,9 @@ private struct PointsRow: View {
             // narrow screen (the own-stats header stacks name over tag the same way)
             VStack(alignment: .leading, spacing: 2) {
                 if row.anonymous || row.displayName.isEmpty {
-                    Text(isNetworkRow && !ownName.isEmpty ? ownName : String(localized: "Anonymous"))
+                    // the caller's own row reads Anonymous like everyone else's until the
+                    // network opts in; only the highlight marks it
+                    Text(String(localized: "Anonymous"))
                         .font(themeManager.currentTheme.bodyFont)
                         .fontWeight(isNetworkRow ? .heavy : .regular)
                         .foregroundStyle(nameColor)

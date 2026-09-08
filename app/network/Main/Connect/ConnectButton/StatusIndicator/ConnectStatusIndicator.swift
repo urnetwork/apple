@@ -21,6 +21,16 @@ struct ConnectStatusIndicator: View {
     var showProviderLocations: (() -> Void)? = nil
 
     @EnvironmentObject var themeManager: ThemeManager
+    /// The Pro celebration launcher: the connected icon is an easter egg (see `proTapGate`).
+    @EnvironmentObject var proCelebration: ProCelebrationState
+    /// Five taps on the connected icon, each within 2 s of the last, play the Pro
+    /// celebration; a longer gap starts the count over. Silent: no counter, no haptic.
+    @State private var proTapGate = TapSequenceGate(count: 5, window: 2)
+
+    /// The connected icon counts taps only while the row reads "Connected to N providers".
+    private var countsIconTaps: Bool {
+        connectionStatus == .connected && !displayReconnectTunnel
+    }
 
     /**
      * Whether the status line is a provider status: the live "Connected to N
@@ -81,13 +91,26 @@ struct ConnectStatusIndicator: View {
         HStack {
             
             if connectionStatus != nil {
-                ZStack {
+                let icon = ZStack {
                     Image("GlobeMask")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 16, height: 16)
                 }
                 .background(statusMsgIconColor)
+                if countsIconTaps {
+                    // the easter egg: five quick taps on the connected icon play the Pro
+                    // celebration; the icon's own gesture keeps these taps off the row
+                    icon
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if proTapGate.register() {
+                                proCelebration.launch()
+                            }
+                        }
+                } else {
+                    icon
+                }
             }
             
             Spacer().frame(width: 8)
@@ -173,4 +196,6 @@ struct AnimatedEllipsis: View {
         isPollingSubscriptionBalance: false,
         currentPlan: .none
     )
+    .environmentObject(ThemeManager.shared)
+    .environmentObject(ProCelebrationState())
 }

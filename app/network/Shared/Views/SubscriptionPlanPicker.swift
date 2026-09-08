@@ -134,7 +134,9 @@ struct SubscriptionPlanPicker: View {
                 select: {
                     selectedPaymentOption = .monthly
                 },
-                isSelected: selectedPaymentOption == .monthly
+                isSelected: selectedPaymentOption == .monthly,
+                // equal height with the yearly card, which carries the trial line
+                reservedTrialDays: prices.trialDays
             )
 
             Spacer().frame(height: 18)

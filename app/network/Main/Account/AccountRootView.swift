@@ -18,6 +18,8 @@ struct AccountRootView: View {
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
+    /// A Pro network's plan label replays the Pro celebration.
+    @EnvironmentObject var proCelebration: ProCelebrationState
     
     let navigate: (AccountNavigationPath) -> Void
     let logout: () -> Void
@@ -108,10 +110,22 @@ struct AccountRootView: View {
                                     .foregroundColor(themeManager.currentTheme.textColor)
                             } else {
                              
-                                Text(isPro ? "Pro" : "Free")
-                                    .font(themeManager.currentTheme.titleCondensedFont)
-                                    .foregroundColor(themeManager.currentTheme.textColor)
-                                
+                                if isPro {
+                                    // Pro: the label itself is a button that replays the celebration
+                                    Button(action: {
+                                        proCelebration.launch()
+                                    }) {
+                                        Text("Pro")
+                                            .font(themeManager.currentTheme.titleCondensedFont)
+                                            .foregroundColor(themeManager.currentTheme.textColor)
+                                    }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    Text("Free")
+                                        .font(themeManager.currentTheme.titleCondensedFont)
+                                        .foregroundColor(themeManager.currentTheme.textColor)
+                                }
+
                             }
                             
                             Spacer()

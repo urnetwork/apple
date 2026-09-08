@@ -17,6 +17,10 @@ struct ProductOptionCard: View {
     let isSelected: Bool
     /// The trial line with its length ("Includes 14 day free trial"); only the yearly plan has one.
     var trialDays: Int? = nil
+    /// A card without a trial line reserves the height of one (the other card's), so the two
+    /// plan cards are equal height at any text size, with the visible line centered in that
+    /// space, level with the radio dot.
+    var reservedTrialDays: Int? = nil
     /// The legacy green "Most Popular" pill, used by the upgrade sheet.
     /// The recommended plan: the Pro-gold dress and the "Best value" pill.
     var bestValue: Bool = false
@@ -24,15 +28,25 @@ struct ProductOptionCard: View {
     private var accent: Color {
         bestValue ? introProGold : .accent
     }
-    
+
+    private var priceFont: Font {
+        Font.custom("PP NeueBit", size: 22).weight(.bold)
+    }
+
+    private func trialLine(_ days: Int) -> some View {
+        Text("Includes \(days) day free trial")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(introProGoldLight)
+    }
+
     var body: some View {
-        
+
         ZStack {
-         
+
             VStack(alignment: .leading) {
-                
+
                 HStack {
-                    
+
                     // selected indicator
                     Circle()
                         .fill(isSelected ? accent : Color.clear)
@@ -41,29 +55,43 @@ struct ProductOptionCard: View {
                             Circle()
                                 .stroke(isSelected ? accent : themeManager.currentTheme.textMutedColor, lineWidth: 2)
                         )
-                    
+
                     Spacer().frame(width: 18)
-                    
-                    VStack(alignment: .leading) {
-                    
-                        Text(price)
-                            .font(Font.custom("PP NeueBit", size: 22).weight(.bold))
-                        
-                        if let trialDays {
-                            Text("Includes \(trialDays) day free trial")
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(introProGoldLight)
+
+                    if let trialDays {
+                        VStack(alignment: .leading) {
+                            Text(price)
+                                .font(priceFont)
+                            trialLine(trialDays)
                         }
-                        
+                    } else if let reservedTrialDays {
+                        // the other card's two lines, invisible, size this card; the one
+                        // visible line sits in the middle of that space
+                        ZStack(alignment: .leading) {
+                            VStack(alignment: .leading) {
+                                Text(price)
+                                    .font(priceFont)
+                                trialLine(reservedTrialDays)
+                            }
+                            .hidden()
+                            .accessibilityHidden(true)
+                            Text(price)
+                                .font(priceFont)
+                        }
+                    } else {
+                        Text(price)
+                            .font(priceFont)
                     }
-                    
+
                     Spacer()
-                    
+
                 }
-                
+
             }
             .frame(maxWidth: .infinity)
-            .padding()
+            // taller than wide: the plan lines get room to breathe
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
             .background(
                 Group {
                     if bestValue {

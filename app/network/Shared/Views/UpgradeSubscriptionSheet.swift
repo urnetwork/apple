@@ -54,6 +54,18 @@ struct UpgradeSubscriptionSheet: View {
 
     @State var selectedPaymentOption: PaymentOption = .yearly
 
+    /// The Pro celebration: launched once when the server confirms the purchase, over the
+    /// success view.
+    @EnvironmentObject var proCelebration: ProCelebrationState
+    @State private var celebratedPurchase: Bool = false
+
+    private func celebrateIfConfirmed() {
+        if purchaseSuccess && purchaseConfirmed && !celebratedPurchase {
+            celebratedPurchase = true
+            proCelebration.launch()
+        }
+    }
+
     var body: some View {
 
         ZStack {
@@ -146,29 +158,9 @@ struct UpgradeSubscriptionSheet: View {
                                     Spacer()
                                 }
 
+                                // No explainer under the title: the screen is the title and
+                                // the two plan options.
                                 Spacer().frame(height: 24)
-
-                                HStack {
-                                    Text("Support us in building a new kind of network that gives instead of takes.")
-                                        .font(themeManager.currentTheme.bodyFont)
-                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-
-                                    Spacer()
-                                }
-
-                                Spacer().frame(height: 18)
-
-                                HStack {
-
-                                    Text("You’ll unlock even faster speeds, and first dibs on new features like robust anti-censorship measures and data control.")
-                                        .font(themeManager.currentTheme.bodyFont)
-                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-
-                                    Spacer()
-
-                                }
-
-                                Spacer().frame(height: 18)
 
                                 /**
                                  * A failed attempt renders its reason inline
@@ -276,10 +268,23 @@ struct UpgradeSubscriptionSheet: View {
         }
         .frame(maxWidth: .infinity)
         .animation(.easeIn(duration: 0.25), value: purchaseSuccess)
+        // the celebration draws over the sheet, which sits above the app root
+        .proCelebrationLayer()
+        .onChange(of: purchaseConfirmed) { _ in
+            celebrateIfConfirmed()
+        }
+        .onChange(of: purchaseSuccess) { success in
+            if !success {
+                // the flags describe one attempt; the next purchase celebrates again
+                celebratedPurchase = false
+            }
+            celebrateIfConfirmed()
+        }
         .onAppear {
             // the sheet can't be allowed to spin forever on a product fetch
             // that failed at app init -- retry when it opens
             retryFetchProducts()
+            celebrateIfConfirmed()
         }
 
     }

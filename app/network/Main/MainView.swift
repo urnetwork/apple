@@ -22,6 +22,8 @@ struct MainView: View {
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     @StateObject private var providerListStore: ProviderListStore
+    /// The Pro celebration launcher, shared by the purchase flows and the account's Pro label.
+    @StateObject private var proCelebration = ProCelebrationState()
     @ObservedObject private var transactionMonitor = AppStoreTransactionMonitor.shared
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -106,8 +108,11 @@ struct MainView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.currentTheme.backgroundColor)
+        // the Pro celebration over the whole app; sheets and covers host their own layer
+        .proCelebrationLayer()
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
+        .environmentObject(proCelebration)
         .onAppear {
             subscriptionBalanceViewModel.setActive(presentationActive)
 

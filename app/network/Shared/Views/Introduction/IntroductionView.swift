@@ -50,6 +50,16 @@ struct IntroductionView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
+    /// The Pro celebration: launched once when the server confirms the onboarding purchase.
+    @EnvironmentObject var proCelebration: ProCelebrationState
+    @State private var celebratedPurchase: Bool = false
+
+    private func celebrateIfConfirmed() {
+        if subscriptionManager.purchaseSuccess && deviceManager.isPro && !celebratedPurchase {
+            celebratedPurchase = true
+            proCelebration.launch()
+        }
+    }
     
     let close: () -> Void
     let totalReferrals: Int
@@ -220,6 +230,17 @@ struct IntroductionView: View {
         }
         .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
         .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)
+        // the celebration draws over the onboarding cover, which sits above the app root
+        .proCelebrationLayer()
+        .onChange(of: deviceManager.isPro) { _ in
+            celebrateIfConfirmed()
+        }
+        .onChange(of: subscriptionManager.purchaseSuccess) { success in
+            if !success {
+                celebratedPurchase = false
+            }
+            celebrateIfConfirmed()
+        }
         
     }
 

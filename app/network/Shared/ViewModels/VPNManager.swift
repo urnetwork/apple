@@ -175,6 +175,9 @@ class VPNManager: ObservableObject {
     // Retain the live manager objects so their NEVPNConnection status updates
     // can be observed. The desired-state cache is not a health signal.
     private var observedVpnManagers: [NETunnelProviderManager] = []
+    /// The last connection state the widgets were reloaded for, so the
+    /// several transitions one connect delivers cost one reload.
+    private var lastWidgetReloadState: VPNTunnelConnectionState?
     private var vpnStatusObservers: [NSObjectProtocol] = []
     private var healthAuditWork: DispatchWorkItem?
     private var healthAuditDeadline: Date?
@@ -961,8 +964,14 @@ class VPNManager: ObservableObject {
         let state = Self.tunnelConnectionState(connection.status)
         // the quick connect control and the widgets read NEVPNStatus when
         // rendered but are not told when it changes; every transition seen
-        // here re-renders them
-        WidgetRefresh.reloadAll()
+        // here re-renders them -- but only when the state they DRAW changed.
+        // One connect delivers connecting, connected and sometimes
+        // reasserting, and the widgets render those identically, so reloading
+        // per transition spent several of a budget of tens per day on one tap.
+        if state != lastWidgetReloadState {
+            lastWidgetReloadState = state
+            WidgetRefresh.reloadAll()
+        }
         // a toggle made from Control Center while the app is running arrives
         // here as a status change; fold the shared intent in before the
         // desired state is compared to it (only a pending outside intent

@@ -9,11 +9,14 @@
 //  the snapshot, so a toggle flipped from Control Center reads correctly even
 //  before the tunnel has written anything.
 //
-//  Reload policy: WidgetKit budgets reloads (roughly 40-70 a day per widget
-//  instance) and the tunnel extension's own reload requests are best-effort,
-//  so the timeline asks for a refresh every 20 minutes while the tunnel is
-//  up and hourly while it is down. State changes arrive sooner through the
-//  reloads the app and the tunnel request.
+//  Reload policy lives in WidgetRefreshPolicy, which carries the budget
+//  arithmetic. Entries do NOT keep the data moving -- they all render the one
+//  snapshot this timeline read, so what they advance is the elements that are
+//  a function of the entry's own date (the globe's provider durations). The
+//  dashboard's chart is anchored to the snapshot's clock rather than the
+//  entry's, and its freshness label ticks on its own, so neither depends on
+//  the entry cadence. State changes arrive sooner through the reloads the app
+//  and the tunnel request, and on demand through the refresh button.
 //
 
 import Foundation
@@ -36,13 +39,6 @@ struct SnapshotEntry: TimelineEntry {
 
 struct SnapshotTimelineProvider: TimelineProvider {
 
-    static let refreshIntervalWhileUp: TimeInterval = 20 * 60
-    static let refreshIntervalWhileDown: TimeInterval = 60 * 60
-    /// Entries per timeline; each re-renders the same snapshot at a later
-    /// date so relative times and the chart axis keep moving.
-    static let entrySpacing: TimeInterval = 5 * 60
-    static let entryCount = 4
-
     func placeholder(in context: Context) -> SnapshotEntry {
         SnapshotEntry.sample(at: Date())
     }
@@ -61,11 +57,17 @@ struct SnapshotTimelineProvider: TimelineProvider {
         Task {
             let now = Date()
             let current = await Self.currentEntry(at: now)
+            // the interval is needed before the entries: the timeline is
+            // sized so its last entry lands on the policy date, rather than
+            // running out partway through and holding one render until the
+            // reload arrives
+            let interval = current.isOn
+                ? WidgetRefreshPolicy.refreshIntervalWhileUp
+                : WidgetRefreshPolicy.refreshIntervalWhileDown
             var entries: [SnapshotEntry] = []
-            for i in 0..<Self.entryCount {
-                entries.append(current.at(now.addingTimeInterval(Double(i) * Self.entrySpacing)))
+            for i in 0..<WidgetRefreshPolicy.entryCount(covering: interval) {
+                entries.append(current.at(now.addingTimeInterval(Double(i) * WidgetRefreshPolicy.entrySpacing)))
             }
-            let interval = current.isOn ? Self.refreshIntervalWhileUp : Self.refreshIntervalWhileDown
             completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(interval))))
         }
     }

@@ -23,6 +23,66 @@
 import Foundation
 import WidgetKit
 
+/// Every widget refresh cadence, in one place.
+///
+/// These numbers used to live in three files that each restated the same
+/// budget and then picked a number in isolation: the timeline asked for a
+/// reload every 20 minutes (72 a day) while the tunnel extension's routine
+/// throttle asked every 15 (96 a day), against the roughly 40-70 a day
+/// WidgetKit allows one widget instance. The two clocks do not add up --
+/// every reload re-arms the timeline's `.after(...)`, so the faster one wins
+/// and the slower one's budget is spent for nothing. Over-requesting is not
+/// free: the system answers an over-subscribed budget with deferrals, which
+/// is how a design asking twice per hour ended up refreshing less often than
+/// either of its own numbers.
+///
+/// 25 minutes is ~58 requests a day, inside the band with headroom for the
+/// event-driven reloads a real day contains (connect, disconnect, location
+/// change). The extension's backstop is deliberately SLOWER than the
+/// timeline policy so it fills a gap the policy left rather than racing it.
+///
+/// The freshness a user actually feels does not come from this clock. It
+/// comes from the two paths that are not charged against the budget: a
+/// reload caused by an in-widget intent (the refresh button), and a reload
+/// requested while the app is in the foreground.
+enum WidgetRefreshPolicy {
+
+    /// Requested spacing between timeline reloads while the tunnel is up.
+    static let refreshIntervalWhileUp: TimeInterval = 25 * 60
+
+    /// While the tunnel is down there is no writer at all -- the snapshot
+    /// writer lives in the packet tunnel process and its timers are cancelled
+    /// on stop -- so no new snapshot can appear however often the widget
+    /// asks. The only thing that can change is NEVPNStatus, and every
+    /// transition already reloads from `VPNManager`.
+    static let refreshIntervalWhileDown: TimeInterval = 60 * 60
+
+    /// Entries re-render the same snapshot at later dates. Five minutes is
+    /// the spacing WidgetKit expects; it is the one constant here that is not
+    /// free to lower.
+    static let entrySpacing: TimeInterval = 5 * 60
+
+    /// WidgetKit archives every entry's rendered view up front, so entries
+    /// are not free -- the globe archives a full render each. Six covers the
+    /// tunnel-up policy exactly; the hour-long down policy is capped by it,
+    /// which costs nothing because with the tunnel down there is no writer,
+    /// nothing on screen is a function of the entry's date any more, and the
+    /// freshness label advances itself.
+    static let maxEntryCount = 6
+
+    /// Enough entries that the last one lands on the policy date. Four
+    /// entries five minutes apart covered only 15 minutes of a 20-minute
+    /// policy, so the final stretch of every cycle rendered an entry whose
+    /// date had already passed.
+    static func entryCount(covering interval: TimeInterval) -> Int {
+        min(maxEntryCount, max(1, Int((interval / entrySpacing).rounded(.down)) + 1))
+    }
+
+    /// The tunnel extension's routine reload floor. Slower than
+    /// `refreshIntervalWhileUp` on purpose: a backstop, not a second clock.
+    static let extensionBackstopInterval: TimeInterval = 30 * 60
+}
+
 enum WidgetRefresh {
 
     /// The Control Center / Lock Screen / Action button toggle (iOS 18,

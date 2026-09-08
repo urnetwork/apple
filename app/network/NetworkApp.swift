@@ -325,6 +325,12 @@ struct NetworkApp: App {
                 .onChange(of: scenePhase) { phase in
                     setPresentationActive(phase == .active)
                     if phase == .active {
+                        // a reload requested while the app is in the
+                        // foreground is not charged against the widget budget,
+                        // and nothing else on any app lifecycle path reloads
+                        // them -- so opening the app is the reliable way to
+                        // un-stick a widget the system has been deferring
+                        WidgetRefresh.reloadAll()
                         refreshJwtOnForeground()
                     }
                 }
@@ -381,6 +387,12 @@ struct NetworkApp: App {
                 .onChange(of: scenePhase) { phase in
                     setMacPresentationActive(sceneActive: phase == .active)
                     if phase == .active {
+                        // a reload requested while the app is in the
+                        // foreground is not charged against the widget budget,
+                        // and nothing else on any app lifecycle path reloads
+                        // them -- so opening the app is the reliable way to
+                        // un-stick a widget the system has been deferring
+                        WidgetRefresh.reloadAll()
                         refreshJwtOnForeground()
                     }
                 }

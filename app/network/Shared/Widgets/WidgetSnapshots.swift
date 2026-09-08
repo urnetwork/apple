@@ -400,6 +400,73 @@ enum WidgetPreviewVisibility {
     }
 }
 
+/// A widget asked for a fresh snapshot, now.
+///
+/// Only the packet tunnel process holds the live counters, so the widget
+/// process -- which can read the published file but cannot produce a newer
+/// one -- signals across and waits briefly for the write to land.
+///
+/// Deliberately NOT `WidgetPreviewVisibility`, which is the right shape and
+/// the wrong channel: that mark carries an expiry because the extension needs
+/// to know how long to keep writing fast, its handler returns early unless
+/// the flag actually flipped (so a second tap inside the mark window would be
+/// a silent no-op), and it asks for no reload at all. This asks for exactly
+/// one write.
+///
+/// The request is a file as well as a notification because Darwin
+/// notifications are not queued for a suspended process, and this extension
+/// is expected to be suspended. The file lets the writer serve a dropped
+/// notification on its next timer tick instead of losing the tap; the window
+/// keeps a tap made while the tunnel was down from causing a surprise write
+/// when it next starts.
+enum WidgetSnapshotRefreshRequest {
+
+    static let darwinNotificationName = "network.ur.widgets.refresh-request"
+    static let fileName = "refresh-request.json"
+    /// How long a request stays worth serving.
+    static let requestWindow: TimeInterval = 30
+
+    private struct Request: Codable {
+        var at: Date
+    }
+
+    /// Ask the tunnel to publish. Writes the request before posting, so a
+    /// notification that arrives first still finds it.
+    static func post(at date: Date = Date()) {
+        if let directory = WidgetSnapshotStore.directoryURL {
+            do {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                let data = try WidgetSnapshotStore.encoder.encode(Request(at: date))
+                try data.write(to: directory.appendingPathComponent(fileName), options: .atomic)
+            } catch {
+                // the notification below is still worth posting: a live
+                // extension serves it without reading the file
+            }
+        }
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(darwinNotificationName as CFString),
+            nil, nil, true
+        )
+    }
+
+    /// True when a request inside the window is pending. The file is removed
+    /// either way, so a stale request cannot be served twice.
+    @discardableResult
+    static func consume(now: Date = Date()) -> Bool {
+        guard let url = WidgetSnapshotStore.directoryURL?.appendingPathComponent(fileName) else {
+            return false
+        }
+        let data = try? Data(contentsOf: url)
+        try? FileManager.default.removeItem(at: url)
+        guard let data,
+              let request = try? WidgetSnapshotStore.decoder.decode(Request.self, from: data) else {
+            return false
+        }
+        return now.timeIntervalSince(request.at) <= requestWindow
+    }
+}
+
 enum WidgetSnapshotStore {
 
     static let directoryName = "Widgets"

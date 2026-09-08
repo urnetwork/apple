@@ -1135,6 +1135,20 @@ extension DeviceManager {
             device.setProviderTransportSettings(providerTransportSettings)
         }
 
+        // split rules ("block action overrides") cross the same way, mirrored
+        // by BlockActionsStore. One consequence beyond the transport settings
+        // above: without the seed the remote rebuilds its "full" list from
+        // nothing, so an edit made while the tunnel was down does not merely
+        // fail to save -- it replaces the extension's saved rules on the next
+        // connect. Nothing stored means never edited, and a store that cannot
+        // be read reports the same way, so both leave the extension's rules
+        // alone; an empty list is a real value -- the last rule was deleted --
+        // and is seeded as one. This must stay above setDevice, which is what
+        // publishes the device and drives BlockActionsStore.setup.
+        if let blockActionOverrides = localState.getBlockActionOverrides() {
+            device.setBlockActionOverrides(blockActionOverrides)
+        }
+
         self.setDevice(device: device)
         return true
     }

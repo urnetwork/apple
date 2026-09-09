@@ -18,8 +18,47 @@ final class DeepLinkRouter: ObservableObject {
 
     @Published private(set) var pending: WidgetDestination? = nil
 
+    /// An onboarding email link's destination, until the tab view routes it.
+    @Published private(set) var pendingOnboarding: OnboardingDestination? = nil
+    /// A page the account tab should push once it is on screen.
+    @Published private(set) var pendingAccountPath: AccountNavigationPath? = nil
+    /// What the feedback screen should start with once it is on screen.
+    @Published private(set) var pendingFeedback: FeedbackPrefill? = nil
+
     func open(_ destination: WidgetDestination) {
         pending = destination
+    }
+
+    func open(_ destination: OnboardingDestination) {
+        pendingOnboarding = destination
+    }
+
+    func pushAccount(_ path: AccountNavigationPath) {
+        pendingAccountPath = path
+    }
+
+    func prefillFeedback(_ prefill: FeedbackPrefill) {
+        pendingFeedback = prefill
+    }
+
+    // Every consume below writes only when there is something to take: see consume().
+
+    func consumeOnboarding() -> OnboardingDestination? {
+        guard let destination = pendingOnboarding else { return nil }
+        pendingOnboarding = nil
+        return destination
+    }
+
+    func consumeAccountPath() -> AccountNavigationPath? {
+        guard let path = pendingAccountPath else { return nil }
+        pendingAccountPath = nil
+        return path
+    }
+
+    func consumeFeedback() -> FeedbackPrefill? {
+        guard let prefill = pendingFeedback else { return nil }
+        pendingFeedback = nil
+        return prefill
     }
 
     /// Takes the pending destination, if any.

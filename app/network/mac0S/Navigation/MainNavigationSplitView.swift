@@ -29,6 +29,8 @@ struct MainNavigationSplitView: View {
     @State private var selectedTab: MainNavigationTab = .connect
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     @State private var displayIntroduction: Bool
+    // an email's offer link: the welcome offer on its own, while it is active
+    @State private var presentOnboardingOffer = false
     
     let api: SdkApi
     let urApiService: UrApiServiceProtocol
@@ -246,6 +248,37 @@ struct MainNavigationSplitView: View {
             } else {
                 selectedTab = .connect
             }
+        }
+        // an onboarding email's link: the connect tab, Account > Widgets, the
+        // offer on its own, or Support with the one-tap answer filled in
+        .onReceive(deepLinkRouter.$pendingOnboarding) { destination in
+            guard destination != nil, let destination = deepLinkRouter.consumeOnboarding() else { return }
+            switch destination {
+            case .connect:
+                selectConnectTab()
+            case .widgets:
+                selectedTab = .account
+                deepLinkRouter.pushAccount(.widgets)
+            case .offer:
+                if subscriptionBalanceViewModel.onboardingOffer != nil {
+                    presentOnboardingOffer = true
+                } else {
+                    selectedTab = .connect
+                    connectViewModel.isPresentedUpgradeSheet = true
+                }
+            case .feedback(let rating, let reason, let token):
+                selectedTab = .support
+                deepLinkRouter.prefillFeedback(FeedbackPrefill(rating: rating, reason: reason, token: token))
+            }
+        }
+        .sheet(isPresented: $presentOnboardingOffer) {
+            OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
+                .environmentObject(themeManager)
+                .environmentObject(deviceManager)
+                .environmentObject(subscriptionManager)
+                .environmentObject(subscriptionBalanceViewModel)
+                .environmentObject(connectViewModel)
+                .frame(minWidth: 560, minHeight: 700)
         }
         .onChange(of: presentationActive) { active in
             setPresentationActive(active)

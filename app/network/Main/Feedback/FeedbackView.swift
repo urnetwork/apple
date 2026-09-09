@@ -16,6 +16,7 @@ struct FeedbackView: View {
     @Environment(\.requestReview) private var requestReview
     @FocusState private var isFocused: Bool
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     
     init(urApiService: UrApiServiceProtocol) {
         _viewModel = StateObject.init(wrappedValue: ViewModel(
@@ -105,6 +106,11 @@ struct FeedbackView: View {
             .background(themeManager.currentTheme.backgroundColor)
             .navigationTitle("Get in touch")
             
+        }
+        // an onboarding email's feedback link: the one-tap answer, filled in
+        .onReceive(deepLinkRouter.$pendingFeedback) { prefill in
+            guard prefill != nil, let prefill = deepLinkRouter.consumeFeedback() else { return }
+            viewModel.apply(prefill)
         }
         
     }

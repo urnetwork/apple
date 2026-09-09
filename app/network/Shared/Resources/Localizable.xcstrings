@@ -8210,6 +8210,39 @@
         }
       }
     },
+    "I didn't need it yet" : {
+      "comment" : "Feedback screen: the reason an email's one-tap answer carried, as the feedback text.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I didn't need it yet"
+          }
+        }
+      }
+    },
+    "It didn't work" : {
+      "comment" : "Feedback screen: the reason an email's one-tap answer carried, as the feedback text.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It didn't work"
+          }
+        }
+      }
+    },
+    "I'm not sure I trust a VPN" : {
+      "comment" : "Feedback screen: the reason an email's one-tap answer carried, as the feedback text.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I'm not sure I trust a VPN"
+          }
+        }
+      }
+    },
     "Periodic product updates" : {
       "comment" : "Sign-up pages: the marketing opt-out switch shown at collection, on by default.",
       "localizations" : {
@@ -8217,6 +8250,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Periodic product updates"
+          }
+        }
+      }
+    },
+    "Something else" : {
+      "comment" : "Feedback screen: the reason an email's one-tap answer carried, as the feedback text.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something else"
           }
         }
       }

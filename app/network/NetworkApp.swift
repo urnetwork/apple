@@ -308,6 +308,9 @@ struct NetworkApp: App {
                         // a Home Screen widget tap: the tab view and the
                         // connect view route it
                         deepLinkRouter.open(destination)
+                    } else if let destination = OnboardingDestination(url: url) {
+                        // an onboarding email's link, after the ur.io landing page
+                        deepLinkRouter.open(destination)
                     } else {
                         GIDSignIn.sharedInstance.handle(url)
                     }
@@ -337,6 +340,7 @@ struct NetworkApp: App {
                         // them -- so opening the app is the reliable way to
                         // un-stick a widget the system has been deferring
                         WidgetRefresh.reloadAll()
+                        WidgetPlacementReporter.report()
                         refreshJwtOnForeground()
                     }
                 }
@@ -370,6 +374,9 @@ struct NetworkApp: App {
                         // a Home Screen widget tap: the tab view and the
                         // connect view route it
                         deepLinkRouter.open(destination)
+                    } else if let destination = OnboardingDestination(url: url) {
+                        // an onboarding email's link, after the ur.io landing page
+                        deepLinkRouter.open(destination)
                     } else {
                         GIDSignIn.sharedInstance.handle(url)
                     }
@@ -402,6 +409,7 @@ struct NetworkApp: App {
                         // them -- so opening the app is the reliable way to
                         // un-stick a widget the system has been deferring
                         WidgetRefresh.reloadAll()
+                        WidgetPlacementReporter.report()
                         refreshJwtOnForeground()
                     }
                 }

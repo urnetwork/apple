@@ -13,6 +13,7 @@ struct AccountNavStackView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @StateObject private var viewModel: ViewModel = ViewModel()
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @StateObject var earningsViewModel: EarningsViewModel
@@ -86,6 +87,11 @@ struct AccountNavStackView: View {
             )
             .navigationTitle("Account")
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+            // an onboarding email's widgets link lands on Account > Widgets
+            .onReceive(deepLinkRouter.$pendingAccountPath) { path in
+                guard path != nil, let path = deepLinkRouter.consumeAccountPath() else { return }
+                viewModel.navigate(path)
+            }
             .navigationDestination(for: AccountNavigationPath.self) { path in
                 switch path {
                     

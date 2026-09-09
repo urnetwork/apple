@@ -31,10 +31,14 @@ struct MainTabView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var connectViewModel: ConnectViewModel
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @Environment(\.presentationActive) private var presentationActive
     
     @State private var selectedTab = 0
     @State private var displayIntroduction: Bool
+    // an email's offer link: the welcome offer on its own, while it is active
+    @State private var presentOnboardingOffer = false
     // increments when the connect tab is tapped while already selected,
     // which collapses the connect drawer
     @State private var connectTabReselectCount = 0
@@ -204,6 +208,16 @@ struct MainTabView: View {
                 selectedTab = 0
             }
         }
+        // an onboarding email's link: the connect tab, Account > Widgets, the
+        // offer on its own, or Support with the one-tap answer filled in
+        .onReceive(deepLinkRouter.$pendingOnboarding) { destination in
+            guard destination != nil, let destination = deepLinkRouter.consumeOnboarding() else { return }
+            routeOnboarding(destination)
+        }
+        .sheet(isPresented: $presentOnboardingOffer) {
+            OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
+                .environmentObject(themeManager)
+        }
         .onAppear {
             setPresentationActive(presentationActive)
             withAnimation(.easeOut(duration: 1.0)) {
@@ -281,6 +295,27 @@ struct MainTabView: View {
             referralLinkViewModel.clearCelebration()
         }
 
+    }
+
+    private func routeOnboarding(_ destination: OnboardingDestination) {
+        switch destination {
+        case .connect:
+            selectConnectTab()
+        case .widgets:
+            selectedTab = 1
+            deepLinkRouter.pushAccount(.widgets)
+        case .offer:
+            if subscriptionBalanceViewModel.onboardingOffer != nil {
+                presentOnboardingOffer = true
+            } else {
+                // no active offer: the regular upgrade sheet
+                selectedTab = 0
+                connectViewModel.isPresentedUpgradeSheet = true
+            }
+        case .feedback(let rating, let reason, let token):
+            selectedTab = 3
+            deepLinkRouter.prefillFeedback(FeedbackPrefill(rating: rating, reason: reason, token: token))
+        }
     }
 
     /// What a tap on the Connect tab item does: select the tab, and when it

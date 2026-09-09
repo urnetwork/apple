@@ -169,11 +169,11 @@ struct NetworkApp: App {
     private func setupDeviceStores(_ device: SdkDeviceRemote) {
         let localState = deviceManager.asyncLocalState?.getLocalState()
         throughputStore.setup(device)
-        // the app local state mirrors the split rule and transport settings
-        // edits so they survive an app relaunch while the tunnel is down
-        // (see the stores)
+        // the app local state mirrors the split rule, dns and transport
+        // settings edits so they survive an app relaunch while the tunnel is
+        // down (see the stores)
         blockActionsStore.setup(device, localState: localState)
-        dnsSettingsStore.setup(device)
+        dnsSettingsStore.setup(device, localState: localState)
         transportSettingsStore.setup(device, localState: localState)
         networkPeersStore.setup(device)
         reliabilityStore.setup(device)

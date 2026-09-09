@@ -222,8 +222,20 @@ struct WidgetBalanceSnapshot: Codable, Equatable {
 /// restart instead of resetting to flat).
 struct WidgetThroughputAccumulator: Codable, Equatable {
 
-    static let bucketSeconds: Int64 = 60
-    /// One hour of history.
+    /// One second per bucket, one minute of history -- the same shape the
+    /// app's own TransferChart draws, so the two show the same curve.
+    ///
+    /// This used to be a minute per bucket over an hour, on the reasoning
+    /// that an hour is the cadence a widget can honestly show. That reasoning
+    /// confused two different kinds of staleness. The snapshot on disk is
+    /// written by the tunnel on its own timer whatever the widget is doing,
+    /// so whenever WidgetKit rebuilds a timeline it reads a file that is at
+    /// most one write interval old; what goes stale between reloads is the
+    /// RENDERED view, and no window size changes that. An hour-wide window
+    /// bought nothing for it and cost the chart all of its detail -- a minute
+    /// of real traffic became one point, which is why the curve read as dead.
+    static let bucketSeconds: Int64 = 1
+    /// One minute of history.
     static let bucketCount = 60
 
     private(set) var buckets: [WidgetThroughputBucket] = []

@@ -75,10 +75,10 @@ struct WidgetThroughputAccumulatorTests {
         #expect(accumulator.buckets[0].clientIngress == 4_000)
     }
 
-    /// A minute that carried no traffic gets no bucket at all, which is why 60
-    /// buckets can span many hours and why the chart must scope its scale to
-    /// the window it draws.
-    @Test func idleMinutesAreNotRecorded() {
+    /// An interval that carried no traffic gets no bucket at all, which is why
+    /// the buckets can span far more time than the window and why the chart
+    /// must scope its scale to the window it draws.
+    @Test func idleTimeIsNotRecorded() {
         var accumulator = WidgetThroughputAccumulator()
         accumulator.recordClient(egress: 0, ingress: 0, egressPackets: 0, ingressPackets: 0, at: Self.at(0))
         accumulator.recordClient(egress: 100, ingress: 100, egressPackets: 1, ingressPackets: 1, at: Self.at(1))
@@ -90,6 +90,16 @@ struct WidgetThroughputAccumulatorTests {
 
         #expect(accumulator.buckets.count == 2)
         let span = accumulator.buckets[1].start - accumulator.buckets[0].start
-        #expect(span == 3 * 3600)
+        #expect(3 * 3600 - WidgetThroughputAccumulator.bucketSeconds <= span)
+    }
+
+    /// The widget records the same shape the app's chart draws, so the two
+    /// show the same curve rather than a minute and an hour of the same data.
+    @Test func theHistoryIsOneMinuteAtOneSecondResolution() {
+        #expect(WidgetThroughputAccumulator.bucketSeconds == 1)
+        let window = WidgetThroughputAccumulator.bucketSeconds
+            * Int64(WidgetThroughputAccumulator.bucketCount)
+        #expect(30 <= window)
+        #expect(window <= 60)
     }
 }

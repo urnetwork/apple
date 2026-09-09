@@ -7,10 +7,14 @@
 //
 //  A static version of the app's TransferChart for one route: bytes (green,
 //  filled) and packets (pink, a line) sent above the axis and received
-//  below, each pair on its own scale, Catmull-Rom smoothed. The app draws
-//  one point per second over a 60 s window; the widget draws one bucket per
-//  minute over the last hour, because that is the cadence a Home Screen
-//  widget can honestly show.
+//  below, each pair on its own scale, Catmull-Rom smoothed. Both draw one
+//  point per second over a 60 s window, so the widget shows the same curve
+//  the app does -- it simply holds still between reloads, where the app's
+//  redraws every second.
+//
+//  The window is derived from the snapshot's own `bucketSeconds`, so a
+//  snapshot written by an older build (a minute per bucket) still renders,
+//  as the hour it was recorded as.
 //
 
 import SwiftUI
@@ -39,7 +43,9 @@ struct ThroughputChartView: View {
     private static let labelBand: CGFloat = 14
     private static let windowBuckets = WidgetThroughputAccumulator.bucketCount
     /// Floor for the byte scale so an idle chart is flat rather than noisy.
-    private static let minimumScale: Int64 = 64 * 1024
+    /// Expressed per bucket, so it stays the same RATE whatever the bucket
+    /// size is: 8 KiB/s.
+    private static let minimumScale: Int64 = 8 * 1024 * WidgetThroughputAccumulator.bucketSeconds
     /// Floor for the packet scale: the app's 8 packets/s over one bucket.
     private static let minimumPacketScale: Int64 = 8 * WidgetThroughputAccumulator.bucketSeconds
     private static let packetColor = WidgetTheme.packetSeries

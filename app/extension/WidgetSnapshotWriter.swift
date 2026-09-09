@@ -21,7 +21,13 @@ final class WidgetSnapshotWriter {
 
     /// How often the snapshot file is rewritten while the tunnel is up. Cheap
     /// (a few KB, atomic), so the next reload always finds fresh buckets.
-    static let writeInterval: TimeInterval = 60
+    ///
+    /// Half the chart's window: the newest bucket a reload can find is one
+    /// write old, and a whole window of lag would leave the widget drawing
+    /// the minute BEFORE the last one. Writes are not the budgeted resource
+    /// -- WidgetKit reloads are -- so this is paid in a few KB, not in
+    /// refreshes.
+    static let writeInterval: TimeInterval = 30
     /// The write cadence while the app's Account > Widgets previews are on
     /// screen (WidgetPreviewVisibility): the previews read every write, so
     /// they move like the real widgets would if WidgetKit re-rendered that

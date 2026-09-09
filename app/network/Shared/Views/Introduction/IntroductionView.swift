@@ -436,7 +436,7 @@ struct IntroductionView: View {
                     
                     Spacer().frame(height: 16)
                     
-                    Text("URnetwork gives you verifiable encryption for everyday use.")
+                    Text("Encryption for everyday use.")
                         .font(themeManager.currentTheme.bodyFontLarge)
                     
                     // room for the plan box's halo and pill, and air between it and the tagline

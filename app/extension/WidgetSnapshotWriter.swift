@@ -41,8 +41,9 @@ final class WidgetSnapshotWriter {
     /// roughly 40-70 a day the comments alongside them cited.
     static let reloadBackstopInterval: TimeInterval = WidgetRefreshPolicy.extensionBackstopInterval
     /// A refresh request from a widget publishes at most this often, so a
-    /// user tapping repeatedly cannot drive the write path.
-    static let refreshRequestFloor: TimeInterval = 2
+    /// user tapping repeatedly cannot drive the write path. Under the intent's
+    /// own wait, so a second tap is served rather than timing out.
+    static let refreshRequestFloor: TimeInterval = 1
     /// Contract change events arrive per contract, about once a second while
     /// bytes move; the two lists are re-read at most this often.
     static let contractRefreshInterval: TimeInterval = 2
@@ -361,6 +362,12 @@ final class WidgetSnapshotWriter {
     private func snapshotRefreshRequested() {
         queue.async { [weak self] in
             guard let self, self.active else { return }
+            // the floor is checked BEFORE consuming: a request left on disk is
+            // served by the next write-timer tick, where consuming and then
+            // bailing would swallow the tap and leave the widget waiting out
+            // its timeout for a write that was never going to come
+            let elapsed = self.lastRefreshWriteAt.map { Date().timeIntervalSince($0) } ?? .infinity
+            guard Self.refreshRequestFloor <= elapsed else { return }
             guard WidgetSnapshotRefreshRequest.consume() else { return }
             self.serveRefreshRequest()
         }
@@ -374,8 +381,6 @@ final class WidgetSnapshotWriter {
     /// first so the one write carries a current membership rather than the
     /// last cached one.
     private func serveRefreshRequest() {
-        let elapsed = lastRefreshWriteAt.map { Date().timeIntervalSince($0) } ?? .infinity
-        guard Self.refreshRequestFloor <= elapsed else { return }
         lastRefreshWriteAt = Date()
         refreshContracts()
         write()

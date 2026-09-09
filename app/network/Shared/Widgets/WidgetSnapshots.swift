@@ -295,12 +295,25 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
         buckets[buckets.count - 1] = bucket
     }
 
-    /// A counter that went backwards is a restarted session: count the new
-    /// value as the delta rather than dropping it. The first observation
-    /// after a resume is a baseline only.
+    /// A counter that went backwards re-baselines: the sample is treated as
+    /// a new starting point and contributes nothing.
+    ///
+    /// Taking `value` as the delta instead -- on the reasoning that a
+    /// restarted session counts from zero -- is unsafe here, because these
+    /// counters are cumulative for the whole session and the drop is not
+    /// always a restart. A reconnect can publish one tick carrying the
+    /// retiring client's total on top of the new base, and the next tick then
+    /// reads lower; taking that lower value as a delta writes the ENTIRE
+    /// session's byte count into a single minute. One such bucket is a rate
+    /// orders of magnitude above anything real, and it sets the chart's scale
+    /// until sixty further traffic-bearing minutes evict it.
+    ///
+    /// The cost of re-baselining is bounded by the sample interval, which is
+    /// one second, so at most a second of traffic is dropped. The cost of the
+    /// alternative is unbounded.
     private static func delta(from last: Int64?, to value: Int64) -> Int64 {
-        guard let last else { return 0 }
-        return value < last ? value : value - last
+        guard let last, last <= value else { return 0 }
+        return value - last
     }
 
     private mutating func currentBucket(at date: Date) -> WidgetThroughputBucket {

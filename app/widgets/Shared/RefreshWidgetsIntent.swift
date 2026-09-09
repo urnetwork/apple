@@ -35,9 +35,15 @@ struct RefreshWidgetsIntent: AppIntent {
     static let authenticationPolicy: IntentAuthenticationPolicy = .alwaysAllowed
 
     /// How long to wait for the tunnel's write. An intent has far longer, but
-    /// the user is watching a button: past a couple of seconds a stale render
-    /// is better than a spinner.
-    static let writeTimeout: TimeInterval = 2
+    /// the user is watching a button: past a few seconds a stale render is
+    /// better than a spinner.
+    ///
+    /// The extension serves this on a `.utility` queue, which is exactly the
+    /// work the system defers under Low Power Mode and thermal pressure, so
+    /// too tight a bound turns a working refresh into a visible no-op -- the
+    /// write lands just after the wait gives up and is not read until the next
+    /// timeline reload, up to the policy interval later.
+    static let writeTimeout: TimeInterval = 4
     static let pollInterval: TimeInterval = 0.1
 
     init() {}

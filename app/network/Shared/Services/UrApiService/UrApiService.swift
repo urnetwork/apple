@@ -460,7 +460,7 @@ extension UrApiService {
         }
     }
     
-    func createInstantAccount(referralCode: String?) async throws -> (jwt: String, seedphrase: String) {
+    func createInstantAccount(referralCode: String?, productUpdatesOptOut: Bool) async throws -> (jwt: String, seedphrase: String) {
         let api = try requireApi()
         return try await withCheckedThrowingContinuation { continuation in
             
@@ -521,6 +521,8 @@ extension UrApiService {
             if let referralCode = referralCode, !referralCode.isEmpty {
                 args.referralCode = referralCode
             }
+            // the sign-up form's "Periodic product updates" switch; off = opted out
+            args.productUpdatesOptOut = productUpdatesOptOut
             api.networkCreate(args, callback: callback)
             
         }

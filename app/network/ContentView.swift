@@ -78,6 +78,8 @@ struct ContentView: View {
                                 
                                 Task {
                                     connectViewModel.disconnect()
+                                    // the session's pending product events go out before it ends
+                                    ClientEvents.shared.stop()
                                     deviceManager.logout()
                                 }
                                 
@@ -154,7 +156,21 @@ struct ContentView: View {
         .onReceive(deviceManager.$device) { device in
   
             updatePath()
+
+            // the product-event sender lives with the device session: bound to
+            // its network space when the session comes up, closed when it ends
+            if device != nil, let networkSpace = deviceManager.networkSpace {
+                ClientEvents.shared.start(networkSpace: networkSpace)
+            } else if device == nil {
+                ClientEvents.shared.stop(timeoutMillis: 500)
+            }
             
+        }
+        .onReceive(connectViewModel.$connectionStatus) { status in
+            // once per network: the first successful connection
+            if status == .connected, let networkId = deviceManager.parsedJwt?.networkId?.idStr {
+                ClientEvents.shared.connectFirst(networkId: networkId)
+            }
         }
         
     }

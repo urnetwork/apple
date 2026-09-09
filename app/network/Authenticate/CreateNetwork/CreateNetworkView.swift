@@ -163,6 +163,16 @@ struct CreateNetworkView: View {
                             .font(themeManager.currentTheme.secondaryBodyFont)
                     }
                     .accessibilityIdentifier("acceptance.create.terms")
+
+                    Spacer().frame(height: 16)
+
+                    // the marketing opt-out shown at collection: on by default, one tap off
+                    UrSwitchToggle(isOn: $viewModel.productUpdates, isEnabled: !viewModel.isCreatingNetwork) {
+                        Text("Periodic product updates")
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                    }
+                    .accessibilityIdentifier("acceptance.create.productUpdates")
                     
                     Spacer().frame(height: 24)
                     

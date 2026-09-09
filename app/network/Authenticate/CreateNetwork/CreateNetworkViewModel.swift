@@ -71,6 +71,9 @@ extension CreateNetworkView {
         
         @Published private(set) var networkNameSupportingText: LocalizedStringKey = ""
         
+        /// The sign-up form's "Periodic product updates" switch, on by default.
+        @Published var productUpdates: Bool = true
+
         @Published var termsAgreed: Bool = false {
             didSet {
                 createNetworkErrorMessage = nil
@@ -277,6 +280,8 @@ extension CreateNetworkView {
                 args.userName = ""
                 args.networkName = networkName.trimmingCharacters(in: .whitespacesAndNewlines)
                 args.terms = termsAgreed
+                // the sign-up form's "Periodic product updates" switch; off = opted out
+                args.productUpdatesOptOut = !productUpdates
                 args.verifyOtpNumeric = true
 
 

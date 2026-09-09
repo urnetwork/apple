@@ -65,6 +65,16 @@ struct CreateNetworkInstantView: View {
 
                 Spacer().frame(height: 16)
 
+                // the marketing opt-out shown at collection: on by default, one tap off
+                UrSwitchToggle(isOn: $viewModel.productUpdates, isEnabled: !viewModel.isCreatingAccount) {
+                    Text("Periodic product updates")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                }
+                .accessibilityIdentifier("acceptance.instant.productUpdates")
+
+                Spacer().frame(height: 16)
+
                 if viewModel.isValidReferralCode && !viewModel.isCappedReferralCode {
 
                     ReferralAppliedChip()

@@ -14,6 +14,9 @@ extension CreateNetworkInstantView {
 
         private let urApiService: UrApiServiceProtocol
 
+        /// The sign-up form's "Periodic product updates" switch, on by default.
+        @Published var productUpdates: Bool = true
+
         @Published var termsAgreed: Bool = false {
             didSet {
                 errorMessage = nil
@@ -133,7 +136,10 @@ extension CreateNetworkInstantView {
                 let referralCode = (isValidReferralCode && !isCappedReferralCode)
                     ? bonusReferralCode
                     : nil
-                let result = try await urApiService.createInstantAccount(referralCode: referralCode)
+                let result = try await urApiService.createInstantAccount(
+                    referralCode: referralCode,
+                    productUpdatesOptOut: !productUpdates
+                )
                 return result
             } catch {
                 errorMessage = "There was an error creating your account. Please try again."

@@ -326,6 +326,10 @@ struct NetworkApp: App {
                 }
                 .onChange(of: scenePhase) { phase in
                     setPresentationActive(phase == .active)
+                    if phase == .background {
+                        // pending product events go out before the system suspends the app
+                        ClientEvents.shared.flush()
+                    }
                     if phase == .active {
                         // a reload requested while the app is in the
                         // foreground is not charged against the widget budget,
@@ -388,6 +392,9 @@ struct NetworkApp: App {
                 }
                 .onChange(of: scenePhase) { phase in
                     setMacPresentationActive(sceneActive: phase == .active)
+                    if phase == .background {
+                        ClientEvents.shared.flush()
+                    }
                     if phase == .active {
                         // a reload requested while the app is in the
                         // foreground is not charged against the widget budget,

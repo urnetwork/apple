@@ -13,6 +13,8 @@ enum IntroductionRoute: Hashable {
     case participate
     case refer
     case quickConnect
+    /// The welcome offer, the last page everyone reaches (Skip lands here too).
+    case offer
 }
 
 struct IntroductionRouteState: Equatable {
@@ -30,11 +32,24 @@ struct IntroductionRouteState: Equatable {
         case .refer:
             expectedRoute = .quickConnect
         case .quickConnect:
+            expectedRoute = .offer
+        case .offer:
             expectedRoute = nil
         }
 
         guard route == expectedRoute else { return }
         path.append(route)
+    }
+
+    /// Skip from any earlier page lands on the offer page, once: the offer
+    /// page's own controls leave the flow, so a second skip is impossible.
+    mutating func skipToOffer() {
+        guard path.last != .offer else { return }
+        path.append(.offer)
+    }
+
+    var isOnOffer: Bool {
+        path.last == .offer
     }
 
     mutating func back() {

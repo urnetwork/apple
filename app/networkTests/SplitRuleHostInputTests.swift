@@ -79,6 +79,28 @@ struct SplitRuleHostInputTests {
         #expect(validation.note == "192.168.1.0/24")
     }
 
+    /// Prefix lengths that end inside a byte. Every case here traps rather
+    /// than fails when the mask is built in Int, and the field is validated on
+    /// every keystroke -- so typing "10.0.0.0/24" crashed the app at the "2",
+    /// on its way to a length the earlier tests did cover.
+    @Test func rangesThatEndInsideAByteAreMasked() {
+        #expect(SplitRuleHostInput.validate("10.1.2.3/12").normalized == "10.0.0.0/12")
+        #expect(SplitRuleHostInput.validate("192.168.1.130/25").normalized == "192.168.1.128/25")
+        #expect(SplitRuleHostInput.validate("192.168.1.42/2").normalized == "192.0.0.0/2")
+        #expect(SplitRuleHostInput.validate("2001:db8::1/36").normalized == "2001:db8::/36")
+    }
+
+    /// Every prefix length must be survivable, because the user types through
+    /// all of them one keystroke at a time.
+    @Test func everyPrefixLengthIsSurvivable() {
+        for bits in 0...32 {
+            _ = SplitRuleHostInput.validate("192.168.1.42/\(bits)")
+        }
+        for bits in 0...128 {
+            _ = SplitRuleHostInput.validate("2001:db8::1/\(bits)")
+        }
+    }
+
     @Test func alreadyMaskedRangesCarryNoNote() {
         let validation = SplitRuleHostInput.validate("10.0.0.0/8")
         #expect(validation.normalized == "10.0.0.0/8")

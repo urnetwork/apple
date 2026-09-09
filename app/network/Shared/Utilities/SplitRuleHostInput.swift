@@ -184,8 +184,13 @@ enum SplitRuleHostInput {
             if bits <= bitsBefore {
                 bytes[index] = 0
             } else if bits < bitsBefore + 8 {
-                let keep = bits - bitsBefore
-                bytes[index] &= UInt8(0xff << (8 - keep))
+                // keep is 1...7 here: this byte is the one the prefix ends
+                // inside. The mask is built in UInt8 throughout -- `0xff` is
+                // an Int literal, so shifting it left and converting back
+                // traps for every prefix length that is not a whole number
+                // of bytes, which is most of them.
+                let dropped = UInt8(8 - (bits - bitsBefore))
+                bytes[index] &= ~((UInt8(1) << dropped) &- 1)
             }
         }
         return Data(bytes)

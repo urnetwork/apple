@@ -154,6 +154,16 @@ private class BlockActionOverridesListener: NSObject, SdkBlockActionOverridesCha
     }
 }
 
+private class OverridesRemoteListener: NSObject, SdkRemoteChangeListenerProtocol {
+    private let callback: (Bool) -> Void
+    init(callback: @escaping (Bool) -> Void) {
+        self.callback = callback
+    }
+    func remoteChanged(_ remoteConnected: Bool) {
+        callback(remoteConnected)
+    }
+}
+
 /**
  * Publishes the live block action window, block stats, and the
  * block action overrides ("split rules")
@@ -170,11 +180,15 @@ class BlockActionsStore: ObservableObject {
     @Published private(set) var blockedCount: Int = 0
 
     private var device: SdkDeviceRemote?
+    // the app's own store, which the split rules are mirrored into; the
+    // extension keeps its copy in a container this process cannot read
+    private var localState: SdkLocalState?
     private var blockActionViewController: SdkBlockActionViewController?
 
     private var blockActionsSub: SdkSubProtocol?
     private var blockActionStatsSub: SdkSubProtocol?
     private var overridesSub: SdkSubProtocol?
+    private var remoteSub: SdkSubProtocol?
 
     /**
      * the sdk override objects backing `splitRules`, used to rebuild
@@ -223,10 +237,13 @@ class BlockActionsStore: ObservableObject {
         exitAttributionTimer?.invalidate()
     }
 
-    func setup(_ device: SdkDeviceRemote) {
+    func setup(_ device: SdkDeviceRemote, localState: SdkLocalState?) {
         reset()
 
         self.device = device
+        // above the guard below: a device whose block action window will not
+        // open still has split rules to mirror
+        self.localState = localState
 
         guard let blockActionViewController = device.openBlockActionViewController() else {
             return
@@ -249,6 +266,18 @@ class BlockActionsStore: ObservableObject {
         self.overridesSub = device.add(BlockActionOverridesListener { [weak self] in
             DispatchQueue.main.async {
                 self?.updateOverrides()
+            }
+        })
+        // the override change the extension replays on connect arrives over
+        // the reverse sync, which runs before the remote publishes its
+        // service, so that read still comes out of the remote's own memory.
+        // Re-read once the rpc is up so the mirror is written from the
+        // extension's list rather than from this process's guess at it
+        self.remoteSub = device.add(OverridesRemoteListener { [weak self] remoteConnected in
+            DispatchQueue.main.async {
+                if remoteConnected {
+                    self?.updateOverrides()
+                }
             }
         })
 
@@ -275,6 +304,8 @@ class BlockActionsStore: ObservableObject {
         blockActionStatsSub = nil
         overridesSub?.close()
         overridesSub = nil
+        remoteSub?.close()
+        remoteSub = nil
         if let blockActionViewController {
             if let device {
                 device.close(blockActionViewController)
@@ -284,6 +315,9 @@ class BlockActionsStore: ObservableObject {
         }
         blockActionViewController = nil
         device = nil
+        // nothing is persisted from here: reset runs on every backgrounding
+        // and the mirror is already current by then
+        localState = nil
 
         blockActions = []
         splitRules = []
@@ -504,7 +538,21 @@ class BlockActionsStore: ObservableObject {
         }
     }
 
-    private func updateOverrides() {
+    /**
+     * Re-reads the rules from the device and, when the read is one this
+     * process can vouch for as the WHOLE list, mirrors it.
+     *
+     * Only two reads qualify: one taken off a connected device, which is the
+     * extension's own list, and one taken right after an edit made here,
+     * which is that list plus the edit. With the rpc down and nothing seeded
+     * the device answers out of its own empty memory instead, and mirroring
+     * that would replace the app's only durable copy with a list it never
+     * read -- which the next connect would apply to the extension as a wipe.
+     *
+     * `getConnected()` is GetRemoteConnected; swift's importer strips the
+     * redundant "Remote".
+     */
+    private func updateOverrides(afterEdit: Bool = false) {
         guard let device = self.device else {
             return
         }
@@ -539,6 +587,37 @@ class BlockActionsStore: ObservableObject {
         if items != splitRules {
             splitRules = items
         }
+        if afterEdit || device.getConnected() {
+            persistOverrides()
+        }
+    }
+
+    /**
+     * Writes the rules to the app's own local state.
+     *
+     * The extension persists its own copy, but into a container this process
+     * cannot read, so this mirror is what `DeviceManager.initDevice` seeds
+     * the next device from -- both so the rules render with the tunnel down,
+     * and so an edit made then is queued against the whole list instead of
+     * an empty one.
+     *
+     * An empty list is written as an empty list and never as nil: nil takes
+     * the store's delete branch, and a deleted store reads back as "never
+     * edited", which would leave the extension's rules in place after the
+     * user removed the last one.
+     */
+    private func persistOverrides() {
+        guard let localState = self.localState, let list = SdkBlockActionOverrideList() else {
+            return
+        }
+        for sdkOverride in sdkOverrides {
+            list.add(sdkOverride)
+        }
+        do {
+            try localState.setBlockActionOverrides(list)
+        } catch {
+            print("[BlockActionsStore]failed to persist split rules: \(error.localizedDescription)")
+        }
     }
 
     /**
@@ -564,7 +643,7 @@ class BlockActionsStore: ObservableObject {
         override.hosts = arrayToStringList(hosts)
         override.routeOverride = mode.toSdkRouteOverride()
         device.add(override)
-        updateOverrides()
+        updateOverrides(afterEdit: true)
     }
 
     /**
@@ -588,7 +667,7 @@ class BlockActionsStore: ObservableObject {
             list?.add(sdkOverride)
         }
         device.setBlockActionOverrides(list)
-        updateOverrides()
+        updateOverrides(afterEdit: true)
     }
 
     func removeRule(id: String) {
@@ -599,7 +678,7 @@ class BlockActionsStore: ObservableObject {
             return
         }
         device.removeBlockActionOverride(override.overrideId)
-        updateOverrides()
+        updateOverrides(afterEdit: true)
     }
 
     private func stringListToArray(_ list: SdkStringList?) -> [String] {

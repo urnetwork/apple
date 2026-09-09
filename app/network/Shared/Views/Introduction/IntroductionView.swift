@@ -7,6 +7,7 @@
 
 import SwiftUI
 import StoreKit
+import URnetworkSdk
 
 enum IntroductionRoute: Hashable {
     case usage
@@ -99,6 +100,33 @@ struct IntroductionView: View {
         self.referralTerms = referralTerms
     }
     
+    /// The welcome offer's purchase: the App Store offer code through the redeem
+    /// sheet, then the usual confirmation poll; with no code yet, the plain yearly
+    /// purchase with the trial.
+    private func redeemWelcomeOffer(_ offer: PlanOffer) {
+        let yearly = yearlySubscription
+        let initiallyConnected = deviceManager.device?.getConnected() ?? false
+#if os(macOS)
+        if (initiallyConnected) {
+            connectViewModel.disconnect()
+        }
+#endif
+        Task {
+            await subscriptionManager.redeemOffer(
+                code: offer.appleOfferCode,
+                yearly: yearly,
+                onSuccess: {
+                    subscriptionBalanceViewModel.startPolling()
+                }
+            )
+#if os(macOS)
+            if (initiallyConnected) {
+                connectViewModel.connect()
+            }
+#endif
+        }
+    }
+
     private var monthlySubscription: Product? {
         return subscriptionManager.monthlySubscription
     }
@@ -109,11 +137,59 @@ struct IntroductionView: View {
 
     
     @State var selectedPaymentOption: PaymentOption = .yearly
+
+    /// The plan cards on page 1: the tier's prices, the store's when loaded, and the
+    /// welcome offer once it is issued.
+    private var presentation: PlanPresentation {
+        .current(
+            monthly: monthlySubscription,
+            yearly: yearlySubscription,
+            tier: subscriptionBalanceViewModel.priceTier,
+            offer: subscriptionBalanceViewModel.onboardingOffer,
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+        )
+    }
+
     @State var presentRedeemBalanceCodeSheet: Bool = false
     @State var balanceCodeRedeemed: Bool = false
     @State private var routeState = IntroductionRouteState()
     // the connector mark that flies from page 1's route line into the header
     @StateObject private var introConnector = IntroConnectorState()
+    // the step the last route change skipped from, so it is not also counted as completed
+    @State private var skippedStep: IntroStep? = nil
+    @State private var introOfferShownReported = false
+
+    /// Whether this run has the offer page: everyone outside the in-app holdout.
+    private var offerEnabled: Bool {
+        subscriptionBalanceViewModel.offerScreenEnabled
+    }
+
+    private var currentStep: IntroStep {
+        routeState.path.last.flatMap(IntroStep.init(route:)) ?? .welcome
+    }
+
+    /// Skip from any page: the offer page, once, for everyone who has one; out of
+    /// the flow for the holdout and from the offer page itself.
+    private func skip() {
+        let step = currentStep
+        ClientEvents.shared.stepSkipped(step)
+        if offerEnabled && !routeState.isOnOffer {
+            skippedStep = step
+            routeState.skipToOffer()
+        } else {
+            close()
+        }
+    }
+
+    /// The end of the community pages: the offer page, or out for the holdout.
+    private func finishCommunityPages() {
+        if offerEnabled {
+            routeState.advance(to: .offer)
+        } else {
+            ClientEvents.shared.stepCompleted(.quickConnect)
+            close()
+        }
+    }
     
     var body: some View {
         
@@ -189,7 +265,7 @@ struct IntroductionView: View {
                         switch route {
                         case .usage:
                             IntroductionUsageBar(
-                                close: close,
+                                close: skip,
                                 back: { routeState.back() },
                                 totalReferrals: totalReferrals,
                                 referralCode: referralCode,
@@ -200,7 +276,7 @@ struct IntroductionView: View {
                             )
                         case .participate:
                             IntroductionParticipateSettingsView(
-                                close: close,
+                                close: skip,
                                 back: { routeState.back() },
                                 totalReferrals: totalReferrals,
                                 referralCode: referralCode,
@@ -211,7 +287,7 @@ struct IntroductionView: View {
                             )
                         case .refer:
                             ParticipateReferView(
-                                close: close,
+                                close: skip,
                                 back: { routeState.back() },
                                 totalReferrals: totalReferrals,
                                 referralCode: referralCode,
@@ -222,9 +298,39 @@ struct IntroductionView: View {
                             )
                         case .quickConnect:
                             IntroductionQuickConnectView(
-                                close: close,
-                                back: { routeState.back() }
+                                close: skip,
+                                back: { routeState.back() },
+                                continueAction: finishCommunityPages
                             )
+                        case .offer:
+                            IntroductionOfferView(
+                                presentation: presentation,
+                                continueFree: close,
+                                back: { routeState.back() },
+                                startTrial: {
+                                    if let offer = presentation.offer {
+                                        redeemWelcomeOffer(offer)
+                                    } else if let yearly = yearlySubscription {
+                                        // the offer could not be issued: the plain trial
+                                        Task {
+                                            try? await subscriptionManager.purchase(product: yearly, onSuccess: {
+                                                subscriptionBalanceViewModel.startPolling()
+                                            })
+                                        }
+                                    } else {
+                                        subscriptionManager.reportProductsUnavailable()
+                                    }
+                                },
+                                isPurchasing: subscriptionManager.isPurchasing,
+                                purchaseError: subscriptionManager.purchaseError,
+                                experimentId: subscriptionBalanceViewModel.offerExperimentId,
+                                experimentVariant: subscriptionBalanceViewModel.offerExperimentVariant
+                            )
+                            .onAppear {
+                                // the page restates the offer issued on page 1; a user who
+                                // skipped page 1 before it was issued gets it here
+                                Task { await subscriptionBalanceViewModel.issueOnboardingOffer(surface: SdkOfferSurfaceFinalScreen) }
+                            }
                         }
                     }
                 }
@@ -237,11 +343,36 @@ struct IntroductionView: View {
         .coordinateSpace(name: IntroConnectorState.coordinateSpace)
         .environmentObject(introConnector)
         .environment(\.introConnector, introConnector)
-        .onChange(of: routeState.path) { path in
+        .environment(\.introductionTotalSteps, offerEnabled ? introductionStepCount : introductionStepCount - 1)
+        .onChange(of: routeState.path) { [previousPath = routeState.path] path in
             let inHeader = !path.isEmpty
             if introConnector.inHeader != inHeader {
                 introConnector.inHeader = inHeader
             }
+            // the step events: forward = the page before completed (unless it was
+            // skipped) and the new page shown; back = the page shown again
+            let previous = previousPath.last.flatMap(IntroStep.init(route:)) ?? .welcome
+            let current = path.last.flatMap(IntroStep.init(route:)) ?? .welcome
+            if path.count > previousPath.count {
+                if skippedStep == previous {
+                    skippedStep = nil
+                } else {
+                    ClientEvents.shared.stepCompleted(previous)
+                }
+            }
+            ClientEvents.shared.stepShown(current)
+        }
+        .onAppear {
+            ClientEvents.shared.stepShown(.welcome)
+            // page 1 shows the welcome offer: issue it for everyone outside the holdout
+            Task { await subscriptionBalanceViewModel.issueOnboardingOffer(surface: SdkOfferSurfaceIntroStep) }
+        }
+        .onChange(of: subscriptionBalanceViewModel.onboardingOffer) { offer in
+            reportIntroOfferShownIfNeeded(offer)
+        }
+        .onChange(of: subscriptionBalanceViewModel.offerScreenEnabled) { _ in
+            // the balance can land after page 1 appeared
+            Task { await subscriptionBalanceViewModel.issueOnboardingOffer(surface: SdkOfferSurfaceIntroStep) }
         }
         .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
         .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)
@@ -268,6 +399,22 @@ struct IntroductionView: View {
         
     }
 
+    /// The offer on page 1 counts as shown once, when it is on screen there.
+    private func reportIntroOfferShownIfNeeded(_ offer: PlanOffer?) {
+        guard let offer, !introOfferShownReported, routeState.path.isEmpty else { return }
+        introOfferShownReported = true
+        let price = presentation.firstYearPrice ?? presentation.yearly
+        ClientEvents.shared.offerScreenShown(
+            surface: SdkOfferSurfaceIntroStep,
+            experiment: subscriptionBalanceViewModel.offerExperimentId,
+            variant: subscriptionBalanceViewModel.offerExperimentVariant,
+            tier: presentation.tier.name,
+            priceShown: NSDecimalNumber(decimal: price.amount).doubleValue,
+            currency: presentation.yearly.currencyCode,
+            expiresInSeconds: Int64(offer.expiresAt.timeIntervalSinceNow)
+        )
+    }
+
     // MARK: Page 1
 
     private var welcomePage: some View {
@@ -276,7 +423,7 @@ struct IntroductionView: View {
                 
                 VStack(alignment: .leading, spacing: 0) {
 
-                    IntroductionTopBar(step: 1, onSkip: close)
+                    IntroductionTopBar(step: 1, onSkip: skip)
 
                     Spacer().frame(height: 16)
 
@@ -302,10 +449,17 @@ struct IntroductionView: View {
                         
                             
                             SubscriptionPlanPicker(
-                                monthly: monthlySubscription,
-                                yearly: yearlySubscription,
+                                presentation: presentation,
                                 selectedPaymentOption: $selectedPaymentOption,
                                 purchase: {
+
+                                // the active welcome offer on the yearly plan goes through
+                                // the App Store offer code (step 5); the rest is a plain purchase
+                                if selectedPaymentOption == .yearly, let offer = presentation.offer {
+                                    ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+                                    redeemWelcomeOffer(offer)
+                                    return
+                                }
 
                                 let product = selectedPaymentOption == .monthly ? monthlySubscription : yearlySubscription
                                 guard let product else {
@@ -349,6 +503,13 @@ struct IntroductionView: View {
 
                                 }
 
+                            },
+                            onCardTapped: { option in
+                                if presentation.hasOffer {
+                                    ClientEvents.shared.offerCardTapped(
+                                        plan: option == .monthly ? SdkPlanMonthly : SdkPlanYearly
+                                    )
+                                }
                             })
 
                             /**

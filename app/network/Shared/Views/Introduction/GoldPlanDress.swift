@@ -162,8 +162,9 @@ private struct GoldRunningBorder: View {
 
 /// The gold "Best value" pill that sits on the box's top-right corner.
 struct BestValuePill: View {
+    var text: String = String(localized: "Best value")
     var body: some View {
-        Text("Best value")
+        Text(text)
             .font(Font.custom("PP NeueBit", size: 22).weight(.bold))
             .foregroundColor(.urBlack)
             .padding(.horizontal, 16)

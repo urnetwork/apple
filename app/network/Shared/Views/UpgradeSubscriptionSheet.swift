@@ -7,13 +7,18 @@
 
 import SwiftUI
 import StoreKit
+import URnetworkSdk
 
 struct UpgradeSubscriptionSheet: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    /// The tier, the welcome offer and the storefront every plan surface renders from.
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
 
     var monthlyProduct: Product?
     var yearlyProduct: Product?
+    /// The welcome offer's App Store path when the offer is active (see step 5); nil buys the plan.
+    var redeemOffer: ((PlanOffer) -> Void)? = nil
     /// A tap on a plan whose product has not arrived from the store (see SubscriptionPlanPrices).
     var purchaseUnavailable: () -> Void = {}
     var purchase: (Product) -> Void
@@ -53,6 +58,16 @@ struct UpgradeSubscriptionSheet: View {
     var dismiss: () -> Void
 
     @State var selectedPaymentOption: PaymentOption = .yearly
+
+    private var presentation: PlanPresentation {
+        .current(
+            monthly: monthlyProduct,
+            yearly: yearlyProduct,
+            tier: subscriptionBalanceViewModel.priceTier,
+            offer: subscriptionBalanceViewModel.onboardingOffer,
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+        )
+    }
 
     /// The Pro celebration: launched once when the server confirms the purchase, over the
     /// success view.
@@ -224,10 +239,19 @@ struct UpgradeSubscriptionSheet: View {
                                 Spacer().frame(height: 16)
 
                                 SubscriptionPlanPicker(
-                                    monthly: monthlyProduct,
-                                    yearly: yearlyProduct,
+                                    presentation: presentation,
                                     selectedPaymentOption: $selectedPaymentOption,
                                     purchase: {
+                                        // the active welcome offer on the yearly plan goes
+                                        // through the App Store offer code; everything else
+                                        // is a plain purchase
+                                        if selectedPaymentOption == .yearly,
+                                           let offer = presentation.offer,
+                                           let redeemOffer {
+                                            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+                                            redeemOffer(offer)
+                                            return
+                                        }
                                         let product = selectedPaymentOption == .monthly
                                             ? monthlyProduct
                                             : yearlyProduct
@@ -235,6 +259,13 @@ struct UpgradeSubscriptionSheet: View {
                                             purchase(product)
                                         } else {
                                             purchaseUnavailable()
+                                        }
+                                    },
+                                    onCardTapped: { option in
+                                        if presentation.hasOffer {
+                                            ClientEvents.shared.offerCardTapped(
+                                                plan: option == .monthly ? SdkPlanMonthly : SdkPlanYearly
+                                            )
                                         }
                                     }
                                 )

@@ -49,7 +49,26 @@ class MockUrApiService: UrApiServiceProtocol {
         SdkValidateReferralCodeResult()
     }
     
-    func fetchSubscriptionBalance() async throws -> SdkSubscriptionBalanceResult {
+    func issueOnboardingOffer(surface: String, storefrontCountry: String?) async throws -> SdkOnboardingOffer {
+        let offer = SdkOnboardingOffer()
+        offer.state = "active"
+        offer.percentOff = 25
+        offer.monthsFree = 3
+        offer.firstYearUsd = 30
+        offer.regularYearUsd = 40
+        offer.expiresAt = ISO8601DateFormatter().string(from: Date().addingTimeInterval(5 * 24 * 3600))
+        return offer
+    }
+
+    func onboardingFeedbackToken(_ token: String, rating: Int, reason: String) async throws -> SdkOnboardingFeedbackTokenResult {
+        let result = SdkOnboardingFeedbackTokenResult()
+        result.ok = true
+        result.rating = rating
+        result.reason = reason
+        return result
+    }
+
+    func fetchSubscriptionBalance(storefrontCountry: String?) async throws -> SdkSubscriptionBalanceResult {
         return SdkSubscriptionBalanceResult()
     }
     

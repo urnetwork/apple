@@ -224,10 +224,100 @@ class AppStoreSubscriptionManager: ObservableObject {
      * silent: purchase errors surface via `purchaseError`, and "Restore
      * purchases" recovers a purchase that completed but was not observed.
      */
+    /// The plan a product id sells, as the events name it.
+    static func plan(forProductId id: String) -> String {
+        id == "supporter_monthly_26" ? SdkPlanMonthly : SdkPlanYearly
+    }
+
+    /// The product's price and currency for the purchase events.
+    private static func eventPrice(_ product: Product) -> (price: Double, currency: String) {
+        let price = NSDecimalNumber(decimal: product.price).doubleValue
+        let currency = product.priceFormatStyle.currencyCode
+        return (price, currency)
+    }
+
+    private static func hasFreeTrial(_ product: Product) -> Bool {
+        product.subscription?.introductoryOffer?.paymentMode == .freeTrial
+    }
+
+    /**
+     * The welcome offer on the App Store: the offer code the server issued is
+     * redeemed through the system sheet (the user pastes the code, which is on
+     * the pasteboard), and the transaction it produces arrives on
+     * `Transaction.updates` like any other, where the monitor reports it and
+     * the server stamps the offer. With no code (the store side still pending)
+     * this is a plain yearly purchase with the trial.
+     */
+    func redeemOffer(code: String, yearly: Product?, onSuccess: @escaping (() -> Void)) async {
+        guard !isPurchasing else { return }
+        guard !code.isEmpty else {
+            if let yearly {
+                try? await purchase(product: yearly, onSuccess: onSuccess)
+            } else {
+                reportProductsUnavailable()
+            }
+            return
+        }
+
+        await setIsPurchasing(true)
+        setPurchaseSuccess(false)
+        setPurchasePending(false)
+        self.purchaseError = nil
+        self.restoreResultMessage = nil
+
+        let productId = yearly?.id ?? "supporter_yearly_26"
+        let (price, currency) = yearly.map(Self.eventPrice) ?? (0, "")
+        ClientEvents.shared.purchaseStarted(product: productId, plan: SdkPlanYearly, trial: true, price: price, currency: currency)
+
+        // the redeemed transaction lands through the monitor; the sink in init
+        // calls this, which shows the success screen and starts the poll
+        self.onPurchaseSuccess = { [weak self] in
+            guard let self else { return }
+            self.setPurchaseSuccess(true)
+            ClientEvents.shared.purchaseCompleted(product: productId, plan: SdkPlanYearly, trial: true, price: price, currency: currency)
+            onSuccess()
+        }
+
+        #if os(iOS)
+        UIPasteboard.general.string = code
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(code, forType: .string)
+        #endif
+
+        do {
+            #if os(iOS)
+            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+                ?? UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                try await AppStore.presentOfferCodeRedeemSheet(in: scene)
+            } else {
+                SKPaymentQueue.default().presentCodeRedemptionSheet()
+            }
+            #elseif os(macOS)
+            if #available(macOS 15.0, *), let controller = NSApplication.shared.keyWindow?.contentViewController {
+                try await AppStore.presentOfferCodeRedeemSheet(from: controller)
+            } else if let url = URL(string: "https://apps.apple.com/redeem?ctx=offercodes&id=6741000606&code=\(code)") {
+                NSWorkspace.shared.open(url)
+            }
+            #endif
+        } catch {
+            print("offer code redeem sheet failed: \(error)")
+            ClientEvents.shared.purchaseFailed(product: productId, plan: SdkPlanYearly, trial: true, price: price, currency: currency, errorClass: "redeem_sheet")
+            self.purchaseError = String(localized: "The purchase could not be completed. Please try again.")
+        }
+
+        await setIsPurchasing(false)
+    }
+
     func purchase(product: Product, onSuccess: @escaping (() -> Void)) async throws {
         guard !isPurchasing else { return }
 
         await setIsPurchasing(true)
+
+        let plan = Self.plan(forProductId: product.id)
+        let trial = Self.hasFreeTrial(product)
+        let (price, currency) = Self.eventPrice(product)
+        ClientEvents.shared.purchaseStarted(product: product.id, plan: plan, trial: trial, price: price, currency: currency)
 
         /**
          * A new attempt starts clean.
@@ -286,6 +376,8 @@ class AppStoreSubscriptionManager: ObservableObject {
                         jws: verification.jwsRepresentation
                     )
 
+                    ClientEvents.shared.purchaseCompleted(product: product.id, plan: plan, trial: trial, price: price, currency: currency)
+
                     switch outcome {
                     case .credited:
                         /**
@@ -341,6 +433,7 @@ class AppStoreSubscriptionManager: ObservableObject {
 
             case .userCancelled:
                 print("Purchase cancelled by user")
+                ClientEvents.shared.purchaseCancelled(product: product.id, plan: plan, trial: trial, price: price, currency: currency)
                 throw SKError(.paymentCancelled)
 
             case .pending:
@@ -360,6 +453,7 @@ class AppStoreSubscriptionManager: ObservableObject {
         } catch {
             print("Purchase failed: \(error)")
             if !Self.isUserCancellation(error) {
+                ClientEvents.shared.purchaseFailed(product: product.id, plan: plan, trial: trial, price: price, currency: currency, errorClass: String(describing: type(of: error)))
                 self.purchaseError = String(localized: "The purchase could not be completed. Please try again.")
             }
             await setIsPurchasing(false)

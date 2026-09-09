@@ -15,6 +15,8 @@ struct IntroductionQuickConnectView: View {
 
     let close: () -> Void
     let back: () -> Void
+    /// Where "Get connected" goes: the offer page, or out of the flow for the holdout.
+    var continueAction: (() -> Void)? = nil
 
     var body: some View {
         GeometryReader { proxy in
@@ -35,7 +37,7 @@ struct IntroductionQuickConnectView: View {
 
                     Spacer(minLength: 24)
 
-                    UrButton(text: "Get connected", action: close)
+                    UrButton(text: "Get connected", action: continueAction ?? close)
                         .accessibilityIdentifier("acceptance.introduction.finish")
                 }
                 .padding()

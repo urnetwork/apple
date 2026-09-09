@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import StoreKit
 import URnetworkSdk
 
 /**
@@ -73,6 +74,42 @@ class SubscriptionBalanceViewModel: ObservableObject {
     // reset provide mode to never at the upgrade (the user can opt back in after)
     @Published private(set) var didDetectUpgradeToPro: Bool = false
 
+    /**
+     * The plan data the server sends with the balance: the price tier resolved
+     * for this storefront, the welcome offer (only while active), and the
+     * experiment assignments. Every plan surface renders from these.
+     */
+    @Published private(set) var priceTier: PlanTier?
+    @Published private(set) var onboardingOffer: PlanOffer?
+    @Published private(set) var experimentVariants: [String: String] = [:]
+    @Published private(set) var experimentIds: [String: String] = [:]
+    /// The App Store storefront's country, read once from StoreKit and sent
+    /// with every balance request so the tier follows the store's territory.
+    private(set) var storefrontCountry: String?
+    private var storefrontResolved = false
+
+    /// The in-app offer surface's assignment: the intro plan step and the
+    /// final offer screen show the welcome offer unless the network is in the
+    /// holdout, or the server has not assigned it at all.
+    var offerScreenEnabled: Bool {
+        guard let variant = experimentVariants[SdkExperimentSurfaceOfferInApp] else { return false }
+        return variant != "holdout"
+    }
+
+    var offerExperimentId: String {
+        experimentIds[SdkExperimentSurfaceOfferInApp] ?? ""
+    }
+
+    var offerExperimentVariant: String {
+        experimentVariants[SdkExperimentSurfaceOfferInApp] ?? ""
+    }
+
+    /// The storefront country's name in the user's language, for the regional tier's billing line.
+    var storefrontCountryName: String? {
+        guard let storefrontCountry else { return nil }
+        return Locale.current.localizedString(forRegionCode: storefrontCountry)
+    }
+
 
     init(
         urApiService: UrApiServiceProtocol,
@@ -136,6 +173,68 @@ class SubscriptionBalanceViewModel: ObservableObject {
 //        self.currentPlan = plan
 //    }
     
+    private func resolveStorefrontIfNeeded() async {
+        guard !storefrontResolved else { return }
+        storefrontResolved = true
+        if let storefront = await Storefront.current {
+            storefrontCountry = storefront.countryCode
+        }
+    }
+
+    /// Reads the tier, the offer and the assignments off a balance result.
+    func applyPlanData(_ result: SdkSubscriptionBalanceResult) {
+        if let tier = result.priceTier {
+            let next = PlanTier(
+                name: tier.name,
+                yearlyUsd: tier.yearlyUsd,
+                monthlyUsd: tier.monthlyUsd,
+                isRegional: tier.isRegional()
+            )
+            if next != priceTier { priceTier = next }
+        }
+        applyOffer(result.onboardingOffer)
+        if let experiments = result.experiments {
+            var variants: [String: String] = [:]
+            var ids: [String: String] = [:]
+            for i in 0..<experiments.len() {
+                if let assignment = experiments.get(i) {
+                    variants[assignment.surface] = assignment.variant
+                    ids[assignment.surface] = assignment.experimentId
+                }
+            }
+            if variants != experimentVariants { experimentVariants = variants }
+            if ids != experimentIds { experimentIds = ids }
+        }
+    }
+
+    private func applyOffer(_ offer: SdkOnboardingOffer?) {
+        var next: PlanOffer? = nil
+        if let offer, offer.isActive() {
+            let expiresAt = Date(timeIntervalSince1970: TimeInterval(offer.expiresAtUnixMillis()) / 1000)
+            next = PlanOffer(
+                percentOff: offer.percentOff,
+                monthsFree: offer.monthsFree,
+                expiresAt: expiresAt,
+                appleOfferCode: offer.appleOfferCode
+            )
+        }
+        if next != onboardingOffer { onboardingOffer = next }
+    }
+
+    /// Issues the welcome offer for this network (the server returns the
+    /// existing one on a repeat call) and publishes it. Nothing happens for the
+    /// holdout, and a failure leaves the surface without an offer.
+    func issueOnboardingOffer(surface: String) async {
+        guard offerScreenEnabled || surface == SdkOfferSurfaceAccount else { return }
+        if onboardingOffer != nil { return }
+        do {
+            let offer = try await urApiService.issueOnboardingOffer(surface: surface, storefrontCountry: storefrontCountry)
+            applyOffer(offer)
+        } catch {
+            print("\(domain) error issuing the onboarding offer \(error)")
+        }
+    }
+    
     func fetchSubscriptionBalance() async {
         
         print("fetchSubscriptionBalance hit. isLoading? \(self.isLoading)")
@@ -145,8 +244,12 @@ class SubscriptionBalanceViewModel: ObservableObject {
         self.isLoading = true
         
         do {
+
+            await resolveStorefrontIfNeeded()
             
-            let result = try await urApiService.fetchSubscriptionBalance()
+            let result = try await urApiService.fetchSubscriptionBalance(storefrontCountry: storefrontCountry)
+
+            applyPlanData(result)
             
             self.availableByteCount = Int(result.balanceByteCount)
             self.pendingByteCount = Int(result.openTransferByteCount)

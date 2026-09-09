@@ -7,6 +7,83 @@
     " " : {
       "shouldTranslate" : false
     },
+    "%lld months of Pro, free" : {
+      "comment" : "Onboarding offer screen headline. The number is the months the discount equals.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld months of Pro, free"
+          }
+        }
+      }
+    },
+    "%lld%% off your first year" : {
+      "comment" : "Onboarding offer screen sub-line under the headline. The number is the percent off the first year.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%% off your first year"
+          }
+        }
+      }
+    },
+    "%@ for your first year" : {
+      "comment" : "Plan card with the welcome offer: the billed first-year amount (most prominent line).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ for your first year"
+          }
+        }
+      }
+    },
+    "%@ for the year, cancel anytime before" : {
+      "comment" : "Onboarding offer screen trial timeline: the first-charge row; the placeholder is the discounted yearly amount.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ for the year, cancel anytime before"
+          }
+        }
+      }
+    },
+    "%lld days free, then %@/year. Cancel anytime." : {
+      "comment" : "Plan picker: the terms line under the button for the yearly plan with its trial.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days free, then %@/year. Cancel anytime."
+          }
+        }
+      }
+    },
+    "%lld days free, then %@ for your first year, then %@/year. Cancel anytime." : {
+      "comment" : "Plan picker with the welcome offer: the terms line under the button (trial, discounted first year, renewal price).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days free, then %@ for your first year, then %@/year. Cancel anytime."
+          }
+        }
+      }
+    },
+    "%@/year" : {
+      "comment" : "Yearly plan card label: the store-formatted price per year.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@/year"
+          }
+        }
+      }
+    },
     "-" : {
       "shouldTranslate" : false
     },
@@ -8067,6 +8144,72 @@
         }
       }
     },
+    "Available until %@" : {
+      "comment" : "Onboarding offer screen: the static deadline sentence; the placeholder is a local date and time.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available until %@"
+          }
+        }
+      }
+    },
+    "Free trial starts" : {
+      "comment" : "Onboarding offer screen trial timeline: what happens today.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free trial starts"
+          }
+        }
+      }
+    },
+    "Day %lld" : {
+      "comment" : "Onboarding offer screen trial timeline: a row label for a day of the trial.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day %lld"
+          }
+        }
+      }
+    },
+    "Continue with the free plan" : {
+      "comment" : "Onboarding offer screen: the always-visible secondary text link that keeps the free plan and finishes onboarding.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with the free plan"
+          }
+        }
+      }
+    },
+    "Billed monthly · cancel anytime" : {
+      "comment" : "Plan picker: the line under the monthly price.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Billed monthly · cancel anytime"
+          }
+        }
+      }
+    },
+    "Billed once a year · price for %@" : {
+      "comment" : "Plan picker on the regional price tier: the line under the yearly price instead of a per-month equivalent; the placeholder is the storefront country's name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Billed once a year · price for %@"
+          }
+        }
+      }
+    },
     "Periodic product updates" : {
       "comment" : "Sign-up pages: the marketing opt-out switch shown at collection, on by default.",
       "localizations" : {
@@ -8074,6 +8217,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Periodic product updates"
+          }
+        }
+      }
+    },
+    "Welcome offer" : {
+      "comment" : "Onboarding offer screen: the small uppercase eyebrow above the headline.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome offer"
+          }
+        }
+      }
+    },
+    "then %@/year" : {
+      "comment" : "Plan card with the welcome offer: the renewal price line under the first-year amount.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "then %@/year"
+          }
+        }
+      }
+    },
+    "Today" : {
+      "comment" : "Onboarding offer screen trial timeline: the first row's label.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        }
+      }
+    },
+    "Reminder before the charge" : {
+      "comment" : "Onboarding offer screen trial timeline: the reminder row (two days before the charge).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder before the charge"
+          }
+        }
+      }
+    },
+    "Start free trial with %lld months free" : {
+      "comment" : "Onboarding offer screen: the single primary button. The number is the months the discount equals.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start free trial with %lld months free"
+          }
+        }
+      }
+    },
+    "≈ %@/month · billed once a year" : {
+      "comment" : "Plan picker: the subordinate line under the yearly price with the per-month equivalent (ceiling-rounded).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "≈ %@/month · billed once a year"
+          }
+        }
+      }
+    },
+    "Save %lld%%" : {
+      "comment" : "Plan picker: the saving badge on the yearly card; the number is the whole percent saved against twelve monthly payments.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save %lld%%"
           }
         }
       }

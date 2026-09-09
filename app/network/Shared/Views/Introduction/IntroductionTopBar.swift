@@ -10,8 +10,21 @@
 
 import SwiftUI
 
-/// The pages of the onboarding flow, in order (welcome, data, providing, referral, quick connect).
-let introductionStepCount = 5
+/// The pages of the onboarding flow, in order (welcome, data, providing, referral, quick
+/// connect, and the welcome offer for everyone outside the holdout).
+let introductionStepCount = 6
+
+/// How many pages this run of the flow has: the holdout never sees the offer page.
+private struct IntroductionTotalStepsKey: EnvironmentKey {
+    static let defaultValue: Int = introductionStepCount
+}
+
+extension EnvironmentValues {
+    var introductionTotalSteps: Int {
+        get { self[IntroductionTotalStepsKey.self] }
+        set { self[IntroductionTotalStepsKey.self] = newValue }
+    }
+}
 
 /// The connector mark's size in the header; the mark itself is about two thirds of it (icon safe zone).
 let introductionHeaderConnectorSize: CGFloat = 34
@@ -23,13 +36,13 @@ let introductionHeaderConnectorSize: CGFloat = 34
 struct IntroductionStepBubbles: View {
 
     let step: Int
-    var totalSteps: Int = introductionStepCount
+    @Environment(\.introductionTotalSteps) private var totalSteps
 
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(1...totalSteps, id: \.self) { index in
+            ForEach(1...max(totalSteps, step), id: \.self) { index in
                 Capsule()
                     .fill(color(index))
                     .frame(width: index == step ? 22 : 8, height: 8)

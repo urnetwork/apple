@@ -19,6 +19,20 @@ newer template outright -- "Template format 7.0 is newer than the version that
 this software supports (6.0)" -- before it reads any of the artwork. The SF
 Symbols app on a current machine exports 7.0, so if you re-export from it,
 re-apply the 6.0 changes here rather than committing its output.
+
+TWO CATALOGS carry these symbols and both are subject to that rule:
+
+    app/widgets/Assets.xcassets   both symbols
+    app/network/Assets.xcassets   ur.symbols.connector.fill only
+
+Generating only the widgets catalog is how the 6.0 constraint was lost once
+already: a later SF Symbols 7 export landed in app/network and broke every
+build for a week, because nothing here owned that copy. Regenerate BOTH:
+
+    python3 gen_connector_symbols.py app/widgets/Assets.xcassets
+    python3 gen_connector_symbols.py /tmp/gen && \
+        cp /tmp/gen/ur.symbols.connector.fill.symbolset/* \
+           app/network/Assets.xcassets/ur.symbols.connector.fill.symbolset/
 """
 import math
 import os

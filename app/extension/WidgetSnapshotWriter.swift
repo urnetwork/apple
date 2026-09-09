@@ -21,22 +21,35 @@ final class WidgetSnapshotWriter {
 
     /// How often the snapshot file is rewritten while the tunnel is up. Cheap
     /// (a few KB, atomic), so the next reload always finds fresh buckets.
-    static let writeInterval: TimeInterval = 60
+    ///
+    /// Half the chart's window: the newest bucket a reload can find is one
+    /// write old, and a whole window of lag would leave the widget drawing
+    /// the minute BEFORE the last one. Writes are not the budgeted resource
+    /// -- WidgetKit reloads are -- so this is paid in a few KB, not in
+    /// refreshes.
+    static let writeInterval: TimeInterval = 30
     /// The write cadence while the app's Account > Widgets previews are on
     /// screen (WidgetPreviewVisibility): the previews read every write, so
     /// they move like the real widgets would if WidgetKit re-rendered that
     /// often. Back to `writeInterval` when the mark clears or expires.
     static let previewWriteInterval: TimeInterval = 2
-    /// Routine widget reload cadence while the tunnel is up. WidgetKit
-    /// budgets roughly 40-70 reloads a day per widget instance.
-    static let routineReloadInterval: TimeInterval = 15 * 60
-    /// Minimum spacing for globe reloads driven by providers joining or
-    /// leaving, so a churning window cannot burn the budget.
-    static let providerReloadInterval: TimeInterval = 2 * 60
-    /// Minimum spacing for contracts-widget reloads driven by peers or
-    /// contracts appearing and closing; byte counts and rates ride the
-    /// routine cadence.
-    static let contractReloadInterval: TimeInterval = 3 * 60
+    /// The floor between reloads of any ONE widget kind, whatever asked for
+    /// it. Deliberately slower than the timeline's own policy
+    /// (`WidgetRefreshPolicy`): this is a backstop filling a gap the policy
+    /// left, not a second clock racing it -- every reload re-arms the
+    /// timeline's `.after(...)`, so a faster second requester buys nothing and
+    /// spends the same budget.
+    ///
+    /// These used to be per-REASON rather than per-kind, which let one kind be
+    /// asked for far more often than the budget allows: providers joining and
+    /// leaving drove the globe every 2 minutes (720 a day) and contract
+    /// churn drove the contracts widget every 3 (480 a day), against the
+    /// roughly 40-70 a day the comments alongside them cited.
+    static let reloadBackstopInterval: TimeInterval = WidgetRefreshPolicy.extensionBackstopInterval
+    /// A refresh request from a widget publishes at most this often, so a
+    /// user tapping repeatedly cannot drive the write path. Under the intent's
+    /// own wait, so a second tap is served rather than timing out.
+    static let refreshRequestFloor: TimeInterval = 1
     /// Contract change events arrive per contract, about once a second while
     /// bytes move; the two lists are re-read at most this often.
     static let contractRefreshInterval: TimeInterval = 2
@@ -65,17 +78,22 @@ final class WidgetSnapshotWriter {
     private var lastWritten: WidgetTunnelSnapshot?
     /// Mirrors WidgetPreviewVisibility; owned by `queue`.
     private var previewVisible = false
-    /// The writer the process-wide Darwin observer forwards to.
+    /// The writer the process-wide Darwin observers forward to.
     private static weak var current: WidgetSnapshotWriter?
     private static var previewObserverRegistered = false
+    private static var refreshObserverRegistered = false
+    /// When a widget's refresh request was last served; owned by `queue`.
+    private var lastRefreshWriteAt: Date?
 
     private var contracts = ContractTracker()
     private var contractRefreshPending = false
     private var lastContractRefreshAt: Date?
 
-    private let routineReload: WidgetReloadThrottle
-    private let providerReload: WidgetReloadThrottle
-    private let contractReload: WidgetReloadThrottle
+    // one throttle per widget kind, so every reason to reload shares that
+    // kind's budget instead of each keeping its own
+    private let dashboardReload: WidgetReloadThrottle
+    private let globeReload: WidgetReloadThrottle
+    private let contractsReload: WidgetReloadThrottle
 
     init(device: SdkDeviceLocal, logger: Logger) {
         self.device = device
@@ -85,15 +103,13 @@ final class WidgetSnapshotWriter {
         self.accumulator = WidgetThroughputAccumulator(
             resuming: WidgetSnapshotStore.loadTunnel()?.throughput ?? .empty
         )
-        self.routineReload = WidgetReloadThrottle(interval: Self.routineReloadInterval) {
+        self.dashboardReload = WidgetReloadThrottle(interval: Self.reloadBackstopInterval) {
             WidgetRefresh.reloadDashboard()
-            WidgetRefresh.reloadProviderGlobe()
-            WidgetRefresh.reloadContracts()
         }
-        self.providerReload = WidgetReloadThrottle(interval: Self.providerReloadInterval) {
+        self.globeReload = WidgetReloadThrottle(interval: Self.reloadBackstopInterval) {
             WidgetRefresh.reloadProviderGlobe()
         }
-        self.contractReload = WidgetReloadThrottle(interval: Self.contractReloadInterval) {
+        self.contractsReload = WidgetReloadThrottle(interval: Self.reloadBackstopInterval) {
             WidgetRefresh.reloadContracts()
         }
     }
@@ -132,8 +148,8 @@ final class WidgetSnapshotWriter {
                     guard snapshot != self.location else { return }
                     self.location = snapshot
                     self.write()
-                    WidgetRefresh.reloadDashboard()
-                    self.providerReload.request(urgent: true)
+                    self.dashboardReload.request(urgent: true)
+                    self.globeReload.request(urgent: true)
                 }
             }) {
                 subs.append(sub)
@@ -143,7 +159,7 @@ final class WidgetSnapshotWriter {
                     guard let self, self.active, self.providing != provideEnabled else { return }
                     self.providing = provideEnabled
                     self.write()
-                    self.routineReload.request(urgent: true)
+                    self.dashboardReload.request(urgent: true)
                 }
             }) {
                 subs.append(sub)
@@ -153,7 +169,7 @@ final class WidgetSnapshotWriter {
                     guard let self, self.active, self.provideMode != mode else { return }
                     self.provideMode = mode
                     self.write()
-                    self.routineReload.request(urgent: true)
+                    self.dashboardReload.request(urgent: true)
                 }
             }) {
                 subs.append(sub)
@@ -167,7 +183,7 @@ final class WidgetSnapshotWriter {
                     self.write()
                     // the globe follows providers joining and leaving, like the
                     // app's provider details view, within the reload budget
-                    self.providerReload.request()
+                    self.globeReload.request()
                 }
             }) {
                 subs.append(sub)
@@ -228,8 +244,17 @@ final class WidgetSnapshotWriter {
                     // the app died with the previews open: the mark expired
                     self.applyPreviewVisibility()
                 }
+                // a darwin notification is not queued for a suspended
+                // process, so a tap made while this one was frozen is served
+                // here instead of being lost
+                if WidgetSnapshotRefreshRequest.consume() {
+                    self.serveRefreshRequest()
+                    return
+                }
                 if self.write() {
-                    self.routineReload.request()
+                    self.dashboardReload.request()
+                    self.globeReload.request()
+                    self.contractsReload.request()
                 }
             }
             writeTimer.resume()
@@ -237,6 +262,7 @@ final class WidgetSnapshotWriter {
 
             Self.current = self
             Self.registerPreviewObserver()
+            Self.registerRefreshObserver()
             applyPreviewVisibility()
 
             let balanceTimer = DispatchSource.makeTimerSource(queue: queue)
@@ -256,7 +282,10 @@ final class WidgetSnapshotWriter {
         queue.async { [self] in
             guard active else { return }
             write()
-            WidgetRefresh.reloadAll()
+            WidgetRefresh.reloadControl()
+            dashboardReload.request(urgent: true)
+            globeReload.request(urgent: true)
+            contractsReload.request(urgent: true)
         }
     }
 
@@ -294,9 +323,9 @@ final class WidgetSnapshotWriter {
         writeTimer = nil
         balanceTimer?.cancel()
         balanceTimer = nil
-        routineReload.cancel()
-        providerReload.cancel()
-        contractReload.cancel()
+        dashboardReload.cancel()
+        globeReload.cancel()
+        contractsReload.cancel()
     }
 
     // MARK: Preview visibility
@@ -316,6 +345,51 @@ final class WidgetSnapshotWriter {
             nil,
             .deliverImmediately
         )
+    }
+
+    // MARK: Refresh requests
+
+    /// One Darwin observer per process, the same shape as the preview one.
+    private static func registerRefreshObserver() {
+        guard !refreshObserverRegistered else { return }
+        refreshObserverRegistered = true
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            nil,
+            { _, _, _, _, _ in
+                WidgetSnapshotWriter.current?.snapshotRefreshRequested()
+            },
+            WidgetSnapshotRefreshRequest.darwinNotificationName as CFString,
+            nil,
+            .deliverImmediately
+        )
+    }
+
+    private func snapshotRefreshRequested() {
+        queue.async { [weak self] in
+            guard let self, self.active else { return }
+            // the floor is checked BEFORE consuming: a request left on disk is
+            // served by the next write-timer tick, where consuming and then
+            // bailing would swallow the tap and leave the widget waiting out
+            // its timeout for a write that was never going to come
+            let elapsed = self.lastRefreshWriteAt.map { Date().timeIntervalSince($0) } ?? .infinity
+            guard Self.refreshRequestFloor <= elapsed else { return }
+            guard WidgetSnapshotRefreshRequest.consume() else { return }
+            self.serveRefreshRequest()
+        }
+    }
+
+    /// Publish now, for a widget that is waiting on it.
+    ///
+    /// Deliberately asks for NO reload: the widget process already requested
+    /// one, and a reload caused by an in-widget intent is not charged against
+    /// the budget while one requested from here is. Contracts are re-read
+    /// first so the one write carries a current membership rather than the
+    /// last cached one.
+    private func serveRefreshRequest() {
+        lastRefreshWriteAt = Date()
+        refreshContracts()
+        write()
     }
 
     private func previewVisibilityChanged() {
@@ -370,7 +444,7 @@ final class WidgetSnapshotWriter {
             write()
             // peers and contracts coming and going is what the contracts
             // widget shows; rates and byte counts ride the routine cadence
-            contractReload.request()
+            contractsReload.request()
         }
     }
 
@@ -413,7 +487,8 @@ final class WidgetSnapshotWriter {
                     isPro: result.currentSubscription != nil
                 )
                 if WidgetSnapshotStore.save(snapshot) {
-                    self.routineReload.request()
+                    // the balance bar is the dashboard's alone
+                    self.dashboardReload.request()
                 }
             }
         }

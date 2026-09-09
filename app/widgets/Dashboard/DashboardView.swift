@@ -33,8 +33,9 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     header
                     BalanceBarView(balance: entry.balance)
+                    Spacer(minLength: 0)
+                    footer
                 }
-                .frame(maxHeight: .infinity, alignment: .center)
             }
         }
         // a tap anywhere else opens the app on the connect tab
@@ -111,7 +112,7 @@ struct DashboardView: View {
                     )
                 },
                 bucketSeconds: throughput.bucketSeconds,
-                now: entry.date,
+                now: chartHorizon,
                 placeholder: nil
             )
             ThroughputChartView(
@@ -125,10 +126,26 @@ struct DashboardView: View {
                     )
                 },
                 bucketSeconds: throughput.bucketSeconds,
-                now: entry.date,
+                now: chartHorizon,
                 placeholder: entry.tunnel.providing ? nil : "Provider stats will appear when the provider is enabled."
             )
         }
+    }
+
+    /// How far right the chart is allowed to plot.
+    ///
+    /// Every entry in a timeline carries the SAME snapshot at a later date, so
+    /// a window anchored to the entry walks past the newest bucket the tunnel
+    /// published. Out there `byStart[bucket] ?? 0` stops meaning "no traffic"
+    /// and starts meaning "not measured yet" -- and the chart drew it as a
+    /// flat zero line across up to a quarter of the plot while traffic was
+    /// flowing. Reporting staleness is the footer's job; the chart's job is to
+    /// be true.
+    ///
+    /// Clamped rather than simply swapped so that a future change to the entry
+    /// count degrades to frozen-but-true instead of collapsing again.
+    private var chartHorizon: Date {
+        min(entry.date, entry.tunnel.updatedAt)
     }
 
     /// "Provider · Auto": the chart name with the current provide mode.
@@ -159,32 +176,22 @@ struct DashboardView: View {
                 .foregroundStyle(WidgetTheme.textFaint)
         } else if entry.tunnel.tunnelActive || entry.balance != nil {
             let updatedAt = max(entry.tunnel.updatedAt, entry.balance?.updatedAt ?? .distantPast)
-            Text(updatedLabel(updatedAt))
+            WidgetRefreshButton {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                    // the age of the DATA, not of this render: a tap that
+                    // reaches no tunnel leaves this counting up, so the button
+                    // cannot report a refresh that did not happen
+                    Text("Updated \(Text(updatedAt, style: .relative))")
+                }
                 .font(WidgetTheme.caption)
                 .foregroundStyle(WidgetTheme.textFaint)
+            }
         } else {
             Text("Connect once to see your traffic here")
                 .font(WidgetTheme.caption)
                 .foregroundStyle(WidgetTheme.textFaint)
         }
-    }
-}
-
-extension DashboardView {
-
-    /// "Updated 3 min. ago", formatted for the timeline entry's date (entries
-    /// are five minutes apart, so this advances at that cadence). Not a
-    /// relative-time Text: that reserves the width of its widest possible
-    /// value inside the sentence.
-    private func updatedLabel(_ updatedAt: Date) -> String {
-        let elapsed = entry.date.timeIntervalSince(updatedAt)
-        if elapsed < 60 {
-            return String(localized: "Updated just now")
-        }
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        let relative = formatter.localizedString(for: updatedAt, relativeTo: entry.date)
-        return String(format: String(localized: "Updated %@"), relative)
     }
 }
 

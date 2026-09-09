@@ -95,6 +95,7 @@ struct ProviderGlobeView: View {
                         .font(WidgetTheme.label)
                         .foregroundStyle(WidgetTheme.textMuted)
                 }
+                WidgetRefreshIcon()
             }
             if providers.isEmpty {
                 Text(emptyMessage)

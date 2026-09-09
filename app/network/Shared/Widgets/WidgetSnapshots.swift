@@ -222,8 +222,20 @@ struct WidgetBalanceSnapshot: Codable, Equatable {
 /// restart instead of resetting to flat).
 struct WidgetThroughputAccumulator: Codable, Equatable {
 
-    static let bucketSeconds: Int64 = 60
-    /// One hour of history.
+    /// One second per bucket, one minute of history -- the same shape the
+    /// app's own TransferChart draws, so the two show the same curve.
+    ///
+    /// This used to be a minute per bucket over an hour, on the reasoning
+    /// that an hour is the cadence a widget can honestly show. That reasoning
+    /// confused two different kinds of staleness. The snapshot on disk is
+    /// written by the tunnel on its own timer whatever the widget is doing,
+    /// so whenever WidgetKit rebuilds a timeline it reads a file that is at
+    /// most one write interval old; what goes stale between reloads is the
+    /// RENDERED view, and no window size changes that. An hour-wide window
+    /// bought nothing for it and cost the chart all of its detail -- a minute
+    /// of real traffic became one point, which is why the curve read as dead.
+    static let bucketSeconds: Int64 = 1
+    /// One minute of history.
     static let bucketCount = 60
 
     private(set) var buckets: [WidgetThroughputBucket] = []
@@ -295,12 +307,25 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
         buckets[buckets.count - 1] = bucket
     }
 
-    /// A counter that went backwards is a restarted session: count the new
-    /// value as the delta rather than dropping it. The first observation
-    /// after a resume is a baseline only.
+    /// A counter that went backwards re-baselines: the sample is treated as
+    /// a new starting point and contributes nothing.
+    ///
+    /// Taking `value` as the delta instead -- on the reasoning that a
+    /// restarted session counts from zero -- is unsafe here, because these
+    /// counters are cumulative for the whole session and the drop is not
+    /// always a restart. A reconnect can publish one tick carrying the
+    /// retiring client's total on top of the new base, and the next tick then
+    /// reads lower; taking that lower value as a delta writes the ENTIRE
+    /// session's byte count into a single minute. One such bucket is a rate
+    /// orders of magnitude above anything real, and it sets the chart's scale
+    /// until sixty further traffic-bearing minutes evict it.
+    ///
+    /// The cost of re-baselining is bounded by the sample interval, which is
+    /// one second, so at most a second of traffic is dropped. The cost of the
+    /// alternative is unbounded.
     private static func delta(from last: Int64?, to value: Int64) -> Int64 {
-        guard let last else { return 0 }
-        return value < last ? value : value - last
+        guard let last, last <= value else { return 0 }
+        return value - last
     }
 
     private mutating func currentBucket(at date: Date) -> WidgetThroughputBucket {
@@ -397,6 +422,73 @@ enum WidgetPreviewVisibility {
             CFNotificationName(darwinNotificationName as CFString),
             nil, nil, true
         )
+    }
+}
+
+/// A widget asked for a fresh snapshot, now.
+///
+/// Only the packet tunnel process holds the live counters, so the widget
+/// process -- which can read the published file but cannot produce a newer
+/// one -- signals across and waits briefly for the write to land.
+///
+/// Deliberately NOT `WidgetPreviewVisibility`, which is the right shape and
+/// the wrong channel: that mark carries an expiry because the extension needs
+/// to know how long to keep writing fast, its handler returns early unless
+/// the flag actually flipped (so a second tap inside the mark window would be
+/// a silent no-op), and it asks for no reload at all. This asks for exactly
+/// one write.
+///
+/// The request is a file as well as a notification because Darwin
+/// notifications are not queued for a suspended process, and this extension
+/// is expected to be suspended. The file lets the writer serve a dropped
+/// notification on its next timer tick instead of losing the tap; the window
+/// keeps a tap made while the tunnel was down from causing a surprise write
+/// when it next starts.
+enum WidgetSnapshotRefreshRequest {
+
+    static let darwinNotificationName = "network.ur.widgets.refresh-request"
+    static let fileName = "refresh-request.json"
+    /// How long a request stays worth serving.
+    static let requestWindow: TimeInterval = 30
+
+    private struct Request: Codable {
+        var at: Date
+    }
+
+    /// Ask the tunnel to publish. Writes the request before posting, so a
+    /// notification that arrives first still finds it.
+    static func post(at date: Date = Date()) {
+        if let directory = WidgetSnapshotStore.directoryURL {
+            do {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                let data = try WidgetSnapshotStore.encoder.encode(Request(at: date))
+                try data.write(to: directory.appendingPathComponent(fileName), options: .atomic)
+            } catch {
+                // the notification below is still worth posting: a live
+                // extension serves it without reading the file
+            }
+        }
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(darwinNotificationName as CFString),
+            nil, nil, true
+        )
+    }
+
+    /// True when a request inside the window is pending. The file is removed
+    /// either way, so a stale request cannot be served twice.
+    @discardableResult
+    static func consume(now: Date = Date()) -> Bool {
+        guard let url = WidgetSnapshotStore.directoryURL?.appendingPathComponent(fileName) else {
+            return false
+        }
+        let data = try? Data(contentsOf: url)
+        try? FileManager.default.removeItem(at: url)
+        guard let data,
+              let request = try? WidgetSnapshotStore.decoder.decode(Request.self, from: data) else {
+            return false
+        }
+        return now.timeIntervalSince(request.at) <= requestWindow
     }
 }
 

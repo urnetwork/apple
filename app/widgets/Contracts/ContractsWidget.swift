@@ -83,6 +83,10 @@ struct ContractsView: View {
                         .foregroundStyle(WidgetTheme.textMuted)
                 }
             }
+            // unlike the globe, small uses this header too and has no room
+            if family != .systemSmall {
+                WidgetRefreshIcon()
+            }
         }
     }
 

@@ -7,10 +7,14 @@
 //
 //  A static version of the app's TransferChart for one route: bytes (green,
 //  filled) and packets (pink, a line) sent above the axis and received
-//  below, each pair on its own scale, Catmull-Rom smoothed. The app draws
-//  one point per second over a 60 s window; the widget draws one bucket per
-//  minute over the last hour, because that is the cadence a Home Screen
-//  widget can honestly show.
+//  below, each pair on its own scale, Catmull-Rom smoothed. Both draw one
+//  point per second over a 60 s window, so the widget shows the same curve
+//  the app does -- it simply holds still between reloads, where the app's
+//  redraws every second.
+//
+//  The window is derived from the snapshot's own `bucketSeconds`, so a
+//  snapshot written by an older build (a minute per bucket) still renders,
+//  as the hour it was recorded as.
 //
 
 import SwiftUI
@@ -39,7 +43,9 @@ struct ThroughputChartView: View {
     private static let labelBand: CGFloat = 14
     private static let windowBuckets = WidgetThroughputAccumulator.bucketCount
     /// Floor for the byte scale so an idle chart is flat rather than noisy.
-    private static let minimumScale: Int64 = 64 * 1024
+    /// Expressed per bucket, so it stays the same RATE whatever the bucket
+    /// size is: 8 KiB/s.
+    private static let minimumScale: Int64 = 8 * 1024 * WidgetThroughputAccumulator.bucketSeconds
     /// Floor for the packet scale: the app's 8 packets/s over one bucket.
     private static let minimumPacketScale: Int64 = 8 * WidgetThroughputAccumulator.bucketSeconds
     private static let packetColor = WidgetTheme.packetSeries
@@ -88,12 +94,16 @@ struct ThroughputChartView: View {
         TimeInterval(bucketSeconds * Int64(Self.windowBuckets))
     }
 
+    private var plot: Plot {
+        Self.plot(points: points, bucketSeconds: bucketSeconds, now: now)
+    }
+
     private var peak: Int64 {
-        points.map { max($0.egress, $0.ingress) }.max() ?? 0
+        plot.peak
     }
 
     private var peakPackets: Int64 {
-        points.map { max($0.egressPackets, $0.ingressPackets) }.max() ?? 0
+        plot.peakPackets
     }
 
     /// Bytes per bucket as a rate, formatted like the app's chart labels.
@@ -106,15 +116,60 @@ struct ThroughputChartView: View {
         formatPacketRate(peakPackets / max(1, bucketSeconds))
     }
 
+    /// What the chart plots, computed apart from the drawing.
+    ///
+    /// `draw` runs inside a `Canvas` closure, so nothing can observe what it
+    /// decided. Every judgement that can be wrong -- which buckets fall in
+    /// the window, and what the curve is scaled against -- lives here so it
+    /// can be asserted directly.
+    struct Plot: Equatable {
+        /// Bucket start times, oldest first, one per bucket across the whole
+        /// window whether or not the snapshot carries that bucket.
+        var bucketStarts: [Int64]
+        /// The largest byte and packet values the scale is taken from.
+        var peak: Int64
+        var peakPackets: Int64
+    }
+
+    static func plot(points: [Point], bucketSeconds: Int64, now: Date) -> Plot {
+        let window = TimeInterval(bucketSeconds * Int64(windowBuckets))
+        let nowSeconds = now.timeIntervalSince1970
+        let windowStart = nowSeconds - window
+        var starts: [Int64] = []
+        var bucket = (Int64(windowStart) / bucketSeconds) * bucketSeconds
+        // up to the last COMPLETE bucket: a bucket's traffic is only known
+        // once the minute has elapsed, and the one in progress holds a
+        // fraction of its eventual total. Drawn at full weight -- and then
+        // held flat to the right edge -- it dived the end of the curve toward
+        // zero for reasons that had nothing to do with the network
+        while bucket + bucketSeconds <= Int64(nowSeconds) {
+            starts.append(bucket)
+            bucket += bucketSeconds
+        }
+        // the scale comes only from what is on screen. The accumulator
+        // records a bucket only for a minute that carried traffic, so its 60
+        // buckets can span many hours -- and a burst from outside this window
+        // used to set the scale for a curve it was not part of, squashing
+        // real recent traffic flat onto the axis and freezing the peak label
+        // on a rate from hours ago
+        let drawn = Set(starts)
+        let visible = points.filter { drawn.contains($0.start) }
+        return Plot(
+            bucketStarts: starts,
+            peak: visible.map { max($0.egress, $0.ingress) }.max() ?? 0,
+            peakPackets: visible.map { max($0.egressPackets, $0.ingressPackets) }.max() ?? 0
+        )
+    }
+
     private func draw(_ context: inout GraphicsContext, size: CGSize) {
         let centerY = size.height / 2
         let plotHalf = max(1, centerY - 1)
+        let plot = self.plot
         // each series pair on its own scale: the peak of either reaches the
         // plot edge, so both are readable whatever their ratio
-        let scale = Double(max(peak, Self.minimumScale))
-        let packetScale = Double(max(peakPackets, Self.minimumPacketScale))
+        let scale = Double(max(plot.peak, Self.minimumScale))
+        let packetScale = Double(max(plot.peakPackets, Self.minimumPacketScale))
         let nowSeconds = now.timeIntervalSince1970
-        let windowStart = nowSeconds - window
 
         // one sample per bucket across the whole window, zero where nothing
         // was recorded, so the spline is evenly spaced and reaches both edges
@@ -132,9 +187,7 @@ struct ThroughputChartView: View {
         func offset(_ value: Int64, _ scale: Double) -> CGFloat {
             plotHalf * CGFloat(min(1, Double(value) / scale))
         }
-        let firstBucket = (Int64(windowStart) / bucketSeconds) * bucketSeconds
-        var bucket = firstBucket
-        while bucket <= Int64(nowSeconds) {
+        for bucket in plot.bucketStarts {
             let point = byStart[bucket]
             // plot at the bucket's end: the bucket's traffic is known once it
             // has elapsed
@@ -144,7 +197,6 @@ struct ThroughputChartView: View {
             ingress.append(CGPoint(x: px, y: centerY + offset(point?.ingress ?? 0, scale)))
             egressPackets.append(CGPoint(x: px, y: centerY - offset(point?.egressPackets ?? 0, packetScale)))
             ingressPackets.append(CGPoint(x: px, y: centerY + offset(point?.ingressPackets ?? 0, packetScale)))
-            bucket += bucketSeconds
         }
         func holdToEdge(_ series: inout [CGPoint]) {
             if let last = series.last, last.x < size.width {

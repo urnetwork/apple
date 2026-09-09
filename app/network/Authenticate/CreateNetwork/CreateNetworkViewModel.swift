@@ -95,12 +95,16 @@ extension CreateNetworkView {
         @Published var bonusReferralCode: String = "" {
             didSet {
                 self.isValidReferralCode = false
+                self.referralValidationFailed = false
                 self.buildReferralInputSupportingText()
             }
         }
-        
+
         @Published private(set) var isValidatingReferralCode: Bool = false
         @Published private(set) var referralValidationComplete: Bool = false
+        // the check itself failed (no network, a rate limit, a server error):
+        // not the same as the server answering that the code is invalid
+        @Published private(set) var referralValidationFailed: Bool = false
         
         private func setNetworkNameSupportingText(_ text: LocalizedStringKey) {
             networkNameSupportingText = text
@@ -111,15 +115,15 @@ extension CreateNetworkView {
             var msg: LocalizedStringKey = ""
             
             if !self.isValidatingReferralCode && !self.bonusReferralCode.isEmpty && self.referralValidationComplete {
-                
-                if (!self.isValidReferralCode) {
+
+                if self.referralValidationFailed {
+                    msg = LocalizedStringKey("Something went wrong. Please try again later.")
+                } else if (self.isCappedReferralCode) {
+                    msg = LocalizedStringKey("This code has been used up")
+                } else if (!self.isValidReferralCode) {
                     msg = LocalizedStringKey("This code is not valid")
                 }
-                
-                if (self.isCappedReferralCode) {
-                    msg = LocalizedStringKey("This code has been used up")
-                }
-                
+
             }
             
             
@@ -156,17 +160,19 @@ extension CreateNetworkView {
                     
                 self.isValidReferralCode = result.isValid
                 self.isCappedReferralCode = result.isCapped
+                self.referralValidationFailed = false
                 self.isValidatingReferralCode = false
                 self.referralValidationComplete = true
-                
+
                 self.buildReferralInputSupportingText()
-                
+
                 return .success(result)
-                
+
             } catch(let error) {
-                
+
                 self.isValidatingReferralCode = false
                 self.isValidReferralCode = false
+                self.referralValidationFailed = true
                 self.referralValidationComplete = true
                 
                 self.buildReferralInputSupportingText()

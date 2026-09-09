@@ -38,6 +38,7 @@ extension CreateNetworkInstantView {
             didSet {
                 if bonusReferralCode != oldValue {
                     isValidReferralCode = false
+                    referralValidationFailed = false
                     referralValidationComplete = false
                     referralCodeInputSupportingText = ""
                 }
@@ -48,6 +49,9 @@ extension CreateNetworkInstantView {
         @Published private(set) var isCappedReferralCode: Bool = false
         @Published private(set) var isValidatingReferralCode: Bool = false
         @Published private(set) var referralValidationComplete: Bool = false
+        // the check itself failed (no network, a rate limit, a server error):
+        // not the same as the server answering that the code is invalid
+        @Published private(set) var referralValidationFailed: Bool = false
         @Published private(set) var referralCodeInputSupportingText: LocalizedStringKey = ""
 
         let domain = "CreateNetworkInstantViewModel"
@@ -67,6 +71,8 @@ extension CreateNetworkInstantView {
         private func buildReferralInputSupportingText() {
             if !referralValidationComplete {
                 referralCodeInputSupportingText = ""
+            } else if referralValidationFailed {
+                referralCodeInputSupportingText = "Something went wrong. Please try again later."
             } else if isCappedReferralCode {
                 referralCodeInputSupportingText = "This code has been used up"
             } else if !isValidReferralCode {
@@ -95,9 +101,11 @@ extension CreateNetworkInstantView {
                 let result = try await urApiService.validateReferralCode(bonusReferralCode)
                 isValidReferralCode = result.isValid
                 isCappedReferralCode = result.isCapped
+                referralValidationFailed = false
                 return .success(result)
             } catch {
                 isValidReferralCode = false
+                referralValidationFailed = true
                 return .failure(error)
             }
 

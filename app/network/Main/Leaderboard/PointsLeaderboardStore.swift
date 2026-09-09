@@ -12,8 +12,13 @@ import URnetworkSdk
  * (the sdk re-emits fresh proxies on every event), with the preformatted
  * texts the sdk fills in. `displayName` is empty when the row is anonymous;
  * the screen then shows its localized "Anonymous". `emojiTag` shows either way.
+ * Rows are identified by `position`, the 1-based rank in the current sort
+ * (no ties): it is what the list scrolls to and what the indicator reads. A
+ * server that does not yet send positions leaves them 0; those rows fall
+ * back to the network id, the same key the sdk merges by.
  */
 struct PointsLeaderboardRowItem: Identifiable, Equatable {
+    let position: Int64
     let networkId: String
     let displayName: String
     let anonymous: Bool
@@ -26,11 +31,20 @@ struct PointsLeaderboardRowItem: Identifiable, Equatable {
     let rankBlocksText: String
     let rankStreakText: String
 
+    /// the scroll id: "p:<position>", or "n:<networkId>" without a position
     var id: String {
-        networkId
+        PointsLeaderboardRowItem.scrollId(position: position, networkId: networkId)
+    }
+
+    static func scrollId(position: Int64, networkId: String) -> String {
+        if position > 0 {
+            return "p:\(position)"
+        }
+        return "n:" + networkId
     }
 
     init(_ row: SdkPointsLeaderboardRow) {
+        position = row.position
         networkId = row.networkId?.idStr ?? ""
         displayName = row.displayName
         anonymous = row.anonymous
@@ -49,6 +63,25 @@ struct PointsLeaderboardRowItem: Identifiable, Equatable {
 struct PointsLeaderboardMeItem: Equatable {
     let row: PointsLeaderboardRowItem?
     let isPublic: Bool
+}
+
+/**
+ * What the indicator's drag label says for a rank, from the sdk's shared
+ * helper so every platform agrees: the rank, the population and the tier
+ * (one of `SdkPointsLeaderboardTier*`) with its percent for the "Top n%" tiers.
+ */
+struct PointsLeaderboardScrollLabel: Equatable {
+    let rank: Int64
+    let total: Int64
+    let tier: Int
+    let tierPercent: Int
+
+    init(_ parts: SdkPointsLeaderboardScrollLabelParts) {
+        rank = parts.rank
+        total = parts.total
+        tier = parts.tier
+        tierPercent = parts.tierPercent
+    }
 }
 
 private class PointsLeaderboardListener: NSObject, SdkPointsLeaderboardListenerProtocol {
@@ -134,6 +167,12 @@ class PointsLeaderboardStore: ObservableObject {
     @Published private(set) var errorMessage: String = ""
     @Published private(set) var totalRanked: Int64 = 0
     @Published private(set) var latestEpoch: Int64 = 0
+    /// the loaded window's first and last ranks (0 while empty)
+    @Published private(set) var firstLoadedPosition: Int64 = 0
+    @Published private(set) var lastLoadedPosition: Int64 = 0
+    /// ranks exist above the window (after a seek) or below it
+    @Published private(set) var hasMoreBefore: Bool = false
+    @Published private(set) var hasMoreAfter: Bool = false
     @Published private(set) var me: PointsLeaderboardMeItem? = nil
     /// the network's opt-in, from `me` and updated locally on toggle
     @Published private(set) var isPointsPublic: Bool = false
@@ -242,6 +281,22 @@ class PointsLeaderboardStore: ObservableObject {
         if epoch != latestEpoch {
             latestEpoch = epoch
         }
+        let first = vc.firstLoadedPosition()
+        if first != firstLoadedPosition {
+            firstLoadedPosition = first
+        }
+        let last = vc.lastLoadedPosition()
+        if last != lastLoadedPosition {
+            lastLoadedPosition = last
+        }
+        let before = vc.hasMoreBefore()
+        if before != hasMoreBefore {
+            hasMoreBefore = before
+        }
+        let after = vc.hasMoreAfter()
+        if after != hasMoreAfter {
+            hasMoreAfter = after
+        }
         let meItem = vc.getMe().map { me in
             PointsLeaderboardMeItem(
                 row: me.row.map { PointsLeaderboardRowItem($0) },
@@ -277,6 +332,32 @@ class PointsLeaderboardStore: ObservableObject {
 
     func loadMore() {
         viewController?.loadMore()
+    }
+
+    /// Asks for the page above the window (the rows before `firstLoadedPosition`).
+    func loadMoreBefore() {
+        viewController?.loadMoreBefore()
+    }
+
+    /**
+     * Jumps the window to `rank`: the controller clears its rows and lands the
+     * page holding that rank, in the current sort. From the indicator's thumb.
+     */
+    func seekToRank(_ rank: Int64) {
+        viewController?.seek(toRank: Int(rank))
+    }
+
+    /// Reloads the window from rank 1 (the tab reset after a seek).
+    func reloadFromTop() {
+        viewController?.reloadFromTop()
+    }
+
+    /// The drag label for `rank` over the current population, from the sdk.
+    func scrollLabel(rank: Int64) -> PointsLeaderboardScrollLabel? {
+        guard let parts = viewController?.getScrollLabel(rank) else {
+            return nil
+        }
+        return PointsLeaderboardScrollLabel(parts)
     }
 
     func refresh() {

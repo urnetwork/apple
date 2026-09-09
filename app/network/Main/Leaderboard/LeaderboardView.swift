@@ -15,6 +15,11 @@ enum LeaderboardTab: String, CaseIterable {
     case points
 }
 
+/// The scroll id of a leaderboard list's top (its header): the tab reset's target.
+enum LeaderboardListAnchor: Hashable {
+    case top
+}
+
 struct LeaderboardView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -28,8 +33,20 @@ struct LeaderboardView: View {
     
     @State private var selectedTab: LeaderboardTab = .data
     
+    // every tap on the picker, the selected tab included, scrolls the shown
+    // list back to its top (mmm/DESIGNSTYLE.md, "Long ranked lists"): the
+    // tap itself is counted and the lists watch the count
+    @State private var scrollResetToken: Int = 0
+    
     init(api: UrApiServiceProtocol) {
         _viewModel = .init(wrappedValue: .init(apiService: api))
+    }
+    
+    /// a tap on a tab: show it (a switch recreates the list at its top) and
+    /// count the tap so a re-tap scrolls the shown list to its top
+    private func selectTab(_ tab: LeaderboardTab) {
+        selectedTab = tab
+        scrollResetToken += 1
     }
     
     var body: some View {
@@ -44,6 +61,23 @@ struct LeaderboardView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
+                .accessibilityIdentifier("leaderboard.tab.picker")
+                .overlay {
+                    // the taps are taken over the native control: its binding
+                    // is silent for a re-tap and a SwiftUI gesture laid over
+                    // it never fires, so each half selects its tab and counts
+                    // the tap; assistive tech still drives the picker itself
+                    HStack(spacing: 0) {
+                        ForEach(LeaderboardTab.allCases, id: \.self) { tab in
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    selectTab(tab)
+                                }
+                        }
+                    }
+                    .accessibilityHidden(true)
+                }
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
@@ -53,7 +87,7 @@ struct LeaderboardView: View {
                      * Points: the all-time points leaderboard
                      */
                     
-                    PointsLeaderboardTab(store: pointsStore)
+                    PointsLeaderboardTab(store: pointsStore, scrollResetToken: scrollResetToken)
                     
                 case .data:
                     if (viewModel.isInitializing) {
@@ -79,7 +113,8 @@ struct LeaderboardView: View {
                             rankingPublic: $viewModel.networkRankingPublic,
                             leaderboardEntries: viewModel.leaderboardEarners,
                             isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
-                            isLoading: viewModel.isLoading
+                            isLoading: viewModel.isLoading,
+                            scrollResetToken: scrollResetToken
                         )
                         
                     }
@@ -107,78 +142,63 @@ private struct LeaderboardViewPopulated: View {
     var leaderboardEntries: [LeaderboardEntry]
     var isSettingRankingVisibility: Bool
     var isLoading: Bool
+    /// bumped by the tab picker on every tap: the list scrolls to its top
+    var scrollResetToken: Int = 0
     
     var body: some View {
         
         let networkId = deviceManager.parsedJwt?.networkId
         
-        #if os(iOS)
-        
-        ScrollView {
+        ScrollViewReader { proxy in
             
-            LeaderboardHeader(
-                leaderboardRank: leaderboardRank,
-                netProvidedFormatted: netProvidedFormatted,
-                rankingPublic: rankingPublic,
-                isSettingRankingVisibility: isSettingRankingVisibility
-            )
-            
-            LazyVStack(spacing: 0) {
-             
-                ForEach(Array(leaderboardEntries.enumerated()), id: \.offset) { index, entry in
-                    LeaderboardRow(
-                        leaderboardEntry: entry,
-                        rank: index + 1,
-                        networkId: networkId
-                    )
-                }
+            ScrollView {
                 
-            }
-            
-        }
-        .refreshable {
-            await fetchLeaderboardData()
-        }
-        
-        
-        #elseif os(macOS)
-        
-        ScrollView {
-            
-            LeaderboardHeader(
-                leaderboardRank: leaderboardRank,
-                netProvidedFormatted: netProvidedFormatted,
-                rankingPublic: rankingPublic,
-                isSettingRankingVisibility: isSettingRankingVisibility
-            )
-            
-            LazyVStack(spacing: 0) {
-             
-                ForEach(Array(leaderboardEntries.enumerated()), id: \.offset) { index, entry in
-                    LeaderboardRow(
-                        leaderboardEntry: entry,
-                        rank: index + 1,
-                        networkId: networkId
-                    )
-                }
+                LeaderboardHeader(
+                    leaderboardRank: leaderboardRank,
+                    netProvidedFormatted: netProvidedFormatted,
+                    rankingPublic: rankingPublic,
+                    isSettingRankingVisibility: isSettingRankingVisibility
+                )
+                .id(LeaderboardListAnchor.top)
                 
-            }
-            
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(action: {
-                    Task {
-                        await fetchLeaderboardData()
+                LazyVStack(spacing: 0) {
+                 
+                    ForEach(Array(leaderboardEntries.enumerated()), id: \.offset) { index, entry in
+                        LeaderboardRow(
+                            leaderboardEntry: entry,
+                            rank: index + 1,
+                            networkId: networkId
+                        )
                     }
-                }) {
-                    Image(systemName: "arrow.clockwise")
+                    
                 }
-                .disabled(isLoading)
+                
             }
+            .onChange(of: scrollResetToken) { _ in
+                withAnimation {
+                    proxy.scrollTo(LeaderboardListAnchor.top, anchor: .top)
+                }
+            }
+            #if os(iOS)
+            .refreshable {
+                await fetchLeaderboardData()
+            }
+            #elseif os(macOS)
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button(action: {
+                        Task {
+                            await fetchLeaderboardData()
+                        }
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .disabled(isLoading)
+                }
+            }
+            #endif
+            
         }
-        
-        #endif
         
     }
     

@@ -120,9 +120,16 @@ struct ConnectStatsSections: View {
                         dnsStatusRow("Local DNS fallback", enabled: settings.localDnsFallbackEnabled)
                     }
                 } else {
-                    Text("DNS settings unavailable")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textFaintColor)
+                    // the settings arrive once the device attaches (the store
+                    // publishes nil until then); reserve the four rows at their
+                    // final height so the drawer's content does not grow when
+                    // they land (mmm/DESIGNSTYLE.md "Placeholders, not pop-in")
+                    VStack(spacing: 8) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            dnsStatusRowSkeleton()
+                        }
+                    }
+                    .skeletonGroup("Loading...")
                 }
 
             }
@@ -157,6 +164,29 @@ struct ConnectStatsSections: View {
         .padding(.bottom, 8)
     }
 
+    /// The same box as `dnsStatusRow`: the 6pt dot, the title's line, the
+    /// trailing state word. The row's height is the body font's line height,
+    /// which the skeleton takes from a hidden text of the same font so it
+    /// tracks Dynamic Type exactly.
+    private func dnsStatusRowSkeleton() -> some View {
+        HStack(spacing: 8) {
+            Skeleton(width: 6, height: 6, cornerRadius: 3)
+            Skeleton(width: 132, height: 12)
+            Spacer()
+            Skeleton(width: 24, height: 10)
+        }
+        .frame(minHeight: dnsStatusRowHeight)
+    }
+
+    /// The height of a rendered status row: the taller of its two fonts.
+    private var dnsStatusRowHeight: CGFloat {
+        #if os(iOS)
+        return UIFont.preferredFont(forTextStyle: .body).lineHeight
+        #else
+        return NSFont.preferredFont(forTextStyle: .body).boundingRectForFont.height
+        #endif
+    }
+
     private func dnsStatusRow(_ title: LocalizedStringKey, enabled: Bool) -> some View {
         HStack(spacing: 8) {
 
@@ -176,6 +206,7 @@ struct ConnectStatsSections: View {
                     enabled ? .urGreen : themeManager.currentTheme.textMutedColor
                 )
         }
+        .frame(minHeight: dnsStatusRowHeight)
     }
 
     private func statsCard<Content: View>(

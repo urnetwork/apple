@@ -90,14 +90,24 @@ struct TransportDistributionBar: View {
             .frame(height: barHeight)
             .frame(maxWidth: .infinity)
 
-            // legend: the transports with traffic and their share
+            // legend: the transports with traffic and their share. Before any
+            // traffic has been seen both rows are empty, which would let the
+            // card shrink and grow as the first bytes flow; reserve the two
+            // rows at their final height instead (mmm/DESIGNSTYLE.md
+            // "Placeholders, not pop-in"). A window with traffic that has no
+            // unused transports is a resolved state, not a loading one, so
+            // the unused row is reserved only while nothing has flowed yet.
             if !usedShares.isEmpty {
                 legendRow(usedShares)
+            } else {
+                legendSkeleton()
             }
 
             // unused footer: enabled transports that carried nothing in the window
             if !unusedShares.isEmpty {
                 unusedRow(unusedShares.map { $0.transportType })
+            } else if usedShares.isEmpty {
+                legendSkeleton()
             }
 
         }
@@ -119,6 +129,31 @@ struct TransportDistributionBar: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
+    }
+
+    /// One legend line's box: three dot-plus-label pairs at the legend's
+    /// font height, the same spacing the loaded row uses.
+    private func legendSkeleton() -> some View {
+        HStack(spacing: 12) {
+            ForEach(0..<3, id: \.self) { _ in
+                HStack(spacing: 4) {
+                    Skeleton(width: 6, height: 6, cornerRadius: 3)
+                    Skeleton(width: 44, height: 9)
+                }
+            }
+            Spacer()
+        }
+        .frame(minHeight: legendRowHeight)
+        .skeletonGroup("Loading...")
+    }
+
+    /// The legend rows are set in the fixed 11pt medium system font.
+    private var legendRowHeight: CGFloat {
+        #if os(iOS)
+        return UIFont.systemFont(ofSize: 11, weight: .medium).lineHeight
+        #else
+        return NSFont.systemFont(ofSize: 11, weight: .medium).boundingRectForFont.height
+        #endif
     }
 
     private func legendRow(_ shares: [TransportShare]) -> some View {

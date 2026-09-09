@@ -108,8 +108,24 @@ struct MainView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.currentTheme.backgroundColor)
-        // the Pro celebration over the whole app; sheets and covers host their own layer
-        .proCelebrationLayer()
+        // The celebration draws in its own clear overlay rather than wrapping
+        // this view. The pixelation is a RASTER-LAYER filter: SwiftUI has to
+        // render the filtered content into an offscreen layer, and content
+        // backed by UIKit -- which the tab view below is -- cannot go into
+        // one, so the whole subtree is replaced by the unsupported-view
+        // placeholder. Wrapping nothing keeps the confetti, which is plain
+        // SwiftUI, and costs only the mosaic over the root.
+        //
+        // allowsHitTesting is OUTSIDE the layer on purpose: Color.clear is
+        // hit-testable, so without it the app renders perfectly and ignores
+        // every touch -- a worse fault than the placeholder, and one a
+        // screenshot cannot show.
+        .overlay(
+            Color.clear
+                .proCelebrationLayer()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        )
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
         .environmentObject(proCelebration)

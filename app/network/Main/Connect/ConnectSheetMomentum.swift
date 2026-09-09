@@ -53,6 +53,23 @@ enum ConnectSheetMomentum {
         return speed / 1000 * decelerationRate / (1 - decelerationRate)
     }
 
+    /// How long, in seconds on the fling's own clock, a fling of `speed`
+    /// takes to cover `travelled` points; nil when it would stop short.
+    static func travelTime(speed: CGFloat, travelled: CGFloat, decelerationRate: CGFloat) -> TimeInterval? {
+        guard speed > 0, 0 < decelerationRate, decelerationRate < 1 else {
+            return nil
+        }
+        guard travelled > 0 else {
+            return 0
+        }
+        let total = projectedDistance(speed: speed, decelerationRate: decelerationRate)
+        guard travelled < total else {
+            return nil
+        }
+        // distance(t) = total * (1 - rate^t) with t in milliseconds
+        return log(1 - travelled / total) / log(decelerationRate) / 1000
+    }
+
     /// The speed a fling of `speed` has left after covering `travelled`
     /// points; zero when it would have stopped within that distance.
     static func residualSpeed(speed: CGFloat, travelled: CGFloat, decelerationRate: CGFloat) -> CGFloat {

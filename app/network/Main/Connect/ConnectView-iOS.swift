@@ -84,6 +84,9 @@ struct ConnectView_iOS: View {
     // and the top of the tab bar at the collapsed peek — the same 12pt on
     // every device, matching the Android drawer
     private let sheetFoldGap: CGFloat = 12
+    // how long the sheet takes to reach its expanded position after a
+    // release (the spring below settles visibly within this)
+    private let sheetOpenDuration: TimeInterval = 0.3
 
     
     init(
@@ -630,11 +633,17 @@ struct ConnectView_iOS: View {
         }
     }
 
+    // The content picks up the fling on the fling's own clock: at the moment
+    // the fling would have covered the sheet's remaining travel, or when the
+    // sheet arrives if that comes first, so it never sets off on its own
+    // after the sheet has visibly stopped.
     private func carryFlingIntoSheetContent(speed: CGFloat, afterTravelling travelled: CGFloat, maxHeight: CGFloat) {
         guard let scrollView = sheetScrollRef.scrollView else { return }
         let rate = UIScrollView.DecelerationRate.normal.rawValue
         let residual = ConnectSheetMomentum.residualSpeed(speed: speed, travelled: travelled, decelerationRate: rate)
         guard residual > 0 else { return }
+        let travelTime = ConnectSheetMomentum.travelTime(speed: speed, travelled: travelled, decelerationRate: rate) ?? 0
+        let delay = min(travelTime, sheetOpenDuration)
         // the sheet is still growing to its expanded height, so the far end
         // of the scroll is measured against the expanded content area, not
         // the bounds of this instant
@@ -644,7 +653,8 @@ struct ConnectView_iOS: View {
             scrollView: scrollView,
             speed: residual,
             maxOffset: maxOffset,
-            decelerationRate: rate
+            decelerationRate: rate,
+            delay: delay
         )
     }
 

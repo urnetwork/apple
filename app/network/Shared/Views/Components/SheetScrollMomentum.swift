@@ -79,10 +79,13 @@ final class ScrollMomentumDriver {
     private var maxOffset: CGFloat = 0
     private var decelerationRate: CGFloat = UIScrollView.DecelerationRate.normal.rawValue
     private var lastTimestamp: CFTimeInterval = 0
+    private var startAt: CFTimeInterval = 0
 
-    /// Starts scrolling `scrollView` downward at `speed` points per second,
-    /// never past `maxOffset`.
-    func start(scrollView: UIScrollView, speed: CGFloat, maxOffset: CGFloat, decelerationRate: CGFloat) {
+    /// Starts scrolling `scrollView` downward at `speed` points per second
+    /// after `delay` seconds, never past `maxOffset`. The delay lets the
+    /// content pick up a fling exactly where the fling's own clock says the
+    /// sheet's travel ends, so the motion reads as one scroll.
+    func start(scrollView: UIScrollView, speed: CGFloat, maxOffset: CGFloat, decelerationRate: CGFloat, delay: TimeInterval = 0) {
         stop()
         guard speed > 0, maxOffset > scrollView.contentOffset.y else { return }
         self.scrollView = scrollView
@@ -90,6 +93,7 @@ final class ScrollMomentumDriver {
         self.maxOffset = maxOffset
         self.decelerationRate = decelerationRate
         lastTimestamp = 0
+        startAt = CACurrentMediaTime() + max(0, delay)
         let link = CADisplayLink(target: self, selector: #selector(step(_:)))
         link.add(to: .main, forMode: .common)
         displayLink = link
@@ -105,6 +109,9 @@ final class ScrollMomentumDriver {
     @objc private func step(_ link: CADisplayLink) {
         guard let scrollView, !scrollView.isTracking, !scrollView.isDragging else {
             stop()
+            return
+        }
+        if link.timestamp < startAt {
             return
         }
         if lastTimestamp == 0 {

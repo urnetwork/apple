@@ -230,8 +230,17 @@ struct IntroductionView: View {
         }
         .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
         .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)
-        // the celebration draws over the onboarding cover, which sits above the app root
-        .proCelebrationLayer()
+        // Over the onboarding cover, which sits above the app root. Same clear
+        // overlay as the root: the body below carries a NavigationStack, which
+        // is UIKit-backed on iOS and so cannot be rendered into the raster
+        // layer the pixelation needs. A fresh install is the first thing that
+        // hits this path.
+        .overlay(
+            Color.clear
+                .proCelebrationLayer()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        )
         .onChange(of: deviceManager.isPro) { _ in
             celebrateIfConfirmed()
         }

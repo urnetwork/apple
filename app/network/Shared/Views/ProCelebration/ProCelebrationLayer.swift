@@ -5,8 +5,10 @@
 //  Hosts the Pro celebration over a view: while a flight is in the air the
 //  view's content is pixelated (a mosaic whose cell grows over the first
 //  5 s, holds while the confetti flies, and shrinks back over the 5 s after
-//  it) and the confetti draws above it, sharp. Idle, the layer adds nothing:
-//  no effect, no overlay.
+//  it) and the confetti draws above it, sharp. Idle, the layer draws nothing:
+//  the effect is attached but disabled, and there is no overlay. It is
+//  attached either way -- see ProPixelation -- which is why the wrapped
+//  content matters even when nothing is in the air.
 //
 //  The mosaic cell is an animated value: SwiftUI interpolates it, so the
 //  content under it is not re-rendered every frame (a tab view is UIKit
@@ -24,6 +26,14 @@ extension View {
     /// `ProCelebrationState` launches one. Apply at the app root and inside
     /// modal presentations (the upgrade sheet, the onboarding cover), which
     /// draw above the root.
+    ///
+    /// The wrapped content must be SwiftUI only. The pixelation is a
+    /// raster-layer filter and it stays attached while idle, so content backed
+    /// by UIKit -- a tab view, a NavigationStack, a UIViewRepresentable --
+    /// cannot be rendered into the filtered layer and the whole subtree is
+    /// replaced by the unsupported-view placeholder. Where the content is not
+    /// SwiftUI only, apply this to a clear overlay above it instead: the
+    /// confetti still draws, and only the mosaic is lost.
     func proCelebrationLayer() -> some View {
         modifier(ProCelebrationLayer())
     }

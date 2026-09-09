@@ -14,11 +14,15 @@ Output: two symbol template SVGs (Template v.6.0, i.e. SF Symbols 6 / Xcode
 16) with the interpolation sources Ultralight-S, Regular-S, Black-S plus
 Regular-M.
 
-The version has to stay at 6.0: CI pins Xcode 16.4, and its actool rejects a
-newer template outright -- "Template format 7.0 is newer than the version that
-this software supports (6.0)" -- before it reads any of the artwork. The SF
-Symbols app on a current machine exports 7.0, so if you re-export from it,
-re-apply the 6.0 changes here rather than committing its output.
+The version stays at 6.0. It is the floor every toolchain we build with can
+read, and nothing is gained by raising it: a 6.0 template renders identically
+on a newer actool, while a 7.0 one is rejected outright by an older -- "Template
+format 7.0 is newer than the version that this software supports (6.0)" --
+before it reads any of the artwork. CI has since moved to Xcode 26.3, whose
+actool WOULD accept 7.0, so that error is no longer what enforces this; the
+reason is now compatibility with anyone still building on an Xcode 16 series.
+The SF Symbols app on a current machine exports 7.0, so if you re-export from
+it, re-apply the 6.0 changes here rather than committing its output.
 
 TWO CATALOGS carry these symbols and both are subject to that rule:
 

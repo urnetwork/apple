@@ -24,11 +24,13 @@ extension View {
      * view's bounds; when nil, all predominantly vertical pans begin.
      *
      * `onChanged` and `onEnded` receive the vertical translation in points,
-     * negative when dragging up.
+     * negative when dragging up. `onEnded` also receives the release velocity
+     * in points per second with the same sign, so a flick can be told apart
+     * from a slow release and its momentum carried on.
      */
     func verticalPanGesture(
         onChanged: @escaping (CGFloat) -> Void,
-        onEnded: @escaping (CGFloat) -> Void,
+        onEnded: @escaping (CGFloat, CGFloat) -> Void,
         shouldBegin: ((CGFloat, CGPoint) -> Bool)? = nil
     ) -> some View {
         background(VerticalPanGestureView(onChanged: onChanged, onEnded: onEnded, shouldBegin: shouldBegin))
@@ -39,7 +41,7 @@ extension View {
 private struct VerticalPanGestureView: UIViewRepresentable {
 
     let onChanged: (CGFloat) -> Void
-    let onEnded: (CGFloat) -> Void
+    let onEnded: (CGFloat, CGFloat) -> Void
     let shouldBegin: ((CGFloat, CGPoint) -> Bool)?
 
     func makeCoordinator() -> Coordinator {
@@ -67,13 +69,13 @@ private struct VerticalPanGestureView: UIViewRepresentable {
     class Coordinator: NSObject, UIGestureRecognizerDelegate {
 
         var onChanged: (CGFloat) -> Void
-        var onEnded: (CGFloat) -> Void
+        var onEnded: (CGFloat, CGFloat) -> Void
         var shouldBegin: ((CGFloat, CGPoint) -> Bool)?
         weak var markerView: UIView?
 
         init(
             onChanged: @escaping (CGFloat) -> Void,
-            onEnded: @escaping (CGFloat) -> Void,
+            onEnded: @escaping (CGFloat, CGFloat) -> Void,
             shouldBegin: ((CGFloat, CGPoint) -> Bool)?
         ) {
             self.onChanged = onChanged
@@ -87,8 +89,10 @@ private struct VerticalPanGestureView: UIViewRepresentable {
             switch pan.state {
             case .changed:
                 onChanged(translation)
-            case .ended, .cancelled, .failed:
-                onEnded(translation)
+            case .ended:
+                onEnded(translation, pan.velocity(in: view).y)
+            case .cancelled, .failed:
+                onEnded(translation, 0)
             default:
                 break
             }

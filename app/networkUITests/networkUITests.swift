@@ -125,6 +125,13 @@ final class networkUITests: XCTestCase {
         return .pending
     }
 
+    private static func connectCompletesPostAuth(
+        expectIntroduction: Bool,
+        observedIntroduction: Bool
+    ) -> Bool {
+        !expectIntroduction || observedIntroduction
+    }
+
     private static func revealUntilExists(
         maxSwipes: Int,
         waitForInitialExistence: () -> Bool,
@@ -287,6 +294,27 @@ final class networkUITests: XCTestCase {
             ),
             .overlay,
             "a post-auth overlay must be dismissed before using controls behind it"
+        )
+    }
+
+    func testInstantAccountRequiresIntroductionBeforeConnect() {
+        XCTAssertFalse(
+            Self.connectCompletesPostAuth(
+                expectIntroduction: true,
+                observedIntroduction: false
+            )
+        )
+        XCTAssertTrue(
+            Self.connectCompletesPostAuth(
+                expectIntroduction: true,
+                observedIntroduction: true
+            )
+        )
+        XCTAssertTrue(
+            Self.connectCompletesPostAuth(
+                expectIntroduction: false,
+                observedIntroduction: false
+            )
         )
     }
 
@@ -846,10 +874,11 @@ final class networkUITests: XCTestCase {
         field.typeText(value)
     }
 
-    private func waitForMain() throws {
+    private func waitForMain(expectIntroduction: Bool = false) throws {
         let deadline = Date().addingTimeInterval(90)
         var welcomeNextAttempt = Date.distantPast
         var closeOverlayNextAttempt = Date.distantPast
+        var observedIntroduction = false
         repeat {
             let now = Date()
             let enter = element("acceptance.welcome.enter")
@@ -876,11 +905,17 @@ final class networkUITests: XCTestCase {
             )
             switch destination {
             case .connect:
-                return
+                if Self.connectCompletesPostAuth(
+                    expectIntroduction: expectIntroduction,
+                    observedIntroduction: observedIntroduction
+                ) {
+                    return
+                }
             case .verification:
                 XCTFail("configured acceptance identity unexpectedly requires verification")
                 throw AcceptanceError.unexpectedInitialState
             case .introduction:
+                observedIntroduction = true
                 try completeIntroduction()
             case .welcome:
                 let frame = enter.frame
@@ -903,6 +938,10 @@ final class networkUITests: XCTestCase {
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.2))
         } while Date() < deadline
+        if expectIntroduction && !observedIntroduction {
+            XCTFail("instant account did not enter the new-network introduction")
+            throw AcceptanceError.unexpectedInitialState
+        }
         XCTFail("main Connect screen did not become ready")
         throw AcceptanceError.unexpectedInitialState
     }
@@ -1100,7 +1139,7 @@ final class networkUITests: XCTestCase {
             "seedphrase screen did not expose a valid 24-word secret key"
         )
         try tap("acceptance.instant.continue")
-        try waitForMain()
+        try waitForMain(expectIntroduction: true)
         return secretKey
     }
 

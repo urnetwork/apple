@@ -17,7 +17,7 @@ struct LoginNavigationView: View {
     
     var api: SdkApi
     var cancel: (() -> Void)? = nil
-    var handleSuccess: (_ jwt: String) async -> Void
+    var handleSuccess: NetworkLoginHandler
 
     // Built from a live closure over `deviceManager.api` (an @EnvironmentObject,
     // not available yet at init time) rather than the `api` snapshot passed
@@ -32,7 +32,7 @@ struct LoginNavigationView: View {
         })
     }
     
-    init(api: SdkApi, cancel: (() -> Void)? = nil, handleSuccess: @escaping (_ jwt: String) async -> Void) {
+    init(api: SdkApi, cancel: (() -> Void)? = nil, handleSuccess: @escaping NetworkLoginHandler) {
         self.api = api
         self.cancel = cancel
         self.handleSuccess = handleSuccess
@@ -46,7 +46,9 @@ struct LoginNavigationView: View {
                 urApiService: urApiService,
                 navigate: viewModel.navigate,
                 cancel: cancel,
-                handleSuccess: handleSuccess
+                handleSuccess: { jwt in
+                    await handleSuccess(.existing(jwt))
+                }
             )
             .id(deviceManager.activeHostName)
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
@@ -56,7 +58,9 @@ struct LoginNavigationView: View {
                         LoginPasswordView(
                             userAuth: userAuth,
                             navigate: viewModel.navigate,
-                            handleSuccess: handleSuccess,
+                            handleSuccess: { jwt in
+                                await handleSuccess(.existing(jwt))
+                            },
                             api: api
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
@@ -64,7 +68,9 @@ struct LoginNavigationView: View {
                         CreateNetworkView(
                             authLoginArgs: authLoginArgs,
                             navigate: viewModel.navigate,
-                            handleSuccess: handleSuccess,
+                            handleSuccess: { jwt in
+                                await handleSuccess(.created(jwt))
+                            },
                             api: api,
                             urApiService: urApiService
                         )
@@ -74,7 +80,9 @@ struct LoginNavigationView: View {
                             userAuth: userAuth,
                             api: api,
                             backToRoot: viewModel.backToRoot,
-                            handleSuccess: handleSuccess
+                            handleSuccess: { jwt in
+                                await handleSuccess(.created(jwt))
+                            }
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                 case .resetPassword(let userAuth):
@@ -87,14 +95,18 @@ struct LoginNavigationView: View {
                 case .seedphrase:
                     LoginSeedphraseView(
                         urApiService: urApiService,
-                        handleSuccess: handleSuccess,
+                        handleSuccess: { jwt in
+                            await handleSuccess(.existing(jwt))
+                        },
                         back: viewModel.back
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                 case .authCode:
                     LoginAuthCodeView(
                         urApiService: urApiService,
-                        handleSuccess: handleSuccess,
+                        handleSuccess: { jwt in
+                            await handleSuccess(.existing(jwt))
+                        },
                         back: viewModel.back
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
@@ -114,6 +126,6 @@ struct LoginNavigationView: View {
 #Preview {
     LoginNavigationView(
         api: SdkApi(),
-        handleSuccess: {_ in }
+        handleSuccess: { _ in }
     )
 }

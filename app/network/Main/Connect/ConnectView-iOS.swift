@@ -512,9 +512,9 @@ struct ConnectView_iOS: View {
                         connectViewModel.isPresentedCreateAccount = false
                     },
                     
-                    handleSuccess: { jwt in
+                    handleSuccess: { login in
                         Task {
-                            await handleSuccessWithJwt(jwt)
+                            await handleSuccessWithJwt(login.jwt)
                             connectViewModel.isPresentedCreateAccount = false
                         }
                     }

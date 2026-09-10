@@ -527,10 +527,10 @@ struct AccountRootView: View {
                     viewModel.isPresentedCreateAccount = false
                 },
                 
-                handleSuccess: { jwt in
+                handleSuccess: { login in
                     Task {
                         // viewModel.isPresentedCreateAccount = false
-                        await handleSuccessWithJwt(jwt)
+                        await handleSuccessWithJwt(login.jwt)
                     }
                 }
             )
@@ -557,9 +557,9 @@ struct AccountRootView: View {
                 cancel: {
                     viewModel.isPresentedCreateAccount = false
                 },
-                handleSuccess: { jwt in
+                handleSuccess: { login in
                     Task {
-                        await handleSuccessWithJwt(jwt)
+                        await handleSuccessWithJwt(login.jwt)
                     }
                 }
             )

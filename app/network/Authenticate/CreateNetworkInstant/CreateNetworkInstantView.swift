@@ -18,10 +18,11 @@ struct CreateNetworkInstantView: View {
 
     @StateObject private var viewModel: ViewModel
 
-    let handleSuccess: (_ jwt: String) async -> Void
+    let handleSuccess: NetworkLoginHandler
     let back: () -> Void
 
     @State private var accountResult: InstantAccountResult? = nil
+    @State private var completionGate = InstantAccountCompletionGate()
 
     // flips to true when the referral code is accepted; the bonus sheet shows
     // the gold royal welcome for a beat before dismissing itself
@@ -29,7 +30,7 @@ struct CreateNetworkInstantView: View {
 
     init(
         urApiService: UrApiServiceProtocol,
-        handleSuccess: @escaping (_ jwt: String) async -> Void,
+        handleSuccess: @escaping NetworkLoginHandler,
         back: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(urApiService: urApiService))
@@ -203,10 +204,7 @@ struct CreateNetworkInstantView: View {
             SeedphraseDisplayView(
                 seedphrase: result.seedphrase,
                 onConfirmed: { _ in
-                    accountResult = nil
-                    Task {
-                        await handleSuccess(result.jwt)
-                    }
+                    complete(result)
                 }
             )
             .environmentObject(themeManager)
@@ -216,16 +214,24 @@ struct CreateNetworkInstantView: View {
             SeedphraseDisplayView(
                 seedphrase: result.seedphrase,
                 onConfirmed: { _ in
-                    accountResult = nil
-                    Task {
-                        await handleSuccess(result.jwt)
-                    }
+                    complete(result)
                 }
             )
             .environmentObject(themeManager)
             .interactiveDismissDisabled(true)
         }
         #endif
+    }
+
+    private func complete(_ result: InstantAccountResult) {
+        guard let login = completionGate.takeCreatedLogin(jwt: result.jwt) else {
+            print("[CreateNetworkInstantView] duplicate seedphrase confirmation suppressed")
+            return
+        }
+        accountResult = nil
+        Task {
+            await handleSuccess(login)
+        }
     }
 
     private func handleValidateReferralResult(_ result: Result<SdkValidateReferralCodeResult, Error>) {

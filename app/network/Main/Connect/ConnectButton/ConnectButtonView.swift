@@ -12,6 +12,8 @@ struct ConnectButtonView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
+    /// The Pro celebration launcher: the connected connector is an easter egg (see `proTapGate`).
+    @EnvironmentObject var proCelebration: ProCelebrationState
     
     let gridPoints: [SdkId: SdkProviderGridPoint]
     let gridWidth: Int32
@@ -32,6 +34,17 @@ struct ConnectButtonView: View {
     let canvasWidth: CGFloat = 256
     
     @State var displayReconnectTunnel: Bool = false
+
+    /// The easter egg (Android parity): five taps on the connected connector,
+    /// each within 2 s of the last, replay the Pro celebration. Silent: no
+    /// counter, no haptic, no ripple change; a longer gap or leaving the
+    /// connected state starts the count over.
+    @State private var proTapGate = TapSequenceGate(count: 5, window: 2)
+
+    /// The connector counts taps only while it shows the plain connected state.
+    private var countsConnectedTaps: Bool {
+        connectionStatus == .connected && !displayReconnectTunnel && !isPollingSubscriptionBalance
+    }
     
     @StateObject private var viewModel: ViewModel = ViewModel()
     
@@ -102,7 +115,8 @@ struct ConnectButtonView: View {
                     
                 }
             
-                // for capturing tap when disconnected
+                // captures taps: connects when disconnected, and counts the
+                // hidden tap sequence while connected
                 Circle()
                     .fill(.clear)
                     .frame(width: canvasWidth, height: canvasWidth)
@@ -120,6 +134,10 @@ struct ConnectButtonView: View {
                             impact.impactOccurred()
 #endif
                             
+                        } else if countsConnectedTaps {
+                            if proTapGate.register() {
+                                proCelebration.launch()
+                            }
                         }
                         
                     }
@@ -149,8 +167,11 @@ struct ConnectButtonView: View {
             
         }
         .padding()
-        .onChange(of: connectionStatus) { _ in
+        .onChange(of: connectionStatus) { status in
             checkTunnelStatus()
+            if status != .connected {
+                proTapGate.reset()
+            }
         }
         .onChange(of: tunnelConnected) { _ in
             checkTunnelStatus()
@@ -185,4 +206,5 @@ struct ConnectButtonView: View {
         isPollingSubscriptionBalance: false,
         tunnelConnected: .constant(true)
     )
+    .environmentObject(ProCelebrationState())
 }

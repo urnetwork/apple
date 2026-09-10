@@ -63,10 +63,6 @@ struct ConnectView_iOS: View {
     // at the top, a downward drag closes the sheet instead of rubber-banding
     @State private var sheetScrollAtTop: Bool = true
     @State private var sheetScrollBaseline: CGFloat? = nil
-    // the UIScrollView behind the sheet's ScrollView and the driver that
-    // carries a flick's leftover momentum into it once the drawer opens
-    @State private var sheetScrollRef = SheetScrollViewRef()
-    @State private var sheetScrollMomentum = ScrollMomentumDriver()
 
     // The collapsed drawer shows EXACTLY the above-the-fold content — the
     // location row with the connect button — and nothing else. A fixed peek
@@ -84,9 +80,6 @@ struct ConnectView_iOS: View {
     // and the top of the tab bar at the collapsed peek — the same 12pt on
     // every device, matching the Android drawer
     private let sheetFoldGap: CGFloat = 12
-    // how long the sheet takes to reach its expanded position after a
-    // release (the spring below settles visibly within this)
-    private let sheetOpenDuration: TimeInterval = 0.3
 
     
     init(
@@ -243,8 +236,6 @@ struct ConnectView_iOS: View {
                                         )
                                     }
                                 )
-                                // finds the UIScrollView this content lives in
-                                .background(ScrollViewFinder(ref: sheetScrollRef))
                             ConnectActions(
                                 connect: connectViewModel.connect,
                                 disconnect: connectViewModel.disconnect,
@@ -309,9 +300,6 @@ struct ConnectView_iOS: View {
                         sheetFoldMaxY = maxY
                     }
                     .onChange(of: isSheetExpanded) { expanded in
-                        if !expanded {
-                            sheetScrollMomentum.stop()
-                        }
                         // when the sheet collapses, reset the content to the top
                         if !expanded {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
@@ -610,52 +598,17 @@ struct ConnectView_iOS: View {
     }
 
     // A release decides by speed first (a flick opens or closes the drawer
-    // however short it was), then by distance. A flick that opens the drawer
-    // keeps going into its content: the sheet's remaining travel is treated
-    // as the first part of one fling, and the content receives the momentum
-    // that fling would still have, so the motion reads as a single scroll
-    // instead of stopping dead with the content at its top.
+    // however short it was), then by distance. The content stays where it
+    // is: a flick that opens the drawer shows the content from its top.
     private func sheetDragOnEnded(_ translation: CGFloat, velocity: CGFloat, collapsedHeight: CGFloat, maxHeight: CGFloat) {
         let range = maxHeight - collapsedHeight
-        let wasExpanded = isSheetExpanded
-        let expanded = ConnectSheetMomentum.isExpandedAfterRelease(
-            isExpanded: wasExpanded,
+        isSheetExpanded = ConnectSheetMomentum.isExpandedAfterRelease(
+            isExpanded: isSheetExpanded,
             translation: translation,
             velocity: velocity,
             range: range
         )
-        isSheetExpanded = expanded
         sheetDragTranslation = 0
-        if expanded && !wasExpanded && velocity < 0 {
-            // the sheet still has to travel from where the finger left it
-            let remaining = max(0, range + max(-range, translation))
-            carryFlingIntoSheetContent(speed: -velocity, afterTravelling: remaining, maxHeight: maxHeight)
-        }
-    }
-
-    // The content picks up the fling on the fling's own clock: at the moment
-    // the fling would have covered the sheet's remaining travel, or when the
-    // sheet arrives if that comes first, so it never sets off on its own
-    // after the sheet has visibly stopped.
-    private func carryFlingIntoSheetContent(speed: CGFloat, afterTravelling travelled: CGFloat, maxHeight: CGFloat) {
-        guard let scrollView = sheetScrollRef.scrollView else { return }
-        let rate = UIScrollView.DecelerationRate.normal.rawValue
-        let residual = ConnectSheetMomentum.residualSpeed(speed: speed, travelled: travelled, decelerationRate: rate)
-        guard residual > 0 else { return }
-        let travelTime = ConnectSheetMomentum.travelTime(speed: speed, travelled: travelled, decelerationRate: rate) ?? 0
-        let delay = min(travelTime, sheetOpenDuration)
-        // the sheet is still growing to its expanded height, so the far end
-        // of the scroll is measured against the expanded content area, not
-        // the bounds of this instant
-        let expandedScrollHeight = max(0, maxHeight - sheetHeaderHeight)
-        let maxOffset = max(0, scrollView.contentSize.height - expandedScrollHeight + scrollView.adjustedContentInset.bottom)
-        sheetScrollMomentum.start(
-            scrollView: scrollView,
-            speed: residual,
-            maxOffset: maxOffset,
-            decelerationRate: rate,
-            delay: delay
-        )
     }
 
 }

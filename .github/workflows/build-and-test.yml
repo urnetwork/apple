@@ -86,13 +86,25 @@ jobs:
             echo 'func RenderPngV2(data []byte, size int) ([]byte, error) { return RenderPng(data, size) }' >> goidenticons/render_v2_ci_shim.go
           fi
 
-      # 16.4 is the macos-15 default and the series this project was written
-      # for (pbxproj objectVersion 77 / LastUpgradeVersion 1620). Pinned so a
-      # runner-image default bump cannot silently move the toolchain to
-      # Xcode 26 and with it the iOS SDK the app is compiled against.
-      - name: Select Xcode 16.4
+      # Pinned to an exact path, not to the image default (16.4) and not to
+      # "latest": a runner-image bump must never move the toolchain, and with
+      # it the SDK the app is compiled against, without a commit saying so.
+      #
+      # 26.3 rather than 16.4 because the gap had become the problem. 16.4
+      # compiles against the iOS 18 SDK while the app runs on iOS 26 devices,
+      # so anything that only exists -- or only misbehaves -- on the current
+      # SDK is invisible here. Two examples from one week: app code that needs
+      # a newer SDK symbol built fine in CI and failed on a developer machine,
+      # and `ControlCenter` is absent from the macOS 15 SDK 16.4 uses, which is
+      # the sole reason WidgetRefresh.reloadControl is walled off behind
+      # `#if os(iOS)`.
+      #
+      # This does NOT make CI able to catch runtime faults: the job builds and
+      # runs unit tests, it never launches the app. A rendering fault that only
+      # appears on a current SDK still gets through.
+      - name: Select Xcode 26.3
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.4.app
+          sudo xcode-select -s /Applications/Xcode_26.3.app
           xcodebuild -version
           xcrun simctl list runtimes | grep -i ios
 

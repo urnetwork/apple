@@ -77,8 +77,8 @@ struct LoginInitialView: View {
                             signInWithBittensor: {
                                 handleBittensorSignIn()
                             },
-                            presentAuthCodeLoginSheet: {
-                                viewModel.setPresentAuthCodeLoginSheet(true)
+                            presentAuthCodeLogin: {
+                                navigate(.authCode)
                             },
                             presentSeedphraseLogin: {
                                 navigate(.seedphrase)
@@ -116,8 +116,8 @@ struct LoginInitialView: View {
                             signInWithBittensor: {
                                 handleBittensorSignIn()
                             },
-                            presentAuthCodeLoginSheet: {
-                                viewModel.setPresentAuthCodeLoginSheet(true)
+                            presentAuthCodeLogin: {
+                                navigate(.authCode)
                             },
                             presentSeedphraseLogin: {
                                 navigate(.seedphrase)
@@ -158,21 +158,6 @@ struct LoginInitialView: View {
                 #if os(iOS)
                 .presentationDetents([.height(216)])
                 #endif
-                
-            }
-            .sheet(isPresented: $viewModel.presentAuthCodeLoginSheet) {
-                
-                AuthCodeLoginSheet(
-                    urApiService: self.urApiService,
-                    onSuccess: { jwt in
-                        viewModel.setPresentAuthCodeLoginSheet(false)
-                        Task {
-                            await self.handleSuccess(jwt)
-                        }
-                    }
-                )
-                .environmentObject(themeManager)
-                .presentationDetents([.height(264)])
                 
             }
             .scrollIndicators(.hidden)
@@ -569,7 +554,7 @@ private struct LoginInitialFormView: View {
     let deviceExists: Bool
     let presentSignInWithSolanaSheet: () -> Void
     let signInWithBittensor: () -> Void
-    let presentAuthCodeLoginSheet: () -> Void
+    let presentAuthCodeLogin: () -> Void
 
     let presentSeedphraseLogin: () -> Void
     let presentCreateInstant: () -> Void
@@ -598,7 +583,7 @@ private struct LoginInitialFormView: View {
             
             LoginTiles(
                 presentSeedphraseLogin: presentSeedphraseLogin,
-                presentAuthCodeLoginSheet: presentAuthCodeLoginSheet,
+                presentAuthCodeLogin: presentAuthCodeLogin,
                 signInWithBittensor: signInWithBittensor,
                 presentSignInWithSolanaSheet: presentSignInWithSolanaSheet,
                 activeLoginAction: activeLoginAction,
@@ -871,7 +856,7 @@ private struct LoginTiles: View {
     #endif
     
     let presentSeedphraseLogin: () -> Void
-    let presentAuthCodeLoginSheet: () -> Void
+    let presentAuthCodeLogin: () -> Void
     let signInWithBittensor: () -> Void
     let presentSignInWithSolanaSheet: () -> Void
     let activeLoginAction: LoginInitialView.LoginAction?
@@ -897,7 +882,7 @@ private struct LoginTiles: View {
                 id: "auth_code",
                 caption: "Auth code",
                 icon: .asset("ur.symbols.auth_code"),
-                action: presentAuthCodeLoginSheet,
+                action: presentAuthCodeLogin,
                 loginAction: nil,
                 accessibilityIdentifier: "acceptance.login.authcode"
             ),

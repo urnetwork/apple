@@ -15,6 +15,7 @@ enum LoginInitialNavigationPath: Hashable {
     case verify(_ userAuth: String)
     case resetPassword(_ userAuth: String)
     case seedphrase
+    case authCode
     case createInstant
 }
 

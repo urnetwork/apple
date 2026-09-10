@@ -91,6 +91,13 @@ struct LoginNavigationView: View {
                         back: viewModel.back
                     )
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+                case .authCode:
+                    LoginAuthCodeView(
+                        urApiService: urApiService,
+                        handleSuccess: handleSuccess,
+                        back: viewModel.back
+                    )
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                 case .createInstant:
                     CreateNetworkInstantView(
                         urApiService: urApiService,

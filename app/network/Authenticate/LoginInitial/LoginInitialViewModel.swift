@@ -73,21 +73,6 @@ extension LoginInitialView {
         }
         
         /**
-         * Auth code login
-         */
-        @Published var presentAuthCodeLoginSheet: Bool = false
-        
-        func setPresentAuthCodeLoginSheet(_ present: Bool) -> Void {
-            presentAuthCodeLoginSheet = present
-        }
-        
-        @Published private(set) var isProcessingAuthCode: Bool = false
-        
-        func setIsProcessingAuthCode(_ present: Bool) -> Void {
-            isProcessingAuthCode = present
-        }
-        
-        /**
          * Solana
          */
         @Published var presentSigninWithSolanaSheet: Bool = false

@@ -13,6 +13,10 @@
 //  freeze the screen the instant a flight launches and pixelate the frozen
 //  copy while the live UI carries on underneath.
 //
+//  iOS reads the key window back with drawHierarchy; macOS draws the key
+//  window's content view into a bitmap with cacheDisplay. Both give the app
+//  as it is on screen at the launch instant.
+//
 
 import SwiftUI
 
@@ -47,14 +51,29 @@ enum ProScreenSnapshot {
 }
 
 #else
+import AppKit
 
 enum ProScreenSnapshot {
-    /// No AppKit snapshot: macOS keeps the confetti-only celebration it had
-    /// before the snapshot mosaic, rather than risk the placeholder on a
-    /// window kind this was not measured against.
+    /// The key window's content view, drawn with its descendants into a
+    /// bitmap at the window's backing scale. AppKit has no "as it stands"
+    /// screen read like UIKit's; `cacheDisplay` re-draws the view tree, which
+    /// is the same content because the celebration overlay is still clear and
+    /// the cell 0 at capture time.
     @MainActor
     static func capture() -> Image? {
-        nil
+        let window = NSApp.keyWindow ?? NSApp.mainWindow ?? NSApp.windows.first(where: { $0.isVisible })
+        guard let contentView = window?.contentView else {
+            return nil
+        }
+        let bounds = contentView.bounds
+        guard 0 < bounds.width, 0 < bounds.height,
+              let bitmap = contentView.bitmapImageRepForCachingDisplay(in: bounds) else {
+            return nil
+        }
+        contentView.cacheDisplay(in: bounds, to: bitmap)
+        let nsImage = NSImage(size: bounds.size)
+        nsImage.addRepresentation(bitmap)
+        return Image(nsImage: nsImage)
     }
 }
 

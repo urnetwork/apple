@@ -54,7 +54,7 @@ private struct ProCelebrationLayer: ViewModifier {
     @State private var cell: Double = 0
     @State private var envelopeTask: Task<Void, Never>? = nil
     /// The screen as it stood when the flight launched; the mosaic's source.
-    /// nil when idle, or on a platform without a snapshot (macOS), where the
+    /// nil when idle, or when no window could be captured, in which case the
     /// confetti still flies over an unfiltered screen.
     @State private var snapshot: Image? = nil
 

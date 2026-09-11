@@ -18,7 +18,8 @@ struct ProviderLocationLabelTests {
         hasLocation: Bool = true,
         lat: Double? = nil,
         lon: Double? = nil,
-        connectedSinceMillis: Int64 = 0
+        connectedSinceMillis: Int64 = 0,
+        ipFamilyLabel: String = ""
     ) -> ProviderLocationRow {
         ProviderLocationRow(
             clientId: SdkNewId()!,
@@ -29,8 +30,28 @@ struct ProviderLocationLabelTests {
             hasLocation: hasLocation,
             lat: lat,
             lon: lon,
-            connectedSinceMillis: connectedSinceMillis
+            connectedSinceMillis: connectedSinceMillis,
+            ipFamilyLabel: ipFamilyLabel
         )
+    }
+
+    @Test func ipFamilyTagReadsTheSdkLabel() {
+        #expect(providerIpFamilyTagLabel(row(ipFamilyLabel: SdkIpFamilyLabelBoth)) == "both")
+        #expect(providerIpFamilyTagLabel(row(ipFamilyLabel: SdkIpFamilyLabelV6)) == "v6")
+        #expect(providerIpFamilyTagLabel(row(ipFamilyLabel: SdkIpFamilyLabelV4)) == "v4")
+    }
+
+    // A provider with no category (an older device peer) carries v4, so the
+    // tag never renders empty.
+    @Test func ipFamilyTagFallsBackToV4() {
+        #expect(providerIpFamilyTagLabel(row()) == "v4")
+    }
+
+    @Test func ipFamilyAccessibilityLabelNamesBothFamilies() {
+        let both = providerIpFamilyAccessibilityLabel(SdkIpFamilyLabelBoth)
+        #expect(both.contains("IPv4") && both.contains("IPv6"))
+        #expect(providerIpFamilyAccessibilityLabel(SdkIpFamilyLabelV6).contains("IPv6"))
+        #expect(providerIpFamilyAccessibilityLabel("").contains("IPv4"))
     }
 
     @Test func placeLabelReadsCityRegionCountry() {

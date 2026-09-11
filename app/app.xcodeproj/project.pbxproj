@@ -39,6 +39,7 @@
 		B17E01392F0000010000A039 /* network/Shared/Widgets/ContractStackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */; };
 		B17E013B2F0000010000A03B /* network/Shared/Widgets/WidgetSnapshotSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */; };
 		B17E01412F0000010000A041 /* extension/TunnelLocalStateIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01402F0000010000A040 /* extension/TunnelLocalStateIdentity.swift */; };
+		B17E01432F0000010000A043 /* extension/TunnelIpv6Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */; };
 		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
@@ -125,6 +126,7 @@
 		B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/ContractStackViews.swift; sourceTree = SOURCE_ROOT; };
 		B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetSnapshotSample.swift; sourceTree = SOURCE_ROOT; };
 		B17E01402F0000010000A040 /* extension/TunnelLocalStateIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelLocalStateIdentity.swift; sourceTree = SOURCE_ROOT; };
+		B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelIpv6Routes.swift; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -251,6 +253,7 @@
 			children = (
 				B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */,
 				B17E01402F0000010000A040 /* extension/TunnelLocalStateIdentity.swift */,
+				B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */,
 				B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */,
 				B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */,
 				B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */,
@@ -626,6 +629,7 @@
 			files = (
 				B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */,
 				B17E01412F0000010000A041 /* extension/TunnelLocalStateIdentity.swift in Sources */,
+				B17E01432F0000010000A043 /* extension/TunnelIpv6Routes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+@testable import URnetwork
 
 // The exact reservation/publication/take boundary used by PacketTunnelProvider.
 // Cleanup uses its real production once-owner; SDK work is represented only by

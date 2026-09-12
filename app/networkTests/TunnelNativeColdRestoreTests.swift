@@ -1,8 +1,12 @@
 import Foundation
-#if canImport(URnetworkExtensionSdk)
-import URnetworkExtensionSdk
-#else
+// This bundle already loads the app's binding through `@testable import
+// URnetwork`; importing the reduced extension binding beside it makes clang
+// reject the two differing definitions of every Sdk class. Prefer the app's
+// binding and fall back to the extension's only where it is the one present.
+#if canImport(URnetworkSdk)
 import URnetworkSdk
+#elseif canImport(URnetworkExtensionSdk)
+import URnetworkExtensionSdk
 #endif
 import XCTest
 @testable import URnetwork

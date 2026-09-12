@@ -214,10 +214,16 @@ private struct ProviderLocationRowView: View {
                     }
                 }
 
-                Text(providerPlaceLabel(row))
-                    .font(themeManager.currentTheme.bodyFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                    .lineLimit(2)
+                // the place, with the provider's address families as a small
+                // tag: "both", "v4" or "v6", the same words as the histogram
+                // rows in the connect drawer
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(providerPlaceLabel(row))
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .lineLimit(2)
+                    ProviderIpFamilyTag(label: providerIpFamilyTagLabel(row))
+                }
 
                 Text(providerCoordinatesLabel(row))
                     .font(themeManager.currentTheme.secondaryBodyFont)
@@ -301,10 +307,49 @@ private struct ProviderSelectableDot: View {
     }
 }
 
+/**
+ * The provider's address families as a small capsule: the SDK's label
+ * verbatim ("both", "v4", "v6"), monospaced like the client id.
+ */
+private struct ProviderIpFamilyTag: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let label: String
+
+    var body: some View {
+        Text(verbatim: label)
+            .font(.system(size: 10, weight: .medium).monospaced())
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Capsule().fill(themeManager.currentTheme.borderBaseColor))
+            .accessibilityLabel(providerIpFamilyAccessibilityLabel(label))
+    }
+}
+
 // MARK: - row labels
 //
 // Free functions rather than view helpers so the formatting is exercised
 // directly by the unit tests.
+
+/// The address-family tag: the SDK's label when it has one, else "v4", which
+/// is what a provider with no category carries.
+func providerIpFamilyTagLabel(_ row: ProviderLocationRow) -> String {
+    row.ipFamilyLabel.isEmpty ? SdkIpFamilyLabelV4 : row.ipFamilyLabel
+}
+
+/// The spoken form of the tag.
+func providerIpFamilyAccessibilityLabel(_ label: String) -> String {
+    switch label {
+    case SdkIpFamilyLabelBoth:
+        return String(localized: "IPv4 and IPv6")
+    case SdkIpFamilyLabelV6:
+        return String(localized: "IPv6")
+    default:
+        return String(localized: "IPv4")
+    }
+}
 
 /// "City, Region, Country", omitting whichever parts the server does not know.
 func providerPlaceLabel(_ row: ProviderLocationRow) -> String {

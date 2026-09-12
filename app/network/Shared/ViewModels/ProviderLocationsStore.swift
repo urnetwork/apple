@@ -29,6 +29,9 @@ struct ProviderLocationRow: Identifiable, Equatable {
     let lon: Double?
     // unix millis; the UI ticks the duration locally against this
     let connectedSinceMillis: Int64
+    // the provider's address-family label as the SDK spells it: "both", "v4"
+    // or "v6" (connect/IPV6.md D2). Legacy providers read as "v4"
+    let ipFamilyLabel: String
 
     var id: String {
         clientId.idStr
@@ -50,6 +53,7 @@ struct ProviderLocationRow: Identifiable, Equatable {
             && lhs.lat == rhs.lat
             && lhs.lon == rhs.lon
             && lhs.connectedSinceMillis == rhs.connectedSinceMillis
+            && lhs.ipFamilyLabel == rhs.ipFamilyLabel
     }
 }
 
@@ -246,7 +250,8 @@ class ProviderLocationsStore: ObservableObject {
                         hasLocation: location.hasLocation,
                         lat: lat,
                         lon: lon,
-                        connectedSinceMillis: location.connectedSinceMillis
+                        connectedSinceMillis: location.connectedSinceMillis,
+                        ipFamilyLabel: location.ipFamilyLabel
                     )
                 )
             }

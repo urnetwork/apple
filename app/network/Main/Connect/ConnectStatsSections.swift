@@ -67,6 +67,16 @@ struct ConnectStatsSections: View {
 
                 Spacer().frame(height: 12)
 
+                /**
+                 * The address families of the connected providers, one dot per
+                 * provider under both / v4 / v6, sized like the connect widget.
+                 * Its own view so its grid subscription does not re-render the
+                 * charts (like DnsRecommendationPill).
+                 */
+                IpFamilyHistogram()
+
+                Spacer().frame(height: 12)
+
                 TransferChart(
                     points: throughputStore.clientPoints,
                     route: .block,

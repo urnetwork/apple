@@ -1504,8 +1504,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // exclude the local network from the tunnel, matching Android (MainService's
         // excludeRoute set): the RFC1918 private ranges bypass the tunnel so LAN
         // traffic reaches local devices directly. DNS is unaffected — it still routes
-        // to the tunnel resolver via matchDomains below. The tunnel advertises no IPv6
-        // settings, so there are no IPv6 tunnel routes to exclude.
+        // to the tunnel resolver via matchDomains below.
         ipv4Settings.excludedRoutes = [
             NEIPv4Route(destinationAddress: "10.0.0.0", subnetMask: "255.0.0.0"),
             NEIPv4Route(destinationAddress: "172.16.0.0", subnetMask: "255.240.0.0"),
@@ -1513,18 +1512,29 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         ]
         networkSettings.ipv4Settings = ipv4Settings
 
-        // Remote providers do not forward IPv6 yet. Keep the tunnel IPv4-only:
-        // do not assign an IPv6 address, install IPv6 routes, or advertise an
-        // IPv6 tunnel interface that applications might select.
-        networkSettings.ipv6Settings = nil
+        // IPv6 Configuration: the tunnel is dual-stack (connect/IPV6.md C2).
+        // The device's ULA tunnel address on its /64, the ::/0 default route,
+        // and the same shape of exclusions as IPv4 (link-local, ULA, multicast,
+        // loopback; see TunnelIpv6Routes.swift). Capturing ::/0 also closes the
+        // bypass a dual-stack network had while the tunnel advertised no IPv6
+        // interface: applications preferred the native IPv6 path around it.
+        let tunnelLocalAddressIpv6 = device.tunnelLocalAddressIpv6()
+        let ipv6Settings = NEIPv6Settings(
+            addresses: [tunnelLocalAddressIpv6],
+            networkPrefixLengths: [NSNumber(value: SdkGetTunnelLocalPrefixLengthIpv6())]
+        )
+        ipv6Settings.includedRoutes = [NEIPv6Route.default()]
+        ipv6Settings.excludedRoutes = tunnelIpv6ExcludedRoutes().map { $0.neRoute }
+        networkSettings.ipv6Settings = ipv6Settings
 
         // DNS from the SDK device: the dns settings' unencrypted local servers
         // when set, otherwise the distinct plain-DNS UpgradeMux mask (see
-        // `tunnelDnsServers`). Always plain :53, never OS-level
-        // encrypted DNS (DoH/DoT): the UpgradeMux claims :53 and performs the
-        // unencrypted-DNS -> DoH upgrade itself, so enabling encrypted DNS at the OS
-        // level here (e.g. NEDNSOverHTTPSSettings/NEDNSOverTLSSettings) would bypass
-        // the mux and hide queries from it.
+        // `tunnelDnsServers`), on both families. Always plain :53, never
+        // OS-level encrypted DNS (DoH/DoT): the UpgradeMux claims :53 and
+        // performs the unencrypted-DNS -> DoH upgrade itself, so enabling
+        // encrypted DNS at the OS level here (e.g.
+        // NEDNSOverHTTPSSettings/NEDNSOverTLSSettings) would bypass the mux
+        // and hide queries from it.
         let dnsServers = self.tunnelDnsServers(device: device)
         if !dnsServers.isEmpty {
             let dnsSettings = NEDNSSettings(servers: dnsServers)
@@ -1532,12 +1542,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             networkSettings.dnsSettings = dnsSettings
         }
 
-        // Keep one full encrypted tunnel packet eligible for H3's single-
-        // DATAGRAM lane. This is the same value used by provider packetization.
+        // The interface MTU (connect.DefaultTunnelMtu): 1280, the IPv6 minimum
+        // link MTU, which the OS requires before it assigns an IPv6 address.
+        // Packets stay within the smaller packet-size contract, so one full
+        // encrypted tunnel packet still fits H3's single-DATAGRAM lane.
         let tunnelMtu = SdkGetDefaultTunnelMtu()
         networkSettings.mtu = NSNumber(value: tunnelMtu)
 
-        let signature = "v4=\(tunnelLocalAddress)|v6=off|dns=\(dnsServers.joined(separator: ","))|mtu=\(tunnelMtu)"
+        let signature = tunnelNetworkSettingsSignature(
+            ipv4Address: tunnelLocalAddress,
+            ipv6Address: tunnelLocalAddressIpv6,
+            dnsServers: dnsServers,
+            mtu: tunnelMtu
+        )
         return TunnelNetworkSettingsPlan(
             settings: networkSettings,
             signature: signature
@@ -1771,11 +1788,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     /// The plain-dns servers for the tunnel, from the sdk device like the tunnel
     /// address: the dns settings' unencrypted local servers when set, otherwise the
     /// default plain-DNS resolvers (which the UpgradeMux can intercept and upgrade).
-    /// The tunnel is ipv4-only (no ipv6 addresses or routes), so only the ipv4
-    /// resolvers apply.
+    /// The tunnel is dual-stack, so the ipv4 resolvers come first and the ipv6
+    /// resolvers follow; both route into the tunnel (the ipv6 exclusions leave
+    /// the resolver prefix alone).
     private func tunnelDnsServers(device: SdkDeviceLocal) -> [String] {
         var servers: [String] = []
-        if let addresses = device.tunnelDnsAddressesIpv4() {
+        for addresses in [device.tunnelDnsAddressesIpv4(), device.tunnelDnsAddressesIpv6()] {
+            guard let addresses else {
+                continue
+            }
             for i in 0..<addresses.len() {
                 servers.append(addresses.get(i))
             }

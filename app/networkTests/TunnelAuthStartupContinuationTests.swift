@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+@testable import URnetwork
 
 // Actual production continuation with explicit event/queue/deadline controls.
 // No sleeps or fabricated claim about SDK publication: the separate SDK test

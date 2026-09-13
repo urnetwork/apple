@@ -77,6 +77,17 @@ struct ConnectStatsSections: View {
 
                 Spacer().frame(height: 12)
 
+                /**
+                 * The extender network: the active extenders' rings, the
+                 * active-of-usable count, and the gossip network's state
+                 * (EXTENDER.md K4). Its own view for the same reason as the
+                 * histogram — its once-a-second status subscription must not
+                 * re-render the charts.
+                 */
+                ExtenderPanel()
+
+                Spacer().frame(height: 12)
+
                 TransferChart(
                     points: throughputStore.clientPoints,
                     route: .block,

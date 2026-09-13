@@ -19,6 +19,16 @@ struct ConnectCanvasConnectingStateView: View {
 
     @StateObject private var viewModel: ViewModel = ViewModel()
     
+    /// a square centered on `center`, the shape a point and its rings are drawn in
+    private func centeredRect(center: CGPoint, diameter: CGFloat) -> CGRect {
+        CGRect(
+            x: center.x - diameter / 2,
+            y: center.y - diameter / 2,
+            width: diameter,
+            height: diameter
+        )
+    }
+
     var body: some View {
     
         Image("GlobeConnector")
@@ -32,16 +42,28 @@ struct ConnectCanvasConnectingStateView: View {
                 
                 let centerX = CGFloat(point.x) * viewModel.maxPointSize + viewModel.maxPointSize / 2
                 let centerY = CGFloat(point.y) * viewModel.maxPointSize + viewModel.maxPointSize / 2
-                
+                let center = CGPoint(x: centerX, y: centerY)
+
+                // the dot and one ring per extender carrying this provider
+                // (EXTENDER.md K2): the rings grow inward from the cell edge, so
+                // the filled dot shrinks and the footprint stays put
+                let geometry = point.ringGeometry()
+
                 // keep point centered
-                let rect = CGRect(
-                    x: centerX - point.currentSize / 2,
-                    y: centerY - point.currentSize / 2,
-                    width: point.currentSize,
-                    height: point.currentSize
-                )
+                let rect = centeredRect(center: center, diameter: geometry.dotDiameter)
                 
                 context.fill(Path(ellipseIn: rect), with: .color(viewModel.getStateColor(id)))
+
+                for ring in geometry.rings {
+                    context.stroke(
+                        Path(ellipseIn: centeredRect(center: center, diameter: ring.diameter)),
+                        with: .color(ring.color),
+                        style: StrokeStyle(
+                            lineWidth: geometry.strokeWidth,
+                            dash: ring.dashed ? [geometry.dashLength, geometry.dashLength] : []
+                        )
+                    )
+                }
             }
             
         }

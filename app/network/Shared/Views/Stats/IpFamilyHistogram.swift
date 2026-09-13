@@ -51,16 +51,19 @@ struct IpFamilyHistogram: View {
                         .frame(minHeight: dotSize)
 
                     FlowRow(horizontalSpacing: 2, verticalSpacing: 2) {
-                        ForEach(row.pointIds, id: \.self) { _ in
-                            Circle()
-                                .fill(Color.urGreen)
-                                .frame(width: dotSize, height: dotSize)
-                                .transition(.scale.combined(with: .opacity))
+                        ForEach(row.dots) { dot in
+                            // the same dot the connect canvas draws, with the
+                            // same extender rings at this cell size (K2)
+                            ExtenderRingDot(
+                                cellSize: dotSize,
+                                colorHexes: dot.extenderColorHexes
+                            )
+                            .transition(.scale.combined(with: .opacity))
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .animation(.easeInOut(duration: tweenDuration), value: row.pointIds)
+                .animation(.easeInOut(duration: tweenDuration), value: row.dots)
             }
         }
         .accessibilityElement(children: .combine)
@@ -90,7 +93,7 @@ struct IpFamilyHistogram: View {
             case .v6:
                 name = String(localized: "IPv6")
             }
-            return "\(name): \(row.pointIds.count)"
+            return "\(name): \(row.dots.count)"
         }.joined(separator: ", ")
     }
 }
@@ -128,24 +131,43 @@ struct IpFamilyHistogramPoint {
     let id: String
     let state: String
     let ipFamily: String
+    /// the colors of the extenders carrying this provider, sdk order (K1)
+    let extenderColorHexes: [String]
 
-    init(id: String, state: String, ipFamily: String) {
+    init(id: String, state: String, ipFamily: String, extenderColorHexes: [String] = []) {
         self.id = id
         self.state = state
         self.ipFamily = ipFamily
+        self.extenderColorHexes = extenderColorHexes
     }
 
     init(id: SdkId, point: SdkProviderGridPoint) {
-        self.init(id: id.idStr, state: point.state, ipFamily: point.ipFamily)
+        self.init(
+            id: id.idStr,
+            state: point.state,
+            ipFamily: point.ipFamily,
+            extenderColorHexes: extenderCommaSeparatedValues(point.extenderColorHexes)
+        )
     }
+}
+
+/// One drawn dot: the provider id (a stable order and the insertion animation)
+/// and the extender rings around it. A ring color change is a value change, so
+/// the row re-renders and tweens when a provider's extenders change.
+struct IpFamilyHistogramDot: Identifiable, Equatable {
+    let id: String
+    let extenderColorHexes: [String]
 }
 
 struct IpFamilyHistogramRow: Identifiable, Equatable {
     let family: IpFamilyHistogramFamily
     /// the ADDED providers in this family, in a stable order
-    let pointIds: [String]
+    let dots: [IpFamilyHistogramDot]
 
     var id: String { family.id }
+
+    /// the provider ids of `dots`, in order
+    var pointIds: [String] { dots.map { $0.id } }
 }
 
 /// the grid state of a routing-eligible provider, as the SDK spells it
@@ -154,12 +176,17 @@ private let ipFamilyHistogramAddedState = "Added"
 /// The three rows, always present, holding only the ADDED providers. Dots are
 /// ordered by provider id so a row does not shuffle on every grid notification.
 func ipFamilyHistogramRows(_ points: [IpFamilyHistogramPoint]) -> [IpFamilyHistogramRow] {
-    var idsByFamily: [IpFamilyHistogramFamily: [String]] = [:]
+    var dotsByFamily: [IpFamilyHistogramFamily: [IpFamilyHistogramDot]] = [:]
     for point in points where point.state == ipFamilyHistogramAddedState {
-        idsByFamily[IpFamilyHistogramFamily.of(ipFamily: point.ipFamily), default: []].append(point.id)
+        dotsByFamily[IpFamilyHistogramFamily.of(ipFamily: point.ipFamily), default: []].append(
+            IpFamilyHistogramDot(id: point.id, extenderColorHexes: point.extenderColorHexes)
+        )
     }
     return IpFamilyHistogramFamily.allCases.map { family in
-        IpFamilyHistogramRow(family: family, pointIds: (idsByFamily[family] ?? []).sorted())
+        IpFamilyHistogramRow(
+            family: family,
+            dots: (dotsByFamily[family] ?? []).sorted { $0.id < $1.id }
+        )
     }
 }
 

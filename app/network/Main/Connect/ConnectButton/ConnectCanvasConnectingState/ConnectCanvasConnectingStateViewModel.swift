@@ -28,9 +28,26 @@ extension ConnectCanvasConnectingStateView {
         var targetSize: CGFloat
         var x: Int32
         var y: Int32
+        /// the colors of the extenders carrying this provider right now (K1),
+        /// in the sdk's order: one ring each, outermost first
+        var extenderColorHexes: [String] = []
         
         var isAnimating: Bool {
             return stateAnimationProgress < 1.0 || sizeAnimationProgress < 1.0
+        }
+
+        /// The dot and its rings at this point's animated size. The geometry is
+        /// taken at the full cell and scaled by the size animation, so the whole
+        /// glyph grows in as one piece (K2).
+        func ringGeometry() -> ExtenderRingGeometry {
+            let geometry = extenderRingGeometry(
+                cellSize: targetSize,
+                colorHexes: extenderColorHexes
+            )
+            guard 0 < targetSize else {
+                return geometry
+            }
+            return geometry.scaled(by: currentSize / targetSize)
         }
     }
     
@@ -70,13 +87,25 @@ extension ConnectCanvasConnectingStateView {
                 processedPoints.insert(idStr)
 
                 if let state = GridPointState(rawValue: point.state) {
+                    let extenderColorHexes = extenderCommaSeparatedValues(point.extenderColorHexes)
                     if let existingPoint = animatedPoints[idStr] {
                         // update an existing point
+                        var updatedPoint = existingPoint
+                        var changed = false
                         if existingPoint.currentState != state {
-                            var updatedPoint = existingPoint
                             updatedPoint.previousState = existingPoint.currentState
                             updatedPoint.currentState = state
                             updatedPoint.stateAnimationProgress = 0.0
+                            changed = true
+                        }
+                        // a transport migration adds or drops an extender
+                        // without touching the state, so the rings track their
+                        // own value
+                        if existingPoint.extenderColorHexes != extenderColorHexes {
+                            updatedPoint.extenderColorHexes = extenderColorHexes
+                            changed = true
+                        }
+                        if changed {
                             animatedPoints[idStr] = updatedPoint
                         }
                     } else {
@@ -90,7 +119,8 @@ extension ConnectCanvasConnectingStateView {
                             currentSize: 0,
                             targetSize: maxPointSize,
                             x: point.x,
-                            y: point.y
+                            y: point.y,
+                            extenderColorHexes: extenderColorHexes
                         )
                     }
                 }

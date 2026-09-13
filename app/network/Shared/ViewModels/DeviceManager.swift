@@ -808,6 +808,11 @@ extension DeviceManager {
         let storagePath = documentsPath.path()
         
         let deviceSpecs = self.getDeviceSpecs()
+        // The app process keeps its own extender directory for api dials but
+        // opens the shared `.extenders` store read-only, so only the tunnel
+        // extension ever writes it (EXTENDER.md K5). Set before the manager is
+        // built, since a space opens its store at construction.
+        URnetworkSdk.SdkSetExtenderStoreReadOnly(true)
         let networkSpaceManager = URnetworkSdk.SdkNewNetworkSpaceManager(storagePath)
         self.networkSpaceManager = networkSpaceManager
         

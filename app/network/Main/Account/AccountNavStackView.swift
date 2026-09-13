@@ -151,6 +151,12 @@ struct AccountNavStackView: View {
                         .navigationTitle("Widgets")
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
                     
+                case .extenders:
+
+                    ExtendersView()
+                        .navigationTitle("Extenders")
+                        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
                 case .blockedLocations:
 
                     BlockedLocationsView(

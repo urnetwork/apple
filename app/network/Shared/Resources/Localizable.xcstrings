@@ -21775,6 +21775,17 @@
         }
       }
     },
+    "Choose file" : {
+      "comment" : "Button on desktop: pick a file that contains a QR code image.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose file"
+          }
+        }
+      }
+    },
     "Choose image file" : {
       "comment" : "Button on desktop: pick an image file that contains a QR code.",
       "localizations" : {
@@ -77570,6 +77581,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享日誌"
+          }
+        }
+      }
+    },
+    "Share text copied" : {
+      "comment" : "Confirmation after the share text of an extender code was copied to the clipboard.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share text copied"
           }
         }
       }

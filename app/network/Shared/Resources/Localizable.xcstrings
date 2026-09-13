@@ -78782,6 +78782,17 @@
         }
       }
     },
+    "Sign in and connect to manage extenders." : {
+      "comment" : "Shown in the account Extenders section when there is no signed-in device to manage extenders with.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in and connect to manage extenders."
+          }
+        }
+      }
+    },
     "Sign in with Bittensor" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -85734,6 +85745,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Seeker multiplier applies to points only."
+          }
+        }
+      }
+    },
+    "The share code is too large for a QR code. Copy the share text instead." : {
+      "comment" : "Shown on the share screen when the share payload exceeds what a QR code can hold; the text form is still offered.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The share code is too large for a QR code. Copy the share text instead."
           }
         }
       }

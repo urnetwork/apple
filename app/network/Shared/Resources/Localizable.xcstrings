@@ -4972,6 +4972,52 @@
         }
       }
     },
+    "%lld events/min" : {
+      "comment" : "The count of extender records and revocations applied from the gossip network or the feed in the last minute.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld event/min"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld events/min"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%lld extenders" : {
+      "comment" : "How many extenders the share code carries.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld extender"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld extenders"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
     "%lld host%@" : {
       "comment" : "A label that shows the number of hosts for a split rule. The argument is the number of hosts.",
       "extractionState" : "stale",
@@ -6750,6 +6796,17 @@
               }
             }
             }
+          }
+        }
+      }
+    },
+    "%lld of %lld" : {
+      "comment" : "The extender panel count: extenders carrying a live connection now, of every usable extender the app knows.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld"
           }
         }
       }
@@ -10089,6 +10146,17 @@
         }
       }
     },
+    "A private extender replaces every discovered extender. Leave it empty to use discovery." : {
+      "comment" : "Help text under the private extender fields.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A private extender replaces every discovered extender. Leave it empty to use discovery."
+          }
+        }
+      }
+    },
     "A royal welcome!" : {
       "comment" : "Celebration headline shown the moment a referral code is accepted (signup bonus sheet and the settings referral sheet). Royal king-frog theme, matches the ur.io referral panel.",
       "localizations" : {
@@ -10930,6 +10998,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Across %lld finalized epochs"
+          }
+        }
+      }
+    },
+    "Active extenders" : {
+      "comment" : "Accessibility label of the row of rings, one per extender carrying a live connection.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active extenders"
           }
         }
       }
@@ -12433,6 +12512,167 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "調整設定以提升可靠性。應用程式在連接及使用 Wi-Fi 時會於背景運行。可靠性是你持續為網絡提供的 IP 數量。"
+          }
+        }
+      }
+    },
+    "Advanced" : {
+      "comment" : "Settings: heading of the advanced section.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متقدم"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokročilé"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweitert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Για προχωρημένους"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avanzado"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avanzado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avancé"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתקדם"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "उन्नत"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lanjutan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avanzate"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고급"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geavanceerd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaawansowane"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avançado"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avançado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avançado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дополнительно"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avancerat"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ขั้นสูง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додатково"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nâng cao"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進階"
           }
         }
       }
@@ -20678,6 +20918,17 @@
         }
       }
     },
+    "Camera access is needed to scan a code." : {
+      "comment" : "Shown when the camera permission was denied on the scan screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access is needed to scan a code."
+          }
+        }
+      }
+    },
     "Cancel" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -21520,6 +21771,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Checking address…"
+          }
+        }
+      }
+    },
+    "Choose image file" : {
+      "comment" : "Button on desktop: pick an image file that contains a QR code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose image file"
+          }
+        }
+      }
+    },
+    "Choose photo" : {
+      "comment" : "Button: pick a photo that contains a QR code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose photo"
           }
         }
       }
@@ -26916,6 +27189,17 @@
         }
       }
     },
+    "Connecting" : {
+      "comment" : "Gossip network status: a dial or reconnect is in progress (yellow).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting"
+          }
+        }
+      }
+    },
     "Connecting to providers" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -28799,6 +29083,173 @@
         }
       }
     },
+    "Copy" : {
+      "comment" : "Call to action",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انسخ"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiere"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αντιγραφή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העתק"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कॉपी करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "복사"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiëren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiuj"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копировать"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiera"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คัดลอก"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копіювати"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製"
+          }
+        }
+      }
+    },
     "Copy Auth Code" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -29130,6 +29581,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製客戶端 ID"
+          }
+        }
+      }
+    },
+    "Copy share text" : {
+      "comment" : "Button on the share screen: copy the text form of the code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy share text"
           }
         }
       }
@@ -33166,6 +33628,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "默認"
+          }
+        }
+      }
+    },
+    "Default: %@" : {
+      "comment" : "Placeholder shown in an empty extender settings field, naming the default value that applies.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default: %@"
           }
         }
       }
@@ -41221,6 +41694,61 @@
         }
       }
     },
+    "Extender DNS name" : {
+      "comment" : "Label of the extender DNS name field. Empty means the network space default.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender DNS name"
+          }
+        }
+      }
+    },
+    "Extender hosts" : {
+      "comment" : "Label of the manual extender list field: hostnames or IP addresses, one per line.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender hosts"
+          }
+        }
+      }
+    },
+    "Extender settings" : {
+      "comment" : "Title of the extender settings form under account > Extenders.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender settings"
+          }
+        }
+      }
+    },
+    "Extender settings saved" : {
+      "comment" : "Confirmation after the extender settings are saved.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender settings saved"
+          }
+        }
+      }
+    },
+    "Extenders" : {
+      "comment" : "Title of the extenders panel in the connect drawer and of the Extenders section under account.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extenders"
+          }
+        }
+      }
+    },
     "Failed" : {
       "comment" : "Claim state: failed.",
       "localizations" : {
@@ -44594,6 +45122,28 @@
         }
       }
     },
+    "Gossip network" : {
+      "comment" : "Label of the gossip network status dot in the extender panel.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gossip network"
+          }
+        }
+      }
+    },
+    "Gossip URL" : {
+      "comment" : "Label of the gossip URL field. Empty means the network space default.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gossip URL"
+          }
+        }
+      }
+    },
     "Got it" : {
       "comment" : "Used in Shared/Views/UpgradeSubscriptionSheet.swift.",
       "localizations" : {
@@ -46109,6 +46659,51 @@
         }
       }
     },
+    "Import extenders" : {
+      "comment" : "Button and screen title: import extenders from a QR code, a photo, or pasted text.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import extenders"
+          }
+        }
+      }
+    },
+    "Imported %lld extenders" : {
+      "comment" : "Confirmation after an import, with the number of extenders added.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Imported %lld extender"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Imported %lld extenders"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "Include extender settings" : {
+      "comment" : "Toggle on the share screen: also include the extender DNS name, gossip URL and root keys in the code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include extender settings"
+          }
+        }
+      }
+    },
     "Includes %lld day free trial" : {
       "comment" : "Line under the annual plan card. The number of days is the free trial length.",
       "localizations" : {
@@ -46796,6 +47391,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "推薦碼無效。請再試一次。"
+          }
+        }
+      }
+    },
+    "IP address" : {
+      "comment" : "Label of the private extender IP address field.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IP address"
           }
         }
       }
@@ -56986,6 +57592,17 @@
         }
       }
     },
+    "No QR code was found in the image." : {
+      "comment" : "Error when a chosen photo or image file holds no QR code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No QR code was found in the image."
+          }
+        }
+      }
+    },
     "No Solana Wallets Found" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -58176,6 +58793,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開"
+          }
+        }
+      }
+    },
+    "One hostname or IP address per line. These are added to the discovered extenders." : {
+      "comment" : "Help text under the manual extender list field.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One hostname or IP address per line. These are added to the discovered extenders."
           }
         }
       }
@@ -59752,6 +60380,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密碼重設連結已發送至 %@。"
+          }
+        }
+      }
+    },
+    "Paste share text" : {
+      "comment" : "Button and field label: paste the text form of a share code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste share text"
           }
         }
       }
@@ -63459,6 +64098,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "後量子供應商身份"
+          }
+        }
+      }
+    },
+    "Private extender" : {
+      "comment" : "Title of the advanced private extender fields: one extender with a secret that replaces discovery.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private extender"
           }
         }
       }
@@ -74356,6 +75006,28 @@
         }
       }
     },
+    "Scan QR code" : {
+      "comment" : "Button: open the camera to scan a QR code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan QR code"
+          }
+        }
+      }
+    },
+    "Scan this code with another URnetwork app to share these extenders." : {
+      "comment" : "Help text on the share screen under the QR code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan this code with another URnetwork app to share these extenders."
+          }
+        }
+      }
+    },
     "Search providers" : {
       "comment" : "Search providers input label",
       "localizations" : {
@@ -74519,6 +75191,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋供應商"
+          }
+        }
+      }
+    },
+    "Secret" : {
+      "comment" : "Label of the private extender secret field.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secret"
           }
         }
       }
@@ -76709,6 +77392,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享"
+          }
+        }
+      }
+    },
+    "Share extenders" : {
+      "comment" : "Button and screen title: share the known extenders as a QR code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share extenders"
           }
         }
       }
@@ -85211,6 +85905,17 @@
         }
       }
     },
+    "The tunnel uses new extender settings the next time it connects." : {
+      "comment" : "Note on iOS after saving extender settings: the packet tunnel extension reads them at its next start.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The tunnel uses new extender settings the next time it connects."
+          }
+        }
+      }
+    },
     "then %@/year" : {
       "comment" : "Plan card with the welcome offer: the renewal price line under the first-year amount.",
       "localizations" : {
@@ -87558,6 +88263,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此代碼已被用完"
+          }
+        }
+      }
+    },
+    "This code is for %@, not this network. Use extender settings to switch networks." : {
+      "comment" : "Error when a share code belongs to another network. The argument is that network's host.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This code is for %@, not this network. Use extender settings to switch networks."
+          }
+        }
+      }
+    },
+    "This code is not an extender share." : {
+      "comment" : "Error when the scanned or pasted text is not an extender share code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This code is not an extender share."
           }
         }
       }
@@ -94276,6 +95003,17 @@
         }
       }
     },
+    "Use extender settings" : {
+      "comment" : "Toggle on the import screen: also apply the extender settings carried by the code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use extender settings"
+          }
+        }
+      }
+    },
     "Use recommended settings" : {
       "comment" : "dns settings",
       "localizations" : {
@@ -94439,6 +95177,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用建議設定"
+          }
+        }
+      }
+    },
+    "Use the extender settings from this code? Extender lookups will use %@." : {
+      "comment" : "Confirmation before applying the extender settings from a share code. The argument is the operator host the settings point at.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the extender settings from this code? Extender lookups will use %@."
           }
         }
       }

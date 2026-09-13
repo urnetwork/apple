@@ -21,6 +21,7 @@ import URnetworkSdk
 struct ShareExtendersView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var snackbarManager: UrSnackbarManager
 
     @ObservedObject var store: ExtenderSettingsStore
 
@@ -126,8 +127,7 @@ struct ShareExtendersView: View {
         pasteboard.clearContents()
         pasteboard.setString(share.text, forType: .string)
         #endif
-        // no confirmation snackbar: the localization store carries no "copied"
-        // string for this screen, and inventing one here would not translate
+        snackbarManager.showSnackbar(message: String(localized: "Share text copied"))
     }
 }
 

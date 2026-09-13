@@ -23,7 +23,7 @@ import VisionKit
  * name, gossip url and trust anchor — so that case is confirmed first.
  *
  * Platforms (K8): iOS scans with VisionKit and decodes photos with Vision;
- * macOS has no camera entry.
+ * macOS takes a photo or a file and has no camera entry.
  */
 struct ImportExtendersView: View {
 
@@ -136,15 +136,7 @@ struct ImportExtendersView: View {
         )
         #endif
 
-        #if os(macOS)
-        // K8: macOS has no camera entry; an image file covers photos and files
-        UrButton(
-            text: "Choose photo",
-            action: { choosingFile = true },
-            style: .outlineSecondary,
-            leadingSystemImage: "photo"
-        )
-        #else
+        // a photo out of the library, on every platform
         PhotosPicker(selection: $photoItem, matching: .images) {
             HStack(spacing: 8) {
                 Image(systemName: "photo")
@@ -154,6 +146,15 @@ struct ImportExtendersView: View {
             .padding(.vertical, 10)
         }
         .buttonStyle(.bordered)
+
+        #if os(macOS)
+        // K8: macOS has photos and files, and no camera
+        UrButton(
+            text: "Choose file",
+            action: { choosingFile = true },
+            style: .outlineSecondary,
+            leadingSystemImage: "folder"
+        )
         #endif
 
         UrButton(

@@ -281,7 +281,21 @@ struct AccountRootView: View {
                             }
                         )
                         .accessibilityIdentifier("acceptance.account.widgets")
-                        
+
+                        /**
+                         * Extenders: the network space's extender dns name,
+                         * gossip url and manual hosts, the private extender,
+                         * and the share / import codes (EXTENDER.md K6, K7)
+                         */
+                        AccountNavLink(
+                            name: "Extenders",
+                            iconPath: "ur.symbols.globe",
+                            action: {
+                                navigate(.extenders)
+                            }
+                        )
+                        .accessibilityIdentifier("acceptance.account.extenders")
+
                         /**
                          * Review
                          */

@@ -71,6 +71,27 @@ struct IpFamilyHistogramTests {
         #expect(rows[2].pointIds == [id.idStr])
     }
 
+    // EXTENDER.md K2: the histogram draws the same rings as the connect
+    // canvas, from the same sdk colors, so a dot reads the same in both
+    @Test func dotsCarryTheProvidersExtenderColors() {
+        let id = SdkNewId()!
+        let gridPoint = SdkProviderGridPoint()
+        gridPoint.clientId = id
+        gridPoint.state = "Added"
+        gridPoint.ipFamily = SdkIpFamilyDualstack
+        gridPoint.extenderIps = "192.0.2.1,2001:db8::1"
+        gridPoint.extenderColorHexes = "3cdd67,dd4f3c"
+        let rows = ipFamilyHistogramRows([id: gridPoint])
+        #expect(rows[0].dots.map { $0.extenderColorHexes } == [["3cdd67", "dd4f3c"]])
+    }
+
+    // a provider on a direct or p2p route carries no extender, and is the
+    // plain dot it always was
+    @Test func aProviderWithNoExtendersHasNoRingColors() {
+        let rows = ipFamilyHistogramRows([point("a", SdkIpFamilyV4Only)])
+        #expect(rows[1].dots.map { $0.extenderColorHexes } == [[]])
+    }
+
     // The dot is the widget's cell: the 256pt canvas over the grid width.
     @Test func dotSizeMatchesTheConnectWidgetCell() {
         #expect(ipFamilyHistogramDotSize(gridWidth: 16) == 16)

@@ -431,7 +431,10 @@ extension ConnectViewModel {
         if let list = grid.getProviderGridPointList() {
             for i in 0..<list.len() {
                 if let p = list.get(i), let cid = p.clientId {
-                    sig.append("\(cid.idStr):\(p.state):\(p.x):\(p.y)")
+                    // the extender ips are part of the signature: a transport
+                    // migration changes only them, and the dots' rings (K2)
+                    // would otherwise never see the change
+                    sig.append("\(cid.idStr):\(p.state):\(p.x):\(p.y):\(p.extenderIps)")
                 }
             }
         }

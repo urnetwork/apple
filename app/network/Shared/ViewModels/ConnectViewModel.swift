@@ -427,19 +427,19 @@ extension ConnectViewModel {
     
     private func gridSignature() -> String {
         guard let grid = self.connectViewController?.getGrid() else { return "" }
-        var sig: [String] = []
+        var points: [ConnectGridPointSignature] = []
         if let list = grid.getProviderGridPointList() {
             for i in 0..<list.len() {
                 if let p = list.get(i), let cid = p.clientId {
-                    // the extender ips are part of the signature: a transport
-                    // migration changes only them, and the dots' rings (K2)
-                    // would otherwise never see the change
-                    sig.append("\(cid.idStr):\(p.state):\(p.x):\(p.y):\(p.extenderIps)")
+                    points.append(ConnectGridPointSignature(id: cid.idStr, point: p))
                 }
             }
         }
-        sig.sort()
-        return "\(grid.getWidth())x\(grid.getWindowCurrentSize());" + sig.joined(separator: "|")
+        return connectGridSignature(
+            width: grid.getWidth(),
+            windowCurrentSize: grid.getWindowCurrentSize(),
+            points: points
+        )
     }
 
     func updateGrid() {
@@ -487,6 +487,64 @@ extension ConnectViewModel {
         
     }
     
+}
+
+// MARK: - the grid signature
+//
+// Free functions and a plain value rather than view-model state, so what the
+// signature covers is exercised directly by the unit tests.
+
+/**
+ * One provider's contribution to the grid signature: everything the grid
+ * draws from that point.
+ *
+ * A field the ui renders but the signature omits is a change the canvas and
+ * the drawer would never see, because `updateGrid` skips the publish when the
+ * signature is unchanged. The ip family is the histogram's row (IPV6.md D2)
+ * and the extender ips are the dots' rings (EXTENDER.md K2); both change on
+ * their own, without a state, position or membership change.
+ */
+struct ConnectGridPointSignature: Equatable {
+    let id: String
+    let state: String
+    let x: Int32
+    let y: Int32
+    let ipFamily: String
+    let extenderIps: String
+
+    init(id: String, state: String, x: Int32, y: Int32, ipFamily: String, extenderIps: String) {
+        self.id = id
+        self.state = state
+        self.x = x
+        self.y = y
+        self.ipFamily = ipFamily
+        self.extenderIps = extenderIps
+    }
+
+    init(id: String, point: SdkProviderGridPoint) {
+        self.init(
+            id: id,
+            state: point.state,
+            x: point.x,
+            y: point.y,
+            ipFamily: point.ipFamily,
+            extenderIps: point.extenderIps
+        )
+    }
+
+    var text: String {
+        "\(id):\(state):\(x):\(y):\(ipFamily):\(extenderIps)"
+    }
+}
+
+/// The whole grid as one comparable string. Points are sorted, so the sdk's
+/// list order is not itself a change.
+func connectGridSignature(
+    width: Int32,
+    windowCurrentSize: Int32,
+    points: [ConnectGridPointSignature]
+) -> String {
+    "\(width)x\(windowCurrentSize);" + points.map { $0.text }.sorted().joined(separator: "|")
 }
 
 // MARK: connection status

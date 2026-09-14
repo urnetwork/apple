@@ -247,13 +247,20 @@ private class ThroughputListener: NSObject, SdkThroughputListenerProtocol {
 
 /**
  * Wraps the SDK contract view controller and publishes the live
- * client and provider throughput series
+ * client, provider and extender throughput series
  */
 @MainActor
 class ThroughputStore: ObservableObject {
 
     @Published private(set) var clientPoints: [ThroughputPoint] = []
     @Published private(set) var providerPoints: [ThroughputPoint] = []
+    /**
+     * the traffic the provider extender role relays, in the remote route only
+     * (EXTENDER.md O3). Whether the extender section shows is the pushed
+     * status's `enabled`, never these points, which hold at zero after the
+     * role stops
+     */
+    @Published private(set) var extenderPoints: [ThroughputPoint] = []
     /**
      * the remote traffic of the window partitioned by transport, ready to
      * render (see `TransportDistribution`)
@@ -304,6 +311,7 @@ class ThroughputStore: ObservableObject {
 
         clientPoints = []
         providerPoints = []
+        extenderPoints = []
         clientTransportDistribution = .empty
         providerTransportDistribution = .empty
         hasProviderStats = false
@@ -323,6 +331,12 @@ class ThroughputStore: ObservableObject {
         if providerPoints != self.providerPoints {
             self.providerPoints = providerPoints
         }
+        // the extender series on the same tick. The store reads no extender
+        // stats: the section follows the pushed status (O8)
+        let extenderPoints = Self.mapPoints(contractViewController.getExtenderThroughputPoints())
+        if extenderPoints != self.extenderPoints {
+            self.extenderPoints = extenderPoints
+        }
         // the distribution is inactive while the window is idle; only publish a
         // real change so an idle tick doesn't retrigger the bar
         let clientTransportDistribution = TransportDistribution(contractViewController.getTransportDistribution())
@@ -339,7 +353,7 @@ class ThroughputStore: ObservableObject {
         }
     }
 
-    private static func mapPoints(_ list: SdkThroughputPointList?) -> [ThroughputPoint] {
+    static func mapPoints(_ list: SdkThroughputPointList?) -> [ThroughputPoint] {
         guard let list = list else {
             return []
         }

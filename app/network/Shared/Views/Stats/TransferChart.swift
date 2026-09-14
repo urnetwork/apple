@@ -28,6 +28,9 @@ struct TransferChart: View {
     var window: TimeInterval = 60
     var byteColor: Color = .urGreen
     var packetColor: Color = .urPink
+    /// what the count series counts: packets, or reads for the extender
+    /// series, whose relay moves byte streams with no packet boundary
+    var countUnit: CountUnit = .packets
 
     // the top-right stats average over the last N buckets (≈ N seconds)
     private let averageBucketCount = 5
@@ -227,7 +230,7 @@ struct TransferChart: View {
                 .font(.system(size: 10, weight: .medium).monospacedDigit())
                 .foregroundColor(byteColor)
                 .opacity(0 < byteValue ? 1 : 0.4)
-            Text(formatPacketRate(packetValue))
+            Text(countUnit.formatRate(packetValue))
                 .font(.system(size: 10, weight: .medium).monospacedDigit())
                 .foregroundColor(packetColor)
                 .opacity(0 < packetValue ? 1 : 0.4)
@@ -472,6 +475,29 @@ struct TransferChart: View {
         return path
     }
 
+}
+
+extension TransferChart {
+
+    /**
+     * The unit of a chart's count series and of its rate label. The byte
+     * label, the arrows and the opacity rules are the chart's own either way.
+     */
+    enum CountUnit: Equatable {
+        /// "340 pkt/s"
+        case packets
+        /// "340 reads/s", the extender series (EXTENDER.md O1, O8)
+        case reads
+
+        func formatRate(_ countPerSecond: Int64) -> String {
+            switch self {
+            case .packets:
+                return formatPacketRate(countPerSecond)
+            case .reads:
+                return formatReadRate(countPerSecond)
+            }
+        }
+    }
 }
 
 #Preview {

@@ -70,6 +70,15 @@ func formatPacketRate(_ packetsPerSecond: Int64) -> String {
 }
 
 /**
+ * Compact read rate, e.g. "340 reads/s": the count label of the extender
+ * chart, since the extender relays byte streams and counts the chunks it
+ * moves rather than packets (EXTENDER.md O1, O8)
+ */
+func formatReadRate(_ readsPerSecond: Int64) -> String {
+    return formatCountCompact(readsPerSecond) + " " + String(localized: "reads/s")
+}
+
+/**
  * Compact bit rate, e.g. "1.2 Mbps"
  */
 func formatBitRate(_ bitsPerSecond: Int) -> String {

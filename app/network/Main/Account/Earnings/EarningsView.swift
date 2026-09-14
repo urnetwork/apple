@@ -222,6 +222,14 @@ struct EarningsView: View {
                 Divider()
                 Spacer().frame(height: 12)
             }
+            // the extender statistics, above the provider statistics while
+            // those show and the role runs (EXTENDER.md O8)
+            if extenderStatsVisible {
+                ExtenderStatsSection()
+                Spacer().frame(height: 12)
+                Divider()
+                Spacer().frame(height: 12)
+            }
             ProviderStatsSection(navigate: navigate)
         }
         .padding(.top)
@@ -230,6 +238,16 @@ struct EarningsView: View {
         .frame(maxWidth: .infinity)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+
+    /// The provider gate above and the role running, which follows the pushed
+    /// status and never the throughput tick (EXTENDER.md O4, O8).
+    private var extenderStatsVisible: Bool {
+        extenderStatsSectionVisible(
+            provideControlMode: deviceManager.provideControlMode,
+            hasProviderStats: throughputStore.hasProviderStats,
+            extenderRunning: deviceManager.extenderProvideStatus.enabled
+        )
     }
 
     private func refresh() async {

@@ -32,13 +32,15 @@ private final class ExtenderProvideHeldDispatcher: @unchecked Sendable {
 }
 
 // The device side of the seam: what the device reports, the setting it holds,
-// and every write that reaches it. Retaining the callback after close models a
-// status the sdk admitted before the listener was removed.
+// every read of that setting and every write that reaches it. Retaining the
+// callback after close models a status the sdk admitted before the listener
+// was removed.
 private final class ExtenderProvideTestingSource: ExtenderProvideSource {
     private(set) var status: ExtenderProvideStatusModel
     private(set) var setting: Bool
     private(set) var writes: [Bool] = []
     private(set) var closes = 0
+    private(set) var settingReads = 0
     private var callback: (@Sendable (ExtenderProvideStatusModel) -> Void)?
 
     init(status: ExtenderProvideStatusModel, setting: Bool) {
@@ -48,7 +50,10 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
 
     func readExtenderProvideStatus() -> ExtenderProvideStatusModel { status }
 
-    func readProvideExtender() -> Bool { setting }
+    func readProvideExtender() -> Bool {
+        settingReads += 1
+        return setting
+    }
 
     func writeProvideExtender(_ provideExtender: Bool) {
         writes.append(provideExtender)
@@ -72,10 +77,10 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
 
 /**
  * The Extender switch against the device (EXTENDER.md N1, N6, N7): the toggle
- * writes the setting through the device at once, nothing is written while the
- * row is hidden, a pushed status replaces the guess and moves the switch
- * without writing it back, a status queued from a replaced device is dropped,
- * and the reset writes nothing.
+ * writes the setting through the device at once, the setting is neither
+ * written nor read while the row is hidden, a pushed status replaces the guess
+ * and moves the switch without writing it back, a status queued from a
+ * replaced device is dropped, and the reset writes nothing.
  */
 @MainActor
 struct ExtenderProvideSettingTests {
@@ -118,7 +123,7 @@ struct ExtenderProvideSettingTests {
         #expect(manager.extenderProvideDisplay == ExtenderProvideDisplay.guess(on: false, providing: false))
     }
 
-    // N1: the setting is never written while the row is hidden
+    // N1, N7: while the row is hidden the setting is neither written nor read
     @Test func nothingIsWrittenWhileTheRoleIsUnsupported() {
         let source = ExtenderProvideTestingSource(status: .unsupported, setting: true)
         manager.setupExtenderProvide(source: source)
@@ -127,8 +132,36 @@ struct ExtenderProvideSettingTests {
         manager.provideExtender = true
 
         #expect(source.writes.isEmpty)
+        #expect(source.settingReads == 0)
         #expect(manager.extenderProvideGuess == nil)
         #expect(!manager.extenderProvideDisplay.visible)
+    }
+
+    // N7: the setting is read beside a status only while that status reports
+    // the role supported, at the seed and for every pushed status; the switch
+    // keeps its value while it is not read
+    @Test func anUnsupportedStatusReadsNoSetting() {
+        let source = ExtenderProvideTestingSource(status: .unsupported, setting: false)
+        manager.setupExtenderProvide(source: source)
+        #expect(source.settingReads == 0)
+        #expect(manager.provideExtender)
+
+        source.push(.unsupported, setting: false)
+        #expect(dispatcher.deliver() == 1)
+        #expect(source.settingReads == 0)
+        #expect(manager.provideExtender)
+
+        source.push(Self.active, setting: false)
+        #expect(dispatcher.deliver() == 1)
+        #expect(source.settingReads == 1)
+        #expect(!manager.provideExtender)
+
+        source.push(.unsupported, setting: true)
+        #expect(dispatcher.deliver() == 1)
+        #expect(source.settingReads == 1)
+        #expect(!manager.provideExtender)
+        #expect(!manager.extenderProvideDisplay.visible)
+        #expect(source.writes.isEmpty)
     }
 
     @Test func aPushedStatusReplacesTheGuessAndIsNotWrittenBack() {
@@ -178,10 +211,12 @@ struct ExtenderProvideSettingTests {
         let source = ExtenderProvideTestingSource(status: Self.active, setting: false)
         manager.setupExtenderProvide(source: source)
         #expect(!manager.provideExtender)
+        let readsBeforeReset = source.settingReads
 
         manager.resetExtenderProvide()
 
         #expect(source.closes == 1)
+        #expect(source.settingReads == readsBeforeReset)
         #expect(manager.extenderProvideStatus == .unsupported)
         #expect(manager.provideExtender)
         #expect(!manager.extenderProvideDisplay.visible)

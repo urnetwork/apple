@@ -583,12 +583,25 @@ class DeviceManager: ObservableObject {
         source.writeProvideExtender(provideExtender)
     }
 
-    /// One pushed or seeded provider extender status (N7). It replaces the
-    /// toggle's guess, and the switch takes the setting read beside it, under
-    /// the echo guard so the read is not written back.
+    /// One status from the source (N7), with the setting read beside it only
+    /// while the status reports the role supported: a hidden row reads no
+    /// setting, and the switch keeps its value meanwhile.
     private func applyExtenderProvideStatus(
         _ status: ExtenderProvideStatusModel,
-        provideExtender: Bool
+        from source: ExtenderProvideSource
+    ) {
+        applyExtenderProvideStatus(
+            status,
+            provideExtender: status.supported ? source.readProvideExtender() : nil
+        )
+    }
+
+    /// One pushed, seeded or reset provider extender status (N7). It replaces
+    /// the toggle's guess, and the switch takes the setting when one was read,
+    /// under the echo guard so the read is not written back.
+    private func applyExtenderProvideStatus(
+        _ status: ExtenderProvideStatusModel,
+        provideExtender: Bool?
     ) {
         if extenderProvideGuess != nil {
             extenderProvideGuess = nil
@@ -596,7 +609,7 @@ class DeviceManager: ObservableObject {
         if extenderProvideStatus != status {
             extenderProvideStatus = status
         }
-        if self.provideExtender != provideExtender {
+        if let provideExtender, self.provideExtender != provideExtender {
             withDeviceStateLoad {
                 self.provideExtender = provideExtender
             }
@@ -1415,6 +1428,10 @@ extension DeviceManager {
             }
         })
         
+        // the provider extender status and setting (N2, N7), beside the
+        // provide listeners: the listener, then the seed
+        setupExtenderProvide(source: device)
+
         setupDeviceAuthListeners(source: device)
 
         self.deviceCanShowRatingDialogSub = device.add(CanShowRatingDialogChangeListener { [weak self] canShowRatingDialog in
@@ -1474,10 +1491,6 @@ extension DeviceManager {
         self.provideEnabled = device.getProvideEnabled()
         self.providePaused = device.getProvidePaused()
         self.currentProvideMode = device.getProvideMode()
-
-        // the provider extender status and setting (N2, N7): the listener,
-        // then the seed
-        setupExtenderProvide(source: device)
     }
 
     // Registration and delivery are separate boundaries: removing an SDK
@@ -1534,13 +1547,10 @@ extension DeviceManager {
             dispatch { [weak self] in
                 guard let self, self.extenderProvideCallbackOwner === owner,
                       let source = self.extenderProvideSource else { return }
-                self.applyExtenderProvideStatus(status, provideExtender: source.readProvideExtender())
+                self.applyExtenderProvideStatus(status, from: source)
             }
         }
-        applyExtenderProvideStatus(
-            source.readExtenderProvideStatus(),
-            provideExtender: source.readProvideExtender()
-        )
+        applyExtenderProvideStatus(source.readExtenderProvideStatus(), from: source)
     }
 
     // The status and the setting reset with the device (N7) under the echo

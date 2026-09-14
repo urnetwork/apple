@@ -29819,6 +29819,17 @@
         }
       }
     },
+    "Could not start: %@" : {
+      "comment" : "Extender status when the setting is on and the device is providing, but the role could not start in this network space: no extender directory or no identity. The argument is the reason.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not start: %@"
+          }
+        }
+      }
+    },
     "Couldn't load subscription options. Check your connection and retry." : {
       "comment" : "Shown in the upgrade sheet and intro funnel when the App Store product fetch failed, with a retry action — replaces the eternal spinner (Shared/Views/UpgradeSubscriptionSheet.swift, Shared/Views/Introduction/IntroductionView.swift).",
       "localizations" : {

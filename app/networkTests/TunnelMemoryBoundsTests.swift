@@ -1,6 +1,18 @@
 import XCTest
 
 final class TunnelMemoryBoundsTests: XCTestCase {
+    // The device target each platform hands SdkNewDeviceLocalWithMemoryTarget:
+    // iOS 20 MiB (jetsam), macOS the 64 MiB reference.
+    func testDeviceMemoryTargetPerPlatform() {
+        XCTAssertEqual(TunnelDeviceMemoryTarget.iosByteCount, 20 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.macosByteCount, 64 * 1024 * 1024)
+#if os(iOS)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 20 * 1024 * 1024)
+#else
+        XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 64 * 1024 * 1024)
+#endif
+    }
+
     func testPacketEncoderBoundsAndRoundTripsBurst() {
         let packets = (0..<140).map { index in
             var packet = Data(

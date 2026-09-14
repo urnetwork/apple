@@ -1,5 +1,27 @@
 import Foundation
 
+// The per-device memory target PacketTunnelProvider passes to
+// SdkNewDeviceLocalWithMemoryTarget. connect sizes the H3 carrier windows from
+// the whole device target (stream window max(384 KiB, target / 64 MiB *
+// 3 MiB), the scale capped at the 64 MiB reference).
+//
+// iOS stays at 20 MiB: the packet-tunnel extension is killed by jetsam at
+// 50 MiB. macOS reports no packet-tunnel jetsam limit, so it runs at the
+// 64 MiB reference and gets the full 3 MiB stream window. The process-level
+// budget (SdkSetMemoryLimit) is separate and set in the provider's init.
+enum TunnelDeviceMemoryTarget {
+    static let iosByteCount: Int64 = 20 * 1024 * 1024
+    static let macosByteCount: Int64 = 64 * 1024 * 1024
+
+    static var byteCount: Int64 {
+#if os(iOS)
+        return iosByteCount
+#else
+        return macosByteCount
+#endif
+    }
+}
+
 // Owns cleanup while PacketTunnelProvider is assembling a session. If setup
 // returns early, deinit closes the partially-started SDK device. Once the
 // provider has installed its full session close closure, commit transfers that

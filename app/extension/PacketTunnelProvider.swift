@@ -357,7 +357,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             #if os(iOS)
             SdkSetMemoryLimit(32 * 1024 * 1024)
             #else
-            SdkSetMemoryLimit(48 * 1024 * 1024)
+            // every macOS version sits at the 64 MiB reference, matching the
+            // macOS device target (TunnelDeviceMemoryTarget)
+            SdkSetMemoryLimit(64 * 1024 * 1024)
             #endif
         } else {
             // note provider is also disabled for these
@@ -700,12 +702,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         // rpc is started explicitly below with the per-session server pem
                         false,
                         keyMaterial,
-                        // the per-device memory target (split dns 2 : client 14 :
-                        // provider 4 inside the sdk, with the provider share backing the
-                        // client pair while providing is off), set explicitly where the
-                        // device is created; the process-level SdkSetMemoryLimit above
-                        // sizes the shared message pools and go soft limit
-                        20 * 1024 * 1024,
+                        // the per-device memory target (split dns 2 : client 9 :
+                        // platform carriers 5 : provider 4 inside the sdk, with the
+                        // provider share backing the client pair while providing is
+                        // off), set explicitly where the device is created: 20 MiB on
+                        // iOS, 64 MiB on macOS (see TunnelDeviceMemoryTarget). The
+                        // process-level SdkSetMemoryLimit above sizes the shared
+                        // message pools and go soft limit
+                        TunnelDeviceMemoryTarget.byteCount,
                         &err
                     )
                     if let err {

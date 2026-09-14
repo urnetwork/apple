@@ -41,6 +41,25 @@ struct ExtenderStatsSectionTests {
         #expect(combinations == 16)
     }
 
+    // O8: the section's provider half is the provider section's own gate, so
+    // the two cannot drift apart
+    @Test func theSectionFollowsTheProviderGate() {
+        let providerModes = ProvideControlMode.allCases.filter {
+            providerStatisticsVisible(provideControlMode: $0, hasProviderStats: true)
+        }
+        #expect(Set(providerModes) == [.Auto, .Always, .Network])
+        for mode in ProvideControlMode.allCases {
+            #expect(!providerStatisticsVisible(provideControlMode: mode, hasProviderStats: false))
+            for hasProviderStats in [false, true] {
+                #expect(extenderStatsSectionVisible(
+                    provideControlMode: mode,
+                    hasProviderStats: hasProviderStats,
+                    extenderRunning: true
+                ) == providerStatisticsVisible(provideControlMode: mode, hasProviderStats: hasProviderStats))
+            }
+        }
+    }
+
     // MARK: the chart
 
     @Test func theChartIsTheExtenderSeriesInTheRemoteRoute() {

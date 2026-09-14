@@ -215,7 +215,10 @@ struct EarningsView: View {
             // provider statistics follow the provide mode: with providing off
             // the reliability chart hides and the section says so, the same
             // gate and message as the stats section
-            if deviceManager.provideControlMode != .Never && throughputStore.hasProviderStats {
+            if providerStatisticsVisible(
+                provideControlMode: deviceManager.provideControlMode,
+                hasProviderStats: throughputStore.hasProviderStats
+            ) {
                 NetworkReliabilityView(
                     reliabilityWindow: networkReliabilityWindow
                 )

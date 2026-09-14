@@ -25,7 +25,10 @@ struct ProviderStatsSection: View {
     /// section shows the providing-disabled message instead, whatever the
     /// device's live provide state says.
     private var providerStatsEnabled: Bool {
-        deviceManager.provideControlMode != .Never && throughputStore.hasProviderStats
+        providerStatisticsVisible(
+            provideControlMode: deviceManager.provideControlMode,
+            hasProviderStats: throughputStore.hasProviderStats
+        )
     }
 
     var body: some View {
@@ -120,4 +123,14 @@ struct ProviderStatsSection: View {
             .environmentObject(transportSettingsStore)
         }
     }
+}
+
+/// Whether the provider statistics show (EXTENDER.md O8): the provide mode the
+/// user picked is not never and the device reports provider stats. The one gate
+/// of the reliability block, the provider plots and the extender statistics.
+func providerStatisticsVisible(
+    provideControlMode: ProvideControlMode,
+    hasProviderStats: Bool
+) -> Bool {
+    provideControlMode != .Never && hasProviderStats
 }

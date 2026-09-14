@@ -63,5 +63,8 @@ func extenderStatsSectionVisible(
     hasProviderStats: Bool,
     extenderRunning: Bool
 ) -> Bool {
-    provideControlMode != .Never && hasProviderStats && extenderRunning
+    providerStatisticsVisible(
+        provideControlMode: provideControlMode,
+        hasProviderStats: hasProviderStats
+    ) && extenderRunning
 }

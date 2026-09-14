@@ -210,11 +210,12 @@ final class ConnectSolanaWalletFlow: ObservableObject {
             case .success(false):
                 self.manualValidation = .invalid
                 self.manualSupportingText = String(localized: "That is not a valid Solana address.")
-            case .failure(let error):
+            case .failure:
                 // the check itself failed: the address is not known to be
-                // invalid, and it is not submittable either
+                // invalid, and it is not submittable either. Not a connect
+                // failure, so no detail (android's Unavailable)
                 self.manualValidation = .notChecked
-                self.manualSupportingText = Self.errorMessage(for: error)
+                self.manualSupportingText = String(localized: "There was an error connecting your wallet.")
             }
         }
     }
@@ -232,6 +233,10 @@ final class ConnectSolanaWalletFlow: ObservableObject {
     /// what the wallet provider puts before a wallet's own errorMessage
     private static let walletConnectErrorPrefix = "Wallet connect error: "
 
+    /// what the SDK's HTTP strategy reports when no route answered in time
+    /// (connect ClientStrategy.HttpSerial): a timeout carries no detail
+    private static let sdkTimeout = "Timeout."
+
     private static func errorDetail(_ error: Error) -> String {
         let description: String
         if let deepLinkError = error as? WalletDeepLinkError {
@@ -240,10 +245,21 @@ final class ConnectSolanaWalletFlow: ObservableObject {
             } else {
                 description = ""
             }
+        } else if let clientError = error as? UsdcWalletsClientError {
+            // no SDK, or the server answered without a result or a message:
+            // the client's own words are not a detail
+            if case .message(let message) = clientError {
+                description = message
+            } else {
+                description = ""
+            }
         } else {
             description = error.localizedDescription
         }
         let detail = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        if detail == sdkTimeout {
+            return ""
+        }
         if detail.hasPrefix(walletConnectErrorPrefix) {
             return String(detail.dropFirst(walletConnectErrorPrefix.count))
         }

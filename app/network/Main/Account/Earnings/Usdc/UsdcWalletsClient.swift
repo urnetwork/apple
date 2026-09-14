@@ -165,12 +165,13 @@ final class UsdcWalletsSdkClient: UsdcWalletsClient {
             api.removeWallet(args, callback: callback)
         }
         if let resultError = result.error {
-            throw UsdcWalletsClientError.message(
-                resultError.message.isEmpty ? "Remove wallet failed" : resultError.message
-            )
+            // the server's reason is the detail; a refusal without one has none
+            throw resultError.message.isEmpty
+                ? UsdcWalletsClientError.emptyResult
+                : UsdcWalletsClientError.message(resultError.message)
         }
         guard result.success else {
-            throw UsdcWalletsClientError.message("Remove wallet failed")
+            throw UsdcWalletsClientError.emptyResult
         }
     }
 

@@ -234,7 +234,7 @@ struct ConnectSolanaWalletFlowTests {
         flow.manualAddress = "7xKX"
         await flow.validationTask?.value
         #expect(flow.manualValidation == .notChecked)
-        #expect(flow.manualSupportingText == "There was an error connecting your wallet: offline")
+        #expect(flow.manualSupportingText == "There was an error connecting your wallet.")
 
         // empty: nothing to check
         flow.manualAddress = "   "
@@ -413,5 +413,54 @@ struct ConnectSolanaWalletFlowTests {
         #expect(client.calls == [.add(Self.address), .payoutWalletId, .setPayoutWallet("wallet-new")])
         #expect(client.payoutId == "wallet-new")
         #expect(connected == ["wallet-new"])
+    }
+
+    // MARK: failure wording
+
+    @Test func theProvidersRejectionReadsAsTheWalletsMessage() {
+        let provider = ConnectWalletProviderViewModel()
+        let flow = Self.flow(FakeUsdcWalletsClient())
+        flow.openWallet = { _ in true }
+        flow.start(.solflare)
+
+        // what Phantom, Solflare and the ur.io bridge send for a declined connect
+        provider.handleDeepLink(
+            URL(string: "urnetwork://solflare-connect?errorCode=4001&errorMessage=User%20rejected%20the%20request.")!,
+            onPublicKeyRetrieved: { _, _ in
+                Issue.record("a declined connect carries no key")
+            },
+            onError: { error in
+                flow.handleWalletError(error)
+            }
+        )
+
+        #expect(flow.stage == .failed("There was an error connecting your wallet: User rejected the request."))
+    }
+
+    @Test func failuresWithoutAServerMessageReadAsTheSentenceAlone() {
+        let noDetail = "There was an error connecting your wallet."
+        // the client's own stand-ins, and the SDK's request timeout
+        #expect(ConnectSolanaWalletFlow.errorMessage(for: UsdcWalletsClientError.emptyResult) == noDetail)
+        #expect(ConnectSolanaWalletFlow.errorMessage(for: UsdcWalletsClientError.sdkUnavailable) == noDetail)
+        let timeout = NSError(domain: "go", code: 1, userInfo: [NSLocalizedDescriptionKey: "Timeout."])
+        #expect(ConnectSolanaWalletFlow.errorMessage(for: timeout) == noDetail)
+        // a server or library message is the detail
+        let refused = NSError(domain: "go", code: 1, userInfo: [NSLocalizedDescriptionKey: "500 Internal Server Error: invalid wallet address"])
+        #expect(ConnectSolanaWalletFlow.errorMessage(for: refused) == "There was an error connecting your wallet: 500 Internal Server Error: invalid wallet address")
+        #expect(ConnectSolanaWalletFlow.errorMessage(for: UsdcWalletsClientError.message("wallet not found")) == "There was an error connecting your wallet: wallet not found")
+    }
+
+    @Test func aPayoutSwitchThatTimesOutReadsAsTheSentenceAlone() async {
+        let client = FakeUsdcWalletsClient()
+        client.payoutId = "wallet-old"
+        client.setPayoutError = NSError(domain: "go", code: 1, userInfo: [NSLocalizedDescriptionKey: "Timeout."])
+        let flow = Self.flow(client)
+        flow.openWallet = { _ in true }
+
+        flow.start(.phantom)
+        await flow.handleWalletReturn(publicKey: Self.address, provider: .phantom)
+
+        #expect(client.calls == [.add(Self.address), .payoutWalletId, .setPayoutWallet("wallet-new")])
+        #expect(flow.stage == .failed("There was an error connecting your wallet."))
     }
 }

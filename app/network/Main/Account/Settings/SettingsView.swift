@@ -257,8 +257,13 @@ struct SettingsView: View {
     
     private func handleWalletDeepLink(_ url: URL) {
         let vm = connectWalletProviderViewModel
-        if vm.pendingAddAuthSignatureHandler != nil,
-           let pk = vm.connectedPublicKey {
+        // only the add-sign-in-method flow takes wallet links here: a stray or
+        // replayed return (the ur.io bridge's Return to URnetwork, a late tab)
+        // must not connect a wallet nobody is waiting for
+        guard vm.pendingAddAuthSignatureHandler != nil else {
+            return
+        }
+        if let pk = vm.connectedPublicKey {
             vm.handleDeepLink(
                 url,
                 onSignature: { signature in

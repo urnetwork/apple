@@ -358,6 +358,10 @@ struct NetworkApp: App {
                 #endif
             #elseif os(macOS)
             ContentView()
+                // the open window takes every urnetwork:// callback (wallet
+                // connect, widgets, onboarding) instead of SwiftUI opening a
+                // new window for it
+                .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
                 .environmentObject(connectViewModel)

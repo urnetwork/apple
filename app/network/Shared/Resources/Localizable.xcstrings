@@ -760,6 +760,17 @@
       "extractionState" : "stale",
       "shouldTranslate" : false
     },
+    "%@ USDC waiting" : {
+      "comment" : "The pending USDC payout total waiting to be sent to the Solana payout wallet; shown on the Solana wallet block and, while no Solana wallet is connected, next to the wallet actions. Mirrors the email headline.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ USDC waiting"
+          }
+        }
+      }
+    },
     "%@ wallet" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -25101,6 +25112,17 @@
         }
       }
     },
+    "Connect a Solana wallet app, or enter a Solana USDC address manually." : {
+      "comment" : "Note at the top of the Solana connect sheet/card, above the wallet-app button and the manual-entry link.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a Solana wallet app, or enter a Solana USDC address manually."
+          }
+        }
+      }
+    },
     "Connect a wallet" : {
       "comment" : "Used in Main/Account/Settings/SettingsForm-iOS.swift.",
       "localizations" : {
@@ -25827,6 +25849,17 @@
         }
       }
     },
+    "Connect Solana wallet" : {
+      "comment" : "Overflow menu item next to “Connect Bittensor wallet” on the Earnings screen, and the title of the Solana connect sheet/card: connect a Solana USDC payout wallet (wallet app, or manual address entry). USDC payouts continue until the migration to Bittensor completes.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect Solana wallet"
+          }
+        }
+      }
+    },
     "Connect to see your contracts" : {
       "comment" : "Contracts widget empty state while the tunnel is down.",
       "localizations" : {
@@ -26174,7 +26207,6 @@
     },
     "Connect Wallet" : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/EnterWalletAddress/EnterWalletAddressView.swift.",
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -33530,6 +33562,173 @@
         }
       }
     },
+    "Default" : {
+      "comment" : "Call to action",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الافتراضي"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výchozí"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προεπιλογή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predeterminado"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predeterminado"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predeterminado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Par défaut"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ברירת מחדל"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डिफ़ॉल्ट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predefinito"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본값"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standaard"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domyślny"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По умолчанию"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ค่าเริ่มต้น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "За замовчуванням"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mặc định"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設"
+          }
+        }
+      }
+    },
     "DEFAULT" : {
       "comment" : "Used in Shared/Views/PayoutWalletTag.swift.",
       "extractionState" : "stale",
@@ -38659,7 +38858,6 @@
       }
     },
     "Enter a Solana USDC wallet address" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -40713,7 +40911,6 @@
     },
     "Error setting default wallet: %@" : {
       "comment" : "Snackbar shown when setting the default payout wallet fails, with the underlying error message. Used in Main/Account/Wallet/WalletView.swift.",
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -52915,7 +53112,6 @@
     },
     "Make default" : {
       "comment" : "Wallet Screen",
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -61011,7 +61207,6 @@
     },
     "Payout wallet updated" : {
       "comment" : "Snackbar shown after the payout wallet is changed. Used in Main/Account/Wallet/WalletView.swift.",
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -72910,7 +73105,6 @@
     },
     "Remove wallet" : {
       "comment" : "Used in Main/Account/AccountNavStackView.swift.",
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -80774,6 +80968,17 @@
         }
       }
     },
+    "Solana wallet" : {
+      "comment" : "Label of the connected Solana wallet block on the Earnings screen (parallel to bittensor_wallet).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana wallet"
+          }
+        }
+      }
+    },
     "Solflare" : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/ConnectWalletSheetView.swift.",
       "shouldTranslate" : false
@@ -85492,6 +85697,17 @@
         }
       }
     },
+    "That is not a valid Solana address." : {
+      "comment" : "Validation error under the manual address field when the address is not a valid Solana address (parallel to invalid_ss58_address).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That is not a valid Solana address."
+          }
+        }
+      }
+    },
     "The chain RPC is unreachable. Try again." : {
       "comment" : "Error when the subnet RPC cannot be reached.",
       "localizations" : {
@@ -86740,7 +86956,6 @@
     },
     "There was an error connecting your wallet: %@" : {
       "comment" : "Snackbar shown when connecting a wallet fails, with the underlying error message. Used in Main/Account/Wallets/WalletsView.swift.",
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -94662,8 +94877,29 @@
         }
       }
     },
+    "USDC payouts are held until another wallet is connected." : {
+      "comment" : "Body of the remove confirmation for the Solana payout wallet (the title is remove_wallet).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC payouts are held until another wallet is connected."
+          }
+        }
+      }
+    },
+    "USDC payouts continue to this wallet until the migration to Bittensor is complete." : {
+      "comment" : "Second paragraph of the Solana connect sheet/card, and the body line under a connected Solana wallet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC payouts continue to this wallet until the migration to Bittensor is complete."
+          }
+        }
+      }
+    },
     "USDC wallet address" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -97883,6 +98119,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錢包地址"
+          }
+        }
+      }
+    },
+    "Wallet options" : {
+      "comment" : "Accessibility label of the three-dot overflow button next to “Connect Bittensor wallet” and on the connected Bittensor wallet block.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallet options"
           }
         }
       }

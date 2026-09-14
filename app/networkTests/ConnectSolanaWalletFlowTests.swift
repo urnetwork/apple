@@ -364,4 +364,54 @@ struct ConnectSolanaWalletFlowTests {
         await flow.handleWalletReturn(publicKey: Self.address, provider: .phantom)
         #expect(!client.calls.contains(.add(Self.address)))
     }
+
+    // MARK: returns after an error, payout reads that fail
+
+    @Test func aWalletReturnAfterItsErrorStillLinks() async {
+        let client = FakeUsdcWalletsClient()
+        let flow = Self.flow(client)
+        var connected: [String] = []
+        flow.openWallet = { _ in true }
+        flow.onConnected = { connected.append($0) }
+
+        // the ur.io bridge reports the rejected first approval, then its
+        // Try again returns the key for the same hand-off
+        flow.start(.phantom)
+        flow.handleWalletError(WalletDeepLinkError.walletError("User rejected the request."))
+        #expect(flow.stage == .failed("There was an error connecting your wallet: User rejected the request."))
+        await flow.handleWalletReturn(publicKey: Self.address, provider: .phantom)
+
+        #expect(client.calls == [.add(Self.address), .payoutWalletId])
+        #expect(connected == ["wallet-new"])
+
+        // a failed manual link is not a wallet hand-off: a wallet return is ignored
+        let manualClient = FakeUsdcWalletsClient()
+        manualClient.addError = UsdcWalletsClientError.message("invalid wallet address")
+        let manual = Self.flow(manualClient)
+        manual.enterManually()
+        manual.manualAddress = Self.address
+        await manual.validationTask?.value
+        await manual.submitManualAddress()
+        manualClient.addError = nil
+        await manual.handleWalletReturn(publicKey: Self.address, provider: .phantom)
+        #expect(manualClient.calls == [.validate(Self.address), .add(Self.address)])
+        #expect(manual.stage == .failed("There was an error connecting your wallet: invalid wallet address"))
+    }
+
+    @Test func aPayoutReadThatFailsStillSelectsTheWallet() async {
+        let client = FakeUsdcWalletsClient()
+        client.payoutId = "wallet-old"
+        client.payoutIdError = UsdcWalletsClientError.message("offline")
+        let flow = Self.flow(client)
+        var connected: [String] = []
+        flow.openWallet = { _ in true }
+        flow.onConnected = { connected.append($0) }
+
+        flow.start(.phantom)
+        await flow.handleWalletReturn(publicKey: Self.address, provider: .phantom)
+
+        #expect(client.calls == [.add(Self.address), .payoutWalletId, .setPayoutWallet("wallet-new")])
+        #expect(client.payoutId == "wallet-new")
+        #expect(connected == ["wallet-new"])
+    }
 }

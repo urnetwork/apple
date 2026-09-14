@@ -112,9 +112,18 @@ final class ConnectSolanaWalletFlow: ObservableObject {
     }
 
     /// The wallet came back through urnetwork://phantom-connect or
-    /// urnetwork://solflare-connect with its public key.
+    /// urnetwork://solflare-connect with its public key. Taken while the
+    /// hand-off is awaited and also after it reported an error: the ur.io
+    /// bridge's Try again returns a key for the same hand-off after its error,
+    /// and only this hand-off's key pair decrypts the envelope.
     func handleWalletReturn(publicKey: String, provider: ConnectedWalletProvider) async {
-        guard case .awaitingWallet = stage else {
+        guard case .wallet? = lastAttempt else {
+            return
+        }
+        switch stage {
+        case .awaitingWallet, .failed:
+            break
+        case .chooser, .manualEntry, .connecting:
             return
         }
         switch provider {
@@ -152,8 +161,10 @@ final class ConnectSolanaWalletFlow: ObservableObject {
         do {
             let walletId = try await client.addSolanaWallet(address: address)
             // the server selects the new wallet only when the network has no
-            // payout wallet
-            if try await client.payoutWalletId() != walletId {
+            // payout wallet; selecting it again is harmless, so a payout read
+            // that fails selects it too
+            let payoutWalletId = try? await client.payoutWalletId()
+            if payoutWalletId != walletId {
                 try await client.setPayoutWallet(id: walletId)
             }
             onConnected(walletId)

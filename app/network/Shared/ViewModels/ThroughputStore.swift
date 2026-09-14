@@ -293,7 +293,13 @@ class ThroughputStore: ObservableObject {
             }
         })
 
-        update()
+        // a new controller reports no provider stats until its first sample,
+        // and its first tick lands after its second, so reading it here would
+        // show "Providing is disabled" and hide the provider and extender
+        // sections for about two seconds after every re-show. The device
+        // answers now; the ticks read the controller, which has sampled by then
+        // (EXTENDER.md O8)
+        update(hasProviderStats: device.getProviderPacketStats() != nil)
     }
 
     func reset() {
@@ -317,7 +323,7 @@ class ThroughputStore: ObservableObject {
         hasProviderStats = false
     }
 
-    private func update() {
+    private func update(hasProviderStats seededHasProviderStats: Bool? = nil) {
         guard let contractViewController = self.contractViewController else {
             return
         }
@@ -347,7 +353,8 @@ class ThroughputStore: ObservableObject {
         if providerTransportDistribution != self.providerTransportDistribution {
             self.providerTransportDistribution = providerTransportDistribution
         }
-        let hasProviderStats = contractViewController.getProviderPacketStats() != nil
+        let hasProviderStats = seededHasProviderStats
+            ?? (contractViewController.getProviderPacketStats() != nil)
         if hasProviderStats != self.hasProviderStats {
             self.hasProviderStats = hasProviderStats
         }

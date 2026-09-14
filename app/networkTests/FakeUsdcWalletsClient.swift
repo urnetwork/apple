@@ -37,6 +37,8 @@ final class FakeUsdcWalletsClient: UsdcWalletsClient {
     var removeError: Error?
     var paymentRows: [UsdcPaymentInfo] = []
     var paymentsError: Error?
+    /// runs in payments() after the call is recorded, before it returns
+    var beforePaymentsReturn: () async -> Void = {}
 
     func validateSolanaAddress(_ address: String) async throws -> Bool {
         calls.append(.validate(address))
@@ -91,6 +93,7 @@ final class FakeUsdcWalletsClient: UsdcWalletsClient {
 
     func payments() async throws -> [UsdcPaymentInfo] {
         calls.append(.payments)
+        await beforePaymentsReturn()
         if let paymentsError {
             throw paymentsError
         }

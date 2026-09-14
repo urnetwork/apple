@@ -20,6 +20,9 @@ final class UsdcWalletsViewModel: ObservableObject {
     @Published private(set) var isRemoving = false
     /// the wallet the remove confirmation asks about
     @Published var walletQueuedForRemoval: UsdcWalletInfo?
+    /// whether the wallets and the payout wallet have answered at least once
+    @Published private(set) var walletsRead = false
+    @Published private(set) var payoutWalletRead = false
 
     let client: UsdcWalletsClient
 
@@ -44,18 +47,21 @@ final class UsdcWalletsViewModel: ObservableObject {
         payments.filter(\.isPending).reduce(0) { $0 + $1.payoutNanoCents }
     }
 
-    /// "3.87", or nil when nothing is waiting
+    /// "3.87", or nil when nothing is waiting or it would read "0.00"
     var pendingUsd: String? {
         let pending = pendingUsdNanoCents
-        guard pending > 0 else {
+        // half a cent: anything less formats as 0.00
+        guard pending >= 5_000_000 else {
             return nil
         }
         return UsdcFormat.usd(nanoCents: pending)
     }
 
     /// USDC is waiting and there is no Solana payout wallet to send it to.
+    /// Said only once the wallets and the payout wallet have been read: a
+    /// failed read must not claim that no wallet is connected.
     var showsPendingLine: Bool {
-        pendingUsdNanoCents > 0 && payoutWallet == nil
+        walletsRead && payoutWalletRead && pendingUsd != nil && payoutWallet == nil
     }
 
     /// The wallets, the payout wallet and the payments in one round. A fetch
@@ -80,9 +86,11 @@ final class UsdcWalletsViewModel: ObservableObject {
         }
         if let walletsResult {
             wallets = walletsResult
+            walletsRead = true
         }
         if let payoutResult {
             payoutWalletId = payoutResult
+            payoutWalletRead = true
         }
         if let paymentsResult {
             payments = paymentsResult

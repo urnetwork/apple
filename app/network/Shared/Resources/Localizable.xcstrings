@@ -41804,6 +41804,17 @@
         }
       }
     },
+    "Extender statistics" : {
+      "comment" : "Title of the section that shows statistics about the extender, directly above the provider statistics section.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender statistics"
+          }
+        }
+      }
+    },
     "Extenders" : {
       "comment" : "Title of the extenders panel in the connect drawer and of the Extenders section under account.",
       "localizations" : {
@@ -67340,6 +67351,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隧道啟動時並行查詢本地解析器，取最先返回的結果。關閉後，DNS 只會透過隧道解析。"
+          }
+        }
+      }
+    },
+    "reads/s" : {
+      "comment" : "Unit the extender chart labels its rates with, where the provider chart says pkt/s. The compact count is prepended by the app, as it is for pkt/s.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "reads/s"
           }
         }
       }

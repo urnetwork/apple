@@ -30,6 +30,9 @@ struct ConnectSolanaWalletSheet: View {
                     Image(systemName: "xmark")
                 }
                 .keyboardShortcut(.cancelAction)
+                // linking cannot be abandoned half way
+                .disabled(flow.stage == .connecting)
+                .accessibilityLabel(Text("Close"))
                 #endif
             }
             content

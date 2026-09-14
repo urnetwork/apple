@@ -16,6 +16,8 @@ struct SolanaWalletCard: View {
 
     let wallet: UsdcWalletInfo
     let pendingUsd: String?
+    /// a removal is in flight: the options stay closed until it finishes
+    var isRemoving: Bool = false
     let remove: () -> Void
 
     @State private var copied = false
@@ -36,6 +38,7 @@ struct SolanaWalletCard: View {
                         ) {
                             Button("Remove", role: .destructive, action: remove)
                         }
+                        .disabled(isRemoving)
                     }
                     HStack(spacing: 8) {
                         Text(verbatim: SnAlpha.shortSs58(wallet.address))

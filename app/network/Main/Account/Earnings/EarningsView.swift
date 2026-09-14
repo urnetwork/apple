@@ -93,6 +93,7 @@ struct EarningsView: View {
                     SolanaWalletCard(
                         wallet: wallet,
                         pendingUsd: usdcViewModel.pendingUsd,
+                        isRemoving: usdcViewModel.isRemoving,
                         remove: {
                             usdcViewModel.walletQueuedForRemoval = wallet
                         }
@@ -178,10 +179,12 @@ struct EarningsView: View {
             .environmentObject(themeManager)
             .environmentObject(connectWalletProviderViewModel)
             .environmentObject(snackbarManager)
+            // linking cannot be abandoned half way: no swipe on iOS, no
+            // Escape on macOS
+            .interactiveDismissDisabled(solanaFlow.stage == .connecting)
             #if os(iOS)
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(solanaFlow.stage == .connecting)
             #elseif os(macOS)
             .frame(minWidth: 460, minHeight: 320)
             #endif

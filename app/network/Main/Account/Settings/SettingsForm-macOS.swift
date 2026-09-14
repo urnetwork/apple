@@ -395,6 +395,16 @@ struct SettingsForm_macOS: View {
                             
                             Spacer()
                         }
+
+                        // the provider extender row (EXTENDER.md N7), only while
+                        // the device reports the role supported, so an
+                        // unsupported device shows this card as before
+                        if deviceManager.extenderProvideStatus.supported {
+                            Spacer().frame(height: 16)
+                            Divider()
+                            Spacer().frame(height: 16)
+                            ExtenderProvideRow(kind: .setting)
+                        }
                         
                         Spacer().frame(height: 16)
                         Divider()

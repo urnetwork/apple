@@ -47,6 +47,17 @@ struct ProviderStatsSection: View {
             // tapping the row opens settings to change it
             ProvideModeRow(action: { navigate(.settings) })
 
+            #if os(macOS)
+            // the Extender row, read-only, under the provide mode row and
+            // opening the same settings (EXTENDER.md N7). It shows whether or
+            // not the statistics do, since its text matters most while the
+            // role is off or not providing
+            if deviceManager.extenderProvideStatus.supported {
+                Spacer().frame(height: 8)
+                ExtenderProvideRow(kind: .readOnly(action: { navigate(.settings) }))
+            }
+            #endif
+
             Spacer().frame(height: 8)
 
             if providerStatsEnabled {

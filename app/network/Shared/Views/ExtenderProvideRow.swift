@@ -105,6 +105,9 @@ struct ExtenderProvideRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Extender")
         .accessibilityValue(display.text)
+        // `.ignore` rebuilds the element without the button's role on macOS;
+        // the trait puts it back, so the row reads as the button it is (N1)
+        .accessibilityAddTraits(.isButton)
     }
 
     private var title: some View {

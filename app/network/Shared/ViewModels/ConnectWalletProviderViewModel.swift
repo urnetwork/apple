@@ -78,6 +78,14 @@ class ConnectWalletProviderViewModel: ObservableObject {
         clearConnectionState()
         createKeyPair()
     }
+
+    /// Forgets the connected wallet's key and session without a wallet round
+    /// trip. The Earnings payout flow only needs the public key it links;
+    /// sign-in and add-sign-in-method then connect a wallet of their own
+    /// instead of signing with this session.
+    func forgetConnection() {
+        clearConnectionState()
+    }
     
     @discardableResult
     func connectSolflareWallet(onOpenFailed: (() -> Void)? = nil) -> Bool {

@@ -322,12 +322,17 @@ struct EarningsView: View {
     /// bridge driving their extensions) return the Solana public key through
     /// urnetwork://phantom-connect or urnetwork://solflare-connect; the ur.io
     /// wallet bridge returns the coldkey and its signature over the connect
-    /// challenge. Only one of the two connect sheets is up at a time.
+    /// challenge. A link reaches only the flow it belongs to, and only while
+    /// that flow's sheet is up.
     private func handleDeepLink(_ url: URL) {
-        if presentSolanaSheet {
+        switch EarningsWalletLink.route(url, solanaSheetUp: presentSolanaSheet, bittensorSheetUp: presentConnectSheet) {
+        case .solana:
             connectWalletProviderViewModel.handleDeepLink(
                 url,
                 onPublicKeyRetrieved: { publicKey, provider in
+                    // the payout wallet needs only the key; sign-in must not
+                    // reuse this session
+                    connectWalletProviderViewModel.forgetConnection()
                     Task {
                         await solanaFlow.handleWalletReturn(publicKey: publicKey, provider: provider)
                     }
@@ -336,11 +341,14 @@ struct EarningsView: View {
                     solanaFlow.handleWalletError(error)
                 }
             )
+        case .bittensor:
+            handleBittensorDeepLink(url)
+        case nil:
             return
         }
-        guard presentConnectSheet else {
-            return
-        }
+    }
+
+    private func handleBittensorDeepLink(_ url: URL) {
         connectWalletProviderViewModel.handleDeepLink(
             url,
             onSignature: { signature in
@@ -367,6 +375,26 @@ struct EarningsView: View {
     private func removeSolanaWallet(_ wallet: UsdcWalletInfo) async {
         if case .failure(let error) = await usdcViewModel.removeWallet(wallet.id) {
             snackbarManager.showSnackbar(message: ConnectSolanaWalletFlow.errorMessage(for: error))
+        }
+    }
+}
+
+/// Which connect sheet a wallet deep link belongs to: Phantom and Solflare
+/// (or the ur.io bridge driving their extensions) return to the Solana sheet,
+/// the ur.io Bittensor bridge to the Bittensor sheet. A link whose sheet is not
+/// up belongs to neither.
+enum EarningsWalletLink: Equatable {
+    case solana
+    case bittensor
+
+    static func route(_ url: URL, solanaSheetUp: Bool, bittensorSheetUp: Bool) -> EarningsWalletLink? {
+        switch url.host ?? "" {
+        case "phantom-connect", "solflare-connect":
+            return solanaSheetUp ? .solana : nil
+        case "bittensor-sign-message", "bittensor-connect":
+            return bittensorSheetUp ? .bittensor : nil
+        default:
+            return nil
         }
     }
 }

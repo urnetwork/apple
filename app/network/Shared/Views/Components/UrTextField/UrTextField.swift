@@ -46,6 +46,9 @@ struct UrTextField: View {
     var disableCapitalization: Bool = false
 
     var accessibilityIdentifier: String = ""
+
+    // autocorrection off for input that is not prose, like a wallet address
+    var disableAutocorrection: Bool = false
     
     #if os(iOS)
     private var autoCapitalization: TextInputAutocapitalization {
@@ -66,6 +69,9 @@ struct UrTextField: View {
     
     #if os(iOS)
     private var shouldDisableAutocorrection: Bool {
+        if disableAutocorrection {
+            return true
+        }
         switch keyboardType {
         case .emailAddress:
             return true

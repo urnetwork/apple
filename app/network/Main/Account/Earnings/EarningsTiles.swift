@@ -3,11 +3,16 @@
 //  URnetwork
 //
 //  The tiles of the Earnings screen: the Top 200 head
-//  spot, the Bittensor wallet block, the unclaimed alpha tile and the epoch
-//  history rows.
+//  spot, the Bittensor wallet block with its wallet options, the unclaimed
+//  alpha tile and the epoch history rows.
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// The head-miner spot. Eligible and not yet bound: the gold call to claim
 /// the spot on ur.io. Bound: the UID and rank, with the eviction warning
@@ -100,7 +105,10 @@ struct Top200Tile: View {
 }
 
 /// The Bittensor wallet block: the connect call when none is attached, the
-/// coldkey and the settlement note once it is.
+/// coldkey and the settlement note once it is. Its wallet options connect the
+/// Solana wallet USDC payouts go to until the migration to Bittensor is
+/// complete: next to the connect button, or at the trailing end of the header
+/// once a coldkey is attached.
 struct BittensorWalletCard: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -109,13 +117,23 @@ struct BittensorWalletCard: View {
     let wallet: SnWalletInfo?
     let shortAddress: (String) -> String
     let connect: () -> Void
+    /// the USDC waiting while there is no Solana payout wallet, or nil
+    let pendingUsd: String?
+    let connectSolana: () -> Void
 
     @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            UrLabel(text: "Bittensor wallet")
             if let wallet {
+                HStack {
+                    UrLabel(text: "Bittensor wallet")
+                    Spacer()
+                    WalletOverflowMenu(style: .plain) {
+                        connectSolanaItem
+                    }
+                }
+                pendingLine
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.seal.fill")
                         .foregroundColor(themeManager.currentTheme.accentColor)
@@ -140,15 +158,136 @@ struct BittensorWalletCard: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             } else {
+                UrLabel(text: "Bittensor wallet")
                 WalletNotRetroactiveNote()
                 Spacer().frame(height: 4)
-                UrButton(text: "Connect Bittensor wallet", action: connect)
+                pendingLine
+                HStack(spacing: 8) {
+                    UrButton(text: "Connect Bittensor wallet", action: connect)
+                    WalletOverflowMenu(style: .bordered) {
+                        connectSolanaItem
+                    }
+                }
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+
+    /// "3.87 USDC waiting", while payouts are held for want of a Solana wallet
+    @ViewBuilder
+    private var pendingLine: some View {
+        if let pendingUsd {
+            Text("\(pendingUsd) USDC waiting")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+        }
+    }
+
+    private var connectSolanaItem: some View {
+        Button(action: connectSolana) {
+            Label {
+                Text("Connect Solana wallet")
+            } icon: {
+                SolanaMenuIcon.image
+                    .accessibilityHidden(true)
+            }
+        }
+        .accessibilityIdentifier("acceptance.earnings.connectSolana")
+    }
+}
+
+/// The three-dot wallet options: bordered at the height of the button beside
+/// it, or plain at the trailing end of a wallet card's header.
+struct WalletOverflowMenu<Content: View>: View {
+
+    enum Style {
+        case bordered
+        case plain
+    }
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let style: Style
+    var accessibilityIdentifier: String = "acceptance.earnings.walletOptions"
+    @ViewBuilder let items: () -> Content
+
+    var body: some View {
+        Menu {
+            items()
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: style == .bordered ? 16 : 13))
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .frame(width: side, height: side)
+                .contentShape(Rectangle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .frame(width: side, height: side)
+        .overlay(border)
+        .accessibilityLabel(Text("Wallet options"))
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    private var side: CGFloat {
+        style == .bordered ? 48 : 28
+    }
+
+    @ViewBuilder
+    private var border: some View {
+        if style == .bordered {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(themeManager.currentTheme.borderStrongColor, lineWidth: 1)
+        }
+    }
+}
+
+/// The Solana logomark sized for a menu item. Menus drop frame modifiers and
+/// show an asset image at its own size (the logomark is 313×281 pt), so the
+/// logo is drawn into a small template image once.
+private enum SolanaMenuIcon {
+
+    static let image: Image = {
+        let side: CGFloat = 16
+        #if canImport(UIKit)
+        guard let logo = UIImage(named: "solana.logo") else {
+            return Image("solana.logo")
+        }
+        let size = CGSize(width: side, height: side)
+        let sized = UIGraphicsImageRenderer(size: size).image { _ in
+            logo.draw(in: SolanaMenuIcon.aspectFit(logo.size, in: size))
+        }
+        return Image(uiImage: sized.withRenderingMode(.alwaysTemplate))
+        #elseif canImport(AppKit)
+        guard let logo = NSImage(named: "solana.logo") else {
+            return Image("solana.logo")
+        }
+        let size = NSSize(width: side, height: side)
+        let sized = NSImage(size: size, flipped: false) { _ in
+            logo.draw(in: SolanaMenuIcon.aspectFit(logo.size, in: size))
+            return true
+        }
+        sized.isTemplate = true
+        return Image(nsImage: sized)
+        #endif
+    }()
+
+    private static func aspectFit(_ content: CGSize, in bounds: CGSize) -> CGRect {
+        guard content.width > 0, content.height > 0 else {
+            return CGRect(origin: .zero, size: bounds)
+        }
+        let scale = min(bounds.width / content.width, bounds.height / content.height)
+        let fitted = CGSize(width: content.width * scale, height: content.height * scale)
+        return CGRect(
+            x: (bounds.width - fitted.width) / 2,
+            y: (bounds.height - fitted.height) / 2,
+            width: fitted.width,
+            height: fitted.height
+        )
     }
 }
 

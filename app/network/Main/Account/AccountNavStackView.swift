@@ -17,6 +17,7 @@ struct AccountNavStackView: View {
     
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @StateObject var earningsViewModel: EarningsViewModel
+    @StateObject var usdcWalletsViewModel: UsdcWalletsViewModel
     @StateObject var accountPointsStore: AccountPointsStore
     
     @ObservedObject var networkUserViewModel: NetworkUserViewModel
@@ -50,6 +51,9 @@ struct AccountNavStackView: View {
         )
         _earningsViewModel = StateObject(wrappedValue: EarningsViewModel(
             client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
+        ))
+        _usdcWalletsViewModel = StateObject(wrappedValue: UsdcWalletsViewModel(
+            client: UsdcWalletsSdkClient(api: api, urApiService: urApiService)
         ))
         _accountPointsStore = StateObject.init(wrappedValue: AccountPointsStore(api: api))
         
@@ -132,7 +136,8 @@ struct AccountNavStackView: View {
                         accountPointsStore: accountPointsStore,
                         networkReliabilityWindow: networkReliabilityWindow,
                         fetchNetworkReliability: fetchNetworkReliability,
-                        viewModel: earningsViewModel
+                        viewModel: earningsViewModel,
+                        usdcViewModel: usdcWalletsViewModel
                     )
                     .navigationTitle("Earnings")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())

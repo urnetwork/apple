@@ -6,7 +6,9 @@
 //  always the headline: the total, the breakdown and the per-epoch history.
 //  Connecting a Bittensor coldkey adds the subnet layer: the history rows gain
 //  SN25α, the unclaimed tile appears and claims go straight from this device
-//  to the settlement vault. Alpha is not retroactive.
+//  to the settlement vault. Alpha is not retroactive. USDC payouts continue
+//  to a Solana wallet until the migration to Bittensor is complete; the
+//  wallet options next to the Bittensor call connect it.
 //
 
 import SwiftUI
@@ -25,9 +27,12 @@ struct EarningsView: View {
     let networkReliabilityWindow: SdkReliabilityWindow?
     let fetchNetworkReliability: () async -> Void
     @ObservedObject var viewModel: EarningsViewModel
+    @ObservedObject var usdcViewModel: UsdcWalletsViewModel
 
     @StateObject private var connectFlow: ConnectBittensorWalletFlow
+    @StateObject private var solanaFlow: ConnectSolanaWalletFlow
     @State private var presentConnectSheet = false
+    @State private var presentSolanaSheet = false
     @State private var presentClaimSheet = false
 
     init(
@@ -35,13 +40,16 @@ struct EarningsView: View {
         accountPointsStore: AccountPointsStore,
         networkReliabilityWindow: SdkReliabilityWindow?,
         fetchNetworkReliability: @escaping () async -> Void,
-        viewModel: EarningsViewModel
+        viewModel: EarningsViewModel,
+        usdcViewModel: UsdcWalletsViewModel
     ) {
         self.navigate = navigate
         self.accountPointsStore = accountPointsStore
         self.networkReliabilityWindow = networkReliabilityWindow
         self.fetchNetworkReliability = fetchNetworkReliability
         self.viewModel = viewModel
+        self.usdcViewModel = usdcViewModel
+        _solanaFlow = StateObject(wrappedValue: ConnectSolanaWalletFlow(client: usdcViewModel.client))
         _connectFlow = StateObject(wrappedValue: ConnectBittensorWalletFlow(
             client: viewModel.client,
             connect: { address, signature, message in
@@ -72,8 +80,24 @@ struct EarningsView: View {
                     connect: {
                         connectFlow.reset()
                         presentConnectSheet = true
+                    },
+                    pendingUsd: usdcViewModel.showsPendingLine ? usdcViewModel.pendingUsd : nil,
+                    connectSolana: {
+                        solanaFlow.reset()
+                        presentSolanaSheet = true
                     }
                 )
+
+                // the wallet USDC payouts go to until the migration to Bittensor
+                if usdcViewModel.loadedOnce, let wallet = usdcViewModel.payoutWallet {
+                    SolanaWalletCard(
+                        wallet: wallet,
+                        pendingUsd: usdcViewModel.pendingUsd,
+                        remove: {
+                            usdcViewModel.walletQueuedForRemoval = wallet
+                        }
+                    )
+                }
 
                 if viewModel.hasWallet {
                     UnclaimedAlphaTile(
@@ -110,6 +134,21 @@ struct EarningsView: View {
                 presentConnectSheet = false
                 snackbarManager.showSnackbar(message: String(localized: "Connected"))
             }
+            solanaFlow.openWallet = { app in
+                switch app {
+                case .phantom:
+                    return connectWalletProviderViewModel.connectPhantomWallet(onOpenFailed: showSolanaWalletOpenFailed)
+                case .solflare:
+                    return connectWalletProviderViewModel.connectSolflareWallet(onOpenFailed: showSolanaWalletOpenFailed)
+                }
+            }
+            solanaFlow.onConnected = { _ in
+                presentSolanaSheet = false
+                Task {
+                    await usdcViewModel.refresh()
+                    snackbarManager.showSnackbar(message: String(localized: "Payout wallet updated"))
+                }
+            }
         }
         .onOpenURL { url in
             handleDeepLink(url)
@@ -128,6 +167,45 @@ struct EarningsView: View {
             #elseif os(macOS)
             .frame(minWidth: 460, minHeight: 320)
             #endif
+        }
+        .sheet(isPresented: $presentSolanaSheet, onDismiss: {
+            solanaFlow.reset()
+        }) {
+            ConnectSolanaWalletSheet(
+                flow: solanaFlow,
+                dismiss: { presentSolanaSheet = false }
+            )
+            .environmentObject(themeManager)
+            .environmentObject(connectWalletProviderViewModel)
+            .environmentObject(snackbarManager)
+            #if os(iOS)
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(solanaFlow.stage == .connecting)
+            #elseif os(macOS)
+            .frame(minWidth: 460, minHeight: 320)
+            #endif
+        }
+        .alert(
+            "Remove wallet",
+            isPresented: Binding(
+                get: { usdcViewModel.walletQueuedForRemoval != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        usdcViewModel.walletQueuedForRemoval = nil
+                    }
+                }
+            ),
+            presenting: usdcViewModel.walletQueuedForRemoval
+        ) { wallet in
+            Button("Remove", role: .destructive) {
+                Task {
+                    await removeSolanaWallet(wallet)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("USDC payouts are held until another wallet is connected.")
         }
         .sheet(isPresented: $presentClaimSheet) {
             ClaimAlphaSheet(
@@ -236,12 +314,30 @@ struct EarningsView: View {
         async let earnings: Void = viewModel.refresh()
         async let points: Void = accountPointsStore.fetchAccountPoints()
         async let reliability: Void = fetchNetworkReliability()
-        (_, _, _) = await (earnings, points, reliability)
+        async let usdc: Void = usdcViewModel.refresh()
+        (_, _, _, _) = await (earnings, points, reliability, usdc)
     }
 
-    /// The ur.io wallet bridge returns the coldkey and its signature over the
-    /// connect challenge as a deep link.
+    /// The wallets come back as deep links. Phantom and Solflare (or the ur.io
+    /// bridge driving their extensions) return the Solana public key through
+    /// urnetwork://phantom-connect or urnetwork://solflare-connect; the ur.io
+    /// wallet bridge returns the coldkey and its signature over the connect
+    /// challenge. Only one of the two connect sheets is up at a time.
     private func handleDeepLink(_ url: URL) {
+        if presentSolanaSheet {
+            connectWalletProviderViewModel.handleDeepLink(
+                url,
+                onPublicKeyRetrieved: { publicKey, provider in
+                    Task {
+                        await solanaFlow.handleWalletReturn(publicKey: publicKey, provider: provider)
+                    }
+                },
+                onError: { error in
+                    solanaFlow.handleWalletError(error)
+                }
+            )
+            return
+        }
         guard presentConnectSheet else {
             return
         }
@@ -261,6 +357,18 @@ struct EarningsView: View {
             }
         )
     }
+
+    /// The wallet app did not open: back to the chooser.
+    private func showSolanaWalletOpenFailed() {
+        solanaFlow.reset()
+        snackbarManager.showSnackbar(message: String(localized: "Couldn't open wallet. Please install it and try again."))
+    }
+
+    private func removeSolanaWallet(_ wallet: UsdcWalletInfo) async {
+        if case .failure(let error) = await usdcViewModel.removeWallet(wallet.id) {
+            snackbarManager.showSnackbar(message: ConnectSolanaWalletFlow.errorMessage(for: error))
+        }
+    }
 }
 
 #Preview {
@@ -278,7 +386,10 @@ struct EarningsView: View {
         accountPointsStore: AccountPointsStore(api: nil),
         networkReliabilityWindow: nil,
         fetchNetworkReliability: {},
-        viewModel: EarningsViewModel(client: client)
+        viewModel: EarningsViewModel(client: client),
+        usdcViewModel: UsdcWalletsViewModel(
+            client: UsdcWalletsPreviewClient(startLinked: true, pendingUsdNanoCents: 3_870_000_000)
+        )
     )
     .environmentObject(themeManager)
     .environmentObject(ConnectWalletProviderViewModel())

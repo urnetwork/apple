@@ -77,6 +77,43 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
     }
 }
 
+// Only the provider extender status and setting cross this seam (EXTENDER.md
+// N2, N7). The normal source is the SDK remote; tests keep the registered
+// callback and record the writes without starting RPC.
+protocol ExtenderProvideSource: AnyObject {
+    func readExtenderProvideStatus() -> ExtenderProvideStatusModel
+    func readProvideExtender() -> Bool
+    func writeProvideExtender(_ provideExtender: Bool)
+    func observeExtenderProvideStatus(
+        _ callback: @escaping @Sendable (ExtenderProvideStatusModel) -> Void
+    ) -> () -> Void
+}
+
+extension SdkDeviceRemote: ExtenderProvideSource {
+    func readExtenderProvideStatus() -> ExtenderProvideStatusModel {
+        getExtenderProvideStatus().map { ExtenderProvideStatusModel($0) } ?? .unsupported
+    }
+
+    func readProvideExtender() -> Bool {
+        getProvideExtender()
+    }
+
+    func writeProvideExtender(_ provideExtender: Bool) {
+        setProvideExtender(provideExtender)
+    }
+
+    func observeExtenderProvideStatus(
+        _ callback: @escaping @Sendable (ExtenderProvideStatusModel) -> Void
+    ) -> () -> Void {
+        // the sdk hands a listener the unsupported status, never nil
+        let subscription = add(ExtenderProvideStatusChangeListener { status in
+            guard let status else { return }
+            callback(ExtenderProvideStatusModel(status))
+        })
+        return { subscription?.close() }
+    }
+}
+
 typealias DeviceAuthCallbackWork = @MainActor @Sendable () -> Void
 typealias DeviceAuthCallbackDispatch = @Sendable (@escaping DeviceAuthCallbackWork) -> Void
 
@@ -99,6 +136,9 @@ struct DeviceAuthCallbackEffects {
 // Reference identity names one registration, even when device/token bytes are
 // reused. Only the main actor reads or changes the manager's current owner.
 private final class DeviceAuthCallbackOwner: Sendable {}
+
+// One registration of the provider extender status listener, as above.
+private final class ExtenderProvideCallbackOwner: Sendable {}
 
 @MainActor
 class DeviceManager: ObservableObject {
@@ -151,6 +191,7 @@ class DeviceManager: ObservableObject {
     private var deviceAuthCallbackOwner: DeviceAuthCallbackOwner?
     private let authCallbackDispatch: DeviceAuthCallbackDispatch
     private let authCallbackEffects: DeviceAuthCallbackEffects
+    private let extenderProvideCallbackDispatch: DeviceAuthCallbackDispatch
 
     func applicationDidBecomeActive() {
         applicationIsActive = true
@@ -251,6 +292,36 @@ class DeviceManager: ObservableObject {
         }
     }
     
+    /// The provider extender role as the device reports it (EXTENDER.md N2,
+    /// N7): what the Extender rows draw and, through `enabled`, whether the
+    /// extender statistics show (O8). Unsupported until a device reports, and
+    /// again when the device goes.
+    @Published private(set) var extenderProvideStatus: ExtenderProvideStatusModel = .unsupported
+
+    /// The provider extender setting (N4), the Extender switch's position. A
+    /// toggle writes it through the device at once; every pushed status reads
+    /// it back from the device under the echo guard, and a device process out
+    /// of contact answers the queued value, so the switch never snaps back
+    /// during a daemon restart (N2). On before any read, as the sdk's default.
+    @Published var provideExtender: Bool = true {
+        didSet {
+            guard DeviceSettingWritePolicy.shouldPropagate(
+                isLoadingFromDevice: isLoadingFromDevice
+            ) else { return }
+            handleProvideExtenderUpdate(provideExtender)
+        }
+    }
+
+    /// The Extender row's local repaint after a toggle, standing until the
+    /// next pushed status replaces it (N7).
+    @Published private(set) var extenderProvideGuess: ExtenderProvideDisplay? = nil
+
+    /// What the Extender rows draw: the toggle's guess until the next status
+    /// arrives, else the reading of the status.
+    var extenderProvideDisplay: ExtenderProvideDisplay {
+        extenderProvideGuess ?? ExtenderProvideDisplay.of(status: extenderProvideStatus)
+    }
+
     @Published private(set) var provideEnabled: Bool = false
     @Published private(set) var providePaused: Bool = false
 
@@ -432,6 +503,9 @@ class DeviceManager: ObservableObject {
     private var deviceVpnInterfaceWhileOfflineSub: SdkSubProtocol?
     private var deviceDefaultLocationSub: SdkSubProtocol?
     private var deviceBlockerEnabledSub: SdkSubProtocol?
+    private var extenderProvideSource: ExtenderProvideSource?
+    private var extenderProvideCallbackOwner: ExtenderProvideCallbackOwner?
+    private var closeExtenderProvideStatusListener: (() -> Void)?
 
     private func updateAllowProvidingCell(_ allow: Bool) {
         #if os(iOS)
@@ -496,6 +570,52 @@ class DeviceManager: ObservableObject {
     
     @Published private(set) var deviceInitialized: Bool = false
     
+    private func handleProvideExtenderUpdate(_ provideExtender: Bool) {
+        // the switch exists only while the device reports the role supported,
+        // and a setting the device cannot take is never written (N1)
+        guard extenderProvideStatus.supported, let source = extenderProvideSource else {
+            return
+        }
+        extenderProvideGuess = ExtenderProvideDisplay.guess(
+            on: provideExtender,
+            providing: provideEnabled
+        )
+        source.writeProvideExtender(provideExtender)
+    }
+
+    /// One status from the source (N7), with the setting read beside it only
+    /// while the status reports the role supported: a hidden row reads no
+    /// setting, and the switch keeps its value meanwhile.
+    private func applyExtenderProvideStatus(
+        _ status: ExtenderProvideStatusModel,
+        from source: ExtenderProvideSource
+    ) {
+        applyExtenderProvideStatus(
+            status,
+            provideExtender: status.supported ? source.readProvideExtender() : nil
+        )
+    }
+
+    /// One pushed, seeded or reset provider extender status (N7). It replaces
+    /// the toggle's guess, and the switch takes the setting when one was read,
+    /// under the echo guard so the read is not written back.
+    private func applyExtenderProvideStatus(
+        _ status: ExtenderProvideStatusModel,
+        provideExtender: Bool?
+    ) {
+        if extenderProvideGuess != nil {
+            extenderProvideGuess = nil
+        }
+        if extenderProvideStatus != status {
+            extenderProvideStatus = status
+        }
+        if let provideExtender, self.provideExtender != provideExtender {
+            withDeviceStateLoad {
+                self.provideExtender = provideExtender
+            }
+        }
+    }
+
     private func handleProvideControlModeUpdate(_ mode: ProvideControlMode) {
         device?.setProvideControlMode(mode.rawValue)
         
@@ -550,11 +670,15 @@ class DeviceManager: ObservableObject {
         authCallbackDispatch: @escaping DeviceAuthCallbackDispatch = { work in
             DispatchQueue.main.async { work() }
         },
-        authCallbackEffects: DeviceAuthCallbackEffects = .live
+        authCallbackEffects: DeviceAuthCallbackEffects = .live,
+        extenderProvideCallbackDispatch: @escaping DeviceAuthCallbackDispatch = { work in
+            DispatchQueue.main.async { work() }
+        }
     ) {
         self.startupMode = startupMode
         self.authCallbackDispatch = authCallbackDispatch
         self.authCallbackEffects = authCallbackEffects
+        self.extenderProvideCallbackDispatch = extenderProvideCallbackDispatch
 
         // This constructor-only opt-out permits memory tests. NetworkApp never
         // supplies it: both production and hardwareNoVPN retain normal startup.
@@ -1304,6 +1428,10 @@ extension DeviceManager {
             }
         })
         
+        // the provider extender status and setting (N2, N7), beside the
+        // provide listeners: the listener, then the seed
+        setupExtenderProvide(source: device)
+
         setupDeviceAuthListeners(source: device)
 
         self.deviceCanShowRatingDialogSub = device.add(CanShowRatingDialogChangeListener { [weak self] canShowRatingDialog in
@@ -1404,6 +1532,37 @@ extension DeviceManager {
         deviceAuthCallbackOwner = nil
     }
 
+    // The provider extender status and setting of one device (EXTENDER.md
+    // N7): the listener, then the seed, since the listener reports only
+    // changes. As for the auth callbacks, registration and delivery are
+    // separate boundaries: a status still queued from a replaced source is
+    // dropped.
+    func setupExtenderProvide(source: ExtenderProvideSource) {
+        resetExtenderProvide()
+        let owner = ExtenderProvideCallbackOwner()
+        extenderProvideCallbackOwner = owner
+        extenderProvideSource = source
+        let dispatch = extenderProvideCallbackDispatch
+        closeExtenderProvideStatusListener = source.observeExtenderProvideStatus { [weak self] status in
+            dispatch { [weak self] in
+                guard let self, self.extenderProvideCallbackOwner === owner,
+                      let source = self.extenderProvideSource else { return }
+                self.applyExtenderProvideStatus(status, from: source)
+            }
+        }
+        applyExtenderProvideStatus(source.readExtenderProvideStatus(), from: source)
+    }
+
+    // The status and the setting reset with the device (N7) under the echo
+    // guard, so nothing is written, and a toggle afterwards reaches no device.
+    func resetExtenderProvide() {
+        extenderProvideCallbackOwner = nil
+        closeExtenderProvideStatusListener?()
+        closeExtenderProvideStatusListener = nil
+        extenderProvideSource = nil
+        applyExtenderProvideStatus(.unsupported, provideExtender: true)
+    }
+
     private func cleanupDeviceAuthListeners() {
         retireDeviceAuthCallbacks()
         closeDeviceJwtRefreshListener?()
@@ -1452,6 +1611,9 @@ extension DeviceManager {
         providerHasNetworkKey = false
         deviceName = ""
         currentProvideMode = SdkProvideModeNone
+
+        // the extender status and setting reset with the device (N7)
+        resetExtenderProvide()
     }
 
     private static func provideSecretKeysContainNetwork(_ list: SdkProvideSecretKeyList?) -> Bool {
@@ -2000,6 +2162,19 @@ private class DefaultLocationChangeListener: NSObject, SdkDefaultLocationChangeL
 
     func defaultLocationChanged(_ location: SdkConnectLocation?) {
         c(location)
+    }
+}
+
+private class ExtenderProvideStatusChangeListener: NSObject, SdkExtenderProvideStatusChangeListenerProtocol {
+
+    private let c: (_ status: SdkExtenderProvideStatus?) -> Void
+
+    init(c: @escaping (_ status: SdkExtenderProvideStatus?) -> Void) {
+        self.c = c
+    }
+
+    func extenderProvideStatusChanged(_ status: SdkExtenderProvideStatus?) {
+        c(status)
     }
 }
 

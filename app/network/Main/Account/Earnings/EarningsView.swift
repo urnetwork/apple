@@ -215,10 +215,21 @@ struct EarningsView: View {
             // provider statistics follow the provide mode: with providing off
             // the reliability chart hides and the section says so, the same
             // gate and message as the stats section
-            if deviceManager.provideControlMode != .Never && throughputStore.hasProviderStats {
+            if providerStatisticsVisible(
+                provideControlMode: deviceManager.provideControlMode,
+                hasProviderStats: throughputStore.hasProviderStats
+            ) {
                 NetworkReliabilityView(
                     reliabilityWindow: networkReliabilityWindow
                 )
+                Divider()
+                Spacer().frame(height: 12)
+            }
+            // the extender statistics, above the provider statistics while
+            // those show and the role runs (EXTENDER.md O8)
+            if extenderStatsVisible {
+                ExtenderStatsSection()
+                Spacer().frame(height: 12)
                 Divider()
                 Spacer().frame(height: 12)
             }
@@ -230,6 +241,16 @@ struct EarningsView: View {
         .frame(maxWidth: .infinity)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+
+    /// The provider gate above and the role running, which follows the pushed
+    /// status and never the throughput tick (EXTENDER.md O4, O8).
+    private var extenderStatsVisible: Bool {
+        extenderStatsSectionVisible(
+            provideControlMode: deviceManager.provideControlMode,
+            hasProviderStats: throughputStore.hasProviderStats,
+            extenderRunning: deviceManager.extenderProvideStatus.enabled
+        )
     }
 
     private func refresh() async {

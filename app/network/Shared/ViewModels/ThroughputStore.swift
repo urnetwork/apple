@@ -247,13 +247,20 @@ private class ThroughputListener: NSObject, SdkThroughputListenerProtocol {
 
 /**
  * Wraps the SDK contract view controller and publishes the live
- * client and provider throughput series
+ * client, provider and extender throughput series
  */
 @MainActor
 class ThroughputStore: ObservableObject {
 
     @Published private(set) var clientPoints: [ThroughputPoint] = []
     @Published private(set) var providerPoints: [ThroughputPoint] = []
+    /**
+     * the traffic the provider extender role relays, in the remote route only
+     * (EXTENDER.md O3). Whether the extender section shows is the pushed
+     * status's `enabled`, never these points, which hold at zero after the
+     * role stops
+     */
+    @Published private(set) var extenderPoints: [ThroughputPoint] = []
     /**
      * the remote traffic of the window partitioned by transport, ready to
      * render (see `TransportDistribution`)
@@ -286,7 +293,13 @@ class ThroughputStore: ObservableObject {
             }
         })
 
-        update()
+        // a new controller reports no provider stats until its first sample,
+        // and its first tick lands after its second, so reading it here would
+        // show "Providing is disabled" and hide the provider and extender
+        // sections for about two seconds after every re-show. The device
+        // answers now; the ticks read the controller, which has sampled by then
+        // (EXTENDER.md O8)
+        update(hasProviderStats: device.getProviderPacketStats() != nil)
     }
 
     func reset() {
@@ -304,12 +317,13 @@ class ThroughputStore: ObservableObject {
 
         clientPoints = []
         providerPoints = []
+        extenderPoints = []
         clientTransportDistribution = .empty
         providerTransportDistribution = .empty
         hasProviderStats = false
     }
 
-    private func update() {
+    private func update(hasProviderStats seededHasProviderStats: Bool? = nil) {
         guard let contractViewController = self.contractViewController else {
             return
         }
@@ -323,6 +337,12 @@ class ThroughputStore: ObservableObject {
         if providerPoints != self.providerPoints {
             self.providerPoints = providerPoints
         }
+        // the extender series on the same tick. The store reads no extender
+        // stats: the section follows the pushed status (O8)
+        let extenderPoints = Self.mapPoints(contractViewController.getExtenderThroughputPoints())
+        if extenderPoints != self.extenderPoints {
+            self.extenderPoints = extenderPoints
+        }
         // the distribution is inactive while the window is idle; only publish a
         // real change so an idle tick doesn't retrigger the bar
         let clientTransportDistribution = TransportDistribution(contractViewController.getTransportDistribution())
@@ -333,13 +353,14 @@ class ThroughputStore: ObservableObject {
         if providerTransportDistribution != self.providerTransportDistribution {
             self.providerTransportDistribution = providerTransportDistribution
         }
-        let hasProviderStats = contractViewController.getProviderPacketStats() != nil
+        let hasProviderStats = seededHasProviderStats
+            ?? (contractViewController.getProviderPacketStats() != nil)
         if hasProviderStats != self.hasProviderStats {
             self.hasProviderStats = hasProviderStats
         }
     }
 
-    private static func mapPoints(_ list: SdkThroughputPointList?) -> [ThroughputPoint] {
+    static func mapPoints(_ list: SdkThroughputPointList?) -> [ThroughputPoint] {
         guard let list = list else {
             return []
         }

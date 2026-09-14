@@ -76,33 +76,67 @@ struct ExtenderProvideRowTests {
         #expect(manager.provideExtender)
     }
 
-    // the model keeps exactly the fields the row and the section read
-    @Test func theModelReadsTheSdkStatus() {
-        let sdk = SdkExtenderProvideStatus()
-        sdk.supported = true
-        sdk.state = SdkExtenderProvideStateActive
-        sdk.errorCase = ""
-        sdk.reason = "dial tcp6 [2001:db8::1]:443: connect: no route to host"
-        sdk.activatedV4 = true
-        sdk.activatedV6 = false
-        sdk.lastActivationRefused = true
-        sdk.enabled = true
-        // fields only the sdk's state rule reads
-        sdk.startError = "not read"
-        sdk.listening = false
-        sdk.listenError = "not read"
-        sdk.lastActivationError = "not read"
-        sdk.revokedTime = 1_700_000_000_000
-        #expect(ExtenderProvideStatusModel(sdk) == ExtenderProvideStatusModel(
+    // N7: the model is read from the sdk's status field by field. Each of the
+    // eight fields the row and the section read moves the model on its own,
+    // and every other field of the status changes nothing
+    @Test func theModelReadsTheSdkStatusFieldByField() {
+        func baseline() -> SdkExtenderProvideStatus {
+            let sdk = SdkExtenderProvideStatus()
+            sdk.supported = true
+            sdk.state = SdkExtenderProvideStateActive
+            sdk.errorCase = ""
+            sdk.reason = "dial tcp6 [2001:db8::1]:443: connect: no route to host"
+            sdk.activatedV4 = true
+            sdk.activatedV6 = false
+            sdk.lastActivationRefused = false
+            sdk.enabled = true
+            return sdk
+        }
+        let base = ExtenderProvideStatusModel(baseline())
+        #expect(base == ExtenderProvideStatusModel(
             supported: true,
             state: SdkExtenderProvideStateActive,
             errorCase: "",
             reason: "dial tcp6 [2001:db8::1]:443: connect: no route to host",
             activatedV4: true,
             activatedV6: false,
-            lastActivationRefused: true,
+            lastActivationRefused: false,
             enabled: true
         ))
+
+        let readFields: [(String, (SdkExtenderProvideStatus) -> Void)] = [
+            ("supported", { $0.supported = false }),
+            ("state", { $0.state = SdkExtenderProvideStateError }),
+            ("errorCase", { $0.errorCase = SdkExtenderProvideErrorListen }),
+            ("reason", { $0.reason = "another reason" }),
+            ("activatedV4", { $0.activatedV4 = false }),
+            ("activatedV6", { $0.activatedV6 = true }),
+            ("lastActivationRefused", { $0.lastActivationRefused = true }),
+            ("enabled", { $0.enabled = false }),
+        ]
+        for (name, change) in readFields {
+            let sdk = baseline()
+            change(sdk)
+            #expect(ExtenderProvideStatusModel(sdk) != base, "\(name) must move the model")
+        }
+
+        let otherFields: [(String, (SdkExtenderProvideStatus) -> Void)] = [
+            ("startError", { $0.startError = "noise" }),
+            ("listening", { $0.listening = true }),
+            ("listenError", { $0.listenError = "noise" }),
+            ("ipv4", { $0.ipv4 = "192.0.2.1" }),
+            ("ipv6", { $0.ipv6 = "2001:db8::1" }),
+            ("lastActivationTime", { $0.lastActivationTime = 1_700_000_000_000 }),
+            ("lastActivationError", { $0.lastActivationError = "noise" }),
+            ("revokedTime", { $0.revokedTime = 1_700_000_000_000 }),
+            ("dnsPorts", { $0.dnsPorts = "53,4053" }),
+            ("connectionCount", { $0.connectionCount = 7 }),
+        ]
+        for (name, change) in otherFields {
+            let sdk = baseline()
+            change(sdk)
+            #expect(ExtenderProvideStatusModel(sdk) == base, "\(name) must change nothing")
+        }
     }
 
     // MARK: every case of N3

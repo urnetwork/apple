@@ -344,7 +344,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // memory target is set separately at device creation and must fit
         // inside this budget twice over (TunnelDeviceMemoryTarget). iOS holds a
         // 32mib footprint for the constrained extension; macOS, which reports
-        // no packet-tunnel jetsam limit, runs the desktop budget.
+        // no packet-tunnel jetsam limit, runs whichever desktop tier its
+        // MEASURED host memory selects. The tier is resolved once per process,
+        // so this budget and the device target read at session start are always
+        // the same pair.
         //
         // One value per platform, not per OS version: the extension deploys to
         // iOS 16 / macOS 13.5, so every version it runs on takes the same

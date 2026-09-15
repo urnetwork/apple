@@ -3,7 +3,7 @@ import XCTest
 final class TunnelMemoryBoundsTests: XCTestCase {
     // The device target each platform hands SdkNewDeviceLocalWithMemoryTarget,
     // and the budget it hands SdkSetMemoryLimit: iOS 20 inside 32 MiB (jetsam),
-    // macOS 128 inside 384, or 256 inside 768 on a large host.
+    // macOS 128 inside 384, or 256 inside 768 on a host with 32 GiB or more.
     func testDeviceMemoryTargetPerPlatform() {
         XCTAssertEqual(TunnelDeviceMemoryTarget.iosByteCount, 20 * 1024 * 1024)
         XCTAssertEqual(TunnelDeviceMemoryTarget.macosByteCount, 128 * 1024 * 1024)
@@ -16,7 +16,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
         )
         XCTAssertEqual(
             TunnelDeviceMemoryTarget.largeHostThresholdByteCount,
-            16 * 1024 * 1024 * 1024
+            32 * 1024 * 1024 * 1024
         )
 #if os(iOS)
         XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 20 * 1024 * 1024)
@@ -44,8 +44,9 @@ final class TunnelMemoryBoundsTests: XCTestCase {
             (0, base),            // nothing measured
             (-1, base),           // a nonsense measurement
             (8 * gib, base),      // an ordinary laptop
-            (16 * gib - 1, base), // one byte under the bar
-            (16 * gib, large),
+            (16 * gib, base),     // a 16 GiB laptop: the bar is deliberately above it
+            (32 * gib - 1, base), // one byte under the bar
+            (32 * gib, large),
             (64 * gib, large),
         ]
         for (host, expected) in rows {
@@ -61,7 +62,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
             TunnelDeviceMemoryTarget.macosProcessBudgetByteCount
         )
         XCTAssertEqual(
-            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 32 * gib).processBudgetByteCount,
+            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 64 * gib).processBudgetByteCount,
             TunnelDeviceMemoryTarget.macosLargeHostProcessBudgetByteCount
         )
     }
@@ -71,7 +72,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
     // deliberately not asserted here.
     func testEveryMacosTierIsBackedAndCollectorSafe() {
         let gib: Int64 = 1024 * 1024 * 1024
-        for host: Int64? in [nil, 8 * gib, 16 * gib, 128 * gib] {
+        for host: Int64? in [nil, 8 * gib, 32 * gib, 128 * gib] {
             let tier = TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: host)
             XCTAssertTrue(tier.isBacked, "host \(String(describing: host)) target is not backed")
             XCTAssertTrue(

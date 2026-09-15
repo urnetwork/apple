@@ -39,7 +39,7 @@ enum TunnelDeviceMemoryTarget {
     static let macosProcessBudgetByteCount: Int64 = 384 * 1024 * 1024
     static let macosLargeHostProcessBudgetByteCount: Int64 = 768 * 1024 * 1024
 
-    // THE BAR: a host with MORE than 8 GiB of memory takes the large tier. The
+    // THE BAR: every machine sold as 8 GiB or more takes the large tier. The
     // same bar on macOS, Windows and the Linux daemon.
     //
     // This is a product decision rather than a memory one: the throughput the
@@ -60,13 +60,25 @@ enum TunnelDeviceMemoryTarget {
     // explicit opt-in, or promotion on measured throughput, rather than any RAM
     // threshold; either is a different change from this one.
     //
-    // The comparison is STRICT: measured memory must exceed the bar. Measured
-    // memory is below nominal anyway -- firmware, the kernel and an integrated
-    // GPU's carve-out come off before hw.memsize, /proc/meminfo or
-    // GlobalMemoryStatusEx report anything -- so a nominal 8 GiB machine
-    // measures at or under 8 GiB and takes the base tier, and 12 GiB and up
-    // take the large one.
-    static let largeHostThresholdByteCount: Int64 = 8 * 1024 * 1024 * 1024
+    // WHY THE NUMBER BELOW IS 7 AND NOT 8 -- do not round it up. A probe
+    // reports usable memory, and usable memory is below the size a machine is
+    // sold as: on Linux and Windows, firmware, the kernel and an integrated
+    // GPU's carve-out come off before /proc/meminfo or GlobalMemoryStatusEx
+    // report anything, so a machine sold as 8 GiB reads roughly 7.6-7.8 GiB. A
+    // bar set at the nominal 8 GiB would exclude exactly the machines it exists
+    // to include, and would silently send every base-model 8 GiB machine back
+    // to the small tier. The threshold sits a whole GiB below nominal so that
+    // cannot happen, while anything genuinely smaller -- a 6 GiB machine reads
+    // about 5.7 -- stays base. hw.memsize reports installed memory exactly
+    // (8,589,934,592 on an 8 GiB Mac), which clears the bar just as well, and
+    // the bar is kept identical across platforms rather than tuned per probe.
+    //
+    // The comparison is strict -- measured memory must EXCEED 7 GiB -- which
+    // sits naturally with a threshold chosen below the nominal size. The tests
+    // pin the boundary and the machines the decision is about: an exact 8 GiB
+    // reading and a realistic 7.68 GiB one must both be large, so rounding this
+    // up fails them.
+    static let largeHostThresholdByteCount: Int64 = 7 * 1024 * 1024 * 1024
 
     // The pools take 14 of 34 parts of the process budget, leaving 20 parts for
     // the device targets it backs.

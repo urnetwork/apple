@@ -3,7 +3,7 @@ import XCTest
 final class TunnelMemoryBoundsTests: XCTestCase {
     // The device target each platform hands SdkNewDeviceLocalWithMemoryTarget,
     // and the budget it hands SdkSetMemoryLimit: iOS 20 inside 32 MiB (jetsam),
-    // macOS 128 inside 384, or 256 inside 768 on a host with more than 8 GiB.
+    // macOS 128 inside 384, or 256 inside 768 on any Mac sold as 8 GiB or more.
     func testDeviceMemoryTargetPerPlatform() {
         XCTAssertEqual(TunnelDeviceMemoryTarget.iosByteCount, 20 * 1024 * 1024)
         XCTAssertEqual(TunnelDeviceMemoryTarget.macosByteCount, 128 * 1024 * 1024)
@@ -16,7 +16,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
         )
         XCTAssertEqual(
             TunnelDeviceMemoryTarget.largeHostThresholdByteCount,
-            8 * 1024 * 1024 * 1024
+            7 * 1024 * 1024 * 1024
         )
 #if os(iOS)
         XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 20 * 1024 * 1024)
@@ -36,20 +36,23 @@ final class TunnelMemoryBoundsTests: XCTestCase {
     // The gate over the measurement, including the failure case. With the bar
     // this low nearly every real Mac is on one side of it, so an off-by-one in
     // the comparison would be invisible in practice: the three rows around
-    // 8 GiB are the only thing that would catch it.
+    // 7 GiB are the only thing that would catch it. The two rows after them are
+    // the machines the decision is about, and fail if the bar is rounded up
+    // to 8.
     func testMacosTierIsChosenFromMeasuredHostMemory() {
         let gib: Int64 = 1024 * 1024 * 1024
         let base = TunnelDeviceMemoryTarget.macosByteCount
         let large = TunnelDeviceMemoryTarget.macosLargeHostByteCount
         let rows: [(Int64?, Int64)] = [
-            (nil, base),          // sysctl failed
-            (0, base),            // nothing measured
-            (-1, base),           // a nonsense measurement
-            (4 * gib, base),      // a genuinely small host
-            (8 * gib - 1, base),  // one byte under the bar
-            (8 * gib, base),      // exactly at it: the comparison is strict
-            (8 * gib + 1, large), // one byte over
-            (16 * gib, large),
+            (nil, base),               // sysctl failed
+            (0, base),                 // nothing measured
+            (-1, base),                // a nonsense measurement
+            (4 * gib, base),           // a genuinely small host
+            (7 * gib - 1, base),       // one byte under the bar
+            (7 * gib, base),           // exactly at it: the comparison is strict
+            (7 * gib + 1, large),      // one byte over
+            (8 * gib, large),          // an 8 GiB Mac: hw.memsize reports it exactly
+            (8_048_972 * 1024, large), // an 8 GiB machine's usable ~7.68 GiB
             (64 * gib, large),
         ]
         for (host, expected) in rows {
@@ -69,12 +72,20 @@ final class TunnelMemoryBoundsTests: XCTestCase {
             )
         )
         XCTAssertEqual(
-            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 8 * gib).processBudgetByteCount,
+            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 7 * gib).processBudgetByteCount,
             TunnelDeviceMemoryTarget.macosProcessBudgetByteCount
         )
         XCTAssertEqual(
-            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 8 * gib + 1).processBudgetByteCount,
+            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 7 * gib + 1).processBudgetByteCount,
             TunnelDeviceMemoryTarget.macosLargeHostProcessBudgetByteCount
+        )
+        // An 8 GiB Mac gets the whole large pair, not just the large target.
+        XCTAssertEqual(
+            TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: 8 * gib),
+            TunnelDeviceMemoryTarget.Tier(
+                deviceTargetByteCount: 256 * 1024 * 1024,
+                processBudgetByteCount: 768 * 1024 * 1024
+            )
         )
     }
 
@@ -83,7 +94,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
     // above by value and deliberately not asserted here.
     func testEveryMacosTierIsBackedAndCollectorSafe() {
         let gib: Int64 = 1024 * 1024 * 1024
-        for host: Int64? in [nil, 8 * gib - 1, 8 * gib, 8 * gib + 1, 128 * gib] {
+        for host: Int64? in [nil, 7 * gib - 1, 7 * gib, 7 * gib + 1, 8 * gib, 128 * gib] {
             let tier = TunnelDeviceMemoryTarget.macosTier(hostMemoryByteCount: host)
             XCTAssertTrue(tier.isBacked, "host \(String(describing: host)) target is not backed")
             XCTAssertTrue(

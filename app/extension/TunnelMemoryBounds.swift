@@ -1,23 +1,58 @@
 import Foundation
 
 // The per-device memory target PacketTunnelProvider passes to
-// SdkNewDeviceLocalWithMemoryTarget. connect sizes the H3 carrier windows from
-// the whole device target (stream window max(384 KiB, target / 64 MiB *
-// 3 MiB), the scale capped at the 64 MiB reference).
+// SdkNewDeviceLocalWithMemoryTarget, and the process budget it passes to
+// SdkSetMemoryLimit. The two are one decision: connect draws the H3 carrier
+// windows from the device target (the stream window is three quarters of the
+// carrier's eighth, so 3 * target / 32), while the device target itself has to
+// be backed by the process budget.
 //
-// iOS stays at 20 MiB: the packet-tunnel extension is killed by jetsam at
-// 50 MiB. macOS reports no packet-tunnel jetsam limit, so it runs at the
-// 64 MiB reference and gets the full 3 MiB stream window. The process-level
-// budget (SdkSetMemoryLimit) is separate and set in the provider's init.
+// Two constraints bind the pair, and macOS satisfies both:
+//
+//   backing    the device targets plus the message pools must fit the process
+//              budget, and the pools take 14 of 34 parts, so a target may be at
+//              most 20/34 of the budget. 128 MiB <= 20/34 * 384 MiB = 225.9.
+//   collector  SdkSetMemoryLimit is also the go soft limit, and live heap
+//              amplifies about threefold at the runtime; a target too close to
+//              its soft limit reproduces the measured mobile collection storm.
+//              The budget is therefore at least three times the target:
+//              384 MiB = 3 * 128 MiB.
+//
+// iOS is the documented exception to both, and is not ours to change here: the
+// packet-tunnel extension is killed by jetsam at 50 MiB, so it holds a 20 MiB
+// target inside a 32 MiB budget. macOS reports no packet-tunnel jetsam limit
+// (and no job object or rlimit stands in for one), so it runs the desktop
+// pair. A host-memory gate raising the target to 256 MiB on machines with
+// 16 GiB or more is a follow-up; nothing on this path measures host memory yet.
 enum TunnelDeviceMemoryTarget {
     static let iosByteCount: Int64 = 20 * 1024 * 1024
-    static let macosByteCount: Int64 = 64 * 1024 * 1024
+    static let macosByteCount: Int64 = 128 * 1024 * 1024
+
+    static let iosProcessBudgetByteCount: Int64 = 32 * 1024 * 1024
+    static let macosProcessBudgetByteCount: Int64 = 384 * 1024 * 1024
+
+    // The pools take 14 of 34 parts of the process budget, leaving 20 parts for
+    // the device targets it backs.
+    static let poolRatioParts: Int64 = 14
+    static let budgetRatioParts: Int64 = 34
+
+    // The go soft limit is the process budget, and live heap amplifies about
+    // threefold; treat three as a floor rather than an estimate.
+    static let collectorBudgetMultiple: Int64 = 3
 
     static var byteCount: Int64 {
 #if os(iOS)
         return iosByteCount
 #else
         return macosByteCount
+#endif
+    }
+
+    static var processBudgetByteCount: Int64 {
+#if os(iOS)
+        return iosProcessBudgetByteCount
+#else
+        return macosProcessBudgetByteCount
 #endif
     }
 }

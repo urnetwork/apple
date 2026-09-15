@@ -1,16 +1,42 @@
 import XCTest
 
 final class TunnelMemoryBoundsTests: XCTestCase {
-    // The device target each platform hands SdkNewDeviceLocalWithMemoryTarget:
-    // iOS 20 MiB (jetsam), macOS the 64 MiB reference.
+    // The device target each platform hands SdkNewDeviceLocalWithMemoryTarget,
+    // and the budget it hands SdkSetMemoryLimit: iOS 20 inside 32 MiB (jetsam),
+    // macOS 128 inside 384 MiB.
     func testDeviceMemoryTargetPerPlatform() {
         XCTAssertEqual(TunnelDeviceMemoryTarget.iosByteCount, 20 * 1024 * 1024)
-        XCTAssertEqual(TunnelDeviceMemoryTarget.macosByteCount, 64 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.macosByteCount, 128 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.iosProcessBudgetByteCount, 32 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.macosProcessBudgetByteCount, 384 * 1024 * 1024)
 #if os(iOS)
         XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 20 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.processBudgetByteCount, 32 * 1024 * 1024)
 #else
-        XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 64 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 128 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.processBudgetByteCount, 384 * 1024 * 1024)
 #endif
+    }
+
+    // The macOS pair satisfies both constraints on a target and its budget. iOS
+    // is the documented exception (jetsam caps the budget at 32 MiB), so it is
+    // pinned above by value and deliberately not asserted here.
+    func testMacosMemoryTargetIsBackedAndCollectorSafe() {
+        let target = TunnelDeviceMemoryTarget.macosByteCount
+        let budget = TunnelDeviceMemoryTarget.macosProcessBudgetByteCount
+        let targetParts = TunnelDeviceMemoryTarget.budgetRatioParts
+            - TunnelDeviceMemoryTarget.poolRatioParts
+
+        // backing: the target is at most 20/34 of the budget
+        XCTAssertLessThanOrEqual(
+            target * TunnelDeviceMemoryTarget.budgetRatioParts,
+            budget * targetParts
+        )
+        // collector: the budget is at least three times the target
+        XCTAssertGreaterThanOrEqual(
+            budget,
+            TunnelDeviceMemoryTarget.collectorBudgetMultiple * target
+        )
     }
 
     func testPacketEncoderBoundsAndRoundTripsBurst() {

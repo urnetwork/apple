@@ -336,35 +336,22 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             logger.fault("[PacketTunnelProvider]FIPS 140 is outside the network-extension memory budget")
         }
 
-        if #available(iOS 26, macOS 26, *) {
-            // the memory limit in the PacketTunnelProvider is 50mib in iOS 16, 17, 18, 26
-            // the binary and go runtime take about 16mib of that
-            // see https://forums.developer.apple.com/forums/thread/73148?page=2
-            //
-            // SdkSetMemoryLimit sizes the global message pools (packet 12 :
-            // large-object 2, of 34 parts) + go soft limit; the per-device
-            // memory target is set separately at device creation. 32mb total
-            // footprint budget for the constrained extension. At this target
-            // the aggregate platform budget admits H1 + H3, so iOS keeps the
-            // normal Auto policy. Smaller targets admit H1 first and leave H3
-            // unstarted when the two carriers do not fit together.
-#if os(iOS)
-            SdkSetMemoryLimit(32 * 1024 * 1024)
-#else
-            SdkSetMemoryLimit(64 * 1024 * 1024)
-#endif
-        } else if #available(iOS 16, macOS 13, *) {
-            #if os(iOS)
-            SdkSetMemoryLimit(32 * 1024 * 1024)
-            #else
-            // every macOS version sits at the 64 MiB reference, matching the
-            // macOS device target (TunnelDeviceMemoryTarget)
-            SdkSetMemoryLimit(64 * 1024 * 1024)
-            #endif
-        } else {
-            // note provider is also disabled for these
-            SdkSetMemoryLimit(8 * 1024 * 1024)
-        }
+        // the memory limit in the PacketTunnelProvider is 50mib on iOS
+        // see https://forums.developer.apple.com/forums/thread/73148?page=2
+        //
+        // SdkSetMemoryLimit sizes the global message pools (packet 12 :
+        // large-object 2, of 34 parts) + the go soft limit; the per-device
+        // memory target is set separately at device creation and must fit
+        // inside this budget twice over (TunnelDeviceMemoryTarget). iOS holds a
+        // 32mib footprint for the constrained extension; macOS, which reports
+        // no packet-tunnel jetsam limit, runs the desktop budget.
+        //
+        // One value per platform, not per OS version: the extension deploys to
+        // iOS 16 / macOS 13.5, so every version it runs on takes the same
+        // budget. The availability ladder this replaces ended in an
+        // unreachable 8mib branch that no shipped OS could select, and 8mib
+        // was a quarter of the device target it was setting the limit for.
+        SdkSetMemoryLimit(TunnelDeviceMemoryTarget.processBudgetByteCount)
 
         // respond to memory pressure events
         // see https://developer.apple.com/documentation/dispatch/dispatchsource/makememorypressuresource(eventmask:queue:)

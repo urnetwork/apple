@@ -24,12 +24,12 @@ import Foundation
 // (and no job object or rlimit stands in for one), so it runs the desktop
 // tiers.
 //
-// macOS has two of them. The base pair is the floor every Mac gets; a Mac with
-// largeHostThresholdByteCount or more of physical memory gets the large pair,
-// which doubles both numbers and so doubles the H3 stream window again. The
-// tier is chosen from MEASURED host memory (hw.memsize), never from an
-// assumption, and a Mac whose memory cannot be read takes the base pair: an
-// unknown host is not a large host.
+// macOS has two of them. The base pair is the floor; a Mac measuring more than
+// largeHostThresholdByteCount of physical memory gets the large pair, which
+// doubles both numbers and so doubles the H3 stream window again. The tier is
+// chosen from MEASURED host memory (hw.memsize), never from an assumption, and
+// a Mac whose memory cannot be read takes the base pair: an unknown host is not
+// a large host.
 enum TunnelDeviceMemoryTarget {
     static let iosByteCount: Int64 = 20 * 1024 * 1024
     static let macosByteCount: Int64 = 128 * 1024 * 1024
@@ -39,37 +39,34 @@ enum TunnelDeviceMemoryTarget {
     static let macosProcessBudgetByteCount: Int64 = 384 * 1024 * 1024
     static let macosLargeHostProcessBudgetByteCount: Int64 = 768 * 1024 * 1024
 
-    // THE BAR IS 32 GiB, AND IT IS NOT ARBITRARY. Read this before lowering it.
+    // THE BAR: a host with MORE than 8 GiB of memory takes the large tier. The
+    // same bar on macOS, Windows and the Linux daemon.
     //
-    // What justifies a 256 MiB device target is sustained multi-hundred-megabit
-    // throughput, which is the only thing a 24 MiB stream window buys. Host
-    // memory is a weak proxy for that, and it is weakest exactly at 16 GiB,
-    // where the population is laptops on wireless whose window is not the
-    // binding constraint: they would pay the memory and get nothing back.
+    // This is a product decision rather than a memory one: the throughput the
+    // larger window buys is the product, and it is wanted on ordinary machines
+    // rather than on workstations alone. It is a deliberate trade, and worth
+    // stating as one. The 256 MiB target permits a 768 MiB process budget, and
+    // that budget is the go soft limit -- not a ceiling the process avoids, but
+    // the level the collector lets live heap climb toward before it works hard.
+    // On a machine just over this bar, a steady-state extension approaching
+    // that figure is a real share of the machine. The program spends that
+    // memory because the throughput is what it is buying.
     //
-    // They would pay it continuously, too. The process budget is the go soft
-    // limit, and a soft limit is not a ceiling the process avoids -- it is the
-    // level the collector lets live heap climb to before it works hard. A
-    // steady-state extension sitting near 768 MiB resident is behaving as
-    // designed, and on a 16 GiB machine that is nearly five percent of the
-    // machine for something the user experiences as an on-off switch. The
-    // failure mode is not a crash we would see; it is this process being blamed
-    // for a slow machine, which never reaches our telemetry.
+    // Two things a later reader will need if the bar is ever revisited. Host
+    // memory is a weak proxy for a link fast enough to make the receive window
+    // bind, so some hosts over the bar -- laptops on wireless, mostly -- pay
+    // the memory and never reach the throughput it buys. And the instrument
+    // that would size this on the thing that actually predicts the need is an
+    // explicit opt-in, or promotion on measured throughput, rather than any RAM
+    // threshold; either is a different change from this one.
     //
-    // The costs are asymmetric in the same direction: one tier too low costs
-    // throughput only on a link fast enough for the window to bind, while one
-    // tier too high costs memory on every qualifying host, including idle ones.
-    //
-    // So the way to reach a 16 GiB machine on a fast link is NOT a lower bar --
-    // that changes nothing about what is being measured. It is an explicit
-    // opt-in, or promotion on measured throughput. Both are deliberately a
-    // different change from this one.
-    //
-    // The Linux daemon deliberately uses a lower bar (16 GiB, TunnelPolicy.hpp):
-    // it is the build that runs on servers and in containers, where 16 GiB is a
-    // machine doing one job rather than a laptop running a browser, an IDE and a
-    // container runtime.
-    static let largeHostThresholdByteCount: Int64 = 32 * 1024 * 1024 * 1024
+    // The comparison is STRICT: measured memory must exceed the bar. Measured
+    // memory is below nominal anyway -- firmware, the kernel and an integrated
+    // GPU's carve-out come off before hw.memsize, /proc/meminfo or
+    // GlobalMemoryStatusEx report anything -- so a nominal 8 GiB machine
+    // measures at or under 8 GiB and takes the base tier, and 12 GiB and up
+    // take the large one.
+    static let largeHostThresholdByteCount: Int64 = 8 * 1024 * 1024 * 1024
 
     // The pools take 14 of 34 parts of the process budget, leaving 20 parts for
     // the device targets it backs.
@@ -99,9 +96,11 @@ enum TunnelDeviceMemoryTarget {
     }
 
     // The macOS tier for a host with `hostMemoryByteCount` bytes of physical
-    // memory. nil or a nonpositive measurement takes the base tier.
+    // memory. nil or a nonpositive measurement takes the base tier, which is
+    // now the RARE path -- genuinely small hosts, and hosts whose probe failed
+    // -- and so the one to keep pinned by tests rather than by practice.
     static func macosTier(hostMemoryByteCount: Int64?) -> Tier {
-        guard let hostMemoryByteCount, largeHostThresholdByteCount <= hostMemoryByteCount else {
+        guard let hostMemoryByteCount, largeHostThresholdByteCount < hostMemoryByteCount else {
             return Tier(
                 deviceTargetByteCount: macosByteCount,
                 processBudgetByteCount: macosProcessBudgetByteCount

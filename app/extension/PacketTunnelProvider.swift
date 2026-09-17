@@ -10,6 +10,7 @@ import URnetworkExtensionSdk
 import OSLog
 import Security
 import CryptoKit
+import CoreTelephony
 
 //import Atomics
 
@@ -1194,6 +1195,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             var pathSignatureGeneration: UInt64 = 0
             var physicalPathWasUnavailable = false
             var lastPathConstrained: Bool = false
+            var qualityTracker = TunnelNetworkQualityTracker()
+            let telephonyInfo = CTTelephonyNetworkInfo()
+            var wifiSignalLevel: Int? = nil
+            var wifiQualityFetchInFlight = false
             // degraded performance: a device in low power mode, thermally throttled, or on
             // a constrained (Low Data Mode) path answers control pings slowly — ease the
             // SDK's liveness probe timings so slow is not misread as dead
@@ -1205,10 +1210,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     || lastPathConstrained
                 device.setPerformanceDegraded(degraded)
             }
-            let handlePathUpdate = { (path: Network.NWPath) in
+            var handlePathUpdate: ((Network.NWPath) -> Void)!
+            handlePathUpdate = { (path: Network.NWPath) in
+                guard self.providerSessions.isCurrent(providerTicket) else { return }
                 updatePath(path)
                 lastPathConstrained = path.isConstrained
                 updatePerformanceDegraded()
+                if !path.usesInterfaceType(.wifi) {
+                    wifiSignalLevel = nil
+                }
                 pathSignatureGeneration &+= 1
                 let generation = pathSignatureGeneration
                 guard path.status == .satisfied else {
@@ -1231,13 +1241,29 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     .sorted()
                     .joined(separator: ",")
                 let pathSignature = "interfaces=\(interfaces)|gateways=\(gateways)"
+                let quality = TunnelNetworkQuality(
+                    expensive: path.isExpensive,
+                    constrained: path.isConstrained,
+                    supportsDns: path.supportsDNS,
+                    supportsIpv4: path.supportsIPv4,
+                    supportsIpv6: path.supportsIPv6,
+                    cellularTypes: tunnelActiveCellularTypes(
+                        usesCellular: path.usesInterfaceType(.cellular),
+                        dataServiceIdentifier: telephonyInfo.dataServiceIdentifier,
+                        serviceTypes: telephonyInfo.serviceCurrentRadioAccessTechnology ?? [:]
+                    ),
+                    wifiSignalLevel: wifiSignalLevel
+                )
 
                 pathMonitorQueue.asyncAfter(
                     deadline: .now() + self.transportRecoveryDebounce
                 ) {
+                    guard self.providerSessions.isCurrent(providerTicket) else { return }
                     guard generation == pathSignatureGeneration else { return }
-                    if let previous = stablePathSignature,
-                       previous != pathSignature || physicalPathWasUnavailable {
+                    let hardPathChange = stablePathSignature.map {
+                        $0 != pathSignature || physicalPathWasUnavailable
+                    } ?? false
+                    if hardPathChange {
                         let reason = physicalPathWasUnavailable
                             ? "physical-path-restored"
                             : "physical-path-change"
@@ -1245,6 +1271,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             "[PacketTunnelProvider][\(self.lifecycleId)] stable physical path transition=\(reason); scheduling transport recovery"
                         )
                         self.requestTransportRecovery(reason: reason)
+                    } else if qualityTracker.observe(
+                        pathSignature: pathSignature,
+                        quality: quality
+                    ) {
+                        self.logger.info(
+                            "[PacketTunnelProvider][\(self.lifecycleId)] physical network quality changed; remeasuring transfer pacing"
+                        )
+                        device.networkQualityChanged()
+                    }
+                    if hardPathChange {
+                        _ = qualityTracker.observe(pathSignature: pathSignature, quality: quality)
                     }
                     stablePathSignature = pathSignature
                     physicalPathWasUnavailable = false
@@ -1254,6 +1291,38 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 handlePathUpdate(path)
             }
             pathMonitor.start(queue: pathMonitorQueue)
+            // Apple exposes Wi-Fi strength as a snapshot rather than a change
+            // listener. Sample one five-bar value at a low cadence; the first
+            // successful value is a baseline and later bar crossings remeasure.
+            let wifiQualityTimer = DispatchSource.makeTimerSource(queue: pathMonitorQueue)
+            wifiQualityTimer.schedule(
+                deadline: .now(), repeating: .seconds(5), leeway: .seconds(1)
+            )
+            wifiQualityTimer.setEventHandler {
+                guard self.providerSessions.isCurrent(providerTicket) else { return }
+                let path = pathMonitor.currentPath
+                guard path.status == .satisfied, path.usesInterfaceType(.wifi),
+                      !wifiQualityFetchInFlight else { return }
+                wifiQualityFetchInFlight = true
+                let fetchGeneration = pathSignatureGeneration
+                NEHotspotNetwork.fetchCurrent { network in
+                    pathMonitorQueue.async {
+                        wifiQualityFetchInFlight = false
+                        guard self.providerSessions.isCurrent(providerTicket) else { return }
+                        // A result requested on an older path is not evidence
+                        // about the current Wi-Fi association.
+                        guard fetchGeneration == pathSignatureGeneration else { return }
+                        let currentPath = pathMonitor.currentPath
+                        guard currentPath.status == .satisfied,
+                              currentPath.usesInterfaceType(.wifi) else { return }
+                        let nextLevel = tunnelWifiSignalLevel(network?.signalStrength)
+                        guard nextLevel != wifiSignalLevel else { return }
+                        wifiSignalLevel = nextLevel
+                        handlePathUpdate(currentPath)
+                    }
+                }
+            }
+            wifiQualityTimer.resume()
             // NEProvider.defaultPath is the VPN-aware default-path signal; it can lead the
             // physical monitor on transitions, so a change prompts a re-check of the
             // physical path signature (the signature dedups the double notification)
@@ -1276,6 +1345,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 queue: nil
             ) { _ in
                 pathMonitorQueue.async { updatePerformanceDegraded() }
+            }
+            let cellularTypeObserver = NotificationCenter.default.addObserver(
+                forName: .CTServiceRadioAccessTechnologyDidChange,
+                object: nil,
+                queue: nil
+            ) { _ in
+                pathMonitorQueue.async { handlePathUpdate(pathMonitor.currentPath) }
             }
             pathMonitorQueue.async { updatePerformanceDegraded() }
             // wake() refreshes path/power state. A stable signature change requests
@@ -1327,7 +1403,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 defaultPathObservation.invalidate()
                 NotificationCenter.default.removeObserver(powerStateObserver)
                 NotificationCenter.default.removeObserver(thermalStateObserver)
+                NotificationCenter.default.removeObserver(cellularTypeObserver)
                 self.recoverySession.retire(sessionTicket)
+                wifiQualityTimer.cancel()
                 pathMonitor.cancel()
                 provideChangeSub?.close()
                 provideSecretKeysSub?.close()

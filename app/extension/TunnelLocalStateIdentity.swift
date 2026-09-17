@@ -823,6 +823,73 @@ func tunnelConnectIntentIsNewer(changedAt: Date, liveDisconnectAt: Date?) -> Boo
     liveDisconnectAt.map { $0 < changedAt } ?? true
 }
 
+struct TunnelNetworkQuality: Equatable {
+    let expensive: Bool
+    let constrained: Bool
+    let supportsDns: Bool
+    let supportsIpv4: Bool
+    let supportsIpv6: Bool
+    let cellularTypes: [String]
+    let wifiSignalLevel: Int?
+}
+
+func tunnelWifiSignalLevel(_ signalStrength: Double?) -> Int? {
+    guard let signalStrength else { return nil }
+    return min(4, max(0, Int((signalStrength * 5.0).rounded(.down))))
+}
+
+func tunnelActiveCellularTypes(
+    usesCellular: Bool,
+    dataServiceIdentifier: String?,
+    serviceTypes: [String: String]
+) -> [String] {
+    guard usesCellular else { return [] }
+    if let dataServiceIdentifier,
+       let activeType = serviceTypes[dataServiceIdentifier] {
+        return [activeType]
+    }
+    return serviceTypes.values.sorted()
+}
+
+// A physical-path transition already performs a hard network recovery. Only a
+// quality change on the same stable path needs the lighter estimator signal.
+struct TunnelNetworkQualityTracker {
+    private var pathSignature: String?
+    private var quality: TunnelNetworkQuality?
+    private var wifiSignalLevel: Int?
+    private var wifiSignalWasObserved = false
+
+    mutating func observe(
+        pathSignature nextPathSignature: String,
+        quality nextQuality: TunnelNetworkQuality
+    ) -> Bool {
+        guard pathSignature == nextPathSignature else {
+            pathSignature = nextPathSignature
+            quality = nextQuality
+            wifiSignalLevel = nextQuality.wifiSignalLevel
+            wifiSignalWasObserved = nextQuality.wifiSignalLevel != nil
+            return false
+        }
+        let previous = quality
+        quality = nextQuality
+        let pathQualityChanged = previous.map {
+            $0.expensive != nextQuality.expensive ||
+                $0.constrained != nextQuality.constrained ||
+                $0.supportsDns != nextQuality.supportsDns ||
+                $0.supportsIpv4 != nextQuality.supportsIpv4 ||
+                $0.supportsIpv6 != nextQuality.supportsIpv6 ||
+                $0.cellularTypes != nextQuality.cellularTypes
+        } ?? false
+        var wifiSignalChanged = false
+        if let nextWifiSignalLevel = nextQuality.wifiSignalLevel {
+            wifiSignalChanged = wifiSignalWasObserved && wifiSignalLevel != nextWifiSignalLevel
+            wifiSignalLevel = nextWifiSignalLevel
+            wifiSignalWasObserved = true
+        }
+        return pathQualityChanged || wifiSignalChanged
+    }
+}
+
 // Shared debounce work distinguishes a settings-only nudge from an actual
 // path recovery. Cancellation/supersession is admitted before every effect.
 @discardableResult

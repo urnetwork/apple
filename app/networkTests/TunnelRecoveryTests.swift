@@ -271,6 +271,102 @@ final class TunnelRecoveryTests: XCTestCase {
         XCTAssertEqual(effects, ["unchanged", "transport", "settings"])
     }
 
+    func testInitialPathQualityIsOnlyABaseline() {
+        var tracker = TunnelNetworkQualityTracker()
+        let quality = TunnelNetworkQuality(
+            expensive: false, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: 4
+        )
+
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: quality))
+    }
+
+    func testQualityChangeOnStablePathRequestsRemeasurement() {
+        var tracker = TunnelNetworkQualityTracker()
+        let strong = TunnelNetworkQuality(
+            expensive: false, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: 4
+        )
+        let constrained = TunnelNetworkQuality(
+            expensive: false, constrained: true, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: 2
+        )
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: strong))
+
+        XCTAssertTrue(tracker.observe(pathSignature: "wifi-a", quality: constrained))
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: constrained))
+    }
+
+    func testPhysicalPathChangeEstablishesNewQualityBaseline() {
+        var tracker = TunnelNetworkQualityTracker()
+        let wifi = TunnelNetworkQuality(
+            expensive: false, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: 4
+        )
+        let cellular = TunnelNetworkQuality(
+            expensive: true, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: false, cellularTypes: ["5g"], wifiSignalLevel: nil
+        )
+        _ = tracker.observe(pathSignature: "wifi-a", quality: wifi)
+
+        XCTAssertFalse(tracker.observe(pathSignature: "cell-a", quality: cellular))
+    }
+
+    func testWifiSignalUsesStableFiveLevelBuckets() {
+        XCTAssertEqual(tunnelWifiSignalLevel(0.99), 4)
+        XCTAssertEqual(tunnelWifiSignalLevel(0.81), 4)
+        XCTAssertEqual(tunnelWifiSignalLevel(0.79), 3)
+        XCTAssertEqual(tunnelWifiSignalLevel(0.0), 0)
+        XCTAssertNil(tunnelWifiSignalLevel(nil))
+    }
+
+    func testFirstDelayedWifiSignalIsOnlyABaseline() {
+        var tracker = TunnelNetworkQualityTracker()
+        let unavailable = TunnelNetworkQuality(
+            expensive: false, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: nil
+        )
+        let strong = TunnelNetworkQuality(
+            expensive: false, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: 4
+        )
+        let weak = TunnelNetworkQuality(
+            expensive: false, constrained: false, supportsDns: true,
+            supportsIpv4: true, supportsIpv6: true, cellularTypes: [], wifiSignalLevel: 1
+        )
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: unavailable))
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: strong))
+        XCTAssertTrue(tracker.observe(pathSignature: "wifi-a", quality: weak))
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: unavailable))
+        XCTAssertFalse(tracker.observe(pathSignature: "wifi-a", quality: weak))
+    }
+
+    func testCellularTypeOnlyAppliesToTheActiveCellularPath() {
+        XCTAssertEqual(
+            tunnelActiveCellularTypes(
+                usesCellular: false,
+                dataServiceIdentifier: "secondary",
+                serviceTypes: ["primary": "5g", "secondary": "lte"]
+            ), []
+        )
+        XCTAssertEqual(
+            tunnelActiveCellularTypes(
+                usesCellular: true,
+                dataServiceIdentifier: "secondary",
+                serviceTypes: ["primary": "5g", "secondary": "lte"]
+            ),
+            ["lte"]
+        )
+        XCTAssertEqual(
+            tunnelActiveCellularTypes(
+                usesCellular: true,
+                dataServiceIdentifier: nil,
+                serviceTypes: ["primary": "5g", "secondary": "lte"]
+            ),
+            ["5g", "lte"]
+        )
+    }
+
     func testRepeatedSettingsFailureHasOneScheduledNudgeBudget() throws {
         var owner = TunnelReadinessOwner()
         let state = TunnelReadinessOwner.State(readiness: .local, dnsOwned: false)

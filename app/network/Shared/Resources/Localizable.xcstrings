@@ -60847,13 +60847,13 @@
         }
       }
     },
-    "Paying with Solana is a one-time yearly payment, with no free trial." : {
+    "Paying with USDC on Solana is a one-time yearly payment, with no free trial." : {
       "comment" : "Note under the Solana payment button on the plan picker: Solana is a one-time yearly payment, the free trial is Stripe only.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paying with Solana is a one-time yearly payment, with no free trial."
+            "value" : "Paying with USDC on Solana is a one-time yearly payment, with no free trial."
           }
         }
       }

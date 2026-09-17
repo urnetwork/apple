@@ -147,4 +147,23 @@ fi
   exit 1
 }
 
+control_agent_marker='echo "[apple acceptance] building the same-platform peer provider"'
+control_agent_line="$(grep -nF "$control_agent_marker" "$here/test-main.sh" | cut -d: -f1 || true)"
+if ! [[ "$control_agent_line" =~ ^[0-9]+$ ]]; then
+  echo "could not locate the Apple peer-provider build boundary" >&2
+  exit 1
+fi
+control_agent_command="$(
+  sed -n "${control_agent_line},$((control_agent_line + 3))p" "$here/test-main.sh"
+)"
+for required in \
+  'run_apple_acceptance_timeout timeout 600 go build -mod=readonly -trimpath' \
+  "-o \"\$provider_agent\" ."; do
+  count="$(printf '%s\n' "$control_agent_command" | grep -cF -- "$required" || true)"
+  if [ "$count" -ne 1 ]; then
+    echo "Apple peer-provider build must carry exactly one $required boundary (found $count)" >&2
+    exit 1
+  fi
+done
+
 echo "apple acceptance runner tests passed"

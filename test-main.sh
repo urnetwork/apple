@@ -312,7 +312,7 @@ case " $platforms " in
   *" macos "*)
     echo "[apple acceptance] building the same-platform peer provider"
     (cd "$root/build/all/acceptance" && \
-      run_apple_acceptance_timeout timeout 600 go build -trimpath -o "$provider_agent" .)
+      run_apple_acceptance_timeout timeout 600 go build -mod=readonly -trimpath -o "$provider_agent" .)
     ;;
 esac
 

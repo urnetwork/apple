@@ -10,7 +10,9 @@ import URnetworkExtensionSdk
 import OSLog
 import Security
 import CryptoKit
+#if os(iOS)
 import CoreTelephony
+#endif
 
 //import Atomics
 
@@ -1196,9 +1198,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             var physicalPathWasUnavailable = false
             var lastPathConstrained: Bool = false
             var qualityTracker = TunnelNetworkQualityTracker()
+#if os(iOS)
             let telephonyInfo = CTTelephonyNetworkInfo()
+#endif
             var wifiSignalLevel: Int? = nil
+#if os(iOS)
             var wifiQualityFetchInFlight = false
+#endif
             // degraded performance: a device in low power mode, thermally throttled, or on
             // a constrained (Low Data Mode) path answers control pings slowly — ease the
             // SDK's liveness probe timings so slow is not misread as dead
@@ -1241,17 +1247,22 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     .sorted()
                     .joined(separator: ",")
                 let pathSignature = "interfaces=\(interfaces)|gateways=\(gateways)"
+#if os(iOS)
+                let cellularTypes = tunnelActiveCellularTypes(
+                    usesCellular: path.usesInterfaceType(.cellular),
+                    dataServiceIdentifier: telephonyInfo.dataServiceIdentifier,
+                    serviceTypes: telephonyInfo.serviceCurrentRadioAccessTechnology ?? [:]
+                )
+#else
+                let cellularTypes: [String] = []
+#endif
                 let quality = TunnelNetworkQuality(
                     expensive: path.isExpensive,
                     constrained: path.isConstrained,
                     supportsDns: path.supportsDNS,
                     supportsIpv4: path.supportsIPv4,
                     supportsIpv6: path.supportsIPv6,
-                    cellularTypes: tunnelActiveCellularTypes(
-                        usesCellular: path.usesInterfaceType(.cellular),
-                        dataServiceIdentifier: telephonyInfo.dataServiceIdentifier,
-                        serviceTypes: telephonyInfo.serviceCurrentRadioAccessTechnology ?? [:]
-                    ),
+                    cellularTypes: cellularTypes,
                     wifiSignalLevel: wifiSignalLevel
                 )
 
@@ -1294,6 +1305,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // Apple exposes Wi-Fi strength as a snapshot rather than a change
             // listener. Sample one five-bar value at a low cadence; the first
             // successful value is a baseline and later bar crossings remeasure.
+#if os(iOS)
             let wifiQualityTimer = DispatchSource.makeTimerSource(queue: pathMonitorQueue)
             wifiQualityTimer.schedule(
                 deadline: .now(), repeating: .seconds(5), leeway: .seconds(1)
@@ -1323,6 +1335,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 }
             }
             wifiQualityTimer.resume()
+#endif
             // NEProvider.defaultPath is the VPN-aware default-path signal; it can lead the
             // physical monitor on transitions, so a change prompts a re-check of the
             // physical path signature (the signature dedups the double notification)
@@ -1346,6 +1359,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             ) { _ in
                 pathMonitorQueue.async { updatePerformanceDegraded() }
             }
+#if os(iOS)
             let cellularTypeObserver = NotificationCenter.default.addObserver(
                 forName: .CTServiceRadioAccessTechnologyDidChange,
                 object: nil,
@@ -1353,6 +1367,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             ) { _ in
                 pathMonitorQueue.async { handlePathUpdate(pathMonitor.currentPath) }
             }
+#endif
             pathMonitorQueue.async { updatePerformanceDegraded() }
             // wake() refreshes path/power state. A stable signature change requests
             // one transport recovery; an unchanged healthy path remains untouched.
@@ -1403,9 +1418,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 defaultPathObservation.invalidate()
                 NotificationCenter.default.removeObserver(powerStateObserver)
                 NotificationCenter.default.removeObserver(thermalStateObserver)
+#if os(iOS)
                 NotificationCenter.default.removeObserver(cellularTypeObserver)
+#endif
                 self.recoverySession.retire(sessionTicket)
+#if os(iOS)
                 wifiQualityTimer.cancel()
+#endif
                 pathMonitor.cancel()
                 provideChangeSub?.close()
                 provideSecretKeysSub?.close()

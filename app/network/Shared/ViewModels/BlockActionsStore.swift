@@ -10,64 +10,6 @@ import SwiftUI
 import URnetworkSdk
 
 /**
- * A recent routing decision, aggregated per destination cluster
- */
-struct BlockActionItem: Identifiable, Equatable {
-    let id: String
-    let time: Date
-    // cluster hosts/ips that did NOT match an override (disjoint from the matched sets)
-    let hosts: [String]
-    let ips: [String]
-    // the exact hosts/ips that matched an override rule, shown as green chips at the
-    // front (disjoint from hosts/ips)
-    let matchedHosts: [String]
-    let matchedIps: [String]
-    // the unmatched hosts collapsed to base names (SDK CollapseHostNames), shown as
-    // white chips — the same collapse logic on every platform
-    let hostBaseNames: [String]
-    let block: Bool
-    let local: Bool
-    /**
-     * the deciding override id, when an override determined the decision
-     */
-    let overrideId: String?
-    let hasBlockOverride: Bool
-    let hasRouteOverride: Bool
-    let packetCount: Int
-    let byteCount: Int64
-    // short client ids of the exits CURRENTLY carrying flows to this
-    // cluster's ips (live join against the flow table). One id is the normal
-    // healthy shape; two ids on one row is a site split across egress IPs --
-    // the exact event the affinity work exists to prevent
-    let exitShortIds: [String]
-
-    /**
-     * every host name (matched + unmatched) and every ip (matched + unmatched)
-     */
-    var allHostNames: [String] {
-        matchedHosts + hosts
-    }
-    var allIps: [String] {
-        matchedIps + ips
-    }
-
-    /**
-     * all host values that can be added to a split rule,
-     * host names first (matched + unmatched, so the editor sees everything)
-     */
-    var hostValues: [String] {
-        allHostNames + allIps
-    }
-
-    /**
-     * count of unmatched ips, rendered as a single "X IPs" pill
-     */
-    var ipCount: Int {
-        ips.count
-    }
-}
-
-/**
  * What a site split rule does with the matching cluster's traffic.
  *
  * EXCLUDED routes the cluster locally, bypassing the tunnel; INCLUDED routes
@@ -205,6 +147,7 @@ class BlockActionsStore: ObservableObject {
      * exits CURRENTLY carrying flows to it, after any re-race or rebind
      */
     private var exitsByIp: [String: Set<String>] = [:]
+    private var actionProjection = BlockActionsProjection()
 
     // the exit-attribution re-poll: flows re-race and rebind between
     // block-action events, so the join is refreshed on a slow tick as well,
@@ -329,6 +272,7 @@ class BlockActionsStore: ObservableObject {
         allowedCount = 0
         blockedCount = 0
         exitsByIp = [:]
+        actionProjection.clear()
     }
 
     /**
@@ -449,7 +393,8 @@ class BlockActionsStore: ObservableObject {
         exitAttributionRefreshing = false
         if self.exitsByIp != exitsByIp {
             self.exitsByIp = exitsByIp
-            updateBlockActions()
+            // Rebind the live chips without fetching/collapsing unchanged rows.
+            publishBlockActions(actionProjection.refreshExits(exitsByIp))
         }
         if exitAttributionWanted {
             // the trailing edge: the join moved again while this call was out
@@ -490,14 +435,6 @@ class BlockActionsStore: ObservableObject {
                 let unmatchedHosts = stringListToArray(action.hosts)
                 let ips = stringListToArray(action.ips)
                 let matchedIps = stringListToArray(action.matchedIps)
-                // the live destination->exit attribution join (see
-                // `refreshExitAttribution`)
-                var exitIds = Set<String>()
-                for ip in matchedIps + ips {
-                    if let exits = exitsByIp[ip] {
-                        exitIds.formUnion(exits)
-                    }
-                }
                 items.append(
                     BlockActionItem(
                         id: action.blockActionId?.idStr ?? UUID().uuidString,
@@ -506,7 +443,7 @@ class BlockActionsStore: ObservableObject {
                         ips: ips,
                         matchedHosts: stringListToArray(action.matchedHosts),
                         matchedIps: matchedIps,
-                        hostBaseNames: collapseHosts(unmatchedHosts),
+                        hostBaseNames: [],
                         block: action.block,
                         local: action.local,
                         overrideId: action.overrideId?.idStr,
@@ -514,14 +451,20 @@ class BlockActionsStore: ObservableObject {
                         hasRouteOverride: action.routeOverride != nil,
                         packetCount: action.packetCount,
                         byteCount: action.byteCount,
-                        exitShortIds: exitIds.sorted()
+                        exitShortIds: []
                     )
                 )
             }
         }
         // newest first; only publish when the list actually changed (the SDK
         // re-emits per routing decision, storming observers otherwise)
-        let newActions = Array(items.reversed())
+        let newActions = actionProjection.refreshRows(
+            Array(items.reversed()), exitsByIp: exitsByIp, collapseHosts: collapseHosts
+        )
+        publishBlockActions(newActions)
+    }
+
+    private func publishBlockActions(_ newActions: [BlockActionItem]) {
         if newActions != blockActions {
             blockActions = newActions
         }

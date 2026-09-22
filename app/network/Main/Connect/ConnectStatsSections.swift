@@ -68,12 +68,12 @@ struct ConnectStatsSections: View {
                 Spacer().frame(height: 12)
 
                 /**
-                 * The address families of the connected providers, one dot per
-                 * provider under both / v4 / v6, sized like the connect widget.
-                 * Its own view so its grid subscription does not re-render the
-                 * charts (like DnsRecommendationPill).
+                 * The address families of the window's providers: Dualstack,
+                 * IPv4 and IPv6 columns, each with its connected and connecting
+                 * counts. Its own view so its grid subscription does not
+                 * re-render the charts (like DnsRecommendationPill).
                  */
-                IpFamilyHistogram()
+                IpFamilyStatusRow()
 
                 Spacer().frame(height: 12)
 
@@ -81,7 +81,7 @@ struct ConnectStatsSections: View {
                  * The extender network: the active extenders' rings, the
                  * active-of-usable count, and the gossip network's state
                  * (EXTENDER.md K4). Its own view for the same reason as the
-                 * histogram — its once-a-second status subscription must not
+                 * status row — its once-a-second status subscription must not
                  * re-render the charts.
                  */
                 ExtenderPanel()

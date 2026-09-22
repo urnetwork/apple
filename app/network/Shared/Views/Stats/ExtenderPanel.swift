@@ -8,7 +8,7 @@ import URnetworkSdk
 
 /**
  * The extender panel of the connect drawer (EXTENDER.md K4), under the ip
- * family histogram.
+ * family status row.
  *
  * Left to right: one hollow ring per extender carrying a live connection right
  * now, in that address's color (K3); the count as "N of M", where N is those
@@ -17,7 +17,7 @@ import URnetworkSdk
  * — with its state and the rate of records and revocations applied in the
  * trailing minute. Tapping does nothing: there is no details panel yet.
  *
- * Its own view with its own status subscription, like `IpFamilyHistogram`, so
+ * Its own view with its own status subscription, like `IpFamilyStatusRow`, so
  * the once-a-second status publish re-renders this row alone rather than the
  * card's transfer charts.
  */
@@ -28,7 +28,7 @@ struct ExtenderPanel: View {
 
     @StateObject private var store = ExtenderStatusStore()
 
-    // the app's general tween, matching the transport bar and the histogram
+    // the app's general tween, matching the transport bar and the status row
     private let tweenDuration: Double = 1.0
 
     /// the hollow ring of one active extender

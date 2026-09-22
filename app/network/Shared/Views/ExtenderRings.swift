@@ -17,9 +17,8 @@ import SwiftUI
  * dot's radius shrinks 4pt per ring.
  *
  * At most three rings are drawn. More extenders than rings collapse into the
- * innermost drawn ring, which is dashed to say "and more". The same geometry
- * draws the connect canvas and the drawer's ip family histogram, each at its
- * own cell size, so a provider reads the same in both places.
+ * innermost drawn ring, which is dashed to say "and more". The connect canvas
+ * draws this geometry into its `Canvas` context at its cell size.
  *
  * The geometry is a pure function of the cell size and the colors, with no
  * view state, so the unit tests exercise it directly.
@@ -145,42 +144,4 @@ func extenderCommaSeparatedValues(_ value: String) -> [String] {
         .split(separator: ",", omittingEmptySubsequences: true)
         .map { $0.trimmingCharacters(in: .whitespaces) }
         .filter { !$0.isEmpty }
-}
-
-/**
- * A provider dot with its extender rings, at `cellSize`. The drawer's
- * histogram draws providers with this; the connect canvas draws the same
- * geometry into its `Canvas` context.
- */
-struct ExtenderRingDot: View {
-
-    let cellSize: CGFloat
-    let colorHexes: [String]
-    var dotColor: Color = .urGreen
-
-    var body: some View {
-        let geometry = extenderRingGeometry(cellSize: cellSize, colorHexes: colorHexes)
-        ZStack {
-            ForEach(Array(geometry.rings.enumerated()), id: \.offset) { _, ring in
-                Circle()
-                    .strokeBorder(
-                        ring.color,
-                        style: StrokeStyle(
-                            lineWidth: geometry.strokeWidth,
-                            dash: ring.dashed ? [geometry.dashLength, geometry.dashLength] : []
-                        )
-                    )
-                    // strokeBorder insets by half the line width, so the shape
-                    // is sized to the ring's OUTER edge
-                    .frame(
-                        width: ring.diameter + geometry.strokeWidth,
-                        height: ring.diameter + geometry.strokeWidth
-                    )
-            }
-            Circle()
-                .fill(dotColor)
-                .frame(width: geometry.dotDiameter, height: geometry.dotDiameter)
-        }
-        .frame(width: cellSize, height: cellSize)
-    }
 }

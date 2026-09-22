@@ -83,6 +83,8 @@ struct ThroughputPoint: Identifiable, Equatable {
  */
 struct TransportShare: Equatable, Identifiable {
     let transportType: TransportType
+    /// The H1 row keeps its identity; only the live negotiated carrier changes.
+    let h1PlusActive: Bool
     let egressByteCount: Int64
     let ingressByteCount: Int64
     /**
@@ -111,12 +113,17 @@ struct TransportShare: Equatable, Identifiable {
 
     var id: TransportType { transportType }
 
+    var label: Text {
+        h1PlusActive ? Text(verbatim: "H1+") : transportType.label
+    }
+
     var byteCount: Int64 {
         egressByteCount + ingressByteCount
     }
 
     init(
         transportType: TransportType,
+        h1PlusActive: Bool = false,
         egressByteCount: Int64 = 0,
         ingressByteCount: Int64 = 0,
         share: Double = 0,
@@ -126,6 +133,7 @@ struct TransportShare: Equatable, Identifiable {
         enabled: Bool = false
     ) {
         self.transportType = transportType
+        self.h1PlusActive = transportType == .h1 && h1PlusActive
         self.egressByteCount = egressByteCount
         self.ingressByteCount = ingressByteCount
         self.share = share
@@ -143,6 +151,7 @@ struct TransportShare: Equatable, Identifiable {
             return nil
         }
         self.transportType = transportType
+        self.h1PlusActive = transportType == .h1 && share.h1PlusConnectionCount > 0
         self.egressByteCount = share.egressByteCount
         self.ingressByteCount = share.ingressByteCount
         self.share = share.share

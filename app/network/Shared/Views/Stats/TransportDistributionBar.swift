@@ -105,7 +105,7 @@ struct TransportDistributionBar: View {
 
             // unused footer: enabled transports that carried nothing in the window
             if !unusedShares.isEmpty {
-                unusedRow(unusedShares.map { $0.transportType })
+                unusedRow(unusedShares)
             } else if usedShares.isEmpty {
                 legendSkeleton()
             }
@@ -164,7 +164,7 @@ struct TransportDistributionBar: View {
                     Circle()
                         .fill(share.transportType.color(theme))
                         .frame(width: 6, height: 6)
-                    share.transportType.label
+                    share.label
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(theme.textColor)
                     percentLabel(share)
@@ -191,20 +191,20 @@ struct TransportDistributionBar: View {
         return Text(Double(share.percent) / 100, format: .percent.precision(.fractionLength(0)))
     }
 
-    private func unusedRow(_ transports: [TransportType]) -> some View {
+    private func unusedRow(_ shares: [TransportShare]) -> some View {
         let theme = themeManager.currentTheme
         return FlowRow(horizontalSpacing: 12, verticalSpacing: 4) {
             Text("unused")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(theme.textFaintColor)
-            ForEach(transports) { transport in
+            ForEach(shares) { share in
                 HStack(spacing: 5) {
                     // a hollow dot in the transport's color: the color mapping
                     // stays legible even while the transport is idle
                     Circle()
-                        .strokeBorder(transport.color(theme).opacity(0.6), lineWidth: 1)
+                        .strokeBorder(share.transportType.color(theme).opacity(0.6), lineWidth: 1)
                         .frame(width: 6, height: 6)
-                    transport.label
+                    share.label
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(theme.textFaintColor)
                 }

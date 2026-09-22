@@ -16,6 +16,24 @@ import URnetworkSdk
  */
 struct TransportStatsTests {
 
+    @Test func h1PlusFollowsNegotiatedActivityAndInvalidatesSnapshot() {
+        let sdk = SdkTransportShare()
+        sdk.transportType = "h1"
+        let plain = TransportShare(sdk)!
+        #expect(!plain.h1PlusActive)
+        sdk.h1PlusConnectionCount = 1
+        sdk.h1WebSocketConnectionCount = 2 // a mixed window still has active H1+
+        let upgraded = TransportShare(sdk)!
+        #expect(upgraded.h1PlusActive)
+        #expect(upgraded != plain)
+        #expect(upgraded.id == plain.id)
+        sdk.h1PlusConnectionCount = 0
+        #expect(TransportShare(sdk) == plain)
+        sdk.transportType = "h3"
+        sdk.h1PlusConnectionCount = 1
+        #expect(!TransportShare(sdk)!.h1PlusActive)
+    }
+
     // MARK: distribution mirror
 
     @Test func distributionMirrorsTheSdkInStableOrder() {

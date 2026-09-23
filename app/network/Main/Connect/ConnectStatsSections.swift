@@ -72,8 +72,10 @@ struct ConnectStatsSections: View {
                  * IPv4 and IPv6 columns, each with its connected and connecting
                  * counts. Its own view so its grid subscription does not
                  * re-render the charts (like DnsRecommendationPill).
+                 * Tapping it does nothing.
                  */
                 IpFamilyStatusRow()
+                    .blocksCardTap()
 
                 Spacer().frame(height: 12)
 
@@ -82,9 +84,10 @@ struct ConnectStatsSections: View {
                  * active-of-usable count, and the gossip network's state
                  * (EXTENDER.md K4). Its own view for the same reason as the
                  * status row — its once-a-second status subscription must not
-                 * re-render the charts.
+                 * re-render the charts. Tapping it does nothing.
                  */
                 ExtenderPanel()
+                    .blocksCardTap()
 
                 Spacer().frame(height: 12)
 
@@ -245,6 +248,17 @@ struct ConnectStatsSections: View {
         .onTapGesture {
             action()
         }
+    }
+}
+
+private extension View {
+    /// Keeps a tap on an informational panel inside a stats card from opening
+    /// the card's details. The empty child tap wins over the card's tap, like
+    /// the transport bar's, and the content shape extends it to the gaps
+    /// between the panel's text so no part of the panel falls through.
+    func blocksCardTap() -> some View {
+        contentShape(Rectangle())
+            .onTapGesture {}
     }
 }
 

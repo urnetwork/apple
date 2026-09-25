@@ -5,7 +5,8 @@
 # build/all/run.sh does for apple:
 #   1. regenerate Localizable.xcstrings from the localization store
 #      (../localizations/keys), like the pipeline does before every build.
-#   2. build the URnetwork scheme for iOS and macOS.
+#   2. check the SDK's embedded license list still matches Package.resolved.
+#   3. build the URnetwork scheme for iOS and macOS.
 # The pipeline archives, signs and uploads; this builds unsigned, so it
 # verifies compilation and linking only.
 #
@@ -24,6 +25,12 @@ echo "== sync localizations (store -> Localizable.xcstrings)"
 (cd "$root/localizations" &&
     { [ -d node_modules ] || npm ci --no-audit --no-fund; } &&
     npm run gen:apple)
+
+echo "== license drift check (Package.resolved vs sdk/license.yml)"
+# Account > Settings > Licenses shows the list the SDK embeds. Fail when this
+# repo's Swift packages changed without regenerating it (in the sdk repo:
+# `go run ./licenses`, then rebuild the xcframework).
+go -C "$root/sdk" run ./licenses -check apple
 
 if [ "${BUILD_SDK:-}" ]; then
     echo "== rebuild the apple xcframework from the local sdk/connect/glog trees"

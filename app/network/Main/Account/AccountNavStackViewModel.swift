@@ -20,6 +20,8 @@ enum AccountNavigationPath: Hashable {
     case providerContracts
     case providerIdentities
     case developer
+    case licenses
+    case licenseDetail(LicenseEntry)
 }
 
 extension AccountNavStackView {

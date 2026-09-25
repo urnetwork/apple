@@ -195,6 +195,18 @@ struct AccountNavStackView: View {
                         .navigationTitle("Developer")
                         .background(themeManager.currentTheme.backgroundColor)
 
+                case .licenses:
+
+                    LicensesView(device: device, navigate: viewModel.navigate)
+                        .navigationTitle("Licenses")
+                        .background(themeManager.currentTheme.backgroundColor)
+
+                case .licenseDetail(let entry):
+
+                    LicenseDetailView(entry: entry)
+                        .navigationTitle(entry.name)
+                        .background(themeManager.currentTheme.backgroundColor)
+
                 }
                 
             }

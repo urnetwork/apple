@@ -590,6 +590,24 @@ struct SettingsForm_macOS: View {
                         Spacer()
                     }
 
+                    Spacer().frame(height: 16)
+
+                    HStack {
+                        Text("Licenses")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        navigate(.licenses)
+                    }
+                    .padding()
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
                     Spacer().frame(height: 64)
 
                     Button(role: .destructive, action: {

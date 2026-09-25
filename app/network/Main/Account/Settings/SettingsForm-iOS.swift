@@ -387,6 +387,18 @@ struct SettingsForm_iOS: View {
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 }
+
+                HStack {
+                    Text("Licenses")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.licenses)
+                }
             }
 
             Section("Developer") {

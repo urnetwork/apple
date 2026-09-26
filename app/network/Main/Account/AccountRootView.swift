@@ -289,7 +289,7 @@ struct AccountRootView: View {
                          */
                         AccountNavLink(
                             name: "Extenders",
-                            iconPath: "ur.symbols.globe",
+                            iconPath: "ur.symbols.extenders",
                             action: {
                                 navigate(.extenders)
                             }

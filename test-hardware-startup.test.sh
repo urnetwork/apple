@@ -8,224 +8,6 @@ source "$here/test-hardware-startup-lib.sh"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/urnetwork-apple-hardware-test.XXXXXX")"
 trap 'rm -rf -- "$test_root"' EXIT
 
-inventory="$test_root/inventory.json"
-plan="$test_root/plan.json"
-skips="$test_root/skips.tsv"
-cat >"$inventory" <<'JSON'
-[
-  {
-    "simulator": false,
-    "platform": "com.apple.platform.iphoneos",
-    "identifier": "STALE-WIFI",
-    "name": "Stale wireless phone",
-    "modelName": "iPhone 14",
-    "operatingSystemVersion": "18.6",
-    "architecture": "arm64e",
-    "interface": "network",
-    "available": false,
-    "ignored": false
-  },
-  {
-    "simulator": true,
-    "platform": "com.apple.platform.iphonesimulator",
-    "identifier": "SIMULATOR",
-    "name": "Ignored simulator",
-    "operatingSystemVersion": "18.6",
-    "architecture": "arm64",
-    "interface": "usb",
-    "available": true,
-    "ignored": false
-  },
-  {
-    "simulator": false,
-    "platform": "com.apple.platform.iphoneos",
-    "identifier": "DEVICE-A",
-    "name": "First phone",
-    "modelName": "iPhone 15 Pro",
-    "operatingSystemVersion": "18.5",
-    "architecture": "arm64",
-    "interface": "usb",
-    "available": true,
-    "ignored": false
-  },
-  {
-    "simulator": false,
-    "platform": "com.apple.platform.iphoneos",
-    "identifier": "DEVICE-C",
-    "name": "Third phone",
-    "modelName": "iPhone 16 Pro Max",
-    "operatingSystemVersion": "18.6",
-    "architecture": "arm64e",
-    "interface": "usb",
-    "available": true,
-    "ignored": false
-  },
-  {
-    "simulator": false,
-    "platform": "com.apple.platform.iphoneos",
-    "identifier": "DEVICE-OLD",
-    "name": "Unsupported phone",
-    "modelName": "iPhone 11 Pro",
-    "operatingSystemVersion": "16.7.11 (20H360)",
-    "architecture": "arm64",
-    "interface": "usb",
-    "available": true,
-    "ignored": false
-  }
-]
-JSON
-apple_hardware_write_inventory_plan "$inventory" "$plan" "$skips" 18 1
-[ "$(apple_hardware_plan_count "$plan")" -eq 2 ]
-[ "$(apple_hardware_plan_ids "$plan" | paste -sd, -)" = "DEVICE-A,DEVICE-C" ] || {
-  echo "attached physical devices were not planned once in stable order" >&2
-  exit 1
-}
-[ "$(cat "$skips")" = $'DEVICE-OLD\tUnsupported phone\t16.7.11 (20H360)\trequires-ios-18.1' ] || {
-  echo "unsupported physical device did not receive its exact capability skip" >&2
-  exit 1
-}
-# The simulator floor must not raise product support or physical eligibility.
-jq '(.[] | select(.identifier == "DEVICE-OLD").operatingSystemVersion) = "16.4"' \
-  "$inventory" >"$test_root/legacy-device-inventory.json"
-apple_hardware_write_inventory_plan \
-  "$test_root/legacy-device-inventory.json" "$test_root/legacy-device-plan.json" \
-  "$test_root/legacy-device-skips.tsv" 16 0
-[ "$(apple_hardware_plan_ids "$test_root/legacy-device-plan.json" | paste -sd, -)" = \
-  "DEVICE-A,DEVICE-C,DEVICE-OLD" ] && [ ! -s "$test_root/legacy-device-skips.tsv" ] || {
-  echo "the iOS simulator matrix excluded a supported physical iOS 16.4 device" >&2
-  exit 1
-}
-real_device_matrix="$test_root/real-device-matrix.md"
-apple_hardware_write_real_device_matrix "$plan" "$real_device_matrix"
-grep -Fq '| Acceptance test | iPhone 15 Pro / iOS 18.5 | iPhone 16 Pro Max / iOS 18.6 |' \
-  "$real_device_matrix" || {
-  echo "the real-device report did not use model/OS columns" >&2
-  exit 1
-}
-[ "$(grep -cF '| RUN | RUN |' "$real_device_matrix")" -eq 2 ] || {
-  echo "the real-device report did not mark both test/device cells" >&2
-  exit 1
-}
-jq '.[0].modelName = "Phone | special"' "$plan" \
-  >"$test_root/escaped-matrix-plan.json"
-apple_hardware_write_real_device_matrix \
-  "$test_root/escaped-matrix-plan.json" "$test_root/escaped-matrix.md"
-grep -Fq 'Phone \| special / iOS 18.5' "$test_root/escaped-matrix.md" || {
-  echo "a device model could corrupt the Markdown matrix" >&2
-  exit 1
-}
-
-printf 'DEVICE-A\nDEVICE-OLD\n' >"$test_root/usb-identifiers.txt"
-apple_hardware_usb_inventory_is_represented \
-  "$inventory" "$test_root/usb-identifiers.txt"
-
-cat >"$test_root/ioreg.txt" <<'IOREG'
-  | "USB Serial Number" = "00008140001679DE0893C01C"
-  | "USB Serial Number" = "00008140001679DE0893C01C"
-  | "USB Serial Number" = "ac5ee3d940bb92b36f44c66bb2d5bda8eb70786f"
-IOREG
-apple_hardware_write_usb_identifiers \
-  "$test_root/ioreg.txt" "$test_root/normalized-usb-identifiers.txt"
-[ "$(cat "$test_root/normalized-usb-identifiers.txt")" = \
-  $'00008140-001679DE0893C01C\nac5ee3d940bb92b36f44c66bb2d5bda8eb70786f' ] || {
-  echo "physical USB identifiers were not normalized and deduplicated" >&2
-  exit 1
-}
-printf '%s\n' '  | "USB Serial Number" = "not-a-device-id"' \
-  >"$test_root/ioreg-malformed.txt"
-if apple_hardware_write_usb_identifiers \
-    "$test_root/ioreg-malformed.txt" \
-    "$test_root/malformed-usb-identifiers.txt"; then
-  echo "a malformed physical USB identifier was accepted" >&2
-  exit 1
-fi
-[ ! -e "$test_root/malformed-usb-identifiers.txt" ] || {
-  echo "a malformed physical USB inventory left an authoritative output" >&2
-  exit 1
-}
-
-printf 'CONNECTED-MISSING\n' >"$test_root/missing-usb-identifier.txt"
-if apple_hardware_usb_inventory_is_represented \
-    "$inventory" "$test_root/missing-usb-identifier.txt"; then
-  echo "an unavailable physical USB attachment was silently omitted" >&2
-  exit 1
-fi
-
-inventory_hash="$(apple_hardware_sha256 "$inventory")"
-apple_hardware_inventory_unchanged "$inventory" "$inventory_hash"
-printf ' ' >>"$inventory"
-if apple_hardware_inventory_unchanged "$inventory" "$inventory_hash"; then
-  echo "mutated inventory passed its immutable hash check" >&2
-  exit 1
-fi
-sed -i '' -e '$ s/ $//' "$inventory"
-
-jq 'map(if .identifier == "DEVICE-A" then .available = false else . end)' \
-  "$inventory" >"$test_root/offline.json"
-apple_hardware_write_inventory_plan \
-  "$test_root/offline.json" "$test_root/offline-plan.json" \
-  "$test_root/offline-skips.tsv" 18 1
-[ "$(apple_hardware_plan_ids "$test_root/offline-plan.json" | paste -sd, -)" = \
-  DEVICE-C ] || {
-  echo "stale unavailable Xcode records were not excluded from the plan" >&2
-  exit 1
-}
-if apple_hardware_usb_inventory_is_represented \
-    "$test_root/offline.json" "$test_root/usb-identifiers.txt"; then
-  echo "a physically connected but unavailable target passed USB validation" >&2
-  exit 1
-fi
-jq 'map(if .identifier == "DEVICE-A" then .simulator = null else . end)' \
-  "$inventory" >"$test_root/malformed-attached.json"
-if apple_hardware_write_inventory_plan \
-  "$test_root/malformed-attached.json" \
-  "$test_root/malformed-attached-plan.json" \
-  "$test_root/malformed-attached-skips.tsv" 18 1 2>/dev/null; then
-  echo "an attached device with malformed physical metadata was omitted" >&2
-  exit 1
-fi
-jq 'map(if .identifier == "DEVICE-A" then del(.modelName) else . end)' \
-  "$inventory" >"$test_root/missing-model.json"
-if apple_hardware_write_inventory_plan \
-  "$test_root/missing-model.json" \
-  "$test_root/missing-model-plan.json" \
-  "$test_root/missing-model-skips.tsv" 18 1 2>/dev/null; then
-  echo "an attached device without a reportable model entered the plan" >&2
-  exit 1
-fi
-jq 'map(if .identifier == "DEVICE-A" then .ignored = true else . end)' \
-  "$inventory" >"$test_root/unauthorized.json"
-if apple_hardware_write_inventory_plan \
-  "$test_root/unauthorized.json" \
-  "$test_root/unauthorized-plan.json" \
-  "$test_root/unauthorized-skips.tsv" 18 1 2>/dev/null; then
-  echo "an ignored attached device entered the plan" >&2
-  exit 1
-fi
-jq '. + [(.[] | select(.identifier == "DEVICE-A"))]' \
-  "$inventory" >"$test_root/duplicate.json"
-if apple_hardware_write_inventory_plan \
-  "$test_root/duplicate.json" "$test_root/duplicate-plan.json" \
-  "$test_root/duplicate-skips.tsv" 18 1 2>/dev/null; then
-  echo "duplicate physical device entered the plan" >&2
-  exit 1
-fi
-jq '[.[] | select(.simulator == true)]' "$inventory" >"$test_root/empty.json"
-apple_hardware_write_inventory_plan \
-  "$test_root/empty.json" "$test_root/empty-plan.json" \
-  "$test_root/empty-skips.tsv" 18 1
-[ "$(apple_hardware_plan_count "$test_root/empty-plan.json")" -eq 0 ] || {
-  echo "an empty physical inventory did not produce an empty plan" >&2
-  exit 1
-}
-apple_hardware_write_real_device_matrix \
-  "$test_root/empty-plan.json" "$test_root/empty-real-device-matrix.md"
-grep -Fq 'no real-device cells run' \
-  "$test_root/empty-real-device-matrix.md" || {
-  echo "an empty real-device plan did not produce an explicit empty report" >&2
-  exit 1
-}
-
 runtime_inventory="$test_root/runtime-inventory.json"
 runtime_plan="$test_root/runtime-plan.json"
 cat >"$runtime_inventory" <<'JSON'
@@ -439,6 +221,18 @@ if apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"; then
 fi
 mv "$test_root/ios-27-status.tsv" "$simulator_results/ios-27/status.tsv"
 apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"
+if apple_hardware_write_result_once \
+  "$simulator_results/ios-27/status.tsv" ios-27 PASS duplicate 2>/dev/null; then
+  echo "a simulator result was overwritten" >&2
+  exit 1
+fi
+mkdir "$simulator_results/unplanned"
+printf 'unplanned\tPASS\tunowned-result\n' >"$simulator_results/unplanned/status.tsv"
+if apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"; then
+  echo "an unplanned result silently passed the simulator matrix" >&2
+  exit 1
+fi
+rm "$simulator_results/unplanned/status.tsv"
 
 jq '(.runtimes[] | select(.version == "18.5").supportedDeviceTypes) = []' \
   "$runtime_inventory" >"$test_root/runtime-no-iphone.json"
@@ -653,131 +447,6 @@ APPLE_TEST_SIM_STATE="$test_root/simulator-state" \
   exit 1
 }
 
-cat >"$test_root/details-usable.json" <<'JSON'
-{
-  "info": {
-    "commandType": "devicectl.device.info.details",
-    "outcome": "success"
-  },
-  "result": {
-    "identifier": "CORE-DEVICE-A",
-    "hardwareProperties": {
-      "reality": "physical",
-      "udid": "DEVICE-A"
-    },
-    "connectionProperties": {
-      "pairingState": "paired"
-    },
-    "deviceProperties": {
-      "bootState": "booted",
-      "developerModeStatus": "enabled",
-      "ddiServicesAvailable": true
-    }
-  }
-}
-JSON
-cat >"$test_root/unlocked.json" <<'JSON'
-{
-  "info": {
-    "commandType": "devicectl.device.info.lockState",
-    "outcome": "success"
-  },
-  "result": {
-    "deviceIdentifier": "CORE-DEVICE-A",
-    "passcodeRequired": false,
-    "unlockedSinceBoot": true
-  }
-}
-JSON
-apple_hardware_device_details_are_usable \
-  "$test_root/details-usable.json" DEVICE-A
-[ "$(apple_hardware_device_details_identifier \
-  "$test_root/details-usable.json")" = CORE-DEVICE-A ]
-apple_hardware_lock_state_is_unlocked \
-  "$test_root/unlocked.json" CORE-DEVICE-A
-
-while IFS=$'\t' read -r name filter; do
-  jq "$filter" "$test_root/details-usable.json" \
-    >"$test_root/details-$name.json"
-  if apple_hardware_device_details_are_usable \
-    "$test_root/details-$name.json" DEVICE-A; then
-    echo "unusable CoreDevice details fixture was accepted: $name" >&2
-    exit 1
-  fi
-done <<'CASES'
-virtual	.result.hardwareProperties.reality = "virtual"
-wrong-udid	.result.hardwareProperties.udid = "DEVICE-B"
-unpaired	.result.connectionProperties.pairingState = "unpaired"
-not-booted	.result.deviceProperties.bootState = "shutdown"
-developer-mode-disabled	.result.deviceProperties.developerModeStatus = "disabled"
-ddi-unavailable	.result.deviceProperties.ddiServicesAvailable = false
-malformed-ddi	.result.deviceProperties.ddiServicesAvailable = "true"
-missing-pairing	del(.result.connectionProperties.pairingState)
-failed-outcome	.info.outcome = "failure"
-malformed-result	.result = []
-CASES
-
-while IFS=$'\t' read -r name filter; do
-  jq "$filter" "$test_root/unlocked.json" >"$test_root/lock-$name.json"
-  if apple_hardware_lock_state_is_unlocked \
-    "$test_root/lock-$name.json" CORE-DEVICE-A; then
-    echo "unusable CoreDevice lock fixture was accepted: $name" >&2
-    exit 1
-  fi
-done <<'CASES'
-passcode-required	.result.passcodeRequired = true
-never-unlocked	.result.unlockedSinceBoot = false
-wrong-identifier	.result.deviceIdentifier = "CORE-DEVICE-B"
-missing-unlock-state	del(.result.unlockedSinceBoot)
-malformed-passcode	.result.passcodeRequired = "false"
-failed-outcome	.info.outcome = "failure"
-CASES
-
-cat >"$test_root/apps-clean.json" <<'JSON'
-{"info": {"outcome": "success"}, "result": {"apps": []}}
-JSON
-cat >"$test_root/apps-dirty.json" <<'JSON'
-{"info": {"outcome": "success"}, "result": {"apps": [{"bundleIdentifier": "network.ur"}]}}
-JSON
-cat >"$test_root/apps-unknown.json" <<'JSON'
-{"info": {"outcome": "success"}, "result": {}}
-JSON
-cat >"$test_root/apps-failed.json" <<'JSON'
-{"info": {"outcome": "failure"}, "result": {"apps": []}}
-JSON
-apple_hardware_app_query_is_clean "$test_root/apps-clean.json" network.ur
-apple_hardware_app_query_has_bundle "$test_root/apps-dirty.json" network.ur
-if apple_hardware_app_query_is_clean "$test_root/apps-dirty.json" network.ur; then
-  echo "pre-existing app state was accepted" >&2
-  exit 1
-fi
-if apple_hardware_app_query_is_clean "$test_root/apps-unknown.json" network.ur; then
-  echo "unknown app inventory was accepted" >&2
-  exit 1
-fi
-if apple_hardware_app_query_is_clean "$test_root/apps-failed.json" network.ur; then
-  echo "a failed app inventory was accepted as clean" >&2
-  exit 1
-fi
-
-results_root="$test_root/results"
-mkdir -p "$results_root/DEVICE-A" "$results_root/DEVICE-C"
-apple_hardware_write_result_once \
-  "$results_root/DEVICE-A/status.tsv" DEVICE-A PASS startup-no-vpn
-apple_hardware_write_result_once \
-  "$results_root/DEVICE-C/status.tsv" DEVICE-C FAIL test-or-cleanup
-apple_hardware_results_match_plan "$plan" "$results_root"
-if apple_hardware_write_result_once \
-  "$results_root/DEVICE-A/status.tsv" DEVICE-A PASS duplicate 2>/dev/null; then
-  echo "a device result was overwritten" >&2
-  exit 1
-fi
-rm "$results_root/DEVICE-C/status.tsv"
-if apple_hardware_results_match_plan "$plan" "$results_root"; then
-  echo "an incomplete result set matched the device plan" >&2
-  exit 1
-fi
-
 xctestrun_source="$test_root/source.xctestrun"
 xctestrun_output="$test_root/output.xctestrun"
 cat >"$xctestrun_source" <<'JSON'
@@ -945,12 +614,12 @@ fi
 apple_hardware_source_contract "$here"
 grep -Fq 'run_bounded 3600 make build_apple' \
   "$here/test-hardware-startup.sh" || {
-    echo "physical iOS runner does not rebuild the local Apple SDK" >&2
+    echo "iOS simulator runner does not rebuild the local Apple SDK" >&2
     exit 1
   }
 grep -Fq $'apple\\thardware-startup-no-vpn\\tPASS' \
   "$here/test-hardware-startup.sh" || {
-    echo "physical iOS runner does not publish its aggregate pass result" >&2
+    echo "iOS simulator runner does not publish its aggregate pass result" >&2
     exit 1
   }
 
@@ -968,29 +637,25 @@ if [ -z "$(apple_hardware_find_unguarded_profile_calls \
   exit 1
 fi
 
-inventory_line="$(grep -n 'xcrun xcdevice list' "$here/test-hardware-startup.sh" | cut -d: -f1)"
+inventory_line="$(grep -n 'capture_runtime_inventory "$runtime_inventory"' "$here/test-hardware-startup.sh" | cut -d: -f1)"
 build_line="$(grep -n 'xcodebuild build-for-testing' "$here/test-hardware-startup.sh" | sed -n '1s/:.*//p')"
 [ "$inventory_line" -lt "$build_line" ] || {
-  echo "the app build can begin before immutable fleet capture" >&2
+  echo "the app build can begin before immutable simulator inventory capture" >&2
   exit 1
 }
 [ "$(grep -c 'xcodebuild build-for-testing' \
-  "$here/test-hardware-startup.sh")" -eq 2 ] || {
-  echo "the iOS device runner does not build both physical and simulator bundles" >&2
-  exit 1
-}
-[ "$(grep -c 'xcrun xcdevice list' "$here/test-hardware-startup.sh")" -eq 1 ] || {
-  echo "the hardware runner can recapture or drift its device inventory" >&2
+  "$here/test-hardware-startup.sh")" -eq 1 ] || {
+  echo "the iOS simulator runner does not build exactly one simulator bundle" >&2
   exit 1
 }
 [ "$(grep -c -- '^[[:space:]]*-jobs 1' \
-  "$here/test-hardware-startup.sh")" -eq 6 ] || {
-  echo "an iOS-device xcodebuild invocation exceeds the one-worker budget" >&2
+  "$here/test-hardware-startup.sh")" -eq 3 ] || {
+  echo "an iOS simulator xcodebuild invocation exceeds the one-worker budget" >&2
   exit 1
 }
 [ "$(grep -c -- '-parallel-testing-enabled NO' \
-  "$here/test-hardware-startup.sh")" -eq 4 ] || {
-  echo "an iOS-device test invocation permits parallel test workers" >&2
+  "$here/test-hardware-startup.sh")" -eq 2 ] || {
+  echo "an iOS simulator test invocation permits parallel test workers" >&2
   exit 1
 }
 if grep -Eq -- '--device=|--udid=|--only-testing=' "$here/test-hardware-startup.sh"; then
@@ -999,13 +664,13 @@ if grep -Eq -- '--device=|--udid=|--only-testing=' "$here/test-hardware-startup.
 fi
 grep -Fq -- '-downloadPlatform iOS' \
   "$here/test-hardware-startup-lib.sh" || {
-  echo "the iOS device runner cannot provision missing simulator runtimes" >&2
+  echo "the iOS simulator runner cannot provision missing simulator runtimes" >&2
   exit 1
 }
 for lifecycle_command in create boot bootstatus; do
   grep -Eq "xcrun simctl ${lifecycle_command}([[:space:]]|\")" \
     "$here/test-hardware-startup.sh" || {
-    echo "the iOS device runner is missing simctl $lifecycle_command" >&2
+    echo "the iOS simulator runner is missing simctl $lifecycle_command" >&2
     exit 1
   }
 done
@@ -1016,10 +681,6 @@ for lifecycle_command in shutdown delete; do
     exit 1
   }
 done
-grep -Fq 'real-device-matrix.md' "$here/test-hardware-startup.sh" || {
-  echo "the iOS device runner does not publish its real-device matrix" >&2
-  exit 1
-}
 [ "$(grep -c 'IPHONEOS_DEPLOYMENT_TARGET = 16.0;' \
   "$here/app/app.xcodeproj/project.pbxproj")" -eq 8 ] || {
   echo "an app, extension, or test target lost deployment support for iOS 16" >&2
@@ -1031,4 +692,5 @@ if grep -Eq 'IPHONEOS_DEPLOYMENT_TARGET = (16\.6|18\.1);' \
   exit 1
 fi
 
-echo "apple hardware startup runner tests passed"
+bash "$here/test-hardware-startup-runner.test.sh"
+echo "apple simulator startup runner tests passed"

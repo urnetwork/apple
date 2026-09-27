@@ -5,124 +5,11 @@ apple_hardware_sha256() {
   shasum -a 256 "$1" | awk '{print $1}'
 }
 
-apple_hardware_write_inventory_plan() {
-  local inventory="$1" plan="$2" skips="$3"
-  local minimum_major="$4" minimum_minor="$5"
-  local combined="${plan}.combined.tmp" plan_temporary="${plan}.tmp"
-  local skips_temporary="${skips}.tmp"
-  case "$minimum_major:$minimum_minor" in
-    *[!0-9:]*|:*|*:) return 2 ;;
-  esac
-
-  jq -e \
-    --argjson minimum_major "$minimum_major" \
-    --argjson minimum_minor "$minimum_minor" '
-    def version:
-      .operatingSystemVersion
-      | capture("^(?<major>[0-9]+)\\.(?<minor>[0-9]+)")
-      | {major: (.major | tonumber), minor: (.minor | tonumber)};
-    def version_is_supported:
-      .version.major > $minimum_major
-      or (
-        .version.major == $minimum_major
-        and .version.minor >= $minimum_minor
-      );
-
-    if type != "array" then
-      error("xcdevice inventory is not an array")
-    else . end
-    | [
-        .[]
-        | select(
-            .platform == "com.apple.platform.iphoneos"
-            and .available == true
-          )
-      ] as $devices
-    | if any($devices[];
-        .simulator != false
-        or (.identifier | type) != "string"
-        or (.identifier | test("^[A-Za-z0-9-]+$") | not)
-        or (.name | type) != "string"
-        or (.name | length) == 0
-        or (.name | test("[\u0000-\u001f]") == true)
-        or (.modelName | type) != "string"
-        or (.modelName | length) == 0
-        or (.modelName | test("[\u0000-\u001f]") == true)
-        or (.operatingSystemVersion | type) != "string"
-        or (.operatingSystemVersion | length) == 0
-        or (.operatingSystemVersion | test("[\u0000-\u001f]") == true)
-        or (.architecture | type) != "string"
-        or (.architecture | test("^arm64(e)?$") | not)
-        or ((.interface? // "") | IN("usb", "network") | not)
-        or .ignored != false
-        or ((.error? // null) != null)
-        or (try version catch null) == null
-      ) then
-        error("available physical iOS inventory contains an ignored or malformed device")
-      elif any(
-        ($devices | group_by(.identifier))[];
-        length != 1
-      ) then
-        error("physical iOS inventory contains a duplicate device identifier")
-      else
-        ($devices | map(. + {version: version})) as $versioned
-        | ($versioned | map(select(version_is_supported))) as $eligible
-        | {
-            plan: (
-              $eligible
-              | map({
-                  identifier,
-                  name,
-                  modelName,
-                  operatingSystemVersion,
-                  architecture,
-                  interface
-                })
-              | sort_by(.identifier)
-            ),
-            skips: (
-              $versioned
-              | map(select(version_is_supported | not))
-              | map({
-                  identifier,
-                  name,
-                  operatingSystemVersion,
-                  reason: (
-                    "requires-ios-"
-                    + ($minimum_major | tostring)
-                    + "."
-                    + ($minimum_minor | tostring)
-                  )
-                })
-              | sort_by(.identifier)
-            )
-          }
-      end
-  ' "$inventory" >"$combined" || {
-    rm -f "$combined" "$plan_temporary" "$skips_temporary"
-    return 1
-  }
-
-  if ! jq -e '.plan' "$combined" >"$plan_temporary" || \
-     ! jq -r '.skips[] | [
-            .identifier,
-            .name,
-            .operatingSystemVersion,
-            .reason
-          ] | @tsv' "$combined" >"$skips_temporary"; then
-    rm -f "$combined" "$plan_temporary" "$skips_temporary"
-    return 1
-  fi
-  rm -f "$combined"
-  mv "$plan_temporary" "$plan"
-  mv "$skips_temporary" "$skips"
-}
-
 # Keep the user-facing release labels separate from Apple's runtime majors.
 # Apple named the release following iOS 18 "iOS 26"; the acceptance request
 # calls that generation "2026", so ios-2026 deliberately maps to major 26.
-# Xcode 27's simulator matrix starts at iOS 17; app deployment and physical
-# device eligibility continue to include iOS 16.
+# Xcode 27's simulator matrix starts at iOS 17; product deployment support
+# continues to include iOS 16.
 apple_ios_required_simulator_releases() {
   printf '%s\n' \
     $'ios-17\t17\t17.2' \
@@ -185,7 +72,7 @@ apple_ios_download_missing_simulator_runtimes() {
     [ -n "$lane" ] || continue
     log="$logs_dir/$lane-download.log"
     [ ! -e "$log" ] && [ ! -L "$log" ] || return 2
-    echo "[apple iOS devices] installing the iOS $download_version simulator runtime"
+    echo "[apple iOS simulators] installing the iOS $download_version simulator runtime"
     download_command=(
       timeout --foreground 10800 xcodebuild
       -downloadPlatform iOS
@@ -497,192 +384,12 @@ apple_ios_cleanup_owned_simulators() {
   return "$status"
 }
 
-apple_hardware_usb_inventory_is_represented() {
-  local inventory="$1" usb_identifiers="$2"
-
-  jq -n -e \
-    --rawfile usb_identifiers "$usb_identifiers" \
-    --slurpfile inventory "$inventory" '
-    ($usb_identifiers
-      | split("\n")
-      | map(select(length > 0))) as $identifiers
-    | ($identifiers | length) == ($identifiers | unique | length)
-      and all($identifiers[];
-        . as $identifier
-        | ([
-            $inventory[0][]
-            | select(
-                .platform == "com.apple.platform.iphoneos"
-                and .simulator == false
-                and .identifier == $identifier
-              )
-          ]) as $matches
-        | ($matches | length) == 1
-          and $matches[0].available == true
-          and $matches[0].ignored == false
-          and (($matches[0].error? // null) == null)
-      )
-  ' >/dev/null
-}
-
-apple_hardware_write_usb_identifiers() {
-  local ioreg_inventory="$1" output="$2" temporary
-  local raw_identifier normalized_identifier
-  temporary="${output}.tmp"
-
-  : >"$temporary" || return 1
-  while IFS= read -r raw_identifier; do
-    if [[ "$raw_identifier" =~ ^[0-9A-Fa-f]{24}$ ]]; then
-      normalized_identifier="${raw_identifier:0:8}-${raw_identifier:8}"
-    elif [[ "$raw_identifier" =~ ^[0-9A-Fa-f]{40}$ ]]; then
-      normalized_identifier="$raw_identifier"
-    else
-      rm -f "$temporary"
-      return 1
-    fi
-    printf '%s\n' "$normalized_identifier" >>"$temporary" || {
-      rm -f "$temporary"
-      return 1
-    }
-  done < <(awk -F '"' '/"USB Serial Number" = / { print $4 }' "$ioreg_inventory")
-
-  LC_ALL=C sort -u "$temporary" -o "$temporary" || {
-    rm -f "$temporary"
-    return 1
-  }
-  mv "$temporary" "$output"
-}
-
 apple_hardware_plan_ids() {
   jq -er '.[] | .identifier' "$1"
 }
 
 apple_hardware_plan_count() {
   jq -er 'length' "$1"
-}
-
-apple_hardware_markdown_escape() {
-  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g'
-}
-
-apple_hardware_write_real_device_matrix() {
-  local plan="$1" output="$2" temporary="${2}.tmp"
-  local count model version label
-  [ ! -e "$output" ] && [ ! -e "$temporary" ] && [ ! -L "$output" ] || \
-    return 2
-  count="$(apple_hardware_plan_count "$plan")" || return 1
-
-  {
-    printf '# iOS real-device acceptance matrix\n\n'
-    if [ "$count" -eq 0 ]; then
-      printf '_No eligible physical iOS devices are attached; no real-device cells run._\n'
-    else
-      printf '| Acceptance test |'
-      while IFS=$'\t' read -r model version; do
-        label="$(apple_hardware_markdown_escape "$model / iOS $version")"
-        printf ' %s |' "$label"
-      done < <(jq -r '.[] | [.modelName, .operatingSystemVersion] | @tsv' "$plan")
-      printf '\n| --- |'
-      while IFS= read -r _; do
-        printf ' --- |'
-      done < <(apple_hardware_plan_ids "$plan")
-      printf "\n| \`networkTests\` deterministic no-VPN corpus |"
-      while IFS= read -r _; do
-        printf ' RUN |'
-      done < <(apple_hardware_plan_ids "$plan")
-      printf "\n| \`HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess\` |"
-      while IFS= read -r _; do
-        printf ' RUN |'
-      done < <(apple_hardware_plan_ids "$plan")
-      printf '\n'
-    fi
-  } >"$temporary" || {
-    rm -f -- "$temporary"
-    return 1
-  }
-  chmod 600 "$temporary"
-  mv "$temporary" "$output"
-}
-
-apple_hardware_inventory_unchanged() {
-  local inventory="$1" expected_hash="$2"
-  [ "$(apple_hardware_sha256 "$inventory")" = "$expected_hash" ]
-}
-
-apple_hardware_lock_state_is_unlocked() {
-  local lock_state="$1" expected_identifier="$2"
-  case "$expected_identifier" in
-    ''|*[!A-Za-z0-9-]*) return 2 ;;
-  esac
-
-  jq -e --arg expected_identifier "$expected_identifier" '
-    (.info | type) == "object"
-    and .info.outcome == "success"
-    and .info.commandType == "devicectl.device.info.lockState"
-    and (.result | type) == "object"
-    and (.result.deviceIdentifier | type) == "string"
-    and .result.deviceIdentifier == $expected_identifier
-    and (.result.passcodeRequired | type) == "boolean"
-    and .result.passcodeRequired == false
-    and (.result.unlockedSinceBoot | type) == "boolean"
-    and .result.unlockedSinceBoot == true
-  ' "$lock_state" >/dev/null
-}
-
-apple_hardware_device_details_are_usable() {
-  local details="$1" expected_udid="$2"
-  case "$expected_udid" in
-    ''|*[!A-Za-z0-9-]*) return 2 ;;
-  esac
-
-  jq -e --arg expected_udid "$expected_udid" '
-    (.info | type) == "object"
-    and .info.outcome == "success"
-    and .info.commandType == "devicectl.device.info.details"
-    and (.result | type) == "object"
-    and (.result.identifier | type) == "string"
-    and (.result.identifier | test("^[A-Za-z0-9-]+$"))
-    and (.result.hardwareProperties | type) == "object"
-    and .result.hardwareProperties.reality == "physical"
-    and (.result.hardwareProperties.udid | type) == "string"
-    and .result.hardwareProperties.udid == $expected_udid
-    and (.result.connectionProperties | type) == "object"
-    and .result.connectionProperties.pairingState == "paired"
-    and (.result.deviceProperties | type) == "object"
-    and .result.deviceProperties.bootState == "booted"
-    and .result.deviceProperties.developerModeStatus == "enabled"
-    and (.result.deviceProperties.ddiServicesAvailable | type) == "boolean"
-    and .result.deviceProperties.ddiServicesAvailable == true
-  ' "$details" >/dev/null
-}
-
-apple_hardware_device_details_identifier() {
-  jq -er '
-    .result.identifier
-    | select(type == "string" and test("^[A-Za-z0-9-]+$"))
-  ' "$1"
-}
-
-apple_hardware_app_query_is_clean() {
-  local query="$1" bundle_id="$2"
-  jq -e --arg bundle_id "$bundle_id" '
-    (.info | type) == "object"
-    and .info.outcome == "success"
-    and (.result | type) == "object"
-    and (.result.apps | type) == "array"
-    and all(.result.apps[]; .bundleIdentifier != $bundle_id)
-  ' "$query" >/dev/null
-}
-
-apple_hardware_app_query_has_bundle() {
-  local query="$1" bundle_id="$2"
-  jq -e --arg bundle_id "$bundle_id" '
-    (.info | type) == "object"
-    and .info.outcome == "success"
-    and (.result | type) == "object"
-    and (.result.apps | type) == "array"
-    and any(.result.apps[]; .bundleIdentifier == $bundle_id)
-  ' "$query" >/dev/null
 }
 
 apple_hardware_write_result_once() {
@@ -910,7 +617,6 @@ apple_hardware_find_unguarded_profile_calls() {
 
 apple_hardware_source_contract() {
   local apple_root="$1" dangerous_matches
-  local physical_contract_line physical_unit_line
   local simulator_contract_line simulator_unit_line
   local gateway="$apple_root/app/network/Shared/VPNProfileSystem.swift"
   local runner="$apple_root/test-hardware-startup.sh"
@@ -931,13 +637,13 @@ apple_hardware_source_contract() {
   grep -Fq -- \
     '-only-testing:networkUITests/HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess' \
     "$runner" || return 1
-  [ "$(grep -cF -- '-only-testing:networkTests' "$runner")" -eq 2 ] || \
+  [ "$(grep -cF -- '-only-testing:networkTests' "$runner")" -eq 1 ] || \
     return 1
-  [ "$(grep -cF -- '-only-testing:networkUITests/HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess' "$runner")" -eq 2 ] || \
+  [ "$(grep -cF -- '-only-testing:networkUITests/HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess' "$runner")" -eq 1 ] || \
     return 1
-  [ "$(grep -c -- '-only-testing:' "$runner")" -eq 4 ] || return 1
-  [ "$(grep -c -- '^[[:space:]]*-jobs 1' "$runner")" -eq 6 ] || return 1
-  [ "$(grep -c -- '-parallel-testing-enabled NO' "$runner")" -eq 4 ] || \
+  [ "$(grep -c -- '-only-testing:' "$runner")" -eq 2 ] || return 1
+  [ "$(grep -c -- '^[[:space:]]*-jobs 1' "$runner")" -eq 3 ] || return 1
+  [ "$(grep -c -- '-parallel-testing-enabled NO' "$runner")" -eq 2 ] || \
     return 1
   ! grep -Eq -- \
     '-only-testing:.*(testMainAcceptance|testColdProcessRelaunch|Egress|Peer|Tunnel)' \
@@ -948,21 +654,13 @@ apple_hardware_source_contract() {
   ! grep -Eq \
     'app\.staticTexts\["hardware\.startup\.' "$ui_test" || return 1
 
-  physical_contract_line="$(
+  simulator_contract_line="$(
     grep -n 'apple_hardware_xctestrun_has_paired_no_vpn_contract' "$runner" |
       sed -n '2s/:.*//p'
   )"
-  simulator_contract_line="$(
-    grep -n 'apple_hardware_xctestrun_has_paired_no_vpn_contract' "$runner" |
-      sed -n '5s/:.*//p'
-  )"
-  physical_unit_line="$(grep -n -- '-only-testing:networkTests' "$runner" |
-    sed -n '1s/:.*//p')"
   simulator_unit_line="$(grep -n -- '-only-testing:networkTests' "$runner" |
-    sed -n '2s/:.*//p')"
-  [ -n "$physical_contract_line" ] && [ -n "$physical_unit_line" ] && \
-    [ -n "$simulator_contract_line" ] && [ -n "$simulator_unit_line" ] || \
+    sed -n '1s/:.*//p')"
+  [ -n "$simulator_contract_line" ] && [ -n "$simulator_unit_line" ] || \
     return 1
-  [ "$physical_contract_line" -lt "$physical_unit_line" ] && \
-    [ "$simulator_contract_line" -lt "$simulator_unit_line" ]
+  [ "$simulator_contract_line" -lt "$simulator_unit_line" ]
 }

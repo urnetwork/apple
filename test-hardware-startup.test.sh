@@ -454,6 +454,27 @@ APPLE_TEST_XCODEBUILD_CALLS="$test_root/xcodebuild-calls.txt" \
   exit 1
 }
 
+# A process substitution used to discard the inventory parser's failure: the
+# download loop saw EOF and returned success without validating any runtime.
+printf '{"runtimes":null}\n' >"$test_root/runtime-malformed.json"
+for rejected_inventory in "$test_root/runtime-malformed.json" \
+    "$test_root/runtime-does-not-exist.json"; do
+  mkdir "$test_root/rejected-runtime-download-logs"
+  if PATH="$test_root/fake-bin:$PATH" \
+    APPLE_TEST_XCODEBUILD_CALLS="$test_root/xcodebuild-calls.txt" \
+    apple_ios_download_missing_simulator_runtimes \
+      "$rejected_inventory" "$test_root/rejected-runtime-download-logs" \
+      default 2>/dev/null; then
+    echo "invalid runtime inventory incorrectly reported successful provisioning" >&2
+    exit 1
+  fi
+  [ "$(wc -l <"$test_root/xcodebuild-calls.txt" | tr -d ' ')" = 1 ] || {
+    echo "invalid runtime inventory started an xcodebuild download" >&2
+    exit 1
+  }
+  rmdir "$test_root/rejected-runtime-download-logs"
+done
+
 cat >"$test_root/fake-bin/xcrun" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail

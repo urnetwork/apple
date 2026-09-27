@@ -171,10 +171,13 @@ apple_ios_missing_simulator_downloads() {
 
 apple_ios_download_missing_simulator_runtimes() {
   local inventory="$1" logs_dir="$2" architecture_variant="${3:-default}"
-  local lane major download_version log
+  local lane major download_version log missing_downloads
   local -a download_command
   case "$architecture_variant" in default|arm64|universal) ;; *) return 2 ;; esac
   [ -d "$logs_dir" ] && [ ! -L "$logs_dir" ] || return 2
+  # Validate before entering the loop. Process substitution would discard the
+  # producer's nonzero status and turn a malformed inventory into a false PASS.
+  missing_downloads="$(apple_ios_missing_simulator_downloads "$inventory")" || return 1
 
   while IFS=$'\t' read -r lane major download_version; do
     [ -n "$lane" ] || continue
@@ -195,7 +198,7 @@ apple_ios_download_missing_simulator_runtimes() {
       return 1
     fi
     chmod 600 "$log"
-  done < <(apple_ios_missing_simulator_downloads "$inventory")
+  done <<<"$missing_downloads"
 }
 
 apple_ios_write_simulator_runtime_plan() {

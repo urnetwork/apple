@@ -84,6 +84,17 @@ apple_hardware_write_inventory_plan "$inventory" "$plan" "$skips" 18 1
   echo "unsupported physical device did not receive its exact capability skip" >&2
   exit 1
 }
+# The simulator floor must not raise product support or physical eligibility.
+jq '(.[] | select(.identifier == "DEVICE-OLD").operatingSystemVersion) = "16.4"' \
+  "$inventory" >"$test_root/legacy-device-inventory.json"
+apple_hardware_write_inventory_plan \
+  "$test_root/legacy-device-inventory.json" "$test_root/legacy-device-plan.json" \
+  "$test_root/legacy-device-skips.tsv" 16 0
+[ "$(apple_hardware_plan_ids "$test_root/legacy-device-plan.json" | paste -sd, -)" = \
+  "DEVICE-A,DEVICE-C,DEVICE-OLD" ] && [ ! -s "$test_root/legacy-device-skips.tsv" ] || {
+  echo "the iOS simulator matrix excluded a supported physical iOS 16.4 device" >&2
+  exit 1
+}
 real_device_matrix="$test_root/real-device-matrix.md"
 apple_hardware_write_real_device_matrix "$plan" "$real_device_matrix"
 grep -Fq '| Acceptance test | iPhone 15 Pro / iOS 18.5 | iPhone 16 Pro Max / iOS 18.6 |' \
@@ -313,6 +324,20 @@ cat >"$runtime_inventory" <<'JSON'
       ]
     },
     {
+      "platform": "iOS",
+      "version": "27.0",
+      "buildversion": "24A434",
+      "identifier": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+      "isAvailable": true,
+      "supportedDeviceTypes": [
+        {
+          "productFamily": "iPhone",
+          "name": "iPhone 17 Pro",
+          "identifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
+        }
+      ]
+    },
+    {
       "platform": "tvOS",
       "version": "26.5",
       "buildversion": "23L470",
@@ -325,31 +350,32 @@ cat >"$runtime_inventory" <<'JSON'
 JSON
 
 [ "$(apple_ios_required_simulator_releases)" = \
-  $'ios-16\t16\t16.4\nios-17\t17\t17.2\nios-18\t18\t18.5\nios-2026\t26\t26.5' ] || {
+  $'ios-17\t17\t17.2\nios-18\t18\t18.5\nios-2026\t26\t26.5\nios-27\t27\t27.0' ] || {
   echo "the required iOS simulator release matrix changed" >&2
   exit 1
 }
 apple_ios_write_simulator_runtime_plan "$runtime_inventory" "$runtime_plan"
 [ "$(apple_hardware_plan_count "$runtime_plan")" -eq 4 ]
 [ "$(apple_hardware_plan_ids "$runtime_plan" | paste -sd, -)" = \
-  "ios-16,ios-17,ios-18,ios-2026" ] || {
+  "ios-17,ios-18,ios-2026,ios-27" ] || {
   echo "the simulator runtime plan omitted or reordered a required lane" >&2
   exit 1
 }
 [ "$(jq -r 'map(.runtimeVersion) | join(",")' "$runtime_plan")" = \
-  "16.4,17.5,18.5,26.5" ] || {
+  "17.5,18.5,26.5,27.0" ] || {
   echo "the simulator runtime plan did not select the newest installed patch" >&2
   exit 1
 }
 [ "$(jq -r '.[0].deviceTypeIdentifier' "$runtime_plan")" = \
-  com.apple.CoreSimulator.SimDeviceType.iPhone-14-Pro ] || {
+  com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro ] || {
   echo "the simulator plan did not preserve a compatible iPhone type" >&2
   exit 1
 }
 apple_ios_runtime_plan_supports_deployment_target "$runtime_plan" 16 0
+apple_ios_runtime_plan_supports_deployment_target "$runtime_plan" 17 5
 if apple_ios_runtime_plan_supports_deployment_target \
-  "$runtime_plan" 16 6; then
-  echo "an iOS 16.4 runtime accepted an iOS 16.6 deployment target" >&2
+  "$runtime_plan" 17 6; then
+  echo "an iOS 17.5 runtime accepted an iOS 17.6 deployment target" >&2
   exit 1
 fi
 [ -z "$(apple_ios_missing_simulator_downloads "$runtime_inventory")" ] || {
@@ -357,23 +383,62 @@ fi
   exit 1
 }
 
-jq '.runtimes |= map(select(.version != "17.5"))' \
-  "$runtime_inventory" >"$test_root/runtime-missing-17.json"
-[ "$(apple_ios_missing_simulator_downloads \
-  "$test_root/runtime-missing-17.json")" = $'ios-17\t17\t17.2' ] || {
-  echo "the missing iOS 17 runtime did not select its pinned download" >&2
+jq '.runtimes |= map(select(.version | startswith("16.") | not))' \
+  "$runtime_inventory" >"$test_root/runtime-without-16.json"
+[ -z "$(apple_ios_missing_simulator_downloads "$test_root/runtime-without-16.json")" ] || {
+  echo "the runner requested an obsolete iOS 16 simulator download" >&2
   exit 1
 }
-if apple_ios_write_simulator_runtime_plan \
-  "$test_root/runtime-missing-17.json" \
-  "$test_root/runtime-missing-plan.json" 2>/dev/null; then
-  echo "an incomplete simulator runtime inventory produced a runnable plan" >&2
+apple_ios_write_simulator_runtime_plan \
+  "$test_root/runtime-without-16.json" "$test_root/runtime-without-16-plan.json"
+cmp "$runtime_plan" "$test_root/runtime-without-16-plan.json"
+
+while IFS=$'\t' read -r missing_lane missing_major pinned_download; do
+  jq --arg major "$missing_major" \
+    '.runtimes |= map(select(.platform != "iOS" or (.version | split(".")[0]) != $major))' \
+    "$runtime_inventory" >"$test_root/runtime-missing-$missing_major.json"
+  [ "$(apple_ios_missing_simulator_downloads \
+    "$test_root/runtime-missing-$missing_major.json")" = \
+    "$missing_lane"$'\t'"$missing_major"$'\t'"$pinned_download" ] || {
+    echo "the missing iOS $missing_major runtime did not select its pinned download" >&2
+    exit 1
+  }
+  if apple_ios_write_simulator_runtime_plan \
+    "$test_root/runtime-missing-$missing_major.json" \
+    "$test_root/runtime-missing-$missing_major-plan.json" 2>/dev/null; then
+    echo "an incomplete simulator runtime inventory produced a runnable plan" >&2
+    exit 1
+  fi
+  [ ! -e "$test_root/runtime-missing-$missing_major-plan.json" ] || {
+    echo "a rejected simulator runtime inventory left an authoritative plan" >&2
+    exit 1
+  }
+done <<'RELEASES'
+ios-17	17	17.2
+ios-18	18	18.5
+ios-2026	26	26.5
+ios-27	27	27.0
+RELEASES
+
+simulator_results="$test_root/required-simulator-results"
+for required_lane in ios-17 ios-18 ios-2026 ios-27; do
+  mkdir -p "$simulator_results/$required_lane"
+  apple_hardware_write_result_once \
+    "$simulator_results/$required_lane/status.tsv" "$required_lane" PASS startup-no-vpn
+done
+apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"
+mv "$simulator_results/ios-27/status.tsv" "$test_root/ios-27-status.tsv"
+if apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"; then
+  echo "a missing iOS 27 result silently passed the simulator matrix" >&2
   exit 1
 fi
-[ ! -e "$test_root/runtime-missing-plan.json" ] || {
-  echo "a rejected simulator runtime inventory left an authoritative plan" >&2
+printf 'ios-27\tSKIP\truntime-unavailable\n' >"$simulator_results/ios-27/status.tsv"
+if apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"; then
+  echo "a skipped iOS 27 result silently passed the simulator matrix" >&2
   exit 1
-}
+fi
+mv "$test_root/ios-27-status.tsv" "$simulator_results/ios-27/status.tsv"
+apple_hardware_results_match_plan "$runtime_plan" "$simulator_results"
 
 jq '(.runtimes[] | select(.version == "18.5").supportedDeviceTypes) = []' \
   "$runtime_inventory" >"$test_root/runtime-no-iphone.json"
@@ -394,19 +459,23 @@ if apple_ios_write_simulator_runtime_plan \
 fi
 
 owned_journal="$test_root/owned-simulators.tsv"
+if apple_ios_simulator_lane_is_valid ios-16; then
+  echo "the removed iOS 16 simulator lane remains eligible for ownership" >&2
+  exit 1
+fi
 apple_ios_append_owned_simulator \
-  "$owned_journal" ios-16 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
-  urnetwork-acceptance-ios-16-20260905-120000Z
+  "$owned_journal" ios-27 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-20260905-120000Z
 apple_ios_append_owned_simulator \
   "$owned_journal" ios-17 11111111-2222-3333-4444-555555555555 \
   urnetwork-acceptance-ios-17-20260905-120000Z
 apple_ios_validate_owned_simulator_journal "$owned_journal"
 apple_ios_owned_simulator_journal_has_identity \
-  "$owned_journal" ios-16 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
-  urnetwork-acceptance-ios-16-20260905-120000Z
+  "$owned_journal" ios-27 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-20260905-120000Z
 if apple_ios_owned_simulator_journal_has_identity \
-  "$owned_journal" ios-16 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
-  urnetwork-acceptance-ios-16-20260905-120001Z; then
+  "$owned_journal" ios-27 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-20260905-120001Z; then
   echo "a mismatched active simulator was treated as already journaled" >&2
   exit 1
 fi
@@ -453,6 +522,18 @@ APPLE_TEST_XCODEBUILD_CALLS="$test_root/xcodebuild-calls.txt" \
   echo "runtime provisioning did not preserve its download log" >&2
   exit 1
 }
+mkdir "$test_root/runtime-download-27-logs"
+PATH="$test_root/fake-bin:$PATH" \
+APPLE_TEST_XCODEBUILD_CALLS="$test_root/xcodebuild-27-calls.txt" \
+  apple_ios_download_missing_simulator_runtimes \
+    "$test_root/runtime-missing-27.json" \
+    "$test_root/runtime-download-27-logs" default
+[ "$(cat "$test_root/xcodebuild-27-calls.txt")" = \
+  '-downloadPlatform iOS -buildVersion 27.0' ] && \
+  [ -f "$test_root/runtime-download-27-logs/ios-27-download.log" ] || {
+  echo "runtime provisioning did not preserve the required iOS 27 download" >&2
+  exit 1
+}
 
 # A process substitution used to discard the inventory parser's failure: the
 # download loop saw EOF and returned success without validating any runtime.
@@ -486,7 +567,7 @@ case "${1:-} ${2:-} ${3:-}" in
     if [ "$(cat "$APPLE_TEST_SIM_STATE")" = present ]; then
       cat <<JSON
 {"devices":{"runtime":[
-  {"udid":"AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE","name":"urnetwork-acceptance-ios-16-20260905-120000Z","state":"Booted","isAvailable":true},
+  {"udid":"AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE","name":"urnetwork-acceptance-ios-27-20260905-120000Z","state":"Booted","isAvailable":true},
   {"udid":"99999999-BBBB-CCCC-DDDD-EEEEEEEEEEEE","name":"pre-existing-user-simulator","state":"Booted","isAvailable":true}
 ]}}
 JSON
@@ -511,10 +592,10 @@ chmod 700 "$test_root/fake-bin/xcrun"
 
 cleanup_journal="$test_root/cleanup-owned.tsv"
 apple_ios_append_owned_simulator \
-  "$cleanup_journal" ios-16 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
-  urnetwork-acceptance-ios-16-20260905-120000Z
-mkdir -p "$test_root/simulator-results/ios-16"
-touch "$test_root/simulator-results/ios-16/.cleanup-required"
+  "$cleanup_journal" ios-27 AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-20260905-120000Z
+mkdir -p "$test_root/simulator-results/ios-27"
+touch "$test_root/simulator-results/ios-27/.cleanup-required"
 printf 'present\n' >"$test_root/simulator-state"
 : >"$test_root/simctl-calls.txt"
 PATH="$test_root/fake-bin:$PATH" \
@@ -523,12 +604,12 @@ APPLE_TEST_SIM_STATE="$test_root/simulator-state" \
   apple_ios_cleanup_owned_simulators \
     "$cleanup_journal" "$test_root/simulator-results" \
     "$test_root/simulator-cleanup.tsv"
-[ ! -e "$test_root/simulator-results/ios-16/.cleanup-required" ] || {
+[ ! -e "$test_root/simulator-results/ios-27/.cleanup-required" ] || {
   echo "successful simulator deletion left cleanup armed" >&2
   exit 1
 }
 [ "$(cat "$test_root/simulator-cleanup.tsv")" = \
-  $'ios-16\tAAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE\tPASS\tshutdown-and-deleted' ] || {
+  $'ios-27\tAAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE\tPASS\tshutdown-and-deleted' ] || {
   echo "simulator cleanup did not preserve exact success evidence" >&2
   exit 1
 }
@@ -543,8 +624,8 @@ if grep -qF 99999999-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
   exit 1
 fi
 
-mkdir -p "$test_root/simulator-results-failed/ios-16"
-touch "$test_root/simulator-results-failed/ios-16/.cleanup-required"
+mkdir -p "$test_root/simulator-results-failed/ios-27"
+touch "$test_root/simulator-results-failed/ios-27/.cleanup-required"
 printf 'present\n' >"$test_root/simulator-state"
 : >"$test_root/simctl-calls-failed.txt"
 if PATH="$test_root/fake-bin:$PATH" \
@@ -557,7 +638,7 @@ if PATH="$test_root/fake-bin:$PATH" \
   echo "a failed simulator deletion was reported as clean" >&2
   exit 1
 fi
-[ -e "$test_root/simulator-results-failed/ios-16/.cleanup-required" ] || {
+[ -e "$test_root/simulator-results-failed/ios-27/.cleanup-required" ] || {
   echo "failed simulator deletion disarmed required cleanup" >&2
   exit 1
 }
@@ -567,7 +648,7 @@ APPLE_TEST_SIM_STATE="$test_root/simulator-state" \
   apple_ios_cleanup_owned_simulators \
     "$cleanup_journal" "$test_root/simulator-results-failed" \
     "$test_root/simulator-cleanup-retry.tsv"
-[ ! -e "$test_root/simulator-results-failed/ios-16/.cleanup-required" ] || {
+[ ! -e "$test_root/simulator-results-failed/ios-27/.cleanup-required" ] || {
   echo "a later cleanup boundary could not retry a failed simulator deletion" >&2
   exit 1
 }
@@ -941,12 +1022,12 @@ grep -Fq 'real-device-matrix.md' "$here/test-hardware-startup.sh" || {
 }
 [ "$(grep -c 'IPHONEOS_DEPLOYMENT_TARGET = 16.0;' \
   "$here/app/app.xcodeproj/project.pbxproj")" -eq 8 ] || {
-  echo "an app, extension, or test target cannot run on the iOS 16.4 lane" >&2
+  echo "an app, extension, or test target lost deployment support for iOS 16" >&2
   exit 1
 }
 if grep -Eq 'IPHONEOS_DEPLOYMENT_TARGET = (16\.6|18\.1);' \
   "$here/app/app.xcodeproj/project.pbxproj"; then
-  echo "a stale deployment target excludes a required simulator lane" >&2
+  echo "a raised deployment target excludes supported iOS 16 devices" >&2
   exit 1
 fi
 

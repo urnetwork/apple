@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # Deterministic, no-VPN startup regression on every attached eligible physical
-# iOS device and disposable simulators for iOS 16, 17, 18, and 2026 (iOS 26).
+# iOS device and disposable simulators for iOS 17, 18, 2026 (iOS 26), and 27.
 # This lane never runs account, tunnel, VPN, peer, or data-plane cases.
 #
 # Usage:
@@ -282,7 +282,7 @@ capture_runtime_inventory() {
   mv "$temporary" "$output"
 }
 
-echo "[apple iOS devices] ensuring simulator runtimes for iOS 16, 17, 18, and 2026 (iOS 26)"
+echo "[apple iOS devices] ensuring simulator runtimes for iOS 17, 18, 2026 (iOS 26), and 27"
 capture_runtime_inventory "$runtime_inventory_before" || \
   die "could not inventory installed iOS simulator runtimes"
 apple_ios_download_missing_simulator_runtimes \
@@ -293,7 +293,7 @@ capture_runtime_inventory "$runtime_inventory" || \
   die "could not inventory iOS simulator runtimes after provisioning"
 apple_ios_write_simulator_runtime_plan \
   "$runtime_inventory" "$simulator_plan" || \
-  die "iOS 16, 17, 18, and 2026 simulator runtimes are not all available"
+  die "iOS 17, 18, 2026 (iOS 26), and 27 simulator runtimes are not all available"
 apple_ios_runtime_plan_supports_deployment_target \
   "$simulator_plan" "$minimum_ios_major" "$minimum_ios_minor" || \
   die "the iOS deployment target $minimum_ios_version cannot run on every required simulator"

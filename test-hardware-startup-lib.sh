@@ -121,12 +121,14 @@ apple_hardware_write_inventory_plan() {
 # Keep the user-facing release labels separate from Apple's runtime majors.
 # Apple named the release following iOS 18 "iOS 26"; the acceptance request
 # calls that generation "2026", so ios-2026 deliberately maps to major 26.
+# Xcode 27's simulator matrix starts at iOS 17; app deployment and physical
+# device eligibility continue to include iOS 16.
 apple_ios_required_simulator_releases() {
   printf '%s\n' \
-    $'ios-16\t16\t16.4' \
     $'ios-17\t17\t17.2' \
     $'ios-18\t18\t18.5' \
-    $'ios-2026\t26\t26.5'
+    $'ios-2026\t26\t26.5' \
+    $'ios-27\t27\t27.0'
 }
 
 apple_ios_runtime_major_available() {
@@ -210,10 +212,10 @@ apple_ios_write_simulator_runtime_plan() {
   if ! jq -e '
     def required:
       [
-        {identifier: "ios-16", requestedRelease: "16", major: 16, downloadVersion: "16.4"},
         {identifier: "ios-17", requestedRelease: "17", major: 17, downloadVersion: "17.2"},
         {identifier: "ios-18", requestedRelease: "18", major: 18, downloadVersion: "18.5"},
-        {identifier: "ios-2026", requestedRelease: "2026", major: 26, downloadVersion: "26.5"}
+        {identifier: "ios-2026", requestedRelease: "2026", major: 26, downloadVersion: "26.5"},
+        {identifier: "ios-27", requestedRelease: "27", major: 27, downloadVersion: "27.0"}
       ];
     def parsed_version:
       .version
@@ -316,7 +318,7 @@ apple_ios_simulator_udid_is_valid() {
 }
 
 apple_ios_simulator_lane_is_valid() {
-  case "$1" in ios-16|ios-17|ios-18|ios-2026) return 0 ;; esac
+  case "$1" in ios-17|ios-18|ios-2026|ios-27) return 0 ;; esac
   return 1
 }
 

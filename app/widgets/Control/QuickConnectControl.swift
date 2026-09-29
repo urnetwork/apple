@@ -69,8 +69,8 @@ struct QuickConnectControl: ControlWidget {
             .tint(WidgetTheme.tint)
             .disabled(!state.isConfigured)
         }
-        .displayName("URnetwork")
-        .description("Connect or disconnect the URnetwork VPN.")
+        .displayName(QuickConnectControlMetadata.displayName)
+        .description(QuickConnectControlMetadata.description)
     }
 }
 

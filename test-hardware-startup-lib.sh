@@ -11,8 +11,12 @@ apple_hardware_sha256() {
 # Xcode 27's simulator matrix starts at iOS 17; product deployment support
 # continues to include iOS 16.
 apple_ios_required_simulator_releases() {
+	local defer_ios_17_2="${1:-0}"
+	case "$defer_ios_17_2" in 0|1) ;; *) return 2 ;; esac
+	if [ "$defer_ios_17_2" = 0 ]; then
+		printf '%s\n' $'ios-17\t17\t17.2'
+	fi
   printf '%s\n' \
-    $'ios-17\t17\t17.2' \
     $'ios-18\t18\t18.5' \
     $'ios-2026\t26\t26.5' \
     $'ios-27\t27\t27.0'
@@ -48,14 +52,15 @@ apple_ios_runtime_major_available() {
 }
 
 apple_ios_missing_simulator_downloads() {
-  local inventory="$1" lane major download_version
+  local inventory="$1" lane major download_version required_releases
+  required_releases="$(apple_ios_required_simulator_releases "${2:-0}")" || return 2
   jq -e '(.runtimes | type) == "array"' "$inventory" >/dev/null || return 1
 
   while IFS=$'\t' read -r lane major download_version; do
     if ! apple_ios_runtime_major_available "$inventory" "$major"; then
       printf '%s\t%s\t%s\n' "$lane" "$major" "$download_version"
     fi
-  done < <(apple_ios_required_simulator_releases)
+  done <<<"$required_releases"
 }
 
 apple_ios_download_missing_simulator_runtimes() {
@@ -66,7 +71,7 @@ apple_ios_download_missing_simulator_runtimes() {
   [ -d "$logs_dir" ] && [ ! -L "$logs_dir" ] || return 2
   # Validate before entering the loop. Process substitution would discard the
   # producer's nonzero status and turn a malformed inventory into a false PASS.
-  missing_downloads="$(apple_ios_missing_simulator_downloads "$inventory")" || return 1
+  missing_downloads="$(apple_ios_missing_simulator_downloads "$inventory" "${4:-0}")" || return 1
 
   while IFS=$'\t' read -r lane major download_version; do
     [ -n "$lane" ] || continue
@@ -91,19 +96,20 @@ apple_ios_download_missing_simulator_runtimes() {
 }
 
 apple_ios_write_simulator_runtime_plan() {
-  local inventory="$1" plan="$2" temporary
+  local inventory="$1" plan="$2" temporary defer_ios_17_2="${3:-0}"
+  case "$defer_ios_17_2" in 0|1) ;; *) return 2 ;; esac
   temporary="${plan}.tmp"
   [ ! -L "$plan" ] || return 2
   [ ! -e "$temporary" ] || return 2
 
-  if ! jq -e '
+  if ! jq -e --argjson defer_ios_17_2 "$defer_ios_17_2" '
     def required:
       [
         {identifier: "ios-17", requestedRelease: "17", major: 17, downloadVersion: "17.2"},
         {identifier: "ios-18", requestedRelease: "18", major: 18, downloadVersion: "18.5"},
         {identifier: "ios-2026", requestedRelease: "2026", major: 26, downloadVersion: "26.5"},
         {identifier: "ios-27", requestedRelease: "27", major: 27, downloadVersion: "27.0"}
-      ];
+      ] | map(select($defer_ios_17_2 == 0 or .identifier != "ios-17"));
     def parsed_version:
       .version
       | capture("^(?<major>[0-9]+)\\.(?<minor>[0-9]+)(?:\\.(?<patch>[0-9]+))?$")
@@ -172,11 +178,13 @@ apple_ios_write_simulator_runtime_plan() {
 }
 
 apple_ios_runtime_plan_supports_deployment_target() {
-  local plan="$1" minimum_major="$2" minimum_minor="$3"
+  local plan="$1" minimum_major="$2" minimum_minor="$3" defer_ios_17_2="${4:-0}"
+  case "$defer_ios_17_2" in 0|1) ;; *) return 2 ;; esac
   case "$minimum_major:$minimum_minor" in
     *[!0-9:]*|:*|*:) return 2 ;;
   esac
   jq -e \
+    --argjson defer_ios_17_2 "$defer_ios_17_2" \
     --argjson minimum_major "$minimum_major" \
     --argjson minimum_minor "$minimum_minor" '
     def version:
@@ -184,7 +192,8 @@ apple_ios_runtime_plan_supports_deployment_target() {
       | capture("^(?<major>[0-9]+)\\.(?<minor>[0-9]+)(?:\\.[0-9]+)?$")
       | {major: (.major | tonumber), minor: (.minor | tonumber)};
     type == "array"
-    and length == 4
+    and (map(.identifier) == (["ios-17", "ios-18", "ios-2026", "ios-27"]
+      | map(select($defer_ios_17_2 == 0 or . != "ios-17"))))
     and all(
       .[];
       (try version catch null) as $version

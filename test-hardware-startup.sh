@@ -7,13 +7,15 @@
 #
 # Usage:
 #   ./test-hardware-startup.sh
+#   ./test-hardware-startup.sh --defer-ios-17-2  (explicit user authorization only)
 #
 # Environment:
 #   UR_ACCEPT_REPEAT=N  Run both deterministic corpora N times per simulator.
 #
 # The simulator inventory is captured into an immutable four-release plan.
-# There are deliberately no device or test selectors: a caller cannot silently
-# omit a required iOS release or substitute a tunnel test into this lane.
+# The only temporary coverage exception is an explicit iOS 17.2 deferral;
+# it is recorded as tailored coverage, never a full four-release pass.
+# There are no device or test selectors or implicit environment exclusions.
 # Missing simulator runtimes are installed automatically.
 set -euo pipefail
 umask 077
@@ -23,16 +25,22 @@ root="${URNETWORK_ROOT:-$(dirname "$here")}"
 source "$here/test-hardware-startup-lib.sh"
 result_matrix="${UR_ACCEPT_RESULT_FILE:-}"
 repeat_count="${UR_ACCEPT_REPEAT:-1}"
+defer_ios_17_2=0
+expected_simulator_count=4
 
 if [ "$#" -ne 0 ]; then
   case "${1:-}" in
+    --defer-ios-17-2)
+      [ "$#" -eq 1 ] || { echo "unexpected iOS startup arguments" >&2; exit 2; }
+      defer_ios_17_2=1
+      expected_simulator_count=3
+      ;;
     -h|--help)
       grep '^#' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
+    *) echo "[apple hardware startup] unknown arguments; this lane has no selectors" >&2; exit 2 ;;
   esac
-  echo "[apple hardware startup] unknown arguments; this lane has no selectors" >&2
-  exit 2
 fi
 case "$repeat_count" in
   ''|*[!0-9]*|0)
@@ -79,6 +87,13 @@ simulator_results_root="$artifacts/simulators"
 owned_simulators="$artifacts/owned-simulators.tsv"
 simulator_derived="$artifacts/DerivedData-simulator"
 mkdir "$runtime_download_logs" "$simulator_results_root"
+if [ "$defer_ios_17_2" -eq 1 ]; then
+  printf '%s\n' '{"coverage_scope":"tailored-ios17.2-deferred","deferred":["ios-17/17.2"],"required":["ios-18","ios-2026","ios-27"]}' >"$artifacts/simulator-coverage.json"
+  echo "[apple iOS simulators] TAILORED coverage: ios-17 (pinned iOS 17.2) explicitly DEFERRED"
+else
+  printf '%s\n' '{"coverage_scope":"full","deferred":[],"required":["ios-17","ios-18","ios-2026","ios-27"]}' >"$artifacts/simulator-coverage.json"
+fi
+chmod 400 "$artifacts/simulator-coverage.json"
 
 simulator_count=0
 active_simulator_lane=""
@@ -124,11 +139,31 @@ cleanup() {
     fi
   fi
 
+  # The combined runner seals this receipt with the MAIN logs. Publish only
+  # after the selected tests and owned-simulator cleanup have both succeeded.
+  if [ "$exit_status" -eq 0 ] && [ "$defer_ios_17_2" -eq 1 ] && \
+     [ -n "${URNETWORK_RUNNER_MAIN_COVERAGE_FILE:-}" ]; then
+    if ! (set -C; jq \
+      --arg run_id "${URNETWORK_RUN_ID:-}" \
+      --arg plan_sha256 "${URNETWORK_PLAN_SHA256:-}" \
+      --arg runtime_plan_sha256 "$simulator_plan_hash" \
+      '. + {version: 1, run_id: $run_id, plan_sha256: $plan_sha256,
+        runtime_plan_sha256: $runtime_plan_sha256, passed: true, cleanup_complete: true}' \
+      "$artifacts/simulator-coverage.json" >"$URNETWORK_RUNNER_MAIN_COVERAGE_FILE"); then
+      echo "[apple iOS simulators] could not publish the runner-owned tailored coverage receipt" >&2
+      exit_status=1
+    fi
+  fi
+
   if [ -n "$result_matrix" ]; then
     mkdir -p "$(dirname "$result_matrix")"
     if [ "$exit_status" -eq 0 ]; then
-      printf 'apple\thardware-startup-no-vpn\tPASS\t%s required simulator lane(s) passed\n' \
-        "$simulator_count" >>"$result_matrix"
+      if [ "$defer_ios_17_2" -eq 1 ]; then
+        printf 'apple\thardware-startup-no-vpn\tPASS\t3 selected lanes passed; TAILORED coverage; ios-17/17.2 DEFERRED, not full four-release coverage\n' >>"$result_matrix"
+      else
+        printf 'apple\thardware-startup-no-vpn\tPASS\t%s required simulator lane(s) passed\n' \
+          "$simulator_count" >>"$result_matrix"
+      fi
     else
       printf 'apple\thardware-startup-no-vpn\tFAIL\tiOS simulator no-VPN startup failed; see Apple simulator artifacts\n' \
         >>"$result_matrix"
@@ -137,7 +172,11 @@ cleanup() {
   fi
 
   if [ "$exit_status" -eq 0 ]; then
-    echo "[apple iOS simulators] ✓ PASSED (artifacts: $artifacts)"
+    if [ "$defer_ios_17_2" -eq 1 ]; then
+      echo "[apple iOS simulators] ✓ PASS_TAILORED: iOS 17.2 DEFERRED (artifacts: $artifacts)"
+    else
+      echo "[apple iOS simulators] ✓ PASSED (artifacts: $artifacts)"
+    fi
   else
     echo "[apple iOS simulators] ✗ FAILED (artifacts: $artifacts)" >&2
   fi
@@ -198,26 +237,26 @@ capture_runtime_inventory() {
   mv "$temporary" "$output"
 }
 
-echo "[apple iOS simulators] ensuring simulator runtimes for iOS 17, 18, 2026 (iOS 26), and 27"
+echo "[apple iOS simulators] ensuring $expected_simulator_count selected simulator runtimes (iOS 17.2 deferred=$defer_ios_17_2)"
 capture_runtime_inventory "$runtime_inventory_before" || \
   die "could not inventory installed iOS simulator runtimes"
 apple_ios_download_missing_simulator_runtimes \
   "$runtime_inventory_before" "$runtime_download_logs" \
-  "$runtime_architecture" || \
+  "$runtime_architecture" "$defer_ios_17_2" || \
   die "could not install every required iOS simulator runtime"
 capture_runtime_inventory "$runtime_inventory" || \
   die "could not inventory iOS simulator runtimes after provisioning"
 apple_ios_write_simulator_runtime_plan \
-  "$runtime_inventory" "$simulator_plan" || \
-  die "iOS 17, 18, 2026 (iOS 26), and 27 simulator runtimes are not all available"
+  "$runtime_inventory" "$simulator_plan" "$defer_ios_17_2" || \
+  die "not every selected iOS simulator runtime is available"
 apple_ios_runtime_plan_supports_deployment_target \
-  "$simulator_plan" "$minimum_ios_major" "$minimum_ios_minor" || \
+  "$simulator_plan" "$minimum_ios_major" "$minimum_ios_minor" "$defer_ios_17_2" || \
   die "the iOS deployment target $minimum_ios_version cannot run on every required simulator"
 chmod 400 "$simulator_plan"
 runtime_inventory_hash="$(apple_hardware_sha256 "$runtime_inventory")"
 simulator_plan_hash="$(apple_hardware_sha256 "$simulator_plan")"
 simulator_count="$(apple_hardware_plan_count "$simulator_plan")"
-[ "$simulator_count" -eq 4 ] || die "simulator plan is missing a required release"
+[ "$simulator_count" -eq "$expected_simulator_count" ] || die "simulator plan is missing a required release"
 printf '%s  %s\n%s  %s\n' \
   "$runtime_inventory_hash" "$(basename "$runtime_inventory")" \
   "$simulator_plan_hash" "$(basename "$simulator_plan")" \
@@ -471,7 +510,7 @@ done < <(jq -r '.[] | [
 
 apple_hardware_results_match_plan \
   "$simulator_plan" "$simulator_results_root" || \
-  die "result set does not match the four-lane simulator plan exactly once"
+  die "result set does not match the selected simulator plan exactly once"
 [ "$(apple_hardware_sha256 "$runtime_inventory")" = \
   "$runtime_inventory_hash" ] || \
   die "simulator runtime inventory changed during the run"

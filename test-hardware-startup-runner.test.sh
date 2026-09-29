@@ -48,7 +48,7 @@ case "${1:-}" in
       'runtimes --json')
         jq -n --arg mode "$APPLE_RUNNER_MODE" '{runtimes: [
           "17.2", "18.5", "26.5", "27.0"
-          | select($mode != "missing-runtime" or . != "17.2")
+          | select(($mode != "missing-runtime" and ($mode | startswith("deferred") | not)) or . != "17.2")
           | . as $version | {
             platform: "iOS", version: $version, buildversion: "fixture",
             identifier: ("com.apple.CoreSimulator.SimRuntime.iOS-" + ($version | gsub("\\."; "-"))),
@@ -83,7 +83,7 @@ case "${1:-}" in
     ;;
   delete)
     [ "$2" != 99999999-1111-2222-3333-444444444444 ] || exit 99
-    [ "$APPLE_RUNNER_MODE" != cleanup-failure ] || exit 8
+    case "$APPLE_RUNNER_MODE" in cleanup-failure|deferred-cleanup-failure) exit 8 ;; esac
     awk -F '\t' -v udid="$2" '$1 != udid' "$APPLE_RUNNER_DEVICES" \
       >"$APPLE_RUNNER_DEVICES.tmp"
     mv "$APPLE_RUNNER_DEVICES.tmp" "$APPLE_RUNNER_DEVICES"
@@ -163,6 +163,9 @@ chmod 700 "$test_root/bin/"*
 
 run_fixture() {
   local mode="$1" expected_status="$2" fixture status artifacts
+  local -a startup_args
+  startup_args=()
+  case "$mode" in deferred*) startup_args=(--defer-ios-17-2) ;; esac
   fixture="$test_root/$mode"
   mkdir -p "$fixture/apple" "$fixture/tests" "$fixture/sdk/build" "$fixture/tools/go-bin"
   cp "$here/test-hardware-startup.sh" "$here/test-hardware-startup-lib.sh" "$fixture/apple/"
@@ -180,7 +183,9 @@ run_fixture() {
     WARP_VERSION=fixture UR_ACCEPT_REPEAT=2 UR_ACCEPT_RESULT_FILE="$fixture/matrix.tsv" \
     APPLE_RUNNER_MODE="$mode" APPLE_RUNNER_CALLS="$fixture/calls.log" \
     APPLE_RUNNER_DEVICES="$fixture/devices.tsv" \
-    bash "$fixture/apple/test-hardware-startup.sh" >"$fixture/run.log" 2>&1 || status=$?
+    URNETWORK_RUN_ID=fixture-run URNETWORK_PLAN_SHA256=fixture-plan \
+    URNETWORK_RUNNER_MAIN_COVERAGE_FILE="$fixture/coverage.json" \
+    bash "$fixture/apple/test-hardware-startup.sh" ${startup_args[@]+"${startup_args[@]}"} >"$fixture/run.log" 2>&1 || status=$?
   if [ "$status" -ne "$expected_status" ]; then
     tail -n 12 "$fixture/run.log" >&2
     fail "$mode exited $status; expected $expected_status"
@@ -194,7 +199,17 @@ run_fixture() {
   [ -d "$artifacts" ] || fail "$mode has no artifact directory"
   [ ! -e "$artifacts/device-plan.json" ] && \
     [ ! -e "$artifacts/real-device-matrix.md" ] || fail "$mode claimed physical proof"
-  if [ "$expected_status" -eq 0 ]; then
+  if [ "$mode" = deferred ]; then
+    grep -q 'TAILORED coverage; ios-17/17.2 DEFERRED' "$fixture/matrix.tsv" || fail "deferral looked like full coverage"
+    [ "$(cut -f 1 "$artifacts/results.tsv" | paste -sd, -)" = ios-18,ios-2026,ios-27 ] || fail "deferral changed another row"
+    [ "$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log")" -eq 12 ] || fail "remaining corpora changed"
+    ! grep -q -- '-downloadPlatform\|urnetwork-acceptance-ios-17-' "$fixture/calls.log" || fail "deferred row was provisioned"
+    jq -e '.version == 1 and .run_id == "fixture-run" and .plan_sha256 == "fixture-plan"
+      and .coverage_scope == "tailored-ios17.2-deferred" and .deferred == ["ios-17/17.2"]
+      and .required == ["ios-18","ios-2026","ios-27"] and .passed and .cleanup_complete
+      and (.runtime_plan_sha256 | test("^[a-f0-9]{64}$"))' "$fixture/coverage.json" >/dev/null || fail "missing coverage receipt"
+    [ "$(jq -r .runtime_plan_sha256 "$fixture/coverage.json")" = "$(shasum -a 256 "$artifacts/simulator-plan.json" | awk '{print $1}')" ] || fail "runtime plan hash was not bound"
+  elif [ "$expected_status" -eq 0 ]; then
     grep -q $'^apple\thardware-startup-no-vpn\tPASS\t4 required simulator lane(s) passed$' \
       "$fixture/matrix.tsv" || fail "success did not report the four simulator cells"
     [ "$(cut -f 1 "$artifacts/results.tsv" | paste -sd, -)" = \
@@ -206,7 +221,10 @@ run_fixture() {
     grep -q $'^apple\thardware-startup-no-vpn\tFAIL\t' "$fixture/matrix.tsv" || \
       fail "$mode failure became a passing aggregate"
   fi
-  if [ "$mode" = cleanup-failure ] || [ "$mode" = ownership-mismatch ]; then
+  if [ "$expected_status" -ne 0 ] && [ -e "$fixture/coverage.json" ]; then
+    fail "$mode published passing tailored coverage after failure"
+  fi
+  if [ "$mode" = cleanup-failure ] || [ "$mode" = deferred-cleanup-failure ] || [ "$mode" = ownership-mismatch ]; then
     [ -n "$(find "$artifacts/simulators" -name .cleanup-required -print -quit)" ] || \
       fail "$mode disarmed required cleanup"
   else
@@ -227,6 +245,8 @@ run_fixture() {
 }
 
 run_fixture success 0
+run_fixture deferred 0
+run_fixture deferred-cleanup-failure 1
 run_fixture unit-failure 1
 run_fixture ui-failure 1
 run_fixture missing-runtime 1

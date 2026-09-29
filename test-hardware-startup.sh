@@ -54,7 +54,7 @@ die() {
   exit 1
 }
 
-for command_name in go jq make openssl shasum timeout xcodebuild xcrun; do
+for command_name in go jq lipo make openssl shasum timeout xcodebuild xcrun; do
   command -v "$command_name" >/dev/null 2>&1 || \
     die "required command is missing: $command_name"
 done
@@ -218,11 +218,7 @@ case "$(uname -m)" in
     # catalog choose the only offered variant.
     runtime_architecture=default
     ;;
-  x86_64|amd64)
-    host_arch=amd64
-    runtime_architecture=default
-    ;;
-  *) die "unsupported Apple SDK build architecture" ;;
+  *) die "iOS simulator startup requires an arm64 host for the local Apple SDK" ;;
 esac
 
 capture_runtime_inventory() {
@@ -301,6 +297,16 @@ mkdir -p "$artifacts/sdk-go-cache" "$artifacts/sdk-go-mod-cache"
   die "local Apple SDK build produced no app xcframework"
 [ -d "$root/sdk/build/apple/URnetworkExtensionSdk.xcframework" ] || \
   die "local Apple SDK build produced no extension xcframework"
+# The local SDK intentionally ships arm64-only iOS simulator slices. A generic
+# Xcode destination otherwise also requests x86_64, even on this arm64 host.
+for sdk_framework in URnetworkSdk URnetworkExtensionSdk; do
+  simulator_sdk_binary="$root/sdk/build/apple/$sdk_framework.xcframework/ios-arm64-simulator/$sdk_framework.framework/$sdk_framework"
+  if [ ! -f "$simulator_sdk_binary" ] || \
+     ! run_bounded 60 lipo -verify_arch arm64 "$simulator_sdk_binary" \
+       >>"$artifacts/simulator-sdk-architectures.log" 2>&1; then
+    die "local Apple SDK has no usable arm64 simulator binary: $sdk_framework"
+  fi
+done
 
 nonce="$(openssl rand -hex 16)"
 case "$nonce" in ''|*[!0-9a-f]*) die "could not generate the build nonce" ;; esac
@@ -318,6 +324,7 @@ run_bounded 3600 xcodebuild build-for-testing \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$simulator_derived" \
   -configuration Debug \
+  ARCHS=arm64 \
   URNETWORK_ACCEPTANCE_BUILD_ID="$build_id" \
   URNETWORK_HARDWARE_UI_TEST_NONCE="$nonce" \
   'SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) URNETWORK_HARDWARE_UI_TESTING' \

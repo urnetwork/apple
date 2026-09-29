@@ -14,6 +14,20 @@ fail() {
 }
 
 mkdir "$test_root/bin"
+cat >"$test_root/bin/uname" <<'SH'
+#!/usr/bin/env bash
+case "${1:-}" in
+  -s) printf 'Darwin\n' ;;
+  -m)
+    if [ "$APPLE_RUNNER_MODE" = unsupported-host ]; then
+      printf 'x86_64\n'
+    else
+      printf 'arm64\n'
+    fi
+    ;;
+  *) exit 98 ;;
+esac
+SH
 cat >"$test_root/bin/timeout" <<'SH'
 #!/usr/bin/env bash
 [ "${1:-}" != --foreground ] || shift
@@ -32,6 +46,23 @@ set -euo pipefail
 printf 'sdk build\n' >>"$APPLE_RUNNER_CALLS"
 mkdir -p "$PWD/apple/URnetworkSdk.xcframework" \
   "$PWD/apple/URnetworkExtensionSdk.xcframework"
+for sdk in URnetworkSdk URnetworkExtensionSdk; do
+  framework="$PWD/apple/$sdk.xcframework/ios-arm64-simulator/$sdk.framework"
+  mkdir -p "$framework"
+  case "$APPLE_RUNNER_MODE:$sdk" in
+    missing-app-slice:URnetworkSdk|missing-extension-slice:URnetworkExtensionSdk) ;;
+    wrong-app-slice:URnetworkSdk|wrong-extension-slice:URnetworkExtensionSdk)
+      printf 'x86_64\n' >"$framework/$sdk" ;;
+    *) printf 'arm64\n' >"$framework/$sdk" ;;
+  esac
+done
+SH
+cat >"$test_root/bin/lipo" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+[ "$#" -eq 3 ] && [ "$1" = -verify_arch ] && [ "$2" = arm64 ]
+printf 'sdk slice-check %s\n' "${3##*/}" >>"$APPLE_RUNNER_CALLS"
+[ -f "$3" ] && [ "$(cat "$3")" = arm64 ]
 SH
 cat >"$test_root/bin/xcrun" <<'SH'
 #!/usr/bin/env bash
@@ -95,7 +126,7 @@ cat >"$test_root/bin/xcodebuild" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 printf 'xcodebuild %s\n' "$*" >>"$APPLE_RUNNER_CALLS"
-mode="" destination="" sdk="" derived="" build_id="" nonce="" xctestrun="" target=""
+mode="" destination="" sdk="" derived="" build_id="" nonce="" xctestrun="" target="" arch="" arch_count=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -showBuildSettings|build-for-testing|test-without-building|-downloadPlatform) mode="$1" ;;
@@ -106,6 +137,7 @@ while [ "$#" -gt 0 ]; do
     URNETWORK_ACCEPTANCE_BUILD_ID=*) build_id="${1#*=}" ;;
     URNETWORK_HARDWARE_UI_TEST_NONCE=*) nonce="${1#*=}" ;;
     -only-testing:*) target="${1#*:}" ;;
+    ARCHS=*) arch="${1#*=}"; arch_count=$((arch_count + 1)) ;;
   esac
   shift
 done
@@ -122,6 +154,10 @@ case "$mode" in
   -downloadPlatform) exit 7 ;;
   build-for-testing)
     [ "$destination" = 'generic/platform=iOS Simulator' ]
+    if [ "$arch" != arm64 ] || [ "$arch_count" -ne 1 ]; then
+      echo 'fixture link: generic simulator build requests x86_64 but SDK slice is arm64 only' >&2
+      exit 65
+    fi
     products="$derived/Build/Products"
     mkdir -p "$products/Debug-iphonesimulator/URnetwork.app"
     jq -n --arg build "$build_id" --arg nonce "$nonce" \
@@ -242,7 +278,40 @@ run_fixture() {
     ! grep -Eq '^sdk build$|^xcodebuild build-for-testing |^xcrun simctl create ' "$fixture/calls.log" || \
       fail "an incomplete runtime matrix proceeded to build or create a simulator"
   fi
+  case "$mode" in
+    success|deferred)
+      [ "$(grep -c '^sdk slice-check ' "$fixture/calls.log")" -eq 2 ] || \
+        fail "$mode did not verify both SDK arm64 simulator binaries"
+      grep -q '^sdk slice-check URnetworkSdk$' "$fixture/calls.log" && \
+        grep -q '^sdk slice-check URnetworkExtensionSdk$' "$fixture/calls.log" || \
+        fail "$mode verified the wrong SDK binary"
+      ;;
+    unsupported-host)
+      grep -q 'iOS simulator startup requires an arm64 host' "$fixture/run.log" || \
+        fail "unsupported host did not fail at the architecture contract"
+      ! grep -Eq '^sdk build$|^xcodebuild build-for-testing |^xcrun simctl ' "$fixture/calls.log" || \
+        fail "unsupported host reached provisioning, SDK build, or simulator mutation"
+      ;;
+    missing-app-slice|missing-extension-slice|wrong-app-slice|wrong-extension-slice)
+      grep -q 'local Apple SDK has no usable arm64 simulator binary' "$fixture/run.log" || \
+        fail "$mode did not fail at SDK slice verification"
+      ! grep -Eq '^xcodebuild build-for-testing |^xcrun simctl create ' "$fixture/calls.log" || \
+        fail "$mode reached linking or simulator creation"
+      ;;
+  esac
 }
+
+if [ "$#" -ne 0 ]; then
+  [ "$#" -eq 1 ] || fail "expected one fixture name"
+  case "$1" in
+    success|deferred) run_fixture "$1" 0 ;;
+    unsupported-host|missing-app-slice|missing-extension-slice|wrong-app-slice|wrong-extension-slice)
+      run_fixture "$1" 1 ;;
+    *) fail "unknown fixture name" ;;
+  esac
+  echo 'apple simulator architecture fixture passed'
+  exit 0
+fi
 
 run_fixture success 0
 run_fixture deferred 0
@@ -253,4 +322,9 @@ run_fixture missing-runtime 1
 run_fixture cleanup-failure 1
 run_fixture ownership-mismatch 1
 run_fixture terminate 130
+run_fixture unsupported-host 1
+run_fixture missing-app-slice 1
+run_fixture missing-extension-slice 1
+run_fixture wrong-app-slice 1
+run_fixture wrong-extension-slice 1
 echo 'apple simulator startup entry-point tests passed'

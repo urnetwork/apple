@@ -305,10 +305,23 @@ class ConnectViewModel: ObservableObject {
         }
     }
     
+    #if DIRECT_DOWNLOAD
+    /// Runs before every connect: the direct-download build's system
+    /// extension activation check (NetworkApp wires it).
+    var beforeConnect: (() -> Void)?
+    #endif
+
+    private func runBeforeConnect() {
+        #if DIRECT_DOWNLOAD
+        beforeConnect?()
+        #endif
+    }
+
     /**
      * Used in the provider list
      */
     func connect(_ provider: SdkConnectLocation) {
+        runBeforeConnect()
         withCommandViewController { viewController in
             viewController.connect(provider)
         }
@@ -320,6 +333,7 @@ class ConnectViewModel: ObservableObject {
      * Used for the main  connect button
      */
     func connect() {
+        runBeforeConnect()
         if let selectedProvider = self.selectedProvider {
             withCommandViewController { viewController in
                 viewController.connect(selectedProvider)
@@ -331,6 +345,7 @@ class ConnectViewModel: ObservableObject {
     }
 
     func connectBestAvailable() {
+        runBeforeConnect()
         withCommandViewController { viewController in
             viewController.connectBestAvailable()
         }

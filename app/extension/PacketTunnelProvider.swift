@@ -55,6 +55,15 @@ private enum SharedTunnelJwtStore {
     private static let retainedTokensPerInstance = 3
 
     static func load(expectedInstanceId: String, configuredByJwt: String) -> String? {
+        #if DIRECT_DOWNLOAD
+        // Root boundary (system extension): never read the user's keychain.
+        // The profile's by_jwt is the credential; the app keeps it fresh
+        // (VPNManager.updateTunnelProfileJwt).
+        // TODO(hardware): confirm a JWT the extension rotated itself survives
+        // a sysext restart through the SDK's own local state, since the
+        // keychain history is not written in this build.
+        return nil
+        #else
         let dates = jwtDates(configuredByJwt)
         let configured = account(byJwt: configuredByJwt, instanceId: expectedInstanceId).map {
             TunnelStartupJwtCandidate(
@@ -68,10 +77,15 @@ private enum SharedTunnelJwtStore {
             configured: configured,
             persisted: loadCandidates(expectedInstanceId: expectedInstanceId)
         )
+        #endif
     }
 
     @discardableResult
     static func save(byJwt: String, instanceId: String) -> Bool {
+        #if DIRECT_DOWNLOAD
+        // nothing to persist and not a failure: see load
+        return true
+        #else
         let dates = jwtDates(byJwt)
         guard !byJwt.isEmpty, !instanceId.isEmpty,
               let account = account(byJwt: byJwt, instanceId: instanceId),
@@ -94,11 +108,14 @@ private enum SharedTunnelJwtStore {
         }
         prune(expectedInstanceId: instanceId)
         return true
+        #endif
     }
 
     static func clear() {
+        #if !DIRECT_DOWNLOAD
         guard let query = keychainIdentityQuery() else { return }
         _ = SecItemDelete(query as CFDictionary)
+        #endif
     }
 
     private static func loadCandidates(
@@ -813,7 +830,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         let readSharedIntent = { () throws -> TunnelIntent? in
             do {
-                let intent = try TunnelIntentStore.loadChecked()
+                let intent = try self.loadSharedIntentChecked()
                 self.recordRecoveryStage("intent-load", intent == nil ? "missing" : "present")
                 return intent
             } catch {
@@ -858,7 +875,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 },
                 isCurrent: {
                     guard currentDestinationTicket() else { return false }
-                    do { return try TunnelIntentStore.loadChecked() == sharedIntent }
+                    do { return try self.loadSharedIntentChecked() == sharedIntent }
                     catch {
                         self.recordRecoveryStage("intent-load", "failed")
                         return false
@@ -1106,7 +1123,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         // not a request to replay the same old connect intent.
                         do {
                             try self.recoverySession.observeIntentAfterLiveDisconnect(
-                                destinationTicket, readIntent: { try TunnelIntentStore.loadChecked() }
+                                destinationTicket, readIntent: { try self.loadSharedIntentChecked() }
                             )
                         } catch { self.recordRecoveryStage("intent-load", "failed") }
                     }
@@ -1906,7 +1923,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
               state.destinationTicket == ticket else { throw TunnelLocalAuthIdentityError.superseded }
         let sharedIntent: TunnelIntent?
         do {
-            sharedIntent = try TunnelIntentStore.loadChecked()
+            sharedIntent = try self.loadSharedIntentChecked()
             recordRecoveryStage("intent-load", sharedIntent == nil ? "missing" : "present")
         } catch {
             recordRecoveryStage("intent-load", "failed")
@@ -2175,6 +2192,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     /// (TunnelIntentStore.markAppInitiatedStop) so they are not mistaken for
     /// one; the quick connect control records its own intent before stopping.
     private func recordSharedIntentForStop(reason: NEProviderStopReason, owner: TunnelIntentOwner?) {
+        #if DIRECT_DOWNLOAD
+        // Root boundary (system extension): this process cannot write the
+        // user's App Group defaults, so a stop made in System Settings is not
+        // recorded here. TODO(hardware): confirm the direct build's app does
+        // not re-connect over such a stop on its next foreground; if it does,
+        // the sysext needs an app-readable channel for this record (the tunnel
+        // rpc, or a file beside its logs).
+        return
+        #else
         let appInitiated = TunnelIntentStore.consumeAppInitiatedStop()
         switch reason {
         case .userInitiated, .configurationDisabled, .providerDisabled, .superceded:
@@ -2190,6 +2216,23 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         default:
             return
         }
+        #endif
+    }
+
+    /// The shared connect/disconnect intent as this process may read it. The
+    /// app extension reads the App Group defaults every other process writes;
+    /// the SYSTEM extension (direct-download build, root) reads the copy the
+    /// app placed in providerConfiguration when it installed the profile --
+    /// see TunnelIntentStore.providerConfigurationKey.
+    private func loadSharedIntentChecked() throws -> TunnelIntent? {
+        #if DIRECT_DOWNLOAD
+        guard let configuration = (protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration else {
+            return nil
+        }
+        return try TunnelIntentStore.load(fromProviderConfiguration: configuration)
+        #else
+        return try TunnelIntentStore.loadChecked()
+        #endif
     }
 
     override func sleep(completionHandler: @escaping () -> Void) {
@@ -2255,7 +2298,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         if let close = provider?.close { close() }
                         else { provider?.device.close() }
                     }
+                    #if !DIRECT_DOWNLOAD
+                    // the system extension cannot write the user's shared store; the
+                    // app records its own logout intent
                     TunnelIntentStore.record(connect: false, source: TunnelIntentStore.sourceApp, owner: retiringState?.owner)
+                    #endif
                     SharedTunnelJwtStore.clear()
                     try provider?.localState.logout()
                 })

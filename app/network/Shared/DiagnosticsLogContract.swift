@@ -115,6 +115,89 @@ enum DiagnosticsLogContract {
             == requestedRoot.standardizedFileURL.path
     }
 
+    // MARK: - Direct-download build (system extension)
+
+    /// Where the packet tunnel SYSTEM extension (the direct-download macOS
+    /// build, `DIRECT_DOWNLOAD`) writes its logs.
+    ///
+    /// A system extension runs as root, outside the user's session, so it
+    /// must not depend on the user's App Group container (root resolves its
+    /// own, which the app can never read). /Library/Logs is the machine-wide
+    /// log location: the sysext creates `/Library/Logs/URnetwork` (0755) and
+    /// glog files underneath it (0644), and the sandboxed, unprivileged app
+    /// reads them back for the diagnostic bundle.
+    static let systemExtensionLogRootPath = "/Library/Logs/URnetwork"
+
+    static let systemExtensionDirectoryPermissions = 0o755
+    static let systemExtensionFilePermissions = 0o644
+
+    /// The umask the sysext process adopts before glog creates anything, so
+    /// a file glog opens with 0666 lands as 0644 whatever launchd inherited.
+    static let systemExtensionUmask: Int = 0o022
+
+    static var systemExtensionLogRoot: URL {
+        URL(fileURLWithPath: systemExtensionLogRootPath, isDirectory: true)
+    }
+
+    /// `<root>/<extensionProcessName>`: the directory SetLogDirForProcess
+    /// creates for the sysext, and the one the app mirrors.
+    static var systemExtensionProcessLogDirectory: URL {
+        systemExtensionLogRoot.appendingPathComponent(extensionProcessName, isDirectory: true)
+    }
+
+    /// One log file as seen on either side of the mirror.
+    struct LogFileStamp: Equatable, Hashable {
+        let name: String
+        let byteCount: Int64
+        let modifiedAt: Date
+    }
+
+    /// What the app has to do to make `<its own log root>/extension` match
+    /// the sysext's directory, so that `SdkLogInventory` and the exporter
+    /// (which only ever read the app's recorded root) see the sysext's logs.
+    struct LogMirrorPlan: Equatable {
+        var copy: [String]
+        var remove: [String]
+
+        static let empty = LogMirrorPlan(copy: [], remove: [])
+    }
+
+    /// Pure: which files to copy (new or changed by size/mtime) and which to
+    /// remove (gone from the source, so the sysext's own 4-file retention is
+    /// what the bundle reflects rather than an ever-growing mirror). Names
+    /// are compared exactly; the caller lists regular files only, since glog
+    /// keeps a `<program>.<SEVERITY>` symlink beside each real file.
+    static func logMirrorPlan(
+        source: [LogFileStamp],
+        destination: [LogFileStamp]
+    ) -> LogMirrorPlan {
+        let destinationByName = Dictionary(destination.map { ($0.name, $0) }, uniquingKeysWith: { a, _ in a })
+        let sourceNames = Set(source.map(\.name))
+        let copy = source
+            .filter { destinationByName[$0.name] != $0 }
+            .map(\.name)
+            .sorted()
+        let remove = destination
+            .filter { !sourceNames.contains($0.name) }
+            .map(\.name)
+            .sorted()
+        return LogMirrorPlan(copy: copy, remove: remove)
+    }
+
+    /// The reason recorded in a direct-download bundle when the sysext's log
+    /// directory could not be read. Path-free for the same reason as
+    /// `DiagnosticsLogLocation.sharedRootUnavailableReason`.
+    static func systemExtensionLogsUnavailableReason(directoryExists: Bool, readable: Bool) -> String? {
+        if !directoryExists {
+            return "the system extension has not written logs on this Mac"
+                + " -- the tunnel has not run, or the extension could not create its log directory"
+        }
+        if !readable {
+            return "the system extension's log directory could not be read"
+        }
+        return nil
+    }
+
     // MARK: - Code signing
 
     #if os(macOS)

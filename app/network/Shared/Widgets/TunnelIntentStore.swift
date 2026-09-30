@@ -222,6 +222,45 @@ enum TunnelIntentStore {
         return now.timeIntervalSince1970 - markedAt <= appStopWindow
     }
 
+    // MARK: Provider configuration (direct-download system extension)
+
+    /// The key under which the app places the intent in
+    /// `NETunnelProviderProtocol.providerConfiguration` for the direct-download
+    /// build's SYSTEM extension. That process runs as root and cannot read the
+    /// user's App Group defaults (root resolves its own container), so the
+    /// profile carries the decision instead: the app only ever installs a
+    /// profile when it wants the tunnel up, so the entry is a fresh connect
+    /// intent owned by the same client the rest of the configuration names.
+    static let providerConfigurationKey = "tunnel_intent"
+
+    /// The JSON the app writes under `providerConfigurationKey`, or nil when
+    /// the configuration does not identify a client (no owner means the
+    /// extension could not scope the intent, so none is sent).
+    static func providerConfigurationEntry(
+        for configuration: [String: Any],
+        at date: Date = Date()
+    ) -> String? {
+        guard let owner = TunnelIntentOwner.fromProviderConfiguration(configuration) else { return nil }
+        let intent = TunnelIntent(connect: true, changedAt: date, source: sourceApp, owner: owner)
+        guard let data = try? encoder.encode(intent) else { return nil }
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    /// The intent the app placed in the profile: nil when the app sent none,
+    /// `malformed` when the entry cannot be decoded (which recovery callers
+    /// treat like an unreadable shared store: fail closed).
+    static func load(fromProviderConfiguration configuration: [String: Any]) throws -> TunnelIntent? {
+        guard let object = configuration[providerConfigurationKey] else { return nil }
+        guard let json = object as? String, let data = json.data(using: .utf8) else {
+            throw TunnelIntentStorageError.malformed
+        }
+        do {
+            return try decoder.decode(TunnelIntent.self, from: data)
+        } catch {
+            throw TunnelIntentStorageError.malformed
+        }
+    }
+
     private static var encoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .secondsSince1970

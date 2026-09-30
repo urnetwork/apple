@@ -55,7 +55,9 @@ final class DiagnosticExportState: ObservableObject {
             byteCount: DiagnosticExportService.totalByteCount(of: infos)
         )
         unavailableSources = DiagnosticExportService.missingSources(
-            sharedRootUnavailableReason: sharedRootUnavailableReason,
+            sharedRootUnavailableReason: DiagnosticExportService.extensionSourceUnavailableReason(
+                sharedRootUnavailableReason: sharedRootUnavailableReason
+            ),
             inventorySources: DiagnosticExportService.sources(of: infos)
         ).map { DiagnosticExportService.unavailableSourceLabel(source: $0.source, reason: $0.reason) }
     }

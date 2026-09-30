@@ -72,6 +72,11 @@ struct NetworkApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var mainWindow: NSWindow?
     @State private var mainWindowVisible = true
+    #if DIRECT_DOWNLOAD
+    // the direct-download build ships the tunnel as a system extension that
+    // macOS must install (and the user approve once) before it can run
+    @StateObject private var systemExtensionActivator = SystemExtensionActivator()
+    #endif
 #endif
     
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
@@ -117,11 +122,16 @@ struct NetworkApp: App {
          * the monitor whatever session api exists at report time (an empty
          * byJwt means logged out, and reporting defers until login).
          */
+        // not in the direct-download build: billing there is Stripe only
+        // (plan: macos-direct-download.md), so there is no App Store
+        // transaction stream to listen to
+        #if !DIRECT_DOWNLOAD
         if startupMode != .rejectedHardwareTestRequest {
             AppStoreTransactionMonitor.shared.start(apiProvider: { [weak deviceManager] in
                 deviceManager?.api
             })
         }
+        #endif
 
         #if os(iOS)
         // for styling NavigationTitle
@@ -417,6 +427,23 @@ struct NetworkApp: App {
                         refreshJwtOnForeground()
                     }
                 }
+                #if DIRECT_DOWNLOAD
+                .environmentObject(systemExtensionActivator)
+                .sheet(isPresented: $systemExtensionActivator.isPromptPresented) {
+                    SystemExtensionApprovalView()
+                        .environmentObject(systemExtensionActivator)
+                        .environmentObject(themeManager)
+                }
+                .onAppear {
+                    // at launch, and again before every connect (activation
+                    // is idempotent; the second call re-prompts a skipped
+                    // approval)
+                    systemExtensionActivator.activateIfNeeded()
+                    connectViewModel.beforeConnect = { [weak systemExtensionActivator] in
+                        systemExtensionActivator?.activateIfNeeded()
+                    }
+                }
+                #endif
                 .onAppear {
                     if mainWindow == nil {
                         mainWindow = NSApplication.shared.windows.first { window in

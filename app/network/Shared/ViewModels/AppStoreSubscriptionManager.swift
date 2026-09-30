@@ -31,6 +31,9 @@ class AppStoreSubscriptionManager: ObservableObject {
 
     @Published var monthlySubscription: Product?
     @Published var yearlySubscription: Product?
+    /// The yearly plan's free trial in days when StoreKit says this user may get one; nil
+    /// (nothing promised) until eligibility is known or when the user is not eligible.
+    @Published private(set) var yearlyTrialDays: Int?
 
     @Published var isPurchasing: Bool = false
     @Published private(set) var purchaseSuccess: Bool = false
@@ -131,6 +134,8 @@ class AppStoreSubscriptionManager: ObservableObject {
                 // ...and the signal that always fires (the callback is only
                 // assigned inside purchase(), so it is nil on a fresh launch).
                 self.transactionUpdateSequence += 1
+                // a purchase can use up the introductory offer
+                Task { await self.refreshYearlyTrialDays() }
             }
 
         /**
@@ -169,6 +174,8 @@ class AppStoreSubscriptionManager: ObservableObject {
 
             print("Retrieved products: \(storeProducts.count)")
 
+            await refreshYearlyTrialDays()
+
             // an empty result is a failure for the UI's purposes: there is
             // nothing to render and nothing to buy
             self.fetchProductsError = (monthlySubscription == nil || yearlySubscription == nil)
@@ -176,6 +183,11 @@ class AppStoreSubscriptionManager: ObservableObject {
             print("Failed to fetch products: \(error)")
             self.fetchProductsError = true
         }
+    }
+
+    /// Re-reads the yearly plan's trial eligibility from StoreKit.
+    func refreshYearlyTrialDays() async {
+        self.yearlyTrialDays = await storeYearlyTrialDays(for: yearlySubscription)
     }
 
     /**

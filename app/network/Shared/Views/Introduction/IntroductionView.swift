@@ -146,7 +146,8 @@ struct IntroductionView: View {
             yearly: yearlySubscription,
             tier: subscriptionBalanceViewModel.priceTier,
             offer: subscriptionBalanceViewModel.onboardingOffer,
-            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName,
+            yearlyTrialDays: subscriptionManager.yearlyTrialDays
         )
     }
 

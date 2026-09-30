@@ -49,8 +49,11 @@ struct IntroductionOfferView: View {
         action()
     }
 
+    /// The trial timeline; empty when no trial may be promised (see planFreeTrialDays).
     private var timeline: [(label: String, text: String)] {
-        let days = presentation.trialDays
+        guard let days = presentation.trialDays else {
+            return []
+        }
         let firstYear = presentation.firstYearPrice?.display ?? presentation.yearly.display
         return [
             (String(localized: "Today"), String(localized: "Free trial starts")),

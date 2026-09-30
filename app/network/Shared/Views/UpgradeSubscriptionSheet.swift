@@ -17,6 +17,8 @@ struct UpgradeSubscriptionSheet: View {
 
     var monthlyProduct: Product?
     var yearlyProduct: Product?
+    /// The yearly trial StoreKit says this user may get; nil promises none.
+    var yearlyTrialDays: Int? = nil
     /// The welcome offer's App Store path when the offer is active (see step 5); nil buys the plan.
     var redeemOffer: ((PlanOffer) -> Void)? = nil
     /// A tap on a plan whose product has not arrived from the store (see SubscriptionPlanPrices).
@@ -65,7 +67,8 @@ struct UpgradeSubscriptionSheet: View {
             yearly: yearlyProduct,
             tier: subscriptionBalanceViewModel.priceTier,
             offer: subscriptionBalanceViewModel.onboardingOffer,
-            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName,
+            yearlyTrialDays: yearlyTrialDays
         )
     }
 

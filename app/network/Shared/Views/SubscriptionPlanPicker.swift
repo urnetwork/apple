@@ -6,28 +6,38 @@
 import SwiftUI
 import StoreKit
 
-/// The App Store cannot run a 15 day trial: two weeks is the closest offer, and the real
-/// length comes from StoreKit when the offer is configured.
-let subscriptionFallbackTrialDays = 14
+extension PlanIntroOffer {
+    /// The introductory offer as the trial decision needs it; nil for a period unit StoreKit adds later.
+    init?(offer: Product.SubscriptionOffer) {
+        let unit: Unit
+        switch offer.period.unit {
+        case .day:
+            unit = .day
+        case .week:
+            unit = .week
+        case .month:
+            unit = .month
+        case .year:
+            unit = .year
+        @unknown default:
+            return nil
+        }
+        self.init(isFreeTrial: offer.paymentMode == .freeTrial, periodValue: offer.period.value, periodUnit: unit)
+    }
+}
 
-/// The annual plan's free trial in days, from its introductory offer when the store has one.
-func yearlyTrialDays(for yearly: Product?) -> Int {
-    guard let offer = yearly?.subscription?.introductoryOffer, offer.paymentMode == .freeTrial else {
-        return subscriptionFallbackTrialDays
+/**
+ * The annual plan's free trial in days, or nil when none may be promised: the
+ * product must have a free-trial introductory offer and StoreKit must report
+ * this user eligible for it (a user who already had a trial in the group is
+ * charged at once). The length is the offer's real period, never a guess.
+ */
+func storeYearlyTrialDays(for yearly: Product?) async -> Int? {
+    guard let subscription = yearly?.subscription, let offer = subscription.introductoryOffer else {
+        return nil
     }
-    let period = offer.period
-    switch period.unit {
-    case .day:
-        return period.value
-    case .week:
-        return period.value * 7
-    case .month:
-        return period.value * 30
-    case .year:
-        return period.value * 365
-    @unknown default:
-        return subscriptionFallbackTrialDays
-    }
+    let isEligible = await subscription.isEligibleForIntroOffer
+    return planFreeTrialDays(introOffer: PlanIntroOffer(offer: offer), isEligible: isEligible)
 }
 
 /// The one plan picker every plan surface shows: onboarding, the upgrade sheet and anything

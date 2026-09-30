@@ -8,10 +8,16 @@
 import Foundation
 
 struct Config {
+    /// GIDClientID from Info.plist (UR_GOOGLE_CLIENT_ID per target), or ""
+    /// when this build has no Google OAuth client -- the direct-download
+    /// build until DIRECT_GOOGLE_CLIENT_ID is set. See
+    /// GoogleSignInConfiguration.
     static var googleClientID: String {
-        guard let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String else {
-            fatalError("GIDClientID not found in Info.plist")
-        }
-        return clientID
+        Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String ?? ""
+    }
+
+    /// Whether the Google sign-in buttons should be offered at all.
+    static var isGoogleSignInConfigured: Bool {
+        GoogleSignInConfiguration.isConfigured(clientId: googleClientID)
     }
 }

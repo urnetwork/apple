@@ -5,8 +5,8 @@
 //  Direct-download macOS build only (`DIRECT_DOWNLOAD`): asks macOS to
 //  install the packet tunnel SYSTEM extension embedded in this app bundle
 //  (Contents/Library/SystemExtensions/URnetworkVPNSystem.systemextension,
-//  bundle id network.ur.extension -- the same provider id the tunnel manager
-//  uses, so nothing else changes between the App Store and direct builds).
+//  bundle id TunnelProviderIdentity.bundleIdentifier -- the same provider id
+//  the tunnel manager uses).
 //
 //  Driven at launch and again before every connect: activation is
 //  idempotent, so the second call is free when the extension is already
@@ -25,9 +25,9 @@ import AppKit
 
 final class SystemExtensionActivator: NSObject, ObservableObject, OSSystemExtensionRequestDelegate {
 
-    /// Matches PRODUCT_BUNDLE_IDENTIFIER of the URnetworkVPNSystem target and
-    /// `NETunnelProviderProtocol.providerBundleIdentifier` in VPNManager.
-    static let extensionBundleIdentifier = "network.ur.extension"
+    /// PRODUCT_BUNDLE_IDENTIFIER of the URnetworkVPNSystem target, and what
+    /// VPNManager installs as `providerBundleIdentifier`.
+    static let extensionBundleIdentifier = TunnelProviderIdentity.bundleIdentifier
 
     /// System Settings > General > Login Items & Extensions > Network Extensions.
     static let networkExtensionsSettingsURL = URL(string:

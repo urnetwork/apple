@@ -56,7 +56,7 @@ final class WidgetPreviewModel: ObservableObject {
 
     /// The app's tunnel configuration, matched by provider bundle id (a
     /// device with several VPN apps has several configurations).
-    private static let providerBundleIdentifier = "network.ur.extension"
+    private static let providerBundleIdentifier = TunnelProviderIdentity.bundleIdentifier
     /// Snapshot writes and reload requests arrive in bursts (the tunnel
     /// snapshot, then a reload per widget); one re-read covers them.
     private static let coalesceInterval: TimeInterval = 0.1

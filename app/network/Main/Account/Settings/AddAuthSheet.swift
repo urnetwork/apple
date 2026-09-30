@@ -41,7 +41,9 @@ struct AddAuthSheet: View {
                     
                     Picker("Method", selection: $selectedMethod) {
                         Text("Apple").tag("apple")
-                        Text("Google").tag("google")
+                        if Config.isGoogleSignInConfigured {
+                            Text("Google").tag("google")
+                        }
                         Text("Wallet").tag("wallet")
                         Text("Email").tag("email")
                         Text("Seedphrase").tag("seedphrase")

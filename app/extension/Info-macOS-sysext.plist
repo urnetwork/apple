@@ -15,7 +15,7 @@
 	<key>NetworkExtension</key>
 	<dict>
 		<key>NEMachServiceName</key>
-		<string>6BGU69Q742.group.network.ur.extension</string>
+		<string>6BGU69Q742.group.com.bringyour.urnetwork.extension</string>
 		<key>NEProviderClasses</key>
 		<dict>
 			<key>com.apple.networkextension.packet-tunnel</key>

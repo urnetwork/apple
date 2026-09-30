@@ -128,30 +128,34 @@ struct DiagnosticsLogLocationTests {
     /// never resolves, both processes fall back to their own caches
     /// directories, and a macOS bundle can never contain the extension's logs.
     @Test func macOSAppGroupIdentifierIsTeamPrefixed() {
+        // the base group is the build flavor's own (group.network.ur for the
+        // App Store build, group.com.bringyour.urnetwork for the direct
+        // build); the prefixing rules are the same for both
+        let base = DiagnosticsLogContract.appGroupIdentifierBase
         #expect(DiagnosticsLogContract.appGroupIdentifier(
-            grantedGroups: ["ABCDE12345.group.network.ur"],
+            grantedGroups: ["ABCDE12345.\(base)"],
             teamIdentifier: "ABCDE12345",
             needsTeamPrefix: false
-        ) == "group.network.ur")
+        ) == base)
 
         // what the signature actually grants wins, so a build signed by
         // another team resolves its own container
         #expect(DiagnosticsLogContract.appGroupIdentifier(
-            grantedGroups: ["ZZZZZ99999.group.network.ur"],
+            grantedGroups: ["ZZZZZ99999.\(base)"],
             teamIdentifier: "ABCDE12345",
             needsTeamPrefix: true
-        ) == "ZZZZZ99999.group.network.ur")
+        ) == "ZZZZZ99999.\(base)")
 
         #expect(DiagnosticsLogContract.appGroupIdentifier(
             grantedGroups: [],
             teamIdentifier: "ABCDE12345",
             needsTeamPrefix: true
-        ) == "ABCDE12345.group.network.ur")
+        ) == "ABCDE12345.\(base)")
 
         #expect(DiagnosticsLogContract.appGroupIdentifier(
             grantedGroups: [],
             teamIdentifier: nil,
             needsTeamPrefix: true
-        ) == "group.network.ur")
+        ) == base)
     }
 }

@@ -31,7 +31,17 @@ enum DiagnosticsLogContract {
     /// platform this is not the identifier to pass to
     /// `containerURL(forSecurityApplicationGroupIdentifier:)` -- use
     /// `appGroupIdentifier`, which resolves the prefixed form.
+    ///
+    /// The direct-download build (`DIRECT_DOWNLOAD`) is its own product
+    /// family, com.bringyour.urnetwork, with its own group; the App Store
+    /// build keeps group.network.ur. Mirrors TunnelProviderIdentity.swift,
+    /// which the extension targets (this file's other compilers) do not
+    /// compile.
+    #if DIRECT_DOWNLOAD
+    static let appGroupIdentifierBase = "group.com.bringyour.urnetwork"
+    #else
     static let appGroupIdentifierBase = "group.network.ur"
+    #endif
 
     static let logsDirectoryName = "Logs"
 

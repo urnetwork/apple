@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Per-target values (the App Store and direct-download app targets share
+	     this file) come from build settings: UR_SHARED_KEYCHAIN_ACCESS_GROUP,
+	     UR_TUNNEL_PROVIDER_BUNDLE_ID, UR_GOOGLE_CLIENT_ID and
+	     UR_GOOGLE_URL_SCHEME, set per target in project.pbxproj. -->
 	<key>URSharedKeychainAccessGroup</key>
-	<string>$(AppIdentifierPrefix)network.ur.tunnel-credentials</string>
+	<string>$(UR_SHARED_KEYCHAIN_ACCESS_GROUP)</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
@@ -15,7 +19,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.338638865390-tdgpupo59durdck5es80iukafh0or4uq</string>
+				<string>$(UR_GOOGLE_URL_SCHEME)</string>
 			</array>
 		</dict>
 		<dict>
@@ -30,7 +34,7 @@
 		</dict>
 	</array>
 	<key>GIDClientID</key>
-	<string>338638865390-tdgpupo59durdck5es80iukafh0or4uq.apps.googleusercontent.com</string>
+	<string>$(UR_GOOGLE_CLIENT_ID)</string>
 	<key>INIntentsSupported</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).DisconnectIntent</string>
@@ -55,7 +59,7 @@
 	<string>$(URNETWORK_HARDWARE_UI_TEST_NONCE)</string>
 	<key>NEVPNConfiguration</key>
 	<array>
-		<string>network.ur.extension</string>
+		<string>$(UR_TUNNEL_PROVIDER_BUNDLE_ID)</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

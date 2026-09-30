@@ -5,9 +5,11 @@
   distributed as a DMG outside the Mac App Store). The tunnel is a SYSTEM
   extension in this build, which is why the networkextension entitlement
   names the "-systemextension" packet tunnel variant and the app carries
-  system-extension.install. Same bundle id, URL scheme, keychain group and
-  app group as the App Store build (network-macOS.entitlements); the team id
-  in the app group is literal for the reason explained there.
+  system-extension.install. Its own product family, com.bringyour.urnetwork:
+  bundle id, app group and keychain group all differ from the App Store
+  build (network-macOS.entitlements) so the two install side by side and
+  are provisioned as separate App IDs (see TunnelProviderIdentity.swift);
+  the team id in the app group is literal for the reason explained there.
   Not carried over from the App Store entitlements: aps-environment (no push
   in the direct build), increased-memory-limit and sustained-execution (iOS
   entitlements that a Developer ID profile does not grant) and dns-proxy
@@ -17,7 +19,7 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>6BGU69Q742.group.network.ur</string>
+		<string>6BGU69Q742.group.com.bringyour.urnetwork</string>
 	</array>
 	<key>com.apple.developer.applesignin</key>
 	<array>
@@ -36,7 +38,7 @@
 	<true/>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)network.ur.tunnel-credentials</string>
+		<string>$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials</string>
 	</array>
 </dict>
 </plist>

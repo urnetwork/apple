@@ -1584,7 +1584,7 @@ class VPNManager: ObservableObject {
     ) -> VPNTunnelConfigurationIdentity? {
         guard let tunnelProtocol =
                 manager.protocolConfiguration as? NETunnelProviderProtocol,
-              tunnelProtocol.providerBundleIdentifier == "network.ur.extension",
+              tunnelProtocol.providerBundleIdentifier == TunnelProviderIdentity.bundleIdentifier,
               let configuration = tunnelProtocol.providerConfiguration,
               let rpcListenHostPort =
                 configuration["rpc_listen_hostport"] as? String,
@@ -1740,7 +1740,7 @@ class VPNManager: ObservableObject {
             for manager in managers {
                 guard let tunnelProtocol =
                         manager.protocolConfiguration as? NETunnelProviderProtocol,
-                      tunnelProtocol.providerBundleIdentifier == "network.ur.extension",
+                      tunnelProtocol.providerBundleIdentifier == TunnelProviderIdentity.bundleIdentifier,
                       var configuration = tunnelProtocol.providerConfiguration,
                       configuration["instance_id"] as? String == instanceId,
                       configuration["by_jwt"] as? String != byJwt,
@@ -2283,7 +2283,7 @@ class VPNManager: ObservableObject {
 
                     let tunnelProtocol = NETunnelProviderProtocol()
                     tunnelProtocol.serverAddress = networkSpace.getHostName()
-                    tunnelProtocol.providerBundleIdentifier = "network.ur.extension"
+                    tunnelProtocol.providerBundleIdentifier = TunnelProviderIdentity.bundleIdentifier
                     tunnelProtocol.disconnectOnSleep = false
                     tunnelProtocol.excludeLocalNetworks = true
                     if #available(iOS 16.4, macOS 13.3, *) {

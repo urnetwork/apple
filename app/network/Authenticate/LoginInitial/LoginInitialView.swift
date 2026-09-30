@@ -794,12 +794,16 @@ private struct LoginFullButtons: View {
             .disabled(isLoginActionInFlight)
             .allowsHitTesting(!isLoginActionInFlight)
             
-            UrGoogleSignInButton(
-                action: handleGoogleSignInButton,
-                enabled: !isLoginActionInFlight,
-                isProcessing: activeLoginAction == .google
-            )
-            .buttonStyle(.plain)
+            // hidden in a build without a Google OAuth client (the
+            // direct-download build until DIRECT_GOOGLE_CLIENT_ID is set)
+            if Config.isGoogleSignInConfigured {
+                UrGoogleSignInButton(
+                    action: handleGoogleSignInButton,
+                    enabled: !isLoginActionInFlight,
+                    isProcessing: activeLoginAction == .google
+                )
+                .buttonStyle(.plain)
+            }
             
             // Instant create account button
             Button(action: presentCreateInstant) {

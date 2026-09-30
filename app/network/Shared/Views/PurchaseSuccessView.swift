@@ -38,6 +38,10 @@ struct PurchaseSuccessView: View {
     var restore: (() -> Void)? = nil
     var isRestoring: Bool = false
     var restoreMessage: String? = nil
+    /// The confirming phase's title and copy for a store that is not the App
+    /// Store (the direct-download build's Stripe flow); nil keeps the defaults.
+    var confirmingTitle: String? = nil
+    var confirmingMessage: String? = nil
     var dismiss: () -> Void
 
     var body: some View {
@@ -68,6 +72,10 @@ struct PurchaseSuccessView: View {
                             Text("You're premium.")
                                 .foregroundColor(themeManager.currentTheme.inverseTextColor)
                                 .font(themeManager.currentTheme.titleCondensedFont)
+                        } else if phase == .confirming, let confirmingTitle {
+                            Text(confirmingTitle)
+                                .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                                .font(themeManager.currentTheme.titleCondensedFont)
                         } else {
                             Text("Payment received.")
                                 .foregroundColor(themeManager.currentTheme.inverseTextColor)
@@ -85,7 +93,7 @@ struct PurchaseSuccessView: View {
                                 .font(themeManager.currentTheme.titleFont)
                                 .foregroundColor(themeManager.currentTheme.inverseTextColor)
                         case .confirming:
-                            Text("We're confirming your purchase with the App Store. Your plan will update automatically.")
+                            Text(confirmingMessage ?? String(localized: "We're confirming your purchase with the App Store. Your plan will update automatically."))
                                 .font(themeManager.currentTheme.titleFont)
                                 .foregroundColor(themeManager.currentTheme.inverseTextColor)
                         case .delayed:

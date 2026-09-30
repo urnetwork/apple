@@ -21,6 +21,7 @@ struct MainNavigationSplitView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @EnvironmentObject var stripeSubscriptionStore: StripeSubscriptionStore
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var snackbarManager: UrSnackbarManager
@@ -269,6 +270,16 @@ struct MainNavigationSplitView: View {
             case .feedback(let rating, let reason, let token):
                 selectedTab = .support
                 deepLinkRouter.prefillFeedback(FeedbackPrefill(rating: rating, reason: reason, token: token))
+            }
+        }
+        // a Stripe checkout handing control back from the browser (the
+        // direct-download build's hosted fallback): the server only believes
+        // the Stripe webhook, so a confirmed return starts the confirmation poll
+        .onReceive(deepLinkRouter.$pendingBilling) { link in
+            guard link != nil, let link = deepLinkRouter.consumeBilling() else { return }
+            guard BillingDistribution.current == .direct else { return }
+            if stripeSubscriptionStore.handle(link) {
+                subscriptionBalanceViewModel.startPolling()
             }
         }
         .sheet(isPresented: $presentOnboardingOffer) {

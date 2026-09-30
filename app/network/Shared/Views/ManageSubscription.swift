@@ -30,17 +30,27 @@ enum ManageSubscriptionAction: Equatable {
     case storeKitSheet
     /// Open the App Store's subscriptions page.
     case openURL(URL)
+    /// The Stripe customer portal (POST /stripe/customer-portal), opened in
+    /// the browser: the direct-download build's plans are billed by Stripe.
+    case stripePortal
 }
 
 /// The App Store account's subscriptions page (Apple's own URL).
 let appStoreSubscriptionsURL = URL(string: "https://apps.apple.com/account/subscriptions")!
 
-/// The manage-subscription action for this platform, or nil when there is no
-/// App Store subscription to manage.
+/// The manage-subscription action for this platform and distribution, or nil
+/// when there is no subscription to manage: on the App Store builds, this
+/// Apple ID's App Store subscription; on the direct-download build, the
+/// network's Pro plan (Stripe, so StoreKit is never consulted).
 func manageSubscriptionAction(
     platform: ManageSubscriptionPlatform,
-    hasAppStoreSubscription: Bool
+    distribution: BillingDistribution = .current,
+    hasAppStoreSubscription: Bool,
+    isPro: Bool = false
 ) -> ManageSubscriptionAction? {
+    if distribution == .direct {
+        return isPro ? .stripePortal : nil
+    }
     guard hasAppStoreSubscription else {
         return nil
     }

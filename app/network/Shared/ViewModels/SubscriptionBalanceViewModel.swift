@@ -6,7 +6,10 @@
 //
 
 import Foundation
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
 import URnetworkSdk
 
 /**
@@ -176,9 +179,13 @@ class SubscriptionBalanceViewModel: ObservableObject {
     private func resolveStorefrontIfNeeded() async {
         guard !storefrontResolved else { return }
         storefrontResolved = true
+        // no App Store storefront on the direct-download build: the server
+        // resolves the tier from the request
+        #if !DIRECT_DOWNLOAD
         if let storefront = await Storefront.current {
             storefrontCountry = storefront.countryCode
         }
+        #endif
     }
 
     /// Reads the tier, the offer and the assignments off a balance result.

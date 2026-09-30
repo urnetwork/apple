@@ -8,15 +8,20 @@
 //
 
 import Foundation
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
 import URnetworkSdk
 
+#if !DIRECT_DOWNLOAD
 extension PlanPrice {
     init(product: Product) {
         let style = product.priceFormatStyle
         self.init(amount: product.price, currencyCode: style.currencyCode, format: { amount in amount.formatted(style) })
     }
 }
+#endif
 
 extension PlanPresentation {
 
@@ -30,8 +35,15 @@ extension PlanPresentation {
         storefrontCountryName: String?,
         yearlyTrialDays: Int?
     ) -> PlanPresentation {
+        #if DIRECT_DOWNLOAD
+        // no StoreKit products on the direct-download build (Stripe prices go
+        // through PlanPresentation+Stripe); the tier's list prices stand in
+        let yearlyPrice = PlanPrice.usdListPrice((tier ?? .standard).yearlyUsd)
+        let monthlyPrice = PlanPrice.usdListPrice((tier ?? .standard).monthlyUsd)
+        #else
         let yearlyPrice = yearly.map(PlanPrice.init(product:)) ?? .usdListPrice((tier ?? .standard).yearlyUsd)
         let monthlyPrice = monthly.map(PlanPrice.init(product:)) ?? .usdListPrice((tier ?? .standard).monthlyUsd)
+        #endif
         var equivalent: PlanEquivalent? = nil
         if let computed = SdkComputePriceEquivalent(
             NSDecimalNumber(decimal: yearlyPrice.amount).doubleValue,

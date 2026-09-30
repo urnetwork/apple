@@ -6,7 +6,10 @@
 //
 
 import SwiftUI
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
 import URnetworkSdk
 
 struct UpgradeSubscriptionSheet: View {
@@ -23,7 +26,16 @@ struct UpgradeSubscriptionSheet: View {
     var redeemOffer: ((PlanOffer) -> Void)? = nil
     /// A tap on a plan whose product has not arrived from the store (see SubscriptionPlanPrices).
     var purchaseUnavailable: () -> Void = {}
-    var purchase: (Product) -> Void
+    /// The presentation the store computed (StripeSubscriptionStore); nil builds
+    /// it from the StoreKit products as always.
+    var presentationOverride: PlanPresentation? = nil
+    var purchase: (Product) -> Void = { _ in }
+    /// Buys the selected plan through a SubscriptionStore; when set, `purchase`
+    /// and `purchaseUnavailable` are not used.
+    var purchasePlan: ((PaymentOption) -> Void)? = nil
+    /// A checkout page in progress (the direct-download build's Stripe pay
+    /// sheet): shown over the plans while it is open.
+    var checkout: AnyView? = nil
     var isPurchasing: Bool
     var purchaseSuccess: Bool
     /**
@@ -57,12 +69,19 @@ struct UpgradeSubscriptionSheet: View {
     var restorePurchases: () -> Void = {}
     var isRestoringPurchases: Bool = false
     var restoreMessage: String? = nil
+    /// The confirming screen's title and copy for a store other than the App
+    /// Store; nil keeps the StoreKit copy.
+    var purchaseConfirmingTitle: String? = nil
+    var purchaseConfirmingMessage: String? = nil
     var dismiss: () -> Void
 
     @State var selectedPaymentOption: PaymentOption = .yearly
 
     private var presentation: PlanPresentation {
-        .current(
+        if let presentationOverride {
+            return presentationOverride
+        }
+        return .current(
             monthly: monthlyProduct,
             yearly: yearlyProduct,
             tier: subscriptionBalanceViewModel.priceTier,
@@ -97,10 +116,20 @@ struct UpgradeSubscriptionSheet: View {
                     restore: restorePurchases,
                     isRestoring: isRestoringPurchases,
                     restoreMessage: restoreMessage,
+                    confirmingTitle: purchaseConfirmingTitle,
+                    confirmingMessage: purchaseConfirmingMessage,
                     dismiss: dismiss
                 )
                 .transition(.opacity)
                 .frame(maxWidth: .infinity)
+
+            } else if let checkout {
+
+                // the checkout page swaps in over the plans (its own header
+                // carries the close), like the Windows and Linux sheets
+                checkout
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
 
             } else if (purchasePending) {
 
@@ -253,6 +282,10 @@ struct UpgradeSubscriptionSheet: View {
                                            let redeemOffer {
                                             ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
                                             redeemOffer(offer)
+                                            return
+                                        }
+                                        if let purchasePlan {
+                                            purchasePlan(selectedPaymentOption)
                                             return
                                         }
                                         let product = selectedPaymentOption == .monthly

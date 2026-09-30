@@ -162,20 +162,23 @@ final class ClientEvents: ObservableObject {
 
     // MARK: purchases
 
-    func purchaseStarted(product: String, plan: String, trial: Bool, price: Double, currency: String) {
-        add(SdkNewPurchaseStartedEvent(SdkEventStoreApple, product, plan, trial, price, currency))
+    // `store` is the App Store unless the caller sells through another one
+    // (the direct-download build's StripeSubscriptionStore: SdkEventStoreStripe).
+
+    func purchaseStarted(store: String = SdkEventStoreApple, product: String, plan: String, trial: Bool, price: Double, currency: String) {
+        add(SdkNewPurchaseStartedEvent(store, product, plan, trial, price, currency))
     }
 
-    func purchaseCompleted(product: String, plan: String, trial: Bool, price: Double, currency: String) {
-        add(SdkNewPurchaseCompletedEvent(SdkEventStoreApple, product, plan, trial, price, currency))
+    func purchaseCompleted(store: String = SdkEventStoreApple, product: String, plan: String, trial: Bool, price: Double, currency: String) {
+        add(SdkNewPurchaseCompletedEvent(store, product, plan, trial, price, currency))
     }
 
-    func purchaseCancelled(product: String, plan: String, trial: Bool, price: Double, currency: String) {
-        add(SdkNewPurchaseCancelledEvent(SdkEventStoreApple, product, plan, trial, price, currency))
+    func purchaseCancelled(store: String = SdkEventStoreApple, product: String, plan: String, trial: Bool, price: Double, currency: String) {
+        add(SdkNewPurchaseCancelledEvent(store, product, plan, trial, price, currency))
     }
 
-    func purchaseFailed(product: String, plan: String, trial: Bool, price: Double, currency: String, errorClass: String) {
-        add(SdkNewPurchaseFailedEvent(SdkEventStoreApple, product, plan, trial, price, currency, errorClass))
+    func purchaseFailed(store: String = SdkEventStoreApple, product: String, plan: String, trial: Bool, price: Double, currency: String, errorClass: String) {
+        add(SdkNewPurchaseFailedEvent(store, product, plan, trial, price, currency, errorClass))
     }
 
     // MARK: activation

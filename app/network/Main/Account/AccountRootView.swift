@@ -5,7 +5,10 @@
 //  Created by Stuart Kuentzel on 2024/12/13.
 //
 
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
 import SwiftUI
 import URnetworkSdk
 
@@ -17,6 +20,14 @@ struct AccountRootView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @EnvironmentObject var stripeSubscriptionStore: StripeSubscriptionStore
+
+    /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
+    /// direct download (see BillingDistribution).
+    private var subscriptionStore: any SubscriptionStore {
+        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+    }
+
     /// StoreKit's manage-subscriptions sheet (iOS; macOS opens the App Store page).
     @State private var isPresentedManageSubscriptions: Bool = false
     @EnvironmentObject var connectViewModel: ConnectViewModel
@@ -156,7 +167,8 @@ struct AccountRootView: View {
                          */
                         if let manageAction = manageSubscriptionAction(
                             platform: .current,
-                            hasAppStoreSubscription: subscriptionManager.hasAppStoreSubscription
+                            hasAppStoreSubscription: subscriptionManager.hasAppStoreSubscription,
+                            isPro: isPro
                         ) {
                             HStack {
                                 Spacer()
@@ -166,6 +178,16 @@ struct AccountRootView: View {
                                         isPresentedManageSubscriptions = true
                                     case .openURL(let url):
                                         openURL(url)
+                                    case .stripePortal:
+                                        // the direct-download build: Stripe's
+                                        // customer portal, in the browser
+                                        Task {
+                                            do {
+                                                openURL(try await stripeSubscriptionStore.customerPortalURL())
+                                            } catch {
+                                                snackbarManager.showSnackbar(message: String(localized: "Couldn't open the subscription portal. Please try again."))
+                                            }
+                                        }
                                     }
                                 }) {
                                     Text("Manage subscription")
@@ -498,12 +520,22 @@ struct AccountRootView: View {
         }
         #endif
         .sheet(isPresented: $viewModel.isPresentedUpgradeSheet) {
+            // the plans, the purchase and the per-attempt state come from the
+            // build's SubscriptionStore: StoreKit here is exactly the
+            // AppStoreSubscriptionManager path it always was; the
+            // direct-download macOS build sells through Stripe
+            let subscriptionStore = self.subscriptionStore
             UpgradeSubscriptionSheet(
                 monthlyProduct: subscriptionManager.monthlySubscription,
                 yearlyProduct: subscriptionManager.yearlySubscription,
                 yearlyTrialDays: subscriptionManager.yearlyTrialDays,
                 purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
-                purchase: { product in
+                presentationOverride: subscriptionStore.presentation(
+                    tier: subscriptionBalanceViewModel.priceTier,
+                    offer: subscriptionBalanceViewModel.onboardingOffer,
+                    storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+                ),
+                purchasePlan: { plan in
 
                     let initiallyConnected = deviceManager.device?.getConnected() ?? false
 
@@ -518,19 +550,14 @@ struct AccountRootView: View {
                     #endif
 
                     Task {
-                        do {
-                            try await subscriptionManager.purchase(
-                                product: product,
-                                onSuccess: {
-                                    subscriptionBalanceViewModel.startPolling()
-                                    // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
-                                }
-                            )
-
-                        } catch(let error) {
-                            // rendered inline via subscriptionManager.purchaseError
-                            print("error making purchase: \(error)")
-                        }
+                        // errors render inline via purchaseError
+                        await subscriptionStore.purchase(
+                            plan: plan,
+                            onSuccess: {
+                                subscriptionBalanceViewModel.startPolling()
+                                // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
+                            }
+                        )
 
                         #if os(macOS)
                         if (initiallyConnected) {
@@ -541,31 +568,34 @@ struct AccountRootView: View {
                     }
 
                 },
-                isPurchasing: subscriptionManager.isPurchasing,
-                purchaseSuccess: subscriptionManager.purchaseSuccess,
+                checkout: subscriptionStore.checkoutView,
+                isPurchasing: subscriptionStore.isPurchasing,
+                purchaseSuccess: subscriptionStore.purchaseSuccess,
                 purchaseConfirmed: deviceManager.isPro,
-                purchasePending: subscriptionManager.purchasePending,
+                purchasePending: subscriptionStore.purchasePending,
                 purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
-                purchaseError: subscriptionManager.purchaseError,
-                productsLoadFailed: subscriptionManager.fetchProductsError,
+                purchaseError: subscriptionStore.purchaseError,
+                productsLoadFailed: subscriptionStore.plansLoadFailed,
                 retryFetchProducts: {
-                    subscriptionManager.retryFetchProductsIfNeeded()
+                    subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)
                 },
                 restorePurchases: {
                     Task {
-                        if await subscriptionManager.restorePurchases() == .restored {
+                        if await subscriptionStore.restorePurchases() == .restored {
                             subscriptionBalanceViewModel.startPolling()
                         }
                     }
                 },
-                isRestoringPurchases: subscriptionManager.isRestoringPurchases,
-                restoreMessage: subscriptionManager.restoreResultMessage,
+                isRestoringPurchases: subscriptionStore.isRestoringPurchases,
+                restoreMessage: subscriptionStore.restoreResultMessage,
+                purchaseConfirmingTitle: subscriptionStore.purchaseConfirmingTitle,
+                purchaseConfirmingMessage: subscriptionStore.purchaseConfirmingMessage,
                 dismiss: {
                     viewModel.isPresentedUpgradeSheet = false
                     // the purchase flags describe ONE attempt; letting them
                     // survive is what showed "You're premium." to a user who
                     // had not actually completed a purchase
-                    subscriptionManager.resetPurchaseState()
+                    subscriptionStore.resetPurchaseState()
                 }
             )
             .environmentObject(themeManager)

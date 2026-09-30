@@ -34,6 +34,12 @@ class AppStoreSubscriptionManager: ObservableObject {
     /// The yearly plan's free trial in days when StoreKit says this user may get one; nil
     /// (nothing promised) until eligibility is known or when the user is not eligible.
     @Published private(set) var yearlyTrialDays: Int?
+    /**
+     * This Apple ID holds an active App Store subscription (any supporter
+     * product, including the older ones, under any network), so the account
+     * screen offers "Manage subscription" (see ManageSubscription).
+     */
+    @Published private(set) var hasAppStoreSubscription: Bool = false
 
     @Published var isPurchasing: Bool = false
     @Published private(set) var purchaseSuccess: Bool = false
@@ -136,6 +142,7 @@ class AppStoreSubscriptionManager: ObservableObject {
                 self.transactionUpdateSequence += 1
                 // a purchase can use up the introductory offer
                 Task { await self.refreshYearlyTrialDays() }
+                Task { await self.refreshHasAppStoreSubscription() }
             }
 
         /**
@@ -149,7 +156,22 @@ class AppStoreSubscriptionManager: ObservableObject {
 
         Task {
             await fetchProducts()
+            await refreshHasAppStoreSubscription()
         }
+    }
+
+    /// Re-reads whether this Apple ID holds an active App Store subscription.
+    func refreshHasAppStoreSubscription() async {
+        var found = false
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result,
+                  transaction.revocationDate == nil,
+                  transaction.productType == .autoRenewable else {
+                continue
+            }
+            found = true
+        }
+        self.hasAppStoreSubscription = found
     }
 
     func fetchProducts() async {

@@ -2316,6 +2316,15 @@ class VPNManager: ObservableObject {
                         "network_space": networkSpaceJson,
                         "instance_id": instanceId,
                     ]
+                    #if DIRECT_DOWNLOAD
+                    // the SYSTEM extension runs as root and cannot read the
+                    // shared intent in the App Group; the profile carries it
+                    // (this path only runs when the app wants the tunnel up)
+                    if let configuration = tunnelProtocol.providerConfiguration,
+                       let intent = TunnelIntentStore.providerConfigurationEntry(for: configuration) {
+                        tunnelProtocol.providerConfiguration?[TunnelIntentStore.providerConfigurationKey] = intent
+                    }
+                    #endif
 
                     tunnelManager.protocolConfiguration = tunnelProtocol
 

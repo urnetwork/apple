@@ -28,6 +28,37 @@ enum ExtensionDiagnosticsLogLocation {
     /// can fail, since glog writes nothing anywhere until this has run.
     @discardableResult
     static func configure() -> Bool {
+        #if DIRECT_DOWNLOAD
+        // The SYSTEM extension (direct-download build) runs as root: the app
+        // group container it would resolve is root's own, which the app can
+        // never read, so it logs to /Library/Logs/URnetwork instead and the
+        // app mirrors that directory into its bundle
+        // (SystemExtensionLogMirror). The umask is pinned before glog opens
+        // anything so its files come out 0644 regardless of what launchd
+        // handed this process.
+        // TODO(hardware): verify on a notarized build that the sandboxed
+        // network system extension may create /Library/Logs/URnetwork (0755)
+        // and write files there; if the sandbox denies it, SetLogDirForProcess
+        // falls back to a private temp directory and this returns false.
+        umask(mode_t(DiagnosticsLogContract.systemExtensionUmask))
+        let root = DiagnosticsLogContract.systemExtensionLogRoot
+        try? FileManager.default.createDirectory(
+            at: root, withIntermediateDirectories: true,
+            attributes: [.posixPermissions: DiagnosticsLogContract.systemExtensionDirectoryPermissions]
+        )
+        var err: NSError?
+        SdkSetLogDirForProcess(root.path, processName, &err)
+        try? FileManager.default.setAttributes(
+            [.posixPermissions: DiagnosticsLogContract.systemExtensionDirectoryPermissions],
+            ofItemAtPath: DiagnosticsLogContract.systemExtensionProcessLogDirectory.path
+        )
+        return DiagnosticsLogContract.sharedRootIsInUse(
+            requestedRoot: root,
+            actualRoot: SdkGetLogRoot(),
+            isShared: true,
+            setLogDirFailed: err != nil
+        )
+        #else
         let container = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: appGroupIdentifier
         )
@@ -50,5 +81,6 @@ enum ExtensionDiagnosticsLogLocation {
             isShared: location.isShared,
             setLogDirFailed: err != nil
         )
+        #endif
     }
 }

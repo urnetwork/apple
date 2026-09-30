@@ -44,6 +44,18 @@
 		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1D0000A2F0D00010000000A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0000E2F0D00010000000E /* GoogleSignIn */; };
+		A1D0000B2F0D00010000000B /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0000F2F0D00010000000F /* GoogleSignInSwift */; };
+		A1D0000C2F0D00010000000C /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A1D000102F0D000100000010 /* URnetworkSdk */; };
+		A1D0000D2F0D00010000000D /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
+		A1D000112F0D000100000011 /* URnetworkVPNSystem.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1D000282F0D000100000028 /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
+		A1D000292F0D000100000029 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
+		A1D0002A2F0D00010000002A /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
+		A1D0002B2F0D00010000002B /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
+		A1D0002C2F0D00010000002C /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */; };
+		A1D0002D2F0D00010000002D /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
+		A1D0002E2F0D00010000002E /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +87,13 @@
 			remoteGlobalIDString = D1B95A802CEBE76400542E0E;
 			remoteInfo = extension;
 		};
+		A1D000132F0D000100000013 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1D000202F0D000100000020;
+			remoteInfo = URnetworkVPNSystem;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -97,6 +116,17 @@
 				B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000082F0D000100000008 /* Embed System Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				A1D000112F0D000100000011 /* URnetworkVPNSystem.systemextension in Embed System Extensions */,
+			);
+			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -135,6 +165,8 @@
 		D1B95A6A2CEBDD6A00542E0E /* networkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A832CEBE76400542E0E /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		A1D000092F0D000100000009 /* URnetwork.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetwork.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = URnetworkVPNSystem.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -148,9 +180,18 @@
 		D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Info-macOS-sysext.plist",
 				Info.plist,
 			);
 			target = D1B95A802CEBE76400542E0E /* URnetworkVPN */;
+		};
+		A1D000302F0D000100000030 /* Exceptions for "extension" folder in "URnetworkVPNSystem" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Info-macOS-sysext.plist",
+				Info.plist,
+			);
+			target = A1D000202F0D000100000020 /* URnetworkVPNSystem */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -187,6 +228,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */,
+				A1D000302F0D000100000030 /* Exceptions for "extension" folder in "URnetworkVPNSystem" target */,
 			);
 			path = extension;
 			sourceTree = "<group>";
@@ -242,6 +284,27 @@
 				B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */,
 				D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */,
 				1728CF992D1691F100050EC5 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000062F0D000100000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D0000B2F0D00010000000B /* GoogleSignInSwift in Frameworks */,
+				A1D0000C2F0D00010000000C /* URnetworkSdk in Frameworks */,
+				A1D0000D2F0D00010000000D /* libresolv.9.tbd in Frameworks */,
+				A1D0000A2F0D00010000000A /* GoogleSignIn in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000252F0D000100000025 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D0002C2F0D00010000002C /* URnetworkExtensionSdk in Frameworks */,
+				A1D0002D2F0D00010000002D /* libresolv.9.tbd in Frameworks */,
+				A1D0002E2F0D00010000002E /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,6 +365,8 @@
 				D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */,
 				B17E01012F0000010000A002 /* URnetworkWidgets.appex */,
 				1783A00D2D60111600024F80 /* URnetworkLaunchHelper */,
+				A1D000092F0D000100000009 /* URnetwork.app */,
+				A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -461,6 +526,56 @@
 			productReference = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		A1D000012F0D000100000001 /* URnetworkDirect */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1D000022F0D000100000002 /* Build configuration list for PBXNativeTarget "URnetworkDirect" */;
+			buildPhases = (
+				A1D000052F0D000100000005 /* Sources */,
+				A1D000062F0D000100000006 /* Frameworks */,
+				A1D000072F0D000100000007 /* Resources */,
+				A1D000082F0D000100000008 /* Embed System Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1D000122F0D000100000012 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D1B95A512CEBDD6900542E0E /* network */,
+			);
+			name = URnetworkDirect;
+			packageProductDependencies = (
+				A1D000102F0D000100000010 /* URnetworkSdk */,
+				A1D0000E2F0D00010000000E /* GoogleSignIn */,
+				A1D0000F2F0D00010000000F /* GoogleSignInSwift */,
+			);
+			productName = network;
+			productReference = A1D000092F0D000100000009 /* URnetwork.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A1D000202F0D000100000020 /* URnetworkVPNSystem */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1D000212F0D000100000021 /* Build configuration list for PBXNativeTarget "URnetworkVPNSystem" */;
+			buildPhases = (
+				A1D000242F0D000100000024 /* Sources */,
+				A1D000252F0D000100000025 /* Frameworks */,
+				A1D000262F0D000100000026 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D1B95A852CEBE76400542E0E /* extension */,
+			);
+			name = URnetworkVPNSystem;
+			packageProductDependencies = (
+				A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */,
+			);
+			productName = extension;
+			productReference = A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */;
+			productType = "com.apple.product-type.system-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -490,6 +605,12 @@
 					};
 					D1B95A802CEBE76400542E0E = {
 						CreatedOnToolsVersion = 16.1;
+					};
+					A1D000012F0D000100000001 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					A1D000202F0D000100000020 = {
+						CreatedOnToolsVersion = 16.2;
 					};
 				};
 			};
@@ -540,6 +661,8 @@
 				D1B95A802CEBE76400542E0E /* URnetworkVPN */,
 				1783A00C2D60111600024F80 /* URnetworkLaunchHelper */,
 				B17E01002F0000010000A001 /* URnetworkWidgets */,
+				A1D000012F0D000100000001 /* URnetworkDirect */,
+				A1D000202F0D000100000020 /* URnetworkVPNSystem */,
 			);
 		};
 /* End PBXProject section */
@@ -577,6 +700,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D1B95A7F2CEBE76400542E0E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000072F0D000100000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000262F0D000100000026 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -651,6 +788,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1D000052F0D000100000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000242F0D000100000024 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D000282F0D000100000028 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
+				A1D000292F0D000100000029 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
+				A1D0002A2F0D00010000002A /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
+				A1D0002B2F0D00010000002B /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -673,6 +828,11 @@
 			isa = PBXTargetDependency;
 			target = D1B95A802CEBE76400542E0E /* URnetworkVPN */;
 			targetProxy = D1B95A8A2CEBE76400542E0E /* PBXContainerItemProxy */;
+		};
+		A1D000122F0D000100000012 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1D000202F0D000100000020 /* URnetworkVPNSystem */;
+			targetProxy = A1D000132F0D000100000013 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1250,6 +1410,245 @@
 			};
 			name = Release;
 		};
+		A1D000032F0D000100000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = "network/network-macOS-direct.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"network/Preview Content\"";
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "URnetwork-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur;
+				PRODUCT_NAME = URnetwork;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Debug;
+		};
+		A1D000042F0D000100000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = "network/network-macOS-direct.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"network/Preview Content\"";
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "URnetwork-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur;
+				PRODUCT_NAME = URnetwork;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Release;
+		};
+		A1D000222F0D000100000022 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "extension/extension-macOS-sysext.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "extension/Info-macOS-sysext.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork VPN";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				SKIP_INSTALL = YES;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A1D000232F0D000100000023 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "extension/extension-macOS-sysext.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "extension/Info-macOS-sysext.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork VPN";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				SKIP_INSTALL = YES;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1316,6 +1715,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		A1D000022F0D000100000002 /* Build configuration list for PBXNativeTarget "URnetworkDirect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1D000032F0D000100000003 /* Debug */,
+				A1D000042F0D000100000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1D000212F0D000100000021 /* Build configuration list for PBXNativeTarget "URnetworkVPNSystem" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1D000222F0D000100000022 /* Debug */,
+				A1D000232F0D000100000023 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -1360,6 +1777,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
 			productName = URnetworkSdk;
+		};
+		A1D0000E2F0D00010000000E /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 17041CF52D026BE4003F4D5A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		A1D0000F2F0D00010000000F /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 17041CF52D026BE4003F4D5A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+		A1D000102F0D000100000010 /* URnetworkSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
+			productName = URnetworkSdk;
+		};
+		A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */;
+			productName = URnetworkExtensionSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

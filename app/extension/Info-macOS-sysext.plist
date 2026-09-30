@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Info.plist of the packet tunnel SYSTEM extension (URnetworkVPNSystem target,
+  direct-download macOS build). A system extension declares its provider
+  classes under NetworkExtension rather than NSExtension, and needs a mach
+  service name prefixed by one of its app groups (the literal team id matches
+  extension-macOS-sysext.entitlements). No URSharedKeychainAccessGroup: the
+  DIRECT_DOWNLOAD build of the extension never touches the keychain.
+-->
+<plist version="1.0">
+<dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NetworkExtension</key>
+	<dict>
+		<key>NEMachServiceName</key>
+		<string>6BGU69Q742.group.network.ur.extension</string>
+		<key>NEProviderClasses</key>
+		<dict>
+			<key>com.apple.networkextension.packet-tunnel</key>
+			<string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

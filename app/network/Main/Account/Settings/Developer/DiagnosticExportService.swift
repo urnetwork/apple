@@ -52,6 +52,13 @@ enum DiagnosticExportService {
         sharedRootUnavailableReason: String?,
         date: Date = Date()
     ) throws -> Export {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        // after the caller's rpc flush, so the newest sysext lines are in
+        SystemExtensionLogMirror.sync()
+        #endif
+        let sharedRootUnavailableReason = extensionSourceUnavailableReason(
+            sharedRootUnavailableReason: sharedRootUnavailableReason
+        )
         let directory = bundleDirectory
         try? FileManager.default.removeItem(at: directory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -215,7 +222,23 @@ enum DiagnosticExportService {
         !selectedNames.isEmpty
     }
 
+    /// Why the extension's logs are absent from a bundle, or nil. The App
+    /// Store build's answer is whether this process reached the App Group
+    /// root; the direct-download build's is whether the SYSTEM extension's
+    /// /Library/Logs directory could be mirrored (SystemExtensionLogMirror),
+    /// which `inventory()` and `export` have just attempted.
+    static func extensionSourceUnavailableReason(sharedRootUnavailableReason: String?) -> String? {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        return SystemExtensionLogMirror.unavailableReason
+        #else
+        return sharedRootUnavailableReason
+        #endif
+    }
+
     static func inventory() -> [SdkLogFileInfo] {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        SystemExtensionLogMirror.sync()
+        #endif
         guard let list = SdkLogInventory() else { return [] }
         var infos: [SdkLogFileInfo] = []
         infos.reserveCapacity(list.len())

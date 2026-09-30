@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Direct-download macOS build (URnetworkDirect target, Developer ID signed,
+  distributed as a DMG outside the Mac App Store). The tunnel is a SYSTEM
+  extension in this build, which is why the networkextension entitlement
+  names the "-systemextension" packet tunnel variant and the app carries
+  system-extension.install. Same bundle id, URL scheme, keychain group and
+  app group as the App Store build (network-macOS.entitlements); the team id
+  in the app group is literal for the reason explained there.
+  Not carried over from the App Store entitlements: aps-environment (no push
+  in the direct build), increased-memory-limit and sustained-execution (iOS
+  entitlements that a Developer ID profile does not grant) and dns-proxy
+  (the tunnel only registers a packet tunnel provider).
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>6BGU69Q742.group.network.ur</string>
+	</array>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>packet-tunnel-provider-systemextension</string>
+		<string>dns-settings</string>
+	</array>
+	<key>com.apple.developer.networking.vpn.api</key>
+	<array>
+		<string>allow-vpn</string>
+	</array>
+	<key>com.apple.developer.system-extension.install</key>
+	<true/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)network.ur.tunnel-credentials</string>
+	</array>
+</dict>
+</plist>

@@ -258,6 +258,7 @@ import URnetworkSdk
                 UpgradeSubscriptionSheet(
                     monthlyProduct: subscriptionManager.monthlySubscription,
                     yearlyProduct: subscriptionManager.yearlySubscription,
+                    yearlyTrialDays: subscriptionManager.yearlyTrialDays,
                     purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
                     purchase: { product in
 

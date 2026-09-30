@@ -20,13 +20,15 @@ extension PlanPrice {
 
 extension PlanPresentation {
 
-    /// The presentation every plan surface shows for this session.
+    /// The presentation every plan surface shows for this session. `yearlyTrialDays` is the
+    /// trial StoreKit says this user may get (AppStoreSubscriptionManager.yearlyTrialDays).
     static func current(
         monthly: Product?,
         yearly: Product?,
         tier: PlanTier?,
         offer: PlanOffer?,
-        storefrontCountryName: String?
+        storefrontCountryName: String?,
+        yearlyTrialDays: Int?
     ) -> PlanPresentation {
         let yearlyPrice = yearly.map(PlanPrice.init(product:)) ?? .usdListPrice((tier ?? .standard).yearlyUsd)
         let monthlyPrice = monthly.map(PlanPrice.init(product:)) ?? .usdListPrice((tier ?? .standard).monthlyUsd)
@@ -47,7 +49,7 @@ extension PlanPresentation {
             offer: offer,
             storeMonthly: monthlyPrice,
             storeYearly: yearlyPrice,
-            trialDays: yearlyTrialDays(for: yearly),
+            trialDays: yearlyTrialDays,
             equivalent: equivalent,
             storefrontCountryName: storefrontCountryName
         )

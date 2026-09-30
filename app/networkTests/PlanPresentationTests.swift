@@ -81,4 +81,57 @@ struct PlanPresentationTests {
         #expect(presentation.monthlyTitle == "$4.99/month")
         #expect(presentation.yearlyPill == "Best value")
     }
+
+    // MARK: free trial eligibility (support inbox 790, 837, 858)
+
+    private static let twoWeekTrial = PlanIntroOffer(isFreeTrial: true, periodValue: 2, periodUnit: .week)
+
+    @Test func aTrialIsPromisedOnlyForAnEligibleFreeTrialOffer() {
+        #expect(planFreeTrialDays(introOffer: Self.twoWeekTrial, isEligible: true) == 14)
+        #expect(planFreeTrialDays(introOffer: PlanIntroOffer(isFreeTrial: true, periodValue: 1, periodUnit: .month), isEligible: true) == 30)
+        #expect(planFreeTrialDays(introOffer: PlanIntroOffer(isFreeTrial: true, periodValue: 3, periodUnit: .day), isEligible: true) == 3)
+    }
+
+    @Test func anIneligibleOrUnknownUserIsPromisedNoTrial() {
+        // a user who already had the trial is charged at once
+        #expect(planFreeTrialDays(introOffer: Self.twoWeekTrial, isEligible: false) == nil)
+        // the store has not answered yet
+        #expect(planFreeTrialDays(introOffer: Self.twoWeekTrial, isEligible: nil) == nil)
+    }
+
+    @Test func noFreeTrialOfferMeansNoTrialEvenWhenEligible() {
+        // no introductory offer: no fallback length is invented
+        #expect(planFreeTrialDays(introOffer: nil, isEligible: true) == nil)
+        // a paid introductory offer is not a free trial
+        #expect(planFreeTrialDays(introOffer: PlanIntroOffer(isFreeTrial: false, periodValue: 1, periodUnit: .month), isEligible: true) == nil)
+        #expect(planFreeTrialDays(introOffer: PlanIntroOffer(isFreeTrial: true, periodValue: 0, periodUnit: .day), isEligible: true) == nil)
+    }
+
+    @Test func withoutATrialThePaywallStatesThePlainTerms() {
+        let presentation = PlanPresentation.resolve(
+            tier: .standard,
+            offer: nil,
+            storeMonthly: nil,
+            storeYearly: nil,
+            trialDays: planFreeTrialDays(introOffer: Self.twoWeekTrial, isEligible: false),
+            equivalent: PlanEquivalent(monthlyEquivalent: Decimal(string: "3.34")!, showEquivalent: true, savingPercent: 33)
+        )
+        #expect(presentation.yearlyLines == ["≈ $3.34/month · billed once a year"])
+        #expect(!presentation.yearlyLines.contains { $0.localizedCaseInsensitiveContains("trial") })
+        #expect(presentation.ctaTitle(for: .yearly) == "Subscribe")
+        #expect(presentation.termsLine(for: .yearly) == "$39.99 billed today, then every year. Cancel anytime.")
+    }
+
+    @Test func withTheWelcomeOfferButNoTrialTheTermsDropTheFreeDays() {
+        let presentation = PlanPresentation.resolve(
+            tier: .standard,
+            offer: PlanOffer(percentOff: 25, monthsFree: 3, expiresAt: Date(), appleOfferCode: "ABC"),
+            storeMonthly: nil,
+            storeYearly: nil,
+            trialDays: nil,
+            equivalent: nil
+        )
+        #expect(presentation.yearlyLines == ["then $39.99/year"])
+        #expect(presentation.termsLine(for: .yearly) == "$29.99 for your first year, then $39.99/year. Cancel anytime.")
+    }
 }

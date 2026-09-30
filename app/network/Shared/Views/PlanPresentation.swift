@@ -65,6 +65,51 @@ struct PlanOffer: Equatable {
     var appleOfferCode: String
 }
 
+/// A subscription's introductory offer as the trial decision needs it (StoreKit-free, so it can be tested).
+struct PlanIntroOffer: Equatable {
+    enum Unit: Equatable {
+        case day
+        case week
+        case month
+        case year
+    }
+
+    /// The offer is a free trial (not pay-as-you-go or pay-up-front).
+    var isFreeTrial: Bool
+    var periodValue: Int
+    var periodUnit: Unit
+
+    /// The offer's period in days.
+    var days: Int {
+        switch periodUnit {
+        case .day:
+            return periodValue
+        case .week:
+            return periodValue * 7
+        case .month:
+            return periodValue * 30
+        case .year:
+            return periodValue * 365
+        }
+    }
+}
+
+/**
+ * The free trial the yearly plan may promise, in days, or nil when it may not
+ * promise one. A trial is shown only when the product really has a free-trial
+ * introductory offer AND StoreKit says this user is eligible for it; while
+ * eligibility is unknown (the store has not answered) nothing is promised. A
+ * user who already used a trial in the subscription group is charged at once,
+ * so telling them otherwise is a false promise.
+ */
+func planFreeTrialDays(introOffer: PlanIntroOffer?, isEligible: Bool?) -> Int? {
+    guard let introOffer, introOffer.isFreeTrial, isEligible == true else {
+        return nil
+    }
+    let days = introOffer.days
+    return 0 < days ? days : nil
+}
+
 /// The per-month equivalent of the yearly price, as the SDK computes it.
 struct PlanEquivalent: Equatable {
     var monthlyEquivalent: Decimal
@@ -76,7 +121,8 @@ struct PlanPresentation: Equatable {
 
     var yearly: PlanPrice
     var monthly: PlanPrice
-    var trialDays: Int
+    /// The yearly plan's free trial in days; nil when no trial may be promised (see planFreeTrialDays).
+    var trialDays: Int?
     var tier: PlanTier
     var offer: PlanOffer?
     var equivalent: PlanEquivalent?
@@ -90,7 +136,7 @@ struct PlanPresentation: Equatable {
         offer: PlanOffer?,
         storeMonthly: PlanPrice?,
         storeYearly: PlanPrice?,
-        trialDays: Int,
+        trialDays: Int?,
         equivalent: PlanEquivalent?,
         storefrontCountryName: String? = nil
     ) -> PlanPresentation {
@@ -141,7 +187,9 @@ struct PlanPresentation: Equatable {
         } else if tier.isRegional, let storefrontCountryName {
             lines.append(String(format: String(localized: "Billed once a year · price for %@"), storefrontCountryName))
         }
-        lines.append(String(format: String(localized: "Includes %lld day free trial"), trialDays))
+        if let trialDays {
+            lines.append(String(format: String(localized: "Includes %lld day free trial"), trialDays))
+        }
         return lines
     }
 
@@ -173,6 +221,9 @@ struct PlanPresentation: Equatable {
             if let offer {
                 return String(format: String(localized: "Start free trial with %lld months free"), offer.monthsFree)
             }
+            guard trialDays != nil else {
+                return String(localized: "Subscribe")
+            }
             return String(localized: "Start free trial")
         }
     }
@@ -180,6 +231,16 @@ struct PlanPresentation: Equatable {
     /// The terms line under the button for the yearly plan; nil for monthly, whose card says it all.
     func termsLine(for option: PaymentOption) -> String? {
         guard option == .yearly else { return nil }
+        guard let trialDays else {
+            // no trial promised: the offer's own terms apply, or the plain charge is today
+            if let firstYearPrice {
+                return String(
+                    format: String(localized: "%@ for your first year, then %@/year. Cancel anytime."),
+                    firstYearPrice.display, yearly.display
+                )
+            }
+            return String(format: String(localized: "%@ billed today, then every year. Cancel anytime."), yearly.display)
+        }
         if let firstYearPrice {
             return String(
                 format: String(localized: "%lld days free, then %@ for your first year, then %@/year. Cancel anytime."),

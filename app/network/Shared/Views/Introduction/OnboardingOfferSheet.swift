@@ -28,7 +28,8 @@ struct OnboardingOfferSheet: View {
             yearly: subscriptionManager.yearlySubscription,
             tier: subscriptionBalanceViewModel.priceTier,
             offer: subscriptionBalanceViewModel.onboardingOffer,
-            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName,
+            yearlyTrialDays: subscriptionManager.yearlyTrialDays
         )
     }
 

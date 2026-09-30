@@ -6,7 +6,10 @@
 //
 
 import SwiftUI
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
 import URnetworkSdk
 
 enum IntroductionRoute: Hashable {

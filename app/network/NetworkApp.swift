@@ -391,6 +391,11 @@ struct NetworkApp: App {
                     } else if let destination = OnboardingDestination(url: url) {
                         // an onboarding email's link, after the ur.io landing page
                         deepLinkRouter.open(destination)
+                    } else if let link = BillingDeepLink(url: url) {
+                        // a Stripe checkout handing control back from the
+                        // browser (direct-download build): the split view
+                        // routes it to the store
+                        deepLinkRouter.open(link)
                     } else {
                         GIDSignIn.sharedInstance.handle(url)
                     }

@@ -13,7 +13,12 @@ struct FeedbackView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @StateObject private var viewModel: ViewModel
+    #if DIRECT_DOWNLOAD
+    // no App Store review prompt outside the App Store (StoreKit is not linked)
+    private func requestReview() {}
+    #else
     @Environment(\.requestReview) private var requestReview
+    #endif
     @FocusState private var isFocused: Bool
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter

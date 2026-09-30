@@ -1,0 +1,315 @@
+import Foundation
+import Testing
+@testable import URnetwork
+
+/// The direct-download build's Stripe purchase flow: pay sheet, then embedded
+/// checkout, then the hosted page in the browser; the returns; manage.
+struct StripeSubscriptionStoreTests {
+
+    /// A server whose answers the test scripts.
+    final class FakeClient: StripeBillingClient {
+        var prices: Result<StripePlanPrices, Error> = .success(StripePlanPrices(yearlyUsd: 40, monthlyUsd: 5, currency: "usd", offerEligible: false))
+        var paymentSheet: Result<StripePaymentSheetResponse, Error> = .failure(StripeBillingError.unavailable)
+        var embedded: Result<StripeCheckoutSessionResponse, Error> = .failure(StripeBillingError.unavailable)
+        var hosted: Result<StripeCheckoutSessionResponse, Error> = .failure(StripeBillingError.unavailable)
+        var portal: Result<URL, Error> = .failure(StripeBillingError.unavailable)
+        var calls: [String] = []
+
+        func prices(storefrontCountry: String?) async throws -> StripePlanPrices {
+            calls.append("prices")
+            return try prices.get()
+        }
+
+        func paymentSheet(plan: String, storefrontCountry: String?) async throws -> StripePaymentSheetResponse {
+            calls.append("paymentSheet:\(plan)")
+            return try paymentSheet.get()
+        }
+
+        func checkoutSession(itemId: String, uiMode: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse {
+            calls.append("session:\(itemId):\(uiMode)")
+            return try (uiMode == "embedded" ? embedded : hosted).get()
+        }
+
+        func customerPortalURL() async throws -> URL {
+            calls.append("portal")
+            return try portal.get()
+        }
+    }
+
+    @MainActor
+    private static func store(_ client: FakeClient, opened: @escaping (URL) -> Bool = { _ in true }) -> StripeSubscriptionStore {
+        StripeSubscriptionStore(client: client, openExternal: opened)
+    }
+
+    @Test @MainActor func theStoreIsStripe() {
+        let store = Self.store(FakeClient())
+        #expect(store.storeName == "stripe")
+        #expect(store.distribution == .direct)
+        #expect(BillingDistribution.current == .appStore, "the tests build without DIRECT_DOWNLOAD")
+    }
+
+    @Test @MainActor func thePlansRenderFromTheTierUntilThePricesArriveAndPromiseNoTrial() async {
+        let client = FakeClient()
+        let store = Self.store(client)
+        let before = store.presentation(tier: .standard, offer: nil, storefrontCountryName: nil)
+        #expect(before?.yearlyTitle == "$39.99/year")
+        #expect(before?.trialDays == nil)
+
+        await store.loadPrices(storefrontCountry: "US")
+        #expect(!store.plansLoadFailed)
+        let after = store.presentation(tier: .standard, offer: nil, storefrontCountryName: nil)
+        #expect(after?.yearlyTitle == "$40.00/year")
+        #expect(after?.trialDays == nil)
+    }
+
+    @Test @MainActor func aPricesFailureOffersARetry() async {
+        let client = FakeClient()
+        client.prices = .failure(StripeBillingError.unavailable)
+        let store = Self.store(client)
+        await store.loadPrices(storefrontCountry: nil)
+        #expect(store.plansLoadFailed)
+        // the sheet's retry asks again...
+        client.prices = .success(StripePlanPrices(yearlyUsd: 40, monthlyUsd: 5, currency: "usd", offerEligible: false))
+        await store.loadPrices(storefrontCountry: nil)
+        #expect(!store.plansLoadFailed)
+        #expect(client.calls == ["prices", "prices"])
+        // ...and a store with prices does not
+        store.retryLoadPlansIfNeeded(storefrontCountry: nil)
+        await Self.settle()
+        #expect(client.calls == ["prices", "prices"])
+    }
+
+    @Test @MainActor func thePaySheetOpensFirstWithTheSetupIntent() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_secret", paymentIntentClientSecret: "pi_secret", publishableKey: "pk_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.isPurchasing)
+        #expect(store.checkout?.stage == .paySheet)
+        #expect(store.checkout?.url.absoluteString
+            == "https://ur.io/app/pay-sheet?cs=seti_secret&pk=pk_1&plan=yearly&return=urnetwork%3A%2F%2Fpay%2Fdone")
+        #expect(client.calls == ["paymentSheet:yearly"])
+    }
+
+    @Test @MainActor func thePaySheetsSuccessMessageConfirmsAndStartsThePoll() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(paymentIntentClientSecret: "pi_secret", publishableKey: "pk_1"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .monthly, onSuccess: { polled += 1 })
+        #expect(store.checkout?.url.absoluteString.contains("cs=pi_secret&pk=pk_1&plan=monthly") == true)
+
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        #expect(polled == 1)
+        #expect(store.purchaseSuccess)
+        #expect(!store.isPurchasing)
+        #expect(store.checkout == nil)
+        #expect(store.purchaseConfirmingMessage == "We're confirming your purchase. Your plan will update automatically.")
+        #expect(store.purchaseConfirmingTitle == nil)
+    }
+
+    @Test @MainActor func thePaySheetsReturnURLConfirmsToo() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(store.handle(.payDone))
+        #expect(polled == 1)
+        #expect(store.purchaseSuccess)
+        #expect(store.checkout == nil)
+    }
+
+    @Test @MainActor func cancellingThePaySheetReturnsToThePlans() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        store.handlePayMessage(["type": "ur-pay", "status": "cancelled"])
+        #expect(!store.isPurchasing)
+        #expect(!store.purchaseSuccess)
+        #expect(store.purchaseError == nil)
+        #expect(store.checkout == nil)
+        #expect(polled == 0)
+        // a stale return after the close changes nothing
+        #expect(!store.handle(.payError(message: "late")))
+        #expect(store.purchaseError == nil)
+    }
+
+    @Test @MainActor func aPaySheetFailureRendersItsMessage() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.handlePayMessage(["type": "ur-pay", "status": "failed", "message": "Your card was declined."])
+        #expect(store.purchaseError == "Your card was declined.")
+        #expect(!store.isPurchasing)
+        #expect(store.checkout == nil)
+
+        // and one without a message says something generic
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.purchaseError == nil, "a new attempt starts clean")
+        store.handle(.checkoutFailed(code: "-1", message: nil))
+        #expect(store.purchaseError == "Something went wrong. Please try again later.")
+    }
+
+    @Test @MainActor func noPaySheetFallsBackToTheEmbeddedCheckout() async {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.server("no sheet"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret"))
+        let store = Self.store(client)
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(store.checkout?.stage == .embedded)
+        #expect(store.checkout?.url.absoluteString
+            == "https://ur.io/checkout?client_secret=cs_secret&redirect_link=urnetwork%3A%2F%2Fcheckout")
+        #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded"])
+
+        store.handle(.checkoutComplete(sessionId: "cs_1"))
+        #expect(store.purchaseSuccess)
+        #expect(store.checkout == nil)
+    }
+
+    @Test @MainActor func aPaySheetWithoutASecretFallsBackToo() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(publishableKey: "pk"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.checkout?.stage == .embedded)
+    }
+
+    @Test @MainActor func noEmbeddedSessionFallsBackToTheHostedPageInTheBrowser() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.stripe.com/c/pay/cs_1"))
+        var opened: [URL] = []
+        let store = Self.store(client, opened: { opened.append($0); return true })
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(client.calls == ["paymentSheet:yearly", "session:pro_yearly:embedded", "session:pro_yearly:hosted"])
+        #expect(opened.map(\.absoluteString) == ["https://checkout.stripe.com/c/pay/cs_1"])
+        #expect(store.checkout == nil)
+        // the browser has it: the sheet waits on the poll with the browser copy
+        #expect(polled == 1)
+        #expect(store.purchaseSuccess)
+        #expect(!store.isPurchasing)
+        #expect(store.purchaseConfirmingTitle == "Finish in your browser.")
+        #expect(store.purchaseConfirmingMessage == "Complete your purchase in the browser. Your plan updates here automatically once payment is confirmed.")
+
+        // the browser handing control back confirms again (the poll guards its own restart)
+        #expect(store.handle(.checkoutComplete(sessionId: "cs_1")))
+        #expect(polled == 2)
+    }
+
+    @Test @MainActor func everythingFailingRendersTheServersMessage() async {
+        let client = FakeClient()
+        client.hosted = .failure(StripeBillingError.server("Billing is unavailable in your region."))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.purchaseError == "Billing is unavailable in your region.")
+        #expect(!store.isPurchasing)
+        #expect(!store.purchaseSuccess)
+
+        client.hosted = .failure(StripeBillingError.unavailable)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.purchaseError == "Something went wrong. Please try again later.")
+    }
+
+    @Test @MainActor func aBrowserThatWillNotOpenIsAFailure() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.stripe.com/c/pay/cs_1"))
+        let store = Self.store(client, opened: { _ in false })
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.purchaseError != nil)
+        #expect(!store.purchaseSuccess)
+    }
+
+    @Test @MainActor func aPageThatCannotLoadFallsThroughOncePerStage() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret"))
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.stripe.com/c/pay/cs_1"))
+        var opened: [URL] = []
+        let store = Self.store(client, opened: { opened.append($0); return true })
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.checkout?.stage == .paySheet)
+
+        store.handleLoadFailed()
+        await Self.settle()
+        #expect(store.checkout?.stage == .embedded)
+
+        store.handleLoadFailed()
+        await Self.settle()
+        #expect(store.checkout == nil)
+        #expect(opened.count == 1)
+        #expect(store.purchaseSuccess)
+    }
+
+    @Test @MainActor func aDeadWebProcessIsAFailure() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.handleProcessTerminated()
+        #expect(store.checkout == nil)
+        #expect(store.purchaseError == "Something went wrong. Please try again later.")
+    }
+
+    @Test @MainActor func aConfirmedReturnWithNothingInFlightOnlyStartsThePoll() async {
+        let store = Self.store(FakeClient())
+        #expect(store.handle(.payDone))
+        #expect(!store.purchaseSuccess)
+        #expect(!store.handle(.checkoutFailed(code: "-1", message: "x")))
+        #expect(store.purchaseError == nil)
+    }
+
+    @Test @MainActor func aSecondPurchaseWhileOneIsOpenIsIgnored() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(client.calls == ["paymentSheet:yearly"])
+    }
+
+    @Test @MainActor func dismissingTheSheetResetsTheAttempt() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.resetPurchaseState()
+        #expect(store.checkout == nil)
+        #expect(!store.isPurchasing)
+        #expect(!store.purchaseSuccess)
+        #expect(store.purchaseError == nil)
+    }
+
+    @Test @MainActor func restoreReChecksThePlan() async {
+        let store = Self.store(FakeClient())
+        #expect(await store.restorePurchases() == .restored)
+        #expect(store.restoreResultMessage == "Checking your plan again.")
+        #expect(!store.isRestoringPurchases)
+    }
+
+    @Test @MainActor func manageOpensTheCustomerPortal() async throws {
+        let client = FakeClient()
+        client.portal = .success(URL(string: "https://billing.stripe.com/p/session/x")!)
+        let store = Self.store(client)
+        let url = try await store.customerPortalURL()
+        #expect(url.absoluteString == "https://billing.stripe.com/p/session/x")
+
+        client.portal = .failure(StripeBillingError.server("no customer"))
+        await #expect(throws: StripeBillingError.server("no customer")) {
+            try await store.customerPortalURL()
+        }
+    }
+
+    /// Lets a fallback the store queued on the main actor run.
+    @MainActor
+    private static func settle() async {
+        for _ in 0..<20 {
+            await Task.yield()
+        }
+    }
+}

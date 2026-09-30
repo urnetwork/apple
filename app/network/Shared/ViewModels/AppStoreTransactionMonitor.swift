@@ -3,6 +3,9 @@
 //  URnetwork
 //
 
+// The App Store's transaction stream: not part of the direct-download build,
+// which bills through Stripe and does not link StoreKit (see BillingDistribution).
+#if !DIRECT_DOWNLOAD
 import Foundation
 import StoreKit
 import URnetworkSdk
@@ -195,3 +198,5 @@ final class AppStoreTransactionMonitor: ObservableObject {
         return outcome
     }
 }
+
+#endif

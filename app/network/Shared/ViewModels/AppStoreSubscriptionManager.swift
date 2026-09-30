@@ -7,7 +7,10 @@
 
 import Combine
 import Foundation
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
 import URnetworkSdk
 
 /**
@@ -21,6 +24,11 @@ enum RestorePurchasesOutcome {
     case nothingToRestore
     case failed
 }
+
+// The direct-download build bills through Stripe and does not link StoreKit:
+// it compiles the inert stand-in in Billing/DirectDownloadStoreKitStubs.swift
+// instead (same observable surface, nothing to sell).
+#if !DIRECT_DOWNLOAD
 
 /**
  * For creating a subscription with the App Store
@@ -638,3 +646,5 @@ class AppStoreSubscriptionManager: ObservableObject {
         }
     }
 }
+
+#endif

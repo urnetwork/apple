@@ -24,6 +24,9 @@ final class DeepLinkRouter: ObservableObject {
     @Published private(set) var pendingAccountPath: AccountNavigationPath? = nil
     /// What the feedback screen should start with once it is on screen.
     @Published private(set) var pendingFeedback: FeedbackPrefill? = nil
+    /// A Stripe checkout return (urnetwork://pay/done, urnetwork://checkout?...)
+    /// from the browser, until the direct-download build's store takes it.
+    @Published private(set) var pendingBilling: BillingDeepLink? = nil
 
     func open(_ destination: WidgetDestination) {
         pending = destination
@@ -31,6 +34,10 @@ final class DeepLinkRouter: ObservableObject {
 
     func open(_ destination: OnboardingDestination) {
         pendingOnboarding = destination
+    }
+
+    func open(_ link: BillingDeepLink) {
+        pendingBilling = link
     }
 
     func pushAccount(_ path: AccountNavigationPath) {
@@ -47,6 +54,12 @@ final class DeepLinkRouter: ObservableObject {
         guard let destination = pendingOnboarding else { return nil }
         pendingOnboarding = nil
         return destination
+    }
+
+    func consumeBilling() -> BillingDeepLink? {
+        guard let link = pendingBilling else { return nil }
+        pendingBilling = nil
+        return link
     }
 
     func consumeAccountPath() -> AccountNavigationPath? {

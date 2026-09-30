@@ -21,10 +21,14 @@ struct MainView: View {
     
     @StateObject private var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
+    /// The direct-download build's Stripe billing (idle on the App Store build; see BillingDistribution).
+    @StateObject private var stripeSubscriptionStore: StripeSubscriptionStore
     @StateObject private var providerListStore: ProviderListStore
     /// The Pro celebration launcher, shared by the purchase flows and the account's Pro label.
     @StateObject private var proCelebration = ProCelebrationState()
+    #if !DIRECT_DOWNLOAD
     @ObservedObject private var transactionMonitor = AppStoreTransactionMonitor.shared
+    #endif
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -64,6 +68,7 @@ struct MainView: View {
         )
         self.isPro = isPro
         _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
+        _stripeSubscriptionStore = StateObject(wrappedValue: StripeSubscriptionStore(api: api))
         _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
     }
     
@@ -128,6 +133,7 @@ struct MainView: View {
         )
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
+        .environmentObject(stripeSubscriptionStore)
         .environmentObject(proCelebration)
         .onAppear {
             subscriptionBalanceViewModel.setActive(presentationActive)
@@ -177,6 +183,7 @@ struct MainView: View {
              */
             subscriptionBalanceViewModel.updateIsPro(newValue)
         }
+        #if !DIRECT_DOWNLOAD
         .onChange(of: transactionMonitor.wrongNetworkSequence) { _ in
             /**
              * A delivered transaction reported `wrong_network`: it is real and
@@ -187,6 +194,7 @@ struct MainView: View {
              */
             snackbarManager.showSnackbar(message: String(localized: "Your subscription was purchased under a different account. Log in to that account to use it."))
         }
+        #endif
         .onChange(of: subscriptionBalanceViewModel.purchaseConfirmationTimedOut) { timedOut in
             /**
              * The confirmation poll gave up without the server confirming the

@@ -4,7 +4,12 @@
 //
 
 import SwiftUI
+// StoreKit is not linked in the direct-download build (Stripe billing; see BillingDistribution)
+#if !DIRECT_DOWNLOAD
 import StoreKit
+#endif
+
+#if !DIRECT_DOWNLOAD
 
 extension PlanIntroOffer {
     /// The introductory offer as the trial decision needs it; nil for a period unit StoreKit adds later.
@@ -39,6 +44,8 @@ func storeYearlyTrialDays(for yearly: Product?) async -> Int? {
     let isEligible = await subscription.isEligibleForIntroOffer
     return planFreeTrialDays(introOffer: PlanIntroOffer(offer: offer), isEligible: isEligible)
 }
+
+#endif
 
 /// The one plan picker every plan surface shows: onboarding, the upgrade sheet and anything
 /// else that sells Pro. Yearly is selected by default in the Pro-gold dress with the pill and

@@ -3,6 +3,9 @@
 //  URnetwork
 //
 
+// The App Store's transaction stream: not part of the direct-download build,
+// which bills through Stripe and does not link StoreKit (see BillingDistribution).
+#if !DIRECT_DOWNLOAD
 import Foundation
 import StoreKit
 import URnetworkSdk
@@ -324,3 +327,5 @@ private class VerifyAppleTransactionCallback: SdkCallback<
         handleResult(result, err: err)
     }
 }
+
+#endif

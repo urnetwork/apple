@@ -5,6 +5,7 @@
 //  Created by Stuart Kuentzel on 2024/12/13.
 //
 
+import StoreKit
 import SwiftUI
 import URnetworkSdk
 
@@ -16,6 +17,8 @@ struct AccountRootView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    /// StoreKit's manage-subscriptions sheet (iOS; macOS opens the App Store page).
+    @State private var isPresentedManageSubscriptions: Bool = false
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     /// A Pro network's plan label replays the Pro celebration.
@@ -147,6 +150,30 @@ struct AccountRootView: View {
                             
                         }
                             
+                        /**
+                         * An App Store subscription can only be changed or cancelled
+                         * through Apple; this hands off to it (see ManageSubscription).
+                         */
+                        if let manageAction = manageSubscriptionAction(
+                            platform: .current,
+                            hasAppStoreSubscription: subscriptionManager.hasAppStoreSubscription
+                        ) {
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    switch manageAction {
+                                    case .storeKitSheet:
+                                        isPresentedManageSubscriptions = true
+                                    case .openURL(let url):
+                                        openURL(url)
+                                    }
+                                }) {
+                                    Text("Manage subscription")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                }
+                            }
+                        }
+
                         Spacer().frame(height: 8)
                      
                         UsageBar(
@@ -461,6 +488,15 @@ struct AccountRootView: View {
             .frame(maxWidth: .infinity)
             .ignoresSafeArea()
         }
+        #if os(iOS)
+        .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscriptions)
+        .onChange(of: isPresentedManageSubscriptions) { isPresented in
+            // a cancel or change made in the sheet updates the entry
+            if !isPresented {
+                Task { await subscriptionManager.refreshHasAppStoreSubscription() }
+            }
+        }
+        #endif
         .sheet(isPresented: $viewModel.isPresentedUpgradeSheet) {
             UpgradeSubscriptionSheet(
                 monthlyProduct: subscriptionManager.monthlySubscription,

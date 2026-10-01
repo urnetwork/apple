@@ -155,6 +155,15 @@ class ConnectViewModel: ObservableObject {
     private var tunnelListenerSub: SdkSubProtocol?
     private var contractListenerSub: SdkSubProtocol?
     private var connectLocationStateSub: SdkSubProtocol?
+    private var contractStatusGeneration = 0
+    private var contractStatusRevision = 0
+    private var contractStatusRefreshGenerations = Set<Int>()
+    private var queuedContractStatusRefresh: (
+        generation: Int, revision: Int, read: () -> SdkContractStatus?
+    )?
+    var contractStatusRefreshPending: Bool {
+        !contractStatusRefreshGenerations.isEmpty || queuedContractStatusRefresh != nil
+    }
 
     // last published grid signature; skip redundant re-renders when the SDK
     // re-emits a logically unchanged grid (its point objects get fresh
@@ -200,12 +209,7 @@ class ConnectViewModel: ObservableObject {
 
         self.refreshTunnelStatus()
 
-        self.contractListenerSub = device.add(ContractStatusChangeListener { [weak self] _ in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.updateContractStatus()
-            }
-        })
+        self.contractListenerSub = device.add(makeContractStatusListener())
     }
 
     /**
@@ -241,6 +245,10 @@ class ConnectViewModel: ObservableObject {
     }
 
     private func closeListeners() {
+        // A queued callback or refresh from a retired presentation/device
+        // must not publish status or disconnect its replacement.
+        contractStatusGeneration += 1
+        queuedContractStatusRefresh = nil
         gridListenerSub?.close()
         connectionStatusListenerSub?.close()
         selectedLocationListenerSub?.close()
@@ -402,12 +410,65 @@ class ConnectViewModel: ObservableObject {
 // MARK: Contract status
 extension ConnectViewModel {
     func updateContractStatus() {
+        guard let device else { return }
+        refreshContractStatus { device.getContractStatus() }
+    }
 
-        guard let device = self.device else {
+    // SDK getters can synchronously call the VPN extension. Coalesce each
+    // generation off-main, allowing a replacement to proceed beside one old
+    // read. At most two reads run; further replacements retain only the newest
+    // queued request. Notifications never need to wait behind these reads.
+    func refreshContractStatus(using read: @escaping () -> SdkContractStatus?) {
+        guard !contractStatusRefreshGenerations.contains(contractStatusGeneration) else { return }
+        let request = (generation: contractStatusGeneration, revision: contractStatusRevision, read: read)
+        guard contractStatusRefreshGenerations.count < 2 else {
+            queuedContractStatusRefresh = request
             return
         }
+        startContractStatusRefresh(request)
+    }
 
-        let status = device.getContractStatus()
+    private func startContractStatusRefresh(
+        _ request: (generation: Int, revision: Int, read: () -> SdkContractStatus?)
+    ) {
+        contractStatusRefreshGenerations.insert(request.generation)
+        let read = request.read
+        let generation = request.generation
+        let revision = request.revision
+        DispatchQueue.global(qos: .userInitiated).async {
+            let status = read()
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.contractStatusRefreshGenerations.remove(generation)
+                if self.contractStatusGeneration == generation,
+                   self.contractStatusRevision == revision {
+                    self.applyContractStatus(status)
+                }
+                if let queued = self.queuedContractStatusRefresh {
+                    self.queuedContractStatusRefresh = nil
+                    if self.contractStatusGeneration == queued.generation,
+                       self.contractStatusRevision == queued.revision {
+                        self.startContractStatusRefresh(queued)
+                    }
+                }
+            }
+        }
+    }
+
+    func makeContractStatusListener() -> ContractStatusChangeListener {
+        let generation = contractStatusGeneration
+        return ContractStatusChangeListener { [weak self] status in
+            DispatchQueue.main.async {
+                guard let self, self.contractStatusGeneration == generation else { return }
+                // The notification already carries the SDK's current value.
+                // Calling its synchronous getter here adds another RPC.
+                self.applyContractStatus(status)
+            }
+        }
+    }
+
+    private func applyContractStatus(_ status: SdkContractStatus?) {
+        contractStatusRevision += 1
         // only publish when a field the UI reads actually changed; the SDK
         // re-emits a fresh SdkContractStatus (new identity) each callback, which
         // would otherwise re-render the whole connect screen on every tick

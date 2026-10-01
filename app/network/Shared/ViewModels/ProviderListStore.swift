@@ -105,6 +105,16 @@ public final class ProviderListStore: ObservableObject {
         
     }
     
+    // Start and finish the provider fetch before an unrelated SDK refresh can
+    // hold the extension's shared RPC lock. The refresh itself must return
+    // promptly; ConnectViewModel owns its work away from the main thread.
+    func loadForPresentation(refreshContractStatus: @MainActor () -> Void) async {
+        let result = await filterLocations(searchQuery)
+        guard !Task.isCancelled else { return }
+        if case .failure(let error) = result, error is CancellationError { return }
+        refreshContractStatus()
+    }
+
     func filterLocations(_ query: String) async -> Result<Void, Error> {
         guard !Task.isCancelled else { return .failure(CancellationError()) }
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)

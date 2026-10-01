@@ -411,12 +411,10 @@ struct ConnectView_iOS: View {
                         providerListSheetViewModel.setIsRefreshing(false)
                     }
                     .onAppear {
-                        
-                        // refetch the contract status
-                        connectViewModel.updateContractStatus()
-                        
                         Task {
-                            let _ = await providerListStore.filterLocations(providerListStore.searchQuery)
+                            await providerListStore.loadForPresentation {
+                                connectViewModel.updateContractStatus()
+                            }
                         }
                     }
                     

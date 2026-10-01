@@ -33,6 +33,14 @@ const (
 
 	storeApp    = "network.ur"
 	storeTunnel = "network.ur.extension"
+
+	// The account's Developer ID provisioning profiles: the only profiles
+	// that carry packet-tunnel-provider-systemextension (Xcode's automatic
+	// "Mac Team Provisioning Profile"s never do), so the direct targets
+	// are signed manually with them.
+	directAppProfile    = "URnetwork Download"
+	directTunnelProfile = "URnetwork Extension Download"
+	developerIDIdentity = "Developer ID Application"
 )
 
 func repoRoot(t *testing.T) string {
@@ -153,6 +161,52 @@ func TestDirectTargetsUseTheBringYourBundleIds(t *testing.T) {
 	}
 }
 
+// Both configurations of the two direct targets sign manually with the
+// Developer ID identity and the matching Developer ID profile: Debug too,
+// because the automatic profile fails the same entitlement check whatever
+// the configuration (an unsigned CODE_SIGNING_ALLOWED=NO build is unaffected
+// by the signing style). The names must agree with
+// ExportOptions-DeveloperID.plist, which re-signs the export with them.
+func TestDirectTargetsSignManuallyWithDeveloperID(t *testing.T) {
+	export := plistJSON(t, filepath.Join(repoRoot(t), "app", "ExportOptions-DeveloperID.plist"))
+	profiles, _ := export["provisioningProfiles"].(map[string]any)
+	for _, configuration := range []string{"Debug", "Release"} {
+		for target, want := range map[string][2]string{
+			"URnetworkDirect":    {directApp, directAppProfile},
+			"URnetworkVPNSystem": {directTunnel, directTunnelProfile},
+		} {
+			settings := targetBuildSettings(t, target, configuration)
+			if settings["CODE_SIGN_STYLE"] != "Manual" {
+				t.Fatalf("%s %s CODE_SIGN_STYLE = %q, want Manual", target, configuration, settings["CODE_SIGN_STYLE"])
+			}
+			if settings["CODE_SIGN_IDENTITY"] != developerIDIdentity {
+				t.Fatalf("%s %s CODE_SIGN_IDENTITY = %q, want %q", target, configuration, settings["CODE_SIGN_IDENTITY"], developerIDIdentity)
+			}
+			if settings["DEVELOPMENT_TEAM"] != directTeam {
+				t.Fatalf("%s %s DEVELOPMENT_TEAM = %q, want %q", target, configuration, settings["DEVELOPMENT_TEAM"], directTeam)
+			}
+			if settings["PROVISIONING_PROFILE_SPECIFIER"] != want[1] {
+				t.Fatalf("%s %s PROVISIONING_PROFILE_SPECIFIER = %q, want %q", target, configuration, settings["PROVISIONING_PROFILE_SPECIFIER"], want[1])
+			}
+			if settings["ENABLE_HARDENED_RUNTIME"] != "YES" {
+				t.Fatalf("%s %s ENABLE_HARDENED_RUNTIME = %q; notarization requires it", target, configuration, settings["ENABLE_HARDENED_RUNTIME"])
+			}
+			if profiles[want[0]] != want[1] {
+				t.Fatalf("ExportOptions-DeveloperID.plist provisioningProfiles[%s] = %v, but %s signs with %q", want[0], profiles[want[0]], target, want[1])
+			}
+		}
+	}
+	// the App Store targets keep automatic signing
+	for _, configuration := range []string{"Debug", "Release"} {
+		for _, target := range []string{"URnetwork", "URnetworkVPN"} {
+			settings := targetBuildSettings(t, target, configuration)
+			if settings["CODE_SIGN_STYLE"] != "Automatic" || settings["PROVISIONING_PROFILE_SPECIFIER"] != "" || settings["CODE_SIGN_IDENTITY"] != "Apple Development" {
+				t.Fatalf("%s %s is no longer automatically signed: style %q identity %q profile %q", target, configuration, settings["CODE_SIGN_STYLE"], settings["CODE_SIGN_IDENTITY"], settings["PROVISIONING_PROFILE_SPECIFIER"])
+			}
+		}
+	}
+}
+
 func TestAppStoreTargetsKeepTheirBundleIds(t *testing.T) {
 	for _, configuration := range []string{"Debug", "Release"} {
 		app := targetBuildSettings(t, "URnetwork", configuration)
@@ -200,8 +254,25 @@ func TestDirectEntitlementsAndSysextPlistAgree(t *testing.T) {
 	if _, present := app["com.apple.developer.aps-environment"]; present {
 		t.Fatal("direct app carries com.apple.developer.aps-environment")
 	}
-	if stringList(app["com.apple.developer.applesignin"])[0] != "Default" {
-		t.Fatal("direct app lost Sign in with Apple, which LoginInitialView uses")
+	// Everything the direct app asks for must be granted by the Developer
+	// ID profile "URnetwork Download". It does not carry applesignin (the
+	// native Apple button is hidden in this build, see
+	// AppleSignInConfiguration) nor networking.vpn.api (the personal-VPN
+	// NEVPNManager entitlement; the app only uses NETunnelProviderManager).
+	for _, key := range []string{"com.apple.developer.applesignin", "com.apple.developer.networking.vpn.api"} {
+		if _, present := app[key]; present {
+			t.Fatalf("direct app carries %s, which the Developer ID profile does not grant", key)
+		}
+	}
+	for key := range app {
+		switch key {
+		case "com.apple.security.application-groups",
+			"com.apple.developer.networking.networkextension",
+			"com.apple.developer.system-extension.install",
+			"keychain-access-groups":
+		default:
+			t.Fatalf("direct app carries %s, which is not in the Developer ID profile", key)
+		}
 	}
 
 	ext := plistJSON(t, filepath.Join(root, "app", "extension", "extension-macOS-sysext.entitlements"))
@@ -343,4 +414,85 @@ func TestBuiltDirectProduct(t *testing.T) {
 	if network["NEMachServiceName"] != directMachService {
 		t.Fatalf("built NEMachServiceName = %v", network["NEMachServiceName"])
 	}
+
+	// A signed product (the Developer ID export) embeds the two profiles;
+	// an unsigned build has none and skips this part.
+	sysextBundle := filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkVPNSystem.systemextension")
+	for _, bundle := range []struct {
+		path, profile, appId string
+	}{
+		{app, directAppProfile, directApp},
+		{sysextBundle, directTunnelProfile, directTunnel},
+	} {
+		embedded := filepath.Join(bundle.path, "Contents", "embedded.provisionprofile")
+		if _, err := os.Stat(embedded); err != nil {
+			t.Logf("%s: no embedded profile (unsigned build), skipping the profile check", bundle.path)
+			continue
+		}
+		name, entitlements := provisioningProfile(t, embedded)
+		if name != bundle.profile {
+			t.Fatalf("%s embeds profile %q, want %q", bundle.path, name, bundle.profile)
+		}
+		if entitlements["com.apple.application-identifier"] != directTeam+"."+bundle.appId {
+			t.Fatalf("%s profile com.apple.application-identifier = %v", bundle.path, entitlements["com.apple.application-identifier"])
+		}
+		if !contains(stringList(entitlements["com.apple.developer.networking.networkextension"]), "packet-tunnel-provider-systemextension") {
+			t.Fatalf("%s profile does not grant packet-tunnel-provider-systemextension: %v", bundle.path, entitlements["com.apple.developer.networking.networkextension"])
+		}
+		signed := signedEntitlements(t, bundle.path)
+		if !contains(stringList(signed["com.apple.developer.networking.networkextension"]), "packet-tunnel-provider-systemextension") {
+			t.Fatalf("%s is signed without packet-tunnel-provider-systemextension: %v", bundle.path, signed)
+		}
+		for _, key := range []string{"com.apple.developer.applesignin", "com.apple.developer.networking.vpn.api"} {
+			if _, present := signed[key]; present {
+				t.Fatalf("%s is signed with %s, which its profile does not grant", bundle.path, key)
+			}
+		}
+	}
+}
+
+// Decode a signed provisioning profile with the system security tool: its
+// Name and its Entitlements dict (the whole profile carries certificate
+// data, which plutil cannot render as JSON).
+func provisioningProfile(t *testing.T, path string) (string, map[string]any) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "/usr/bin/security", "cms", "-D", "-i", path).Output()
+	if err != nil {
+		t.Fatalf("security cms -D %s: %v", path, err)
+	}
+	decoded := filepath.Join(t.TempDir(), "profile.plist")
+	if err := os.WriteFile(decoded, out, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	name, err := exec.CommandContext(ctx, "/usr/bin/plutil", "-extract", "Name", "raw", "-o", "-", decoded).Output()
+	if err != nil {
+		t.Fatalf("%s has no Name: %v", path, err)
+	}
+	out, err = exec.CommandContext(ctx, "/usr/bin/plutil", "-extract", "Entitlements", "json", "-o", "-", decoded).Output()
+	if err != nil {
+		t.Fatalf("%s has no Entitlements: %v", path, err)
+	}
+	entitlements := map[string]any{}
+	if err := json.Unmarshal(out, &entitlements); err != nil {
+		t.Fatalf("%s Entitlements did not convert to a JSON object: %v\n%s", path, err, out)
+	}
+	return strings.TrimSpace(string(name)), entitlements
+}
+
+// The entitlements a bundle is actually signed with.
+func signedEntitlements(t *testing.T, bundle string) map[string]any {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "/usr/bin/codesign", "-d", "--entitlements", "-", "--xml", bundle).Output()
+	if err != nil {
+		t.Fatalf("codesign -d --entitlements %s: %v", bundle, err)
+	}
+	decoded := filepath.Join(t.TempDir(), "entitlements.plist")
+	if err := os.WriteFile(decoded, out, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return plistJSON(t, decoded)
 }

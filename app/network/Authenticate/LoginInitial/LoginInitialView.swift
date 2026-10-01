@@ -769,31 +769,35 @@ private struct LoginFullButtons: View {
     var body: some View {
         
         VStack(spacing: LoginStackMetrics.gap) {
-            
-            SignInWithAppleButton(.signIn) { request in
-                request.requestedScopes = [.email]
-            } onCompletion: { result in
-                Task {
-                    await handleAppleLoginResult(result)
+
+            // hidden in a build without the applesignin entitlement (the
+            // direct-download build: its Developer ID profile lacks it)
+            if Config.isAppleSignInConfigured {
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.email]
+                } onCompletion: { result in
+                    Task {
+                        await handleAppleLoginResult(result)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: LoginStackMetrics.pillHeight)
-            .signInWithAppleButtonStyle(.white)
-            .buttonStyle(.plain)
-            .loginPill()
-            .overlay(alignment: .trailing) {
-                if activeLoginAction == .apple {
-                    ProgressView()
-                        .tint(.urBlack)
-                        .controlSize(.small)
-                        .padding(.trailing, 16)
+                .frame(maxWidth: .infinity)
+                .frame(height: LoginStackMetrics.pillHeight)
+                .signInWithAppleButtonStyle(.white)
+                .buttonStyle(.plain)
+                .loginPill()
+                .overlay(alignment: .trailing) {
+                    if activeLoginAction == .apple {
+                        ProgressView()
+                            .tint(.urBlack)
+                            .controlSize(.small)
+                            .padding(.trailing, 16)
+                    }
                 }
+                .opacity(isLoginActionInFlight && activeLoginAction != .apple ? 0.3 : 1)
+                .disabled(isLoginActionInFlight)
+                .allowsHitTesting(!isLoginActionInFlight)
             }
-            .opacity(isLoginActionInFlight && activeLoginAction != .apple ? 0.3 : 1)
-            .disabled(isLoginActionInFlight)
-            .allowsHitTesting(!isLoginActionInFlight)
-            
+
             // hidden in a build without a Google OAuth client (the
             // direct-download build until DIRECT_GOOGLE_CLIENT_ID is set)
             if Config.isGoogleSignInConfigured {

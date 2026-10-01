@@ -40,7 +40,9 @@ struct AddAuthSheet: View {
                     Spacer().frame(height: 16)
                     
                     Picker("Method", selection: $selectedMethod) {
-                        Text("Apple").tag("apple")
+                        if Config.isAppleSignInConfigured {
+                            Text("Apple").tag("apple")
+                        }
                         if Config.isGoogleSignInConfigured {
                             Text("Google").tag("google")
                         }

@@ -20,4 +20,11 @@ struct Config {
     static var isGoogleSignInConfigured: Bool {
         GoogleSignInConfiguration.isConfigured(clientId: googleClientID)
     }
+
+    /// Whether the native Sign in with Apple button should be offered at
+    /// all: false in the direct-download build, whose Developer ID profile
+    /// lacks the applesignin entitlement. See AppleSignInConfiguration.
+    static var isAppleSignInConfigured: Bool {
+        AppleSignInConfiguration.isConfigured
+    }
 }

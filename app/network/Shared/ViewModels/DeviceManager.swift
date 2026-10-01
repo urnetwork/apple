@@ -55,6 +55,94 @@ struct NetworkSpaceSelection {
     }
 }
 
+/// The launch sequence that prepares the bundled network space and answers
+/// which space the app binds to. It runs against a freshly opened
+/// `SdkNetworkSpaceManager` and holds no `SdkNetworkSpace` before the legacy
+/// key has been migrated, so the order is the contract:
+///
+///   1. `migrateNetworkSpace(ur.network/main -> bringyour.com/main)`. The
+///      operator stays bringyour.com; builds before that decision bundled the
+///      official space under key host ur.network with bringyour.com as the
+///      migration host, so an existing install's credentials and settings sit
+///      under `network_spaces/ur.network/main`. The SDK moves that state to the
+///      official key once; it answers false on a fresh install and on every
+///      later launch (the destination key already exists), so this is
+///      idempotent and nothing is lost if the destination already holds state.
+///      It MUST run before `updateNetworkSpace` creates the bundled key, or the
+///      migration finds the destination taken and the install is signed out.
+///   2. Create or refresh the bundled space under the official key.
+///   3. `NetworkSpaceSelection` decides whether the bundled space is forced
+///      active; otherwise the persisted active space (the user's choice) wins.
+struct NetworkSpaceStartup {
+    static var legacyBundledKey: SdkNetworkSpaceKey? {
+        URnetworkSdk.SdkNewNetworkSpaceKey(NetworkConfig.legacyOfficialHostName, NetworkConfig.officialEnvName)
+    }
+
+    static var bundledKey: SdkNetworkSpaceKey? {
+        URnetworkSdk.SdkNewNetworkSpaceKey(NetworkConfig.officialHostName, NetworkConfig.officialEnvName)
+    }
+
+    @discardableResult
+    static func migrateLegacyBundledNetworkSpace(_ networkSpaceManager: SdkNetworkSpaceManager) -> Bool {
+        networkSpaceManager.migrateNetworkSpace(legacyBundledKey, to: bundledKey)
+    }
+
+    /// Returns the space the app binds to, or nil when the manager cannot
+    /// produce one at all.
+    static func prepareBundledNetworkSpace(_ networkSpaceManager: SdkNetworkSpaceManager) -> SdkNetworkSpace? {
+        migrateLegacyBundledNetworkSpace(networkSpaceManager)
+
+        let networkSpaceKey = bundledKey
+
+        // Sampled BEFORE updateNetworkSpace, which creates the bundled space when it
+        // is missing -- asking afterwards would always answer "it existed".
+        // Mirrors the sample android takes in MainApplication.kt.
+        let bundledSpaceExisted = networkSpaceManager.getNetworkSpace(networkSpaceKey) != nil
+
+        // Refreshing the bundled values on every launch is intentional: it migrates a
+        // space created by an older bundle up to this build's constants, exactly as
+        // android does. What must NOT be derived from the bundled key is which space
+        // the app then binds to.
+        let bundledNetworkSpace = networkSpaceManager.updateNetworkSpace(networkSpaceKey, callback: NetworkSpaceUpdateCallback(
+            c: { networkSpaceValues in
+                networkSpaceValues.envSecret = NetworkConfig.envSecret
+                networkSpaceValues.bundled = true
+                networkSpaceValues.netExposeServerIps = NetworkConfig.netExposeServerIps
+                networkSpaceValues.netExposeServerHostNames = NetworkConfig.netExposeServerHostNames
+                networkSpaceValues.linkHostName = NetworkConfig.officialLinkHostName
+                networkSpaceValues.migrationHostName = ""
+                networkSpaceValues.store = NetworkConfig.store
+                networkSpaceValues.wallet = NetworkConfig.wallet
+                networkSpaceValues.ssoGoogle = NetworkConfig.ssoGoogle
+            }
+        ))
+
+        // Parity with android's MainApplication.kt -- force the bundled space active
+        // ONLY when it was just created or when nothing is active yet.
+        //
+        // Without this the app bound the bundled key on every launch and never read
+        // the space the SDK had persisted, so a user who had selected a different
+        // network space lost both their session and their API host on every restart:
+        // `asyncLocalState` derives from `self.networkSpace`, so the startup jwt read
+        // went to the BUNDLED space's per-host state directory while the credentials
+        // sat unread under the selected space's, and the bundled space's values were
+        // re-stamped over the selected API URL.
+        if NetworkSpaceSelection.shouldActivateBundled(
+            bundledSpaceExisted: bundledSpaceExisted,
+            hasActiveSpace: networkSpaceManager.getActiveNetworkSpace() != nil
+        ), let bundledNetworkSpace {
+            networkSpaceManager.setActiveNetworkSpace(bundledNetworkSpace)
+        }
+
+        // The fallback is load-bearing, not decorative: if the persisted network space
+        // state is corrupt or unreadable the active lookup returns nil, and without it
+        // the app would come up bound to no space at all -- no api, no auth, no way
+        // back.
+        return networkSpaceManager.getActiveNetworkSpace()
+            ?? networkSpaceManager.getNetworkSpace(networkSpaceKey)
+    }
+}
+
 // Only device-auth callbacks cross this seam. The normal source is the actual
 // SDK remote; tests retain the same registered callbacks without starting RPC.
 protocol DeviceAuthCallbackSource: AnyObject {
@@ -940,58 +1028,10 @@ extension DeviceManager {
         let networkSpaceManager = URnetworkSdk.SdkNewNetworkSpaceManager(storagePath)
         self.networkSpaceManager = networkSpaceManager
         
-        let hostName = NetworkConfig.officialHostName
-        let envName = NetworkConfig.officialEnvName
-        let networkSpaceKey = URnetworkSdk.SdkNewNetworkSpaceKey(hostName, envName)
-        
-        // Sampled BEFORE updateNetworkSpace, which creates the bundled space when it
-        // is missing -- asking afterwards would always answer "it existed".
-        // Mirrors the sample android takes in MainApplication.kt.
-        let bundledSpaceExisted = networkSpaceManager?.getNetworkSpace(networkSpaceKey) != nil
-
-        // Refreshing the bundled values on every launch is intentional: it migrates a
-        // space created by an older bundle up to this build's constants, exactly as
-        // android does. What must NOT be derived from the bundled key is which space
-        // the app then binds to.
-        let bundledNetworkSpace = networkSpaceManager?.updateNetworkSpace(networkSpaceKey, callback: NetworkSpaceUpdateCallback(
-            c: { networkSpaceValues in
-                networkSpaceValues.envSecret = NetworkConfig.envSecret
-                networkSpaceValues.bundled = true
-                networkSpaceValues.netExposeServerIps = NetworkConfig.netExposeServerIps
-                networkSpaceValues.netExposeServerHostNames = NetworkConfig.netExposeServerHostNames
-                networkSpaceValues.linkHostName = NetworkConfig.officialLinkHostName
-                networkSpaceValues.migrationHostName = NetworkConfig.officialMigrationHostName
-                networkSpaceValues.store = NetworkConfig.store
-                networkSpaceValues.wallet = NetworkConfig.wallet
-                networkSpaceValues.ssoGoogle = NetworkConfig.ssoGoogle
-            }
-        ))
-
-        // Parity with android's MainApplication.kt -- force the bundled space active
-        // ONLY when it was just created or when nothing is active yet.
-        //
-        // Without this the app bound the bundled key on every launch and never read
-        // the space the SDK had persisted, so a user who had selected a different
-        // network space lost both their session and their API host on every restart:
-        // `asyncLocalState` derives from `self.networkSpace`, so the startup jwt read
-        // went to the BUNDLED space's per-host state directory while the credentials
-        // sat unread under the selected space's, and the bundled space's
-        // migrationHostName was re-stamped over the selected API URL.
-        if NetworkSpaceSelection.shouldActivateBundled(
-            bundledSpaceExisted: bundledSpaceExisted,
-            hasActiveSpace: networkSpaceManager?.getActiveNetworkSpace() != nil
-        ), let bundledNetworkSpace {
-            networkSpaceManager?.setActiveNetworkSpace(bundledNetworkSpace)
-        }
-
-        // The fallback is load-bearing, not decorative: if the persisted network space
-        // state is corrupt or unreadable the active lookup returns nil, and without it
-        // the app would come up bound to no space at all -- no api, no auth, no way
-        // back.
-        setActiveNetworkSpace(
-            networkSpaceManager?.getActiveNetworkSpace()
-                ?? networkSpaceManager?.getNetworkSpace(networkSpaceKey)
-        )
+        // Migration of the legacy bundled key, creation of the bundled space and
+        // the choice of which space to bind, in that order (see
+        // `NetworkSpaceStartup`). No space object is held before this returns.
+        setActiveNetworkSpace(networkSpaceManager.flatMap(NetworkSpaceStartup.prepareBundledNetworkSpace))
         
         let getJwtCallback = GetJwtInitDeviceCallback(
             networkStore: self,
@@ -1078,7 +1118,7 @@ extension DeviceManager {
                 values.netExposeServerIps = NetworkConfig.netExposeServerIps
                 values.netExposeServerHostNames = NetworkConfig.netExposeServerHostNames
                 values.linkHostName = isOfficial ? NetworkConfig.officialLinkHostName : hostName
-                values.migrationHostName = isOfficial ? NetworkConfig.officialMigrationHostName : ""
+                values.migrationHostName = ""
                 values.store = NetworkConfig.store
                 values.wallet = NetworkConfig.wallet
                 values.ssoGoogle = NetworkConfig.ssoGoogle

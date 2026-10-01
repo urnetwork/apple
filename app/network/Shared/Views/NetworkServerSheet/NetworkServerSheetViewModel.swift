@@ -4,7 +4,7 @@
 //
 //  ViewModel for `NetworkServerSheet`, the "Change Network API" sheet that
 //  lets a user point the app at a different network (self-hosted or
-//  alternate) instead of the official ur.network. Ported from Android's
+//  alternate) instead of the official bringyour.com. Ported from Android's
 //  `NetworkServerSelector.kt`.
 //
 
@@ -22,7 +22,6 @@ extension NetworkServerSheet {
         @Published private(set) var statusMessage: String?
 
         let officialHostName: String
-        let officialMigrationHostName: String
         let envName: String
 
         init(
@@ -30,7 +29,6 @@ extension NetworkServerSheet {
             configuredApiUrl: String,
             configuredConnectUrl: String,
             officialHostName: String = NetworkConfig.officialHostName,
-            officialMigrationHostName: String = NetworkConfig.officialMigrationHostName,
             envName: String = NetworkConfig.officialEnvName
         ) {
             let normalizedInitial = NetworkServerUtils.normalizeNetworkHost(initialHostName)
@@ -38,7 +36,6 @@ extension NetworkServerSheet {
             self.apiUrl = configuredApiUrl
             self.connectUrl = configuredConnectUrl
             self.officialHostName = officialHostName
-            self.officialMigrationHostName = officialMigrationHostName
             self.envName = envName
         }
 
@@ -51,15 +48,11 @@ extension NetworkServerSheet {
             return normalizedHostName == normalizedOfficial
         }
 
-        var activeMigrationHostName: String {
-            isOfficialHost ? officialMigrationHostName : ""
-        }
-
         var derivedApiUrl: String {
             let host = normalizedHostName.isEmpty ? officialHostName : normalizedHostName
             return NetworkServerUtils.derivedServiceUrl(
                 hostName: host,
-                migrationHostName: activeMigrationHostName,
+                migrationHostName: "",
                 envName: envName,
                 scheme: "https",
                 service: "api"
@@ -70,7 +63,7 @@ extension NetworkServerSheet {
             let host = normalizedHostName.isEmpty ? officialHostName : normalizedHostName
             return NetworkServerUtils.derivedServiceUrl(
                 hostName: host,
-                migrationHostName: activeMigrationHostName,
+                migrationHostName: "",
                 envName: envName,
                 scheme: "wss",
                 service: "connect"

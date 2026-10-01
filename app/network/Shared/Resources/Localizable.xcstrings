@@ -44885,169 +44885,169 @@
         }
       }
     },
-    "Example: ur.network or your custom domain." : {
+    "Example: bringyour.com or your custom domain." : {
       "comment" : "Help text under the network domain field of the network API selector.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "مثال: ur.network أو نطاقك المخصص."
+            "value" : "مثال: bringyour.com أو نطاقك المخصص."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Příklad: ur.network nebo vaše vlastní doména."
+            "value" : "Příklad: bringyour.com nebo vaše vlastní doména."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beispiel: ur.network oder deine eigene Domain."
+            "value" : "Beispiel: bringyour.com oder deine eigene Domain."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Παράδειγμα: ur.network ή ο δικός σας τομέας."
+            "value" : "Παράδειγμα: bringyour.com ή ο δικός σας τομέας."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Example: ur.network or your custom domain."
+            "value" : "Example: bringyour.com or your custom domain."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ejemplo: ur.network o tu dominio personalizado."
+            "value" : "Ejemplo: bringyour.com o tu dominio personalizado."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ejemplo: ur.network o tu dominio personalizado."
+            "value" : "Ejemplo: bringyour.com o tu dominio personalizado."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ejemplo: ur.network o tu dominio personalizado."
+            "value" : "Ejemplo: bringyour.com o tu dominio personalizado."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exemple : ur.network ou votre domaine personnalisé."
+            "value" : "Exemple : bringyour.com ou votre domaine personnalisé."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "דוגמה: ur.network או הדומיין המותאם שלך."
+            "value" : "דוגמה: bringyour.com או הדומיין המותאם שלך."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "उदाहरण: ur.network या आपका कस्टम डोमेन।"
+            "value" : "उदाहरण: bringyour.com या आपका कस्टम डोमेन।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Contoh: ur.network atau domain kustom Anda."
+            "value" : "Contoh: bringyour.com atau domain kustom Anda."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esempio: ur.network o il tuo dominio personalizzato."
+            "value" : "Esempio: bringyour.com o il tuo dominio personalizzato."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "例: ur.network またはカスタムドメイン。"
+            "value" : "例: bringyour.com またはカスタムドメイン。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "예: ur.network 또는 사용자 지정 도메인."
+            "value" : "예: bringyour.com 또는 사용자 지정 도메인."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voorbeeld: ur.network of je eigen domein."
+            "value" : "Voorbeeld: bringyour.com of je eigen domein."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Przykład: ur.network lub twoja własna domena."
+            "value" : "Przykład: bringyour.com lub twoja własna domena."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exemplo: ur.network ou o seu domínio personalizado."
+            "value" : "Exemplo: bringyour.com ou o seu domínio personalizado."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exemplo: ur.network ou seu domínio personalizado."
+            "value" : "Exemplo: bringyour.com ou seu domínio personalizado."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exemplo: ur.network ou o seu domínio personalizado."
+            "value" : "Exemplo: bringyour.com ou o seu domínio personalizado."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пример: ur.network или ваш собственный домен."
+            "value" : "Пример: bringyour.com или ваш собственный домен."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exempel: ur.network eller din egen domän."
+            "value" : "Exempel: bringyour.com eller din egen domän."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ตัวอย่าง: ur.network หรือโดเมนที่คุณกำหนดเอง"
+            "value" : "ตัวอย่าง: bringyour.com หรือโดเมนที่คุณกำหนดเอง"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Приклад: ur.network або ваш власний домен."
+            "value" : "Приклад: bringyour.com або ваш власний домен."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ví dụ: ur.network hoặc tên miền tùy chỉnh của bạn."
+            "value" : "Ví dụ: bringyour.com hoặc tên miền tùy chỉnh của bạn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "例如：ur.network 或您的自定义域名。"
+            "value" : "例如：bringyour.com 或您的自定义域名。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "例如：ur.network 或你的自訂網域。"
+            "value" : "例如：bringyour.com 或你的自訂網域。"
           }
         }
       }

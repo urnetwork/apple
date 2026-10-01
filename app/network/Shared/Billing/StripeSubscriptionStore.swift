@@ -110,6 +110,13 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         return .stripe(prices: prices, tier: tier, offer: offer, storefrontCountryName: storefrontCountryName)
     }
 
+    /// The prices say the caller may redeem the welcome offer's coupon (the
+    /// onboarding offer page and the email link's offer sheet are shown only
+    /// then; false until the prices arrive).
+    var offerEligible: Bool {
+        prices?.offerEligible ?? false
+    }
+
     func retryLoadPlansIfNeeded(storefrontCountry: String?) {
         guard prices == nil else {
             return
@@ -180,6 +187,14 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         }
         // nothing rendered yet: the embedded checkout session saves the purchase
         await openEmbeddedCheckout(attempt: attempt)
+    }
+
+    /// The welcome offer is the yearly plan: the server applies the welcome
+    /// coupon to the pay sheet's subscription (and to a checkout session)
+    /// whenever the caller's offer is redeemable, which is what the prices
+    /// said when the surface showed the offer. There is no code to enter.
+    func redeemOffer(_ offer: PlanOffer, onSuccess: @escaping () -> Void) async {
+        await purchase(plan: .yearly, onSuccess: onSuccess)
     }
 
     /// 2. the embedded checkout page; any failure retries once as hosted.

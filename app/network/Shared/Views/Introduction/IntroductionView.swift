@@ -66,6 +66,7 @@ struct IntroductionView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @EnvironmentObject var stripeSubscriptionStore: StripeSubscriptionStore
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
@@ -73,8 +74,15 @@ struct IntroductionView: View {
     @EnvironmentObject var proCelebration: ProCelebrationState
     @State private var celebratedPurchase: Bool = false
 
+    /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
+    /// direct download (see BillingDistribution). The plans, the purchase and
+    /// the per-attempt state all come from it.
+    private var subscriptionStore: any SubscriptionStore {
+        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+    }
+
     private func celebrateIfConfirmed() {
-        if subscriptionManager.purchaseSuccess && deviceManager.isPro && !celebratedPurchase {
+        if subscriptionStore.purchaseSuccess && deviceManager.isPro && !celebratedPurchase {
             celebratedPurchase = true
             proCelebration.launch()
         }
@@ -103,25 +111,33 @@ struct IntroductionView: View {
         self.referralTerms = referralTerms
     }
     
-    /// The welcome offer's purchase: the App Store offer code through the redeem
-    /// sheet, then the usual confirmation poll; with no code yet, the plain yearly
-    /// purchase with the trial.
-    private func redeemWelcomeOffer(_ offer: PlanOffer) {
-        let yearly = yearlySubscription
+    /// A purchase through the build's store (the welcome offer on the yearly
+    /// plan, or a plain plan), then the usual confirmation poll: the server
+    /// only believes the store's webhook. Errors render inline through the
+    /// store's purchaseError.
+    private func start(_ purchase: OnboardingPurchase) {
+        let subscriptionStore = self.subscriptionStore
         let initiallyConnected = deviceManager.device?.getConnected() ?? false
 #if os(macOS)
+        // purchase fails in mac app store if vpn is connected;
+        // iOS App Store traffic does not ride the tunnel, so only
+        // macOS disconnects around the purchase — see the A6 note
+        // on AppStoreSubscriptionManager.purchase
         if (initiallyConnected) {
             connectViewModel.disconnect()
         }
 #endif
         Task {
-            await subscriptionManager.redeemOffer(
-                code: offer.appleOfferCode,
-                yearly: yearly,
-                onSuccess: {
+            switch purchase {
+            case .redeemOffer(let offer):
+                await subscriptionStore.redeemOffer(offer, onSuccess: {
                     subscriptionBalanceViewModel.startPolling()
-                }
-            )
+                })
+            case .purchase(let plan):
+                await subscriptionStore.purchase(plan: plan, onSuccess: {
+                    subscriptionBalanceViewModel.startPolling()
+                })
+            }
 #if os(macOS)
             if (initiallyConnected) {
                 connectViewModel.connect()
@@ -130,23 +146,29 @@ struct IntroductionView: View {
         }
     }
 
-    private var monthlySubscription: Product? {
-        return subscriptionManager.monthlySubscription
-    }
-    
-    private var yearlySubscription: Product? {
-        return subscriptionManager.yearlySubscription
+    private func restorePurchases() {
+        let subscriptionStore = self.subscriptionStore
+        Task {
+            if await subscriptionStore.restorePurchases() == .restored {
+                subscriptionBalanceViewModel.startPolling()
+            }
+        }
     }
 
-    
+
     @State var selectedPaymentOption: PaymentOption = .yearly
 
-    /// The plan cards on page 1: the tier's prices, the store's when loaded, and the
-    /// welcome offer once it is issued.
+    /// The plan cards on page 1: the store's plans (the Stripe prices on the
+    /// direct download), or the tier's prices, the StoreKit products when
+    /// loaded and the welcome offer once it is issued.
     private var presentation: PlanPresentation {
-        .current(
-            monthly: monthlySubscription,
-            yearly: yearlySubscription,
+        subscriptionStore.presentation(
+            tier: subscriptionBalanceViewModel.priceTier,
+            offer: subscriptionBalanceViewModel.onboardingOffer,
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+        ) ?? .current(
+            monthly: subscriptionManager.monthlySubscription,
+            yearly: subscriptionManager.yearlySubscription,
             tier: subscriptionBalanceViewModel.priceTier,
             offer: subscriptionBalanceViewModel.onboardingOffer,
             storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName,
@@ -163,9 +185,16 @@ struct IntroductionView: View {
     @State private var skippedStep: IntroStep? = nil
     @State private var introOfferShownReported = false
 
-    /// Whether this run has the offer page: everyone outside the in-app holdout.
+    /// Whether this run has the offer page: everyone outside the in-app holdout;
+    /// on the direct download only once the Stripe prices say the welcome
+    /// offer is redeemable (see WelcomeOfferSurface).
     private var offerEnabled: Bool {
-        subscriptionBalanceViewModel.offerScreenEnabled
+        WelcomeOfferSurface.pageEnabled(
+            distribution: .current,
+            offerScreenEnabled: subscriptionBalanceViewModel.offerScreenEnabled,
+            offerIssued: subscriptionBalanceViewModel.onboardingOffer != nil,
+            stripeOfferEligible: stripeSubscriptionStore.offerEligible
+        )
     }
 
     private var currentStep: IntroStep {
@@ -197,31 +226,38 @@ struct IntroductionView: View {
     
     var body: some View {
         
-        ZStack {
-            
-            if (subscriptionManager.purchaseSuccess) {
+        // the store's per-attempt state, read once per render
+        let subscriptionStore = self.subscriptionStore
 
-                // StoreKit success is not entitlement: the copy stays
+        ZStack {
+
+            if (subscriptionStore.purchaseSuccess) {
+
+                // the store's success is not entitlement: the copy stays
                 // processing-shaped until the confirmation poll flips isPro,
                 // and says so if the poll gives up (finding A2)
                 PurchaseSuccessView(
                     phase: deviceManager.isPro
                         ? .confirmed
                         : (subscriptionBalanceViewModel.purchaseConfirmationTimedOut ? .delayed : .confirming),
-                    restore: {
-                        Task {
-                            if await subscriptionManager.restorePurchases() == .restored {
-                                subscriptionBalanceViewModel.startPolling()
-                            }
-                        }
-                    },
-                    isRestoring: subscriptionManager.isRestoringPurchases,
-                    restoreMessage: subscriptionManager.restoreResultMessage,
+                    restore: restorePurchases,
+                    isRestoring: subscriptionStore.isRestoringPurchases,
+                    restoreMessage: subscriptionStore.restoreResultMessage,
+                    confirmingTitle: subscriptionStore.purchaseConfirmingTitle,
+                    confirmingMessage: subscriptionStore.purchaseConfirmingMessage,
                     dismiss: close
                 )
                     .transition(.opacity)
                     .frame(maxWidth: .infinity)
                     .ignoresSafeArea()
+
+            } else if let checkout = subscriptionStore.checkoutView {
+
+                // the direct download's Stripe checkout page swaps in over the
+                // flow while it is open (its own header carries the close)
+                checkout
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
 
             } else if (balanceCodeRedeemed) {
 
@@ -312,21 +348,12 @@ struct IntroductionView: View {
                                 continueFree: close,
                                 back: { routeState.back() },
                                 startTrial: {
-                                    if let offer = presentation.offer {
-                                        redeemWelcomeOffer(offer)
-                                    } else if let yearly = yearlySubscription {
-                                        // the offer could not be issued: the plain trial
-                                        Task {
-                                            try? await subscriptionManager.purchase(product: yearly, onSuccess: {
-                                                subscriptionBalanceViewModel.startPolling()
-                                            })
-                                        }
-                                    } else {
-                                        subscriptionManager.reportProductsUnavailable()
-                                    }
+                                    // the offer, or when it could not be issued the
+                                    // plain yearly purchase (the trial on the App Store)
+                                    start(.forSelection(.yearly, offer: presentation.offer))
                                 },
-                                isPurchasing: subscriptionManager.isPurchasing,
-                                purchaseError: subscriptionManager.purchaseError,
+                                isPurchasing: subscriptionStore.isPurchasing,
+                                purchaseError: subscriptionStore.purchaseError,
                                 experimentId: subscriptionBalanceViewModel.offerExperimentId,
                                 experimentVariant: subscriptionBalanceViewModel.offerExperimentVariant
                             )
@@ -378,7 +405,7 @@ struct IntroductionView: View {
             // the balance can land after page 1 appeared
             Task { await subscriptionBalanceViewModel.issueOnboardingOffer(surface: SdkOfferSurfaceIntroStep) }
         }
-        .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
+        .animation(.easeIn(duration: 0.25), value: subscriptionStore.purchaseSuccess)
         .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)
         // Over the onboarding cover, which sits above the app root. Same clear
         // overlay as the root: the body below carries a NavigationStack, which
@@ -394,7 +421,7 @@ struct IntroductionView: View {
         .onChange(of: deviceManager.isPro) { _ in
             celebrateIfConfirmed()
         }
-        .onChange(of: subscriptionManager.purchaseSuccess) { success in
+        .onChange(of: subscriptionStore.purchaseSuccess) { success in
             if !success {
                 celebratedPurchase = false
             }
@@ -458,54 +485,14 @@ struct IntroductionView: View {
                                 purchase: {
 
                                 // the active welcome offer on the yearly plan goes through
-                                // the App Store offer code (step 5); the rest is a plain purchase
-                                if selectedPaymentOption == .yearly, let offer = presentation.offer {
+                                // the store's offer path (the App Store offer code, step 5;
+                                // the Stripe coupon); the rest is a plain purchase. A plan
+                                // whose product has not arrived is the store's to report.
+                                let purchase = OnboardingPurchase.forSelection(selectedPaymentOption, offer: presentation.offer)
+                                if case .redeemOffer = purchase {
                                     ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
-                                    redeemWelcomeOffer(offer)
-                                    return
                                 }
-
-                                let product = selectedPaymentOption == .monthly ? monthlySubscription : yearlySubscription
-                                guard let product else {
-                                    // the store has not answered; say so where a failed
-                                    // purchase would, and ask it again
-                                    subscriptionManager.reportProductsUnavailable()
-                                    return
-                                }
-
-                                let initiallyConnected = deviceManager.device?.getConnected() ?? false
-
-#if os(macOS)
-                                // purchase fails in mac app store if vpn is connected;
-                                // iOS App Store traffic does not ride the tunnel, so only
-                                // macOS disconnects around the purchase — see the A6 note
-                                // on AppStoreSubscriptionManager.purchase
-                                if (initiallyConnected) {
-                                    connectViewModel.disconnect()
-                                }
-#endif
-
-                                Task {
-                                    do {
-                                        try await subscriptionManager.purchase(
-                                            product: product,
-                                            onSuccess: {
-                                                subscriptionBalanceViewModel.startPolling()
-                                            }
-                                        )
-
-                                    } catch(let error) {
-                                        // rendered inline via subscriptionManager.purchaseError
-                                        print("error making purchase: \(error)")
-                                    }
-
-#if os(macOS)
-                                    if (initiallyConnected) {
-                                        connectViewModel.connect()
-                                    }
-#endif
-
-                                }
+                                start(purchase)
 
                             },
                             onCardTapped: { option in
@@ -521,7 +508,7 @@ struct IntroductionView: View {
                              * inline (finding A5), with the manual
                              * resync beside it (finding A3).
                              */
-                            if let purchaseError = subscriptionManager.purchaseError {
+                            if let purchaseError = subscriptionStore.purchaseError {
 
                                 Spacer().frame(height: 12)
 
@@ -531,14 +518,8 @@ struct IntroductionView: View {
 
                                 Spacer().frame(height: 8)
 
-                                Button(action: {
-                                    Task {
-                                        if await subscriptionManager.restorePurchases() == .restored {
-                                            subscriptionBalanceViewModel.startPolling()
-                                        }
-                                    }
-                                }) {
-                                    if subscriptionManager.isRestoringPurchases {
+                                Button(action: restorePurchases) {
+                                    if subscriptionStore.isRestoringPurchases {
                                         ProgressView()
                                             .progressViewStyle(CircularProgressViewStyle())
                                     } else {
@@ -550,7 +531,7 @@ struct IntroductionView: View {
                                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                                 .underline()
 
-                                if let restoreMessage = subscriptionManager.restoreResultMessage {
+                                if let restoreMessage = subscriptionStore.restoreResultMessage {
                                     Spacer().frame(height: 8)
 
                                     Text(restoreMessage)
@@ -559,7 +540,7 @@ struct IntroductionView: View {
                                 }
                             }
 
-                        if subscriptionManager.fetchProductsError {
+                        if subscriptionStore.plansLoadFailed {
 
                             // the store did not answer; the plans still render from
                             // their list prices, and this offers a retry
@@ -572,7 +553,7 @@ struct IntroductionView: View {
                             Spacer().frame(height: 8)
 
                             Button(action: {
-                                subscriptionManager.retryFetchProductsIfNeeded()
+                                subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)
                             }) {
                                 Text("Retry")
                                     .font(themeManager.currentTheme.secondaryBodyFont)
@@ -584,9 +565,10 @@ struct IntroductionView: View {
 
                     }
                     .onAppear {
-                        // the intro funnel can't spin forever on a
-                        // product fetch that failed at app init
-                        subscriptionManager.retryFetchProductsIfNeeded()
+                        // the intro funnel can't spin forever on a product
+                        // fetch that failed at app init; on the direct
+                        // download this is what loads the Stripe prices
+                        subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)
                     }
                     
                     Spacer(minLength: 24)

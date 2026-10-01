@@ -292,6 +292,41 @@ struct StripeSubscriptionStoreTests {
         #expect(!store.isRestoringPurchases)
     }
 
+    // MARK: the welcome offer (the onboarding plan step, the offer page and sheet)
+
+    @Test @MainActor func theOfferIsRedeemableOnlyWhenThePricesSaySo() async {
+        let client = FakeClient()
+        let store = Self.store(client)
+        // false until the prices arrive, so no offer surface shows early
+        #expect(!store.offerEligible)
+        await store.loadPrices(storefrontCountry: nil)
+        #expect(!store.offerEligible)
+
+        let eligible = Self.store(client)
+        client.prices = .success(StripePlanPrices(yearlyUsd: 40, monthlyUsd: 5, currency: "usd", offerEligible: true))
+        await eligible.loadPrices(storefrontCountry: nil)
+        #expect(eligible.offerEligible)
+    }
+
+    @Test @MainActor func redeemingTheOfferBuysTheYearlyPlanThroughThePaySheet() async {
+        // no code to enter: the server applies the welcome coupon to the
+        // subscription the pay sheet starts
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_secret", publishableKey: "pk_1"))
+        let store = Self.store(client)
+        let offer = PlanOffer(percentOff: 25, monthsFree: 3, expiresAt: Date(timeIntervalSince1970: 1_800_000_000), appleOfferCode: "")
+        var polled = 0
+        await store.redeemOffer(offer, onSuccess: { polled += 1 })
+        #expect(client.calls == ["paymentSheet:yearly"])
+        #expect(store.checkout?.stage == .paySheet)
+        #expect(store.checkout?.url.absoluteString.contains("plan=yearly") == true)
+
+        // paid in the pay sheet: the same confirmation poll as a plain purchase
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        #expect(polled == 1)
+        #expect(store.purchaseSuccess)
+    }
+
     @Test @MainActor func manageOpensTheCustomerPortal() async throws {
         let client = FakeClient()
         client.portal = .success(URL(string: "https://billing.stripe.com/p/session/x")!)

@@ -4,8 +4,9 @@
 //
 //  The welcome offer on its own, reached from an onboarding email's offer link
 //  while the offer is active: the same page as the last onboarding step, with
-//  the purchase wired to the session's StoreKit manager and the success screen
-//  once the server confirms Pro.
+//  the purchase wired to the build's SubscriptionStore (the session's StoreKit
+//  manager on the App Store, Stripe on the direct download) and the success
+//  screen once the server confirms Pro.
 //
 
 import SwiftUI
@@ -20,13 +21,24 @@ struct OnboardingOfferSheet: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
+    @EnvironmentObject var stripeSubscriptionStore: StripeSubscriptionStore
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
 
     let dismiss: () -> Void
 
+    /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
+    /// direct download (see BillingDistribution).
+    private var subscriptionStore: any SubscriptionStore {
+        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+    }
+
     private var presentation: PlanPresentation {
-        .current(
+        subscriptionStore.presentation(
+            tier: subscriptionBalanceViewModel.priceTier,
+            offer: subscriptionBalanceViewModel.onboardingOffer,
+            storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+        ) ?? .current(
             monthly: subscriptionManager.monthlySubscription,
             yearly: subscriptionManager.yearlySubscription,
             tier: subscriptionBalanceViewModel.priceTier,
@@ -36,8 +48,12 @@ struct OnboardingOfferSheet: View {
         )
     }
 
+    /// The offer, or when it is no longer issued the plain yearly purchase
+    /// (the trial on the App Store), through the store, then the usual
+    /// confirmation poll.
     private func startTrial() {
-        let yearly = subscriptionManager.yearlySubscription
+        let subscriptionStore = self.subscriptionStore
+        let purchase = OnboardingPurchase.forSelection(.yearly, offer: presentation.offer)
         let initiallyConnected = deviceManager.device?.getConnected() ?? false
         #if os(macOS)
         if initiallyConnected {
@@ -45,11 +61,12 @@ struct OnboardingOfferSheet: View {
         }
         #endif
         Task {
-            await subscriptionManager.redeemOffer(
-                code: presentation.offer?.appleOfferCode ?? "",
-                yearly: yearly,
-                onSuccess: { subscriptionBalanceViewModel.startPolling() }
-            )
+            switch purchase {
+            case .redeemOffer(let offer):
+                await subscriptionStore.redeemOffer(offer, onSuccess: { subscriptionBalanceViewModel.startPolling() })
+            case .purchase(let plan):
+                await subscriptionStore.purchase(plan: plan, onSuccess: { subscriptionBalanceViewModel.startPolling() })
+            }
             #if os(macOS)
             if initiallyConnected {
                 connectViewModel.connect()
@@ -59,34 +76,42 @@ struct OnboardingOfferSheet: View {
     }
 
     var body: some View {
+        let subscriptionStore = self.subscriptionStore
         ZStack {
-            if subscriptionManager.purchaseSuccess {
+            if subscriptionStore.purchaseSuccess {
                 PurchaseSuccessView(
                     phase: deviceManager.isPro
                         ? .confirmed
                         : (subscriptionBalanceViewModel.purchaseConfirmationTimedOut ? .delayed : .confirming),
                     restore: {
                         Task {
-                            if await subscriptionManager.restorePurchases() == .restored {
+                            if await subscriptionStore.restorePurchases() == .restored {
                                 subscriptionBalanceViewModel.startPolling()
                             }
                         }
                     },
-                    isRestoring: subscriptionManager.isRestoringPurchases,
-                    restoreMessage: subscriptionManager.restoreResultMessage,
+                    isRestoring: subscriptionStore.isRestoringPurchases,
+                    restoreMessage: subscriptionStore.restoreResultMessage,
+                    confirmingTitle: subscriptionStore.purchaseConfirmingTitle,
+                    confirmingMessage: subscriptionStore.purchaseConfirmingMessage,
                     dismiss: {
-                        subscriptionManager.resetPurchaseState()
+                        subscriptionStore.resetPurchaseState()
                         dismiss()
                     }
                 )
                 .transition(.opacity)
+            } else if let checkout = subscriptionStore.checkoutView {
+                // the direct download's Stripe checkout page swaps in over the
+                // offer while it is open (its own header carries the close)
+                checkout
+                    .transition(.opacity)
             } else {
                 IntroductionOfferView(
                     presentation: presentation,
                     continueFree: dismiss,
                     startTrial: startTrial,
-                    isPurchasing: subscriptionManager.isPurchasing,
-                    purchaseError: subscriptionManager.purchaseError,
+                    isPurchasing: subscriptionStore.isPurchasing,
+                    purchaseError: subscriptionStore.purchaseError,
                     standalone: true,
                     surface: SdkOfferSurfaceEmailLink,
                     experimentId: subscriptionBalanceViewModel.offerExperimentId,
@@ -97,6 +122,11 @@ struct OnboardingOfferSheet: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(IntroConnectorState())
-        .animation(.easeIn(duration: 0.25), value: subscriptionManager.purchaseSuccess)
+        .animation(.easeIn(duration: 0.25), value: subscriptionStore.purchaseSuccess)
+        .onAppear {
+            // the plans the offer renders from; on the direct download this
+            // is what loads the Stripe prices if nothing has yet
+            subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)
+        }
     }
 }

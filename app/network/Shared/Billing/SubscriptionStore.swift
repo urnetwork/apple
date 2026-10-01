@@ -34,6 +34,10 @@ protocol SubscriptionStore: AnyObject {
     /// caller starts the confirmation poll (the server only believes the
     /// store's webhook). Errors surface through `purchaseError`.
     func purchase(plan: PaymentOption, onSuccess: @escaping () -> Void) async
+    /// Buys the yearly plan with the welcome offer (the onboarding plan step
+    /// and the offer surfaces): the App Store offer code through the redeem
+    /// sheet, or the Stripe purchase the server applies the coupon to.
+    func redeemOffer(_ offer: PlanOffer, onSuccess: @escaping () -> Void) async
     var isPurchasing: Bool { get }
     var purchaseSuccess: Bool { get }
     var purchasePending: Bool { get }

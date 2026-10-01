@@ -186,8 +186,12 @@ import URnetworkSdk
                                         providerListStore.searchQuery)
                                 }
                             },
-                            isLoading: providerListStore.providersLoading
+                            isLoading: providerListStore.showLoadingPlaceholder
                         )
+                        .task {
+                            let _ = await providerListStore.filterLocations(
+                                providerListStore.searchQuery)
+                        }
                         .frame(maxWidth: 260)
                         .frame(maxHeight: .infinity)
                         .searchable(

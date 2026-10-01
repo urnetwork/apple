@@ -25,18 +25,28 @@ public final class ProviderListStore: ObservableObject {
      * Provider loading state
      */
     @Published private(set) var providersLoading: Bool = false
+
+    // A same-query refresh keeps usable rows on screen. Query changes clear
+    // those rows before loading, so results from a different query never stand
+    // in for the pending response.
+    var showLoadingPlaceholder: Bool {
+        providersLoading && providerCountries.isEmpty && providerDevices.isEmpty
+            && providerRegions.isEmpty && providerCities.isEmpty
+            && providerBestSearchMatches.isEmpty
+    }
     
     /**
      * Search
      */
     private var cancellables = Set<AnyCancellable>()
-    private var debounceTimer: AnyCancellable?
     @Published var searchQuery: String = ""
     private var lastQuery: String?
     
     private var currentSearchTask: Task<Void, Never>?
-    private var loadingGeneration: Int = 0
-    private var activeLoadingGeneration: Int = 0
+    private var requestGeneration: Int = 0
+    private var activeRequest: (
+        query: String, generation: Int, task: Task<Result<Void, Error>, Never>
+    )?
     
     private var urApiService: UrApiServiceProtocol
     
@@ -44,6 +54,9 @@ public final class ProviderListStore: ObservableObject {
         self.urApiService = urApiService
         
         $searchQuery
+            // Each visible picker owns its first fetch. @Published's initial
+            // empty value otherwise races the sheet's onAppear request.
+            .dropFirst()
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] query in
                 self?.performSearch(query)
@@ -76,24 +89,6 @@ public final class ProviderListStore: ObservableObject {
         
     }
     
-    private func searchProviders(_ query: String) async -> Result<Void, Error> {
-        
-        do {
-            if Task.isCancelled { return .success(()) }
-            
-            let result = try await self.urApiService.searchProviders(query)
-            
-            if !Task.isCancelled {
-                self.handleLocations(result)
-            }
-            
-            return .success(())
-            
-        } catch (let error) {
-            return .failure(error)
-        }
-    }
-    
     private func handleLocations(_ result: SdkFilteredLocations) {
         
         let countries = result.countries.flatMap { flattenConnectLocationList($0) } ?? []
@@ -110,104 +105,70 @@ public final class ProviderListStore: ObservableObject {
         
     }
     
-    private func beginLoading() -> Int {
-        loadingGeneration += 1
-        activeLoadingGeneration = loadingGeneration
+    func filterLocations(_ query: String) async -> Result<Void, Error> {
+        guard !Task.isCancelled else { return .failure(CancellationError()) }
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let request = activeRequest, request.query == query {
+            // An appearance, refresh and debounced edit can share one fetch.
+            // Canceling a waiter does not cancel another waiter's request.
+            return await request.task.value
+        }
+
+        activeRequest?.task.cancel()
+        requestGeneration += 1
+        let generation = requestGeneration
+        if lastQuery != query {
+            providerCountries = []
+            providerDevices = []
+            providerRegions = []
+            providerCities = []
+            providerBestSearchMatches = []
+            lastQuery = nil
+        }
         providersLoading = true
-        return loadingGeneration
-    }
 
-    private func finishLoading(_ generation: Int) {
-        guard activeLoadingGeneration == generation else {
-            return
-        }
-        providersLoading = false
-    }
-
-    func filterLocations(_ query: String, manageLoading: Bool = true) async -> Result<Void, Error> {
-        let loadingGeneration = manageLoading ? beginLoading() : nil
-        defer {
-            if let loadingGeneration {
-                finishLoading(loadingGeneration)
+        let task = Task { @MainActor [self] () -> Result<Void, Error> in
+            defer {
+                if activeRequest?.generation == generation {
+                    activeRequest = nil
+                    providersLoading = false
+                }
             }
-        }
-        
-        if query.isEmpty {
-            return await self.getAllProviders()
-        } else {
-            return await searchProviders(query)
-        }
-        
-    }
-    
-    private func getAllProviders() async -> Result<Void, Error> {
-        
-        do {
-            
-            if Task.isCancelled {
+            do {
+                try Task.checkCancellation()
+                let result: SdkFilteredLocations
+                if query.isEmpty {
+                    result = try await urApiService.getAllProviders()
+                } else {
+                    result = try await urApiService.searchProviders(query)
+                }
+                // The SDK callback uses its API's lifetime, so cancellation
+                // may arrive before the callback. Fence publication as well
+                // as the spinner, including a late result for an old query.
+                guard !Task.isCancelled,
+                      activeRequest?.generation == generation else {
+                    return .failure(CancellationError())
+                }
+                handleLocations(result)
+                lastQuery = query
                 return .success(())
+            } catch {
+                return .failure(error)
             }
-
-//            let result: SdkFilteredLocations = try await withCheckedThrowingContinuation { [weak self] continuation in
-//                
-//                guard let self = self else { return }
-//                
-//                let callback = FindLocationsCallback { result, err in
-//                    
-//                    if let err = err {
-//                        continuation.resume(throwing: err)
-//                        return
-//                    }
-//                    
-//                    let filter = ""
-//                    let filteredLocations = SdkGetFilteredLocationsFromResult(result, filter)
-//                    
-//                    guard let filteredLocations = filteredLocations else {
-//                        continuation.resume(throwing: FetchProvidersError.noProvidersFound)
-//                        return
-//                    }
-//                    
-//                    continuation.resume(returning: filteredLocations)
-//                    
-//                }
-//                
-//                if let api = self.api {
-//                    api.getProviderLocations(callback)
-//                }
-//    
-//            }
-            
-            let result = try await urApiService.getAllProviders()
-
-            if Task.isCancelled {
-                return .success(())
-            }
-            
-            self.handleLocations(result)
-            
-            return .success(())
-            
-        } catch (let error) {
-            return .failure(error)
         }
-        
+        activeRequest = (query, generation, task)
+        return await task.value
     }
     
     private func performSearch(_ query: String) {
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         if query != self.lastQuery {
             // Cancel any previous search task
             currentSearchTask?.cancel()
             
-            let loadingGeneration = beginLoading()
-            
             // Create a new search task
             currentSearchTask = Task {
-                
-                let _ = await filterLocations(query, manageLoading: false)
-                if !Task.isCancelled {
-                    self.lastQuery = query
-                }
-                finishLoading(loadingGeneration)
+                let _ = await filterLocations(query)
             }
         }
     }

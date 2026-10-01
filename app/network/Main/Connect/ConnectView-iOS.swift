@@ -375,7 +375,7 @@ struct ConnectView_iOS: View {
                             connectViewModel.connectBestAvailable()
                             providerListSheetViewModel.isPresented = false
                         },
-                        isLoading: providerListStore.providersLoading,
+                        isLoading: providerListStore.showLoadingPlaceholder,
                         isRefreshing: providerListSheetViewModel.isRefreshing,
                         providerCountries: providerListStore.providerCountries,
                         providerDevices: providerListStore.providerDevices,

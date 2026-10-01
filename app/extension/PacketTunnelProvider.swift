@@ -363,7 +363,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // large-object 2, of 34 parts) + the go soft limit; the per-device
         // memory target is set separately at device creation and must fit
         // inside this budget twice over (TunnelDeviceMemoryTarget). iOS holds a
-        // 32mib footprint for the constrained extension; macOS, which reports
+        // 32-MiB Go soft limit for the constrained extension; macOS, which reports
         // no packet-tunnel jetsam limit, runs whichever desktop tier its
         // MEASURED host memory selects. The tier is resolved once per process,
         // so this budget and the device target read at session start are always
@@ -715,8 +715,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         // the per-device memory target (split dns 2 : client 9 :
                         // platform carriers 5 : provider 4 inside the sdk, with the
                         // provider share backing the client pair while providing is
-                        // off), set explicitly where the device is created: 20 MiB on
-                        // iOS, 64 MiB on macOS (see TunnelDeviceMemoryTarget). The
+                        // off), set explicitly where the device is created: 32 MiB on
+                        // iOS, 128/256 MiB on macOS (see TunnelDeviceMemoryTarget). The
                         // process-level SdkSetMemoryLimit above sizes the shared
                         // message pools and go soft limit
                         TunnelDeviceMemoryTarget.byteCount,

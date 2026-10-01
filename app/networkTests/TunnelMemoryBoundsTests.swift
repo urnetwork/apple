@@ -2,10 +2,10 @@ import XCTest
 
 final class TunnelMemoryBoundsTests: XCTestCase {
     // The device target each platform hands SdkNewDeviceLocalWithMemoryTarget,
-    // and the budget it hands SdkSetMemoryLimit: iOS 20 inside 32 MiB (jetsam),
+    // and the budget it hands SdkSetMemoryLimit: iOS 32/32 MiB admission/Go,
     // macOS 128 inside 384, or 256 inside 768 on any Mac sold as 8 GiB or more.
     func testDeviceMemoryTargetPerPlatform() {
-        XCTAssertEqual(TunnelDeviceMemoryTarget.iosByteCount, 20 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.iosByteCount, 32 * 1024 * 1024)
         XCTAssertEqual(TunnelDeviceMemoryTarget.macosByteCount, 128 * 1024 * 1024)
         XCTAssertEqual(TunnelDeviceMemoryTarget.macosLargeHostByteCount, 256 * 1024 * 1024)
         XCTAssertEqual(TunnelDeviceMemoryTarget.iosProcessBudgetByteCount, 32 * 1024 * 1024)
@@ -19,7 +19,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
             7 * 1024 * 1024 * 1024
         )
 #if os(iOS)
-        XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 20 * 1024 * 1024)
+        XCTAssertEqual(TunnelDeviceMemoryTarget.byteCount, 32 * 1024 * 1024)
         XCTAssertEqual(TunnelDeviceMemoryTarget.processBudgetByteCount, 32 * 1024 * 1024)
 #else
         // Whatever this Mac measures, the resolved pair is one of the two tiers
@@ -90,7 +90,7 @@ final class TunnelMemoryBoundsTests: XCTestCase {
     }
 
     // Both constraints on BOTH macOS tiers and at the bar itself. iOS is the
-    // documented exception (jetsam caps the budget at 32 MiB), so it is pinned
+    // documented exception (32-MiB Go soft limit, separate <50-MiB footprint), so it is pinned
     // above by value and deliberately not asserted here.
     func testEveryMacosTierIsBackedAndCollectorSafe() {
         let gib: Int64 = 1024 * 1024 * 1024

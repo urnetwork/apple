@@ -1,4 +1,107 @@
+import Darwin
 import Foundation
+
+// One TASK_VM_INFO observation, not a maximum of polling samples. The kernel
+// lifetime peak can retain a short burst between the monitor's five-second
+// polls. Returned counts gate each revision's fields; unknown is never zero.
+// This is diagnostic metadata, not a memory admission or jetsam policy.
+struct ExtensionMemoryFootprint {
+    enum ReadStatus: String {
+        case complete
+        case partial
+        case taskInfoFailed = "task_info_failed"
+        case invalidCount = "invalid_count"
+        case shortCurrent = "short_current"
+        case invalidCurrent = "invalid_current"
+    }
+
+    let status: ReadStatus
+    let currentByteCount: Int64?
+    let kernelPeakByteCount: Int64?
+    // Advisory available-memory result. A reported zero stays distinct from
+    // an unreported field, but can also mean no applicable app limit. Neither
+    // zero nor a positive value establishes a fixed process limit.
+    let limitRemainingByteCount: Int64?
+
+    static let capacity = mach_msg_type_number_t(
+        MemoryLayout<task_vm_info_data_t>.stride / MemoryLayout<natural_t>.stride
+    )
+    static let currentMinimumCount = countThrough(\.phys_footprint)
+    static let peakMinimumCount = countThrough(\.ledger_phys_footprint_peak)
+    static let remainingMinimumCount = countThrough(\.limit_bytes_remaining)
+
+    private static func countThrough<Value>(
+        _ field: KeyPath<task_vm_info_data_t, Value>
+    ) -> mach_msg_type_number_t {
+        guard let offset = MemoryLayout<task_vm_info_data_t>.offset(of: field) else {
+            return .max
+        }
+        let wordSize = MemoryLayout<natural_t>.stride
+        return mach_msg_type_number_t((offset + MemoryLayout<Value>.size + wordSize - 1) / wordSize)
+    }
+
+    static func decode(
+        result: kern_return_t,
+        count: mach_msg_type_number_t,
+        info: task_vm_info_data_t
+    ) -> Self {
+        func unavailable(_ status: ReadStatus) -> Self {
+            Self(status: status, currentByteCount: nil, kernelPeakByteCount: nil, limitRemainingByteCount: nil)
+        }
+        guard result == KERN_SUCCESS else { return unavailable(.taskInfoFailed) }
+        guard count <= capacity else { return unavailable(.invalidCount) }
+        guard count >= currentMinimumCount else { return unavailable(.shortCurrent) }
+        guard let current = Int64(exactly: info.phys_footprint), current > 0 else {
+            return unavailable(.invalidCurrent)
+        }
+        let peak: Int64? = count >= peakMinimumCount && info.ledger_phys_footprint_peak >= current
+            ? info.ledger_phys_footprint_peak : nil
+        let remaining = count >= remainingMinimumCount
+            ? Int64(exactly: info.limit_bytes_remaining) : nil
+        return Self(
+            status: peak != nil && remaining != nil ? .complete : .partial,
+            currentByteCount: current,
+            kernelPeakByteCount: peak,
+            limitRemainingByteCount: remaining
+        )
+    }
+
+    static func capture(
+        read: (inout task_vm_info_data_t, inout mach_msg_type_number_t) -> kern_return_t = readTaskInfo
+    ) -> Self {
+        var info = task_vm_info_data_t()
+        var count = capacity
+        let result = read(&info, &count)
+        return decode(result: result, count: count, info: info)
+    }
+
+    private static func readTaskInfo(
+        _ info: inout task_vm_info_data_t,
+        _ count: inout mach_msg_type_number_t
+    ) -> kern_return_t {
+        let capacity = Int(count)
+        return withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: capacity) { rebound in
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), rebound, &count)
+            }
+        }
+    }
+
+    // The existing SDK log/pressure recorder still receives the current
+    // footprint, never the historical peak. On a failed read, do not overwrite
+    // its last observation with a made-up zero; the OSLog row is explicitly
+    // unavailable and has no numeric current/Go snapshot that could qualify.
+    func logLine(event: String, recordSDK: (String, Int64) -> String) -> String {
+        let prefix = currentByteCount.map { recordSDK(event, $0) } ?? "[memory] event=\(event)"
+        func value(_ byteCount: Int64?) -> String { byteCount.map(String.init) ?? "unavailable" }
+        return prefix + " phys_snapshot_status=\(status.rawValue)" +
+            " phys_current_available=\(currentByteCount != nil)" +
+            " phys_kernel_peak_available=\(kernelPeakByteCount != nil)" +
+            " phys_kernel_peak_bytes=\(value(kernelPeakByteCount))" +
+            " phys_limit_remaining_available=\(limitRemainingByteCount != nil)" +
+            " phys_limit_remaining_bytes=\(value(limitRemainingByteCount))"
+    }
+}
 
 // The per-device memory target PacketTunnelProvider passes to
 // SdkNewDeviceLocalWithMemoryTarget, and the process budget it passes to
@@ -18,9 +121,11 @@ import Foundation
 //              The budget is therefore at least three times the target:
 //              384 MiB = 3 * 128 MiB.
 //
-// iOS is the documented exception to both, and is not ours to change here: the
-// packet-tunnel extension is killed by jetsam at 50 MiB, so it holds a 20 MiB
-// target inside a 32 MiB budget. macOS reports no packet-tunnel jetsam limit
+// iOS uses a 32-MiB admission target and 32-MiB Go soft limit. Its mobile
+// returned pools are separately capped at 0.75 MiB, and overlapping admission
+// children spend a shared root. These values do not establish total footprint:
+// a signed physical-device run must keep the extension's kernel lifetime peak
+// strictly below 50 MiB. macOS reports no packet-tunnel jetsam limit
 // (and no job object or rlimit stands in for one), so it runs the desktop
 // tiers.
 //
@@ -31,7 +136,7 @@ import Foundation
 // a Mac whose memory cannot be read takes the base pair: an unknown host is not
 // a large host.
 enum TunnelDeviceMemoryTarget {
-    static let iosByteCount: Int64 = 20 * 1024 * 1024
+    static let iosByteCount: Int64 = 32 * 1024 * 1024
     static let macosByteCount: Int64 = 128 * 1024 * 1024
     static let macosLargeHostByteCount: Int64 = 256 * 1024 * 1024
 

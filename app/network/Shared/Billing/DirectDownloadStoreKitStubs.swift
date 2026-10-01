@@ -7,8 +7,9 @@
 //  every `import StoreKit` is compiled out of it. The plan surfaces the two
 //  builds share are typed on StoreKit's `Product` and observe the
 //  `AppStoreSubscriptionManager`; these inert stand-ins keep that code
-//  compiling with nothing to sell: no products ever load, a purchase reports
-//  where Pro is sold, and "restore" re-checks the plan with the server.
+//  compiling with nothing to sell: no products ever load, so nothing reaches
+//  a purchase (every surface sells through the build's SubscriptionStore,
+//  Stripe here), and "restore" re-checks the plan with the server.
 //
 
 #if DIRECT_DOWNLOAD
@@ -85,11 +86,11 @@ class AppStoreSubscriptionManager: ObservableObject {
         if restoreResultMessage != nil { restoreResultMessage = nil }
     }
 
-    /// A plan surface that still sells through the App Store products (the
-    /// onboarding plan step, the offer sheet) has nothing to buy on this
-    /// build: point at the screen that sells through Stripe.
+    /// No surface sells through these products on this build (see the file
+    /// header); a tap that still lands here reads as the App Store's
+    /// products-not-loaded failure.
     func reportProductsUnavailable() {
-        let message = String(localized: "Choose a plan from the Get Pro screen to subscribe.")
+        let message = String(localized: "Couldn't load subscription options. Check your connection and retry.")
         if purchaseError != message { purchaseError = message }
     }
 }

@@ -121,6 +121,79 @@ final class ProviderListStoreTests: XCTestCase {
         XCTAssertEqual(store.providerCountries.first?.name, "One shared response")
     }
 
+    func testPresentationFetchCompletesBeforeExtensionStatusRefresh() async {
+        let service = HeldProviderListService()
+        let store = ProviderListStore(urApiService: service)
+        let model = ConnectViewModel()
+        let started = requested(service)
+        let readerStarted = expectation(description: "extension reader started")
+        let releaseReader = DispatchSemaphore(value: 0)
+        defer { releaseReader.signal() }
+        var refreshRequested = false
+        let load = Task {
+            await store.loadForPresentation {
+                refreshRequested = true
+                model.refreshContractStatus {
+                    XCTAssertFalse(Thread.isMainThread)
+                    readerStarted.fulfill()
+                    _ = releaseReader.wait(timeout: .now() + 5)
+                    return nil
+                }
+            }
+        }
+        await fulfillment(of: [started], timeout: 2)
+        XCTAssertFalse(refreshRequested, "status RPC must not precede the provider GET")
+        service.complete(0, with: .success(result("Visible before extension reply")))
+        await load.value
+        await fulfillment(of: [readerStarted], timeout: 2)
+        XCTAssertEqual(store.providerCountries.first?.name, "Visible before extension reply")
+        XCTAssertFalse(store.showLoadingPlaceholder)
+        XCTAssertTrue(model.contractStatusRefreshPending)
+        releaseReader.signal()
+        let deadline = Date().addingTimeInterval(2)
+        while model.contractStatusRefreshPending && Date() < deadline {
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
+        XCTAssertFalse(model.contractStatusRefreshPending)
+    }
+
+    func testFailedPresentationFetchStillRequestsStatusRefresh() async {
+        let service = HeldProviderListService()
+        let store = ProviderListStore(urApiService: service)
+        let started = requested(service)
+        var refreshCount = 0
+        let load = Task {
+            await store.loadForPresentation { refreshCount += 1 }
+        }
+        await fulfillment(of: [started], timeout: 2)
+        XCTAssertEqual(refreshCount, 0)
+        service.complete(0, with: .failure(NSError(domain: "synthetic", code: 1)))
+        await load.value
+        XCTAssertEqual(refreshCount, 1)
+        XCTAssertFalse(store.providersLoading)
+    }
+
+    func testSupersededPresentationReturningAfterSearchDoesNotRefreshStatus() async {
+        let service = HeldProviderListService()
+        let store = ProviderListStore(urApiService: service)
+        let initialStarted = requested(service)
+        var refreshCount = 0
+        let initial = Task {
+            await store.loadForPresentation { refreshCount += 1 }
+        }
+        await fulfillment(of: [initialStarted], timeout: 2)
+        let searchStarted = requested(service, query: "Tokyo")
+        let search = Task { await store.filterLocations("Tokyo") }
+        await fulfillment(of: [searchStarted], timeout: 2)
+        service.complete(1, with: .success(result("Current search")))
+        _ = await search.value
+        XCTAssertFalse(store.providersLoading)
+        service.complete(0, with: .success(result("Late initial")))
+        await initial.value
+        XCTAssertEqual(refreshCount, 0)
+        XCTAssertEqual(store.providerCountries.first?.name, "Current search")
+    }
+
     func testSameQueryRefreshKeepsRowsVisibleAndFailureIsRetryable() async {
         let service = HeldProviderListService()
         let store = ProviderListStore(urApiService: service)

@@ -27,4 +27,11 @@ struct Config {
     static var isAppleSignInConfigured: Bool {
         AppleSignInConfiguration.isConfigured
     }
+
+    /// Whether Google and Apple sign in through the browser instead (the
+    /// direct-download build, which has neither native flow). See
+    /// BrowserSsoConfiguration and BrowserSso.
+    static var isBrowserSignInAvailable: Bool {
+        BrowserSsoConfiguration.isAvailable
+    }
 }

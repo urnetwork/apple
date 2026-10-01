@@ -17,6 +17,11 @@ struct LoginInitialView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    #if os(macOS) && DIRECT_DOWNLOAD
+    // the Google or Apple browser sign-in return (urnetwork://oauth/<provider>)
+    // NetworkApp.onOpenURL routes here
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+    #endif
     @StateObject private var viewModel: ViewModel
     @State private var initialIsLandscape: Bool = false
     // the Solana tile without a wallet app to hand off to (iOS only)
@@ -66,6 +71,7 @@ struct LoginInitialView: View {
                             handleUserAuth: handleUserAuth,
                             handleAppleLoginResult: handleAppleLoginResult,
                             handleGoogleSignInButton: handleGoogleSignInButton,
+                            handleBrowserSignIn: handleBrowserSignIn,
                             isValidUserAuth: viewModel.isValidUserAuth,
                             activeLoginAction: viewModel.activeLoginAction,
                             isLoginActionInFlight: viewModel.isLoginActionInFlight,
@@ -105,6 +111,7 @@ struct LoginInitialView: View {
                             handleUserAuth: handleUserAuth,
                             handleAppleLoginResult: handleAppleLoginResult,
                             handleGoogleSignInButton: handleGoogleSignInButton,
+                            handleBrowserSignIn: handleBrowserSignIn,
                             isValidUserAuth: viewModel.isValidUserAuth,
                             activeLoginAction: viewModel.activeLoginAction,
                             isLoginActionInFlight: viewModel.isLoginActionInFlight,
@@ -242,6 +249,16 @@ struct LoginInitialView: View {
                     }
                 )
         }
+        #if os(macOS) && DIRECT_DOWNLOAD
+        // the api's oauth callback handing a Google or Apple browser sign-in
+        // back: only the attempt this screen started is accepted
+        .onReceive(deepLinkRouter.$pendingBrowserSso) { ssoReturn in
+            guard ssoReturn != nil, let ssoReturn = deepLinkRouter.consumeBrowserSso() else { return }
+            Task {
+                await handleBrowserSsoReturn(ssoReturn)
+            }
+        }
+        #endif
         
     }
     
@@ -406,6 +423,52 @@ struct LoginInitialView: View {
         
     }
     
+    /// Google or Apple through the browser (the direct-download build, which
+    /// has neither native flow): the provider's authorize page opens in the
+    /// default browser and the rest continues on the urnetwork://oauth/<provider>
+    /// return (handleBrowserSsoReturn), or the attempt times out.
+    private func handleBrowserSignIn(_ provider: BrowserSsoProvider) {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        let action = provider.loginAction
+        guard viewModel.beginLoginAction(action) else {
+            return
+        }
+        let url = viewModel.startBrowserSso(provider, apiUrl: deviceManager.activeApiUrl, onTimeout: {
+            viewModel.setLoginErrorMessage(BrowserSso.Failure.expired.userMessage)
+            viewModel.endLoginAction(action)
+        })
+        guard let url, NSWorkspace.shared.open(url) else {
+            print("browser sign-in: could not open the \(provider.rawValue) authorize url")
+            viewModel.cancelBrowserSso()
+            viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+            viewModel.endLoginAction(action)
+            return
+        }
+        #endif
+    }
+
+    private func handleBrowserSsoReturn(_ ssoReturn: BrowserSso.Return) async {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        switch viewModel.createBrowserSsoAuthLoginArgs(ssoReturn) {
+        case .success(let args):
+            defer {
+                viewModel.endBrowserSsoLoginAction()
+            }
+            let result = await viewModel.authLogin(args: args)
+            await self.handleAuthLoginResult(result)
+
+        case .failure(let failure):
+            print("browser sign-in: rejected \(ssoReturn.provider.rawValue) return: \(failure)")
+            // a stray or replayed return must not fail the attempt in flight
+            if failure.isStray {
+                return
+            }
+            viewModel.setLoginErrorMessage(failure.userMessage)
+            viewModel.endBrowserSsoLoginAction()
+        }
+        #endif
+    }
+
     private func handleAuthLoginResult(_ authLoginResult: AuthLoginResult) async {
         
         switch authLoginResult {
@@ -547,6 +610,7 @@ private struct LoginInitialFormView: View {
     let handleUserAuth: () async -> Void
     let handleAppleLoginResult: (_ result: Result<ASAuthorization, any Error>) async -> Void
     let handleGoogleSignInButton: () async -> Void
+    let handleBrowserSignIn: (BrowserSsoProvider) -> Void
     let isValidUserAuth: Bool
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
@@ -573,6 +637,7 @@ private struct LoginInitialFormView: View {
             LoginFullButtons(
                 handleAppleLoginResult: handleAppleLoginResult,
                 handleGoogleSignInButton: handleGoogleSignInButton,
+                handleBrowserSignIn: handleBrowserSignIn,
                 presentCreateInstant: presentCreateInstant,
                 activeLoginAction: activeLoginAction,
                 isLoginActionInFlight: isLoginActionInFlight
@@ -762,6 +827,7 @@ private struct LoginFullButtons: View {
     
     let handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
     let handleGoogleSignInButton: () async -> Void
+    let handleBrowserSignIn: (BrowserSsoProvider) -> Void
     let presentCreateInstant: () -> Void
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
@@ -796,6 +862,14 @@ private struct LoginFullButtons: View {
                 .opacity(isLoginActionInFlight && activeLoginAction != .apple ? 0.3 : 1)
                 .disabled(isLoginActionInFlight)
                 .allowsHitTesting(!isLoginActionInFlight)
+            } else if Config.isBrowserSignInAvailable {
+                // the direct-download build signs in with Apple through the
+                // browser instead (BrowserSso), like Windows and Linux
+                LoginBrowserAppleButton(
+                    action: { handleBrowserSignIn(.apple) },
+                    activeLoginAction: activeLoginAction,
+                    isLoginActionInFlight: isLoginActionInFlight
+                )
             }
 
             // hidden in a build without a Google OAuth client (the
@@ -803,6 +877,15 @@ private struct LoginFullButtons: View {
             if Config.isGoogleSignInConfigured {
                 UrGoogleSignInButton(
                     action: handleGoogleSignInButton,
+                    enabled: !isLoginActionInFlight,
+                    isProcessing: activeLoginAction == .google
+                )
+                .buttonStyle(.plain)
+            } else if Config.isBrowserSignInAvailable {
+                // the direct-download build signs in with Google through the
+                // browser instead (BrowserSso), with the ur.io web client
+                UrGoogleSignInButton(
+                    action: { handleBrowserSignIn(.google) },
                     enabled: !isLoginActionInFlight,
                     isProcessing: activeLoginAction == .google
                 )
@@ -836,6 +919,53 @@ private struct LoginFullButtons: View {
             
         }
         
+    }
+}
+
+// The Apple pill of the browser flow: the native SignInWithAppleButton
+// starts the ASAuthorization flow, which the direct-download build has no
+// entitlement for, so this is a plain button in the same white pill.
+private struct LoginBrowserAppleButton: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let action: () -> Void
+    let activeLoginAction: LoginInitialView.LoginAction?
+    let isLoginActionInFlight: Bool
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "apple.logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: LoginStackMetrics.pillIcon, height: LoginStackMetrics.pillIcon)
+                    .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                Spacer().frame(width: 8)
+                Text("Sign in with Apple")
+                    .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                    .font(
+                        Font.system(size: LoginStackMetrics.pillFont, weight: .medium)
+                    )
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: LoginStackMetrics.pillHeight)
+        .frame(maxWidth: .infinity)
+        .background(.white)
+        .loginPill()
+        .buttonStyle(.plain)
+        .overlay(alignment: .trailing) {
+            if activeLoginAction == .apple {
+                ProgressView()
+                    .tint(.urBlack)
+                    .controlSize(.small)
+                    .padding(.trailing, 16)
+            }
+        }
+        .opacity(isLoginActionInFlight && activeLoginAction != .apple ? 0.3 : 1)
+        .disabled(isLoginActionInFlight)
+        .accessibilityIdentifier("acceptance.login.apple")
     }
 }
 

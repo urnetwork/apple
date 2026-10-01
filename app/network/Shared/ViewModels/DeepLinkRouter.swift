@@ -27,6 +27,10 @@ final class DeepLinkRouter: ObservableObject {
     /// A Stripe checkout return (urnetwork://pay/done, urnetwork://checkout?...)
     /// from the browser, until the direct-download build's store takes it.
     @Published private(set) var pendingBilling: BillingDeepLink? = nil
+    /// A Google or Apple browser sign-in return (urnetwork://oauth/<provider>)
+    /// from the api's callback, until the login screen or the add sign-in
+    /// method sheet checks it against the attempt it started.
+    @Published private(set) var pendingBrowserSso: BrowserSso.Return? = nil
 
     func open(_ destination: WidgetDestination) {
         pending = destination
@@ -38,6 +42,10 @@ final class DeepLinkRouter: ObservableObject {
 
     func open(_ link: BillingDeepLink) {
         pendingBilling = link
+    }
+
+    func open(_ ssoReturn: BrowserSso.Return) {
+        pendingBrowserSso = ssoReturn
     }
 
     func pushAccount(_ path: AccountNavigationPath) {
@@ -60,6 +68,12 @@ final class DeepLinkRouter: ObservableObject {
         guard let link = pendingBilling else { return nil }
         pendingBilling = nil
         return link
+    }
+
+    func consumeBrowserSso() -> BrowserSso.Return? {
+        guard let ssoReturn = pendingBrowserSso else { return nil }
+        pendingBrowserSso = nil
+        return ssoReturn
     }
 
     func consumeAccountPath() -> AccountNavigationPath? {

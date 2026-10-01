@@ -122,6 +122,29 @@ struct SystemExtensionActivationTests {
         #expect(SystemExtensionActivation.replacementDecision(existingVersion: "2.0.0", candidateVersion: "1.1.0") == .replace)
     }
 
+    /// After the in-app updater (DirectUpdater) swaps the bundle under
+    /// /Applications and relaunches, the new app's launch activation meets
+    /// the previous release's extension: the delegate replaces it (the
+    /// pipeline's calendar versions, not semver), the request stays in
+    /// flight through the replacement, and either completion lands in
+    /// `activated` -- a reboot-deferred one included -- without asking the
+    /// user for anything.
+    @Test func anUpdatedAppReplacesTheInstalledExtensionOnItsFirstLaunch() {
+        let previous = "2026.3.23", updated = "2026.4.1"
+        #expect(SystemExtensionActivation.replacementDecision(existingVersion: previous, candidateVersion: updated) == .replace)
+        #expect(SystemExtensionActivation.shouldSubmit(from: .idle))
+
+        for willCompleteAfterReboot in [false, true] {
+            var state = reduce(.idle, .activationRequested(.applications))
+            state = reduce(state, .replacing(existingVersion: previous, candidateVersion: updated))
+            #expect(state == .requesting)
+            #expect(!state.needsUserAction)
+            state = reduce(state, .finished(willCompleteAfterReboot: willCompleteAfterReboot))
+            #expect(state == .activated(willCompleteAfterReboot: willCompleteAfterReboot))
+            #expect(!state.needsUserAction)
+        }
+    }
+
     // MARK: copy
 
     @Test func promptStatesHaveTitleMessageAndAction() {

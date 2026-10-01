@@ -270,6 +270,10 @@ func TestDirectEntitlementsAndSysextPlistAgree(t *testing.T) {
 			"com.apple.developer.networking.networkextension",
 			"com.apple.developer.system-extension.install",
 			"keychain-access-groups":
+		case "com.apple.security.files.bookmarks.app-scope":
+			// an App Sandbox entitlement (the in-app updater's persisted
+			// Applications-folder bookmark, test-direct-updater_test.go),
+			// enforced by the sandbox and never granted by a profile
 		default:
 			t.Fatalf("direct app carries %s, which is not in the Developer ID profile", key)
 		}

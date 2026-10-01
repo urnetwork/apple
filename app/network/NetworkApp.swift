@@ -76,6 +76,10 @@ struct NetworkApp: App {
     // the direct-download build ships the tunnel as a system extension that
     // macOS must install (and the user approve once) before it can run
     @StateObject private var systemExtensionActivator = SystemExtensionActivator()
+    // and updates itself from the official releases (the App Store build
+    // updates through the store): checked at launch, throttled, and from
+    // Settings
+    @StateObject private var directUpdater = DirectUpdater()
     #endif
 #endif
     
@@ -453,6 +457,12 @@ struct NetworkApp: App {
                     connectViewModel.beforeConnect = { [weak systemExtensionActivator] in
                         systemExtensionActivator?.activateIfNeeded()
                     }
+                }
+                .environmentObject(directUpdater)
+                .onAppear {
+                    // the launch update check: at most once per six hours,
+                    // after the startup rush, only while enabled in Settings
+                    directUpdater.checkAtLaunchIfDue()
                 }
                 #endif
                 .onAppear {

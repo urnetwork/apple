@@ -16,6 +16,11 @@ struct SettingsForm_macOS: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+    #if DIRECT_DOWNLOAD
+    // the direct-download build updates itself from the official releases
+    // (DirectUpdater); the App Store build updates through the store
+    @EnvironmentObject var directUpdater: DirectUpdater
+    #endif
 
     let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
@@ -562,9 +567,78 @@ struct SettingsForm_macOS: View {
 
                     Spacer().frame(height: 32)
 
+                    #if DIRECT_DOWNLOAD
+                    /**
+                     * Software update (direct-download build only)
+                     */
+                    HStack {
+                        UrLabel(text: "Software update")
+
+                        Spacer()
+                    }
+
+                    VStack(alignment: .leading) {
+
+                        HStack {
+                            Toggle(isOn: $directUpdater.automaticChecksEnabled) {
+                                Text("Check for updates automatically")
+                                    .font(themeManager.currentTheme.bodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                            }
+
+                            Spacer()
+                        }
+
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        HStack(alignment: .top) {
+                            Text(DirectUpdaterCopy.status(for: directUpdater.phase))
+                                .font(themeManager.currentTheme.bodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("acceptance.account.settings.update.status")
+
+                            Spacer()
+
+                            if directUpdater.phase.isBusy {
+                                ProgressView().scaleEffect(0.7)
+                            } else if let action = DirectUpdaterCopy.action(for: directUpdater.phase) {
+                                Button(action: {
+                                    switch action {
+                                    case .check:
+                                        directUpdater.checkNow()
+                                    case .install:
+                                        directUpdater.install()
+                                    case .reveal:
+                                        directUpdater.revealDownload()
+                                    }
+                                }) {
+                                    Text(action.title)
+                                }
+                                .accessibilityIdentifier("acceptance.account.settings.update.action")
+                            }
+                        }
+
+                        if let lastCheck = directUpdater.lastCheck {
+                            Spacer().frame(height: 8)
+                            Text("Last checked \(lastCheck, format: .relative(presentation: .named))")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
+
+                    }
+                    .padding()
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    Spacer().frame(height: 32)
+                    #endif
+
                     HStack {
                         UrLabel(text: "Version and Build info")
-                        
+
                         Spacer()
                     }
                     

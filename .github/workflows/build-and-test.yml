@@ -255,42 +255,11 @@ jobs:
           path: apple/app/build/networkTests.xcresult
           if-no-files-found: warn
 
-      # Artifact downloads require authentication even for this public repo.
-      # Publish only the unit-test/build result summaries so a failing test or
-      # test-bundle compile error can be diagnosed without downloading logs.
+      # Publish only source test names/locations and fixed failure categories.
+      # Check annotations are public even when artifacts and summaries require
+      # authentication; assertion values, logs and attachments stay private.
       - name: Summarize failed simulator tests
         if: failure()
         continue-on-error: true
         timeout-minutes: 2
-        working-directory: apple/app
-        run: |
-          python3 - <<'PY'
-          import html
-          import json
-          import os
-          import pathlib
-          import subprocess
-
-          bundle = pathlib.Path("build/networkTests.xcresult")
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
-              summary.write("## Simulator test failure diagnostics\n\n")
-              if not bundle.is_dir():
-                  summary.write("No test result bundle was produced. The original build/test failure remains authoritative.\n")
-              else:
-                  for title, command in (
-                      ("Test results", ["get", "test-results", "summary"]),
-                      ("Build results", ["get", "build-results"]),
-                  ):
-                      summary.write(f"### {title}\n\n")
-                      try:
-                          result = subprocess.run(
-                              ["xcrun", "xcresulttool", *command, "--path", str(bundle), "--compact"],
-                              capture_output=True, text=True, timeout=30, check=True,
-                          )
-                          text = json.dumps(json.loads(result.stdout), indent=2)
-                          if len(text) > 48000:
-                              text = text[:48000] + "\n[Summary truncated; full result bundle is attached.]"
-                          summary.write("<pre>" + html.escape(text) + "</pre>\n\n")
-                      except (subprocess.SubprocessError, OSError, ValueError) as error:
-                          summary.write(f"Result summary unavailable ({type(error).__name__}); see the original test step and result bundle.\n\n")
-          PY
+        run: python3 apple/scripts/ci_simulator_diagnostics.py

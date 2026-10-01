@@ -1,18 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Choose a plan from the Get Pro screen to subscribe." : {
-      "comment" : "Inline message on the onboarding plan step / offer sheet of the direct-download build, where Pro is sold from the Get Pro sheet through Stripe.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a plan from the Get Pro screen to subscribe."
-          }
-        }
-      }
-    },
     "We're confirming your purchase. Your plan will update automatically." : {
       "comment" : "The upgrade sheet's confirming copy on the direct-download build (Stripe): the server confirms the purchase by webhook.",
       "extractionState" : "manual",

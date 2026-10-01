@@ -57,6 +57,13 @@ final class StoreKitSubscriptionStore: SubscriptionStore {
         }
     }
 
+    /// The welcome offer as the onboarding plan step always redeemed it: the
+    /// App Store offer code through the redeem sheet, or with no code yet the
+    /// plain yearly purchase with the trial.
+    func redeemOffer(_ offer: PlanOffer, onSuccess: @escaping () -> Void) async {
+        await manager.redeemOffer(code: offer.appleOfferCode, yearly: product(for: .yearly), onSuccess: onSuccess)
+    }
+
     var isPurchasing: Bool { manager.isPurchasing }
     var purchaseSuccess: Bool { manager.purchaseSuccess }
     var purchasePending: Bool { manager.purchasePending }

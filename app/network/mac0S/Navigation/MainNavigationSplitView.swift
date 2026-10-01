@@ -231,6 +231,7 @@ struct MainNavigationSplitView: View {
             .environmentObject(themeManager)
             .environmentObject(deviceManager)
             .environmentObject(subscriptionManager)
+            .environmentObject(stripeSubscriptionStore)
             .environmentObject(subscriptionBalanceViewModel)
             .environmentObject(connectViewModel)
             .frame(minWidth: 600, minHeight: 700)
@@ -261,7 +262,15 @@ struct MainNavigationSplitView: View {
                 selectedTab = .account
                 deepLinkRouter.pushAccount(.widgets)
             case .offer:
-                if subscriptionBalanceViewModel.onboardingOffer != nil {
+                // the offer on its own while it is active (and, on the direct
+                // download, redeemable through Stripe); otherwise the regular
+                // upgrade sheet
+                let offerOnItsOwn = WelcomeOfferSurface.sheetEnabled(
+                    distribution: .current,
+                    offerIssued: subscriptionBalanceViewModel.onboardingOffer != nil,
+                    stripeOfferEligible: stripeSubscriptionStore.offerEligible
+                )
+                if offerOnItsOwn {
                     presentOnboardingOffer = true
                 } else {
                     selectedTab = .connect
@@ -287,6 +296,7 @@ struct MainNavigationSplitView: View {
                 .environmentObject(themeManager)
                 .environmentObject(deviceManager)
                 .environmentObject(subscriptionManager)
+                .environmentObject(stripeSubscriptionStore)
                 .environmentObject(subscriptionBalanceViewModel)
                 .environmentObject(connectViewModel)
                 .frame(minWidth: 560, minHeight: 700)

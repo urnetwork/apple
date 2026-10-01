@@ -59,4 +59,17 @@ struct TunnelProviderIdentityTests {
         #expect(!GoogleSignInConfiguration.isConfigured(clientId: "  \n"))
         #expect(GoogleSignInConfiguration.isConfigured(clientId: "1234-abc.apps.googleusercontent.com"))
     }
+
+    // The Developer ID profile of the direct build does not grant the
+    // applesignin entitlement, so the native Apple button is App Store only.
+    @Test func appleSignInIsOfferedOnlyToTheAppStoreFamily() {
+        #expect(AppleSignInConfiguration.isConfigured(for: TunnelProviderIdentity.appStore))
+        #expect(!AppleSignInConfiguration.isConfigured(for: TunnelProviderIdentity.direct))
+        #expect(Config.isAppleSignInConfigured == AppleSignInConfiguration.isConfigured(for: TunnelProviderIdentity.flavor))
+        #if DIRECT_DOWNLOAD
+        #expect(!Config.isAppleSignInConfigured)
+        #else
+        #expect(Config.isAppleSignInConfigured)
+        #endif
+    }
 }

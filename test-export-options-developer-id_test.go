@@ -35,19 +35,37 @@ func exportOptions(t *testing.T, name string) map[string]any {
 // The direct-download export (build/all/run.sh, macOS direct download region)
 // must be a Developer ID export of the same team: anything else either fails
 // notarization or produces the store-only signature that does not launch
-// outside the Mac App Store.
+// outside the Mac App Store. Signing is manual: Xcode's automatic "Mac Team
+// Provisioning Profile"s never carry packet-tunnel-provider-systemextension,
+// only the account's two Developer ID profiles do, so the export names them
+// per bundle id (the same names the targets are signed with in
+// project.pbxproj; test-direct-bundle-ids_test.go checks they agree).
 func TestDeveloperIDExportOptions(t *testing.T) {
 	options := exportOptions(t, "ExportOptions-DeveloperID.plist")
 	want := map[string]any{
-		"method":            "developer-id",
-		"signingStyle":      "automatic",
-		"teamID":            "6BGU69Q742",
-		"destination":       "export",
-		"stripSwiftSymbols": true,
+		"method":             "developer-id",
+		"signingStyle":       "manual",
+		"signingCertificate": "Developer ID Application",
+		"teamID":             "6BGU69Q742",
+		"destination":        "export",
+		"stripSwiftSymbols":  true,
 	}
 	for key, value := range want {
 		if options[key] != value {
 			t.Fatalf("ExportOptions-DeveloperID.plist %s = %v, want %v", key, options[key], value)
+		}
+	}
+	profiles, _ := options["provisioningProfiles"].(map[string]any)
+	wantProfiles := map[string]any{
+		"com.bringyour.urnetwork":           "URnetwork Download",
+		"com.bringyour.urnetwork.extension": "URnetwork Extension Download",
+	}
+	if len(profiles) != len(wantProfiles) {
+		t.Fatalf("ExportOptions-DeveloperID.plist provisioningProfiles = %v, want %v", profiles, wantProfiles)
+	}
+	for bundleId, name := range wantProfiles {
+		if profiles[bundleId] != name {
+			t.Fatalf("ExportOptions-DeveloperID.plist provisioningProfiles[%s] = %v, want %v", bundleId, profiles[bundleId], name)
 		}
 	}
 	// App Store Connect upload settings have no place in a Developer ID export
@@ -56,7 +74,7 @@ func TestDeveloperIDExportOptions(t *testing.T) {
 			t.Fatalf("ExportOptions-DeveloperID.plist carries the App Store Connect key %s", key)
 		}
 	}
-	if len(options) != len(want) {
+	if len(options) != len(want)+1 {
 		t.Fatalf("ExportOptions-DeveloperID.plist has unexpected keys: %v", options)
 	}
 }
@@ -72,5 +90,12 @@ func TestExportOptionsStayDistinct(t *testing.T) {
 	direct := exportOptions(t, "ExportOptions-DeveloperID.plist")
 	if direct["method"] == store["method"] {
 		t.Fatalf("the Developer ID export uses the App Store method: %v", direct)
+	}
+	// the App Store export stays automatic; only the direct export pins profiles
+	if store["signingStyle"] != "automatic" {
+		t.Fatalf("ExportOptions.plist signingStyle = %v, want automatic", store["signingStyle"])
+	}
+	if _, present := store["provisioningProfiles"]; present {
+		t.Fatalf("ExportOptions.plist pins provisioning profiles: %v", store["provisioningProfiles"])
 	}
 }

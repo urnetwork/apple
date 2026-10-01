@@ -10,10 +10,18 @@
   build (network-macOS.entitlements) so the two install side by side and
   are provisioned as separate App IDs (see TunnelProviderIdentity.swift);
   the team id in the app group is literal for the reason explained there.
+  Every key here must be granted by the Developer ID provisioning profile
+  the target is signed with ("URnetwork Download", manual signing in
+  project.pbxproj), or codesign rejects the build.
   Not carried over from the App Store entitlements: aps-environment (no push
   in the direct build), increased-memory-limit and sustained-execution (iOS
-  entitlements that a Developer ID profile does not grant) and dns-proxy
-  (the tunnel only registers a packet tunnel provider).
+  entitlements that a Developer ID profile does not grant), dns-proxy (the
+  tunnel only registers a packet tunnel provider), networking.vpn.api
+  (allow-vpn is the personal-VPN NEVPNManager entitlement; this app only
+  uses NETunnelProviderManager, which the networkextension entitlement
+  covers) and applesignin (the Developer ID profile does not carry it today,
+  so Sign in with Apple is hidden in this build -- see
+  AppleSignInConfiguration in TunnelProviderIdentity.swift).
 -->
 <plist version="1.0">
 <dict>
@@ -21,18 +29,10 @@
 	<array>
 		<string>6BGU69Q742.group.com.bringyour.urnetwork</string>
 	</array>
-	<key>com.apple.developer.applesignin</key>
-	<array>
-		<string>Default</string>
-	</array>
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
 		<string>packet-tunnel-provider-systemextension</string>
 		<string>dns-settings</string>
-	</array>
-	<key>com.apple.developer.networking.vpn.api</key>
-	<array>
-		<string>allow-vpn</string>
 	</array>
 	<key>com.apple.developer.system-extension.install</key>
 	<true/>

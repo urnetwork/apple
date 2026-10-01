@@ -71,3 +71,20 @@ enum GoogleSignInConfiguration {
         return !clientId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
+
+/// Sign in with Apple needs the com.apple.developer.applesignin entitlement,
+/// which a provisioning profile has to grant. The App Store profiles do; the
+/// Developer ID profile the direct build is signed with ("URnetwork
+/// Download") does not carry it today, so network-macOS-direct.entitlements
+/// omits it and the native Apple button (login) and picker entry (Account >
+/// Add sign-in method) are hidden in that family, the way the Google ones
+/// are without an OAuth client. Once the capability is on the
+/// com.bringyour.urnetwork App ID and the profile is regenerated, add the
+/// entitlement back and make `direct` configured here.
+enum AppleSignInConfiguration {
+    static func isConfigured(for family: TunnelProviderIdentity.Set) -> Bool {
+        family == TunnelProviderIdentity.appStore
+    }
+
+    static var isConfigured: Bool { isConfigured(for: TunnelProviderIdentity.flavor) }
+}

@@ -127,7 +127,9 @@ enum ReleaseSelection {
 
     /// The official release repository, and the only update source. Never a
     /// fork.
-    static let repository = "urnetwork/build"
+    /// The stable release feed. urnetwork/build holds the nightly builds; stable
+    /// releases are published by hand to each app repo, and only those are offered.
+    static let repository = "urnetwork/apple"
 
     /// The newest releases, drafts and prereleases included (filtered here).
     /// The list rather than `releases/latest`: a repository with no release

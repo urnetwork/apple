@@ -20,9 +20,12 @@ struct ReleaseSelectionTests {
     // MARK: the update source
 
     @Test func theUpdateSourceIsTheOfficialRepositoryAndNothingElse() {
-        #expect(ReleaseSelection.repository == "urnetwork/build")
+        #expect(ReleaseSelection.repository == "urnetwork/apple")
+        // the nightly feed and personal forks are never the update source
+        #expect(ReleaseSelection.repository != "urnetwork/build")
+        #expect(ReleaseSelection.repository.hasPrefix("urnetwork/"))
         #expect(ReleaseSelection.releasesURL.absoluteString
-                == "https://api.github.com/repos/urnetwork/build/releases?per_page=15")
+                == "https://api.github.com/repos/urnetwork/apple/releases?per_page=15")
         #expect(ReleaseSelection.releasesURL.scheme == "https")
         #expect(ReleaseSelection.releasesURL.host == "api.github.com")
         // negative control: an official urnetwork repository, never a
@@ -100,13 +103,13 @@ struct ReleaseSelectionTests {
         let version = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
         return Release(tag: tag, draft: draft, prerelease: prerelease, assets: assets ?? [
             ReleaseAsset(name: "URnetwork-\(version)-x64.msi",
-                         url: "https://github.com/urnetwork/build/releases/download/\(tag)/URnetwork-\(version)-x64.msi",
+                         url: "https://github.com/urnetwork/apple/releases/download/\(tag)/URnetwork-\(version)-x64.msi",
                          digest: goodDigest),
             ReleaseAsset(name: "URnetwork-\(version)-macos.dmg",
-                         url: "https://github.com/urnetwork/build/releases/download/\(tag)/URnetwork-\(version)-macos.dmg",
+                         url: "https://github.com/urnetwork/apple/releases/download/\(tag)/URnetwork-\(version)-macos.dmg",
                          digest: goodDigest),
             ReleaseAsset(name: "URnetwork-\(version)-macos.zip",
-                         url: "https://github.com/urnetwork/build/releases/download/\(tag)/URnetwork-\(version)-macos.zip",
+                         url: "https://github.com/urnetwork/apple/releases/download/\(tag)/URnetwork-\(version)-macos.zip",
                          digest: goodDigest),
         ])
     }
@@ -123,7 +126,7 @@ struct ReleaseSelectionTests {
         #expect(offer.tag == "v2026.4.1-895076000")
         #expect(offer.assetName == "URnetwork-2026.4.1-895076000-macos.zip")
         #expect(offer.assetURL.absoluteString
-                == "https://github.com/urnetwork/build/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.zip")
+                == "https://github.com/urnetwork/apple/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.zip")
         #expect(offer.digestHex == String(repeating: "0f", count: 32))
     }
 
@@ -248,22 +251,22 @@ struct ReleaseSelectionTests {
     static let releasesJSON = """
     [
       {
-        "url": "https://api.github.com/repos/urnetwork/build/releases/2",
+        "url": "https://api.github.com/repos/urnetwork/apple/releases/2",
         "tag_name": "v2026.4.1-895076002",
         "draft": false,
         "prerelease": true,
         "assets": [{"name": "com.bringyour.network-895076002.apk", "browser_download_url": "https://example.test/a.apk", "digest": null}]
       },
       {
-        "url": "https://api.github.com/repos/urnetwork/build/releases/1",
+        "url": "https://api.github.com/repos/urnetwork/apple/releases/1",
         "tag_name": "v2026.4.1-895076000",
         "name": "2026.4.1-895076000",
         "draft": false,
         "prerelease": false,
         "assets": [
-          {"name": "URnetwork-2026.4.1-895076000-x64.msi", "browser_download_url": "https://github.com/urnetwork/build/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-x64.msi", "digest": "sha256:\(String(repeating: "1a", count: 32))", "size": 1},
-          {"name": "URnetwork-2026.4.1-895076000-macos.dmg", "browser_download_url": "https://github.com/urnetwork/build/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.dmg", "digest": null, "size": 2},
-          {"name": "URnetwork-2026.4.1-895076000-macos.zip", "browser_download_url": "https://github.com/urnetwork/build/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.zip", "digest": "sha256:\(String(repeating: "2B", count: 32))", "size": 3},
+          {"name": "URnetwork-2026.4.1-895076000-x64.msi", "browser_download_url": "https://github.com/urnetwork/apple/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-x64.msi", "digest": "sha256:\(String(repeating: "1a", count: 32))", "size": 1},
+          {"name": "URnetwork-2026.4.1-895076000-macos.dmg", "browser_download_url": "https://github.com/urnetwork/apple/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.dmg", "digest": null, "size": 2},
+          {"name": "URnetwork-2026.4.1-895076000-macos.zip", "browser_download_url": "https://github.com/urnetwork/apple/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.zip", "digest": "sha256:\(String(repeating: "2B", count: 32))", "size": 3},
           {"name": 42, "browser_download_url": "https://example.test/not-an-asset"},
           "not an object"
         ]
@@ -285,7 +288,7 @@ struct ReleaseSelectionTests {
         #expect(release.assets[1].digest == nil)
         #expect(release.assets[2] == ReleaseAsset(
             name: "URnetwork-2026.4.1-895076000-macos.zip",
-            url: "https://github.com/urnetwork/build/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.zip",
+            url: "https://github.com/urnetwork/apple/releases/download/v2026.4.1-895076000/URnetwork-2026.4.1-895076000-macos.zip",
             digest: "sha256:" + String(repeating: "2B", count: 32)
         ))
 

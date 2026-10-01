@@ -88,3 +88,21 @@ enum AppleSignInConfiguration {
 
     static var isConfigured: Bool { isConfigured(for: TunnelProviderIdentity.flavor) }
 }
+
+/// The browser sign-in (BrowserSso: Google and Apple through their own web
+/// flow, the api's callback returning on urnetwork://oauth/<provider>) stands
+/// in for the native flows in the direct-download family, which has neither
+/// the applesignin entitlement nor a Google OAuth client. The App Store
+/// family keeps the native SDKs and never offers it; macOS only, the direct
+/// build's one platform (an iOS build is always the App Store family).
+enum BrowserSsoConfiguration {
+    static func isAvailable(for family: TunnelProviderIdentity.Set) -> Bool {
+        #if os(macOS)
+        return family == TunnelProviderIdentity.direct
+        #else
+        return false
+        #endif
+    }
+
+    static var isAvailable: Bool { isAvailable(for: TunnelProviderIdentity.flavor) }
+}

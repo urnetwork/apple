@@ -13,6 +13,15 @@ struct AddAuthSheet: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
+    #if os(macOS) && DIRECT_DOWNLOAD
+    // the Google or Apple browser flow (BrowserSso) of the direct-download
+    // build: the api origin the callback lives on, and the return
+    // NetworkApp.onOpenURL routes here
+    @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+    @State private var browserSsoAttempts = BrowserSsoAttemptStore()
+    @State private var browserSsoTimeoutTask: Task<Void, Never>?
+    #endif
     
     let api: UrApiServiceProtocol
     let networkUserViewModel: NetworkUserViewModel?
@@ -40,10 +49,12 @@ struct AddAuthSheet: View {
                     Spacer().frame(height: 16)
                     
                     Picker("Method", selection: $selectedMethod) {
-                        if Config.isAppleSignInConfigured {
+                        // the direct-download build offers both through the
+                        // browser instead of the native SDKs (BrowserSso)
+                        if Config.isAppleSignInConfigured || Config.isBrowserSignInAvailable {
                             Text("Apple").tag("apple")
                         }
-                        if Config.isGoogleSignInConfigured {
+                        if Config.isGoogleSignInConfigured || Config.isBrowserSignInAvailable {
                             Text("Google").tag("google")
                         }
                         Text("Wallet").tag("wallet")
@@ -102,7 +113,20 @@ struct AddAuthSheet: View {
                 walletConnectionTask = nil
                 connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
                 connectWalletProviderViewModel.pendingWalletAuthMessage = nil
+                #if os(macOS) && DIRECT_DOWNLOAD
+                cancelBrowserSignIn()
+                #endif
             }
+            #if os(macOS) && DIRECT_DOWNLOAD
+            // the api's oauth callback handing a Google or Apple browser
+            // sign-in back: only the attempt this sheet started is accepted
+            .onReceive(deepLinkRouter.$pendingBrowserSso) { ssoReturn in
+                guard ssoReturn != nil, let ssoReturn = deepLinkRouter.consumeBrowserSso() else { return }
+                Task {
+                    await completeBrowserSignIn(ssoReturn)
+                }
+            }
+            #endif
         }
     }
     
@@ -137,9 +161,22 @@ struct AddAuthSheet: View {
             .frame(height: 50)
             .cornerRadius(8)
             #else
-            Text("Apple Sign-In is available on iOS.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            if Config.isBrowserSignInAvailable {
+                // the direct-download build: Apple's own web flow in the browser
+                UrButton(
+                    text: "Sign in with Apple",
+                    action: {
+                        startBrowserSignIn(.apple)
+                    },
+                    enabled: !isAdding,
+                    leadingSystemImage: "apple.logo",
+                    isProcessing: isAdding
+                )
+            } else {
+                Text("Apple Sign-In is available on iOS.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
             #endif
         }
     }
@@ -154,10 +191,97 @@ struct AddAuthSheet: View {
             
             UrGoogleSignInButton(
                 action: {
-                    await handleGoogleSignIn()
-                }
+                    if Config.isBrowserSignInAvailable {
+                        // the direct-download build: Google's web flow in the browser
+                        startBrowserSignIn(.google)
+                    } else {
+                        await handleGoogleSignIn()
+                    }
+                },
+                enabled: !isAdding,
+                isProcessing: isAdding
             )
         }
+    }
+
+    // MARK: - Browser Sign-In (direct-download build)
+
+    /// Opens the provider's authorize page in the default browser; the rest
+    /// continues on the urnetwork://oauth/<provider> return
+    /// (completeBrowserSignIn), or the attempt times out.
+    private func startBrowserSignIn(_ provider: BrowserSsoProvider) {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        isAdding = true
+        addError = nil
+        let attempt = browserSsoAttempts.begin(provider)
+        guard let url = BrowserSso.authorizeURL(provider, apiUrl: deviceManager.activeApiUrl, state: attempt.state, nonce: attempt.nonce),
+              NSWorkspace.shared.open(url) else {
+            browserSsoAttempts.cancel()
+            addError = String(localized: "Could not open the browser. Please try again.")
+            isAdding = false
+            return
+        }
+        browserSsoTimeoutTask?.cancel()
+        let timeout = browserSsoAttempts.timeout
+        browserSsoTimeoutTask = Task {
+            try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            guard !Task.isCancelled, browserSsoAttempts.pending == attempt else {
+                return
+            }
+            browserSsoAttempts.cancel()
+            addError = BrowserSso.Failure.expired.userMessage
+            isAdding = false
+        }
+        #endif
+    }
+
+    private func cancelBrowserSignIn() {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        browserSsoTimeoutTask?.cancel()
+        browserSsoTimeoutTask = nil
+        browserSsoAttempts.cancel()
+        #endif
+    }
+
+    private func completeBrowserSignIn(_ ssoReturn: BrowserSso.Return) async {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        let verdict = browserSsoAttempts.take(ssoReturn)
+        if browserSsoAttempts.pending == nil {
+            browserSsoTimeoutTask?.cancel()
+            browserSsoTimeoutTask = nil
+        }
+        switch verdict {
+        case .success(let idToken):
+            do {
+                // the identity token the way the native flows hand it over
+                let args = SdkAddAuthArgs()
+                args.authJwt = idToken
+                args.authJwtType = ssoReturn.provider.rawValue
+
+                let _ = try await api.addAuth(args)
+                isAdding = false
+                _ = await networkUserViewModel?.refreshNetworkUser()
+                switch ssoReturn.provider {
+                case .apple:
+                    snackbarManager.showSnackbar(message: String(localized: "Apple sign-in method added"))
+                case .google:
+                    snackbarManager.showSnackbar(message: String(localized: "Google sign-in method added"))
+                }
+                dismiss()
+            } catch(let error) {
+                isAdding = false
+                addError = error.localizedDescription
+            }
+        case .failure(let failure):
+            print("browser sign-in: rejected \(ssoReturn.provider.rawValue) return: \(failure)")
+            // a stray or replayed return must not fail the attempt in flight
+            if failure.isStray {
+                return
+            }
+            isAdding = false
+            addError = failure.userMessage
+        }
+        #endif
     }
     
     // MARK: - Wallet Sign-In

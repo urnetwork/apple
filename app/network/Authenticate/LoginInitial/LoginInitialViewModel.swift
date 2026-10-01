@@ -25,6 +25,11 @@ extension LoginInitialView {
     class ViewModel: ObservableObject {
         
         private var urApiService: UrApiServiceProtocol
+
+        // the Google or Apple browser attempt in flight (direct-download
+        // build): see startBrowserSso below
+        let browserSsoAttempts = BrowserSsoAttemptStore()
+        var browserSsoTimeoutTask: Task<Void, Never>?
         
         @Published var userAuth: String = "" {
             didSet {
@@ -301,5 +306,82 @@ extension LoginInitialView.ViewModel {
 
         return .success(args)
 
+    }
+}
+
+// MARK: Browser sign in (Google and Apple without a native flow: the
+// direct-download build, BrowserSso)
+extension BrowserSsoProvider {
+    /// The login action a browser attempt holds while the browser is open.
+    var loginAction: LoginInitialView.LoginAction {
+        switch self {
+        case .google:
+            return .google
+        case .apple:
+            return .apple
+        }
+    }
+}
+
+extension LoginInitialView.ViewModel {
+
+    /// Starts a browser attempt: a fresh state + nonce, and the provider's
+    /// authorize url for the view to open. Nil without an api origin (the
+    /// attempt is not kept). The attempt expires on its own after
+    /// BrowserSso.attemptTimeout: `onTimeout` runs then, on the main actor,
+    /// unless a return ended the attempt first.
+    func startBrowserSso(_ provider: BrowserSsoProvider, apiUrl: String, onTimeout: @escaping @MainActor () -> Void) -> URL? {
+        let attempt = browserSsoAttempts.begin(provider)
+        guard let url = BrowserSso.authorizeURL(provider, apiUrl: apiUrl, state: attempt.state, nonce: attempt.nonce) else {
+            browserSsoAttempts.cancel()
+            return nil
+        }
+        browserSsoTimeoutTask?.cancel()
+        let timeout = browserSsoAttempts.timeout
+        browserSsoTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            guard !Task.isCancelled, let self, self.browserSsoAttempts.pending == attempt else {
+                return
+            }
+            self.browserSsoAttempts.cancel()
+            onTimeout()
+        }
+        return url
+    }
+
+    /// Drops the attempt in flight (the browser could not be opened, the
+    /// view went away).
+    func cancelBrowserSso() {
+        browserSsoTimeoutTask?.cancel()
+        browserSsoTimeoutTask = nil
+        browserSsoAttempts.cancel()
+    }
+
+    /// The api's return for the attempt in flight: accepted exactly once,
+    /// only with the minted state echoed and a token minted for the nonce.
+    /// The login args carry the identity token the way the native flows'
+    /// do (auth_jwt + auth_jwt_type).
+    func createBrowserSsoAuthLoginArgs(_ ssoReturn: BrowserSso.Return) -> Result<SdkAuthLoginArgs, BrowserSso.Failure> {
+        let verdict = browserSsoAttempts.take(ssoReturn)
+        if browserSsoAttempts.pending == nil {
+            browserSsoTimeoutTask?.cancel()
+            browserSsoTimeoutTask = nil
+        }
+        switch verdict {
+        case .success(let idToken):
+            let args = SdkAuthLoginArgs()
+            args.authJwt = idToken
+            args.authJwtType = ssoReturn.provider.rawValue
+            return .success(args)
+        case .failure(let failure):
+            return .failure(failure)
+        }
+    }
+
+    /// Ends whichever browser attempt's login action is active.
+    func endBrowserSsoLoginAction() {
+        if let action = activeLoginAction, action == .google || action == .apple {
+            endLoginAction(action)
+        }
     }
 }

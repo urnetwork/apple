@@ -396,6 +396,12 @@ struct NetworkApp: App {
                         // browser (direct-download build): the split view
                         // routes it to the store
                         deepLinkRouter.open(link)
+                    } else if let ssoReturn = browserSsoReturn(url) {
+                        // the api's oauth callback handing a Google or Apple
+                        // browser sign-in back (direct-download build): the
+                        // login screen or the add sign-in method sheet checks
+                        // it against the attempt it started
+                        deepLinkRouter.open(ssoReturn)
                     } else {
                         GIDSignIn.sharedInstance.handle(url)
                     }
@@ -637,6 +643,17 @@ struct NetworkApp: App {
         setMainWindowVisible(visible)
     }
     
+    /// The Google or Apple browser sign-in return (urnetwork://oauth/<provider>)
+    /// the direct-download build routes; the App Store build has the native
+    /// SDKs and leaves every other url to GIDSignIn.
+    private func browserSsoReturn(_ url: URL) -> BrowserSso.Return? {
+        #if DIRECT_DOWNLOAD
+        return BrowserSso.parseReturn(url)
+        #else
+        return nil
+        #endif
+    }
+
     private func hideWindow() {
         setMainWindowVisible(false)
         mainWindow?.orderOut(nil)  // Hide the window without destroying it

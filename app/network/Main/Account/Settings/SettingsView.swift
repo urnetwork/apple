@@ -18,6 +18,9 @@ struct SettingsView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
+    #if os(macOS) && DIRECT_DOWNLOAD
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+    #endif
     
     var clientId: SdkId?
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
@@ -249,6 +252,11 @@ struct SettingsView: View {
                     .environmentObject(themeManager)
                     .environmentObject(snackbarManager)
                     .environmentObject(connectWalletProviderViewModel)
+                    #if DIRECT_DOWNLOAD
+                    // the Google and Apple browser flow (BrowserSso)
+                    .environmentObject(deviceManager)
+                    .environmentObject(deepLinkRouter)
+                    #endif
             }
         
         #endif

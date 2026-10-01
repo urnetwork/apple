@@ -63,7 +63,7 @@ struct BrowserSsoTests {
         // redirect URIs) and on the Apple Services ID (return URLs)
         #expect(BrowserSso.callbackURL(.google, apiUrl: "https://api.bringyour.com") == "https://api.bringyour.com/auth/google/callback")
         #expect(BrowserSso.callbackURL(.apple, apiUrl: "https://api.bringyour.com/") == "https://api.bringyour.com/auth/apple/callback")
-        #expect(BrowserSso.callbackURL(.google, apiUrl: "https://api.ur.network///") == "https://api.ur.network/auth/google/callback")
+        #expect(BrowserSso.callbackURL(.google, apiUrl: "https://api.bringyour.com///") == "https://api.bringyour.com/auth/google/callback")
     }
 
     @Test func noApiOriginNoUrl() {

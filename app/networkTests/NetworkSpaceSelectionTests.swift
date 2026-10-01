@@ -9,10 +9,10 @@
 //  bind `getNetworkSpace(<bundled key>)` unconditionally and never read the
 //  space the SDK had persisted, which is the same as answering "activate the
 //  bundled space" to every row below. For a user who had selected a different
-//  network space that reverted the API host to the bundled space's
-//  "bringyour.com" migration host AND sent the startup jwt read to the wrong
-//  per-host state directory -- reported as being logged out and reset to the
-//  default server on every restart.
+//  network space that reverted the API host to the bundled space's official
+//  host AND sent the startup jwt read to the wrong per-host state directory --
+//  reported as being logged out and reset to the default server on every
+//  restart.
 //
 //  Android has always had it right, so it is the reference. MainApplication.kt:
 //      if (!bundleNetworkSpaceExists || networkSpaceManager?.activeNetworkSpace == null)

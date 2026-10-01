@@ -4,7 +4,7 @@
 //
 //  "Change Network API" sheet - lets the user point the app at a different
 //  network domain (self-hosted or alternate) instead of the official
-//  ur.network, or enter explicit API/connect url overrides. Available on
+//  bringyour.com, or enter explicit API/connect url overrides. Available on
 //  both iOS and macOS (unlike the Solana wallet sign-in flow, which is
 //  iOS-only). Ported from Android's `NetworkServerSelector.kt`.
 //
@@ -85,7 +85,7 @@ struct NetworkServerSheet: View {
                 text: $viewModel.hostName,
                 label: "Network domain",
                 placeholder: LocalizedStringKey(viewModel.officialHostName),
-                supportingText: "Example: ur.network or your custom domain.",
+                supportingText: "Example: bringyour.com or your custom domain.",
                 isEnabled: managerAvailable
             )
 

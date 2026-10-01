@@ -17,10 +17,19 @@
 import Foundation
 
 struct NetworkConfig {
-    static let officialHostName = "ur.network"
+    // The operator stays bringyour.com: the planned move to *.ur.network was
+    // cancelled, so the bundled space is keyed by the host its services really
+    // resolve under and carries no migration host. The link host (ur.io) is
+    // the web site and is unrelated to the operator host.
+    static let officialHostName = "bringyour.com"
     static let officialEnvName = "main"
     static let officialLinkHostName = "ur.io"
-    static let officialMigrationHostName = "bringyour.com"
+
+    // The bundled key before the operator decision. Installs created by those
+    // builds keep their state under `network_spaces/ur.network/main`;
+    // `NetworkSpaceStartup` moves it to the official key once, on launch, so
+    // they stay signed in.
+    static let legacyOfficialHostName = "ur.network"
 
     static let envSecret = ""
     static let store = ""

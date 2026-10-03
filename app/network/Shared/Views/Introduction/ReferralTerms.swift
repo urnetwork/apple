@@ -66,8 +66,13 @@ enum ReferralBonusLine: Equatable {
     case earned(totalReferrals: Int, gibPerDay: Int)
 
     /// `counted`: a read has landed for this network (a failed later poll
-    /// keeps its count).
+    /// keeps its count). The count is 0 until the read lands and stays 0 when
+    /// it fails, so the raw count alone read as "+0 GiB/Day" for every new
+    /// user; the figures wait for the read, with the server's terms.
     static func of(counted: Bool, loadFailed: Bool, totalReferrals: Int, terms: ReferralTerms) -> ReferralBonusLine {
-        .earned(totalReferrals: totalReferrals, gibPerDay: ReferralTerms.default.earnedGiBPerDay(totalReferrals))
+        if counted {
+            return .earned(totalReferrals: totalReferrals, gibPerDay: terms.earnedGiBPerDay(totalReferrals))
+        }
+        return loadFailed ? .unavailable : .loading
     }
 }

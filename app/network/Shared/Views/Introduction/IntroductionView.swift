@@ -178,6 +178,7 @@ struct IntroductionView: View {
 
     @State var presentRedeemBalanceCodeSheet: Bool = false
     @State var balanceCodeRedeemed: Bool = false
+    @State var redeemedBalanceCode = RedeemedBalanceCode(addedByteCount: 0)
     @State private var routeState = IntroductionRouteState()
     // the connector mark that flies from page 1's route line into the header
     @StateObject private var introConnector = IntroConnectorState()
@@ -261,7 +262,7 @@ struct IntroductionView: View {
 
             } else if (balanceCodeRedeemed) {
 
-                PurchaseSuccessView(dismiss: close)
+                BalanceCodeRedeemedView(redeemed: redeemedBalanceCode, dismiss: close)
                     .transition(.opacity)
                     .frame(maxWidth: .infinity)
                     .ignoresSafeArea()
@@ -282,16 +283,18 @@ struct IntroductionView: View {
                                 closeSheet: {
                                     presentRedeemBalanceCodeSheet = false
                                 },
-                                onSuccess: {
+                                onSuccess: { redeemed in
                                     
                                     presentRedeemBalanceCodeSheet = false
                                     
-                                    // start polling
-                                    subscriptionBalanceViewModel.startPolling()
+                                    // a balance code is data only: read the balance
+                                    // once, never the Pro confirmation poll
+                                    Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
                                     
                                     Task {
                                         // Wait approx. 300ms for the sheet to animate out and keyboard to dismiss
                                         try? await Task.sleep(for: .milliseconds(300))
+                                        self.redeemedBalanceCode = redeemed
                                         self.balanceCodeRedeemed = true
                                     }
                                 },

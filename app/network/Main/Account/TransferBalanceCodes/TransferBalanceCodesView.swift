@@ -124,12 +124,14 @@ struct TransferBalanceCodesView: View {
                             closeSheet: {
                                 viewModel.displayRedeemSheet = false
                             },
-                            onSuccess: {
+                            onSuccess: { _ in
                                 
                                 viewModel.displayRedeemSheet = false
                                 
-                                // start polling
-                                subscriptionBalanceViewModel.startPolling()
+                                // a balance code is data only: read the balance
+                                // once, never the Pro confirmation poll. The new
+                                // code's "+data" row below confirms the redeem.
+                                Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
                                 
                                 Task {
                                     await viewModel.getRedeemedBalanceCodes()

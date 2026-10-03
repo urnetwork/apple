@@ -17,6 +17,7 @@ extension AccountRootView {
         @Published var isPresentedCreateAccount: Bool = false
         @Published var isPresentedRedeemBalanceCodeSheet: Bool = false
         @Published var balanceCodeRedeemed: Bool = false
+        @Published var redeemedBalanceCode = RedeemedBalanceCode(addedByteCount: 0)
         
 //        init(api: SdkBringYourApi) {
 //            self.api = api

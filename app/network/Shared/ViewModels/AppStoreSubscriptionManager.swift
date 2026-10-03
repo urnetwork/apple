@@ -162,6 +162,19 @@ class AppStoreSubscriptionManager: ObservableObject {
          */
         transactionMonitor.retryDeferredReports()
 
+        /**
+         * The launch scan (finding A1): report this network's current
+         * entitlements, report-only, so a purchase finished before any server
+         * contact whose webhook was lost is credited without the user having
+         * to find "Restore purchases". Each entitlement is reported once.
+         */
+        let launchScanNetworkId = networkId.flatMap { UUID(uuidString: $0.idStr) }
+        if launchScanNetworkId != nil {
+            Task {
+                _ = await transactionMonitor.reportEntitlements(networkId: launchScanNetworkId, force: false)
+            }
+        }
+
         Task {
             await fetchProducts()
             await refreshHasAppStoreSubscription()
@@ -568,20 +581,17 @@ class AppStoreSubscriptionManager: ObservableObject {
             }
         }
 
+        /**
+         * Report-only scan of current entitlements (finding A1): each one
+         * purchased under this network is reported to the server, so a
+         * purchase finished before any server contact whose webhook was lost
+         * is credited now. Nothing here is finished; that stays with the
+         * report-then-finish sequence above.
+         */
         let currentNetworkUUID: UUID? = networkId.flatMap { UUID(uuidString: $0.idStr) }
-
-        var foundCurrent = false
-        var foundOther = false
-        for await result in Transaction.currentEntitlements {
-            guard case .verified(let transaction) = result, transaction.revocationDate == nil else {
-                continue
-            }
-            if let token = transaction.appAccountToken, let currentNetworkUUID, token == currentNetworkUUID {
-                foundCurrent = true
-            } else {
-                foundOther = true
-            }
-        }
+        let scan = await transactionMonitor.reportEntitlements(networkId: currentNetworkUUID, force: true)
+        let foundCurrent = scan.foundCurrent
+        let foundOther = scan.foundOther
 
         if foundCurrent {
             restoreResultMessage = String(localized: "Purchase found. Confirming your plan — it will update automatically.")

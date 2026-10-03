@@ -58,6 +58,30 @@ enum PurchaseReportOutcome {
 }
 
 /**
+ * The proof of one current entitlement (a verified, unrevoked transaction from
+ * `Transaction.currentEntitlements`), for the report-only pass. It carries no
+ * Transaction handle on purpose: the report-only pass never finishes.
+ */
+struct EntitlementProof {
+    let transactionId: UInt64
+    let appAccountToken: UUID?
+    let jws: String
+}
+
+/**
+ * The result of one entitlement scan. `foundCurrent`/`foundOther` classify
+ * the entitlements by network (the restore outcome); `newlyCredited` is set
+ * when the server credited a report-only proof just now, i.e. a purchase that
+ * had been stranded (start the confirmation poll).
+ */
+struct EntitlementScanResult {
+    var foundCurrent = false
+    var foundOther = false
+    var newlyCredited = false
+    var reportResults: [UInt64: PurchaseReportOutcome] = [:]
+}
+
+/**
  * Report-then-finish for StoreKit transactions (finding A1 in
  * server/UPGRADE.md §3), implementing the client contract documented in
  * sdk/purchase_report.go:
@@ -95,6 +119,17 @@ final class PurchaseReporter {
     private static let pendingReportsKey = "ur.pendingPurchaseReports"
 
     /**
+     * Transaction ids of current entitlements whose report-only pass already
+     * reached a terminal answer, so the launch scan reports each entitlement
+     * once rather than on every launch (the verify endpoint is rate limited
+     * per account). A restore pass reports regardless.
+     */
+    private static let reportedEntitlementsKey = "ur.reportedEntitlementTransactionIds"
+
+    /// Bounds the reported-entitlement record (one id per renewal period).
+    private static let maxReportedEntitlements = 64
+
+    /**
      * The durable record: everything needed to re-report after a crash, even
      * if StoreKit's own redelivery is delayed or the transaction was finished
      * but the clear was lost.
@@ -106,23 +141,53 @@ final class PurchaseReporter {
         let firstSeen: Date
     }
 
+    /// One report attempt of a transaction JWS against the verify endpoint.
+    typealias Verify = @MainActor (_ jws: String) async -> ReportAttemptResult
+
     /**
-     * Returns the session api, or nil when none exists. Reporting requires a
-     * session (the verify endpoint is session-authed); an api whose byJwt is
-     * empty is "no session".
+     * Returns the verify call for the current session, or nil when no session
+     * exists. Reporting requires a session (the verify endpoint is
+     * session-authed); an api whose byJwt is empty is "no session".
      */
-    private var apiProvider: (@MainActor () -> SdkApi?)?
+    private var verifyProvider: (@MainActor () -> Verify?)?
+
+    private let defaults: UserDefaults
+    private let sleepMillis: @MainActor (Int64) async -> Void
 
     private var inFlight: Set<UInt64> = []
+    // report-only passes keep their own set, so a scan never makes the
+    // report-then-finish path answer alreadyInFlight (and skip its finish)
+    private var entitlementInFlight: Set<UInt64> = []
 
     private var pending: [UInt64: PendingPurchaseReport]
+    private var reportedEntitlements: [UInt64]
 
-    private init() {
-        pending = Self.loadPersisted()
+    private convenience init() {
+        self.init(defaults: .standard, sleepMillis: { millis in
+            try? await Task.sleep(nanoseconds: UInt64(millis) * 1_000_000)
+        })
+    }
+
+    /// Tests inject their own defaults suite and an instant sleep.
+    init(defaults: UserDefaults, sleepMillis: @escaping @MainActor (Int64) async -> Void) {
+        self.defaults = defaults
+        self.sleepMillis = sleepMillis
+        pending = Self.loadPersisted(defaults: defaults)
+        reportedEntitlements = defaults.array(forKey: Self.reportedEntitlementsKey)?
+            .compactMap { ($0 as? NSNumber)?.uint64Value } ?? []
     }
 
     func configure(apiProvider: @escaping @MainActor () -> SdkApi?) {
-        self.apiProvider = apiProvider
+        configure(verifyProvider: {
+            guard let api = apiProvider(), !api.getByJwt().isEmpty else {
+                return nil
+            }
+            return { jws in await Self.reportOnce(api: api, jws: jws) }
+        })
+    }
+
+    func configure(verifyProvider: @escaping @MainActor () -> Verify?) {
+        self.verifyProvider = verifyProvider
     }
 
     /**
@@ -197,33 +262,146 @@ final class PurchaseReporter {
         }
     }
 
+    // MARK: report-only (current entitlements)
+
+    /**
+     * Report-only for current entitlements: report every verified entitlement
+     * purchased under `networkId` (appAccountToken matches) and never finish
+     * anything.
+     *
+     * The report-then-finish contract above only covers transactions StoreKit
+     * still redelivers. A transaction finished before any server contact (the
+     * pre-reorder builds), whose first webhook was lost, is never redelivered
+     * and the reconciler cannot see it either, so its only remaining proof is
+     * the entitlement StoreKit keeps listing. Reporting that proof lets the
+     * server credit it. An entitlement is usually already finished, so there is
+     * nothing to finish; one that is still unfinished stays owned by
+     * `reportAndFinish` through redelivery.
+     *
+     * Entitlements under another network (or without a token) are not
+     * reported: the server could only answer wrong_network or invalid, and
+     * the linked network is credited via its own session.
+     *
+     * Each entitlement is reported once (see `reportedEntitlementsKey`) unless
+     * `force` is set, which a user-triggered restore uses.
+     */
+    func reportEntitlements(
+        _ entitlements: [EntitlementProof],
+        networkId: UUID?,
+        force: Bool
+    ) async -> EntitlementScanResult {
+        var scan = EntitlementScanResult()
+        var noSession = false
+        for entitlement in entitlements {
+            guard let networkId, entitlement.appAccountToken == networkId else {
+                scan.foundOther = true
+                continue
+            }
+            scan.foundCurrent = true
+
+            let transactionId = entitlement.transactionId
+            if noSession || (!force && reportedEntitlements.contains(transactionId)) {
+                continue
+            }
+            guard !entitlementInFlight.contains(transactionId) else {
+                continue
+            }
+            entitlementInFlight.insert(transactionId)
+            defer { entitlementInFlight.remove(transactionId) }
+
+            let result = await reportUntilTerminalResult(
+                transactionId: transactionId,
+                jws: entitlement.jws
+            )
+            scan.reportResults[transactionId] = result.outcome
+            switch result {
+            case .credited:
+                scan.newlyCredited = true
+                recordReportedEntitlement(transactionId)
+            case .alreadyCredited, .wrongNetwork, .invalid:
+                recordReportedEntitlement(transactionId)
+            case .deferredNoSession:
+                // no session for this one means no session for the rest; keep
+                // classifying, and the next scan reports them
+                noSession = true
+            case .transientFailure:
+                // not recorded: the next scan reports it again
+                break
+            }
+        }
+        return scan
+    }
+
+    private func recordReportedEntitlement(_ transactionId: UInt64) {
+        guard !reportedEntitlements.contains(transactionId) else {
+            return
+        }
+        reportedEntitlements.append(transactionId)
+        if Self.maxReportedEntitlements < reportedEntitlements.count {
+            reportedEntitlements.removeFirst(reportedEntitlements.count - Self.maxReportedEntitlements)
+        }
+        defaults.set(
+            reportedEntitlements.map { NSNumber(value: $0) },
+            forKey: Self.reportedEntitlementsKey
+        )
+    }
+
     // MARK: report loop
 
-    private enum ReportAttemptResult {
+    enum ReportAttemptResult {
         case status(String)
         case transportFailure
+    }
+
+    /// A terminal server answer, or why the pass stopped short of one.
+    private enum ReportResult {
+        case credited
+        case alreadyCredited
+        case wrongNetwork
+        case invalid
+        case deferredNoSession
+        case transientFailure
+
+        var outcome: PurchaseReportOutcome {
+            switch self {
+            case .credited, .alreadyCredited: return .credited
+            case .wrongNetwork: return .wrongNetwork
+            case .invalid: return .invalid
+            case .deferredNoSession: return .deferredNoSession
+            case .transientFailure: return .transientFailure
+            }
+        }
     }
 
     private func reportUntilTerminal(
         transactionId: UInt64,
         jws: String
     ) async -> PurchaseReportOutcome {
+        return await reportUntilTerminalResult(transactionId: transactionId, jws: jws).outcome
+    }
+
+    private func reportUntilTerminalResult(
+        transactionId: UInt64,
+        jws: String
+    ) async -> ReportResult {
         var attempt = 0
         while true {
-            guard let api = apiProvider?(), !api.getByJwt().isEmpty else {
+            guard let verify = verifyProvider?() else {
                 // the verify endpoint is session-authed; without a session the
                 // report can only fail. Keep the proof and wait for
                 // retryDeferredReports / the next launch.
                 return .deferredNoSession
             }
 
-            let result = await reportOnce(api: api, jws: jws)
+            let result = await verify(jws)
 
             switch result {
             case .status(let status) where SdkIsPurchaseReportTerminal(status):
                 switch status {
-                case SdkPurchaseReportStatusCredited, SdkPurchaseReportStatusAlreadyCredited:
+                case SdkPurchaseReportStatusCredited:
                     return .credited
+                case SdkPurchaseReportStatusAlreadyCredited:
+                    return .alreadyCredited
                 case SdkPurchaseReportStatusWrongNetwork:
                     return .wrongNetwork
                 default:
@@ -239,12 +417,12 @@ final class PurchaseReporter {
                     return .transientFailure
                 }
                 let backoffMillis = SdkPurchaseReportBackoffMillis(Int32(attempt - 1))
-                try? await Task.sleep(nanoseconds: UInt64(backoffMillis) * 1_000_000)
+                await sleepMillis(backoffMillis)
             }
         }
     }
 
-    private func reportOnce(api: SdkApi, jws: String) async -> ReportAttemptResult {
+    private static func reportOnce(api: SdkApi, jws: String) async -> ReportAttemptResult {
         let args = SdkVerifyAppleTransactionArgs()
         args.signedTransaction = jws
 
@@ -299,14 +477,14 @@ final class PurchaseReporter {
     private func save() {
         do {
             let data = try JSONEncoder().encode(Array(pending.values))
-            UserDefaults.standard.set(data, forKey: Self.pendingReportsKey)
+            defaults.set(data, forKey: Self.pendingReportsKey)
         } catch {
             print("[PurchaseReporter] failed to persist pending reports: \(error)")
         }
     }
 
-    private static func loadPersisted() -> [UInt64: PendingPurchaseReport] {
-        guard let data = UserDefaults.standard.data(forKey: pendingReportsKey) else {
+    private static func loadPersisted(defaults: UserDefaults) -> [UInt64: PendingPurchaseReport] {
+        guard let data = defaults.data(forKey: pendingReportsKey) else {
             return [:]
         }
         do {

@@ -1544,6 +1544,8 @@ enum LoginNetworkResult {
 enum NetworkDeleteError: Error {
     case inProgress
     case resultInvalid
+    /// the server answered but did not delete the account
+    case refused(message: String)
 }
 
 enum UpdateReferralNetworkError: Error {

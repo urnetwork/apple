@@ -18,57 +18,74 @@ struct AccountPointsBreakdown: View {
     var referralPoints: Double
     var multiplierPoints: Double
     var reliabilityPoints: Double
+    /// the points are shown only once loaded; a failed fetch is not 0 points
+    var load: SectionLoad = .loaded
+    var retry: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
             UrLabel(text: "Points earned")
-            Text(verbatim: SnAlpha.formatPoints(netPoints))
-                .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
-                .foregroundColor(themeManager.currentTheme.textColor)
-                .padding(.bottom, -4)
-
-            Spacer().frame(height: 16)
-            Divider()
-            Spacer().frame(height: 12)
-
-            HStack {
-                column("Providing", providingPoints)
-                Spacer()
-                column("Referral", referralPoints)
-                Spacer()
-                column("Reliability", reliabilityPoints)
-            }
-
-            if multiplierPoints > 0 {
-                Spacer().frame(height: 12)
-                Divider()
-                Spacer().frame(height: 12)
-                HStack(alignment: .center) {
-                    Image("2x")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 32, height: 32)
-                    Spacer().frame(width: 16)
-                    VStack(alignment: .leading) {
-                        Text("Seeker Token Verified!")
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
-                        Text("The Seeker multiplier applies to points only.")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    }
-                    Spacer()
-                    Text(verbatim: "+\(SnAlpha.formatPoints(multiplierPoints))")
-                        .font(themeManager.currentTheme.titleCondensedFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                }
+            switch load {
+            case .loaded:
+                points
+            case .loading:
+                Spacer().frame(height: 8)
+                ProgressView()
+            case .failed:
+                Spacer().frame(height: 8)
+                SectionLoadFailedView(retry: retry)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+
+    @ViewBuilder
+    private var points: some View {
+        Text(verbatim: SnAlpha.formatPoints(netPoints))
+            .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
+            .foregroundColor(themeManager.currentTheme.textColor)
+            .padding(.bottom, -4)
+
+        Spacer().frame(height: 16)
+        Divider()
+        Spacer().frame(height: 12)
+
+        HStack {
+            column("Providing", providingPoints)
+            Spacer()
+            column("Referral", referralPoints)
+            Spacer()
+            column("Reliability", reliabilityPoints)
+        }
+
+        if multiplierPoints > 0 {
+            Spacer().frame(height: 12)
+            Divider()
+            Spacer().frame(height: 12)
+            HStack(alignment: .center) {
+                Image("2x")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 32, height: 32)
+                Spacer().frame(width: 16)
+                VStack(alignment: .leading) {
+                    Text("Seeker Token Verified!")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Text("The Seeker multiplier applies to points only.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                Spacer()
+                Text(verbatim: "+\(SnAlpha.formatPoints(multiplierPoints))")
+                    .font(themeManager.currentTheme.titleCondensedFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            }
+        }
     }
 
     private func column(_ label: LocalizedStringKey, _ points: Double) -> some View {

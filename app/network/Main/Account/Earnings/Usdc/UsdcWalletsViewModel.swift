@@ -57,6 +57,12 @@ final class UsdcWalletsViewModel: ObservableObject {
         return UsdcFormat.usd(nanoCents: pending)
     }
 
+    /// A round finished without the wallets and the payout wallet ever read,
+    /// so whether there is a payout wallet is unknown.
+    var loadFailed: Bool {
+        loadedOnce && !(walletsRead && payoutWalletRead)
+    }
+
     /// USDC is waiting and there is no Solana payout wallet to send it to.
     /// Said only once the wallets and the payout wallet have been read: a
     /// failed read must not claim that no wallet is connected.

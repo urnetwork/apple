@@ -67,7 +67,13 @@ struct EarningsView: View {
                     providingPoints: accountPointsStore.providingPoints,
                     referralPoints: accountPointsStore.referralPoints,
                     multiplierPoints: accountPointsStore.multiplierPoints,
-                    reliabilityPoints: accountPointsStore.reliabilityPoints
+                    reliabilityPoints: accountPointsStore.reliabilityPoints,
+                    load: accountPointsStore.load,
+                    retry: {
+                        Task {
+                            await accountPointsStore.fetchAccountPoints()
+                        }
+                    }
                 )
 
                 if let head = viewModel.head, viewModel.showsTop200Tile {
@@ -85,6 +91,12 @@ struct EarningsView: View {
                     connectSolana: {
                         solanaFlow.reset()
                         presentSolanaSheet = true
+                    },
+                    loadFailed: viewModel.walletLoadFailed,
+                    retry: {
+                        Task {
+                            await viewModel.refresh()
+                        }
                     }
                 )
 
@@ -98,6 +110,13 @@ struct EarningsView: View {
                             usdcViewModel.walletQueuedForRemoval = wallet
                         }
                     )
+                } else if usdcViewModel.loadFailed {
+                    // unread is not "no payout wallet"
+                    SolanaWalletLoadFailedCard(retry: {
+                        Task {
+                            await usdcViewModel.refresh()
+                        }
+                    })
                 }
 
                 if viewModel.hasWallet {
@@ -256,9 +275,16 @@ struct EarningsView: View {
             Spacer().frame(height: 8)
             if viewModel.epochs.isEmpty {
                 HStack {
-                    if viewModel.isLoading && !viewModel.loadedOnce {
+                    switch viewModel.historyLoad {
+                    case .loading:
                         ProgressView()
-                    } else {
+                    case .failed:
+                        SectionLoadFailedView(retry: {
+                            Task {
+                                await viewModel.refresh()
+                            }
+                        })
+                    case .loaded:
                         Text("No epochs yet. Points appear after your first finalized epoch.")
                             .font(themeManager.currentTheme.secondaryBodyFont)
                             .foregroundColor(themeManager.currentTheme.textMutedColor)

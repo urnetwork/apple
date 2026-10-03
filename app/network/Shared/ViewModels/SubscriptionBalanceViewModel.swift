@@ -30,23 +30,19 @@ class SubscriptionBalanceViewModel: ObservableObject {
      */
     // when the user has updated, we want to poll to check their balance + subscription have been bumped
     @Published private(set) var isPolling: Bool = false
-    private var pollingTimer: Timer?
-    private var pollingInterval: TimeInterval = 5.0 // Default 5 seconds
 
     /**
-     * The upgrade-confirmation poll has a DEADLINE.
+     * The post-purchase confirmation poll runs on the SDK's
+     * SubscriptionBalanceViewController (finding A2): 5 s polls against a
+     * 120 s polling BUDGET that is paused while the app is inactive, ending in
+     * a terminal confirmed / gave-up state.
      *
-     * A purchase reaches our server asynchronously (the App Store notifies it by
-     * webhook), so right after StoreKit reports success the server does not know yet.
-     * We poll to bridge that gap -- that part works.
-     *
-     * But a webhook can be lost or badly delayed, and the poll only ever stopped on
-     * SUCCESS. So in that case it ran every 5 seconds for the rest of the session,
-     * behind a spinner, with no way for the user to learn anything had gone wrong.
-     * They paid, and the app just span. Give up after `maxPollingDuration` and say so.
+     * The app used to run its own poll with a wall-clock 120 s deadline that
+     * kept running while the app was inactive. A buyer who left the app during
+     * checkout (an SCA step, the App Store's own sheets) came back to "we
+     * couldn't confirm your purchase" without a single poll having run.
      */
-    private var pollingDeadline: Date?
-    private let maxPollingDuration: TimeInterval = 120.0 // 2 minutes
+    private let purchaseConfirmation: PurchaseConfirming
 
     /**
      * True when the confirmation poll gave up without the server ever confirming Pro.
@@ -113,15 +109,20 @@ class SubscriptionBalanceViewModel: ObservableObject {
     init(
         urApiService: UrApiServiceProtocol,
         isPro: Bool,
-        refreshJwt: @escaping () -> Void
+        refreshJwt: @escaping () -> Void,
+        purchaseConfirmation: PurchaseConfirming
     ) {
         self.urApiService = urApiService
         self.refreshJwt = refreshJwt
         self.isPro = isPro
+        self.purchaseConfirmation = purchaseConfirmation
+        purchaseConfirmation.setForeground(active)
+        purchaseConfirmation.onStateChanged = { [weak self] state in
+            self?.purchaseConfirmationStateChanged(state)
+        }
     }
 
     deinit {
-        pollingTimer?.invalidate()
         backgroundPollingTimer?.invalidate()
     }
 
@@ -130,15 +131,15 @@ class SubscriptionBalanceViewModel: ObservableObject {
             return
         }
         active = nextActive
+        // the confirmation budget pauses and resumes with the app
+        purchaseConfirmation.setForeground(active)
 
         if !active {
             pauseTimers()
             return
         }
 
-        if isPolling {
-            resumeConfirmationPolling()
-        } else if !isPro {
+        if !isPolling && !isPro {
             startBackgroundPolling()
         }
     }
@@ -305,10 +306,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
         
     }
     
-    func setPollingInterval(_ interval: TimeInterval) {
-        self.pollingInterval = interval
-    }
-    
     private func startBackgroundPolling() {
         guard active, !isPro, !isPolling, backgroundPollingTimer == nil else {
             return
@@ -343,100 +340,68 @@ class SubscriptionBalanceViewModel: ObservableObject {
         }
     }
     
-    func startPolling(interval: TimeInterval = 5.0) {
+    /**
+     * Start the post-purchase confirmation on the SDK controller. The
+     * controller is started only for the confirmation (the balance itself is
+     * fetched here, with the storefront the plan data needs), and with no
+     * loaded snapshot it confirms on Pro with a positive balance, the rule
+     * this poll always used.
+     */
+    func startPolling() {
 
         guard !isPolling else { return }
 
         backgroundPollingTimer?.invalidate()
         backgroundPollingTimer = nil
 
-        // a fresh confirmation attempt: clear any previous give-up, and arm the deadline
+        // a fresh confirmation attempt: clear any previous give-up
         if self.purchaseConfirmationTimedOut {
             self.purchaseConfirmationTimedOut = false
         }
-        self.pollingDeadline = Date().addingTimeInterval(maxPollingDuration)
-
-        self.setPollingInterval(interval)
         self.setIsPolling(true)
 
-        if active {
-            resumeConfirmationPolling()
-        }
+        // confirmation first, so the controller starts with the budget armed
+        // and no baseline snapshot
+        purchaseConfirmation.startPurchaseConfirmation()
+        purchaseConfirmation.start()
     }
 
-    private func resumeConfirmationPolling() {
-        guard active, isPolling, pollingTimer == nil else {
+    private func purchaseConfirmationStateChanged(_ state: String) {
+        guard isPolling else {
+            // a stop (or the idle that follows it) after this view model moved on
             return
         }
-        if isPollingDeadlineExpired() {
-            timeOutPurchaseConfirmation()
-            return
-        }
-
-        Task {
-
-            await fetchSubscriptionBalance()
-
-            if (self.isSupporterWithBalance()) {
-                stopPolling()
-                return
+        switch state {
+        case SdkPurchaseConfirmationStateConfirmed:
+            endPurchaseConfirmation()
+            // the server reflects the purchase: load it here, which also
+            // refreshes the jwt to pro
+            Task {
+                await fetchSubscriptionBalance()
             }
-
-            guard active, isPolling else {
-                return
+        case SdkPurchaseConfirmationStateConfirmationGaveUp:
+            /**
+             * Give up waiting for the server to confirm the purchase. The money was
+             * taken by StoreKit; we simply could not verify the entitlement in time (a
+             * lost or slow App Store webhook). Raise the flag so the UI can show a real
+             * message -- the purchase is still likely to land, and the background poll
+             * and the next app launch will pick it up.
+             */
+            endPurchaseConfirmation()
+            if !purchaseConfirmationTimedOut {
+                purchaseConfirmationTimedOut = true
             }
-            if isPollingDeadlineExpired() {
-                timeOutPurchaseConfirmation()
-                return
+            if active && !isPro {
+                startBackgroundPolling()
             }
-            guard pollingTimer == nil else {
-                return
-            }
-
-            pollingTimer = Timer.scheduledTimer(withTimeInterval: pollingInterval, repeats: true) {
-                [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self, self.active, self.isPolling else {
-                        return
-                    }
-                    await self.fetchSubscriptionBalance()
-
-                    if self.isSupporterWithBalance() {
-                        self.stopPolling()
-                        return
-                    }
-
-                    // the server never confirmed within the window -- stop
-                    // hammering the api and tell the user, rather than spinning
-                    // for the rest of the session
-                    if self.isPollingDeadlineExpired() {
-                        self.timeOutPurchaseConfirmation()
-                    }
-                }
-            }
+        default:
+            break
         }
     }
 
-    private func isPollingDeadlineExpired() -> Bool {
-        guard let pollingDeadline = self.pollingDeadline else { return false }
-        return Date() >= pollingDeadline
-    }
-
-    /**
-     * Give up waiting for the server to confirm the purchase. The money was taken by
-     * StoreKit; we simply could not verify the entitlement in time (a lost or slow
-     * App Store webhook). Stop polling and raise the flag so the UI can show a real
-     * message -- the purchase is still likely to land, and the background poll and the
-     * next app launch will pick it up.
-     */
-    private func timeOutPurchaseConfirmation() {
-        stopPolling()
-        if !purchaseConfirmationTimedOut {
-            purchaseConfirmationTimedOut = true
-        }
-        if active && !isPro {
-            startBackgroundPolling()
-        }
+    private func endPurchaseConfirmation() {
+        setIsPolling(false)
+        purchaseConfirmation.stop()
     }
 
     func clearPurchaseConfirmationTimeout() {
@@ -451,23 +416,89 @@ class SubscriptionBalanceViewModel: ObservableObject {
     }
     
     func stopPolling() {
-        pollingTimer?.invalidate()
-        pollingTimer = nil
-        pollingDeadline = nil
         if isPolling {
-            isPolling = false
+            endPurchaseConfirmation()
         }
         backgroundPollingTimer?.invalidate()
         backgroundPollingTimer = nil
     }
 
     private func pauseTimers() {
-        pollingTimer?.invalidate()
-        pollingTimer = nil
         backgroundPollingTimer?.invalidate()
         backgroundPollingTimer = nil
     }
     
+}
+
+/**
+ * The purchase-confirmation half of the SDK SubscriptionBalanceViewController,
+ * as the view model drives it (a protocol so tests can drive the states).
+ * State changes arrive on the main actor.
+ */
+@MainActor
+protocol PurchaseConfirming: AnyObject {
+    var onStateChanged: ((String) -> Void)? { get set }
+    func start()
+    func stop()
+    func setForeground(_ foreground: Bool)
+    func startPurchaseConfirmation()
+}
+
+/**
+ * The SDK controller, closed with this object. Its listener fires on a Go
+ * thread; states are hopped to the main actor in order.
+ */
+@MainActor
+final class SdkPurchaseConfirmation: PurchaseConfirming {
+
+    var onStateChanged: ((String) -> Void)?
+
+    private let controller: SdkSubscriptionBalanceViewController?
+    private var listenerSub: SdkSubProtocol?
+
+    init(api: SdkApi) {
+        controller = SdkNewSubscriptionBalanceViewController(api)
+        listenerSub = controller?.add(PurchaseConfirmationListener { [weak self] state in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    self?.onStateChanged?(state)
+                }
+            }
+        })
+    }
+
+    func start() {
+        controller?.start()
+    }
+
+    func stop() {
+        controller?.stop()
+    }
+
+    func setForeground(_ foreground: Bool) {
+        controller?.setForeground(foreground)
+    }
+
+    func startPurchaseConfirmation() {
+        controller?.startPurchaseConfirmation()
+    }
+
+    deinit {
+        listenerSub?.close()
+        controller?.close()
+    }
+}
+
+private class PurchaseConfirmationListener: NSObject, SdkPurchaseConfirmationListenerProtocol {
+    private let callback: (String) -> Void
+
+    init(callback: @escaping (String) -> Void) {
+        self.callback = callback
+    }
+
+    func purchaseConfirmationStateChanged(_ state: String?) {
+        callback(state ?? "")
+    }
 }
 
 enum Plan: String {

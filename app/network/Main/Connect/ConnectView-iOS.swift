@@ -526,6 +526,17 @@ struct ConnectView_iOS: View {
             .onChange(of: connectViewModel.tunnelConnected) { _ in
                 checkTunnelStatus()
             }
+            // the auto-disconnect uses the same insufficient balance gate
+            // this view renders
+            .onAppear {
+                updateInsufficientBalanceGuards()
+            }
+            .onChange(of: isPro) { _ in
+                updateInsufficientBalanceGuards()
+            }
+            .onChange(of: subscriptionBalanceViewModel.isPolling) { _ in
+                updateInsufficientBalanceGuards()
+            }
             .onChange(of: collapseDrawerSignal) { _ in
                 // the connect tab was re-tapped. close the drawer.
                 isSheetExpanded = false
@@ -551,6 +562,13 @@ struct ConnectView_iOS: View {
         
     }
     
+    private func updateInsufficientBalanceGuards() {
+        connectViewModel.updateInsufficientBalanceGuards(
+            plan: isPro ? .supporter : .none,
+            isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling
+        )
+    }
+
     private func checkTunnelStatus() {
         
         if connectViewModel.connectionStatus == .connected && !connectViewModel.tunnelConnected {

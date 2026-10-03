@@ -165,6 +165,16 @@ class ConnectViewModel: ObservableObject {
         !contractStatusRefreshGenerations.isEmpty || queuedContractStatusRefresh != nil
     }
 
+    // insufficient balance: the gate inputs pushed by the connect views, and
+    // the reaction that posts the held-traffic notice (never a disconnect)
+    // nil until a connect view reports the plan
+    private var insufficientBalancePlan: Plan? = nil
+    private var insufficientBalancePolling: Bool = false
+    private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
+        disconnect: { [weak self] in self?.disconnect() },
+        notice: { action in InsufficientBalanceNotice.apply(action) }
+    )
+
     // last published grid signature; skip redundant re-renders when the SDK
     // re-emits a logically unchanged grid (its point objects get fresh
     // identities each notification, which would otherwise storm @Published)
@@ -210,6 +220,9 @@ class ConnectViewModel: ObservableObject {
         self.refreshTunnelStatus()
 
         self.contractListenerSub = device.add(makeContractStatusListener())
+        // the listener only reports changes: a balance that was already
+        // insufficient must show the gate and its notice now
+        self.updateContractStatus()
     }
 
     /**
@@ -242,6 +255,8 @@ class ConnectViewModel: ObservableObject {
         self.contractStatus = nil
         self.isPresentedCreateAccount = false
         self.isPresentedUpgradeSheet = false
+        // a signed out account's episode is over: withdraw its notice
+        self.insufficientBalanceReaction.reset()
     }
 
     private func closeListeners() {
@@ -476,9 +491,31 @@ extension ConnectViewModel {
             self.contractStatus = status
         }
 
-        if status?.insufficientBalance == true && self.connectionStatus != .disconnected {
-            self.disconnect()
+        evaluateInsufficientBalance()
+    }
+
+    /// Plan and polling live with the subscription views; the connect views
+    /// push them here so the notice uses the same gate they render.
+    func updateInsufficientBalanceGuards(plan: Plan, isPollingSubscriptionBalance: Bool) {
+        if insufficientBalancePlan == plan && insufficientBalancePolling == isPollingSubscriptionBalance {
+            return
         }
+        insufficientBalancePlan = plan
+        insufficientBalancePolling = isPollingSubscriptionBalance
+        evaluateInsufficientBalance()
+    }
+
+    /// Out of balance keeps the connect request: the tunnel holds traffic
+    /// until the user upgrades or disconnects (see InsufficientBalancePolicy).
+    private func evaluateInsufficientBalance() {
+        insufficientBalanceReaction.update(
+            insufficientBalance: contractStatus?.insufficientBalance == true,
+            isSupporter: insufficientBalancePlan == .supporter,
+            // an unknown plan defers the notice like a poll, so a supporter
+            // is never told before the plan arrives
+            isPolling: insufficientBalancePolling || insufficientBalancePlan == nil,
+            connectionStatus: connectionStatus
+        )
     }
 
     private static func contractStatusEqual(_ a: SdkContractStatus?, _ b: SdkContractStatus?) -> Bool {

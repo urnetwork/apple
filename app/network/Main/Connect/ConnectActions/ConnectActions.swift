@@ -96,6 +96,18 @@ struct ConnectActions: View {
         return "Enable provide mode to make this device discoverable"
     }
 
+    private var actionButtons: ConnectActionButtons {
+        connectActionButtons(
+            gateActive: insufficientBalanceGateActive(
+                insufficientBalance: contractStatus?.insufficientBalance == true,
+                plan: isPro ? .supporter : .none,
+                isPollingSubscriptionBalance: isPollingSubscriptionBalance
+            ),
+            connectionStatus: connectionStatus,
+            displayReconnectTunnel: displayReconnectTunnel
+        )
+    }
+
     var body: some View {
             
             VStack {
@@ -114,19 +126,41 @@ struct ConnectActions: View {
                             openSelectProvider: {setIsPresented(true)}
                         )
                     
-                        if (contractStatus?.insufficientBalance == true && !isPro && !isPollingSubscriptionBalance) {
+                        if actionButtons.upgrade {
                             /**
                              * out of balance
                              * not a supporter
+                             * disconnect stays offered while a connect is
+                             * requested, so the tunnel can always be released.
+                             * The notice and both buttons sit above the fold
+                             * marker, so the collapsed drawer shows them.
                              */
+
+                            Text(InsufficientBalanceNotice.body)
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("acceptance.insufficientBalance.notice")
                             
-                            UrButton(
-                                text: "Insufficient balance",
-                                action: {
-                                    promptMoreDataFlow()
-                                },
-                                style: .outlineSecondary
-                            )
+                            HStack {
+                                UrButton(
+                                    text: "Insufficient balance",
+                                    action: {
+                                        promptMoreDataFlow()
+                                    },
+                                    style: .outlineSecondary,
+                                    accessibilityIdentifier: "acceptance.insufficientBalance.upgrade"
+                                )
+
+                                if actionButtons.disconnect {
+                                    UrButton(
+                                        text: "Disconnect",
+                                        action: disconnect,
+                                        style: .outlineSecondary,
+                                        accessibilityIdentifier: "acceptance.disconnect"
+                                    )
+                                }
+                            }
                             .connectActionsFold()
 
                         } else {
@@ -137,7 +171,7 @@ struct ConnectActions: View {
                             /**
                              * Action buttons
                              */
-                            if (connectionStatus == .disconnected) {
+                            if actionButtons.connect {
                                 HStack {
                                     UrButton(
                                         text: "Connect",
@@ -148,7 +182,7 @@ struct ConnectActions: View {
                                 .connectActionsFold()
                             }
 
-                            if (connectionStatus != .disconnected && !displayReconnectTunnel) {
+                            if actionButtons.disconnect {
                                 UrButton(
                                     text: "Disconnect",
                                     action: disconnect,
@@ -158,7 +192,7 @@ struct ConnectActions: View {
                                 .connectActionsFold()
                             }
 
-                            if displayReconnectTunnel {
+                            if actionButtons.reconnect {
                                 UrButton(
                                     text: "Reconnect",
                                     action: reconnectTunnel ?? {},

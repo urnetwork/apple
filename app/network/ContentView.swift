@@ -38,6 +38,7 @@ struct ContentView: View {
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @StateObject private var snackbarManager = UrSnackbarManager()
     @StateObject private var connectWalletProviderViewModel = ConnectWalletProviderViewModel()
+    @ObservedObject private var insufficientBalanceNoticePosts = InsufficientBalanceNoticePosts.shared
     
     @State private var opacity: Double = 0.0
     @State private var updatePathWorkItem: DispatchWorkItem?
@@ -128,6 +129,10 @@ struct ContentView: View {
                         value: clientID
                     )
                 }
+                AcceptanceMarker(
+                    identifier: "acceptance.insufficientBalance.notifications",
+                    value: "\(insufficientBalanceNoticePosts.count)"
+                )
             }
 
             #if DEBUG && URNETWORK_HARDWARE_UI_TESTING && os(iOS)

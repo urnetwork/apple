@@ -113583,6 +113583,173 @@
         }
       }
     },
+    "Your traffic is held in the tunnel until you upgrade or disconnect." : {
+      "comment" : "Alert body shown in the app and in a local notification when the account enters the insufficient balance state. Connect stays requested and the VPN keeps holding traffic (nothing leaves outside the tunnel); the user can upgrade or disconnect.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تبقى حركة بياناتك محتجزة داخل النفق حتى تقوم بالترقية أو قطع الاتصال."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš provoz zůstává zadržen v tunelu, dokud nepřejdete na vyšší tarif nebo se neodpojíte."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Datenverkehr wird im Tunnel gehalten, bis du upgradest oder die Verbindung trennst."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η κίνησή σας παραμένει στη σήραγγα μέχρι να αναβαθμίσετε ή να αποσυνδεθείτε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your traffic is held in the tunnel until you upgrade or disconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico se mantiene en el túnel hasta que mejores tu plan o te desconectes."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico se mantiene en el túnel hasta que mejores tu plan o te desconectes."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico se mantiene en el túnel hasta que mejores tu plan o te desconectes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre trafic est retenu dans le tunnel jusqu’à ce que vous passiez à une offre supérieure ou que vous vous déconnectiez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התעבורה שלך מוחזקת במנהרה עד שתשדרג או תתנתק."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जब तक आप अपग्रेड या डिस्कनेक्ट नहीं करते, आपका ट्रैफ़िक टनल में रोका रहता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lalu lintas Anda ditahan di terowongan sampai Anda meningkatkan paket atau memutuskan koneksi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo traffico resta trattenuto nel tunnel finché non effettui l’upgrade o ti disconnetti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップグレードするか切断するまで、通信はトンネル内に保持されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업그레이드하거나 연결을 해제할 때까지 트래픽이 터널 안에 보류됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je verkeer wordt in de tunnel vastgehouden totdat je upgradet of de verbinding verbreekt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój ruch jest zatrzymany w tunelu, dopóki nie przejdziesz na wyższy plan lub się nie rozłączysz."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu tráfego fica retido no túnel até você fazer upgrade ou desconectar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu tráfego fica retido no túnel até você fazer upgrade ou desconectar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu tráfego fica retido no túnel até fazer upgrade ou desligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш трафик удерживается в туннеле, пока вы не повысите тариф или не отключитесь."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din trafik hålls kvar i tunneln tills du uppgraderar eller kopplar från."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทราฟฟิกของคุณถูกกักไว้ในอุโมงค์จนกว่าคุณจะอัปเกรดหรือตัดการเชื่อมต่อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш трафік утримується в тунелі, доки ви не підвищите тариф або не відключитеся."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu lượng của bạn được giữ trong đường hầm cho đến khi bạn nâng cấp hoặc ngắt kết nối."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你升级或断开连接之前，你的流量会保留在隧道中。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你升級或斷開連接之前，你的流量會保留在隧道中。"
+          }
+        }
+      }
+    },
     "your@email.com" : {
       "comment" : "Placeholder text for the email field.",
       "isCommentAutoGenerated" : true,

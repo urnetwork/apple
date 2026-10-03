@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MPL-2.0
+#
+# MAIN's insufficient-balance driver for the native macOS lane. The runner
+# (tests/runner/balance) calls `<this> <verb> [arg]`; the protocol is in
+# tests/runner/RUN-MAIN.md ("Driver protocol"). The verbs live in
+# tests/insufficient-balance-driver/main.go (standard-library Go). It is built
+# once per source into the private state directory, so stdout stays exactly
+# one JSON object and a failure's last stderr line is the driver's own.
+set -euo pipefail
+umask 077
+
+here="$(cd "$(dirname "$0")" && pwd)"
+export URNETWORK_ROOT="${URNETWORK_ROOT:-$(dirname "$here")}"
+state="${URNETWORK_INSUFFICIENT_BALANCE_STATE:-}"
+case "$state" in
+  /*) ;;
+  *) echo "apple driver: URNETWORK_INSUFFICIENT_BALANCE_STATE must be absolute" >&2; exit 2 ;;
+esac
+
+source_dir="$here/tests/insufficient-balance-driver"
+digest="$(shasum -a 256 "$source_dir/main.go" | cut -c1-16)"
+bin_dir="$state/driver-bin"
+bin="$bin_dir/driver-$digest"
+if [ ! -x "$bin" ]; then
+  mkdir -p "$bin_dir"
+  chmod 700 "$bin_dir"
+  if ! (cd "$source_dir" && GOWORK=off go build -o "$bin.tmp" main.go) >"$bin_dir/build.log" 2>&1; then
+    echo "apple driver: could not build the driver; see $bin_dir/build.log" >&2
+    exit 1
+  fi
+  mv "$bin.tmp" "$bin"
+fi
+exec "$bin" "$@"

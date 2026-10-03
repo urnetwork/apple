@@ -510,13 +510,31 @@ struct SettingsForm_macOS: View {
                             Spacer()
                             
                             Button(action: {
-                                if let url = URL(string: "https://discord.com/invite/RUNZXMwPRK") {
-                                    
-                                    #if canImport(AppKit)
-                                    NSWorkspace.shared.open(url)
-                                    #endif
-                                    
-                                }
+                                #if canImport(AppKit)
+                                NSWorkspace.shared.open(SupportContact.discordUrl)
+                                #endif
+                            }) {
+                                Image(systemName: "arrow.forward")
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                            }
+                        }
+
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        // support email: Discord is unreachable in some regions
+                        HStack {
+                            Text("Contact support at [support@ur.io](mailto:support@ur.io)")
+                                .font(themeManager.currentTheme.bodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+
+                            Spacer()
+
+                            Button(action: {
+                                #if canImport(AppKit)
+                                NSWorkspace.shared.open(SupportContact.emailUrl)
+                                #endif
                             }) {
                                 Image(systemName: "arrow.forward")
                                     .foregroundColor(themeManager.currentTheme.textColor)

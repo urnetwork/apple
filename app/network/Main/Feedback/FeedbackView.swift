@@ -39,6 +39,12 @@ struct FeedbackView: View {
                         
                         Text("Send us your feedback directly or [join our Discord](https://discord.com/invite/RUNZXMwPRK) for direct support.")
                             .foregroundColor(themeManager.currentTheme.textColor)
+
+                        Spacer().frame(height: 8)
+
+                        // Discord is unreachable in some regions; email is the alternative
+                        Text("Contact support at [support@ur.io](mailto:support@ur.io)")
+                            .foregroundColor(themeManager.currentTheme.textColor)
                         
                         Spacer().frame(height: 32)
                         

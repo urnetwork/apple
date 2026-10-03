@@ -101,7 +101,11 @@ struct ReferralsView: View {
         ReferralGoldPanel(
             referralCode: referralLinkViewModel.referralCode ?? "",
             totalReferrals: referralLinkViewModel.totalReferrals,
-            terms: referralLinkViewModel.terms
+            terms: referralLinkViewModel.terms,
+            loadFailed: referralLinkViewModel.loadFailed,
+            onRetry: {
+                Task { await referralLinkViewModel.fetchReferralLink() }
+            }
         )
     }
 

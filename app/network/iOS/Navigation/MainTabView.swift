@@ -248,7 +248,11 @@ struct MainTabView: View {
                     referralCode: referralLinkViewModel.referralCode ?? "",
                     meanReliabilityWeight: networkReliabilityStore.reliabilityWindow?.meanReliabilityWeight ?? 0,
                     api: urApiService,
-                    referralTerms: referralLinkViewModel.terms
+                    referralTerms: referralLinkViewModel.terms,
+                    referralCodeLoadFailed: referralLinkViewModel.loadFailed,
+                    retryReferralCode: {
+                        Task { await referralLinkViewModel.fetchReferralLink() }
+                    }
                 )
 
                 UrSnackBar(

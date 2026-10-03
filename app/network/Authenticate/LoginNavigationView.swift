@@ -75,9 +75,10 @@ struct LoginNavigationView: View {
                             urApiService: urApiService
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                    case .verify(let userAuth):
+                    case .verify(let userAuth, let sendNotice):
                         CreateNetworkVerifyView(
                             userAuth: userAuth,
+                            sendNotice: sendNotice,
                             api: api,
                             backToRoot: viewModel.backToRoot,
                             handleSuccess: { jwt in

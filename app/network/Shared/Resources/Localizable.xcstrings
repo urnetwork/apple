@@ -94030,7 +94030,7 @@
       }
     },
     "There was an error sending the verification code." : {
-      "comment" : "Inline error on the verify page when resending the verification code fails. Matches the apple CreateNetworkVerifyView literal.",
+      "comment" : "Inline error on the verify page when the verification code could not be sent (after sign-in, sign-up or resend). Matches the apple CreateNetworkVerifyView literal.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -96110,6 +96110,539 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "切换 URnetwork VPN"
+          }
+        }
+      }
+    },
+    "Too many attempts. You can request a new code in %lld minutes." : {
+      "comment" : "Verify screen: the server refused to send a new verification code because of too many recent attempts. The argument is the number of minutes until a new code can be requested.",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رمز جديد بعد %lld دقيقة."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رمز جديد بعد دقيقة واحدة."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رمز جديد بعد دقيقتين."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رمز جديد بعد %lld دقائق."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رمز جديد بعد %lld دقيقة."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رمز جديد بعد %lld دقيقة."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový kód si můžete vyžádat za %lld minutu."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový kód si můžete vyžádat za %lld minuty."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový kód si můžete vyžádat za %lld minuty."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový kód si můžete vyžádat za %lld minut."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zu viele Versuche. Du kannst in %lld Minute einen neuen Code anfordern."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zu viele Versuche. Du kannst in %lld Minuten einen neuen Code anfordern."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Πάρα πολλές προσπάθειες. Μπορείτε να ζητήσετε νέο κωδικό σε %lld λεπτό."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Πάρα πολλές προσπάθειες. Μπορείτε να ζητήσετε νέο κωδικό σε %lld λεπτά."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Too many attempts. You can request a new code in %lld minute."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Too many attempts. You can request a new code in %lld minutes."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un código nuevo en %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un código nuevo en %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un código nuevo en %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un código nuevo en %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un código nuevo en %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un código nuevo en %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Trop de tentatives. Vous pourrez demander un nouveau code dans %lld minute."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Trop de tentatives. Vous pourrez demander un nouveau code dans %lld minutes."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קוד חדש בעוד דקה."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קוד חדש בעוד שתי דקות."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קוד חדש בעוד %lld דקות."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קוד חדש בעוד %lld דקות."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "बहुत अधिक प्रयास। आप %lld मिनट में नया कोड मांग सकते हैं।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "बहुत अधिक प्रयास। आप %lld मिनट में नया कोड मांग सकते हैं।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Terlalu banyak percobaan. Anda dapat meminta kode baru dalam %lld menit."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Troppi tentativi. Potrai richiedere un nuovo codice tra %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Troppi tentativi. Potrai richiedere un nuovo codice tra %lld minuti."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "試行回数が多すぎます。%lld 分後に新しいコードをリクエストできます。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "시도 횟수가 너무 많습니다. %lld분 후에 새 코드를 요청할 수 있습니다."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Te veel pogingen. Je kunt over %lld minuut een nieuwe code aanvragen."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Te veel pogingen. Je kunt over %lld minuten een nieuwe code aanvragen."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy kod możesz poprosić za %lld minutę."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy kod możesz poprosić za %lld minuty."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy kod możesz poprosić za %lld minut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy kod możesz poprosić za %lld minuty."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo código em %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo código em %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo código em %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo código em %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiadas tentativas. Pode pedir um novo código dentro de %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiadas tentativas. Pode pedir um novo código dentro de %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новый код можно запросить через %lld минуту."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новый код можно запросить через %lld минуты."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новый код можно запросить через %lld минут."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новый код можно запросить через %lld минуты."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "För många försök. Du kan begära en ny kod om %lld minut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "För många försök. Du kan begära en ny kod om %lld minuter."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "พยายามหลายครั้งเกินไป คุณสามารถขอรหัสใหม่ได้ในอีก %lld นาที"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Новий код можна запросити через %lld хвилину."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Новий код можна запросити через %lld хвилини."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Новий код можна запросити через %lld хвилин."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Новий код можна запросити через %lld хвилини."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Quá nhiều lần thử. Bạn có thể yêu cầu mã mới sau %lld phút."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "尝试次数过多。%lld 分钟后可以重新获取验证码。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "嘗試次數過多。%lld 分鐘後可以重新取得驗證碼。"
+              }
+            }
+            }
           }
         }
       }

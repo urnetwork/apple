@@ -12,7 +12,8 @@ enum LoginInitialNavigationPath: Hashable {
     // case initial
     case password(_ userAuth: String)
     case createNetwork(_ authLoginArgs: SdkAuthLoginArgs)
-    case verify(_ userAuth: String)
+    // `sendNotice` is whether the server sent the code
+    case verify(_ userAuth: String, sendNotice: VerifySendNotice)
     case resetPassword(_ userAuth: String)
     case seedphrase
     case authCode

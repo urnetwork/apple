@@ -53,13 +53,19 @@ extension CreateNetworkVerifyView {
         
         @Published private(set) var resetBtnEnabled: Bool = true
         
+        // false until the server confirms a code was sent
+        @Published private(set) var codeSent: Bool
+        
         private var cancellables = Set<AnyCancellable>()
         
         private let domain = "CreateNetworkVerifyViewModel"
         
-        init(api: SdkApi?, userAuth: String) {
+        // `sendNotice` is the outcome of the send that led to this screen
+        init(api: SdkApi?, userAuth: String, sendNotice: VerifySendNotice) {
             self.api = api
             self.userAuth = userAuth
+            self.codeSent = sendNotice == .sent
+            self.resendErrorMessage = sendNotice.errorMessage
         }
         
         func setOtpErrorMessage(_ message: String?) {
@@ -70,57 +76,53 @@ extension CreateNetworkVerifyView {
             resendErrorMessage = message
         }
         
-        func resendOtp() async -> Result<Void, Error> {
+        // nil when a send is already in progress
+        func resendOtp() async -> VerifySendNotice? {
             
             if isSendingOtp {
-                return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "OTP is already being sent"]))
+                return nil
             }
             
             self.resendErrorMessage = nil
             self.isSendingOtp = true
             self.resetBtnEnabled = false
 
-            do {
-                let result: Void = try await withCheckedThrowingContinuation { [weak self] continuation in
+            let notice: VerifySendNotice = await withCheckedContinuation { [weak self] continuation in
+                
+                let callback = AuthVerifySendCallback { result, err in
                     
-                    let callback = AuthVerifySendCallback { result, err in
-                        
-                        if let err = err {
-                            print(err.localizedDescription)
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        continuation.resume(returning: ())
-                        
+                    if let err = err {
+                        print(err.localizedDescription)
                     }
                     
-                    guard let self = self, let api = self.api else {
-                        continuation.resume(throwing: CancellationError())
-                        return
-                    }
-
-                    let args = SdkAuthVerifySendArgs()
-                    args.userAuth = self.userAuth
-                    args.useNumeric = true
-
-                    api.authVerifySend(args, callback: callback)
-
+                    continuation.resume(returning: VerifySendNotice.decide(
+                        transportError: err != nil || result == nil,
+                        sendError: result?.error
+                    ))
+                    
                 }
                 
-                
-                self.isSendingOtp = false
+                guard let self = self, let api = self.api else {
+                    continuation.resume(returning: .sendFailed)
+                    return
+                }
+
+                api.authVerifySend(verifySendArgs(userAuth: self.userAuth), callback: callback)
+
+            }
+            
+            self.isSendingOtp = false
+            if notice == .sent {
+                self.codeSent = true
                 self.startResendButtonTimer()
-                
-                return .success(result)
-                
-            } catch {
-                isSendingOtp = false
+            } else {
                 // re-enable the resend button so the user can retry — a failed resend
                 // otherwise leaves it permanently disabled (no timer re-enables it)
-                resetBtnEnabled = true
-                return .failure(error)
+                self.resetBtnEnabled = true
+                self.resendErrorMessage = notice.errorMessage
             }
+            
+            return notice
                 
         }
         

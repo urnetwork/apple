@@ -532,8 +532,10 @@ extension UrApiService {
                     return
                 }
 
-                if result.verificationRequired != nil {
-                    continuation.resume(returning: .successWithVerificationRequired)
+                if let verificationRequired = result.verificationRequired {
+                    continuation.resume(returning: .successWithVerificationRequired(
+                        VerifySendNotice.decide(transportError: false, sendError: verificationRequired.sendError)
+                    ))
                     return
                 }
 
@@ -1537,7 +1539,8 @@ enum LoginError: Error {
 
 enum LoginNetworkResult {
     case successWithJwt(String)
-    case successWithVerificationRequired
+    // the notice says whether the server sent the code
+    case successWithVerificationRequired(VerifySendNotice)
     case failure(Error)
 }
 

@@ -120,6 +120,10 @@ struct BittensorWalletCard: View {
     /// the USDC waiting while there is no Solana payout wallet, or nil
     let pendingUsd: String?
     let connectSolana: () -> Void
+    /// the wallet read failed with no cached wallet: whether one is connected
+    /// is unknown, so no connect offer
+    var loadFailed: Bool = false
+    var retry: () -> Void = {}
 
     @State private var copied = false
 
@@ -157,6 +161,9 @@ struct BittensorWalletCard: View {
                 Text("Connected to the UR protocol. Claims land here. Alpha accrues from the next epoch after connecting.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
+            } else if loadFailed {
+                UrLabel(text: "Bittensor wallet")
+                SectionLoadFailedView(retry: retry)
             } else {
                 UrLabel(text: "Bittensor wallet")
                 WalletNotRetroactiveNote()

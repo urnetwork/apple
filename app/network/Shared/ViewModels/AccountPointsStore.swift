@@ -21,13 +21,29 @@ class AccountPointsStore: ObservableObject {
     @Published private(set) var reliabilityPoints: Double = 0
     
     @Published private(set) var isLoading: Bool = false
+    /// a fetch succeeded, so the points above are real (0 included)
+    @Published private(set) var hasLoaded: Bool = false
+    /// the latest fetch failed; with nothing loaded the points are unknown,
+    /// not 0
+    @Published private(set) var loadFailed: Bool = false
+
+    /// what the points sections show (SectionLoad)
+    var load: SectionLoad {
+        SectionLoad.of(hasData: hasLoaded, settled: hasLoaded, failed: loadFailed)
+    }
+
+    /// replaces the api call; a store built with one is fetched by its caller
+    private let fetchOverride: (() async throws -> SdkAccountPointsResult)?
     
     
-    init(api: SdkApi?) {
+    init(api: SdkApi?, fetchAccountPoints: (() async throws -> SdkAccountPointsResult)? = nil) {
         self.api = api
+        self.fetchOverride = fetchAccountPoints
         
-        Task {
-            await fetchAccountPoints()
+        if fetchAccountPoints == nil {
+            Task {
+                await self.fetchAccountPoints()
+            }
         }
         
     }
@@ -57,32 +73,15 @@ class AccountPointsStore: ObservableObject {
         
         do {
             
-            let result: SdkAccountPointsResult = try await withCheckedThrowingContinuation { continuation in
-                
-                let callback = GetAccountPointsCallback { result, err in
-                    
-                    if let err = err {
-                        continuation.resume(throwing: err)
-                        return
-                    }
-                    
-                    guard let result = result else {
-                        continuation.resume(throwing: GetAccountPointsError.resultEmpty)
-                        return
-                    }
-                    
-                    continuation.resume(returning: result)
-                    
-                }
-                
-                guard let api = self.api else {
-                    continuation.resume(throwing: GetAccountPointsError.resultEmpty)
-                    return
-                }
-                api.getAccountPoints(callback)
+            let result: SdkAccountPointsResult
+            if let fetchOverride {
+                result = try await fetchOverride()
+            } else {
+                result = try await fetchFromApi()
             }
             
-            let n = result.accountPoints?.len()
+            // no list is no points yet, which is a real answer
+            let n = result.accountPoints?.len() ?? 0
             
             var netPoints = 0.0
             var providingPoints = 0.0
@@ -90,11 +89,6 @@ class AccountPointsStore: ObservableObject {
             var referralPoints = 0.0
             var reliabilityPoints = 0.0
             var accountPoints: [SdkAccountPoint] = []
-            
-            guard let n = n else {
-                self.isLoading = false
-                return
-            }
             
             for i in 0..<n {
                 let accountPoint = result.accountPoints?.get(i)
@@ -133,16 +127,48 @@ class AccountPointsStore: ObservableObject {
             self.referralPoints = referralPoints
             self.multiplierPoints = multiplierPoints
             self.reliabilityPoints = reliabilityPoints
-            
+
+            self.hasLoaded = true
+            self.loadFailed = false
             self.isLoading = false
-            
+
         } catch(let error) {
             print("error fetching account points \(error)")
+            // the points keep their last loaded values; with none the
+            // sections show the failure instead of 0
+            self.loadFailed = true
             self.isLoading = false
         }
-        
+
     }
-    
+
+    private func fetchFromApi() async throws -> SdkAccountPointsResult {
+        try await withCheckedThrowingContinuation { continuation in
+
+            let callback = GetAccountPointsCallback { result, err in
+
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+
+                guard let result = result else {
+                    continuation.resume(throwing: GetAccountPointsError.resultEmpty)
+                    return
+                }
+
+                continuation.resume(returning: result)
+
+            }
+
+            guard let api = self.api else {
+                continuation.resume(throwing: GetAccountPointsError.resultEmpty)
+                return
+            }
+            api.getAccountPoints(callback)
+        }
+    }
+
 }
 
 private class GetAccountPointsCallback: SdkCallback<SdkAccountPointsResult, SdkGetAccountPointsCallbackProtocol>, SdkGetAccountPointsCallbackProtocol {

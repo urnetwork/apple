@@ -247,14 +247,30 @@ struct AccountRootView: View {
                             Spacer()
                         }
                         
-                        HStack(alignment: .firstTextBaseline) {
-                            
-                            Text(verbatim: SnAlpha.formatPoints(accountPointsStore.netPoints))
-                                .font(themeManager.currentTheme.titleCondensedFont)
-                                .foregroundColor(themeManager.currentTheme.textColor)
-                            
-                            Spacer()
-                            
+                        switch accountPointsStore.load {
+                        case .loaded:
+                            HStack(alignment: .firstTextBaseline) {
+                                
+                                Text(verbatim: SnAlpha.formatPoints(accountPointsStore.netPoints))
+                                    .font(themeManager.currentTheme.titleCondensedFont)
+                                    .foregroundColor(themeManager.currentTheme.textColor)
+                                
+                                Spacer()
+                                
+                            }
+                        case .loading:
+                            HStack {
+                                ProgressView()
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                        case .failed:
+                            Spacer().frame(height: 4)
+                            SectionLoadFailedView(retry: {
+                                Task {
+                                    await accountPointsStore.fetchAccountPoints()
+                                }
+                            })
                         }
                         
                     }

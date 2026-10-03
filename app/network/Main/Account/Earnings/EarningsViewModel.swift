@@ -29,7 +29,12 @@ final class EarningsViewModel: ObservableObject {
     @Published private(set) var head: SnHeadInfo?
     @Published private(set) var isLoading = false
     @Published private(set) var loadedOnce = false
-    @Published private(set) var errorMessage: String?
+    /// the latest epoch history read failed; with no epochs shown that is
+    /// not "No epochs yet"
+    @Published private(set) var epochsLoadFailed = false
+    /// the latest wallet read failed and no wallet is cached; that is not
+    /// "no wallet connected"
+    @Published private(set) var walletLoadFailed = false
 
     @Published private(set) var claimProgress: [Int64: ClaimRowState] = [:]
     @Published private(set) var isClaiming = false
@@ -75,6 +80,11 @@ final class EarningsViewModel: ObservableObject {
         (gasTao ?? 0) < gasNeededTao
     }
 
+    /// what the history section shows (SectionLoad)
+    var historyLoad: SectionLoad {
+        SectionLoad.of(hasData: !epochs.isEmpty, settled: loadedOnce, failed: epochsLoadFailed)
+    }
+
     var showsTop200Tile: Bool {
         guard let head else { return false }
         return head.eligible || head.bound
@@ -85,20 +95,28 @@ final class EarningsViewModel: ObservableObject {
             return
         }
         isLoading = true
-        errorMessage = nil
 
-        async let walletTask: SnWalletInfo?? = try? client.fetchWallet()
-        async let epochsTask: [AccountEpochInfo]? = try? client.accountEpochs()
-        async let headTask: SnHeadInfo?? = try? client.head()
+        // `try?` flattens an optional result, so a failed wallet or head read
+        // would read as "none"; earningsAttempt keeps the failure distinct
+        let client = client
+        async let walletTask = earningsAttempt { try await client.fetchWallet() }
+        async let epochsTask = earningsAttempt { try await client.accountEpochs() }
+        async let headTask = earningsAttempt { try await client.head() }
 
         let (walletResult, epochsResult, headResult) = await (walletTask, epochsTask, headTask)
         if let walletResult {
             wallet = walletResult
+            walletLoadFailed = false
         } else {
             wallet = client.cachedWallet()
+            walletLoadFailed = wallet == nil
         }
         if let epochsResult {
             epochs = epochsResult.sorted { $0.epoch > $1.epoch }
+            epochsLoadFailed = false
+        } else {
+            // the epochs already shown stay
+            epochsLoadFailed = true
         }
         if let headResult {
             head = headResult
@@ -196,5 +214,15 @@ final class EarningsViewModel: ObservableObject {
                 await self?.refreshSubnet()
             }
         }
+    }
+}
+
+/// The value, or nil when the read threw, so an optional result (no wallet,
+/// no head status) stays distinguishable from a failure.
+private func earningsAttempt<T>(_ operation: () async throws -> T) async -> T? {
+    do {
+        return try await operation()
+    } catch {
+        return nil
     }
 }

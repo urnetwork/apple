@@ -142,14 +142,28 @@ struct ReferralsView: View {
 
             Spacer().frame(height: 4)
 
-            HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: SnAlpha.formatPoints(accountPointsStore.referralPoints))
-                    .font(themeManager.currentTheme.titleCondensedFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
+            switch accountPointsStore.load {
+            case .loaded:
+                HStack(alignment: .firstTextBaseline) {
+                    Text(verbatim: SnAlpha.formatPoints(accountPointsStore.referralPoints))
+                        .font(themeManager.currentTheme.titleCondensedFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
 
-                Spacer()
+                    Spacer()
 
-                UrLabel(text: "Referral")
+                    UrLabel(text: "Referral")
+                }
+            case .loading:
+                HStack {
+                    ProgressView()
+                    Spacer()
+                }
+            case .failed:
+                SectionLoadFailedView(retry: {
+                    Task {
+                        await accountPointsStore.fetchAccountPoints()
+                    }
+                })
             }
         }
         .padding()

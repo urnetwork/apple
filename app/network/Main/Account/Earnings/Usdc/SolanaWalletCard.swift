@@ -80,6 +80,25 @@ struct SolanaWalletCard: View {
     }
 }
 
+/// In place of the payout wallet card when the wallets could not be read.
+struct SolanaWalletLoadFailedCard: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let retry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            UrLabel(text: "Solana wallet")
+            SectionLoadFailedView(retry: retry)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
+    }
+}
+
 #Preview {
     let themeManager = ThemeManager.shared
     SolanaWalletCard(

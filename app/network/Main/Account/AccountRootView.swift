@@ -100,7 +100,7 @@ struct AccountRootView: View {
 
     var body: some View {
         
-        let isGuest = deviceManager.parsedJwt?.guestMode ?? true
+        let isGuest = GuestAccount.isGuest(guestModeClaim: deviceManager.parsedJwt?.guestMode)
             
         ScrollView {
             
@@ -601,21 +601,10 @@ struct AccountRootView: View {
             .environmentObject(themeManager)
         }
         #if os(iOS)
-        .fullScreenCover(isPresented: $viewModel.isPresentedCreateAccount) {
-            LoginNavigationView(
-                api: api,
-                cancel: {
-                    viewModel.isPresentedCreateAccount = false
-                },
-                
-                handleSuccess: { login in
-                    Task {
-                        // viewModel.isPresentedCreateAccount = false
-                        await handleSuccessWithJwt(login.jwt)
-                    }
-                }
-            )
-            .id(deviceManager.activeHostName)
+        // a legacy guest converts in place (see GuestAccount): a sign-in
+        // method is added to THIS network, so its plan and balance stay
+        .sheet(isPresented: $viewModel.isPresentedCreateAccount) {
+            createAccountSheet
         }
         .toolbar {
             ToolbarItem {
@@ -631,25 +620,11 @@ struct AccountRootView: View {
         }
         #endif
         #if os(macOS)
-        // guests can upgrade to a full account (parity with the iOS cover)
+        // a legacy guest converts in place (see GuestAccount): a sign-in
+        // method is added to THIS network, so its plan and balance stay
         .sheet(isPresented: $viewModel.isPresentedCreateAccount) {
-            LoginNavigationView(
-                api: api,
-                cancel: {
-                    viewModel.isPresentedCreateAccount = false
-                },
-                handleSuccess: { login in
-                    Task {
-                        await handleSuccessWithJwt(login.jwt)
-                    }
-                }
-            )
-            .id(deviceManager.activeHostName)
-            .environmentObject(themeManager)
-            .environmentObject(deviceManager)
-            .environmentObject(snackbarManager)
-            .environmentObject(connectWalletProviderViewModel)
-            .frame(minWidth: 520, minHeight: 620)
+            createAccountSheet
+                .frame(minWidth: 520, minHeight: 620)
         }
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -677,37 +652,30 @@ struct AccountRootView: View {
         
     }
     
-    private func handleSuccessWithJwt(_ jwt: String) async {
-        
-        do {
-            
-            deviceManager.logout()
-            
-            try await deviceManager.waitUntilDeviceUninitialized()
-            
-            await deviceManager.initializeNetworkSpace()
-            
-            try await deviceManager.waitUntilDeviceInitialized()
-            
-            let result = await deviceManager.authenticateNetworkClient(jwt)
-            
-            if case .failure(let error) = result {
-                print("[AccountRootView] handleSuccessWithJwt: \(error.localizedDescription)")
-                
-                snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
-                
-                return
+    /**
+     * "Create an account" for a legacy guest: add a sign-in method to the
+     * current network, then re-sign the jwt so guest mode clears. This used to
+     * run the login flow and sign in to a NEW network, stranding a guest's
+     * paid plan and balance on the old one.
+     */
+    private var createAccountSheet: some View {
+        AddAuthSheet(
+            api: urApiService,
+            networkUserViewModel: nil,
+            onAdded: {
+                GuestAccountConversion(session: guestAccountSession).signInMethodAdded()
             }
-            
-            // TODO: fade out login flow
-            // TODO: create navigation view model and switch to main app instead of checking deviceManager.device
-            
-        } catch {
-            print("handleSuccessWithJwt error is \(error)")
-        }
-
+        )
+        .environmentObject(themeManager)
+        .environmentObject(deviceManager)
+        .environmentObject(snackbarManager)
+        .environmentObject(connectWalletProviderViewModel)
     }
-    
+
+    private var guestAccountSession: GuestAccountSession {
+        DeviceGuestAccountSession(deviceManager: deviceManager, logout: logout)
+    }
+
 }
 
 private struct AccountNavLink: View {

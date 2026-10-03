@@ -505,23 +505,6 @@ struct ConnectView_iOS: View {
                 .environmentObject(themeManager)
             }
             
-            // upgrade guest account flow
-            .fullScreenCover(isPresented: $connectViewModel.isPresentedCreateAccount) {
-                LoginNavigationView(
-                    api: api,
-                    cancel: {
-                        connectViewModel.isPresentedCreateAccount = false
-                    },
-                    
-                    handleSuccess: { login in
-                        Task {
-                            await handleSuccessWithJwt(login.jwt)
-                            connectViewModel.isPresentedCreateAccount = false
-                        }
-                    }
-                )
-                .id(deviceManager.activeHostName)
-            }
             .onChange(of: connectViewModel.connectionStatus) { _ in
                 checkTunnelStatus()
             }
@@ -534,23 +517,6 @@ struct ConnectView_iOS: View {
             }
         }
 
-    }
-    
-    private func handleSuccessWithJwt(_ jwt: String) async {
-        
-        let result = await deviceManager.authenticateNetworkClient(jwt)
-        
-        if case .failure(let error) = result {
-            print("[ContentView] handleSuccessWithJwt: \(error.localizedDescription)")
-            
-            snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
-            
-            return
-        }
-        
-        // TODO: fade out login flow
-        // TODO: create navigation view model and switch to main app instead of checking deviceManager.device
-        
     }
     
     private func checkTunnelStatus() {

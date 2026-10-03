@@ -126,11 +126,6 @@ class ConnectViewModel: ObservableObject {
     var requestReview: (() -> Void)?
     
     /**
-     * Upgrade guest account sheet
-     */
-    @Published var isPresentedCreateAccount: Bool = false
-    
-    /**
      * Tunnel connected
      */
     @Published var tunnelConnected: Bool = false
@@ -236,7 +231,6 @@ class ConnectViewModel: ObservableObject {
         self.selectedProvider = nil
         self.tunnelConnected = false
         self.contractStatus = nil
-        self.isPresentedCreateAccount = false
         self.isPresentedUpgradeSheet = false
     }
 

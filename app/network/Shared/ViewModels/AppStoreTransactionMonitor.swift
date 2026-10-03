@@ -147,6 +147,43 @@ final class AppStoreTransactionMonitor: ObservableObject {
         }
     }
 
+    /**
+     * Report-only pass over `Transaction.currentEntitlements` for `networkId`
+     * (finding A1): every verified, unrevoked entitlement purchased under
+     * this network is reported to the server, and nothing is finished. This
+     * is the only path that reaches a transaction finished before any server
+     * contact whose webhook was lost. Run at login/launch (once per
+     * entitlement) and by restore (`force`, every time).
+     *
+     * A proof the server credits just now was stranded; it bumps
+     * `transactionSequence` like any credited transaction, so the manager
+     * for this network starts its confirmation poll.
+     */
+    func reportEntitlements(networkId: UUID?, force: Bool) async -> EntitlementScanResult {
+        var entitlements: [EntitlementProof] = []
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result, transaction.revocationDate == nil else {
+                continue
+            }
+            entitlements.append(EntitlementProof(
+                transactionId: transaction.id,
+                appAccountToken: transaction.appAccountToken,
+                jws: result.jwsRepresentation
+            ))
+        }
+
+        let scan = await PurchaseReporter.shared.reportEntitlements(
+            entitlements,
+            networkId: networkId,
+            force: force
+        )
+        if scan.newlyCredited {
+            lastTransactionAppAccountToken = networkId
+            transactionSequence += 1
+        }
+        return scan
+    }
+
     private func handle(_ result: VerificationResult<Transaction>) async {
         switch result {
         case .verified(let transaction):

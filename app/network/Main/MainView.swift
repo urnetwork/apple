@@ -62,7 +62,8 @@ struct MainView: View {
                     } catch {
                         print("error refreshing token: \(error)")
                     }
-                }
+                },
+                purchaseConfirmation: SdkPurchaseConfirmation(api: api)
             )
             
         )

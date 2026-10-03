@@ -95,9 +95,11 @@ struct KillSwitchLabel: View {
         .alert("Kill switch exception", isPresented: $isPresentingException) {
             Button("Got it", role: .cancel) {}
         } message: {
-            // an alert shows one message Text, so both exceptions share it
+            // an alert shows one message Text, so both exceptions share it.
+            // the tunnel is dual-stack (::/0 is captured, see TunnelIpv6Routes.swift),
+            // so the only exception with the kill switch on is SMTP on port 25
             Text(verbatim: [
-                String(localized: "While the VPN is connected, IPv6 is not routed through URnetwork and may use your local network, even when the kill switch is on. Outbound SMTP on TCP port 25 also bypasses the VPN. These exceptions may expose your local public IP to those destinations. SMTP on ports 465 and 587 stays in the VPN and must establish TLS."),
+                String(localized: "While the VPN is connected, IPv6 is routed through URnetwork like IPv4. Outbound SMTP on TCP port 25 bypasses the VPN, even when the kill switch is on, which may expose your local public IP to those mail servers. SMTP on ports 465 and 587 stays in the VPN and must establish TLS."),
                 String(localized: "When the kill switch is off, traffic that URnetwork safety rules keep off the network, such as unrecognized encrypted protocols, bypasses the VPN and uses your local public IP. With the kill switch on, that traffic is blocked."),
             ].joined(separator: "\n\n"))
         }

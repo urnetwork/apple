@@ -108811,6 +108811,7 @@
     },
     "While the VPN is connected, IPv6 is not routed through URnetwork and may use your local network, even when the kill switch is on. Outbound SMTP on TCP port 25 also bypasses the VPN. These exceptions may expose your local public IP to those destinations. SMTP on ports 465 and 587 stays in the VPN and must establish TLS." : {
       "comment" : "Explains the deliberate IPv6 and SMTP exceptions to the VPN kill switch and the encrypted SMTP behavior.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -108846,6 +108847,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VPN 连接期间，即使开启了断网保护，IPv6 流量也不会经由 URnetwork 路由，可能会使用您的本地网络。通过 TCP 端口 25 的出站 SMTP 也会绕过 VPN。这些例外可能会向相应目标暴露您本地的公网 IP。端口 465 和 587 上的 SMTP 仍在 VPN 内，并且必须建立 TLS。"
+          }
+        }
+      }
+    },
+    "While the VPN is connected, IPv6 is routed through URnetwork like IPv4. Outbound SMTP on TCP port 25 bypasses the VPN, even when the kill switch is on, which may expose your local public IP to those mail servers. SMTP on ports 465 and 587 stays in the VPN and must establish TLS." : {
+      "comment" : "Explains the deliberate SMTP port 25 exception to the VPN kill switch, that IPv6 is routed through the tunnel, and the encrypted SMTP behavior.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أثناء اتصال VPN، يُوجَّه IPv6 عبر URnetwork مثل IPv4. يتجاوز SMTP الصادر عبر منفذ TCP رقم 25 شبكة VPN، حتى عند تشغيل مفتاح القتل، وقد يكشف ذلك عنوان IP العام المحلي لديك لخوادم البريد تلك. يبقى SMTP على المنفذين 465 و587 داخل VPN ويجب أن يُنشئ اتصال TLS."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Während das VPN verbunden ist, wird IPv6 wie IPv4 über URnetwork geleitet. Ausgehendes SMTP über TCP-Port 25 umgeht das VPN, selbst wenn der Kill switch aktiviert ist. Dadurch kann deine lokale öffentliche IP für diese Mailserver sichtbar werden. SMTP über die Ports 465 und 587 bleibt im VPN und muss TLS aufbauen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While the VPN is connected, IPv6 is routed through URnetwork like IPv4. Outbound SMTP on TCP port 25 bypasses the VPN, even when the kill switch is on, which may expose your local public IP to those mail servers. SMTP on ports 465 and 587 stays in the VPN and must establish TLS."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mientras la VPN está conectada, IPv6 se enruta a través de URnetwork igual que IPv4. El SMTP saliente por el puerto TCP 25 evita la VPN, incluso con el Kill switch activado, lo que puede exponer tu IP pública local a esos servidores de correo. El SMTP por los puertos 465 y 587 permanece en la VPN y debe establecer TLS."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока VPN подключён, IPv6 маршрутизируется через URnetwork так же, как IPv4. Исходящий SMTP через TCP-порт 25 идёт в обход VPN, даже если Kill switch включён, и может раскрыть ваш локальный публичный IP этим почтовым серверам. SMTP на портах 465 и 587 остаётся в VPN и обязан устанавливать TLS."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN 连接期间，IPv6 与 IPv4 一样经由 URnetwork 路由。即使开启了断网保护，通过 TCP 端口 25 的出站 SMTP 也会绕过 VPN，这可能会向相应邮件服务器暴露您本地的公网 IP。端口 465 和 587 上的 SMTP 仍在 VPN 内，并且必须建立 TLS。"
           }
         }
       }

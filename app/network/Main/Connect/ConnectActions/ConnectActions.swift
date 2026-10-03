@@ -147,7 +147,8 @@ struct ConnectActions: View {
                                     action: {
                                         promptMoreDataFlow()
                                     },
-                                    style: .outlineSecondary
+                                    style: .outlineSecondary,
+                                    accessibilityIdentifier: "acceptance.insufficientBalance.upgrade"
                                 )
 
                                 if actionButtons.disconnect {

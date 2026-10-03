@@ -149,4 +149,17 @@ struct InsufficientBalancePolicyTests {
         #expect(!VPNDesiredState(provideEnabled: false, connectEnabled: false, routeLocal: true, providePaused: false).shouldRun)
         #expect(VPNDesiredState(provideEnabled: false, connectEnabled: false, routeLocal: false, providePaused: false).shouldRun)
     }
+
+    // MARK: acceptance post count
+
+    /// The acceptance marker counts only posts the system accepted, one per
+    /// record, starting from zero in a fresh process.
+    @Test func noticePostsCountEachRecordFromZero() {
+        let posts = InsufficientBalanceNoticePosts()
+        #expect(posts.count == 0)
+        posts.record()
+        #expect(posts.count == 1)
+        posts.record()
+        #expect(posts.count == 2)
+    }
 }

@@ -36,6 +36,10 @@ enum InsufficientBalanceNotice {
                     center.add(request) { error in
                         if let error {
                             print("[InsufficientBalanceNotice]post failed: \(error.localizedDescription)")
+                            return
+                        }
+                        DispatchQueue.main.async {
+                            InsufficientBalanceNoticePosts.shared.record()
                         }
                     }
                 default:
@@ -46,5 +50,20 @@ enum InsufficientBalanceNotice {
             center.removePendingNotificationRequests(withIdentifiers: [identifier])
             center.removeDeliveredNotifications(withIdentifiers: [identifier])
         }
+    }
+}
+
+/// Notices the system accepted in this process. Acceptance builds expose the
+/// count as a marker so the insufficient balance acceptance case can prove one
+/// post per episode; another app's delivered notifications are not readable
+/// from a UI test. Main thread only.
+final class InsufficientBalanceNoticePosts: ObservableObject {
+
+    static let shared = InsufficientBalanceNoticePosts()
+
+    @Published private(set) var count = 0
+
+    func record() {
+        count += 1
     }
 }

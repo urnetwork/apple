@@ -95,7 +95,9 @@ struct KillSwitchLabel: View {
         .alert("Kill switch exception", isPresented: $isPresentingException) {
             Button("Got it", role: .cancel) {}
         } message: {
-            Text("While the VPN is connected, IPv6 is not routed through URnetwork and may use your local network, even when the kill switch is on. Outbound SMTP on TCP port 25 also bypasses the VPN. These exceptions may expose your local public IP to those destinations. SMTP on ports 465 and 587 stays in the VPN and must establish TLS.")
+            // the tunnel is dual-stack (::/0 is captured, see TunnelIpv6Routes.swift),
+            // so the only public-route exception is SMTP on port 25
+            Text("While the VPN is connected, IPv6 is routed through URnetwork like IPv4. Outbound SMTP on TCP port 25 bypasses the VPN, even when the kill switch is on, which may expose your local public IP to those mail servers. SMTP on ports 465 and 587 stays in the VPN and must establish TLS.")
         }
     }
 }

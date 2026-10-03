@@ -43810,7 +43810,7 @@
       }
     },
     "Error sending password reset link" : {
-      "comment" : "Snackbar shown when sending the password reset link fails. Used in Main/Account/Profile/ProfileView.swift.",
+      "comment" : "Shown when sending the password reset link fails (the request failed, or the server reports it could not send the link). Used on the password reset and account screens.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -96640,6 +96640,539 @@
               "stringUnit" : {
                 "state" : "translated",
                 "value" : "嘗試次數過多。%lld 分鐘後可以重新取得驗證碼。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "Too many attempts. You can request a new reset link in %lld minutes." : {
+      "comment" : "Password reset: the server refused to send a new password reset link because of too many recent attempts. The argument is the number of minutes until a new link can be requested.",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رابط إعادة تعيين جديد بعد %lld دقيقة."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رابط إعادة تعيين جديد بعد دقيقة واحدة."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رابط إعادة تعيين جديد بعد دقيقتين."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رابط إعادة تعيين جديد بعد %lld دقائق."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رابط إعادة تعيين جديد بعد %lld دقيقة."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "محاولات كثيرة جدًا. يمكنك طلب رابط إعادة تعيين جديد بعد %lld دقيقة."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový odkaz pro obnovení si můžete vyžádat za %lld minutu."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový odkaz pro obnovení si můžete vyžádat za %lld minuty."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový odkaz pro obnovení si můžete vyžádat za %lld minuty."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Příliš mnoho pokusů. Nový odkaz pro obnovení si můžete vyžádat za %lld minut."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zu viele Versuche. Du kannst in %lld Minute einen neuen Link zum Zurücksetzen anfordern."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zu viele Versuche. Du kannst in %lld Minuten einen neuen Link zum Zurücksetzen anfordern."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Πάρα πολλές προσπάθειες. Μπορείτε να ζητήσετε νέο σύνδεσμο επαναφοράς σε %lld λεπτό."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Πάρα πολλές προσπάθειες. Μπορείτε να ζητήσετε νέο σύνδεσμο επαναφοράς σε %lld λεπτά."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Too many attempts. You can request a new reset link in %lld minute."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Too many attempts. You can request a new reset link in %lld minutes."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un nuevo enlace de restablecimiento en %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un nuevo enlace de restablecimiento en %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un nuevo enlace de restablecimiento en %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un nuevo enlace de restablecimiento en %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un nuevo enlace de restablecimiento en %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiados intentos. Puedes solicitar un nuevo enlace de restablecimiento en %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Trop de tentatives. Vous pourrez demander un nouveau lien de réinitialisation dans %lld minute."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Trop de tentatives. Vous pourrez demander un nouveau lien de réinitialisation dans %lld minutes."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קישור איפוס חדש בעוד דקה."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קישור איפוס חדש בעוד שתי דקות."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קישור איפוס חדש בעוד %lld דקות."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יותר מדי ניסיונות. אפשר לבקש קישור איפוס חדש בעוד %lld דקות."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "बहुत अधिक प्रयास। आप %lld मिनट में नया रीसेट लिंक मांग सकते हैं।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "बहुत अधिक प्रयास। आप %lld मिनट में नया रीसेट लिंक मांग सकते हैं।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Terlalu banyak percobaan. Anda dapat meminta tautan atur ulang baru dalam %lld menit."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Troppi tentativi. Potrai richiedere un nuovo link di reimpostazione tra %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Troppi tentativi. Potrai richiedere un nuovo link di reimpostazione tra %lld minuti."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "試行回数が多すぎます。%lld 分後に新しいリセット用リンクをリクエストできます。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "시도 횟수가 너무 많습니다. %lld분 후에 새 재설정 링크를 요청할 수 있습니다."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Te veel pogingen. Je kunt over %lld minuut een nieuwe herstellink aanvragen."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Te veel pogingen. Je kunt over %lld minuten een nieuwe herstellink aanvragen."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy link do resetowania możesz poprosić za %lld minutę."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy link do resetowania możesz poprosić za %lld minuty."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy link do resetowania możesz poprosić za %lld minut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zbyt wiele prób. Nowy link do resetowania możesz poprosić za %lld minuty."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo link de redefinição em %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo link de redefinição em %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo link de redefinição em %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Muitas tentativas. Você pode solicitar um novo link de redefinição em %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiadas tentativas. Pode pedir uma nova ligação de reposição dentro de %lld minuto."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Demasiadas tentativas. Pode pedir uma nova ligação de reposição dentro de %lld minutos."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новую ссылку для сброса можно запросить через %lld минуту."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новую ссылку для сброса можно запросить через %lld минуты."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новую ссылку для сброса можно запросить через %lld минут."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Слишком много попыток. Новую ссылку для сброса можно запросить через %lld минуты."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "För många försök. Du kan begära en ny återställningslänk om %lld minut."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "För många försök. Du kan begära en ny återställningslänk om %lld minuter."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "พยายามหลายครั้งเกินไป คุณสามารถขอลิงก์รีเซ็ตใหม่ได้ในอีก %lld นาที"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Нове посилання для скидання можна запросити через %lld хвилину."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Нове посилання для скидання можна запросити через %lld хвилини."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Нове посилання для скидання можна запросити через %lld хвилин."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Забагато спроб. Нове посилання для скидання можна запросити через %lld хвилини."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Quá nhiều lần thử. Bạn có thể yêu cầu liên kết đặt lại mới sau %lld phút."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "尝试次数过多。%lld 分钟后可以重新获取重置链接。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "嘗試次數過多。%lld 分鐘後可以重新取得重設連結。"
               }
             }
             }

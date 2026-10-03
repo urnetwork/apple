@@ -26,6 +26,9 @@ struct CreateNetworkVerifyView: View {
     
     var isEmail: Bool = true
     
+    // counts a rate limit down
+    private let cooldownTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
     init(
         userAuth: String,
         sendNotice: VerifySendNotice,
@@ -227,6 +230,9 @@ struct CreateNetworkVerifyView: View {
                     #endif
                 }
                 .navigationBarBackButtonHidden(true)
+                .onReceive(cooldownTimer) { _ in
+                    viewModel.tick()
+                }
                 .padding()
                 .frame(minHeight: geometry.size.height)
                 .frame(maxWidth: 400)

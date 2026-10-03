@@ -18,6 +18,9 @@ struct ResetPasswordView: View {
     var userAuth: String
     var popNavigationStack: () -> Void
     
+    // counts a rate limit down
+    private let cooldownTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
     init(
         userAuth: String,
         popNavigationStack: @escaping () -> Void,
@@ -64,13 +67,16 @@ struct ResetPasswordView: View {
                                 await handleResendLink()
                             }
                         },
-                        enabled: !viewModel.sendInProgress,
+                        enabled: viewModel.sendEnabled,
                         isProcessing: viewModel.sendInProgress
                     )
                     
                     Spacer().frame(height: 8)
                     
                     UrInlineErrorText(message: viewModel.errorMessage)
+                }
+                .onReceive(cooldownTimer) { _ in
+                    viewModel.tick()
                 }
                 .padding()
                 .frame(minHeight: geometry.size.height)
@@ -86,7 +92,12 @@ struct ResetPasswordView: View {
         
         switch result {
             
-        case .success:
+        case .success(let notice):
+            
+            // a link that was not sent is shown as the view model's error message
+            guard notice == .sent else {
+                break
+            }
             
             snackbarManager.showSnackbar(message: String(localized: "Password reset link sent to \(userAuth)."))
             

@@ -18,61 +18,75 @@ extension ProfileView {
         @Published private(set) var isSendingPasswordResetLink: Bool = false
         @Published private(set) var sendPasswordResetLinkError: String?
         
+        // set after a rate limit; "Update password" stays disabled until it passes
+        @Published private(set) var passwordResetCooldown: SendCooldown?
+        
+        private let now: () -> Date
+        
         @Published var isEditingNetworkName: Bool = false
         @Published var editedNetworkName: String = ""
         @Published private(set) var isSavingNetworkName: Bool = false
         @Published private(set) var networkNameError: String?
         
-        init(api: SdkApi) {
+        init(api: SdkApi, now: @escaping () -> Date = Date.init) {
             self.api = api
+            self.now = now
         }
         
-        func sendPasswordResetLink(_ userAuth: String) async -> Result<Void, Error> {
+        var passwordResetEnabled: Bool {
+            return !isSendingPasswordResetLink && passwordResetCooldown == nil
+        }
+        
+        // Counts a rate limit down: refreshes the minutes left and re-enables
+        // "Update password" once the retry time has passed. The view calls it
+        // every second.
+        func tick() {
+            guard let cooldown = passwordResetCooldown else {
+                return
+            }
+            if let notice = cooldown.notice(at: now()) {
+                sendPasswordResetLinkError = notice.resetErrorMessage
+            } else {
+                passwordResetCooldown = nil
+                sendPasswordResetLinkError = nil
+            }
+        }
+        
+        // A request error is a failure. Otherwise the notice for the server's
+        // answer; only `sent` means the link was sent.
+        func sendPasswordResetLink(_ userAuth: String) async -> Result<VerifySendNotice, Error> {
             
-            if isSendingPasswordResetLink {
+            if !passwordResetEnabled {
                 return .failure(SendPasswordResetLinkError.isSending)
             }
             
             self.isSendingPasswordResetLink = true
+            self.sendPasswordResetLinkError = nil
 
-            do {
-
-                let _: SdkAuthPasswordResetResult = try await withCheckedThrowingContinuation { continuation in
-                    
-                    let callback = AuthPasswordResetCallback { result, err in
-                        
-                        if let err = err {
-                            continuation.resume(throwing: err)
-                            return
-                        }
-                        
-                        guard let result = result else {
-                            continuation.resume(throwing: SendPasswordResetLinkError.resultInvalid)
-                            return
-                        }
-                        
-                        continuation.resume(returning: result)
-                        
-                    }
-                    
-                    let args = SdkAuthPasswordResetArgs()
-                    args.userAuth = userAuth
-                    
-                    api.authPasswordReset(args, callback: callback)
-                    
+            let (outcome, retryAfterSeconds): (Result<VerifySendNotice, Error>, Int) = await withCheckedContinuation { continuation in
+                
+                let callback = AuthPasswordResetCallback { result, err in
+                    continuation.resume(returning: (
+                        passwordResetOutcome(result: result, err: err),
+                        result?.error?.retryAfterSeconds ?? 0
+                    ))
                 }
-                   
-                self.isSendingPasswordResetLink = false
-
-                return .success(())
-
+                
+                api.authPasswordReset(passwordResetArgs(userAuth: userAuth), callback: callback)
+                
             }
-            catch(let error) {
-                self.isSendingPasswordResetLink = false
-                return .failure(error)
-            }
-
             
+            self.isSendingPasswordResetLink = false
+            if case .success(let notice) = outcome {
+                applyPasswordResetNotice(notice, retryAfterSeconds: retryAfterSeconds)
+            }
+            return outcome
+            
+        }
+        
+        func applyPasswordResetNotice(_ notice: VerifySendNotice, retryAfterSeconds: Int) {
+            passwordResetCooldown = SendCooldown.after(notice, retryAfterSeconds: retryAfterSeconds, now: now())
+            sendPasswordResetLinkError = notice.resetErrorMessage
         }
         
         func startEditingNetworkName(currentName: String) {

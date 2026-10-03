@@ -23,6 +23,9 @@ struct ProfileView: View {
     /// claim-name flow (no reclaim cooldown on the old name) rather than
     /// change-name (which applies a 24h cooldown to protect the old name).
     var needsNameClaim: Bool
+    
+    // counts a rate limit down
+    private let cooldownTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     init(api: SdkApi, back: @escaping () -> Void, networkName: String?, userAuth: String?, needsNameClaim: Bool = false) {
         _viewModel = StateObject.init(wrappedValue: ViewModel(
@@ -137,21 +140,35 @@ struct ProfileView: View {
                 }) {
                     Text("Update password")
                 }
-                .disabled(userAuth == nil || viewModel.isSendingPasswordResetLink)
+                .disabled(userAuth == nil || !viewModel.passwordResetEnabled)
                 
                 Spacer()
                 
             }
             
+            // a link that was not sent, with the minutes left after a rate limit
+            if viewModel.passwordResetCooldown != nil {
+                Spacer().frame(height: 8)
+                
+                UrInlineErrorText(message: viewModel.sendPasswordResetLinkError)
+            }
+            
             Spacer()
+        }
+        .onReceive(cooldownTimer) { _ in
+            viewModel.tick()
         }
         .padding()
         .tabletReadableColumn()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    private func handlePasswordResetLinkResult(_ result: Result<Void, Error>) {
+    private func handlePasswordResetLinkResult(_ result: Result<VerifySendNotice, Error>) {
         switch result {
+        case .success(let notice) where notice != .sent:
+            if let message = notice.resetErrorMessage {
+                snackbarManager.showSnackbar(message: message)
+            }
         case .success:
             if let userAuth = userAuth {
                 snackbarManager.showSnackbar(message: String(localized: "Password reset link sent to \(userAuth)."))

@@ -56,16 +56,39 @@ extension CreateNetworkVerifyView {
         // false until the server confirms a code was sent
         @Published private(set) var codeSent: Bool
         
+        // set after a rate limit; Resend stays disabled until it passes
+        @Published private(set) var cooldown: SendCooldown?
+        
+        private let now: () -> Date
+        
         private var cancellables = Set<AnyCancellable>()
         
         private let domain = "CreateNetworkVerifyViewModel"
         
         // `sendNotice` is the outcome of the send that led to this screen
-        init(api: SdkApi?, userAuth: String, sendNotice: VerifySendNotice) {
+        init(api: SdkApi?, userAuth: String, sendNotice: VerifySendNotice, now: @escaping () -> Date = Date.init) {
             self.api = api
             self.userAuth = userAuth
+            self.now = now
             self.codeSent = sendNotice == .sent
             self.resendErrorMessage = sendNotice.errorMessage
+            self.cooldown = SendCooldown.after(sendNotice, now: now())
+            self.resetBtnEnabled = self.cooldown == nil
+        }
+        
+        // Counts a rate limit down: refreshes the minutes left and re-enables
+        // Resend once the retry time has passed. The view calls it every second.
+        func tick() {
+            guard let cooldown = cooldown else {
+                return
+            }
+            if let notice = cooldown.notice(at: now()) {
+                resendErrorMessage = notice.errorMessage
+            } else {
+                self.cooldown = nil
+                resetBtnEnabled = true
+                resendErrorMessage = nil
+            }
         }
         
         func setOtpErrorMessage(_ message: String?) {
@@ -87,7 +110,7 @@ extension CreateNetworkVerifyView {
             self.isSendingOtp = true
             self.resetBtnEnabled = false
 
-            let notice: VerifySendNotice = await withCheckedContinuation { [weak self] continuation in
+            let (notice, retryAfterSeconds): (VerifySendNotice, Int) = await withCheckedContinuation { [weak self] continuation in
                 
                 let callback = AuthVerifySendCallback { result, err in
                     
@@ -95,15 +118,16 @@ extension CreateNetworkVerifyView {
                         print(err.localizedDescription)
                     }
                     
-                    continuation.resume(returning: VerifySendNotice.decide(
-                        transportError: err != nil || result == nil,
-                        sendError: result?.error
+                    let transportError = err != nil || result == nil
+                    continuation.resume(returning: (
+                        VerifySendNotice.decide(transportError: transportError, sendError: result?.error),
+                        transportError ? 0 : (result?.error?.retryAfterSeconds ?? 0)
                     ))
                     
                 }
                 
                 guard let self = self, let api = self.api else {
-                    continuation.resume(returning: .sendFailed)
+                    continuation.resume(returning: (.sendFailed, 0))
                     return
                 }
 
@@ -112,18 +136,23 @@ extension CreateNetworkVerifyView {
             }
             
             self.isSendingOtp = false
-            if notice == .sent {
-                self.codeSent = true
-                self.startResendButtonTimer()
-            } else {
-                // re-enable the resend button so the user can retry — a failed resend
-                // otherwise leaves it permanently disabled (no timer re-enables it)
-                self.resetBtnEnabled = true
-                self.resendErrorMessage = notice.errorMessage
-            }
+            applyResendNotice(notice, retryAfterSeconds: retryAfterSeconds)
             
             return notice
                 
+        }
+        
+        func applyResendNotice(_ notice: VerifySendNotice, retryAfterSeconds: Int) {
+            if notice == .sent {
+                self.codeSent = true
+                self.startResendButtonTimer()
+                return
+            }
+            // a rate limit keeps Resend disabled until the retry time; any other
+            // failure re-enables it so the user can retry
+            self.cooldown = SendCooldown.after(notice, retryAfterSeconds: retryAfterSeconds, now: now())
+            self.resetBtnEnabled = self.cooldown == nil
+            self.resendErrorMessage = notice.errorMessage
         }
         
         

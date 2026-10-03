@@ -73,10 +73,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
     // 30 s poll only rewrites the snapshot (and reloads the widget) on change
     private var lastWidgetBalanceSnapshot: WidgetBalanceSnapshot?
 
-    // set once when a free -> paid upgrade is first detected, so the app can
-    // reset provide mode to never at the upgrade (the user can opt back in after)
-    @Published private(set) var didDetectUpgradeToPro: Bool = false
-
     /**
      * The plan data the server sends with the balance: the price tier resolved
      * for this storefront, the welcome offer (only while active), and the
@@ -291,11 +287,6 @@ class SubscriptionBalanceViewModel: ObservableObject {
                 if WidgetSnapshotStore.save(balanceSnapshot) {
                     WidgetRefresh.reloadDashboard()
                 }
-            }
-
-            if serverIsPro && !self.isPro {
-                // free -> paid: signal the upgrade so provide mode resets to never once
-                self.didDetectUpgradeToPro = true
             }
 
             if serverIsPro != self.isPro {

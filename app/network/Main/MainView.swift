@@ -208,13 +208,6 @@ struct MainView: View {
                 snackbarManager.showSnackbar(message: String(localized: "We couldn't confirm your purchase yet. If you completed checkout, your plan will update automatically in a few minutes — there's no need to buy again."))
             }
         }
-        .onChange(of: subscriptionBalanceViewModel.didDetectUpgradeToPro) { detected in
-            if detected {
-                // at the free -> paid upgrade, reset provide mode to never;
-                // the user can opt back in afterward and that choice persists
-                deviceManager.provideControlMode = .Never
-            }
-        }
     }
 }
 

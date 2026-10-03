@@ -12,6 +12,19 @@ import UserNotifications
 import ServiceManagement
 #endif
 
+/// The message shown when deleting the account fails: the generic error, then
+/// the server's reason on the next line when it refused the deletion with one.
+func deleteAccountFailureMessage(_ error: Error) -> String {
+    let generic = String(localized: "Sorry, there was an error deleting your account.")
+    if case NetworkDeleteError.refused(let message) = error {
+        let reason = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !reason.isEmpty {
+            return "\(generic)\n\(reason)"
+        }
+    }
+    return generic
+}
+
 extension SettingsView {
     
     @MainActor
@@ -195,9 +208,16 @@ extension SettingsView {
                 
             do {
                    
-                let _ = try await api.deleteAccount()
+                let result = try await api.deleteAccount()
                 
                 self.isDeletingNetwork = false
+                
+                // the server refuses a deletion it cannot complete (e.g. a
+                // subscription it could not cancel) with an error in the
+                // result; the account still exists
+                if let error = result.error {
+                    return .failure(NetworkDeleteError.refused(message: error.message))
+                }
                 
                 return .success(())
                 

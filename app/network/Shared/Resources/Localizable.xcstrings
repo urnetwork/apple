@@ -88044,7 +88044,7 @@
       }
     },
     "Sorry, there was an error deleting your account." : {
-      "comment" : "Snackbar shown when deleting the account fails. Used in Main/Account/Settings/SettingsView.swift.",
+      "comment" : "Shown when deleting the account fails, including when the server refuses the deletion (its reason follows on the next line). Apple Settings snackbar, android Settings, windows and linux delete-account sheet, web account settings.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

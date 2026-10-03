@@ -305,8 +305,9 @@ struct SettingsView: View {
             deviceManager.logout()
             break
         case .failure(let error):
+            // the account was not deleted: stay signed in so the user can retry
             print("Error deleting account: \(error)")
-            snackbarManager.showSnackbar(message: String(localized: "Sorry, there was an error deleting your account."))
+            snackbarManager.showSnackbar(message: deleteAccountFailureMessage(error))
         }
     }
     

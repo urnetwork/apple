@@ -522,7 +522,8 @@ struct LoginInitialView: View {
 
         case .verificationRequired(let userAuth):
             viewModel.setIsCheckingUserAuth(false)
-            navigate(.verify(userAuth))
+            // nothing produces this result with a send error
+            navigate(.verify(userAuth, sendNotice: .sent))
             break
 
         case .incorrectAuth(let authAllowedErr):

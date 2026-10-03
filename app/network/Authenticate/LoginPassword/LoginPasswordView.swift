@@ -141,8 +141,8 @@ struct LoginPasswordView: View {
             await handleSuccess(jwt)
             break
             
-        case .successWithVerificationRequired:
-            navigate(.verify(userAuth))
+        case .successWithVerificationRequired(let sendNotice):
+            navigate(.verify(userAuth, sendNotice: sendNotice))
             viewModel.setIsLoggingIn(false)
             break
             

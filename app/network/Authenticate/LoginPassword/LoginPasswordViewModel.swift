@@ -82,8 +82,10 @@ extension LoginPasswordView {
                             }
                             
                             
-                            if (result.verificationRequired != nil) {
-                                continuation.resume(returning: .successWithVerificationRequired)
+                            if let verificationRequired = result.verificationRequired {
+                                continuation.resume(returning: .successWithVerificationRequired(
+                                    VerifySendNotice.decide(transportError: false, sendError: verificationRequired.sendError)
+                                ))
                                 return
                             }
                             

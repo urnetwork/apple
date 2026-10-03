@@ -28,11 +28,12 @@ struct CreateNetworkVerifyView: View {
     
     init(
         userAuth: String,
+        sendNotice: VerifySendNotice,
         api: SdkApi,
         backToRoot: @escaping () -> Void,
         handleSuccess: @escaping (_ jwt: String) async -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: ViewModel(api: api, userAuth: userAuth))
+        _viewModel = StateObject(wrappedValue: ViewModel(api: api, userAuth: userAuth, sendNotice: sendNotice))
         self.backToRoot = backToRoot
         self.handleSuccess = handleSuccess
         
@@ -48,18 +49,29 @@ struct CreateNetworkVerifyView: View {
                 VStack {
                     
                     HStack {
-                        Text(isEmail ? "You've got mail" : "Check your phone")
-                            .font(themeManager.currentTheme.titleFont)
-                            .foregroundColor(themeManager.currentTheme.textColor)
+                        // until a code is sent, do not say one was; the send error replaces the instructions
+                        if viewModel.codeSent {
+                            Text(isEmail ? "You've got mail" : "Check your phone")
+                                .font(themeManager.currentTheme.titleFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                        } else {
+                            Text("Verify")
+                                .font(themeManager.currentTheme.titleFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                        }
                         
                         Spacer()
                     }
                     
                     Spacer().frame(height: 32)
                     
-                    Text("Tell us who you really are. Enter the code we sent you to verify your identity.")
-                        .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    if viewModel.codeSent {
+                        Text("Tell us who you really are. Enter the code we sent you to verify your identity.")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    } else {
+                        UrInlineErrorText(message: viewModel.resendErrorMessage)
+                    }
                     
                     Spacer().frame(height: 40)
                     
@@ -160,18 +172,9 @@ struct CreateNetworkVerifyView: View {
                         Button(action: {
                             if viewModel.resetBtnEnabled && !viewModel.isSendingOtp && !viewModel.isSubmitting {
                                 Task {
-                                    let result = await viewModel.resendOtp()
-                                    
-                                    switch result {
-                                    case .success:
+                                    // a failed send sets the view model's error message
+                                    if await viewModel.resendOtp() == .sent {
                                         snackbarManager.showSnackbar(message: String(localized: "Verification code sent."))
-                                        break
-                                    case .failure(let error):
-                                        print("error resending OTP \(error.localizedDescription)")
-                                        viewModel.setResendErrorMessage(String(localized: "There was an error sending the verification code."))
-                                        
-                                        break
-                                        
                                     }
                                 }
                             }
@@ -193,9 +196,11 @@ struct CreateNetworkVerifyView: View {
                         
                     }
                     
-                    Spacer().frame(height: 8)
-                    
-                    UrInlineErrorText(message: viewModel.resendErrorMessage)
+                    if viewModel.codeSent {
+                        Spacer().frame(height: 8)
+                        
+                        UrInlineErrorText(message: viewModel.resendErrorMessage)
+                    }
                     
                 }
                 .toolbar {
@@ -296,6 +301,7 @@ struct CreateNetworkVerifyView: View {
     ZStack {
         CreateNetworkVerifyView(
             userAuth: "123456789",
+            sendNotice: .sent,
             api: SdkApi(),
             backToRoot: {},
             handleSuccess: {_ in }

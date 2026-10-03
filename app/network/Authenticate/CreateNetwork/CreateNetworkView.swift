@@ -342,10 +342,10 @@ struct CreateNetworkView: View {
             print("success with jwt: \(jwt)")
             await handleSuccess(jwt)
             break
-        case .successWithVerificationRequired:
+        case .successWithVerificationRequired(let sendNotice):
             if let userAuth = userAuth {
                 print("navigate to verify with userauth: \(userAuth)")
-                navigate(.verify(userAuth))
+                navigate(.verify(userAuth, sendNotice: sendNotice))
             } else {
                 print("CreateNetworkView: successWithVerificationRequired: userAuth is nil")
             }

@@ -26,6 +26,9 @@ class ReferralLinkViewModel: ObservableObject {
     /// The referral cap and bonus, from the server with the code (defaults until the first fetch).
     @Published private(set) var terms: ReferralTerms = .default
     @Published private(set) var isLoading: Bool = false
+    /// the last fetch failed; with no code yet the panel shows an error and a
+    /// retry instead of a spinner that never ends
+    @Published private(set) var loadFailed: Bool = false
 
     /**
      * Referral celebrations, keyed off the count the last celebration (or the
@@ -85,8 +88,19 @@ class ReferralLinkViewModel: ObservableObject {
 
     let api: SdkApi?
 
+    /// the referral code request; the sdk call unless a test supplies one
+    private let fetchReferralCode: () async throws -> SdkGetNetworkReferralCodeResult
+
     init(api: SdkApi) {
         self.api = api
+        self.fetchReferralCode = {
+            try await Self.fetchReferralCode(api: api)
+        }
+    }
+
+    init(fetchReferralCode: @escaping () async throws -> SdkGetNetworkReferralCodeResult) {
+        self.api = nil
+        self.fetchReferralCode = fetchReferralCode
     }
 
     deinit {
@@ -140,49 +154,57 @@ class ReferralLinkViewModel: ObservableObject {
         }
         
         self.isLoading = true
-        
+
         do {
-            
-            let result: SdkGetNetworkReferralCodeResult = try await withCheckedThrowingContinuation { continuation in
-                
-                let callback = GetNetworkReferralCodeCallback { result, err in
-                    
-                    if let err = err {
-                        continuation.resume(throwing: err)
-                        return
-                    }
-                    
-                    if let result = result {
-                        
-                        if let resultErr = result.error {
-                            continuation.resume(throwing: NSError(domain: "ReferralLinkViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: resultErr.message]))
-                            return
-                        }
-                        
-                        continuation.resume(returning: result)
-                        return
-                        
-                    } else {
-                        continuation.resume(throwing: NSError(domain: "ReferralLinkViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "result is nil"]))
-                    }
-                }
-                
-                api?.getNetworkReferralCode(callback)
-            }
-            
-            
+            let result = try await fetchReferralCode()
+
             self.referralCode = result.referralCode
             self.totalReferrals = result.totalReferrals
             self.terms = ReferralTerms.from(result)
+            self.loadFailed = false
             self.isLoading = false
 
             self.maybeCelebrate(code: result.referralCode, count: result.totalReferrals)
 
         } catch(let error) {
+            self.loadFailed = true
             self.isLoading = false
             print("error fetching referral link: \(error.localizedDescription)")
         }
         
+    }
+
+    private static func fetchReferralCode(api: SdkApi?) async throws -> SdkGetNetworkReferralCodeResult {
+        try await withCheckedThrowingContinuation { continuation in
+            
+            let callback = GetNetworkReferralCodeCallback { result, err in
+                
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                
+                if let result = result {
+                    
+                    if let resultErr = result.error {
+                        continuation.resume(throwing: NSError(domain: "ReferralLinkViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: resultErr.message]))
+                        return
+                    }
+                    
+                    continuation.resume(returning: result)
+                    return
+                    
+                } else {
+                    continuation.resume(throwing: NSError(domain: "ReferralLinkViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "result is nil"]))
+                }
+            }
+            
+            guard let api else {
+                continuation.resume(throwing: NSError(domain: "ReferralLinkViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "no api"]))
+                return
+            }
+            api.getNetworkReferralCode(callback)
+        }
     }
     
 }

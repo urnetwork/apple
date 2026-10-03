@@ -94,6 +94,8 @@ struct IntroductionView: View {
     let meanReliabilityWeight: Double
     let api: UrApiServiceProtocol
     let referralTerms: ReferralTerms
+    let referralCodeLoadFailed: Bool
+    let retryReferralCode: (() -> Void)?
     
     init(
         close: @escaping () -> Void,
@@ -101,7 +103,9 @@ struct IntroductionView: View {
         referralCode: String,
         meanReliabilityWeight: Double,
         api: UrApiServiceProtocol,
-        referralTerms: ReferralTerms = .default
+        referralTerms: ReferralTerms = .default,
+        referralCodeLoadFailed: Bool = false,
+        retryReferralCode: (() -> Void)? = nil
     ) {
         self.close = close
         self.totalReferrals = totalReferrals
@@ -109,6 +113,8 @@ struct IntroductionView: View {
         self.meanReliabilityWeight = meanReliabilityWeight
         self.api = api
         self.referralTerms = referralTerms
+        self.referralCodeLoadFailed = referralCodeLoadFailed
+        self.retryReferralCode = retryReferralCode
     }
     
     /// A purchase through the build's store (the welcome offer on the yearly
@@ -332,6 +338,8 @@ struct IntroductionView: View {
                                 totalReferrals: totalReferrals,
                                 referralCode: referralCode,
                                 terms: referralTerms,
+                                referralCodeLoadFailed: referralCodeLoadFailed,
+                                retryReferralCode: retryReferralCode,
                                 continueAction: {
                                     routeState.advance(to: .quickConnect)
                                 }

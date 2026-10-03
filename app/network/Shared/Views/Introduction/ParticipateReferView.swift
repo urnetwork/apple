@@ -16,6 +16,8 @@ struct ParticipateReferView: View {
     let totalReferrals: Int
     let referralCode: String
     var terms: ReferralTerms = .default
+    var referralCodeLoadFailed: Bool = false
+    var retryReferralCode: (() -> Void)? = nil
     let continueAction: () -> Void
     
     var body: some View {
@@ -51,7 +53,9 @@ struct ParticipateReferView: View {
                     ReferralGoldPanel(
                         referralCode: referralCode,
                         totalReferrals: totalReferrals,
-                        terms: terms
+                        terms: terms,
+                        loadFailed: referralCodeLoadFailed,
+                        onRetry: retryReferralCode
                     )
                     
                     Spacer(minLength: 24)

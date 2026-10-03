@@ -20,11 +20,28 @@ import UIKit
 import AppKit
 #endif
 
+/// What the code slot shows: the code, a spinner while it loads, or an error
+/// with a retry once a fetch failed (a spinner there would never end).
+enum ReferralCodeSlot: Equatable {
+    case code(String)
+    case loading
+    case failed
+
+    static func of(referralCode: String, loadFailed: Bool) -> ReferralCodeSlot {
+        if !referralCode.isEmpty {
+            return .code(referralCode)
+        }
+        return loadFailed ? .failed : .loading
+    }
+}
+
 struct ReferralGoldPanel: View {
 
     let referralCode: String
     let totalReferrals: Int
     var terms: ReferralTerms = .default
+    var loadFailed: Bool = false
+    var onRetry: (() -> Void)? = nil
 
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -66,7 +83,8 @@ struct ReferralGoldPanel: View {
 
             Spacer().frame(height: 18)
 
-            if !referralCode.isEmpty {
+            switch ReferralCodeSlot.of(referralCode: referralCode, loadFailed: loadFailed) {
+            case .code(let referralCode):
 
                 Text("Your referral code")
                     .textCase(.uppercase)
@@ -87,9 +105,23 @@ struct ReferralGoldPanel: View {
                     GoldShareLabel()
                 }
                 .buttonStyle(.plain)
-            } else {
+            case .loading:
                 ProgressView()
                     .tint(.urReferralGoldLight)
+            case .failed:
+                Text("Your referral code could not be loaded.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(Color.urLightBlue.opacity(0.85))
+                    .multilineTextAlignment(.center)
+
+                if let onRetry {
+                    Spacer().frame(height: 8)
+
+                    Button("Retry", action: onRetry)
+                        .buttonStyle(.plain)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.urReferralGoldLight)
+                }
             }
 
             Spacer().frame(height: 16)

@@ -215,8 +215,11 @@ struct MainTabView: View {
             routeOnboarding(destination)
         }
         .sheet(isPresented: $presentOnboardingOffer) {
-            OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
-                .environmentObject(themeManager)
+            // a legacy guest adds a sign-in method to this network first
+            GuestPurchaseGate(urApiService: urApiService) {
+                OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
+            }
+            .environmentObject(themeManager)
         }
         .onAppear {
             setPresentationActive(presentationActive)

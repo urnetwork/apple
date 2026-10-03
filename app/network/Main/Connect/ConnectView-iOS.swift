@@ -444,62 +444,66 @@ struct ConnectView_iOS: View {
         }
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
-                UpgradeSubscriptionSheet(
-                    monthlyProduct: subscriptionManager.monthlySubscription,
-                    yearlyProduct: subscriptionManager.yearlySubscription,
-                    yearlyTrialDays: subscriptionManager.yearlyTrialDays,
-                    purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
-                    purchase: { product in
+                // a legacy guest adds a sign-in method to this network
+                // first: a plan bought on a guest network is stranded
+                GuestPurchaseGate(urApiService: urApiService) {
+                    UpgradeSubscriptionSheet(
+                        monthlyProduct: subscriptionManager.monthlySubscription,
+                        yearlyProduct: subscriptionManager.yearlySubscription,
+                        yearlyTrialDays: subscriptionManager.yearlyTrialDays,
+                        purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
+                        purchase: { product in
 
-                        // note: no VPN disconnect around the purchase on iOS —
-                        // App Store purchase traffic does not ride the tunnel;
-                        // see the A6 note on AppStoreSubscriptionManager.purchase
+                            // note: no VPN disconnect around the purchase on iOS —
+                            // App Store purchase traffic does not ride the tunnel;
+                            // see the A6 note on AppStoreSubscriptionManager.purchase
 
-                        Task {
-                            do {
-                                try await subscriptionManager.purchase(
-                                    product: product,
-                                    onSuccess: {
-                                        subscriptionBalanceViewModel.startPolling()
-                                    }
-                                )
+                            Task {
+                                do {
+                                    try await subscriptionManager.purchase(
+                                        product: product,
+                                        onSuccess: {
+                                            subscriptionBalanceViewModel.startPolling()
+                                        }
+                                    )
 
-                            } catch(let error) {
-                                // rendered inline via subscriptionManager.purchaseError
-                                print("error making purchase: \(error)")
+                                } catch(let error) {
+                                    // rendered inline via subscriptionManager.purchaseError
+                                    print("error making purchase: \(error)")
+                                }
+
+
                             }
 
-
-                        }
-
-                    },
-                    isPurchasing: subscriptionManager.isPurchasing,
-                    purchaseSuccess: subscriptionManager.purchaseSuccess,
-                    purchaseConfirmed: deviceManager.isPro,
-                    purchasePending: subscriptionManager.purchasePending,
-                    purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
-                    purchaseError: subscriptionManager.purchaseError,
-                    productsLoadFailed: subscriptionManager.fetchProductsError,
-                    retryFetchProducts: {
-                        subscriptionManager.retryFetchProductsIfNeeded()
-                    },
-                    restorePurchases: {
-                        Task {
-                            if await subscriptionManager.restorePurchases() == .restored {
-                                subscriptionBalanceViewModel.startPolling()
+                        },
+                        isPurchasing: subscriptionManager.isPurchasing,
+                        purchaseSuccess: subscriptionManager.purchaseSuccess,
+                        purchaseConfirmed: deviceManager.isPro,
+                        purchasePending: subscriptionManager.purchasePending,
+                        purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
+                        purchaseError: subscriptionManager.purchaseError,
+                        productsLoadFailed: subscriptionManager.fetchProductsError,
+                        retryFetchProducts: {
+                            subscriptionManager.retryFetchProductsIfNeeded()
+                        },
+                        restorePurchases: {
+                            Task {
+                                if await subscriptionManager.restorePurchases() == .restored {
+                                    subscriptionBalanceViewModel.startPolling()
+                                }
                             }
+                        },
+                        isRestoringPurchases: subscriptionManager.isRestoringPurchases,
+                        restoreMessage: subscriptionManager.restoreResultMessage,
+                        dismiss: {
+                            connectViewModel.isPresentedUpgradeSheet = false
+                            // the purchase flags describe ONE attempt; letting them
+                            // survive is what showed "You're premium." to a user who
+                            // had not actually completed a purchase
+                            subscriptionManager.resetPurchaseState()
                         }
-                    },
-                    isRestoringPurchases: subscriptionManager.isRestoringPurchases,
-                    restoreMessage: subscriptionManager.restoreResultMessage,
-                    dismiss: {
-                        connectViewModel.isPresentedUpgradeSheet = false
-                        // the purchase flags describe ONE attempt; letting them
-                        // survive is what showed "You're premium." to a user who
-                        // had not actually completed a purchase
-                        subscriptionManager.resetPurchaseState()
-                    }
-                )
+                    )
+                }
                 .environmentObject(themeManager)
             }
             

@@ -6,29 +6,49 @@
 import Foundation
 
 /**
- * Legacy guest networks (finding A4 in server/UPGRADE.md §3).
+ * Legacy guest networks (findings A4 and D8 in server/UPGRADE.md §3).
  *
- * The server no longer creates guest networks, but a jwt minted before July
- * can still carry `guest_mode` until its first refresh. Such a network can hold
- * a plan and a balance: a guest could buy Pro. "Create an account" used to run
- * the login flow and sign in to a NEW network, which left the paid plan and
- * balance behind on the guest network with no way back to it.
+ * The server no longer creates guest networks, but a network created as a
+ * guest before July has no login method. Such a network can hold a plan and a
+ * balance. "Create an account" used to run the login flow and sign in to a NEW
+ * network, which left the paid plan and balance behind on the guest network
+ * with no way back to it.
  *
  * A guest now converts in place: it adds a sign-in method to its own network
- * (the server's AddAuth, which checks live auth methods, so the network stops
- * being a bare guest the moment the method exists), then re-signs the jwt so
- * `guest_mode` clears. The network, its plan and its balance stay. Nothing logs
- * out.
+ * (the server's AddAuth), then re-signs the jwt and refetches the balance. The
+ * network, its plan and its balance stay. Nothing logs out.
+ *
+ * Until a sign-in method exists, a guest is not sold a plan: every purchase
+ * entry opens the conversion instead (see `purchaseEntry`).
  */
 enum GuestAccount {
 
     /**
-     * Whether the session is a legacy guest. No jwt is not a guest: a missing
-     * claim used to read as guest, which offered the guest-only flows to a
-     * session that had not loaded yet.
+     * Whether the network is a legacy guest: the jwt's `guest_mode` claim, or
+     * the server's subscription-balance `guest` (no login method).
+     *
+     * The claim alone misses most guests: every token refresh signs the jwt
+     * without `guest_mode`, so a guest whose token was refreshed once read as a
+     * normal account and could buy Pro for a network nothing can sign back in
+     * to. The server reads `guest` from the live auth methods.
+     *
+     * No jwt is not a guest: a missing claim used to read as guest, which
+     * offered the guest-only flows to a session that had not loaded yet.
      */
-    static func isGuest(guestModeClaim: Bool?) -> Bool {
-        guestModeClaim ?? false
+    static func isGuest(guestModeClaim: Bool?, serverGuest: Bool) -> Bool {
+        (guestModeClaim ?? false) || serverGuest
+    }
+
+    enum PurchaseEntry: Equatable {
+        /// the plans and the store checkout
+        case checkout
+        /// the in-place conversion: add a sign-in method to this network first
+        case addSignInMethod
+    }
+
+    /// Where a purchase entry (upgrade sheet, welcome offer, intro plan step) leads.
+    static func purchaseEntry(isGuest: Bool) -> PurchaseEntry {
+        isGuest ? .addSignInMethod : .checkout
     }
 }
 
@@ -39,6 +59,7 @@ enum GuestAccount {
 @MainActor
 protocol GuestAccountSession: AnyObject {
     func refreshJwt()
+    func refreshBalance()
     func logout()
 }
 
@@ -53,10 +74,12 @@ struct GuestAccountConversion {
 
     /**
      * Re-sign the jwt so `guest_mode` clears (the refresh signs a non-guest
-     * jwt for the same network). The session stays on this network.
+     * jwt for the same network), and refetch the balance so the server's
+     * `guest` clears. The session stays on this network.
      */
     func signInMethodAdded() {
         session.refreshJwt()
+        session.refreshBalance()
     }
 }
 
@@ -65,11 +88,14 @@ struct GuestAccountConversion {
 final class DeviceGuestAccountSession: GuestAccountSession {
 
     private weak var deviceManager: DeviceManager?
-    private let logoutAction: () -> Void
+    private weak var subscriptionBalanceViewModel: SubscriptionBalanceViewModel?
 
-    init(deviceManager: DeviceManager, logout: @escaping () -> Void) {
+    init(
+        deviceManager: DeviceManager,
+        subscriptionBalanceViewModel: SubscriptionBalanceViewModel?
+    ) {
         self.deviceManager = deviceManager
-        self.logoutAction = logout
+        self.subscriptionBalanceViewModel = subscriptionBalanceViewModel
     }
 
     func refreshJwt() {
@@ -80,7 +106,14 @@ final class DeviceGuestAccountSession: GuestAccountSession {
         }
     }
 
+    func refreshBalance() {
+        guard let subscriptionBalanceViewModel else { return }
+        Task {
+            await subscriptionBalanceViewModel.fetchSubscriptionBalance()
+        }
+    }
+
     func logout() {
-        logoutAction()
+        deviceManager?.logout()
     }
 }

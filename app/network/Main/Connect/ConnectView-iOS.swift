@@ -261,7 +261,7 @@ struct ConnectView_iOS: View {
                                     connectViewModel.isPresentedUpgradeSheet = true
                                 },
                                 meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: referralLinkViewModel.totalReferrals,
+                                referralLine: referralLinkViewModel.referralBonusLine,
                                 openReferrals: {
                                     isSheetExpanded = false
                                     isPresentedReferrals = true

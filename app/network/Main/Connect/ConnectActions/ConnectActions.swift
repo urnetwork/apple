@@ -64,7 +64,8 @@ struct ConnectActions: View {
     // Get Pro: the same upgrade sheet Account presents from its plan row
     let openUpgradeSheet: () -> Void
     let meanReliabilityWeight: Double
-    let totalReferrals: Int
+    // the usage bar's referral row
+    let referralLine: ReferralBonusLine
     // the usage bar referral row opens the one Referrals screen
     let openReferrals: () -> Void
     let isPro: Bool
@@ -316,7 +317,7 @@ struct ConnectActions: View {
                             pendingByteCount: pendingByteCount,
                             usedByteCount: usedByteCount,
                             meanReliabilityWeight: meanReliabilityWeight,
-                            totalReferrals: totalReferrals,
+                            referralLine: referralLine,
                             dailyBalanceByteCount: dailyBalanceByteCount,
                             openReferrals: openReferrals
                         )

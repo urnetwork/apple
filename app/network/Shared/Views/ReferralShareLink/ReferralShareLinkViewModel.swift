@@ -29,6 +29,14 @@ class ReferralLinkViewModel: ObservableObject {
     /// the last fetch failed; with no code yet the panel shows an error and a
     /// retry instead of a spinner that never ends
     @Published private(set) var loadFailed: Bool = false
+    /// a read has landed, so totalReferrals is the server's count and not the
+    /// 0 it starts at
+    @Published private(set) var referralsCounted: Bool = false
+
+    /// the usage bar's referral row
+    var referralBonusLine: ReferralBonusLine {
+        .of(counted: referralsCounted, loadFailed: loadFailed, totalReferrals: totalReferrals, terms: terms)
+    }
 
     /**
      * Referral celebrations, keyed off the count the last celebration (or the
@@ -160,6 +168,7 @@ class ReferralLinkViewModel: ObservableObject {
 
             self.referralCode = result.referralCode
             self.totalReferrals = result.totalReferrals
+            self.referralsCounted = true
             self.terms = ReferralTerms.from(result)
             self.loadFailed = false
             self.isLoading = false

@@ -20,11 +20,31 @@ struct BlockActionItem: Identifiable, Equatable {
     let byteCount: Int64
     // The live exit join, not the exit at the time of the routing decision.
     var exitShortIds: [String]
+    // The sdk BlockActionReason; empty for ordinary provider-routed traffic.
+    var reason: String = ""
+    // The URnetwork safety rules decided the action (sdk `isSecurity`).
+    var safetyRule: Bool = false
+    // A route-local rule can make the blocked traffic work (sdk `routeLocalOverridable`).
+    var routeLocalOverridable: Bool = false
 
     var allHostNames: [String] { matchedHosts + hosts }
     var allIps: [String] { matchedIps + ips }
     var hostValues: [String] { allHostNames + allIps }
     var ipCount: Int { ips.count }
+
+    // Offer "Route locally" only for a safety-rule drop no override touched yet.
+    var offersRouteLocal: Bool {
+        safetyRule
+            && routeLocalOverridable
+            && block
+            && !local
+            && overrideId == nil
+            && !hasBlockOverride
+            && !hasRouteOverride
+            && matchedHosts.isEmpty
+            && matchedIps.isEmpty
+            && !hostValues.isEmpty
+    }
 }
 
 /** Value-only UI projection; its memo contains only currently displayed rows. */

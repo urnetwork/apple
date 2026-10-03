@@ -163,7 +163,10 @@ struct SplitRulesView: View {
                         .listRowBackground(Color.clear)
                 } else {
                     ForEach(displayedActions) { action in
-                        BlockActionRowView(action: action)
+                        BlockActionRowView(
+                            action: action,
+                            routeLocal: { openRouteLocalEditor(action) }
+                        )
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 openEditor(action)
@@ -312,6 +315,21 @@ struct SplitRulesView: View {
         }
     }
 
+    /**
+     * "Route locally" on a safety-rule row: the ordinary new-rule editor,
+     * excluded, with the row's hosts and ips preselected since the user
+     * already asked for exactly this cluster
+     */
+    private func openRouteLocalEditor(_ action: BlockActionItem) {
+        editorTarget = EditorTarget(
+            id: action.id,
+            candidates: action.hostValues,
+            selected: Set(action.hostValues),
+            ruleId: nil,
+            mode: .excluded
+        )
+    }
+
     private func orderedUnion(_ a: [String], _ b: [String]) -> [String] {
         var seen = Set<String>()
         var values: [String] = []
@@ -434,11 +452,17 @@ struct SplitRuleRowView: View {
 // A block-action row. Chips, in order: the exact hosts/ips an override matched
 // (green), then the remaining hosts collapsed to base names (white outline), then a
 // single "X IPs" pill for the remaining ips. The block/route state chips trail.
+// A safety-rule row adds a "Safety rule" chip (tap for the detail) and, when a
+// local rule can make the traffic work, a "Route locally" shortcut.
 struct BlockActionRowView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var blockActionsStore: BlockActionsStore
 
     let action: BlockActionItem
+    var routeLocal: (() -> Void)? = nil
+
+    @State private var isPresentingSafetyRuleDetail = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -481,6 +505,10 @@ struct BlockActionRowView: View {
                 .font(.system(size: 11).monospacedDigit())
                 .foregroundColor(themeManager.currentTheme.textFaintColor)
 
+                if action.safetyRule {
+                    safetyRuleRow
+                }
+
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -500,6 +528,57 @@ struct BlockActionRowView: View {
 
         }
         .padding(.vertical, 4)
+        .alert("Safety rule", isPresented: $isPresentingSafetyRuleDetail) {
+            Button("Got it", role: .cancel) {}
+        } message: {
+            Text(Self.safetyRuleDetail)
+        }
+    }
+
+    private static let safetyRuleDetail: LocalizedStringKey = "URnetwork safety rules keep this traffic off the network, for example an encrypted protocol it cannot recognize. A local split rule sends it outside the VPN from your own IP."
+
+    @ViewBuilder
+    private var safetyRuleRow: some View {
+        HStack(spacing: 6) {
+            Button {
+                isPresentingSafetyRuleDetail = true
+            } label: {
+                HStack(spacing: 3) {
+                    Text("Safety rule")
+                    Image(systemName: "info.circle")
+                        .imageScale(.small)
+                }
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.urAmber)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(Color.urAmber.opacity(0.14))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .help(Text(Self.safetyRuleDetail))
+
+            // the activity list only fills while connected, but the create
+            // guard is the store's, so the shortcut follows it
+            if action.offersRouteLocal, let routeLocal, blockActionsStore.canCreateRule {
+                Button(action: routeLocal) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.uturn.down")
+                            .imageScale(.small)
+                        Text("Route locally")
+                    }
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color.urGreen)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.urGreen, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     private static let relativeTimeFormatter: RelativeDateTimeFormatter = {

@@ -1428,3 +1428,399 @@ final class networkUITests: XCTestCase {
         add(attachment)
     }
 }
+
+// MARK: - insufficient balance driver
+
+/// The UI half of apple/test-insufficient-balance-driver (MAIN's insufficient
+/// balance case, tests/runner/RUN-MAIN.md). One long-lived test owns the
+/// signed macOS app for the whole case, so every driver verb acts on the same
+/// launched app and the same notification count. The driver writes
+/// request-<seq>.json into UR_IB_CHANNEL and waits for reply-<seq>.json; a
+/// stop file or an idle hour ends the loop. Network probes stay in the driver,
+/// a process outside the app. A failed assertion ends the test, which the
+/// driver reports as the verb's failure.
+extension networkUITests {
+
+    /// A verb failure the driver reports as its redacted stderr line.
+    fileprivate struct DriverError: Error, CustomStringConvertible {
+        let description: String
+    }
+
+    fileprivate struct DriverRequest: Equatable {
+        let seq: Int
+        let verb: String
+        let arg: String
+    }
+
+    fileprivate struct DriverObservation: Equatable {
+        let connectRequested: Bool
+        let connected: Bool
+        let alert: Bool
+        let disconnectVisible: Bool
+        let upgradeVisible: Bool
+        // nil when the build has no post-count marker
+        let notifications: Int?
+    }
+
+    private static let driverIdleLimit: TimeInterval = 60 * 60
+    private static let notificationsToggleLabel = "Receive connection notifications"
+    private static let killSwitchLabelPrefix = "Kill switch"
+
+    fileprivate static func driverRequest(_ data: Data) -> DriverRequest? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let seq = object["seq"] as? Int,
+              let verb = object["verb"] as? String,
+              !verb.isEmpty else {
+            return nil
+        }
+        return DriverRequest(seq: seq, verb: verb, arg: object["arg"] as? String ?? "")
+    }
+
+    fileprivate static func driverReply(seq: Int, result: Result<[String: Any], Error>) -> Data {
+        var object: [String: Any] = ["seq": seq]
+        switch result {
+        case .success(let value):
+            object["ok"] = true
+            object["result"] = value
+        case .failure(let error):
+            object["ok"] = false
+            object["error"] = "\(error)"
+        }
+        return (try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])) ?? Data()
+    }
+
+    /// Disconnect is offered whenever a connect is requested (in the
+    /// insufficient balance gate too); Reconnect replaces it while the tunnel
+    /// is being recreated.
+    fileprivate static func driverObservation(
+        disconnect: Bool,
+        reconnect: Bool,
+        connectedStatus: Bool,
+        notice: Bool,
+        upgrade: Bool,
+        notificationsMarker: String?
+    ) -> DriverObservation {
+        DriverObservation(
+            connectRequested: disconnect || reconnect,
+            connected: connectedStatus,
+            alert: notice,
+            disconnectVisible: disconnect,
+            upgradeVisible: upgrade,
+            notifications: notificationsMarker.flatMap { Int($0) }
+        )
+    }
+
+    fileprivate static func driverObservationJson(_ o: DriverObservation) -> [String: Any] {
+        var object: [String: Any] = [
+            "connect_requested": o.connectRequested,
+            "connected": o.connected,
+            "insufficient_balance_alert": o.alert,
+            "disconnect_visible": o.disconnectVisible,
+            "upgrade_visible": o.upgradeVisible,
+            "insufficient_balance_notifications": o.notifications ?? 0,
+        ]
+        object["notification_marker_present"] = o.notifications != nil
+        return object
+    }
+
+    fileprivate static func toggleIsOn(_ value: Any?) -> Bool {
+        if let number = value as? NSNumber { return number.boolValue }
+        guard let text = value as? String else { return false }
+        return text == "1" || text.caseInsensitiveCompare("on") == .orderedSame
+    }
+
+    func testInsufficientBalanceDriverParsesRequests() {
+        XCTAssertEqual(
+            Self.driverRequest(Data(#"{"seq":3,"verb":"kill-switch","arg":"on"}"#.utf8)),
+            DriverRequest(seq: 3, verb: "kill-switch", arg: "on")
+        )
+        XCTAssertEqual(
+            Self.driverRequest(Data(#"{"seq":4,"verb":"observe"}"#.utf8)),
+            DriverRequest(seq: 4, verb: "observe", arg: "")
+        )
+        XCTAssertNil(Self.driverRequest(Data(#"{"verb":"observe"}"#.utf8)))
+        XCTAssertNil(Self.driverRequest(Data(#"{"seq":1,"verb":""}"#.utf8)))
+        XCTAssertNil(Self.driverRequest(Data("partial".utf8)))
+    }
+
+    func testInsufficientBalanceDriverObservationMapsTheGate() {
+        let held = Self.driverObservation(
+            disconnect: true, reconnect: false, connectedStatus: false,
+            notice: true, upgrade: true, notificationsMarker: "1"
+        )
+        XCTAssertEqual(held, DriverObservation(
+            connectRequested: true, connected: false, alert: true,
+            disconnectVisible: true, upgradeVisible: true, notifications: 1
+        ))
+        let reconnecting = Self.driverObservation(
+            disconnect: false, reconnect: true, connectedStatus: false,
+            notice: false, upgrade: false, notificationsMarker: nil
+        )
+        XCTAssertTrue(reconnecting.connectRequested)
+        XCTAssertNil(reconnecting.notifications)
+        let json = Self.driverObservationJson(reconnecting)
+        XCTAssertEqual(json["insufficient_balance_notifications"] as? Int, 0)
+        XCTAssertEqual(json["notification_marker_present"] as? Bool, false)
+        let released = Self.driverObservation(
+            disconnect: false, reconnect: false, connectedStatus: false,
+            notice: true, upgrade: true, notificationsMarker: "1"
+        )
+        XCTAssertFalse(released.connectRequested, "a gate without Disconnect is not a connect request")
+    }
+
+    func testInsufficientBalanceDriverReplyCarriesErrors() throws {
+        let failed = Self.driverReply(seq: 7, result: .failure(DriverError(description: "kill-switch takes on or off")))
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: failed) as? [String: Any])
+        XCTAssertEqual(object["seq"] as? Int, 7)
+        XCTAssertEqual(object["ok"] as? Bool, false)
+        XCTAssertEqual(object["error"] as? String, "kill-switch takes on or off")
+        let ok = Self.driverReply(seq: 8, result: .success(["kill_switch_supported": true]))
+        let okObject = try XCTUnwrap(JSONSerialization.jsonObject(with: ok) as? [String: Any])
+        XCTAssertEqual((okObject["result"] as? [String: Any])?["kill_switch_supported"] as? Bool, true)
+        XCTAssertTrue(Self.toggleIsOn(NSNumber(value: 1)))
+        XCTAssertTrue(Self.toggleIsOn("on"))
+        XCTAssertFalse(Self.toggleIsOn("0"))
+        XCTAssertFalse(Self.toggleIsOn(nil))
+    }
+
+    @MainActor
+    func testInsufficientBalanceDriver() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let channel = environment["UR_IB_CHANNEL"], !channel.isEmpty else {
+            throw XCTSkip("run through apple/test-insufficient-balance-driver")
+        }
+        #if os(macOS)
+        let fileManager = FileManager.default
+        var next = 1
+        var lastRequest = Date()
+        while !fileManager.fileExists(atPath: "\(channel)/stop") {
+            let path = "\(channel)/request-\(next).json"
+            guard let data = fileManager.contents(atPath: path) else {
+                if Date().timeIntervalSince(lastRequest) > Self.driverIdleLimit {
+                    XCTFail("insufficient balance driver went idle without stopping")
+                    return
+                }
+                RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+                continue
+            }
+            lastRequest = Date()
+            let result: Result<[String: Any], Error>
+            if let request = Self.driverRequest(data), request.seq == next {
+                print("UR_ACCEPTANCE_STEP insufficient-balance \(request.verb) \(request.arg)")
+                do {
+                    result = .success(try handleDriverRequest(request, environment))
+                } catch {
+                    result = .failure(error)
+                }
+            } else {
+                result = .failure(DriverError(description: "malformed request \(next)"))
+            }
+            let reply = Self.driverReply(seq: next, result: result)
+            let replyPath = "\(channel)/reply-\(next).json"
+            try reply.write(to: URL(fileURLWithPath: replyPath + ".tmp"), options: .atomic)
+            try fileManager.moveItem(atPath: replyPath + ".tmp", toPath: replyPath)
+            next += 1
+        }
+        #else
+        throw XCTSkip("the insufficient balance driver owns the native macOS lane")
+        #endif
+    }
+
+    #if os(macOS)
+    @MainActor
+    private func handleDriverRequest(
+        _ request: DriverRequest,
+        _ environment: [String: String]
+    ) throws -> [String: Any] {
+        switch request.verb {
+        case "setup":
+            return try driverSetup(environment)
+        case "connect":
+            addUIInterruptionMonitor(withDescription: "VPN configuration") { alert in
+                for label in ["Allow", "OK", "Approve"] {
+                    let button = alert.buttons[label]
+                    if button.exists {
+                        button.tap()
+                        return true
+                    }
+                }
+                return false
+            }
+            try tap("acceptance.connect", scrollContainer: "acceptance.connect.scroll")
+            try authorizeVPNConfigurationIfRequested(using: "acceptance.connect.status")
+            return [:]
+        case "observe":
+            return Self.driverObservationJson(driverObserve())
+        case "press-disconnect":
+            // the Disconnect next to Upgrade; outside the gate there is no
+            // Upgrade and the press would not be the case under test
+            guard element("acceptance.insufficientBalance.upgrade").exists else {
+                throw DriverError(description: "press-disconnect outside the insufficient balance state")
+            }
+            try tap("acceptance.disconnect", scrollContainer: "acceptance.connect.scroll")
+            return [:]
+        case "kill-switch":
+            guard request.arg == "on" || request.arg == "off" else {
+                throw DriverError(description: "kill-switch takes on or off")
+            }
+            try driverSetKillSwitch(request.arg == "on")
+            return [:]
+        case "teardown":
+            try driverTeardown()
+            return [:]
+        default:
+            throw DriverError(description: "unknown verb \(request.verb)")
+        }
+    }
+
+    @MainActor
+    private func driverSetup(_ environment: [String: String]) throws -> [String: Any] {
+        let user = try requiredEnvironment("UR_ACCEPT_USER", environment)
+        let password = try requiredEnvironment("UR_ACCEPT_PASS", environment)
+        let expectedBuildID = try requiredEnvironment("UR_ACCEPT_BUILD_ID", environment)
+
+        app.launch()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
+        let marker = element("acceptance.build.id")
+        XCTAssertTrue(marker.waitForExistence(timeout: 30), "local-build marker is missing")
+        XCTAssertEqual(
+            Self.accessibilityText(label: marker.label, value: marker.value),
+            expectedBuildID,
+            "a stale app is running"
+        )
+        let environmentMarker = element("acceptance.environment")
+        XCTAssertTrue(environmentMarker.waitForExistence(timeout: 30), "environment marker is missing")
+        XCTAssertEqual(
+            Self.accessibilityText(label: environmentMarker.label, value: environmentMarker.value),
+            "main",
+            "acceptance app is not targeting main"
+        )
+
+        try ensureLoggedOut()
+        try loginWithPassword(user: user, password: password)
+        print("UR_ACCEPTANCE_CLIENT id=\(try currentClientID())")
+        if element("acceptance.disconnect").exists {
+            try tap("acceptance.disconnect", scrollContainer: "acceptance.connect.scroll")
+        }
+
+        // the app posts the notice only when notifications are already
+        // allowed, and asks only from Settings
+        try openSettings()
+        var notifications = try settingsToggle(label: Self.notificationsToggleLabel)
+        if !Self.toggleIsOn(notifications.value) {
+            notifications.tap()
+            allowNotificationRequestIfShown()
+            // the settings model reads the authorization only on appear
+            try navigateToSidebar("Connect")
+            try openSettings()
+            notifications = try settingsToggle(label: Self.notificationsToggleLabel)
+        }
+        guard Self.toggleIsOn(notifications.value) else {
+            throw DriverError(description: "URnetwork notifications are not allowed on this Mac; allow them once in System Settings > Notifications > URnetwork")
+        }
+
+        let killSwitch = try? settingsToggle(label: Self.killSwitchLabelPrefix, prefix: true)
+        if let killSwitch, Self.toggleIsOn(killSwitch.value) {
+            // the held case starts with the kill switch off
+            killSwitch.tap()
+        }
+        try navigateToSidebar("Connect")
+        guard element("acceptance.connect").waitForExistence(timeout: 90) else {
+            throw DriverError(description: "Connect is not offered after sign-in; the account may still be out of balance")
+        }
+        return ["kill_switch_supported": killSwitch != nil]
+    }
+
+    private func driverObserve() -> DriverObservation {
+        let marker = element("acceptance.insufficientBalance.notifications")
+        let markerText = marker.exists
+            ? Self.accessibilityText(label: marker.label, value: marker.value)
+            : nil
+        return Self.driverObservation(
+            disconnect: element("acceptance.disconnect").exists,
+            reconnect: app.buttons["Reconnect"].exists,
+            connectedStatus: connectedStatusElement().exists,
+            notice: element("acceptance.insufficientBalance.notice").exists,
+            upgrade: element("acceptance.insufficientBalance.upgrade").exists,
+            notificationsMarker: markerText
+        )
+    }
+
+    @MainActor
+    private func driverSetKillSwitch(_ on: Bool) throws {
+        try openSettings()
+        let toggle = try settingsToggle(label: Self.killSwitchLabelPrefix, prefix: true)
+        if Self.toggleIsOn(toggle.value) != on {
+            toggle.tap()
+        }
+        let expected = NSPredicate { object, _ in
+            guard let element = object as? XCUIElement else { return false }
+            return Self.toggleIsOn(element.value) == on
+        }
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: expected, object: toggle)], timeout: 10),
+            .completed,
+            "kill switch did not turn \(on ? "on" : "off")"
+        )
+        try navigateToSidebar("Connect")
+    }
+
+    @MainActor
+    private func driverTeardown() throws {
+        if element("acceptance.disconnect").exists {
+            try tap("acceptance.disconnect", scrollContainer: "acceptance.connect.scroll")
+        }
+        if element("acceptance.account.menu").exists || element("acceptance.connect").exists
+            || element("acceptance.insufficientBalance.upgrade").exists {
+            try openSettings()
+            if let killSwitch = try? settingsToggle(label: Self.killSwitchLabelPrefix, prefix: true),
+               Self.toggleIsOn(killSwitch.value) {
+                killSwitch.tap()
+            }
+            try logoutThroughUI()
+        }
+    }
+
+    private func openSettings() throws {
+        try navigateToAccount()
+        try tap("acceptance.account.settings")
+    }
+
+    private func navigateToSidebar(_ name: String) throws {
+        let row = app.outlines.cells.containing(.staticText, identifier: name).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 30), "sidebar row \(name) is missing")
+        row.tap()
+    }
+
+    /// Settings toggles carry no identifier; they are found by their English
+    /// label within the settings scroll view.
+    private func settingsToggle(label: String, prefix: Bool = false) throws -> XCUIElement {
+        let predicate = prefix
+            ? NSPredicate(format: "label BEGINSWITH %@", label)
+            : NSPredicate(format: "label == %@", label)
+        for _ in 0..<12 {
+            for query in [app.checkBoxes, app.switches] {
+                let toggle = query.matching(predicate).firstMatch
+                if toggle.waitForExistence(timeout: 2) {
+                    for _ in 0..<8 where !toggle.isHittable {
+                        guard swipe(.up, in: "acceptance.account.settings.scroll") else { break }
+                    }
+                    return toggle
+                }
+            }
+            guard swipe(.up, in: "acceptance.account.settings.scroll") else { break }
+        }
+        throw DriverError(description: "settings toggle \(label) is missing")
+    }
+
+    /// The system asks through a Notification Center alert. Allow it when it
+    /// appears; a decision made earlier on this Mac shows nothing.
+    private func allowNotificationRequestIfShown() {
+        let notificationCenter = XCUIApplication(bundleIdentifier: "com.apple.notificationcenterui")
+        let allow = notificationCenter.buttons["Allow"].firstMatch
+        if allow.waitForExistence(timeout: 10) {
+            allow.tap()
+        }
+    }
+    #endif
+}

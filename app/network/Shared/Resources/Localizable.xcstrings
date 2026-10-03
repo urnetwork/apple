@@ -10146,7 +10146,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ ГиБ/день"
+            "value" : "+%@ GiB/день"
           }
         },
         "sv" : {
@@ -10305,7 +10305,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lf ГиБ/день"
+            "value" : "+%lf GiB/день"
           }
         },
         "sv" : {
@@ -17574,7 +17574,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Создать код авторизации"
+            "value" : "Создать код аутентификации"
           }
         },
         "sv" : {
@@ -22946,7 +22946,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "По умолчанию вы получаете 10 ГиБ/месяц. Вот как можно заработать дополнительную пропускную способность:"
+            "value" : "По умолчанию вы получаете 10 GiB/месяц. Вот как можно заработать дополнительную пропускную способность:"
           }
         },
         "sv" : {
@@ -35117,7 +35117,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Созданные коды авторизации истекают через 5 минут"
+            "value" : "Созданные коды аутентификации истекают через 5 минут"
           }
         },
         "sv" : {
@@ -45091,7 +45091,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Каждый подтверждённый реферал даёт каждому из вас по %lld ГиБ в день бесплатно, навсегда."
+            "value" : "Каждый подтверждённый реферал даёт каждому из вас по %lld GiB в день бесплатно, навсегда."
           }
         },
         "zh-Hans" : {
@@ -53245,7 +53245,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Приятно снова тебя видеть"
+            "value" : "Приятно снова вас видеть"
           }
         },
         "sv" : {
@@ -59600,7 +59600,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Заработанные чистые баллы"
+            "value" : "Заработано очков (нетто)"
           }
         },
         "sv" : {
@@ -75836,7 +75836,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Порекомендовать друга = +30 ГиБ/месяц"
+            "value" : "Порекомендовать друга = +30 GiB/месяц"
           }
         },
         "sv" : {
@@ -77868,7 +77868,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "надёжности"
+            "value" : "Вес надёжности"
           }
         },
         "sv" : {
@@ -89827,7 +89827,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оставайтесь на связи ежедневно = Зарабатывайте до 100 ГиБ/день"
+            "value" : "Оставайтесь на связи ежедневно = Зарабатывайте до 100 GiB/день"
           }
         },
         "sv" : {
@@ -95657,7 +95657,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ошибка при проверке вашего кода авторизации. Пожалуйста, попробуйте снова или сгенерируйте новый."
+            "value" : "Ошибка при проверке вашего кода аутентификации. Пожалуйста, попробуйте снова или сгенерируйте новый."
           }
         },
         "sv" : {
@@ -105842,7 +105842,7 @@
       }
     },
     "Verification code sent." : {
-      "comment" : "Snackbar shown after the verification code is resent. Used in Authenticate/CreateNetworkVerify/CreateNetworkVerifyView.swift.",
+      "comment" : "Snackbar (apple) / toast (android) shown after the verification code is resent. Used in Authenticate/CreateNetworkVerify/CreateNetworkVerifyView.swift and android LoginVerify.kt.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -108976,7 +108976,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "При отключении вашей реферальной сети вы больше не сможете получать баллы от %@."
+            "value" : "При отключении вашей реферальной сети вы больше не сможете получать очки от %@."
           }
         },
         "sv" : {
@@ -110294,7 +110294,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы получаете 30 ГиБ/месяц навсегда"
+            "value" : "Вы получаете 30 GiB/месяц навсегда"
           }
         },
         "sv" : {
@@ -112088,7 +112088,7 @@
       }
     },
     "Your account isn't ready for purchases. Please restart the app and try again." : {
-      "comment" : "Shown when a purchase is refused before contacting the App Store because the networkId is missing or unparseable — the purchase could never be credited to anyone (Shared/ViewModels/AppStoreSubscriptionManager.swift). This used to be a silent no-op.",
+      "comment" : "Shown when a purchase is refused before contacting the store because the account is not ready: on apple the networkId is missing or unparseable (Shared/ViewModels/AppStoreSubscriptionManager.swift), on android the active network space has no api yet (the Stripe sheet and pay page purchasers). The purchase could never be credited to anyone. This used to be a silent no-op.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -112754,7 +112754,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ваш друг получает 30 ГиБ/месяц навсегда"
+            "value" : "Ваш друг получает 30 GiB/месяц навсегда"
           }
         },
         "sv" : {

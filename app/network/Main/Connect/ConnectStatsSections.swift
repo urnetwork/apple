@@ -141,7 +141,7 @@ struct ConnectStatsSections: View {
                         dnsStatusRow("DNS over HTTPS", enabled: settings.dohEnabled)
                         dnsStatusRow("Unencrypted DNS", enabled: settings.unencryptedDnsEnabled)
                         dnsStatusRow("Local DNS", enabled: settings.localDnsEnabled)
-                        dnsStatusRow("Local DNS fallback", enabled: settings.localDnsFallbackEnabled)
+                        dnsStatusRow("Fast DNS on connect", enabled: settings.fastDnsOnConnectEnabled)
                     }
                 } else {
                     // the settings arrive once the device attaches (the store

@@ -15526,6 +15526,173 @@
         }
       }
     },
+    "Answers DNS over the local network while the tunnel's DNS starts. This can reveal your lookups to the local network and return answers that don't match your exit location. When off, DNS only resolves through the tunnel." : {
+      "comment" : "DNS settings: description under the Fast DNS on connect toggle. Explains that it answers DNS over the local network while the tunnel's DNS starts, which can reveal lookups to the local network and can return answers that don't match the exit location (DNS answers depend on where the lookup comes from, so host-network answers can point to servers meant for the user's real location instead of the exit).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يجيب على استعلامات DNS عبر الشبكة المحلية أثناء بدء DNS الخاص بالنفق. قد يكشف هذا عمليات البحث الخاصة بك للشبكة المحلية ويعيد إجابات لا تتوافق مع موقع الخروج. عند الإيقاف، يتم حل DNS عبر النفق فقط."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpovídá na dotazy DNS přes místní síť, dokud se spouští DNS tunelu. Místní síť tak může vidět vaše dotazy a odpovědi nemusí odpovídat vašemu výstupnímu umístění. Když je vypnuto, DNS se překládá jen přes tunel."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beantwortet DNS-Anfragen über das lokale Netzwerk, während das DNS des Tunnels startet. Dadurch können deine Abfragen im lokalen Netzwerk sichtbar werden, und die Antworten passen möglicherweise nicht zu deinem Exit-Standort. Wenn aus, wird DNS nur über den Tunnel aufgelöst."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απαντά σε ερωτήματα DNS μέσω του τοπικού δικτύου όσο ξεκινά το DNS του τούνελ. Αυτό μπορεί να αποκαλύψει τις αναζητήσεις σας στο τοπικό δίκτυο και να επιστρέψει απαντήσεις που δεν ταιριάζουν με την τοποθεσία εξόδου σας. Όταν είναι ανενεργό, το DNS επιλύεται μόνο μέσω του τούνελ."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answers DNS over the local network while the tunnel's DNS starts. This can reveal your lookups to the local network and return answers that don't match your exit location. When off, DNS only resolves through the tunnel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde al DNS a través de la red local mientras se inicia el DNS del túnel. Esto puede revelar tus búsquedas a la red local y devolver respuestas que no coinciden con tu ubicación de salida. Si está desactivado, el DNS solo se resuelve a través del túnel."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde al DNS a través de la red local mientras se inicia el DNS del túnel. Esto puede revelar tus búsquedas a la red local y devolver respuestas que no coinciden con tu ubicación de salida. Si está desactivado, el DNS solo se resuelve a través del túnel."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde al DNS a través de la red local mientras se inicia el DNS del túnel. Esto puede revelar tus búsquedas a la red local y devolver respuestas que no coinciden con tu ubicación de salida. Si está desactivado, el DNS solo se resuelve a través del túnel."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répond aux requêtes DNS via le réseau local pendant le démarrage du DNS du tunnel. Cela peut révéler vos recherches au réseau local et renvoyer des réponses qui ne correspondent pas à votre emplacement de sortie. Désactivé, le DNS ne se résout qu'à travers le tunnel."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עונה לשאילתות DNS דרך הרשת המקומית בזמן שה-DNS של המנהרה עולה. הדבר עלול לחשוף את החיפושים שלך לרשת המקומית ולהחזיר תשובות שאינן תואמות למיקום היציאה שלך. כשהאפשרות כבויה, DNS נפתר רק דרך המנהרה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "टनल का DNS शुरू होने तक स्थानीय नेटवर्क से DNS का जवाब देता है। इससे आपके लुकअप स्थानीय नेटवर्क को दिख सकते हैं और ऐसे जवाब मिल सकते हैं जो आपके एग्ज़िट स्थान से मेल नहीं खाते। बंद होने पर DNS केवल टनल से ही रिज़ॉल्व होता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menjawab DNS melalui jaringan lokal saat DNS terowongan dimulai. Ini dapat memperlihatkan pencarian Anda ke jaringan lokal dan memberikan jawaban yang tidak sesuai dengan lokasi keluar Anda. Jika nonaktif, DNS hanya diselesaikan melalui terowongan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Risponde alle richieste DNS tramite la rete locale mentre il DNS del tunnel si avvia. Questo può rivelare le tue ricerche alla rete locale e restituire risposte che non corrispondono alla tua posizione di uscita. Se disattivato, il DNS si risolve solo attraverso il tunnel."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トンネルのDNSが起動するまで、ローカルネットワーク経由でDNSに応答します。問い合わせ内容がローカルネットワークに知られたり、出口の場所に合わない応答が返されたりする可能性があります。オフの場合、DNSはトンネル経由でのみ解決されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "터널 DNS가 시작되는 동안 로컬 네트워크를 통해 DNS에 응답합니다. 이로 인해 조회 내용이 로컬 네트워크에 노출되거나 출구 위치와 맞지 않는 응답이 반환될 수 있습니다. 끄면 DNS는 터널을 통해서만 확인됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beantwoordt DNS via het lokale netwerk terwijl de DNS van de tunnel opstart. Hierdoor kan het lokale netwerk je zoekopdrachten zien en kun je antwoorden krijgen die niet bij je exitlocatie passen. Als dit uitstaat, wordt DNS alleen via de tunnel opgelost."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpowiada na zapytania DNS przez sieć lokalną, dopóki uruchamia się DNS tunelu. Może to ujawnić Twoje zapytania sieci lokalnej i zwracać odpowiedzi niepasujące do Twojej lokalizacji wyjściowej. Po wyłączeniu DNS jest rozwiązywany tylko przez tunel."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde ao DNS através da rede local enquanto o DNS do túnel arranca. Isto pode revelar as suas pesquisas à rede local e devolver respostas que não correspondem à sua localização de saída. Quando desativado, o DNS só é resolvido através do túnel."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde ao DNS pela rede local enquanto o DNS do túnel inicia. Isso pode revelar suas consultas à rede local e retornar respostas que não correspondem ao seu local de saída. Quando desativado, o DNS só é resolvido através do túnel."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde ao DNS através da rede local enquanto o DNS do túnel arranca. Isto pode revelar as suas pesquisas à rede local e devolver respostas que não correspondem à sua localização de saída. Quando desativado, o DNS só é resolvido através do túnel."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отвечает на DNS-запросы через локальную сеть, пока запускается DNS туннеля. Это может раскрыть ваши запросы локальной сети и вернуть ответы, не соответствующие вашему местоположению выхода. Если выключено, DNS разрешается только через туннель."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Besvarar DNS via det lokala nätverket medan tunnelns DNS startar. Det kan avslöja dina uppslag för det lokala nätverket och ge svar som inte stämmer med din utgångsplats. När det är av sker DNS-uppslag endast genom tunneln."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตอบ DNS ผ่านเครือข่ายภายในขณะที่ DNS ของอุโมงค์กำลังเริ่มทำงาน ซึ่งอาจเปิดเผยการค้นหาของคุณให้เครือข่ายภายในเห็น และอาจได้คำตอบที่ไม่ตรงกับตำแหน่งทางออกของคุณ เมื่อปิดอยู่ DNS จะทำงานผ่านอุโมงค์เท่านั้น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відповідає на DNS-запити через локальну мережу, поки запускається DNS тунелю. Це може розкрити ваші запити локальній мережі й повернути відповіді, що не відповідають вашому місцю виходу. Якщо вимкнено, DNS розв'язується лише через тунель."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trả lời DNS qua mạng cục bộ trong khi DNS của đường hầm khởi động. Điều này có thể để lộ các truy vấn của bạn cho mạng cục bộ và trả về kết quả không khớp với vị trí thoát của bạn. Khi tắt, DNS chỉ phân giải qua đường hầm."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在隧道 DNS 启动期间通过本地网络应答 DNS。这可能会向本地网络暴露你的查询，并返回与你的出口位置不符的结果。关闭后，DNS 仅通过隧道解析。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在隧道 DNS 啟動期間透過本地網絡回應 DNS。這可能會向本地網絡暴露你的查詢，並傳回與你的出口位置不符的結果。關閉後，DNS 只會透過隧道解析。"
+          }
+        }
+      }
+    },
     "API URL (optional)" : {
       "comment" : "Label of the optional API URL field in the network API selector.",
       "localizations" : {
@@ -46593,6 +46760,173 @@
         }
       }
     },
+    "Fast DNS on connect" : {
+      "comment" : "DNS settings: label of the opt-in toggle (off by default) that answers DNS over the host's local network while the tunnel's DNS starts. Also the status row label in the connect drawer DNS summary.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS سريع عند الاتصال"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rychlé DNS při připojení"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schnelles DNS beim Verbinden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Γρήγορο DNS κατά τη σύνδεση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fast DNS on connect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rápido al conectar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rápido al conectar"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rápido al conectar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rapide à la connexion"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS מהיר בעת התחברות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कनेक्ट करते समय तेज़ DNS"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS cepat saat terhubung"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS veloce alla connessione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続時の高速DNS"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 시 빠른 DNS"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snelle DNS bij verbinden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szybki DNS przy łączeniu"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rápido ao ligar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rápido ao conectar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS rápido ao ligar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрый DNS при подключении"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snabb DNS vid anslutning"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS ที่รวดเร็วขณะเชื่อมต่อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Швидкий DNS під час підключення"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS nhanh khi kết nối"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接时快速 DNS"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連接時快速 DNS"
+          }
+        }
+      }
+    },
     "Feedback" : {
       "comment" : "Used in Main/Feedback/FeedbackView.swift.",
       "localizations" : {
@@ -56177,6 +56511,7 @@
     },
     "Local DNS fallback" : {
       "comment" : "A label displayed in the custom dns settings section.",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "ar" : {
@@ -73080,6 +73415,7 @@
     },
     "Races a local resolver while the tunnel starts. When off, DNS only resolves through the tunnel." : {
       "comment" : "A description of the local DNS fallback setting.",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "ar" : {

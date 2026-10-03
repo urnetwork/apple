@@ -219,10 +219,10 @@ struct DnsSettingsView: View {
 
                 Section {
                     UrSwitchToggle(isOn: $draft.enableFallback) {
-                        toggleLabel("Local DNS fallback", detail: nil)
+                        toggleLabel("Fast DNS on connect", detail: nil)
                     }
                 } footer: {
-                    Text("Races a local resolver while the tunnel starts. When off, DNS only resolves through the tunnel.")
+                    Text(FastDnsOnConnectCopy.description)
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textFaintColor)
                 }

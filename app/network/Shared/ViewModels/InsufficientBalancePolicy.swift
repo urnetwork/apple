@@ -2,20 +2,15 @@
 //  InsufficientBalancePolicy.swift
 //  URnetwork
 //
-//  Pure decisions for the insufficient balance state, shared by the connect
-//  actions, the connect button and the auto-disconnect in ConnectViewModel.
-//  Insufficient balance is a billing state, not a dropped tunnel: the user
-//  must always have a way to disconnect, and a balance that stays
-//  insufficient releases the connect request instead of holding traffic in a
-//  tunnel with no exit (Android parity, urnetwork/android#483).
+//  Pure decisions for the insufficient balance state, shared by iOS and
+//  macOS (urnetwork/android#483). Insufficient balance never disconnects on
+//  its own: dropping the connect request could release traffic outside the
+//  tunnel without the user knowing. Instead the tunnel keeps holding traffic,
+//  the user is told once per out of balance episode, and an explicit
+//  disconnect stays in reach next to the upgrade button.
 //
 
 import Foundation
-
-/// How long the gate must hold before the connect request is released. The
-/// contract status can latch insufficient balance briefly (a backend
-/// incident, a balance top-up in flight), so a short grace rides that out.
-let insufficientBalanceAutoDisconnectGrace: TimeInterval = 15
 
 /// The upgrade gate: out of balance, not a supporter, and not waiting on a
 /// subscription balance poll that may clear it.
@@ -36,9 +31,9 @@ struct ConnectActionButtons: Equatable {
 }
 
 /// In the gate the upgrade button replaces connect and reconnect, but
-/// disconnect stays whenever a connect is requested, so the user is never
-/// left without a way to release the tunnel. Outside the gate the rules are
-/// unchanged (a nil status shows disconnect, as before).
+/// disconnect stays whenever a connect is requested, so the user can always
+/// release the tunnel. Outside the gate the rules are unchanged (a nil status
+/// shows disconnect, as before).
 func connectActionButtons(
     gateActive: Bool,
     connectionStatus: ConnectionStatus?,
@@ -57,56 +52,71 @@ func connectActionButtons(
     )
 }
 
-/// What a tap on the round connect button does.
-enum ConnectButtonTapAction: Equatable {
-    case connect
-    case disconnect
-    case countConnectedTap
+enum InsufficientBalanceNoticeAction: Equatable {
     case none
+    // post the held-traffic notice
+    case post
+    // the episode ended: withdraw the delivered notice
+    case remove
 }
 
-/// Connect while disconnected with balance (unchanged). In the gate the
-/// button shows the error state, so a tap while a connect is requested
-/// disconnects; otherwise a connected tap feeds the pro tap gate.
-func connectButtonTapAction(
-    connectionStatus: ConnectionStatus?,
-    insufficientBalance: Bool,
-    plan: Plan,
-    isPollingSubscriptionBalance: Bool,
-    countsConnectedTaps: Bool
-) -> ConnectButtonTapAction {
-    if connectionStatus == .disconnected
-        && (!insufficientBalance || plan == .supporter)
-        && !isPollingSubscriptionBalance {
-        return .connect
+/// Decides the held-traffic notice once per out of balance episode. An
+/// episode starts when insufficient balance turns on and ends only when it
+/// turns off. The notice posts the first time the gate holds within the
+/// episode, so a supporter or a polling balance at entry suppresses it until
+/// the gate actually holds, and it never posts again until the episode ends.
+struct InsufficientBalanceNoticeTracker {
+    private var inEpisode = false
+    private var posted = false
+
+    mutating func update(insufficientBalance: Bool, isSupporter: Bool, isPolling: Bool) -> InsufficientBalanceNoticeAction {
+        guard insufficientBalance else {
+            let wasPosted = posted
+            inEpisode = false
+            posted = false
+            return wasPosted ? .remove : .none
+        }
+        inEpisode = true
+        if !posted && !isSupporter && !isPolling {
+            posted = true
+            return .post
+        }
+        return .none
     }
-    let gateActive = insufficientBalanceGateActive(
-        insufficientBalance: insufficientBalance,
-        plan: plan,
-        isPollingSubscriptionBalance: isPollingSubscriptionBalance
-    )
-    if gateActive && connectionStatus != nil && connectionStatus != .disconnected {
-        return .disconnect
-    }
-    if countsConnectedTaps {
-        return .countConnectedTap
-    }
-    return .none
 }
 
-/// Whether to release the connect request. Only once the gate has held for
-/// the full grace, only while a connect is requested, and never with the kill
-/// switch on: the user asked to fail closed, so capture is kept and the
-/// disconnect button stays offered instead.
-func insufficientBalanceShouldAutoDisconnect(
-    gateActive: Bool,
-    gateHeldFor: TimeInterval,
-    killSwitch: Bool,
-    connectionStatus: ConnectionStatus?
-) -> Bool {
-    gateActive
-        && insufficientBalanceAutoDisconnectGrace <= gateHeldFor
-        && !killSwitch
-        && connectionStatus != nil
-        && connectionStatus != .disconnected
+/// The view model's reaction to a contract status or guard change, kept
+/// apart from SwiftUI so it can be driven deterministically. It is handed
+/// the disconnect path only so a test can prove it is never taken: out of
+/// balance holds traffic in the tunnel until the user disconnects.
+final class InsufficientBalanceContractReaction {
+    private var tracker = InsufficientBalanceNoticeTracker()
+    private let disconnect: () -> Void
+    private let notice: (InsufficientBalanceNoticeAction) -> Void
+
+    init(disconnect: @escaping () -> Void, notice: @escaping (InsufficientBalanceNoticeAction) -> Void) {
+        self.disconnect = disconnect
+        self.notice = notice
+    }
+
+    func update(
+        insufficientBalance: Bool,
+        isSupporter: Bool,
+        isPolling: Bool,
+        connectionStatus: ConnectionStatus?
+    ) {
+        let action = tracker.update(
+            insufficientBalance: insufficientBalance,
+            isSupporter: isSupporter,
+            isPolling: isPolling
+        )
+        if action != .none {
+            notice(action)
+        }
+    }
+
+    /// Ends any episode (sign out, account switch) and withdraws its notice.
+    func reset() {
+        update(insufficientBalance: false, isSupporter: false, isPolling: false, connectionStatus: nil)
+    }
 }

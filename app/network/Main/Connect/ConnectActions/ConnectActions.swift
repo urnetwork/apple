@@ -130,8 +130,16 @@ struct ConnectActions: View {
                              * out of balance
                              * not a supporter
                              * disconnect stays offered while a connect is
-                             * requested, so the tunnel can always be released
+                             * requested, so the tunnel can always be released.
+                             * The notice and both buttons sit above the fold
+                             * marker, so the collapsed drawer shows them.
                              */
+
+                            Text(InsufficientBalanceNotice.body)
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("acceptance.insufficientBalance.notice")
                             
                             HStack {
                                 UrButton(

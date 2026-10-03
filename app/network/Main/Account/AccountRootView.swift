@@ -100,7 +100,10 @@ struct AccountRootView: View {
 
     var body: some View {
         
-        let isGuest = GuestAccount.isGuest(guestModeClaim: deviceManager.parsedJwt?.guestMode)
+        let isGuest = GuestAccount.isGuest(
+            guestModeClaim: deviceManager.parsedJwt?.guestMode,
+            serverGuest: subscriptionBalanceViewModel.isGuest
+        )
             
         ScrollView {
             
@@ -677,21 +680,12 @@ struct AccountRootView: View {
      * paid plan and balance on the old one.
      */
     private var createAccountSheet: some View {
-        AddAuthSheet(
-            api: urApiService,
-            networkUserViewModel: nil,
-            onAdded: {
-                GuestAccountConversion(session: guestAccountSession).signInMethodAdded()
-            }
-        )
-        .environmentObject(themeManager)
-        .environmentObject(deviceManager)
-        .environmentObject(snackbarManager)
-        .environmentObject(connectWalletProviderViewModel)
-    }
-
-    private var guestAccountSession: GuestAccountSession {
-        DeviceGuestAccountSession(deviceManager: deviceManager, logout: logout)
+        GuestConversionSheet(urApiService: urApiService)
+            .environmentObject(themeManager)
+            .environmentObject(deviceManager)
+            .environmentObject(snackbarManager)
+            .environmentObject(subscriptionBalanceViewModel)
+            .environmentObject(connectWalletProviderViewModel)
     }
 
 }

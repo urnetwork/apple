@@ -61,6 +61,13 @@ class SubscriptionBalanceViewModel: ObservableObject {
     @Published private(set) var pendingByteCount: Int = 0
     @Published private(set) var availableByteCount: Int = 0
     @Published private(set) var startBalanceByteCount: Int = 0
+
+    /**
+     * The server's `guest`: the network has no login method (a legacy guest).
+     * Unlike the jwt's guest_mode claim, which every token refresh clears, this
+     * is read from the live auth methods. See GuestAccount.isGuest.
+     */
+    @Published private(set) var isGuest: Bool = false
     
     private let refreshJwt: () -> Void
     private var isPro: Bool
@@ -259,6 +266,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.pendingByteCount = Int(result.openTransferByteCount)
             self.usedBalanceByteCount = Int(result.startBalanceByteCount) - self.availableByteCount - self.pendingByteCount
             self.startBalanceByteCount = Int(result.startBalanceByteCount)
+            self.isGuest = result.guest
             
             // The server is the source of truth for Pro, and `currentSubscription` is
             // non-nil exactly when the network is Pro. The jwt's `pro` claim is baked

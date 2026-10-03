@@ -122,6 +122,17 @@ struct IntroductionView: View {
     /// only believes the store's webhook. Errors render inline through the
     /// store's purchaseError.
     private func start(_ purchase: OnboardingPurchase) {
+        let isGuest = GuestAccount.isGuest(
+            guestModeClaim: deviceManager.parsedJwt?.guestMode,
+            serverGuest: subscriptionBalanceViewModel.isGuest
+        )
+        if GuestAccount.purchaseEntry(isGuest: isGuest) == .addSignInMethod {
+            // a legacy guest adds a sign-in method to this network first:
+            // the upgrade sheet opens the conversion (GuestPurchaseGate)
+            close()
+            connectViewModel.isPresentedUpgradeSheet = true
+            return
+        }
         let subscriptionStore = self.subscriptionStore
         let initiallyConnected = deviceManager.device?.getConnected() ?? false
 #if os(macOS)

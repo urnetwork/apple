@@ -296,14 +296,17 @@ struct MainNavigationSplitView: View {
             }
         }
         .sheet(isPresented: $presentOnboardingOffer) {
-            OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
-                .environmentObject(themeManager)
-                .environmentObject(deviceManager)
-                .environmentObject(subscriptionManager)
-                .environmentObject(stripeSubscriptionStore)
-                .environmentObject(subscriptionBalanceViewModel)
-                .environmentObject(connectViewModel)
-                .frame(minWidth: 560, minHeight: 700)
+            // a legacy guest adds a sign-in method to this network first
+            GuestPurchaseGate(urApiService: urApiService) {
+                OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
+            }
+            .environmentObject(themeManager)
+            .environmentObject(deviceManager)
+            .environmentObject(subscriptionManager)
+            .environmentObject(stripeSubscriptionStore)
+            .environmentObject(subscriptionBalanceViewModel)
+            .environmentObject(connectViewModel)
+            .frame(minWidth: 560, minHeight: 700)
         }
         .onChange(of: presentationActive) { active in
             setPresentationActive(active)

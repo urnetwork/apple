@@ -102,7 +102,7 @@ struct ContentView: View {
                 ProgressView()
             }
             
-            UrSnackBar(message: snackbarManager.message, isVisible: snackbarManager.isVisible)
+            UrSnackBar(message: snackbarManager.message, isVisible: snackbarManager.isVisible, onTap: snackbarManager.dismiss)
                 .padding(.bottom, 50)
 
             // Present only in acceptance builds.  XCUITest asserts this

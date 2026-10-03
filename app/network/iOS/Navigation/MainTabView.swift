@@ -260,7 +260,8 @@ struct MainTabView: View {
 
                 UrSnackBar(
                     message: snackbarManager.message,
-                    isVisible: snackbarManager.isVisible
+                    isVisible: snackbarManager.isVisible,
+                    onTap: snackbarManager.dismiss
                 )
                 .padding(.bottom, 50)
 

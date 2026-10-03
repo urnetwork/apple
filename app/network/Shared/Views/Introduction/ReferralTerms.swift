@@ -54,3 +54,20 @@ struct ReferralTerms: Equatable {
         value > 0 ? Int(value) : fallback
     }
 }
+
+/// The usage bar's referral row: "Total referrals: N" and "+N GiB/Day". Both
+/// figures come from the referral code read (GET /account/referral-code).
+enum ReferralBonusLine: Equatable {
+    /// The read has not answered yet.
+    case loading
+    /// The read failed with no count to show: no figures.
+    case unavailable
+    /// The count the server returned and the GiB/day it earns.
+    case earned(totalReferrals: Int, gibPerDay: Int)
+
+    /// `counted`: a read has landed for this network (a failed later poll
+    /// keeps its count).
+    static func of(counted: Bool, loadFailed: Bool, totalReferrals: Int, terms: ReferralTerms) -> ReferralBonusLine {
+        .earned(totalReferrals: totalReferrals, gibPerDay: ReferralTerms.default.earnedGiBPerDay(totalReferrals))
+    }
+}

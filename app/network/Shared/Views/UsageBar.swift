@@ -23,7 +23,8 @@ struct UsageBar: View {
     let data: [DailyDataUsage]
     let totalBytes: Int
     let meanReliabilityWeight: Double
-    let totalReferrals: Int
+    // the referral row's figures, which wait for the referral read
+    let referralLine: ReferralBonusLine
     let cappedReliabilityData: Double
     let dailyBalanceByteCount: Int
     // when set, the referral row is a tap target that opens the one Referrals
@@ -31,19 +32,16 @@ struct UsageBar: View {
     let openReferrals: (() -> Void)?
     // the referral row; off where referrals have their own screen
     let showReferrals: Bool
-    // the referral cap and bonus, from the server
-    let terms: ReferralTerms
 
     init(
         availableByteCount: Int,
         pendingByteCount: Int,
         usedByteCount: Int,
         meanReliabilityWeight: Double,
-        totalReferrals: Int,
+        referralLine: ReferralBonusLine = .unavailable,
         dailyBalanceByteCount: Int,
         openReferrals: (() -> Void)? = nil,
-        showReferrals: Bool = true,
-        terms: ReferralTerms = .default
+        showReferrals: Bool = true
     ) {
         // the series names are also the chart legend labels, so they localize;
         // they must match the chartForegroundStyleScale keys below exactly
@@ -55,13 +53,12 @@ struct UsageBar: View {
         self.totalBytes = availableByteCount + pendingByteCount + usedByteCount
         
         self.meanReliabilityWeight = meanReliabilityWeight
-        self.totalReferrals = totalReferrals
+        self.referralLine = referralLine
         
         cappedReliabilityData = min(meanReliabilityWeight * 100, 100)
         self.dailyBalanceByteCount = dailyBalanceByteCount
         self.openReferrals = openReferrals
         self.showReferrals = showReferrals
-        self.terms = terms
     }
     
     func minNonZeroValue(_ bytes: Int) -> Int {
@@ -189,17 +186,38 @@ struct UsageBar: View {
     private func referralRow(showsChevron: Bool) -> some View {
         HStack {
 
-            // real plural rules live in Localizable.xcstrings
-            // ("Total referrals: %lld")
-            Text("Total referrals: \(totalReferrals)")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundStyle(themeManager.currentTheme.textMutedColor)
+            switch referralLine {
+            case .earned(let totalReferrals, let gibPerDay):
+                // real plural rules live in Localizable.xcstrings
+                // ("Total referrals: %lld")
+                Text("Total referrals: \(totalReferrals)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
 
-            Spacer()
+                Spacer()
 
-            Text("+\(terms.earnedGiBPerDay(totalReferrals)) GiB/Day")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                Text("+\(gibPerDay) GiB/Day")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+            case .loading:
+                Text("Total referrals")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+
+                Spacer()
+
+                // the count is not known yet: not "+0"
+                ProgressView()
+                    .controlSize(.mini)
+            case .unavailable:
+                // a failed read is not "+0"; the Referrals screen it opens
+                // offers a retry
+                Text("Total referrals")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+
+                Spacer()
+            }
 
             if showsChevron {
                 Image(systemName: "chevron.right")
@@ -218,7 +236,7 @@ struct UsageBar: View {
         pendingByteCount: 10,
         usedByteCount: 20,
         meanReliabilityWeight: 0.2,
-        totalReferrals: 2,
+        referralLine: .earned(totalReferrals: 2, gibPerDay: 6),
         dailyBalanceByteCount: 100
     )
 }

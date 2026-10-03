@@ -139,7 +139,7 @@ import URnetworkSdk
                                     connectViewModel.isPresentedUpgradeSheet = true
                                 },
                                 meanReliabilityWeight: meanReliabilityWeight,
-                                totalReferrals: referralLinkViewModel.totalReferrals,
+                                referralLine: referralLinkViewModel.referralBonusLine,
                                 openReferrals: {
                                     isPresentedReferrals = true
                                 },

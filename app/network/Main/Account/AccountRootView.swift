@@ -203,7 +203,7 @@ struct AccountRootView: View {
                             pendingByteCount: subscriptionBalanceViewModel.pendingByteCount,
                             usedByteCount: subscriptionBalanceViewModel.usedBalanceByteCount,
                             meanReliabilityWeight: meanReliabilityWeight,
-                            totalReferrals: referralLinkViewModel.totalReferrals,
+                            referralLine: referralLinkViewModel.referralBonusLine,
                             dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
                             openReferrals: { openReferrals(isGuest: isGuest) }
                         )

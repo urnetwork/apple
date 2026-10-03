@@ -13,6 +13,8 @@ struct UrSnackBar: View {
 
     var message: String
     var isVisible: Bool
+    /// A tap on the message, to dismiss it early.
+    var onTap: (() -> Void)? = nil
 
     var body: some View {
 
@@ -27,6 +29,9 @@ struct UrSnackBar: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
                 .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                .onTapGesture {
+                    onTap?()
+                }
                 .offset(y: isVisible ? 48 : 180)
                 .animation(.easeInOut(duration: 0.3), value: isVisible)
                 .zIndex(10)

@@ -42,7 +42,19 @@ struct BlockedLocationsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 
-                if viewModel.blockedLocations.isEmpty {
+                if viewModel.blockedLocations.isEmpty && viewModel.loadFailed {
+                    VStack(spacing: 12) {
+                        Text("Blocked locations could not be loaded.")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundStyle(themeManager.currentTheme.textMutedColor)
+
+                        Button("Retry") {
+                            Task { await viewModel.fetchBlockedLocations() }
+                        }
+                        .disabled(viewModel.isLoading)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.blockedLocations.isEmpty {
                     VStack {
                         Text("No blocked locations")
                             .font(themeManager.currentTheme.bodyFont)
@@ -95,6 +107,21 @@ struct BlockedLocationsView: View {
                     
             }
                 
+        }
+        .safeAreaInset(edge: .bottom) {
+            // a failed add or remove reverts the row; say why instead of
+            // letting it silently reappear (or vanish)
+            if let processingErrorMsg = viewModel.processingErrorMsg {
+                Text(processingErrorMsg)
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .multilineTextAlignment(.center)
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                    .background(themeManager.currentTheme.tintedBackgroundBase)
+                    .cornerRadius(8)
+                    .padding()
+            }
         }
         .toolbar {
             

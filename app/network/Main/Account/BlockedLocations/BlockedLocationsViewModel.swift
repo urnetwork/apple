@@ -20,6 +20,8 @@ extension BlockedLocationsView {
         @Published var isLoading: Bool = false
         @Published var isProcessingLocation: Bool = false
         @Published var processingErrorMsg: LocalizedStringKey? = nil
+        /// the list could not be fetched, so an empty list is unknown, not "no blocked locations"
+        @Published private(set) var loadFailed: Bool = false
         @Published var blockedLocations: [SdkBlockedLocation] = []
         @Published private(set) var displayLocationSearch: Bool = false
         
@@ -38,17 +40,24 @@ extension BlockedLocationsView {
         let unblockLocationErrorMsg: LocalizedStringKey =
             "Blocked location could not be removed. Please try again later."
 
+        /// how long a processing error stays up
+        private let processingErrorSeconds: TimeInterval
+        /// the first fetch, started at init
+        private(set) var initialFetch: Task<Void, Never>?
+
         init(
             api: UrApiServiceProtocol,
-            countries: [SdkConnectLocation]
+            countries: [SdkConnectLocation],
+            processingErrorSeconds: TimeInterval = 5
         ) {
             self.api = api
+            self.processingErrorSeconds = processingErrorSeconds
             
             self.allCountries = countries.sorted{ $0.name < $1.name }
             self.availableCountries = allCountries
             
 
-            Task {
+            initialFetch = Task {
                 await fetchBlockedLocations()
                 isInitializing = false
             }
@@ -89,9 +98,11 @@ extension BlockedLocationsView {
                 // sort by name
                 self.blockedLocations = blockedLocations.sorted { $0.locationName < $1.locationName }
 
+                loadFailed = false
                 isLoading = false
             } catch (let error) {
                 print("error fetching blocked locations: \(error)")
+                loadFailed = true
                 isLoading = false
             }
 
@@ -163,11 +174,12 @@ extension BlockedLocationsView {
 
         }
 
-        func removeFromList(_ locationId: SdkId) {
+        @discardableResult
+        func removeFromList(_ locationId: SdkId) -> Task<Void, Never> {
 
             self.blockedLocations.removeAll(where: { locationId.cmp($0.locationId) == 0 })
 
-            Task {
+            return Task {
                 await self.unblockLocation(locationId)
             }
         }
@@ -197,8 +209,7 @@ extension BlockedLocationsView {
         private func setProcessingError(_ msg: LocalizedStringKey?) {
             processingErrorMsg = msg
 
-            // clear after 5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + processingErrorSeconds) { [weak self] in
                 self?.processingErrorMsg = nil
             }
 

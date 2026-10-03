@@ -31,7 +31,7 @@ struct AddAuthSheet: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var isAdding: Bool = false
-    @State private var selectedMethod: String = "email"
+    @State private var selectedMethod: AddAuthSheetMethod = .email
     @State private var addError: String?
     @State private var walletConnectionTask: Task<Void, Never>?
     
@@ -51,32 +51,34 @@ struct AddAuthSheet: View {
                     Spacer().frame(height: 16)
                     
                     Picker("Method", selection: $selectedMethod) {
-                        // the direct-download build offers both through the
-                        // browser instead of the native SDKs (BrowserSso)
-                        if Config.isAppleSignInConfigured || Config.isBrowserSignInAvailable {
-                            Text("Apple").tag("apple")
+                        // the direct-download build offers Apple and Google
+                        // through the browser instead of the native SDKs (BrowserSso)
+                        ForEach(addAuthSheetMethods(
+                            appleAvailable: Config.isAppleSignInConfigured || Config.isBrowserSignInAvailable,
+                            googleAvailable: Config.isGoogleSignInConfigured || Config.isBrowserSignInAvailable
+                        ), id: \.self) { method in
+                            switch method {
+                            case .apple:
+                                Text("Apple").tag(method)
+                            case .google:
+                                Text("Google").tag(method)
+                            case .wallet:
+                                Text("Wallet").tag(method)
+                            case .email:
+                                Text("Email").tag(method)
+                            }
                         }
-                        if Config.isGoogleSignInConfigured || Config.isBrowserSignInAvailable {
-                            Text("Google").tag("google")
-                        }
-                        Text("Wallet").tag("wallet")
-                        Text("Email").tag("email")
-                        Text("Seedphrase").tag("seedphrase")
                     }
                     .pickerStyle(.menu)
                     
-                    if selectedMethod == "apple" {
+                    if selectedMethod == .apple {
                         appleSignInView
-                    } else if selectedMethod == "google" {
+                    } else if selectedMethod == .google {
                         googleSignInView
-                    } else if selectedMethod == "wallet" {
+                    } else if selectedMethod == .wallet {
                         walletSignInView
-                    } else if selectedMethod == "email" {
+                    } else if selectedMethod == .email {
                         emailFields
-                    } else if selectedMethod == "seedphrase" {
-                        Text("A new seedphrase will be generated and linked to your account.")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
                     }
                     
                     if let error = addError {
@@ -85,7 +87,7 @@ struct AddAuthSheet: View {
                             .foregroundColor(.red)
                     }
                     
-                    if selectedMethod == "email" || selectedMethod == "seedphrase" {
+                    if selectedMethod == .email {
                         Spacer().frame(height: 16)
                         
                         UrButton(
@@ -136,7 +138,7 @@ struct AddAuthSheet: View {
     
     private var formValid: Bool {
         switch selectedMethod {
-        case "email":
+        case .email:
             return !email.isEmpty && password.count >= 12
         default:
             return true
@@ -640,18 +642,9 @@ struct AddAuthSheet: View {
         addError = nil
         
         do {
-            let args = SdkAddAuthArgs()
-            
-            switch selectedMethod {
-            case "email":
-                args.userAuth = email
-                args.password = password
-            case "seedphrase":
-                // Seedphrase is generated server-side when no auth fields are set
-                // Just call addAuth with empty args to trigger seedphrase linking
-                break
-            default:
-                break
+            guard let args = addAuthButtonArgs(selectedMethod, email: email, password: password) else {
+                isAdding = false
+                return
             }
             
             let _ = try await api.addAuth(args)

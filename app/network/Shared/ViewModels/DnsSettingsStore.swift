@@ -40,7 +40,12 @@ struct DnsSettings: Equatable {
     var localDnsEnabled: Bool {
         enableLocalDoh || enableLocalDns
     }
-    var localDnsFallbackEnabled: Bool {
+    /**
+     * the opt-in host-network fallback ("Fast DNS on connect"), off unless the
+     * user turns it on: it answers dns over the local network while the
+     * tunnel's dns starts, which can reveal lookups to the local network
+     */
+    var fastDnsOnConnectEnabled: Bool {
         enableFallback
     }
 

@@ -451,7 +451,10 @@ class BlockActionsStore: ObservableObject {
                         hasRouteOverride: action.routeOverride != nil,
                         packetCount: action.packetCount,
                         byteCount: action.byteCount,
-                        exitShortIds: []
+                        exitShortIds: [],
+                        reason: action.reason,
+                        safetyRule: action.isSecurity(),
+                        routeLocalOverridable: action.routeLocalOverridable()
                     )
                 )
             }

@@ -30481,6 +30481,173 @@
         }
       }
     },
+    "Contact support at [support@ur.io](mailto:support@ur.io)" : {
+      "comment" : "An email alternative to the Discord support link on the Feedback and Settings screens. The email address and link must stay unchanged.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تواصل مع الدعم عبر [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontaktujte podporu na [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontaktiere den Support unter [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επικοινωνήστε με την υποστήριξη στο [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact support at [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacta con soporte en [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacta a soporte en [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacta a soporte en [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contactez l'assistance à [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צרו קשר עם התמיכה בכתובת [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सहायता के लिए [support@ur.io](mailto:support@ur.io) पर संपर्क करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hubungi dukungan di [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contatta l'assistenza all'indirizzo [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サポートへのお問い合わせ: [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고객 지원 문의: [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neem contact op met support via [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skontaktuj się z pomocą techniczną: [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entre em contato com o suporte em [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entre em contato com o suporte em [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacte o suporte em [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свяжитесь с поддержкой: [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontakta supporten på [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ติดต่อฝ่ายสนับสนุนที่ [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зв'яжіться зі службою підтримки: [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên hệ bộ phận hỗ trợ tại [support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "联系支持：[support@ur.io](mailto:support@ur.io)"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聯絡支援：[support@ur.io](mailto:support@ur.io)"
+          }
+        }
+      }
+    },
     "Continue" : {
       "comment" : "Continue button label.",
       "localizations" : {

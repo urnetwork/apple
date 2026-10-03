@@ -349,15 +349,31 @@ struct SettingsForm_iOS: View {
                     Spacer()
                     
                     Button(action: {
-                        if let url = URL(string: "https://discord.com/invite/RUNZXMwPRK") {
-                            
-                            #if canImport(UIKit)
-                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                            #endif
-                            
-                        }
+                        #if canImport(UIKit)
+                        UIApplication.shared.open(SupportContact.discordUrl, options: [:], completionHandler: nil)
+                        #endif
                     }) {
                         Image(systemName: "arrow.up.right.square")
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                }
+
+                /**
+                 * Support email: Discord is unreachable in some regions
+                 */
+                HStack {
+                    Text("Contact support at [support@ur.io](mailto:support@ur.io)")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+
+                    Spacer()
+
+                    Button(action: {
+                        #if canImport(UIKit)
+                        UIApplication.shared.open(SupportContact.emailUrl, options: [:], completionHandler: nil)
+                        #endif
+                    }) {
+                        Image(systemName: "envelope")
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                     }
                 }

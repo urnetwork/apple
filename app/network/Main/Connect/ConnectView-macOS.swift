@@ -227,6 +227,17 @@ import URnetworkSdk
             .onChange(of: connectViewModel.tunnelConnected) { _ in
                 checkTunnelStatus()
             }
+            // the auto-disconnect uses the same insufficient balance gate
+            // this view renders
+            .onAppear {
+                updateInsufficientBalanceGuards()
+            }
+            .onChange(of: isPro) { _ in
+                updateInsufficientBalanceGuards()
+            }
+            .onChange(of: subscriptionBalanceViewModel.isPolling) { _ in
+                updateInsufficientBalanceGuards()
+            }
             .onAppear {
                 connectViewModel.updateGrid()
                 connectViewModel.refreshTunnelStatus()
@@ -366,6 +377,13 @@ import URnetworkSdk
             }
         }
         
+        private func updateInsufficientBalanceGuards() {
+            connectViewModel.updateInsufficientBalanceGuards(
+                plan: isPro ? .supporter : .none,
+                isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling
+            )
+        }
+
         private func checkTunnelStatus() {
             
             if connectViewModel.connectionStatus == .connected && !connectViewModel.tunnelConnected {

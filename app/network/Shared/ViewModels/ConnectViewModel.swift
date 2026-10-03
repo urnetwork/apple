@@ -156,6 +156,13 @@ class ConnectViewModel: ObservableObject {
     private var contractListenerSub: SdkSubProtocol?
     private var connectLocationStateSub: SdkSubProtocol?
 
+    // insufficient balance auto-disconnect: the gate inputs pushed by the
+    // connect views, when the gate opened, and the pending grace re-check
+    private var insufficientBalancePlan: Plan = .none
+    private var insufficientBalancePolling: Bool = false
+    private var insufficientBalanceGateSince: Date?
+    private var insufficientBalanceGraceTask: Task<Void, Never>?
+
     // last published grid signature; skip redundant re-renders when the SDK
     // re-emits a logically unchanged grid (its point objects get fresh
     // identities each notification, which would otherwise storm @Published)
@@ -206,6 +213,9 @@ class ConnectViewModel: ObservableObject {
                 self.updateContractStatus()
             }
         })
+        // the listener only reports changes: a balance that was already
+        // insufficient must show the gate (and start its grace) now
+        self.updateContractStatus()
     }
 
     /**
@@ -241,6 +251,8 @@ class ConnectViewModel: ObservableObject {
     }
 
     private func closeListeners() {
+        // listeners stop reporting, so the gate can no longer be tracked
+        cancelInsufficientBalanceGrace()
         gridListenerSub?.close()
         connectionStatusListenerSub?.close()
         selectedLocationListenerSub?.close()
@@ -415,9 +427,67 @@ extension ConnectViewModel {
             self.contractStatus = status
         }
 
-        if status?.insufficientBalance == true && self.connectionStatus != .disconnected {
-            self.disconnect()
+        evaluateInsufficientBalance()
+    }
+
+    /// Plan and polling live with the subscription views; the connect views
+    /// push them here so the auto-disconnect uses the same gate they render.
+    func updateInsufficientBalanceGuards(plan: Plan, isPollingSubscriptionBalance: Bool) {
+        if insufficientBalancePlan == plan && insufficientBalancePolling == isPollingSubscriptionBalance {
+            return
         }
+        insufficientBalancePlan = plan
+        insufficientBalancePolling = isPollingSubscriptionBalance
+        evaluateInsufficientBalance()
+    }
+
+    /// Starts the grace when the gate opens and releases the connect request
+    /// once it has held for the full grace (see InsufficientBalancePolicy).
+    /// The decision is re-checked when the grace ends, so a gate that cleared
+    /// or a kill switch turned on in the meantime keeps the connection.
+    private func evaluateInsufficientBalance() {
+        let gateActive = insufficientBalanceGateActive(
+            insufficientBalance: contractStatus?.insufficientBalance == true,
+            plan: insufficientBalancePlan,
+            isPollingSubscriptionBalance: insufficientBalancePolling
+        )
+        guard gateActive else {
+            cancelInsufficientBalanceGrace()
+            return
+        }
+        let gateSince = insufficientBalanceGateSince ?? Date()
+        insufficientBalanceGateSince = gateSince
+        let gateHeldFor = Date().timeIntervalSince(gateSince)
+        // the kill switch is "allow local traffic when disconnected" off
+        let killSwitch = device.map { !$0.getRouteLocal() } ?? false
+        if insufficientBalanceShouldAutoDisconnect(
+            gateActive: gateActive,
+            gateHeldFor: gateHeldFor,
+            killSwitch: killSwitch,
+            connectionStatus: connectionStatus
+        ) {
+            cancelInsufficientBalanceGrace()
+            print("[ConnectViewModel][contract]insufficient balance held \(Int(gateHeldFor))s, disconnecting")
+            disconnect()
+            return
+        }
+        // past the grace (kill switch on, or not connecting) the next status,
+        // contract or guard change re-evaluates; no timer is needed
+        if insufficientBalanceGraceTask == nil && gateHeldFor < insufficientBalanceAutoDisconnectGrace {
+            let remaining = insufficientBalanceAutoDisconnectGrace - gateHeldFor
+            insufficientBalanceGraceTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+                guard let self, !Task.isCancelled else { return }
+                self.insufficientBalanceGraceTask = nil
+                self.evaluateInsufficientBalance()
+            }
+        }
+    }
+
+    private func cancelInsufficientBalanceGrace() {
+        insufficientBalanceGraceTask?.cancel()
+        insufficientBalanceGraceTask = nil
+        insufficientBalanceGateSince = nil
     }
 
     private static func contractStatusEqual(_ a: SdkContractStatus?, _ b: SdkContractStatus?) -> Bool {
@@ -590,6 +660,8 @@ extension ConnectViewModel {
                 return
             }
             self.connectionStatus = status
+            // a connect started from another surface while the gate holds
+            evaluateInsufficientBalance()
             
             if status == .connected {
                 if let requestReview = self.requestReview {

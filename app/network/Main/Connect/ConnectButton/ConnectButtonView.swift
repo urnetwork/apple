@@ -115,18 +115,23 @@ struct ConnectButtonView: View {
                     
                 }
             
-                // captures taps: connects when disconnected, and counts the
-                // hidden tap sequence while connected
+                // captures taps: connects when disconnected, disconnects in
+                // the insufficient balance error state, and counts the hidden
+                // tap sequence while connected
                 Circle()
                     .fill(.clear)
                     .frame(width: canvasWidth, height: canvasWidth)
                     .contentShape(Circle())
                     .onTapGesture {
                         
-                        if (connectionStatus == .disconnected &&
-                            (contractStatus?.insufficientBalance != true || currentPlan == .supporter) &&
-                            !isPollingSubscriptionBalance
+                        switch connectButtonTapAction(
+                            connectionStatus: connectionStatus,
+                            insufficientBalance: contractStatus?.insufficientBalance == true,
+                            plan: currentPlan,
+                            isPollingSubscriptionBalance: isPollingSubscriptionBalance,
+                            countsConnectedTaps: countsConnectedTaps
                         ) {
+                        case .connect:
                             connect()
                             
 #if canImport(UIKit)
@@ -134,10 +139,14 @@ struct ConnectButtonView: View {
                             impact.impactOccurred()
 #endif
                             
-                        } else if countsConnectedTaps {
+                        case .disconnect:
+                            disconnect()
+                        case .countConnectedTap:
                             if proTapGate.register() {
                                 proCelebration.launch()
                             }
+                        case .none:
+                            break
                         }
                         
                     }

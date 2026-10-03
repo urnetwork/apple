@@ -25,6 +25,8 @@ struct AddAuthSheet: View {
     
     let api: UrApiServiceProtocol
     let networkUserViewModel: NetworkUserViewModel?
+    /// Called once a sign-in method was added (a legacy guest's in-place conversion re-signs its jwt here).
+    var onAdded: (() -> Void)? = nil
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -267,6 +269,7 @@ struct AddAuthSheet: View {
                 case .google:
                     snackbarManager.showSnackbar(message: String(localized: "Google sign-in method added"))
                 }
+                onAdded?()
                 dismiss()
             } catch(let error) {
                 isAdding = false
@@ -519,6 +522,7 @@ struct AddAuthSheet: View {
             connectWalletProviderViewModel.pendingWalletAuthMessage = nil
             _ = await networkUserViewModel?.refreshNetworkUser()
             snackbarManager.showSnackbar(message: String(localized: "Wallet sign-in method added"))
+            onAdded?()
             dismiss()
         } catch(let error) {
             isAdding = false
@@ -577,6 +581,7 @@ struct AddAuthSheet: View {
             isAdding = false
             _ = await networkUserViewModel?.refreshNetworkUser()
             snackbarManager.showSnackbar(message: String(localized: "Apple sign-in method added"))
+            onAdded?()
             dismiss()
         } catch(let error) {
             isAdding = false
@@ -622,6 +627,7 @@ struct AddAuthSheet: View {
             isAdding = false
             _ = await networkUserViewModel?.refreshNetworkUser()
             snackbarManager.showSnackbar(message: String(localized: "Google sign-in method added"))
+            onAdded?()
             dismiss()
         } catch(let error) {
             isAdding = false
@@ -652,6 +658,7 @@ struct AddAuthSheet: View {
             isAdding = false
             _ = await networkUserViewModel?.refreshNetworkUser()
             snackbarManager.showSnackbar(message: String(localized: "Sign-in method added successfully"))
+            onAdded?()
             dismiss()
         } catch(let error) {
             isAdding = false

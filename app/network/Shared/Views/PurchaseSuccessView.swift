@@ -21,8 +21,8 @@ import SwiftUI
  * - `.delayed`: the poll gave up (lost or slow webhook). Say so, and offer
  *   "Restore purchases" as the manual retry.
  * - `.confirmed`: the server confirmed the entitlement — the original premium
- *   copy. Also the default, for flows that confirm before presenting (e.g.
- *   balance code redemption).
+ *   copy. Also the default, for flows that confirm before presenting. Not for
+ *   balance codes: a code is data only (BalanceCodeRedeemedView).
  */
 enum PurchaseConfirmationPhase {
     case confirming

@@ -8,6 +8,28 @@
 import Foundation
 import URnetworkSdk
 
+/**
+ * A credited redeem: the data the code added to the network's balance, from the
+ * server's answer (transfer_balance.balance_byte_count).
+ *
+ * A balance code is data only. The server grants its transfer balance with
+ * pro = false (RedeemBalanceCodeInTx) and the answer has no Pro field, so a
+ * redeem is confirmed as data added (BalanceCodeRedeemedView), never as a Pro
+ * upgrade, and the balance is read once rather than through the Pro
+ * confirmation poll.
+ */
+struct RedeemedBalanceCode: Equatable {
+    let addedByteCount: Int64
+
+    init(addedByteCount: Int64) {
+        self.addedByteCount = addedByteCount
+    }
+
+    init(result: SdkRedeemBalanceCodeResult) {
+        self.addedByteCount = result.transferBalance?.balanceByteCount ?? 0
+    }
+}
+
 
 extension RedeemBalanceCodeSheet {
     
@@ -32,7 +54,7 @@ extension RedeemBalanceCodeSheet {
             self.api = api
         }
         
-        func redeem() async -> Result<Void, Error> {
+        func redeem() async -> Result<RedeemedBalanceCode, Error> {
   
             if self.redeemState == .validating {
                 return .failure(RedeemBalanceCodeError.inProgress)
@@ -60,7 +82,7 @@ extension RedeemBalanceCodeSheet {
                 }
                 
                 self.redeemState = .valid
-                return .success(())
+                return .success(RedeemedBalanceCode(result: result))
 
             } catch(let error) {
                 print("\(domain) Error redeeming balance code: \(error)")

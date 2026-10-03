@@ -10,14 +10,15 @@ import SwiftUI
 struct RedeemBalanceCodeSheet: View {
     
     let closeSheet: () -> Void
-    let onSuccess: () -> Void
+    // the code's data is on the balance; a code grants no Pro
+    let onSuccess: (RedeemedBalanceCode) -> Void
     @StateObject private var viewModel: ViewModel
     
     @EnvironmentObject var themeManager: ThemeManager
     
     init(
         closeSheet: @escaping () -> Void,
-        onSuccess: @escaping () -> Void,
+        onSuccess: @escaping (RedeemedBalanceCode) -> Void,
         api: UrApiServiceProtocol
     ) {
         self.closeSheet = closeSheet
@@ -102,18 +103,13 @@ struct RedeemBalanceCodeSheet: View {
         
     }
     
-    private func handleResult(_ result: Result<Void, Error>) {
+    private func handleResult(_ result: Result<RedeemedBalanceCode, Error>) {
         print("RedeemBalanceCode handleResult")
         switch result {
             
-        case .success:
+        case .success(let redeemed):
 
-//            closeSheet()
-//            
-//            // start polling
-//            subscriptionBalanceViewModel.startPolling()
-            
-            onSuccess()
+            onSuccess(redeemed)
             
             break
         case .failure(let error):

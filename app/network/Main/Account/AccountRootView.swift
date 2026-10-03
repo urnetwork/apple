@@ -496,16 +496,18 @@ struct AccountRootView: View {
                     closeSheet: {
                         viewModel.isPresentedRedeemBalanceCodeSheet = false
                     },
-                    onSuccess: {
+                    onSuccess: { redeemed in
                         
                         viewModel.isPresentedRedeemBalanceCodeSheet = false
                         
-                        // start polling
-                        subscriptionBalanceViewModel.startPolling()
+                        // a balance code is data only: read the balance once,
+                        // never the Pro confirmation poll
+                        Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
                         
                         Task {
                             // Wait approx. 300ms for the sheet to animate out and keyboard to dismiss
                             try? await Task.sleep(for: .milliseconds(300))
+                            viewModel.redeemedBalanceCode = redeemed
                             viewModel.balanceCodeRedeemed = true
                         }
                     },
@@ -518,7 +520,7 @@ struct AccountRootView: View {
             
         }
         .sheet(isPresented: $viewModel.balanceCodeRedeemed) {
-            PurchaseSuccessView(dismiss: {
+            BalanceCodeRedeemedView(redeemed: viewModel.redeemedBalanceCode, dismiss: {
                 viewModel.balanceCodeRedeemed = false
             })
             .environmentObject(themeManager)

@@ -43,7 +43,8 @@ struct DnsSettings: Equatable {
     /**
      * the opt-in host-network fallback ("Fast DNS on connect"), off unless the
      * user turns it on: it answers dns over the local network while the
-     * tunnel's dns starts, which can reveal lookups to the local network
+     * tunnel's dns starts, which can reveal lookups to the local network and
+     * return answers that don't match the exit location
      */
     var fastDnsOnConnectEnabled: Bool {
         enableFallback
@@ -106,6 +107,15 @@ struct DnsSettings: Equatable {
         }
         return list
     }
+}
+
+/**
+ * The description under the Fast DNS on connect toggle. Its English text is the
+ * key of fast_dns_on_connect_description in Localizable.xcstrings, so it must
+ * match the localizations store source exactly or the translations are lost.
+ */
+enum FastDnsOnConnectCopy {
+    static let description: LocalizedStringResource = "Answers DNS over the local network while the tunnel's DNS starts. This can reveal your lookups to the local network and return answers that don't match your exit location. When off, DNS only resolves through the tunnel."
 }
 
 private class DnsResolverSettingsListener: NSObject, SdkDnsResolverSettingsChangeListenerProtocol {

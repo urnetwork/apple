@@ -44,6 +44,27 @@ struct FastDnsOnConnectTests {
         #expect(settings.dohEnabled)
     }
 
+    /// The description names both costs of answering dns over the host
+    /// network: the local network sees the lookups, and the answers are for
+    /// the device's real location rather than the exit.
+    @Test func theDescriptionWarnsOfBothEffects() {
+        let english = FastDnsOnConnectCopy.description.key
+        #expect(english.contains("can reveal your lookups to the local network"))
+        #expect(english.contains("return answers that don't match your exit location"))
+        #expect(english.contains("When off, DNS only resolves through the tunnel"))
+    }
+
+    /// The English text is the catalog key, so a translation is found only
+    /// when the view's text matches the catalog exactly.
+    @Test func theDescriptionIsTranslated() {
+        for (locale, phrase) in [("de", "Exit-Standort"), ("es", "ubicación de salida"), ("zh-Hans", "出口位置")] {
+            var resource = FastDnsOnConnectCopy.description
+            resource.locale = Locale(identifier: locale)
+            let translated = String(localized: resource)
+            #expect(translated.contains(phrase), "\(locale): \(translated)")
+        }
+    }
+
     @Test func aBlankFormHasFastDnsOff() {
         #expect(!DnsSettings().fastDnsOnConnectEnabled)
         #expect(!DnsSettings().toSdk().enableFallback)

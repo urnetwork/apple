@@ -222,7 +222,7 @@ struct DnsSettingsView: View {
                         toggleLabel("Fast DNS on connect", detail: nil)
                     }
                 } footer: {
-                    Text("Answers DNS over the local network while the tunnel's DNS starts. This can reveal your lookups to the local network. When off, DNS only resolves through the tunnel.")
+                    Text(FastDnsOnConnectCopy.description)
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textFaintColor)
                 }

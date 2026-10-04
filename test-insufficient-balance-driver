@@ -7,6 +7,12 @@
 # tests/insufficient-balance-driver/main.go (standard-library Go). It is built
 # once per source into the private state directory, so stdout stays exactly
 # one JSON object and a failure's last stderr line is the driver's own.
+#
+# Every case uses a fresh account: `setup <credentials-file>` takes the
+# absolute path of the private credentials file the runner created for the
+# case, the only source of credentials. The state directory is per case;
+# later verbs find the credentials through what setup recorded there, and
+# teardown signs out and removes that record.
 set -euo pipefail
 umask 077
 

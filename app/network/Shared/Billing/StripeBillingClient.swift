@@ -43,7 +43,10 @@ enum StripeBillingError: LocalizedError, Equatable {
 protocol StripeBillingClient {
     func prices(storefrontCountry: String?) async throws -> StripePlanPrices
     func paymentSheet(plan: String, storefrontCountry: String?) async throws -> StripePaymentSheetResponse
-    func checkoutSession(itemId: String, uiMode: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse
+    /// `redirectOnCompletion` is "never" (SdkStripeRedirectOnCompletionNever) for
+    /// an embedded session that hands back from Stripe's onComplete, empty to
+    /// leave it unset.
+    func checkoutSession(itemId: String, uiMode: String, redirectOnCompletion: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse
     func customerPortalURL() async throws -> URL
 }
 
@@ -98,11 +101,12 @@ final class SdkStripeBillingClient: StripeBillingClient {
         )
     }
 
-    func checkoutSession(itemId: String, uiMode: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse {
+    func checkoutSession(itemId: String, uiMode: String, redirectOnCompletion: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse {
         guard let api else { throw StripeBillingError.unavailable }
         let args = SdkStripeCreateCheckoutSessionArgs()
         args.itemId = itemId
         args.uiMode = uiMode
+        args.redirectOnCompletion = redirectOnCompletion
         args.storefrontCountry = storefrontCountry ?? ""
         let result: SdkStripeCreateCheckoutSessionResult = try await withCheckedThrowingContinuation { continuation in
             api.createStripeCheckoutSession(args, callback: StripeCheckoutSessionCallback { result, err in

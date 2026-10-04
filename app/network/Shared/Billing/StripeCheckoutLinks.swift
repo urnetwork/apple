@@ -19,6 +19,10 @@
 //  to the redirect_link:
 //    done:  urnetwork://checkout?status=complete&session_id=cs_...
 //    error: urnetwork://checkout?errorCode=-1&errorMessage=...
+//  The session is redirect_on_completion "never", and the url says so, so the
+//  done hand-back comes from Stripe's onComplete on the page, in place, not
+//  from a redirect through the server's return_url (the SDK's
+//  BuildInlineCheckoutBridgeUrl builds the same url for windows and linux).
 //
 
 import Foundation
@@ -110,7 +114,10 @@ enum StripeCheckoutLinks {
         return URL(string: paySheetPage + "?" + encodeQuery(query))
     }
 
-    /// The embedded checkout bridge: `https://ur.io/checkout?client_secret=&redirect_link=urnetwork://checkout`.
+    /// The embedded checkout bridge for a redirect_on_completion "never" session:
+    /// `https://ur.io/checkout?client_secret=&redirect_link=urnetwork://checkout&redirect_on_completion=never`.
+    /// Without the flag the page would wait for a return_url redirect that a
+    /// "never" session never makes.
     static func embeddedCheckoutURL(clientSecret: String) -> URL? {
         guard !clientSecret.isEmpty else {
             return nil
@@ -118,6 +125,7 @@ enum StripeCheckoutLinks {
         let query = [
             ("client_secret", clientSecret),
             ("redirect_link", checkoutRedirect),
+            ("redirect_on_completion", SdkStripeRedirectOnCompletionNever),
         ]
         return URL(string: checkoutPage + "?" + encodeQuery(query))
     }

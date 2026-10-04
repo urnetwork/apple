@@ -25,4 +25,24 @@ struct GuestPurchaseGateTests {
         let isGuest = GuestAccount.isGuest(guestModeClaim: false, serverGuest: false)
         #expect(GuestAccount.purchaseEntry(isGuest: isGuest) == .checkout)
     }
+
+    /**
+     * The conversion is opened from the purchase the guest was starting. Once
+     * it added a sign-in method, closing it continues to that checkout at once
+     * (the re-signed jwt and the refetched balance are still in flight, so the
+     * guest signals still read true); it used to close the purchase with it,
+     * and the user had to open the upgrade again.
+     */
+    @Test func aConvertedGuestContinuesToTheCheckout() {
+        let isGuest = GuestAccount.isGuest(guestModeClaim: false, serverGuest: true)
+        #expect(GuestAccount.purchaseEntry(isGuest: isGuest, signInMethodAdded: true) == .checkout)
+        #expect(GuestAccount.conversionClosed(signInMethodAdded: true) == .continueToCheckout)
+    }
+
+    /// A cancelled conversion is not a way into the checkout.
+    @Test func aCancelledConversionClosesThePurchase() {
+        let isGuest = GuestAccount.isGuest(guestModeClaim: false, serverGuest: true)
+        #expect(GuestAccount.purchaseEntry(isGuest: isGuest, signInMethodAdded: false) == .addSignInMethod)
+        #expect(GuestAccount.conversionClosed(signInMethodAdded: false) == .closePurchase)
+    }
 }

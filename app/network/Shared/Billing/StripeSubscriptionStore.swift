@@ -11,8 +11,10 @@
 //    1. the inline pay sheet: POST /subscription/stripe/payment-sheet, then
 //       ur.io/app/pay-sheet in the web view, which posts {type:"ur-pay",status}
 //       to the `urpay` handler and/or navigates to urnetwork://pay/done;
-//    2. an embedded checkout session (ui_mode embedded) on ur.io/checkout,
-//       which navigates to urnetwork://checkout?status=complete|errorCode=;
+//    2. an embedded checkout session (ui_mode embedded, redirect_on_completion
+//       never) on ur.io/checkout, which navigates to
+//       urnetwork://checkout?status=complete|errorCode= (complete from
+//       Stripe's onComplete, in place);
 //    3. the hosted checkout URL in the default browser.
 //  Paid in any of them, the server only believes the Stripe webhook, so the
 //  caller's onSuccess starts the same confirmation poll StoreKit uses.
@@ -200,7 +202,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// 2. the embedded checkout page; any failure retries once as hosted.
     private func openEmbeddedCheckout(attempt: Int) async {
         do {
-            let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeEmbedded, storefrontCountry: nil)
+            let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeEmbedded, redirectOnCompletion: SdkStripeRedirectOnCompletionNever, storefrontCountry: nil)
             guard attempt == self.attempt else { return }
             if let url = StripeCheckoutLinks.embeddedCheckoutURL(clientSecret: session.clientSecret) {
                 loadFallbackTried = false
@@ -218,7 +220,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// so Pro flips the moment the webhook lands.
     private func openHostedCheckout(attempt: Int) async {
         do {
-            let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeHosted, storefrontCountry: nil)
+            let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeHosted, redirectOnCompletion: "", storefrontCountry: nil)
             guard attempt == self.attempt else { return }
             guard !session.checkoutUrl.isEmpty, let url = URL(string: session.checkoutUrl), openExternal(url) else {
                 fail(message: nil, errorClass: "transport")

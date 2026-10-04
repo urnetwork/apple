@@ -13,10 +13,11 @@ struct StripeCheckoutLinksTests {
             == "https://ur.io/app/pay-sheet?cs=seti_1_secret_abc&pk=pk_test_9&plan=yearly&return=urnetwork%3A%2F%2Fpay%2Fdone")
     }
 
-    @Test func theEmbeddedCheckoutURLCarriesTheSecretAndTheRedirect() {
+    @Test func theEmbeddedCheckoutURLCarriesTheSecretTheRedirectAndTheOnCompleteHandBack() {
         let url = StripeCheckoutLinks.embeddedCheckoutURL(clientSecret: "cs_test_a1_secret_z9")
+        // redirect_on_completion=never: the bridge hands back from Stripe's onComplete
         #expect(url?.absoluteString
-            == "https://ur.io/checkout?client_secret=cs_test_a1_secret_z9&redirect_link=urnetwork%3A%2F%2Fcheckout")
+            == "https://ur.io/checkout?client_secret=cs_test_a1_secret_z9&redirect_link=urnetwork%3A%2F%2Fcheckout&redirect_on_completion=never")
     }
 
     @Test func queryValuesArePercentEncodedBeyondTheUnreservedSet() {

@@ -46,9 +46,27 @@ enum GuestAccount {
         case addSignInMethod
     }
 
-    /// Where a purchase entry (upgrade sheet, welcome offer, intro plan step) leads.
-    static func purchaseEntry(isGuest: Bool) -> PurchaseEntry {
-        isGuest ? .addSignInMethod : .checkout
+    /**
+     * Where a purchase entry (upgrade sheet, welcome offer, intro plan step)
+     * leads. `signInMethodAdded`: the conversion opened from this entry added a
+     * sign-in method, so the entry continues to its checkout without waiting for
+     * the re-signed jwt and the refetched balance to stop reporting a guest.
+     */
+    static func purchaseEntry(isGuest: Bool, signInMethodAdded: Bool = false) -> PurchaseEntry {
+        isGuest && !signInMethodAdded ? .addSignInMethod : .checkout
+    }
+
+    enum ConversionClose: Equatable {
+        /// a sign-in method was added: stay on the purchase, now its checkout
+        case continueToCheckout
+        /// the conversion was cancelled: the guest is not sold a plan, so the
+        /// purchase closes with it
+        case closePurchase
+    }
+
+    /// What closing the conversion a purchase entry opened does to that entry.
+    static func conversionClosed(signInMethodAdded: Bool) -> ConversionClose {
+        signInMethodAdded ? .continueToCheckout : .closePurchase
     }
 }
 

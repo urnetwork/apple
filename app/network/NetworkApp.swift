@@ -585,7 +585,9 @@ struct NetworkApp: App {
             
             if connectViewModel.connectionStatus == .disconnected {
                 Button("Connect", action: {
-                    connectViewModel.connect()
+                    // out of balance the start is refused for the upgrade
+                    // sheet, which lives in the main window
+                    connectViewModel.connect(onUpgrade: { showWindow() })
                 })
             } else {
                 Button("Disconnect", action: {

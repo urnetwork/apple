@@ -42,8 +42,26 @@ struct ConnectIntent: AppIntent {
         if (status != SdkDisconnected) {
             return .result(dialog: "URnetwork VPN already started")
         }
-        
-        
+
+        // a start: out of balance it is refused and the app opens, where the
+        // connect view offers the upgrade (see InsufficientBalancePolicy)
+        let api = await deviceManager.api
+        let decision = await resolveStartConnect(
+            .start,
+            guards: StartConnectGuards(
+                contractInsufficientBalance: device.getContractStatus()?.insufficientBalance == true
+            ),
+            cachedBalance: WidgetSnapshotStore.loadBalance(),
+            now: Date(),
+            fetchBalance: { await StartConnectBalanceFetch.fetch(api: api) }
+        )
+        if decision == .upgrade {
+            if #available(iOS 18.2, macOS 15.2, *) {
+                return .result(opensIntent: OpenURnetworkIntent(), dialog: "Insufficient balance")
+            }
+            return .result(dialog: "Insufficient balance")
+        }
+
         if let location = device.getConnectLocation() {
             connectViewController.connect(location)
         } else {

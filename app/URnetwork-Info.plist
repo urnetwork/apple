@@ -53,7 +53,7 @@
 	<!-- duplicated from vault/main/walletconnect.yml (the source of truth) so it
 	     bundles into the client; a WalletConnect project id is a public client
 	     identifier. Update both together. -->
-	<string>c9e8eb687dd18c83739e81715fe055af</string>
+	<string>13470f178edb2a9098d2261d03245975</string>
 	<key>URAcceptanceBuildID</key>
 	<string>$(URNETWORK_ACCEPTANCE_BUILD_ID)</string>
 	<key>URHardwareUITestNonce</key>

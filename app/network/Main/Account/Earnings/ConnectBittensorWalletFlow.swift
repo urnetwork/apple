@@ -5,10 +5,10 @@
 //  Attaching a Bittensor coldkey to this device's provider client. The
 //  coldkey is proven by an sr25519 signature over a challenge with purpose
 //  "connect", produced through the SDK's wallet-connect session
-//  (BittensorWalletConnector): Talisman on macOS signs through the ur.io
-//  bridge in the browser and returns its address; a manual wallet (iOS, and
-//  TAO.com everywhere) first takes the address, then the pasted signature
-//  over a challenge bound to it.
+//  (BittensorWalletConnector): Talisman on macOS and WalletConnect everywhere
+//  sign through the ur.io bridge in the browser and return their address; a
+//  manual wallet (Talisman on iOS, and TAO.com everywhere) first takes the
+//  address, then the pasted signature over a challenge bound to it.
 //  Every address is validated before it is sent anywhere: the local ss58
 //  syntax check first, then the unauthenticated wallet check, which can warn
 //  (no activity on chain yet) or block (banned).

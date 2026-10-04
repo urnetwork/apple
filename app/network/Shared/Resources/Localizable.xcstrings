@@ -28862,6 +28862,173 @@
         }
       }
     },
+    "Connect a Bittensor wallet to add it as a sign-in method." : {
+      "comment" : "Add sign-in method sheet: the Bittensor wallet option's explanation (Talisman, WalletConnect, or a pasted signature).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اربط محفظة Bittensor لإضافتها كطريقة لتسجيل الدخول."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojte peněženku Bittensor a přidejte ji jako způsob přihlášení."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde eine Bittensor-Wallet, um sie als Anmeldemethode hinzuzufügen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδέστε ένα πορτοφόλι Bittensor για να το προσθέσετε ως μέθοδο σύνδεσης."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a Bittensor wallet to add it as a sign-in method."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una billetera de Bittensor para añadirla como método de inicio de sesión."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una billetera de Bittensor para agregarla como método de inicio de sesión."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una cartera de Bittensor para agregarla como método de inicio de sesión."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connectez un portefeuille Bittensor pour l'ajouter comme méthode de connexion."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חברו ארנק Bittensor כדי להוסיף אותו כשיטת התחברות."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bittensor वॉलेट को साइन-इन विधि के रूप में जोड़ने के लिए उसे कनेक्ट करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hubungkan dompet Bittensor untuk menambahkannya sebagai metode masuk."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega un portafoglio Bittensor per aggiungerlo come metodo di accesso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bittensor ウォレットを接続して、サインイン方法として追加します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bittensor 지갑을 연결하여 로그인 방법으로 추가하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel een Bittensor-wallet om deze als inlogmethode toe te voegen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połącz portfel Bittensor, aby dodać go jako metodę logowania."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ligue uma carteira Bittensor para a adicionar como método de início de sessão."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecte uma carteira Bittensor para adicioná-la como método de login."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ligue uma carteira Bittensor para a adicionar como método de início de sessão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключите кошелек Bittensor, чтобы добавить его как способ входа."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anslut en Bittensor-plånbok för att lägga till den som inloggningsmetod."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อกระเป๋า Bittensor เพื่อเพิ่มเป็นวิธีลงชื่อเข้าใช้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключіть гаманець Bittensor, щоб додати його як спосіб входу."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối ví Bittensor để thêm làm phương thức đăng nhập."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接 Bittensor 钱包，将其添加为登录方式。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連接 Bittensor 錢包，將其新增為登入方式。"
+          }
+        }
+      }
+    },
     "Connect a Solana wallet (Phantom or Solflare) to add it as a sign-in method." : {
       "comment" : "A description of how to connect a Solana wallet to add it as a sign-in method.",
       "isCommentAutoGenerated" : true,
@@ -29067,6 +29234,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连接 Solana 钱包应用，或手动输入 Solana USDC 地址。"
+          }
+        }
+      }
+    },
+    "Connect a Solana wallet to add it as a sign-in method." : {
+      "comment" : "Add sign-in method sheet (android): the wallet option's explanation.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اربط محفظة Solana لإضافتها كطريقة لتسجيل الدخول."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojte peněženku Solana a přidejte ji jako způsob přihlášení."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde eine Solana-Wallet, um sie als Anmeldemethode hinzuzufügen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδέστε ένα πορτοφόλι Solana για να το προσθέσετε ως μέθοδο σύνδεσης."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a Solana wallet to add it as a sign-in method."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una billetera de Solana para añadirla como método de inicio de sesión."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una billetera de Solana para agregarla como método de inicio de sesión."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecta una cartera de Solana para agregarla como método de inicio de sesión."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connectez un portefeuille Solana pour l'ajouter comme méthode de connexion."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חברו ארנק Solana כדי להוסיף אותו כשיטת התחברות."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana वॉलेट को साइन-इन विधि के रूप में जोड़ने के लिए उसे कनेक्ट करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hubungkan dompet Solana untuk menambahkannya sebagai metode masuk."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega un portafoglio Solana per aggiungerlo come metodo di accesso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana ウォレットを接続して、サインイン方法として追加します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solana 지갑을 연결하여 로그인 방법으로 추가하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel een Solana-wallet om deze als inlogmethode toe te voegen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połącz portfel Solana, aby dodać go jako metodę logowania."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ligue uma carteira Solana para a adicionar como método de início de sessão."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conecte uma carteira Solana para adicioná-la como método de login."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ligue uma carteira Solana para a adicionar como método de início de sessão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключите кошелек Solana, чтобы добавить его как способ входа."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anslut en Solana-plånbok för att lägga till den som inloggningsmetod."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อกระเป๋า Solana เพื่อเพิ่มเป็นวิธีลงชื่อเข้าใช้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключіть гаманець Solana, щоб додати його як спосіб входу."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối ví Solana để thêm làm phương thức đăng nhập."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接 Solana 钱包，将其添加为登录方式。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連接 Solana 錢包，將其新增為登入方式。"
           }
         }
       }
@@ -32534,6 +32868,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请在浏览器中继续，并在 %@ 扩展中批准请求。"
+          }
+        }
+      }
+    },
+    "Continue in your browser: scan the code with your wallet app, or open the wallet on this device." : {
+      "comment" : "Shown while the browser is open on the WalletConnect page: the user scans the code or opens their wallet app there.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تابع في متصفحك: امسح الرمز باستخدام تطبيق محفظتك، أو افتح المحفظة على هذا الجهاز."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fahre in deinem Browser fort: Scanne den Code mit deiner Wallet-App oder öffne die Wallet auf diesem Gerät."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue in your browser: scan the code with your wallet app, or open the wallet on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continúa en tu navegador: escanea el código con la app de tu billetera o abre la billetera en este dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжите в браузере: отсканируйте код приложением кошелька или откройте кошелек на этом устройстве."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在浏览器中继续：用钱包应用扫描二维码，或在此设备上打开钱包。"
           }
         }
       }
@@ -65363,6 +65738,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        }
+      }
+    },
+    "Nova, Nightly and other WalletConnect wallets" : {
+      "comment" : "Subtitle of the WalletConnect option in the Bittensor wallet chooser: which wallets it works with. Nova, Nightly and WalletConnect are product names.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova وNightly ومحافظ WalletConnect الأخرى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly und andere WalletConnect-Wallets"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly and other WalletConnect wallets"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly y otras billeteras compatibles con WalletConnect"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly и другие кошельки с поддержкой WalletConnect"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova、Nightly 及其他 WalletConnect 钱包"
           }
         }
       }

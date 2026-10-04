@@ -1032,9 +1032,10 @@ private struct LoginTiles: View {
                 loginAction: nil,
                 accessibilityIdentifier: "acceptance.login.authcode"
             ),
-            // Bittensor sign in picks Talisman or TAO.com, then signs through
-            // the browser bridge (macOS Talisman) or the manual form, so it
-            // does not depend on an installed wallet app
+            // Bittensor sign in picks Talisman, TAO.com or WalletConnect, then
+            // signs through the browser bridge (macOS Talisman, WalletConnect)
+            // or the manual form, so it does not depend on an installed wallet
+            // app
             LoginTileSpec(
                 id: "bittensor",
                 caption: "Bittensor",

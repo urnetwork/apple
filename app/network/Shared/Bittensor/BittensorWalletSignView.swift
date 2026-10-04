@@ -3,12 +3,13 @@
 //  URnetwork
 //
 //  The screens of a BittensorWalletConnector: the wallet chooser (Talisman,
-//  TAO.com), the manual form (the challenge to sign, the coldkey address and
+//  TAO.com, WalletConnect), the manual form (the challenge to sign, the coldkey address and
 //  the pasted signature) and the browser hand-off. Used by sign-in and by the
 //  Earnings coldkey sheet.
 //
 
 import SwiftUI
+import URnetworkSdk
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
@@ -40,6 +41,12 @@ struct BittensorWalletSignView: View {
                         style: .secondary,
                         accessibilityIdentifier: "bittensor.wallet.\(walletId)"
                     )
+                    if walletId == SdkBittensorWalletWalletConnect {
+                        Text("Nova, Nightly and other WalletConnect wallets")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .frame(maxWidth: .infinity)
+                    }
                 }
                 cancelButton
 
@@ -55,9 +62,15 @@ struct BittensorWalletSignView: View {
             case .awaitingBrowser(let walletId):
                 HStack(alignment: .top, spacing: 12) {
                     ProgressView()
-                    Text("Continue in your browser and approve the request in the \(BittensorWallet.displayName(walletId)) extension.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                    if walletId == SdkBittensorWalletWalletConnect {
+                        Text("Continue in your browser: scan the code with your wallet app, or open the wallet on this device.")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                    } else {
+                        Text("Continue in your browser and approve the request in the \(BittensorWallet.displayName(walletId)) extension.")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                    }
                 }
                 cancelButton
 

@@ -45,8 +45,12 @@ next to `BUNDLER_RPC_URL`), and is passed to the bridge as `wc_project_id` by
 <string><project id></string>
 ```
 
-Read by `ConnectWalletProviderViewModel.openBittensorSignIn` and passed to the
-bridge as `wc_project_id`.
+Set (from `vault/main/walletconnect.yml`). Read by `BittensorWallet.walletConnectProjectId`
+(`app/network/Shared/Bittensor/BittensorWalletConnector.swift`). When the user picks the
+**WalletConnect** Bittensor wallet (Nova, Nightly, ...), the connector hands it to the SDK
+session (`setWalletConnectProjectId`), which sends it to `https://ur.io/bittensor-connect`
+as `wc_project_id` together with `wallet=walletconnect`. It is used on iOS and macOS alike.
+The Talisman and TAO.com wallets never send it.
 
 ### Web + bridge — `mmm/ur.io` build environment
 
@@ -62,9 +66,10 @@ to ship in the browser bundle, so `PUBLIC_` is correct on its own merits too.
 There is no `.env` file in the repo today — set it in the build environment, or
 add `mmm/ur.io/react/.env`. It is read by **both**:
 
-- `react/src/components/WalletConnect.jsx` — the `/wallet-connect` bridge the
-  native apps open. Precedence: the `wc_project_id` query param the app sends
-  **wins**; this env var is the fallback for direct visits.
+- `react/src/components/BittensorConnect.jsx` — the `/bittensor-connect` bridge
+  the native apps open for Bittensor (`/wallet-connect?provider=bittensor` routes
+  there too, for older app versions). Precedence: the `wc_project_id` query param
+  the app sends **wins**; this env var is the fallback.
 - `react/src/auth/walletAuth.js` — the web ui's own "Continue with Bittensor" /
   "Continue with Solana" buttons in the login dialog.
 

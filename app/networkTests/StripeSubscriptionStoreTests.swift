@@ -25,8 +25,8 @@ struct StripeSubscriptionStoreTests {
             return try paymentSheet.get()
         }
 
-        func checkoutSession(itemId: String, uiMode: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse {
-            calls.append("session:\(itemId):\(uiMode)")
+        func checkoutSession(itemId: String, uiMode: String, redirectOnCompletion: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse {
+            calls.append("session:\(itemId):\(uiMode)" + (redirectOnCompletion.isEmpty ? "" : ":\(redirectOnCompletion)"))
             return try (uiMode == "embedded" ? embedded : hosted).get()
         }
 
@@ -163,8 +163,9 @@ struct StripeSubscriptionStoreTests {
         await store.purchase(plan: .monthly, onSuccess: {})
         #expect(store.checkout?.stage == .embedded)
         #expect(store.checkout?.url.absoluteString
-            == "https://ur.io/checkout?client_secret=cs_secret&redirect_link=urnetwork%3A%2F%2Fcheckout")
-        #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded"])
+            == "https://ur.io/checkout?client_secret=cs_secret&redirect_link=urnetwork%3A%2F%2Fcheckout&redirect_on_completion=never")
+        // a "never" session: Stripe fires onComplete on the bridge, which hands back in place
+        #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded:never"])
 
         store.handle(.checkoutComplete(sessionId: "cs_1"))
         #expect(store.purchaseSuccess)
@@ -187,7 +188,7 @@ struct StripeSubscriptionStoreTests {
         let store = Self.store(client, opened: { opened.append($0); return true })
         var polled = 0
         await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
-        #expect(client.calls == ["paymentSheet:yearly", "session:pro_yearly:embedded", "session:pro_yearly:hosted"])
+        #expect(client.calls == ["paymentSheet:yearly", "session:pro_yearly:embedded:never", "session:pro_yearly:hosted"])
         #expect(opened.map(\.absoluteString) == ["https://checkout.stripe.com/c/pay/cs_1"])
         #expect(store.checkout == nil)
         // the browser has it: the sheet waits on the poll with the browser copy

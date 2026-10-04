@@ -25656,6 +25656,47 @@
         }
       }
     },
+    "Choose your Bittensor wallet" : {
+      "comment" : "Title of the picker that chooses which Bittensor wallet (Talisman or TAO.com) signs.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختر محفظة Bittensor"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle deine Bittensor-Wallet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose your Bittensor wallet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige tu billetera de Bittensor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите кошелек Bittensor"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择您的 Bittensor 钱包"
+          }
+        }
+      }
+    },
     "Claim" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -32452,6 +32493,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "繼續"
+          }
+        }
+      }
+    },
+    "Continue in your browser and approve the request in the %@ extension." : {
+      "comment" : "Desktop: shown while the browser is open on the wallet page. The argument is the wallet product name (Talisman).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تابع في متصفحك ووافق على الطلب في إضافة %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fahre in deinem Browser fort und bestätige die Anfrage in der %@-Erweiterung."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue in your browser and approve the request in the %@ extension."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continúa en tu navegador y aprueba la solicitud en la extensión de %@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжите в браузере и подтвердите запрос в расширении %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在浏览器中继续，并在 %@ 扩展中批准请求。"
           }
         }
       }
@@ -43166,6 +43248,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "進入"
+          }
+        }
+      }
+    },
+    "Enter a Bittensor address" : {
+      "comment" : "Placeholder of the manual Bittensor address field on the Earnings page.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل عنوان Bittensor"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bittensor-Adresse eingeben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a Bittensor address"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce una dirección de Bittensor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите адрес Bittensor"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入 Bittensor 地址"
           }
         }
       }
@@ -59861,6 +59984,47 @@
         }
       }
     },
+    "Message to sign" : {
+      "comment" : "Label above the challenge message the user signs in their Bittensor wallet.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الرسالة المطلوب توقيعها"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu signierende Nachricht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Message to sign"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mensaje para firmar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сообщение для подписи"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待签名消息"
+          }
+        }
+      }
+    },
     "Method" : {
       "comment" : "A label for the picker that lets the user select the sign-in method.",
       "isCommentAutoGenerated" : true,
@@ -67738,6 +67902,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "粘贴分享文本"
+          }
+        }
+      }
+    },
+    "Paste the 0x… signature" : {
+      "comment" : "Placeholder of the Bittensor signature field (a 0x-prefixed hex signature).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الصق التوقيع ‎0x…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0x…-Signatur einfügen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste the 0x… signature"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pega la firma 0x…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставьте подпись 0x…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴 0x… 签名"
           }
         }
       }
@@ -88450,6 +88655,47 @@
         }
       }
     },
+    "Sign this message with the %@ wallet that holds your coldkey, then paste the address and the signature below." : {
+      "comment" : "Manual Bittensor wallet proof: how to sign the shown challenge message. The argument is the wallet product name (Talisman or TAO.com).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقّع هذه الرسالة باستخدام محفظة %@ التي تملك مفتاحك البارد (coldkey)، ثم الصق العنوان والتوقيع أدناه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signiere diese Nachricht mit der %@-Wallet, die deinen Coldkey enthält, und füge dann unten die Adresse und die Signatur ein."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign this message with the %@ wallet that holds your coldkey, then paste the address and the signature below."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firma este mensaje con la billetera %@ que contiene tu coldkey y luego pega abajo la dirección y la firma."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подпишите это сообщение в кошельке %@, где хранится ваш coldkey, затем вставьте ниже адрес и подпись."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用持有您 coldkey 的 %@ 钱包签署此消息，然后在下方粘贴地址和签名。"
+          }
+        }
+      }
+    },
     "Sign with Wallet" : {
       "comment" : "Button text for signing in with a wallet.",
       "isCommentAutoGenerated" : true,
@@ -88948,6 +89194,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "登入方式"
+          }
+        }
+      }
+    },
+    "Signature" : {
+      "comment" : "Label of the field where the user pastes the Bittensor wallet signature.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التوقيع"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signatur"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signature"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firma"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подпись"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "签名"
           }
         }
       }
@@ -94456,6 +94743,47 @@
         }
       }
     },
+    "That is not a valid signature. Paste the full 0x signature from your wallet." : {
+      "comment" : "Error: the pasted or returned Bittensor signature is not a 64-byte hex signature.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا ليس توقيعًا صالحًا. الصق توقيع 0x الكامل من محفظتك."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das ist keine gültige Signatur. Füge die vollständige 0x-Signatur aus deiner Wallet ein."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That is not a valid signature. Paste the full 0x signature from your wallet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No es una firma válida. Pega la firma 0x completa de tu billetera."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это недействительная подпись. Вставьте полную подпись 0x из вашего кошелька."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这不是有效的签名。请粘贴钱包中完整的 0x 签名。"
+          }
+        }
+      }
+    },
     "That is not a valid Solana address." : {
       "comment" : "Validation error under the manual address field when the address is not a valid Solana address (parallel to invalid_ss58_address).",
       "localizations" : {
@@ -94493,6 +94821,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这不是有效的 Solana 地址。"
+          }
+        }
+      }
+    },
+    "The %@ extension was not found in this browser. Install it, then try again." : {
+      "comment" : "Error: the wallet's browser extension is not installed in this browser. The argument is the wallet product name (Talisman).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتم العثور على إضافة %@ في هذا المتصفح. ثبّتها ثم حاول مرة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die %@-Erweiterung wurde in diesem Browser nicht gefunden. Installiere sie und versuche es dann erneut."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The %@ extension was not found in this browser. Install it, then try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расширение %@ не найдено в этом браузере. Установите его и повторите попытку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此浏览器中未找到 %@ 扩展。请安装后重试。"
           }
         }
       }
@@ -95281,6 +95650,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隧道将在下次连接时使用新的扩展器设置。"
+          }
+        }
+      }
+    },
+    "The wallet signed a different request. Start again." : {
+      "comment" : "Error: the wallet returned a signature over a different challenge than the one issued.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقّعت المحفظة طلبًا مختلفًا. ابدأ من جديد."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Wallet hat eine andere Anfrage signiert. Starte erneut."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The wallet signed a different request. Start again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La billetera firmó una solicitud diferente. Empieza de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кошелек подписал другой запрос. Начните заново."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "钱包签署了另一个请求。请重新开始。"
+          }
+        }
+      }
+    },
+    "The wallet that signed is not the address you entered." : {
+      "comment" : "Error when the wallet that signed the connect challenge is not the address the user entered.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المحفظة التي وقّعت ليست العنوان الذي أدخلته."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Wallet, die signiert hat, entspricht nicht der eingegebenen Adresse."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The wallet that signed is not the address you entered."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La billetera que firmó no corresponde a la dirección que introdujiste."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кошелек, который подписал запрос, не соответствует введённому адресу."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "签名的钱包与您输入的地址不一致。"
           }
         }
       }
@@ -98452,6 +98903,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此地區"
+          }
+        }
+      }
+    },
+    "This request expired. Start again to get a new message to sign." : {
+      "comment" : "Error: the single-use wallet challenge expired (5 minutes) before it was signed.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتهت صلاحية هذا الطلب. ابدأ من جديد للحصول على رسالة جديدة للتوقيع."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Anfrage ist abgelaufen. Starte erneut, um eine neue Nachricht zum Signieren zu erhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This request expired. Start again to get a new message to sign."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta solicitud caducó. Empieza de nuevo para obtener un mensaje nuevo para firmar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Срок действия запроса истек. Начните заново, чтобы получить новое сообщение для подписи."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此请求已过期。请重新开始以获取新的待签名消息。"
           }
         }
       }

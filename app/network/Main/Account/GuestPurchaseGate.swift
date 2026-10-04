@@ -21,22 +21,34 @@ struct GuestConversionSheet: View {
     let urApiService: UrApiServiceProtocol
 
     var body: some View {
+        // The jwt re-sign and balance refetch wait for the code: refetching the
+        // balance as soon as AddAuth succeeds clears the server's `guest`, which
+        // swaps this sheet for the checkout in the middle of the code step.
+        // Closing on the code step still lifts the guest state: the network has
+        // a sign-in method now, verified at its first sign-in.
         AddAuthSheet(
             api: urApiService,
             networkUserViewModel: nil,
             onAdded: {
-                GuestAccountConversion(
-                    session: DeviceGuestAccountSession(
-                        deviceManager: deviceManager,
-                        subscriptionBalanceViewModel: subscriptionBalanceViewModel
-                    )
-                ).signInMethodAdded()
+                signInMethodAdded()
+            },
+            onClosedUnverified: {
+                signInMethodAdded()
             }
         )
         .environmentObject(themeManager)
         .environmentObject(deviceManager)
         .environmentObject(snackbarManager)
         .environmentObject(connectWalletProviderViewModel)
+    }
+
+    private func signInMethodAdded() {
+        GuestAccountConversion(
+            session: DeviceGuestAccountSession(
+                deviceManager: deviceManager,
+                subscriptionBalanceViewModel: subscriptionBalanceViewModel
+            )
+        ).signInMethodAdded()
     }
 }
 

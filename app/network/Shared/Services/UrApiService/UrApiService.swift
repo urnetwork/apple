@@ -657,6 +657,49 @@ extension UrApiService {
         }
     }
 
+    func authVerifySend(_ args: SdkAuthVerifySendArgs) async -> (result: SdkAuthVerifySendResult?, err: Error?) {
+        let api: SdkApi
+        do {
+            api = try requireApi()
+        } catch {
+            return (nil, error)
+        }
+        return await withCheckedContinuation { continuation in
+            let callback = AuthVerifySendCallback { result, err in
+                continuation.resume(returning: (result, err))
+            }
+            api.authVerifySend(args, callback: callback)
+        }
+    }
+
+    func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult {
+        let api = try requireApi()
+        return try await withCheckedThrowingContinuation { continuation in
+
+            let callback = AuthVerifyCallback { result, err in
+
+                if let err = err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "authVerify returned nil result"]))
+                    return
+                }
+
+                if let errMsg = result.error?.message {
+                    continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: errMsg]))
+                    return
+                }
+
+                continuation.resume(returning: result)
+            }
+
+            api.authVerify(args, callback: callback)
+        }
+    }
+
     func removeAuth(authType: String) async throws -> SdkRemoveAuthResult {
         let api = try requireApi()
         return try await withCheckedThrowingContinuation { continuation in
@@ -1654,6 +1697,18 @@ private class RegenerateSeedphraseCallback: SdkCallback<SdkRegenerateSeedphraseR
 
 private class AddAuthCallback: SdkCallback<SdkAddAuthResult, SdkAddAuthCallbackProtocol>, SdkAddAuthCallbackProtocol {
     func result(_ result: SdkAddAuthResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthVerifySendCallback: SdkCallback<SdkAuthVerifySendResult, SdkAuthVerifySendCallbackProtocol>, SdkAuthVerifySendCallbackProtocol {
+    func result(_ result: SdkAuthVerifySendResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthVerifyCallback: SdkCallback<SdkAuthVerifyResult, SdkAuthVerifyCallbackProtocol>, SdkAuthVerifyCallbackProtocol {
+    func result(_ result: SdkAuthVerifyResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

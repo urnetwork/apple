@@ -25,8 +25,34 @@ struct AddAuthSheet: View {
     
     let api: UrApiServiceProtocol
     let networkUserViewModel: NetworkUserViewModel?
-    /// Called once a sign-in method was added (a legacy guest's in-place conversion re-signs its jwt here).
-    var onAdded: (() -> Void)? = nil
+    /// Called once a sign-in method was added: an Apple, Google or wallet
+    /// sign-in when AddAuth succeeds, an email or phone once its code is
+    /// verified (a legacy guest's in-place conversion re-signs its jwt here).
+    var onAdded: (() -> Void)?
+    /// Called when the sheet closes on the code step: the email or phone is on
+    /// the network but not verified yet (verified at its first sign-in instead).
+    var onClosedUnverified: (() -> Void)?
+
+    @StateObject private var verifyModel: AddedSignInVerifyModel
+
+    // counts a rate limit down and ends the resend hold
+    private let verifyTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    // Keyboard state of the code field
+    @FocusState private var isCodeFieldFocused: Bool
+
+    init(
+        api: UrApiServiceProtocol,
+        networkUserViewModel: NetworkUserViewModel?,
+        onAdded: (() -> Void)? = nil,
+        onClosedUnverified: (() -> Void)? = nil
+    ) {
+        self.api = api
+        self.networkUserViewModel = networkUserViewModel
+        self.onAdded = onAdded
+        self.onClosedUnverified = onClosedUnverified
+        _verifyModel = StateObject(wrappedValue: AddedSignInVerifyModel(api: api))
+    }
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -38,73 +64,81 @@ struct AddAuthSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                if let userAuth = verifyModel.userAuth {
+                    verifyCodeView(userAuth: userAuth)
+                        .padding()
+                } else {
+                    VStack(alignment: .leading, spacing: 16) {
                     
-                    Text("Add a sign-in method")
-                        .font(themeManager.currentTheme.titleFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                        Text("Add a sign-in method")
+                            .font(themeManager.currentTheme.titleFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
                     
-                    Text("Link another way to sign in to your account.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        Text("Link another way to sign in to your account.")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
                     
-                    Spacer().frame(height: 16)
+                        Spacer().frame(height: 16)
                     
-                    Picker("Method", selection: $selectedMethod) {
-                        // the direct-download build offers Apple and Google
-                        // through the browser instead of the native SDKs (BrowserSso)
-                        ForEach(addAuthSheetMethods(
-                            appleAvailable: Config.isAppleSignInConfigured || Config.isBrowserSignInAvailable,
-                            googleAvailable: Config.isGoogleSignInConfigured || Config.isBrowserSignInAvailable
-                        ), id: \.self) { method in
-                            switch method {
-                            case .apple:
-                                Text("Apple").tag(method)
-                            case .google:
-                                Text("Google").tag(method)
-                            case .wallet:
-                                Text("Wallet").tag(method)
-                            case .email:
-                                Text("Email").tag(method)
+                        Picker("Method", selection: $selectedMethod) {
+                            // the direct-download build offers Apple and Google
+                            // through the browser instead of the native SDKs (BrowserSso)
+                            ForEach(addAuthSheetMethods(
+                                appleAvailable: Config.isAppleSignInConfigured || Config.isBrowserSignInAvailable,
+                                googleAvailable: Config.isGoogleSignInConfigured || Config.isBrowserSignInAvailable
+                            ), id: \.self) { method in
+                                switch method {
+                                case .apple:
+                                    Text("Apple").tag(method)
+                                case .google:
+                                    Text("Google").tag(method)
+                                case .wallet:
+                                    Text("Wallet").tag(method)
+                                case .email:
+                                    Text("Email").tag(method)
+                                }
                             }
                         }
-                    }
-                    .pickerStyle(.menu)
+                        .pickerStyle(.menu)
                     
-                    if selectedMethod == .apple {
-                        appleSignInView
-                    } else if selectedMethod == .google {
-                        googleSignInView
-                    } else if selectedMethod == .wallet {
-                        walletSignInView
-                    } else if selectedMethod == .email {
-                        emailFields
-                    }
+                        if selectedMethod == .apple {
+                            appleSignInView
+                        } else if selectedMethod == .google {
+                            googleSignInView
+                        } else if selectedMethod == .wallet {
+                            walletSignInView
+                        } else if selectedMethod == .email {
+                            emailFields
+                        }
                     
-                    if let error = addError {
-                        Text(error)
-                            .font(themeManager.currentTheme.secondaryBodyFont)
-                            .foregroundColor(.red)
-                    }
+                        if let error = addError {
+                            Text(error)
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(.red)
+                        }
                     
-                    if selectedMethod == .email {
-                        Spacer().frame(height: 16)
+                        if selectedMethod == .email {
+                            Spacer().frame(height: 16)
                         
-                        UrButton(
-                            text: "Add Sign-In Method",
-                            action: {
-                                Task {
-                                    await addAuth()
-                                }
-                            },
-                            enabled: !isAdding && formValid,
-                            isProcessing: isAdding
-                        )
+                            UrButton(
+                                text: "Add Sign-In Method",
+                                action: {
+                                    Task {
+                                        await addAuth()
+                                    }
+                                },
+                                enabled: !isAdding && formValid,
+                                isProcessing: isAdding
+                            )
+                        }
                     }
+                    .padding()
                 }
-                .padding()
             }
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+            .onReceive(verifyTimer) { _ in
+                verifyModel.tick()
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
@@ -113,6 +147,11 @@ struct AddAuthSheet: View {
                 }
             }
             .onDisappear {
+                if verifyModel.awaitingCode {
+                    // the sign-in is on the network but not verified; the
+                    // first sign-in with it asks for a code instead
+                    onClosedUnverified?()
+                }
                 walletConnectionTask?.cancel()
                 walletConnectionTask = nil
                 connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
@@ -267,12 +306,10 @@ struct AddAuthSheet: View {
                 _ = await networkUserViewModel?.refreshNetworkUser()
                 switch ssoReturn.provider {
                 case .apple:
-                    snackbarManager.showSnackbar(message: String(localized: "Apple sign-in method added"))
+                    await signInAdded(.apple, userAuth: "", message: String(localized: "Apple sign-in method added"))
                 case .google:
-                    snackbarManager.showSnackbar(message: String(localized: "Google sign-in method added"))
+                    await signInAdded(.google, userAuth: "", message: String(localized: "Google sign-in method added"))
                 }
-                onAdded?()
-                dismiss()
             } catch(let error) {
                 isAdding = false
                 addError = error.localizedDescription
@@ -523,9 +560,7 @@ struct AddAuthSheet: View {
             connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
             connectWalletProviderViewModel.pendingWalletAuthMessage = nil
             _ = await networkUserViewModel?.refreshNetworkUser()
-            snackbarManager.showSnackbar(message: String(localized: "Wallet sign-in method added"))
-            onAdded?()
-            dismiss()
+            await signInAdded(.wallet, userAuth: "", message: String(localized: "Wallet sign-in method added"))
         } catch(let error) {
             isAdding = false
             addError = error.localizedDescription
@@ -582,9 +617,7 @@ struct AddAuthSheet: View {
             let _ = try await api.addAuth(args)
             isAdding = false
             _ = await networkUserViewModel?.refreshNetworkUser()
-            snackbarManager.showSnackbar(message: String(localized: "Apple sign-in method added"))
-            onAdded?()
-            dismiss()
+            await signInAdded(.apple, userAuth: "", message: String(localized: "Apple sign-in method added"))
         } catch(let error) {
             isAdding = false
             addError = error.localizedDescription
@@ -628,9 +661,7 @@ struct AddAuthSheet: View {
             let _ = try await api.addAuth(args)
             isAdding = false
             _ = await networkUserViewModel?.refreshNetworkUser()
-            snackbarManager.showSnackbar(message: String(localized: "Google sign-in method added"))
-            onAdded?()
-            dismiss()
+            await signInAdded(.google, userAuth: "", message: String(localized: "Google sign-in method added"))
         } catch(let error) {
             isAdding = false
             addError = error.localizedDescription
@@ -649,13 +680,179 @@ struct AddAuthSheet: View {
             
             let _ = try await api.addAuth(args)
             isAdding = false
+            // the method now shows on the account, unverified
             _ = await networkUserViewModel?.refreshNetworkUser()
-            snackbarManager.showSnackbar(message: String(localized: "Sign-in method added successfully"))
-            onAdded?()
-            dismiss()
+            // an email or phone is added once its code is verified (submitCode)
+            await signInAdded(selectedMethod, userAuth: args.userAuth, message: String(localized: "Sign-in method added successfully"))
         } catch(let error) {
             isAdding = false
             addError = error.localizedDescription
         }
+    }
+
+    /// AddAuth succeeded: the sign-in counts as added now, or after its code.
+    private func signInAdded(_ method: AddAuthSheetMethod, userAuth: String, message: String) async {
+        if await verifyModel.methodAdded(method, userAuth: userAuth) {
+            reportAdded(message)
+        }
+    }
+
+    private func reportAdded(_ message: String) {
+        snackbarManager.showSnackbar(message: message)
+        onAdded?()
+        dismiss()
+    }
+
+    private func submitCode() async {
+        if await verifyModel.submit() {
+            #if canImport(UIKit)
+            hideKeyboard()
+            #endif
+            _ = await networkUserViewModel?.refreshNetworkUser()
+            reportAdded(String(localized: "Sign-in method added successfully"))
+        }
+    }
+
+    // MARK: - Verify Code
+
+    // the login verify screen's code step (CreateNetworkVerifyView)
+    @ViewBuilder
+    private func verifyCodeView(userAuth: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // until a code is sent, do not say one was; the send error replaces the instructions
+            if verifyModel.codeSent {
+                Text(userAuth.isEmail() ? "You've got mail" : "Check your phone")
+                    .font(themeManager.currentTheme.titleFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            } else {
+                Text("Verify")
+                    .font(themeManager.currentTheme.titleFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            }
+
+            Spacer().frame(height: 16)
+
+            if verifyModel.codeSent {
+                Text("Tell us who you really are. Enter the code we sent you to verify your identity.")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            } else {
+                UrInlineErrorText(message: verifyModel.sendErrorMessage)
+            }
+
+            Spacer().frame(height: 32)
+
+            HStack(spacing: 0) {
+                ForEach(0..<verifyModel.codeCount, id: \.self) { index in
+                    otpTextBox(index)
+                }
+            }
+            .background {
+                // hidden textfield which holds the code
+                TextField("", text: $verifyModel.otp)
+                    .onChange(of: verifyModel.otp) { newValue in
+                        if newValue.count > verifyModel.codeCount {
+                            verifyModel.otp = String(newValue.prefix(verifyModel.codeCount))
+                        }
+                        if verifyModel.otp.count == verifyModel.codeCount && !verifyModel.isVerifying && !verifyModel.isSending {
+                            Task {
+                                await submitCode()
+                            }
+                        }
+                    }
+                    #if os(iOS)
+                    .keyboardType(.numberPad)
+                    .textInputAutocapitalization(.never)
+                    #endif
+                    .frame(width: 1, height: 1)
+                    .opacity(0.001)
+                    .blendMode(.screen)
+                    .focused($isCodeFieldFocused)
+                    .autocorrectionDisabled()
+                    .textContentType(.oneTimeCode)
+                    .disabled(verifyModel.isVerifying || verifyModel.isSending)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if !verifyModel.isVerifying && !verifyModel.isSending {
+                    isCodeFieldFocused.toggle()
+                }
+            }
+
+            if verifyModel.isVerifying {
+                Spacer().frame(height: 12)
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .frame(maxWidth: .infinity)
+            }
+
+            Spacer().frame(height: 8)
+
+            UrInlineErrorText(message: verifyModel.otpErrorMessage)
+
+            Spacer().frame(height: 32)
+
+            HStack {
+                Text("Don't see it? ", comment: "Referring to the OTP code")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+
+                Button(action: {
+                    Task {
+                        // a failed send sets the model's error message
+                        if await verifyModel.resend() == .sent {
+                            snackbarManager.showSnackbar(message: String(localized: "Verification code sent."))
+                        }
+                    }
+                }) {
+                    HStack(spacing: 6) {
+                        Text("Resend code")
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+
+                        if verifyModel.isSending {
+                            ProgressView()
+                                .tint(themeManager.currentTheme.textColor)
+                                .controlSize(.small)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(!verifyModel.resendEnabled)
+            }
+
+            if verifyModel.codeSent {
+                Spacer().frame(height: 8)
+
+                UrInlineErrorText(message: verifyModel.sendErrorMessage)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func otpTextBox(_ index: Int) -> some View {
+        ZStack {
+            if verifyModel.otp.count > index {
+                let charIndex = verifyModel.otp.index(verifyModel.otp.startIndex, offsetBy: index)
+                Text(String(verifyModel.otp[charIndex]))
+                    .font(Font.custom("PPNeueBit-Bold", size: 24))
+            } else {
+                Text(" ")
+            }
+        }
+        .frame(width: 38, height: 38)
+        .background {
+            let isFocused = (isCodeFieldFocused && index == verifyModel.otp.count)
+
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(
+                    isFocused ? themeManager.currentTheme.accentColor : themeManager.currentTheme.textFaintColor,
+                    lineWidth: isFocused ? 1 : 0.5
+                )
+                .animation(.easeInOut(duration: 0.2), value: isFocused)
+        }
+        .frame(maxWidth: .infinity)
     }
 }

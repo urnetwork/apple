@@ -43,13 +43,6 @@ class ConnectWalletProviderViewModel: ObservableObject {
     private let phantomDisconnectRedirectLink = "urnetwork://phantom-disconnect"
     private let phantomSignMessageRedirectLink = "urnetwork://phantom-sign-message"
 
-    /**
-     * Bittensor: signing runs through the ur.io/wallet-connect bridge
-     * (injected substrate wallets); the return envelope is plain query params
-     * (address + sr25519 signature hex) — no encryption envelope
-     */
-    private let bittensorSignMessageRedirectLink = "urnetwork://bittensor-sign-message"
-    private let bittensorConnectRedirectLink = "urnetwork://bittensor-connect"
     
     // When set, the wallet deep link onSignature routes here instead of the default multiplier claim flow
     var pendingAddAuthSignatureHandler: ((String, String) async -> Void)?
@@ -298,27 +291,9 @@ class ConnectWalletProviderViewModel: ObservableObject {
             return
         }
 
-        // bittensor returns plain params from the ur.io/wallet-connect bridge
-        if components.host == "bittensor-sign-message" || components.host == "bittensor-connect" {
-            if let errorMessage = queryItems.first(where: { $0.name == "errorMessage" })?.value {
-                onError?(WalletDeepLinkError.walletError(errorMessage))
-                return
-            }
-            guard let address = queryItems.first(where: { $0.name == "address" })?.value, !address.isEmpty else {
-                onError?(WalletDeepLinkError.missingParams)
-                return
-            }
-            self.connectedPublicKey = address
-            self.connectedWalletProvider = .bittensor
-            if components.host == "bittensor-connect" {
-                onPublicKeyRetrieved?(address, .bittensor)
-                return
-            }
-            guard let signature = queryItems.first(where: { $0.name == "signature" })?.value, !signature.isEmpty else {
-                onError?(WalletDeepLinkError.missingParams)
-                return
-            }
-            onSignature?(signature)
+        // a Bittensor bridge hand-back belongs to the SDK wallet-connect
+        // session of the screen that opened it (BittensorWalletConnector)
+        if components.host == "bittensor-sign-message" {
             return
         }
 
@@ -631,52 +606,6 @@ class ConnectWalletProviderViewModel: ObservableObject {
         return webComponents.url
     }
     #endif
-
-    /**
-     * Opens the ur.io/wallet-connect bridge to sign in with a Bittensor
-     * wallet. The bridge drives an injected substrate wallet (extension or a
-     * mobile wallet's in-app browser) and returns via
-     * urnetwork://bittensor-sign-message?address=<ss58>&signature=<hex>
-     */
-    func openBittensorSignIn(message: String) {
-        openBittensorBridge(message: message, purpose: nil)
-    }
-
-    /// Proves a coldkey for the Earnings screen: the bridge signs the connect
-    /// challenge and returns the address with the signature.
-    func openBittensorConnectWallet(message: String) {
-        openBittensorBridge(message: message, purpose: "connect")
-    }
-
-    private func openBittensorBridge(message: String, purpose: String?) {
-        var webComponents = URLComponents()
-        webComponents.scheme = "https"
-        webComponents.host = "ur.io"
-        webComponents.path = "/wallet-connect"
-        var items = [
-            URLQueryItem(name: "provider", value: "bittensor"),
-            URLQueryItem(name: "method", value: "signMessage"),
-            URLQueryItem(name: "message", value: message),
-            URLQueryItem(name: "redirect_link", value: bittensorSignMessageRedirectLink),
-        ]
-        if let purpose {
-            items.append(URLQueryItem(name: "purpose", value: purpose))
-        }
-        // the WalletConnect Cloud project id (URnetwork-Info.plist) lets the
-        // bridge pair with a wallet app; without it the bridge uses injected
-        // wallets only
-        if let projectId = Bundle.main.object(forInfoDictionaryKey: "URWalletConnectProjectId") as? String,
-           !projectId.isEmpty {
-            items.append(URLQueryItem(name: "wc_project_id", value: projectId))
-        }
-        webComponents.queryItems = items
-        guard let url = webComponents.url else { return }
-        #if canImport(UIKit)
-        UIApplication.shared.open(url)
-        #elseif canImport(AppKit)
-        NSWorkspace.shared.open(url)
-        #endif
-    }
 
     @discardableResult
     func openURL(_ url: URL, completion: ((Bool) -> Void)? = nil) -> Bool {

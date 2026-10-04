@@ -229,7 +229,7 @@ private final class FakeEarningsClient: EarningsClient {
     func formatAlpha(rao: Int64) -> String { "\(rao)" }
     func formatShareBps(_ shareBps: Int64) -> String { "\(shareBps)" }
 
-    func walletChallenge(address: String?) async throws -> String { throw Unsupported() }
+    func walletChallenge(_ args: SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult { throw Unsupported() }
     func validateWallet(_ address: String) async throws -> SnWalletValidation { throw Unsupported() }
     func cachedWallet() -> SnWalletInfo? { cached }
 

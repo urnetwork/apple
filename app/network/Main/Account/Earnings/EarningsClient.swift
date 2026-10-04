@@ -37,8 +37,9 @@ protocol EarningsClient: AnyObject {
     func formatShareBps(_ shareBps: Int64) -> String
 
     // wallet
-    /// the message the ur.io wallet bridge signs to prove the coldkey (purpose "connect")
-    func walletChallenge(address: String?) async throws -> String
+    /// the challenge the coldkey signs to prove itself (purpose "connect";
+    /// the args come from the SDK wallet-connect session)
+    func walletChallenge(_ args: SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult
     /// unauthenticated check; runs before the address is sent anywhere else
     func validateWallet(_ address: String) async throws -> SnWalletValidation
     func cachedWallet() -> SnWalletInfo?
@@ -127,17 +128,8 @@ final class EarningsSdkClient: EarningsClient {
 
     // MARK: wallet
 
-    func walletChallenge(address: String?) async throws -> String {
-        let args = SdkAuthWalletChallengeArgs()
-        args.blockchain = "bittensor"
-        if let address, !address.isEmpty {
-            args.walletAddress = address
-        }
-        let result = try await urApiService.authWalletChallenge(args)
-        guard !result.messageTemplate.isEmpty else {
-            throw EarningsClientError.emptyResult
-        }
-        return result.messageTemplate
+    func walletChallenge(_ args: SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult {
+        try await urApiService.authWalletChallenge(args)
     }
 
     func validateWallet(_ address: String) async throws -> SnWalletValidation {
@@ -539,7 +531,12 @@ final class EarningsPreviewClient: EarningsClient {
     func shortSs58(_ address: String) -> String { SnAlpha.shortSs58(address) }
     func formatAlpha(rao: Int64) -> String { SnAlpha.format(rao: rao) }
     func formatShareBps(_ shareBps: Int64) -> String { SnAlpha.formatShareBps(shareBps) }
-    func walletChallenge(address: String?) async throws -> String { "connect" }
+    func walletChallenge(_ args: SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult {
+        let result = SdkAuthWalletChallengeResult()
+        result.messageTemplate = "Sign in to URnetwork\nChallenge: preview\nTimestamp: 1757340000"
+        result.expiresIn = 300
+        return result
+    }
     func validateWallet(_ address: String) async throws -> SnWalletValidation {
         SnWalletValidation(validSyntax: true, existsOnChain: true, banned: false, message: "")
     }

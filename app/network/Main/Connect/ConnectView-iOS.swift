@@ -38,6 +38,8 @@ struct ConnectView_iOS: View {
     var collapseDrawerSignal: Int = 0
     @ObservedObject var providerListSheetViewModel: ProviderListSheetViewModel
     
+    @StateObject private var egressContractStatsViewModel: EgressContractStatsViewModel
+
     @State var displayReconnectTunnel: Bool = false
 
     @State private var isSheetExpanded = false
@@ -100,6 +102,7 @@ struct ConnectView_iOS: View {
         self.urApiService = urApiService
         self.providerListSheetViewModel = providerListSheetViewModel
         self.referralLinkViewModel = referralLinkViewModel
+        _egressContractStatsViewModel = StateObject(wrappedValue: EgressContractStatsViewModel(device: device))
         self.providerListStore = providerStore
 
         self.promptMoreDataFlow = promptMoreDataFlow

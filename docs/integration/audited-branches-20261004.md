@@ -20,3 +20,14 @@ network-space, VPN, and picker lifecycle owners.
   continuation fencing nor removal and could resume a continuation repeatedly;
   they also targeted a view-model path since removed. No such listeners are
   reintroduced by this historical merge.
+- `egress-contract-listeners` (`da649059`): merged the view-owned stats
+  subscription and removal of the unused ContentView API property. Adapted the
+  old misspelled SDK selector to current `addEgressContractStatsChangeListener`,
+  marshaled published changes to the main queue, retained weak ownership and
+  subscription closure, and removed raw-stat debug prints. Current picker,
+  billing, drawer and referral initialization remain intact.
+
+Validation here checks branch ancestry, conflict resolution, current SDK selector
+and subscription ownership, and the repository diff. This Linux workspace has
+no Swift/Xcode toolchain; Apple native compile/runtime validation remains pending.
+No application build or device deployment is selected by this source integration.

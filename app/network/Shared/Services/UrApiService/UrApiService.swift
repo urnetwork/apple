@@ -492,23 +492,38 @@ extension UrApiService {
 
             }
 
-            let args = SdkNetworkCreateArgs()
-            // Main still validates this field. Newer servers generate their own
-            // instant-account name and safely ignore this compatibility fallback.
-            args.networkName = "guest-\(UUID().uuidString.lowercased())"
-            args.guestMode = true
-            args.terms = true
-            // No userAuth, password, authJwt, walletAuth — triggers seedphrase path
-            // instant accounts can be referred too; the server links the
-            // referral on any create path
-            if let referralCode = referralCode, !referralCode.isEmpty {
-                args.referralCode = referralCode
-            }
-            // the sign-up form's "Periodic product updates" switch; off = opted out
-            args.productUpdatesOptOut = productUpdatesOptOut
+            let args = UrApiService.instantAccountArgs(
+                referralCode: referralCode,
+                productUpdatesOptOut: productUpdatesOptOut
+            )
             api.networkCreate(args, callback: callback)
             
         }
+    }
+
+    /**
+     * The network-create args of an instant (seedphrase) account: terms and no
+     * login method at all (no userAuth, password, authJwt or walletAuth), which
+     * is what selects the server's seedphrase path.
+     *
+     * No guest_mode: the server dropped it from NetworkCreateArgs with the
+     * seedphrase path and ignores it (unknown fields are ignored), and the
+     * network it creates is a seedphrase account, not a guest.
+     */
+    static func instantAccountArgs(referralCode: String?, productUpdatesOptOut: Bool) -> SdkNetworkCreateArgs {
+        let args = SdkNetworkCreateArgs()
+        // Main still validates this field. Newer servers generate their own
+        // instant-account name and safely ignore this compatibility fallback.
+        args.networkName = "guest-\(UUID().uuidString.lowercased())"
+        args.terms = true
+        // instant accounts can be referred too; the server links the
+        // referral on any create path
+        if let referralCode = referralCode, !referralCode.isEmpty {
+            args.referralCode = referralCode
+        }
+        // the sign-up form's "Periodic product updates" switch; off = opted out
+        args.productUpdatesOptOut = productUpdatesOptOut
+        return args
     }
     
     func createNetwork(_ args: SdkNetworkCreateArgs) async throws -> LoginNetworkResult {

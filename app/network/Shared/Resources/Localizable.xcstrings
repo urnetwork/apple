@@ -32538,6 +32538,47 @@
         }
       }
     },
+    "Continue in your browser: scan the code with your wallet app, or open the wallet on this device." : {
+      "comment" : "Shown while the browser is open on the WalletConnect page: the user scans the code or opens their wallet app there.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تابع في متصفحك: امسح الرمز باستخدام تطبيق محفظتك، أو افتح المحفظة على هذا الجهاز."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fahre in deinem Browser fort: Scanne den Code mit deiner Wallet-App oder öffne die Wallet auf diesem Gerät."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue in your browser: scan the code with your wallet app, or open the wallet on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continúa en tu navegador: escanea el código con la app de tu billetera o abre la billetera en este dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжите в браузере: отсканируйте код приложением кошелька или откройте кошелек на этом устройстве."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在浏览器中继续：用钱包应用扫描二维码，或在此设备上打开钱包。"
+          }
+        }
+      }
+    },
     "Continue with the free plan" : {
       "comment" : "Onboarding offer screen: the always-visible secondary text link that keeps the free plan and finishes onboarding.",
       "localizations" : {
@@ -65363,6 +65404,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        }
+      }
+    },
+    "Nova, Nightly and other WalletConnect wallets" : {
+      "comment" : "Subtitle of the WalletConnect option in the Bittensor wallet chooser: which wallets it works with. Nova, Nightly and WalletConnect are product names.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova وNightly ومحافظ WalletConnect الأخرى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly und andere WalletConnect-Wallets"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly and other WalletConnect wallets"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly y otras billeteras compatibles con WalletConnect"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova, Nightly и другие кошельки с поддержкой WalletConnect"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nova、Nightly 及其他 WalletConnect 钱包"
           }
         }
       }

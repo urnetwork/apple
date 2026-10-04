@@ -125,7 +125,7 @@ extension LoginInitialView {
         }
 
         /**
-         * Bittensor: the SDK wallet-connect session (Talisman or TAO.com).
+         * Bittensor: the SDK wallet-connect session (Talisman, TAO.com or WalletConnect).
          * Every sign attempt fetches a new challenge - the server invalidates
          * one the moment it is checked, whether the check succeeds or fails.
          */

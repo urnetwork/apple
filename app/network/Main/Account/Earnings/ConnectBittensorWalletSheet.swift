@@ -2,13 +2,14 @@
 //  ConnectBittensorWalletSheet.swift
 //  URnetwork
 //
-//  The sheet that attaches a Bittensor coldkey: choose the wallet (Talisman or
-//  TAO.com), then sign through the browser bridge or paste an address and the
+//  The sheet that attaches a Bittensor coldkey: choose the wallet (Talisman,
+//  TAO.com or WalletConnect), then sign through the browser bridge or paste an address and the
 //  signature for it. Shows the address checks (checking, new-wallet warning,
 //  blocked) and the errors.
 //
 
 import SwiftUI
+import URnetworkSdk
 
 struct ConnectBittensorWalletSheet: View {
 
@@ -52,6 +53,12 @@ struct ConnectBittensorWalletSheet: View {
                     style: .secondary,
                     accessibilityIdentifier: "earnings.bittensor.wallet.\(walletId)"
                 )
+                if walletId == SdkBittensorWalletWalletConnect {
+                    Text("Nova, Nightly and other WalletConnect wallets")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .frame(maxWidth: .infinity)
+                }
             }
 
         case .manualEntry:

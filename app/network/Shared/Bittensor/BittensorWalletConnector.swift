@@ -11,9 +11,13 @@
 //  registers) or show the manual form (iOS, and TAO.com everywhere: the
 //  message to sign, the coldkey address and the pasted signature).
 //
-//  Supported wallets are Talisman and TAO.com. Neither publishes a mobile
-//  deep link or WalletConnect interface, and TAO.com publishes no extension
-//  api, so those combinations are manual.
+//  Supported wallets are Talisman, TAO.com and WalletConnect. Talisman and
+//  TAO.com publish no mobile deep link, and TAO.com publishes no extension
+//  api, so those combinations are manual. WalletConnect (Nova, Nightly and
+//  other substrate WalletConnect wallets) opens the ur.io bridge on both
+//  iOS and macOS: the page pairs (a QR, or "Open wallet" on the phone) with
+//  this app's WalletConnect project id (Info.plist URWalletConnectProjectId)
+//  and returns on the same redirect link.
 //
 
 import Foundation
@@ -50,6 +54,7 @@ protocol BittensorWalletSessioning: AnyObject {
     var message: String { get }
     func challengeArgs(expectedAddress: String) -> SdkAuthWalletChallengeArgs?
     func setChallenge(_ result: SdkAuthWalletChallengeResult, nowMillis: Int64) throws
+    func setWalletConnectProjectId(_ projectId: String)
     func bridgeUrl() throws -> String
     func isReturn(_ uri: String) -> Bool
     func handleBridgeReturn(_ uri: String, nowMillis: Int64) -> BittensorWalletOutcome
@@ -72,7 +77,14 @@ enum BittensorWallet {
 
     /// the supported wallets, in display order
     static var walletIds: [String] {
-        [SdkBittensorWalletTalisman, SdkBittensorWalletTaoCom]
+        [SdkBittensorWalletTalisman, SdkBittensorWalletTaoCom, SdkBittensorWalletWalletConnect]
+    }
+
+    /// this app's WalletConnect Cloud project id (a public client identifier;
+    /// Info.plist URWalletConnectProjectId, from vault/main/walletconnect.yml)
+    static var walletConnectProjectId: String {
+        (Bundle.main.object(forInfoDictionaryKey: "URWalletConnectProjectId") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
     /// product names are not translated
@@ -111,6 +123,8 @@ enum BittensorWallet {
         SdkBittensorWalletErrorNotReturn,
         SdkBittensorWalletErrorPurposeMismatch,
         SdkBittensorWalletErrorNotAwaiting,
+        // a return naming another wallet than this session's
+        SdkBittensorWalletErrorUnsupportedWallet,
     ]
 
     static func outcome(proof: BittensorWalletProofInfo?, errorCode: String, errorMessage: String) -> BittensorWalletOutcome {
@@ -170,6 +184,10 @@ final class SdkBittensorWalletSessionAdapter: BittensorWalletSessioning {
 
     func setChallenge(_ result: SdkAuthWalletChallengeResult, nowMillis: Int64) throws {
         try session.setChallenge(result, nowMillis: nowMillis)
+    }
+
+    func setWalletConnectProjectId(_ projectId: String) {
+        session.setWalletConnectProjectId(projectId)
     }
 
     func bridgeUrl() throws -> String {
@@ -247,6 +265,7 @@ final class BittensorWalletConnector: ObservableObject {
     private let fetchChallenge: (SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult
     private let openUrl: @MainActor (URL) -> Bool
     private let now: () -> Int64
+    private let walletConnectProjectId: String
 
     private var session: BittensorWalletSessioning?
     private(set) var lastWalletId: String?
@@ -257,8 +276,10 @@ final class BittensorWalletConnector: ObservableObject {
         makeSession: @escaping (_ walletId: String, _ platform: String, _ purpose: String, _ redirectLink: String) throws -> BittensorWalletSessioning = BittensorWallet.makeSession,
         fetchChallenge: @escaping (SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult,
         openUrl: @escaping @MainActor (URL) -> Bool = BittensorWallet.openInBrowser,
-        now: @escaping () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }
+        now: @escaping () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) },
+        walletConnectProjectId: String = BittensorWallet.walletConnectProjectId
     ) {
+        self.walletConnectProjectId = walletConnectProjectId
         self.platform = platform
         self.redirectLink = redirectLink
         self.makeSession = makeSession
@@ -296,6 +317,9 @@ final class BittensorWalletConnector: ObservableObject {
             return
         }
         self.session = session
+        if walletId == SdkBittensorWalletWalletConnect {
+            session.setWalletConnectProjectId(walletConnectProjectId)
+        }
         do {
             guard let args = session.challengeArgs(expectedAddress: expectedAddress) else {
                 throw BittensorWalletConnectorError.unsupported

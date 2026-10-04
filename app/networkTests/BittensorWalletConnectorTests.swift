@@ -23,6 +23,7 @@ struct BittensorWalletConnectorTests {
     static let message = "Sign in to URnetwork\nChallenge: q1w2e3r4t5y6u7i8o9p0\nTimestamp: 1757340000"
     static let signature = "0x" + String(repeating: "ab", count: 64)
     static let nowMillis: Int64 = 1_757_340_000_000
+    static let walletConnectProjectId = "app-project"
 
     static func challengeResult(_ message: String = BittensorWalletConnectorTests.message) -> SdkAuthWalletChallengeResult {
         let result = SdkAuthWalletChallengeResult()
@@ -55,7 +56,8 @@ struct BittensorWalletConnectorTests {
                 recorder.opened.append(url)
                 return true
             },
-            now: { recorder.nowMillis }
+            now: { recorder.nowMillis },
+            walletConnectProjectId: Self.walletConnectProjectId
         )
         connector.onProof = { proof in
             recorder.proofs.append(proof)
@@ -65,11 +67,15 @@ struct BittensorWalletConnectorTests {
 
     // MARK: selection and texts
 
-    @Test func exactlyTalismanAndTaoComWithThePlatformTransport() {
-        #expect(BittensorWallet.walletIds == ["talisman", "taocom"])
+    @Test func talismanTaoComAndWalletConnectWithThePlatformTransport() {
+        #expect(BittensorWallet.walletIds == ["talisman", "taocom", "walletconnect"])
         #expect(BittensorWallet.displayName("talisman") == "Talisman")
         #expect(BittensorWallet.displayName("taocom") == "TAO.com")
-        // no documented mobile deep link or WalletConnect: manual on iOS
+        #expect(BittensorWallet.displayName("walletconnect") == "WalletConnect")
+        // WalletConnect pairs on the bridge page on both platforms
+        #expect(BittensorWallet.transport("walletconnect", platform: SdkBittensorWalletPlatformIos) == SdkBittensorWalletTransportBrowserBridge)
+        #expect(BittensorWallet.transport("walletconnect", platform: SdkBittensorWalletPlatformMacos) == SdkBittensorWalletTransportBrowserBridge)
+        // no documented mobile deep link: Talisman and TAO.com are manual on iOS
         #expect(BittensorWallet.transport("talisman", platform: SdkBittensorWalletPlatformIos) == SdkBittensorWalletTransportManual)
         #expect(BittensorWallet.transport("taocom", platform: SdkBittensorWalletPlatformIos) == SdkBittensorWalletTransportManual)
         // macOS: the Talisman extension through the browser bridge
@@ -85,7 +91,7 @@ struct BittensorWalletConnectorTests {
     @Test func outcomesSeparateRefusalsFromOtherFlowsAnswers() {
         let proof = BittensorWalletProofInfo(walletId: "talisman", purpose: "login", address: Self.alice, message: Self.message, signature: Self.signature)
         #expect(BittensorWallet.outcome(proof: proof, errorCode: "", errorMessage: "") == .proof(proof))
-        for code in [SdkBittensorWalletErrorPurposeMismatch, SdkBittensorWalletErrorNotReturn, SdkBittensorWalletErrorNotAwaiting] {
+        for code in [SdkBittensorWalletErrorPurposeMismatch, SdkBittensorWalletErrorNotReturn, SdkBittensorWalletErrorNotAwaiting, SdkBittensorWalletErrorUnsupportedWallet] {
             #expect(BittensorWallet.outcome(proof: nil, errorCode: code, errorMessage: "") == .ignored)
         }
         #expect(BittensorWallet.outcome(proof: nil, errorCode: SdkBittensorWalletErrorExpired, errorMessage: "") == .failed(code: SdkBittensorWalletErrorExpired, walletMessage: ""))
@@ -183,6 +189,71 @@ struct BittensorWalletConnectorTests {
         #expect(query["message"] == Self.message)
         #expect(query["redirect_link"] == "urnetwork://bittensor-sign-message")
         #expect(query["wc_project_id"] == nil)
+    }
+
+    // MARK: WalletConnect
+
+    @Test func theAppCarriesItsWalletConnectProjectId() {
+        // Info.plist URWalletConnectProjectId (vault/main/walletconnect.yml)
+        #expect(!BittensorWallet.walletConnectProjectId.isEmpty)
+    }
+
+    @Test(arguments: [SdkBittensorWalletPlatformIos, SdkBittensorWalletPlatformMacos])
+    func walletConnectOpensTheBittensorPageWithTheProjectId(platform: String) async throws {
+        let recorder = Recorder()
+        let connector = Self.connector(platform: platform, recorder: recorder)
+        await connector.choose(walletId: "walletconnect", purpose: SdkBittensorWalletPurposeLogin)
+        #expect(connector.stage == .awaitingBrowser(walletId: "walletconnect"))
+        let opened = try #require(recorder.opened.first)
+        let components = try #require(URLComponents(url: opened, resolvingAgainstBaseURL: false))
+        let query = Dictionary(uniqueKeysWithValues: (components.percentEncodedQueryItems ?? []).map {
+            ($0.name, ($0.value ?? "").replacingOccurrences(of: "+", with: " ").removingPercentEncoding ?? "")
+        })
+        #expect(components.host == "ur.io")
+        #expect(components.path == "/bittensor-connect")
+        #expect(query["wallet"] == "walletconnect")
+        #expect(query["wc_project_id"] == Self.walletConnectProjectId)
+        #expect(query["purpose"] == "login")
+        #expect(query["message"] == Self.message)
+        #expect(query["redirect_link"] == "urnetwork://bittensor-sign-message")
+    }
+
+    @Test(arguments: [SdkBittensorWalletPlatformIos, SdkBittensorWalletPlatformMacos])
+    func walletConnectReturnIgnoresOtherWalletsAndFlows(platform: String) async {
+        let recorder = Recorder()
+        let connector = Self.connector(platform: platform, recorder: recorder)
+        await connector.choose(walletId: "walletconnect", purpose: SdkBittensorWalletPurposeLogin)
+
+        // another wallet's hand-back (a Talisman page left open) is not ours
+        let talisman = Self.returnUrl(["address": Self.alice, "signature": Self.signature, "message": Self.message, "purpose": "login", "wallet": "talisman"])
+        await connector.handleBridgeReturn(talisman)
+        #expect(connector.stage == .awaitingBrowser(walletId: "walletconnect"))
+        // another flow's hand-back is not ours either
+        let connect = Self.returnUrl(["address": Self.alice, "signature": Self.signature, "message": Self.message, "purpose": "connect", "wallet": "walletconnect"])
+        await connector.handleBridgeReturn(connect)
+        #expect(connector.stage == .awaitingBrowser(walletId: "walletconnect"))
+        #expect(recorder.proofs.isEmpty)
+
+        let good = Self.returnUrl(["address": Self.alice, "signature": Self.signature, "message": Self.message, "purpose": "login", "wallet": "walletconnect"])
+        await connector.handleBridgeReturn(good)
+        #expect(recorder.proofs == [BittensorWalletProofInfo(walletId: "walletconnect", purpose: "login", address: Self.alice, message: Self.message, signature: Self.signature)])
+        #expect(connector.stage == .idle)
+    }
+
+    @Test func earningsWalletConnectOnIosSignsFirstThenValidates() async {
+        let recorder = Recorder()
+        let client = FakeClient()
+        let flow = Self.flow(platform: SdkBittensorWalletPlatformIos, client: client, recorder: recorder)
+
+        await flow.chooseWallet("walletconnect")
+        #expect(flow.stage == .signing)
+        #expect(recorder.opened.count == 1)
+        #expect(flow.connector.stage == .awaitingBrowser(walletId: "walletconnect"))
+
+        await flow.connector.handleBridgeReturn(Self.returnUrl(["address": Self.bob, "signature": Self.signature, "message": Self.message, "purpose": "connect", "wallet": "walletconnect"]))
+        #expect(client.validations == [Self.bob])
+        #expect(client.connected.count == 1)
+        #expect(client.connected.first?.0 == Self.bob)
     }
 
     @Test func bridgeReturnForAnotherFlowIsIgnoredAndTheRightOneSigns() async {

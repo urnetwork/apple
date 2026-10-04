@@ -10,6 +10,7 @@ import URnetworkSdk
 import SwiftUI
 import AuthenticationServices
 import GoogleSignIn
+import Combine
 
 extension LoginInitialView {
     
@@ -124,48 +125,28 @@ extension LoginInitialView {
         }
 
         /**
-         * Bittensor
+         * Bittensor: the SDK wallet-connect session (Talisman or TAO.com).
+         * Every sign attempt fetches a new challenge - the server invalidates
+         * one the moment it is checked, whether the check succeeds or fails.
          */
-        @Published private(set) var bittensorChallengeMessage: String?
+        let bittensorConnector: BittensorWalletConnector
+        private var bittensorConnectorChanges: AnyCancellable?
 
-        /// Same server-issued challenge flow as prepareSolanaChallenge(), for
-        /// the Bittensor wallet-connect bridge. Must be called again for
-        /// every sign attempt - the server invalidates a challenge the
-        /// moment it is checked, whether the check succeeds or fails.
-        ///
-        /// The server accepts blockchain="bittensor" (case-insensitively,
-        /// also "tao"/"TAO") — confirmed against urnetwork/server#402 after
-        /// that PR was extended to support Bittensor wallets alongside
-        /// Solana in the challenge-based wallet auth flow.
-        func prepareBittensorChallenge(walletAddress: String? = nil) async -> Bool {
-            let args = SdkAuthWalletChallengeArgs()
-            args.blockchain = "bittensor"
-            if let walletAddress, !walletAddress.isEmpty {
-                args.walletAddress = walletAddress
-            }
-
-            do {
-                let result = try await urApiService.authWalletChallenge(args)
-                guard !result.messageTemplate.isEmpty else {
-                    bittensorChallengeMessage = nil
-                    setLoginErrorMessage("There was an error connecting to the network")
-                    return false
-                }
-                bittensorChallengeMessage = result.messageTemplate
-                return true
-            } catch {
-                bittensorChallengeMessage = nil
-                setLoginErrorMessage("There was an error connecting to the network")
-                return false
-            }
-        }
-        
         let termsLink = "https://ur.io/terms"
         
         let domain = "LoginInitialViewModel"
         
         init(urApiService: UrApiServiceProtocol) {
             self.urApiService = urApiService
+            self.bittensorConnector = BittensorWalletConnector(
+                fetchChallenge: { args in
+                    try await urApiService.authWalletChallenge(args)
+                }
+            )
+            // the sign-in sheet follows the connector's stage
+            bittensorConnectorChanges = bittensorConnector.objectWillChange.sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
         }
         
         func authLogin(args: SdkAuthLoginArgs) async -> AuthLoginResult {
@@ -291,20 +272,20 @@ extension LoginInitialView.ViewModel {
 
 // MARK: Bittensor Sign in
 extension LoginInitialView.ViewModel {
-    func createBittensorAuthLoginArgs(message: String, signature: String, publicKey: String) -> Result<SdkAuthLoginArgs, Error> {
+    /// The login args for a proof the SDK session accepted (the ss58 address,
+    /// the issued challenge, the 0x sr25519 signature).
+    func createBittensorAuthLoginArgs(_ proof: BittensorWalletProofInfo) -> SdkAuthLoginArgs {
 
         let args = SdkAuthLoginArgs()
         let walletAuth = SdkWalletAuthArgs()
-        // publicKey is the ss58 address; the signature is sr25519 hex from
-        // the ur.io/wallet-connect bridge
         walletAuth.blockchain = SdkTAO
-        walletAuth.message = message
-        walletAuth.signature = signature
-        walletAuth.publicKey = publicKey
+        walletAuth.message = proof.message
+        walletAuth.signature = proof.signature
+        walletAuth.publicKey = proof.address
 
         args.walletAuth = walletAuth
 
-        return .success(args)
+        return args
 
     }
 }

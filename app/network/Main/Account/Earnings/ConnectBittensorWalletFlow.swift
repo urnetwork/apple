@@ -3,25 +3,32 @@
 //  URnetwork
 //
 //  Attaching a Bittensor coldkey to this device's provider client. The
-//  coldkey is proven by an sr25519 signature from the ur.io wallet bridge over
-//  a challenge with purpose "connect"; a pasted address still has to sign.
+//  coldkey is proven by an sr25519 signature over a challenge with purpose
+//  "connect", produced through the SDK's wallet-connect session
+//  (BittensorWalletConnector): Talisman on macOS signs through the ur.io
+//  bridge in the browser and returns its address; a manual wallet (iOS, and
+//  TAO.com everywhere) first takes the address, then the pasted signature
+//  over a challenge bound to it.
 //  Every address is validated before it is sent anywhere: the local ss58
 //  syntax check first, then the unauthenticated wallet check, which can warn
 //  (no activity on chain yet) or block (banned).
 //
 
 import Foundation
+import URnetworkSdk
 
 @MainActor
 final class ConnectBittensorWalletFlow: ObservableObject {
 
     enum Stage: Equatable {
         case chooser
+        /// a manual wallet: the address first
         case manualEntry
         case checking
         case newWalletWarning
         case blocked
-        case awaitingSignature
+        /// the connector is up (manual form or browser hand-off)
+        case signing
         case connecting
         case failed(String)
     }
@@ -29,6 +36,7 @@ final class ConnectBittensorWalletFlow: ObservableObject {
     @Published var stage: Stage = .chooser
     @Published var manualAddress: String = ""
     @Published private(set) var address: String?
+    @Published private(set) var walletId: String?
 
     private var signature: String?
     private var message: String?
@@ -36,42 +44,58 @@ final class ConnectBittensorWalletFlow: ObservableObject {
 
     private let client: EarningsClient
     private let connect: (String, String, String) async throws -> SnWalletInfo
+    private let platform: String
+    let connector: BittensorWalletConnector
 
-    /// opens the ur.io wallet bridge with the challenge to sign; set by the
-    /// view that owns the wallet provider
-    var openBridge: (String) -> Void = { _ in }
     var onConnected: (SnWalletInfo) -> Void = { _ in }
 
     init(
         client: EarningsClient,
+        platform: String = BittensorWallet.platform,
+        connector: BittensorWalletConnector? = nil,
         connect: @escaping (String, String, String) async throws -> SnWalletInfo
     ) {
         self.client = client
         self.connect = connect
+        self.platform = platform
+        self.connector = connector ?? BittensorWalletConnector(
+            platform: platform,
+            fetchChallenge: { args in
+                try await client.walletChallenge(args)
+            }
+        )
+        self.connector.onProof = { [weak self] proof in
+            await self?.handleProof(proof)
+        }
     }
 
     func reset() {
+        connector.cancel()
         stage = .chooser
         manualAddress = ""
         address = nil
+        walletId = nil
         signature = nil
         message = nil
         validated = false
     }
 
-    /// Sign first: the wallet returns its address with the signature.
-    func startBridge() async {
+    /// A wallet from the chooser. A browser-bridge wallet signs first and
+    /// returns its address; a manual one takes the address first.
+    func chooseWallet(_ walletId: String) async {
+        self.walletId = walletId
         address = nil
         signature = nil
+        message = nil
         validated = false
-        await openBridgeForSignature(address: nil)
+        if BittensorWallet.transport(walletId, platform: platform) == SdkBittensorWalletTransportBrowserBridge {
+            await startSigning(address: nil)
+        } else {
+            stage = .manualEntry
+        }
     }
 
-    func enterManually() {
-        stage = .manualEntry
-    }
-
-    /// A pasted address: validate, then ask the wallet to sign for it.
+    /// A typed address: validate, then sign for it.
     func submitManualAddress() async {
         let candidate = manualAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         guard client.validateSs58(candidate) else {
@@ -82,7 +106,7 @@ final class ConnectBittensorWalletFlow: ObservableObject {
         signature = nil
         switch await validate(candidate) {
         case .ok:
-            await openBridgeForSignature(address: candidate)
+            await startSigning(address: candidate)
         case .warn:
             stage = .newWalletWarning
         case .blocked:
@@ -101,34 +125,27 @@ final class ConnectBittensorWalletFlow: ObservableObject {
         if let signature, let message {
             await finish(address: address, signature: signature, message: message)
         } else {
-            await openBridgeForSignature(address: address)
+            await startSigning(address: address)
         }
     }
 
-    /// The bridge came back with the wallet's address and its signature over
-    /// the challenge.
-    func handleBridgeReturn(address returned: String, signature returnedSignature: String) async {
-        guard stage == .awaitingSignature, let message else {
+    /// The session accepted a signature (the SDK has checked the challenge,
+    /// the purpose, the ss58 address, a typed address match and the
+    /// signature shape).
+    func handleProof(_ proof: BittensorWalletProofInfo) async {
+        guard stage == .signing else {
             return
         }
-        if let expected = address, expected != returned {
-            // a different wallet signed than the one pasted
-            stage = .failed(String(localized: "There was an error connecting your wallet."))
-            return
-        }
-        guard client.validateSs58(returned) else {
-            stage = .failed(String(localized: "That is not a valid Bittensor address."))
-            return
-        }
-        address = returned
-        signature = returnedSignature
+        address = proof.address
+        signature = proof.signature
+        message = proof.message
         if validated {
-            await finish(address: returned, signature: returnedSignature, message: message)
+            await finish(address: proof.address, signature: proof.signature, message: proof.message)
             return
         }
-        switch await validate(returned) {
+        switch await validate(proof.address) {
         case .ok:
-            await finish(address: returned, signature: returnedSignature, message: message)
+            await finish(address: proof.address, signature: proof.signature, message: proof.message)
         case .warn:
             stage = .newWalletWarning
         case .blocked:
@@ -138,22 +155,15 @@ final class ConnectBittensorWalletFlow: ObservableObject {
         }
     }
 
-    func handleBridgeError(_ error: Error) {
-        if stage == .awaitingSignature {
-            stage = .failed(String(localized: "There was an error connecting your wallet."))
-        }
-    }
-
     func retry() async {
-        if let address {
-            if validated {
-                await openBridgeForSignature(address: address)
-            } else {
-                manualAddress = address
-                await submitManualAddress()
-            }
+        guard let walletId else {
+            reset()
+            return
+        }
+        if let address, validated {
+            await startSigning(address: address)
         } else {
-            await startBridge()
+            await chooseWallet(walletId)
         }
     }
 
@@ -181,15 +191,17 @@ final class ConnectBittensorWalletFlow: ObservableObject {
         }
     }
 
-    private func openBridgeForSignature(address: String?) async {
-        do {
-            let challenge = try await client.walletChallenge(address: address)
-            message = challenge
-            stage = .awaitingSignature
-            openBridge(challenge)
-        } catch {
-            stage = .failed(error.localizedDescription)
+    private func startSigning(address: String?) async {
+        guard let walletId else {
+            reset()
+            return
         }
+        stage = .signing
+        await connector.choose(
+            walletId: walletId,
+            purpose: SdkBittensorWalletPurposeConnect,
+            expectedAddress: address ?? ""
+        )
     }
 
     private func finish(address: String, signature: String, message: String) async {

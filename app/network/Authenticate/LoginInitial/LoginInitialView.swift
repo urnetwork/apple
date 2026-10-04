@@ -167,6 +167,32 @@ struct LoginInitialView: View {
                 #endif
                 
             }
+            .sheet(isPresented: Binding(
+                get: { viewModel.bittensorConnector.isActive },
+                set: { presented in
+                    if !presented {
+                        cancelBittensorSignIn()
+                    }
+                }
+            )) {
+                BittensorWalletSignView(
+                    connector: viewModel.bittensorConnector,
+                    onChoose: { walletId in
+                        Task {
+                            await viewModel.bittensorConnector.choose(
+                                walletId: walletId,
+                                purpose: SdkBittensorWalletPurposeLogin
+                            )
+                        }
+                    },
+                    onCancel: {
+                        cancelBittensorSignIn()
+                    }
+                )
+                .padding()
+                .background(themeManager.currentTheme.backgroundColor)
+                .environmentObject(themeManager)
+            }
             .scrollIndicators(.hidden)
             .toolbar {
                 if let cancel = cancel {
@@ -197,6 +223,9 @@ struct LoginInitialView: View {
             }
         }
         .onAppear {
+            viewModel.bittensorConnector.onProof = { proof in
+                await handleBittensorProof(proof)
+            }
             // Cache initial orientation
             #if os(iOS)
             let orientation = UIDevice.current.orientation
@@ -215,6 +244,13 @@ struct LoginInitialView: View {
         }
         #endif
         .onOpenURL { url in
+            // a Bittensor bridge hand-back goes to the SDK session
+            if viewModel.bittensorConnector.isBridgeReturn(url) {
+                Task {
+                    await viewModel.bittensorConnector.handleBridgeReturn(url)
+                }
+                return
+            }
             connectWalletProviderViewModel
                 .handleDeepLink(
                     url,
@@ -227,19 +263,11 @@ struct LoginInitialView: View {
                         }
 
                         Task {
-                            if connectWalletProviderViewModel.connectedWalletProvider == .bittensor {
-                                await handleBittensorWalletResult(
-                                    message: viewModel.bittensorChallengeMessage ?? "",
-                                    signature: signature,
-                                    publicKey: pk
-                                )
-                            } else {
-                                await handleSolanaWalletResult(
-                                    message: viewModel.solanaChallengeMessage ?? "",
-                                    signature: signature,
-                                    publicKey: pk
-                                )
-                            }
+                            await handleSolanaWalletResult(
+                                message: viewModel.solanaChallengeMessage ?? "",
+                                signature: signature,
+                                publicKey: pk
+                            )
                         }
 
                     },
@@ -494,17 +522,14 @@ struct LoginInitialView: View {
                 // "any wallet" - bittensor and solana each need their own
                 // challenge fetch and reopen the right sign-in surface.
                 viewModel.isSigningForCreateNetwork = true
-                if connectWalletProviderViewModel.connectedWalletProvider == .bittensor {
-                    let ok = await viewModel.prepareBittensorChallenge(
-                        walletAddress: authLoginArgs.walletAuth?.publicKey
+                if authLoginArgs.walletAuth?.blockchain == SdkTAO {
+                    // the second signature, from the same wallet, over a
+                    // challenge bound to the address that signed in
+                    await viewModel.bittensorConnector.choose(
+                        walletId: viewModel.bittensorConnector.lastWalletId ?? SdkBittensorWalletTalisman,
+                        purpose: SdkBittensorWalletPurposeCreate,
+                        expectedAddress: authLoginArgs.walletAuth?.publicKey ?? ""
                     )
-                    if ok {
-                        connectWalletProviderViewModel.openBittensorSignIn(
-                            message: viewModel.bittensorChallengeMessage ?? ""
-                        )
-                    } else {
-                        viewModel.isSigningForCreateNetwork = false
-                    }
                 } else {
                     let ok = await viewModel.prepareSolanaChallenge(
                         walletAddress: authLoginArgs.walletAuth?.publicKey
@@ -550,30 +575,23 @@ struct LoginInitialView: View {
     }
     
     private func handleBittensorSignIn() {
-        Task {
-            let ok = await viewModel.prepareBittensorChallenge()
-            if ok {
-                connectWalletProviderViewModel.openBittensorSignIn(
-                    message: viewModel.bittensorChallengeMessage ?? ""
-                )
-            }
-        }
+        viewModel.isSigningForCreateNetwork = false
+        viewModel.bittensorConnector.presentChooser()
     }
 
-    private func handleBittensorWalletResult(message: String, signature: String, publicKey: String) async {
+    private func cancelBittensorSignIn() {
+        viewModel.bittensorConnector.cancel()
+        viewModel.isSigningForCreateNetwork = false
+    }
 
-        if viewModel.isSigningForCreateNetwork {
+    /// A proof the SDK session accepted: sign in, or (purpose create) the
+    /// second signature that creates the network.
+    private func handleBittensorProof(_ proof: BittensorWalletProofInfo) async {
+        let args = viewModel.createBittensorAuthLoginArgs(proof)
+
+        if proof.purpose == SdkBittensorWalletPurposeCreate {
             viewModel.isSigningForCreateNetwork = false
-            viewModel.setIsSigningMessage(false)
-
-            let createArgsResult = viewModel.createBittensorAuthLoginArgs(message: message, signature: signature, publicKey: publicKey)
-            switch createArgsResult {
-            case .success(let args):
-                navigate(.createNetwork(args))
-            case .failure(let error):
-                print("error create args result: \(error.localizedDescription)")
-                viewModel.setLoginErrorMessage("There was an error logging in")
-            }
+            navigate(.createNetwork(args))
             return
         }
 
@@ -585,19 +603,8 @@ struct LoginInitialView: View {
             viewModel.endLoginAction(.bittensor)
         }
 
-        let createArgsResult = viewModel.createBittensorAuthLoginArgs(message: message, signature: signature, publicKey: publicKey)
-        switch createArgsResult {
-        case .success(let args):
-
-            let result = await viewModel.authLogin(args: args)
-            await self.handleAuthLoginResult(result)
-            viewModel.setIsSigningMessage(false)
-
-        case .failure(let error):
-            print("error create args result: \(error.localizedDescription)")
-            viewModel.setIsSigningMessage(false)
-            viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-        }
+        let result = await viewModel.authLogin(args: args)
+        await self.handleAuthLoginResult(result)
     }
     
 }
@@ -1025,8 +1032,9 @@ private struct LoginTiles: View {
                 loginAction: nil,
                 accessibilityIdentifier: "acceptance.login.authcode"
             ),
-            // Bittensor sign in runs through the ur.io/wallet-connect bridge,
-            // so it does not depend on an installed wallet app
+            // Bittensor sign in picks Talisman or TAO.com, then signs through
+            // the browser bridge (macOS Talisman) or the manual form, so it
+            // does not depend on an installed wallet app
             LoginTileSpec(
                 id: "bittensor",
                 caption: "Bittensor",

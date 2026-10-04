@@ -147,9 +147,6 @@ struct EarningsView: View {
             }
         }
         .onAppear {
-            connectFlow.openBridge = { message in
-                connectWalletProviderViewModel.openBittensorConnectWallet(message: message)
-            }
             connectFlow.onConnected = { _ in
                 presentConnectSheet = false
                 snackbarManager.showSnackbar(message: String(localized: "Connected"))
@@ -398,22 +395,12 @@ struct EarningsView: View {
         }
     }
 
+    /// The bridge hand-back goes to the SDK session, which ignores a return
+    /// for another flow (purpose) or another challenge.
     private func handleBittensorDeepLink(_ url: URL) {
-        connectWalletProviderViewModel.handleDeepLink(
-            url,
-            onSignature: { signature in
-                guard let address = connectWalletProviderViewModel.connectedPublicKey else {
-                    connectFlow.handleBridgeError(WalletDeepLinkError.missingParams)
-                    return
-                }
-                Task {
-                    await connectFlow.handleBridgeReturn(address: address, signature: signature)
-                }
-            },
-            onError: { error in
-                connectFlow.handleBridgeError(error)
-            }
-        )
+        Task {
+            await connectFlow.connector.handleBridgeReturn(url)
+        }
     }
 
     /// The wallet app did not open: back to the chooser.
@@ -441,7 +428,7 @@ enum EarningsWalletLink: Equatable {
         switch url.host ?? "" {
         case "phantom-connect", "solflare-connect":
             return solanaSheetUp ? .solana : nil
-        case "bittensor-sign-message", "bittensor-connect":
+        case "bittensor-sign-message":
             return bittensorSheetUp ? .bittensor : nil
         default:
             return nil

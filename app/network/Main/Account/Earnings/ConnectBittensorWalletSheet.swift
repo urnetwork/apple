@@ -2,9 +2,10 @@
 //  ConnectBittensorWalletSheet.swift
 //  URnetwork
 //
-//  The sheet that attaches a Bittensor coldkey: sign with the wallet through
-//  the ur.io bridge, or paste an address and then sign for it. Shows the
-//  address checks (checking, new-wallet warning, blocked) and the errors.
+//  The sheet that attaches a Bittensor coldkey: choose the wallet (Talisman or
+//  TAO.com), then sign through the browser bridge or paste an address and the
+//  signature for it. Shows the address checks (checking, new-wallet warning,
+//  blocked) and the errors.
 //
 
 import SwiftUI
@@ -37,24 +38,25 @@ struct ConnectBittensorWalletSheet: View {
 
         case .chooser:
             WalletNotRetroactiveNote()
-            UrButton(text: "Connect Bittensor wallet", action: {
-                Task {
-                    await flow.startBridge()
-                }
-            })
-            Button(action: {
-                flow.enterManually()
-            }) {
-                Text("Enter address manually")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    .frame(maxWidth: .infinity)
+            Text("Choose your Bittensor wallet")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+            ForEach(BittensorWallet.walletIds, id: \.self) { walletId in
+                UrButton(
+                    text: LocalizedStringKey(BittensorWallet.displayName(walletId)),
+                    action: {
+                        Task {
+                            await flow.chooseWallet(walletId)
+                        }
+                    },
+                    style: .secondary,
+                    accessibilityIdentifier: "earnings.bittensor.wallet.\(walletId)"
+                )
             }
-            .buttonStyle(.plain)
 
         case .manualEntry:
             WalletNotRetroactiveNote()
-            TextField("", text: $flow.manualAddress, prompt: Text(verbatim: "5F…"))
+            TextField("", text: $flow.manualAddress, prompt: Text("Enter a Bittensor address"))
                 .textFieldStyle(.roundedBorder)
                 .font(.system(.body, design: .monospaced))
                 .autocorrectionDisabled()
@@ -110,28 +112,18 @@ struct ConnectBittensorWalletSheet: View {
             }
             UrButton(text: "Close", action: dismiss)
 
-        case .awaitingSignature:
-            HStack(spacing: 12) {
-                ProgressView()
-                Text("Connect Bittensor wallet")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-            }
-            if let address = flow.address {
-                Text(verbatim: address)
-                    .font(.system(.footnote, design: .monospaced))
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-            }
-            UrButton(
-                text: "Retry",
-                action: {
+        case .signing:
+            BittensorWalletSignView(
+                connector: flow.connector,
+                onChoose: { walletId in
                     Task {
-                        await flow.retry()
+                        await flow.chooseWallet(walletId)
                     }
                 },
-                style: .secondary
+                onCancel: {
+                    flow.reset()
+                }
             )
-            cancelButton
 
         case .connecting:
             HStack(spacing: 12) {

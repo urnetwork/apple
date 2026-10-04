@@ -12,6 +12,15 @@
 // The iOS simulator refuses NetworkExtension and physical iOS is not a MAIN
 // tunnel lane, so macOS is the only Apple lane with a real tunnel.
 //
+// Each case uses its own fresh account: the runner calls `setup <file>` with
+// the absolute path of a private credentials file it created for the case,
+// the only source of credentials (the driver never reads an environment
+// variable or vault file for them). setup records that path in the case's
+// private state directory, so later verbs (each its own process) redact with
+// the same values; teardown signs out and removes the record, and the next
+// case's setup signs in fresh with a different account. The runner removes
+// the file after teardown and deletes the account; the driver never does.
+//
 // Credentials reach the UI test the way MAIN passes them: in a private
 // xctestrun copy that is deleted as soon as the test has started. Values are
 // never printed; error lines are redacted.
@@ -210,10 +219,9 @@ func (self *limitedWriter) Write(p []byte) (int, error) {
 // ---- driver ----
 
 type driver struct {
-	sys             system
-	root            string
-	state           string
-	credentialsPath string
+	sys   system
+	root  string
+	state string
 	// set once credentials are read, for redaction
 	secrets []string
 }
@@ -232,12 +240,24 @@ func (self *driver) xctestrunPath() string {
 	return filepath.Join(self.serveDir(), "driver.xctestrun")
 }
 
+// credentialsRecordPath holds the absolute path setup was given, never the
+// values.
+func (self *driver) credentialsRecordPath() string {
+	return filepath.Join(self.state, "credentials-path")
+}
+
 // run dispatches one verb and returns the JSON object to print.
 func (self *driver) run(ctx context.Context, args []string) (any, error) {
 	if len(args) == 0 {
 		return nil, errors.New("missing verb")
 	}
 	verb, rest := args[0], args[1:]
+	if verb == "setup" {
+		if len(rest) != 1 {
+			return nil, errors.New("setup takes exactly one argument: the absolute path of the credentials file")
+		}
+		return self.setup(ctx, rest[0])
+	}
 	wantArgs := 0
 	if verb == "kill-switch" {
 		wantArgs = 1
@@ -245,9 +265,11 @@ func (self *driver) run(ctx context.Context, args []string) (any, error) {
 	if len(rest) != wantArgs {
 		return nil, fmt.Errorf("%s: unexpected arguments", verb)
 	}
+	// later verbs redact with the credentials setup recorded, if any
+	if email, password, err := self.recordedCredentials(); err == nil {
+		self.secrets = []string{email, password}
+	}
 	switch verb {
-	case "setup":
-		return self.setup(ctx)
 	case "direct-egress":
 		ip, err := self.probeEgress(ctx)
 		if err != nil {
@@ -289,9 +311,13 @@ type setupResult struct {
 	KillSwitchSupported bool `json:"kill_switch_supported"`
 }
 
-// setup builds the current tree, starts the UI test, and signs in.
-func (self *driver) setup(ctx context.Context) (any, error) {
-	email, password, err := readCredentials(self.credentialsPath)
+// setup builds the current tree, starts the UI test, and signs in with the
+// case's account from credentialsPath.
+func (self *driver) setup(ctx context.Context, credentialsPath string) (any, error) {
+	if !filepath.IsAbs(credentialsPath) {
+		return nil, errors.New("the credentials file path must be absolute")
+	}
+	email, password, err := readCredentials(credentialsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +327,12 @@ func (self *driver) setup(ctx context.Context) (any, error) {
 	}
 	if pid, ok := self.servePid(); ok && self.sys.Alive(pid) {
 		return nil, errors.New("a previous driver session is still running; run teardown first")
+	}
+	if err := os.MkdirAll(self.state, 0700); err != nil {
+		return nil, err
+	}
+	if err := writeAtomic(self.credentialsRecordPath(), []byte(credentialsPath+"\n")); err != nil {
+		return nil, fmt.Errorf("record the credentials path: %w", err)
 	}
 	if _, err := self.sys.Run(ctx, "", "/bin/bash", "-c",
 		`source "$1"; apple_acceptance_macos_automation_ready`, "driver",
@@ -455,12 +487,10 @@ func (self *driver) traffic(ctx context.Context) trafficResult {
 }
 
 // teardown signs out through the UI when the UI test is still running, stops
-// it, quits the app, and stops any URnetwork tunnel the UI could not.
+// it, quits the app, stops any URnetwork tunnel the UI could not, and removes
+// the credential copy and record so the next case starts from a new account.
 func (self *driver) teardown(ctx context.Context) error {
 	var errs []error
-	if email, password, err := readCredentials(self.credentialsPath); err == nil {
-		self.secrets = []string{email, password}
-	}
 	if pid, ok := self.servePid(); ok {
 		if self.sys.Alive(pid) {
 			if err := self.request(ctx, "teardown", "", 4*time.Minute, nil); err != nil {
@@ -480,6 +510,9 @@ func (self *driver) teardown(ctx context.Context) error {
 		os.Remove(self.pidPath())
 	}
 	os.Remove(self.xctestrunPath())
+	if err := os.Remove(self.credentialsRecordPath()); err != nil && !errors.Is(err, os.ErrNotExist) {
+		errs = append(errs, fmt.Errorf("remove the credentials record: %w", err))
+	}
 	// as apple/test-main.sh cleanup
 	self.sys.Run(ctx, "", "/usr/bin/osascript", "-e", `tell application id "`+appBundleId+`" to quit`)
 	if err := self.stopTunnels(ctx); err != nil {
@@ -647,15 +680,32 @@ func lastFailure(log string) string {
 
 // ---- helpers ----
 
+// recordedCredentials reads the credentials file whose path setup recorded in
+// this case's state directory.
+func (self *driver) recordedCredentials() (email, password string, err error) {
+	b, err := os.ReadFile(self.credentialsRecordPath())
+	if err != nil {
+		return "", "", errors.New("no credentials recorded; run setup first")
+	}
+	path := strings.TrimSpace(string(b))
+	if !filepath.IsAbs(path) {
+		return "", "", errors.New("corrupt credentials record")
+	}
+	return readCredentials(path)
+}
+
 // readCredentials reads the private `email:`/`password:` file with the
 // runner's rules (tests/runner/balance). Values are never printed.
 func readCredentials(path string) (email, password string, err error) {
 	if path == "" {
-		return "", "", errors.New("URNETWORK_INSUFFICIENT_BALANCE_CREDENTIALS is not set")
+		return "", "", errors.New("the credentials file path is missing")
 	}
-	info, err := os.Stat(path)
+	info, err := os.Lstat(path)
 	if err != nil {
 		return "", "", errors.New("insufficient-balance credentials are unreadable")
+	}
+	if !info.Mode().IsRegular() {
+		return "", "", errors.New("insufficient-balance credentials must be a regular file")
 	}
 	if info.Mode().Perm()&0077 != 0 {
 		return "", "", errors.New("insufficient-balance credentials must not be group/world readable")
@@ -808,10 +858,9 @@ func mainCode(ctx context.Context, d *driver, args []string, stdout, stderr io.W
 
 func main() {
 	d := &driver{
-		sys:             newRealSystem(),
-		root:            os.Getenv("URNETWORK_ROOT"),
-		state:           os.Getenv("URNETWORK_INSUFFICIENT_BALANCE_STATE"),
-		credentialsPath: os.Getenv("URNETWORK_INSUFFICIENT_BALANCE_CREDENTIALS"),
+		sys:   newRealSystem(),
+		root:  os.Getenv("URNETWORK_ROOT"),
+		state: os.Getenv("URNETWORK_INSUFFICIENT_BALANCE_STATE"),
 	}
 	if !filepath.IsAbs(d.root) || !filepath.IsAbs(d.state) {
 		fmt.Fprintln(os.Stderr, "apple driver: URNETWORK_ROOT and URNETWORK_INSUFFICIENT_BALANCE_STATE must be absolute")

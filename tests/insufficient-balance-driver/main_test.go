@@ -36,6 +36,8 @@ type fakeSystem struct {
 	channel string
 	// called on every Run of `scutil --nc list`
 	scutilLists []string
+	// the case's private credentials file, passed as `setup <path>`
+	credentialsPath string
 }
 
 type fakeFetch struct {
@@ -147,8 +149,14 @@ func (self *fakeSystem) answer() {
 
 func writeCredentials(t *testing.T, dir string, mode os.FileMode) string {
 	t.Helper()
+	return writeAccount(t, dir, "ib@example.test", "s3cret pass", mode)
+}
+
+// writeAccount writes one case's credentials file as the runner does.
+func writeAccount(t *testing.T, dir string, email string, password string, mode os.FileMode) string {
+	t.Helper()
 	path := filepath.Join(dir, "credentials.yml")
-	if err := os.WriteFile(path, []byte("email: ib@example.test\npassword: \"s3cret pass\"\n"), mode); err != nil {
+	if err := os.WriteFile(path, []byte(fmt.Sprintf("email: %s\npassword: \"%s\"\n", email, password)), mode); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.Chmod(path, mode); err != nil {
@@ -175,11 +183,11 @@ func newFixture(t *testing.T) (*driver, *fakeSystem) {
 	os.WriteFile(filepath.Join(products, "URnetworkUITests_macosx.xctestrun"), []byte("<plist/>"), 0600)
 	os.WriteFile(filepath.Join(products, ".acceptance.xctestrun"), []byte("stale"), 0600)
 	sys := newFakeSystem(t)
+	sys.credentialsPath = writeCredentials(t, t.TempDir(), 0600)
 	d := &driver{
-		sys:             sys,
-		root:            root,
-		state:           state,
-		credentialsPath: writeCredentials(t, t.TempDir(), 0600),
+		sys:   sys,
+		root:  root,
+		state: state,
 	}
 	sys.channel = d.channelDir()
 	sys.outputs["PlistBuddy"] = "ib-20261002-120000\n"
@@ -297,7 +305,7 @@ func TestSetupBuildsStartsTheUiTestAndRemovesTheCredentialCopy(t *testing.T) {
 		}
 		return map[string]any{"kill_switch_supported": true}, ""
 	}
-	stdout, stderr, code := runVerb(t, d, "setup")
+	stdout, stderr, code := runVerb(t, d, "setup", sys.credentialsPath)
 	if code != 0 {
 		t.Fatalf("setup failed: %s", stderr)
 	}
@@ -335,7 +343,7 @@ func TestSetupRejectsAStaleApp(t *testing.T) {
 	}
 	d, sys := newFixture(t)
 	sys.outputs["PlistBuddy"] = "20260901-000000-macos\n"
-	_, stderr, code := runVerb(t, d, "setup")
+	_, stderr, code := runVerb(t, d, "setup", sys.credentialsPath)
 	if code == 0 || !strings.Contains(stderr, "marker mismatch") || len(sys.started) != 0 {
 		t.Fatalf("code=%d stderr=%q started=%v", code, stderr, sys.started)
 	}
@@ -349,7 +357,7 @@ func TestFailureLineIsRedactedAndSingle(t *testing.T) {
 	sys.ui = func(seq int, verb, arg string) (any, string) {
 		return nil, "login failed for ib@example.test with s3cret pass\nsecond line"
 	}
-	stdout, stderr, code := runVerb(t, d, "setup")
+	stdout, stderr, code := runVerb(t, d, "setup", sys.credentialsPath)
 	if code == 0 || stdout != "" {
 		t.Fatalf("code=%d stdout=%q", code, stdout)
 	}
@@ -532,5 +540,189 @@ func TestFindXctestrunIgnoresPrivateCopies(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "URnetworkUITests_macosx.xctestrun"), nil, 0600)
 	if got, err := findXctestrun(dir); err != nil || filepath.Base(got) != "URnetworkUITests_macosx.xctestrun" {
 		t.Fatalf("got %q %v", got, err)
+	}
+}
+
+// recordPath is where setup records the credentials file path for later verbs.
+func recordPath(d *driver) string {
+	return filepath.Join(d.state, "credentials-path")
+}
+
+// plutilValue returns the value setup put into the private xctestrun for key.
+func plutilValue(t *testing.T, sys *fakeSystem, key string) string {
+	t.Helper()
+	prefix := "plutil -replace networkUITests.EnvironmentVariables." + key + " -string "
+	for _, command := range sys.commands {
+		if strings.HasPrefix(command, prefix) {
+			value := strings.TrimPrefix(command, prefix)
+			// the xctestrun path follows the value
+			if i := strings.LastIndex(value, " /"); 0 <= i {
+				value = value[:i]
+			}
+			return value
+		}
+	}
+	t.Fatalf("setup never set %s", key)
+	return ""
+}
+
+func acceptSetup(t *testing.T, sys *fakeSystem) {
+	sys.ui = func(seq int, verb, arg string) (any, string) {
+		if verb == "setup" {
+			return map[string]any{"kill_switch_supported": true}, ""
+		}
+		return map[string]any{}, ""
+	}
+}
+
+// The argument is the only credential source: the retired environment
+// variable, pointing at another valid account or at garbage, is ignored.
+func TestSetupReadsCredentialsOnlyFromItsArgument(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("setup refuses non-macOS hosts")
+	}
+	other := writeAccount(t, t.TempDir(), "env@example.test", "env pass", 0600)
+	for _, env := range []string{other, "garbage", ""} {
+		d, sys := newFixture(t)
+		acceptSetup(t, sys)
+		argument := writeAccount(t, t.TempDir(), "argument@example.test", "argument pass", 0600)
+		t.Setenv("URNETWORK_INSUFFICIENT_BALANCE_CREDENTIALS", env)
+		if _, stderr, code := runVerb(t, d, "setup", argument); code != 0 {
+			t.Fatalf("env=%q: setup failed: %s", env, stderr)
+		}
+		if got := plutilValue(t, sys, "UR_ACCEPT_USER"); got != "argument@example.test" {
+			t.Fatalf("env=%q: the UI test signs in as %q", env, got)
+		}
+		if got := plutilValue(t, sys, "UR_ACCEPT_PASS"); got != "argument pass" {
+			t.Fatal("the UI test got another account's password")
+		}
+		if b, err := os.ReadFile(recordPath(d)); err != nil || strings.TrimSpace(string(b)) != argument {
+			t.Fatalf("setup did not record the argument path: %q %v", b, err)
+		}
+		if b, _ := os.ReadFile(recordPath(d)); strings.Contains(string(b), "argument pass") {
+			t.Fatal("the record carries the password")
+		}
+	}
+}
+
+// A valid file in the retired environment variable never stands in for a
+// missing argument.
+func TestSetupWithoutAnArgumentFailsEvenWithTheEnvironment(t *testing.T) {
+	d, sys := newFixture(t)
+	t.Setenv("URNETWORK_INSUFFICIENT_BALANCE_CREDENTIALS", sys.credentialsPath)
+	stdout, stderr, code := runVerb(t, d, "setup")
+	if code == 0 || stdout != "" || !strings.Contains(stderr, "credentials file") {
+		t.Fatalf("code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	if len(sys.commands) != 0 || len(sys.started) != 0 {
+		t.Fatalf("setup without credentials ran %v %v", sys.commands, sys.started)
+	}
+}
+
+func TestSetupRejectsBadCredentialArguments(t *testing.T) {
+	dir := t.TempDir()
+	groupReadable := writeAccount(t, t.TempDir(), "a@example.test", "p", 0640)
+	worldReadable := writeAccount(t, t.TempDir(), "a@example.test", "p", 0604)
+	malformed := filepath.Join(dir, "malformed.yml")
+	os.WriteFile(malformed, []byte("email: a@example.test\n"), 0600)
+	extraKey := filepath.Join(dir, "extra.yml")
+	os.WriteFile(extraKey, []byte("email: a\npassword: b\ntoken: c\n"), 0600)
+	link := filepath.Join(dir, "link.yml")
+	os.Symlink(writeCredentials(t, t.TempDir(), 0600), link)
+	privateDir := filepath.Join(dir, "private")
+	os.Mkdir(privateDir, 0700)
+	for name, args := range map[string][]string{
+		"no argument":      {"setup"},
+		"extra argument":   {"setup", malformed, "extra"},
+		"relative path":    {"setup", "credentials.yml"},
+		"empty path":       {"setup", ""},
+		"missing file":     {"setup", filepath.Join(dir, "missing.yml")},
+		"group readable":   {"setup", groupReadable},
+		"world readable":   {"setup", worldReadable},
+		"missing password": {"setup", malformed},
+		"unknown key":      {"setup", extraKey},
+		"symlink":          {"setup", link},
+		"directory":        {"setup", privateDir},
+	} {
+		d, sys := newFixture(t)
+		stdout, stderr, code := runVerb(t, d, args...)
+		if code == 0 || stdout != "" || strings.Count(stderr, "\n") != 1 {
+			t.Fatalf("%s: code=%d stdout=%q stderr=%q", name, code, stdout, stderr)
+		}
+		if len(sys.commands) != 0 || len(sys.started) != 0 {
+			t.Fatalf("%s: setup went on to %v %v", name, sys.commands, sys.started)
+		}
+		if _, err := os.Stat(recordPath(d)); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("%s: a rejected file was recorded", name)
+		}
+	}
+}
+
+// Each verb is its own process: a later verb's driver has no memory of setup
+// and finds the case's credentials only through the state directory, even
+// when the retired environment variable names another account.
+func TestLaterVerbsFindTheCredentialsThroughTheStateDirectory(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("setup refuses non-macOS hosts")
+	}
+	d, sys := newFixture(t)
+	acceptSetup(t, sys)
+	if _, stderr, code := runVerb(t, d, "setup", sys.credentialsPath); code != 0 {
+		t.Fatalf("setup failed: %s", stderr)
+	}
+	t.Setenv("URNETWORK_INSUFFICIENT_BALANCE_CREDENTIALS", writeAccount(t, t.TempDir(), "env@example.test", "env pass", 0600))
+	later := &driver{sys: sys, root: d.root, state: d.state}
+	sys.ui = func(seq int, verb, arg string) (any, string) {
+		return nil, "observe failed for ib@example.test with s3cret pass"
+	}
+	_, stderr, code := runVerb(t, later, "observe")
+	if code == 0 || strings.Contains(stderr, "ib@example.test") || strings.Contains(stderr, "s3cret") ||
+		!strings.Contains(stderr, "[redacted]") {
+		t.Fatalf("a later verb did not redact with the recorded credentials: code=%d stderr=%q", code, stderr)
+	}
+}
+
+// teardown removes the record and every credential copy, so the next case's
+// setup, in its own state directory, signs in with the next account.
+func TestTeardownLetsTheNextCaseSignInWithANewAccount(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("setup refuses non-macOS hosts")
+	}
+	d, sys := newFixture(t)
+	acceptSetup(t, sys)
+	accountA := writeAccount(t, t.TempDir(), "a@example.test", "pass a", 0600)
+	if _, stderr, code := runVerb(t, d, "setup", accountA); code != 0 {
+		t.Fatalf("setup A failed: %s", stderr)
+	}
+	sys.ui = func(seq int, verb, arg string) (any, string) {
+		if verb == "teardown" {
+			return nil, "sign out failed for a@example.test"
+		}
+		return map[string]any{}, ""
+	}
+	_, stderr, _ := runVerb(t, &driver{sys: sys, root: d.root, state: d.state}, "teardown")
+	if strings.Contains(stderr, "a@example.test") {
+		t.Fatalf("teardown leaked the account: %q", stderr)
+	}
+	if _, err := os.Stat(recordPath(d)); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("teardown left the credentials record")
+	}
+	if _, err := os.Stat(d.xctestrunPath()); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("teardown left the private xctestrun")
+	}
+	sys.alive[4242] = false
+
+	next := &driver{sys: sys, root: d.root, state: filepath.Join(t.TempDir(), "apple", "kill-switch")}
+	sys.channel = next.channelDir()
+	sys.commands = nil
+	// teardown's waits advanced the fake clock; the build id follows it
+	sys.outputs["PlistBuddy"] = sys.now.UTC().Format("ib-20060102-150405") + "\n"
+	acceptSetup(t, sys)
+	accountB := writeAccount(t, t.TempDir(), "b@example.test", "pass b", 0600)
+	if _, stderr, code := runVerb(t, next, "setup", accountB); code != 0 {
+		t.Fatalf("setup B failed: %s", stderr)
+	}
+	if got := plutilValue(t, sys, "UR_ACCEPT_USER"); got != "b@example.test" {
+		t.Fatalf("the second case signs in as %q", got)
 	}
 }

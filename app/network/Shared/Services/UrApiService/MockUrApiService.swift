@@ -132,6 +132,14 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkAddAuthResult()
     }
     
+    func authVerifySend(_ args: SdkAuthVerifySendArgs) async -> (result: SdkAuthVerifySendResult?, err: Error?) {
+        return (SdkAuthVerifySendResult(), nil)
+    }
+    
+    func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult {
+        return SdkAuthVerifyResult()
+    }
+    
     func removeAuth(authType: String) async throws -> SdkRemoveAuthResult {
         return SdkRemoveAuthResult()
     }

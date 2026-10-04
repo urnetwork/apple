@@ -60,3 +60,17 @@ func addAuthArgsSupplyMethod(_ args: SdkAddAuthArgs) -> Bool {
     }
     return args.walletAuth != nil
 }
+
+/// Whether a sign-in added with `method` must be verified with a code before
+/// it counts as added. AddAuth stores an email or phone unverified, and the
+/// first sign-in with it would stop at a code anyway; the sheet asks for that
+/// code right away. Apple and Google identities are verified by the provider,
+/// and a wallet proves itself with its signature.
+func addedSignInNeedsVerification(_ method: AddAuthSheetMethod) -> Bool {
+    switch method {
+    case .email:
+        return true
+    case .apple, .google, .wallet:
+        return false
+    }
+}

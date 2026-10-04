@@ -89,6 +89,12 @@ protocol UrApiServiceProtocol {
      */
     func addAuth(_ args: SdkAddAuthArgs) async throws -> SdkAddAuthResult
     func removeAuth(authType: String) async throws -> SdkRemoveAuthResult
+    /// The raw answer: a request error and the result's send error are both
+    /// the caller's to judge (VerifySendNotice), so nothing is thrown.
+    func authVerifySend(_ args: SdkAuthVerifySendArgs) async -> (result: SdkAuthVerifySendResult?, err: Error?)
+    /// Throws on a request error or the result's error. The returned network
+    /// jwt is the caller's to install or ignore.
+    func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult
 
     /**
      * Account Management — Network Name

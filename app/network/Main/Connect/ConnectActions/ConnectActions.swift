@@ -219,7 +219,8 @@ struct ConnectActions: View {
                                         : themeManager.currentTheme.textMutedColor)
                                     .frame(width: 8, height: 8)
                                 if peersAvailable {
-                                    Text(peerCount == 1 ? "You have 1 other device online" : "You have \(peerCount) other devices online")
+                                    // the catalog selects the plural form for the count
+                                    Text("You have \(peerCount) other devices online")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                                 } else {

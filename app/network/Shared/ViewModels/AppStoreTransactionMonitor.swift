@@ -31,11 +31,18 @@ import URnetworkSdk
  * built-in crash recovery.
  *
  * The monitor is deliberately account-agnostic: it reports whatever session
- * exists (the JWS carries its own appAccountToken) and records which token the
- * transaction carried. The PER-NETWORK decision — "should this transaction
+ * exists (the JWS carries its own appAccountToken) and records which network
+ * the credit landed on. The PER-NETWORK decision — "should this transaction
  * start the confirmation poll for the currently logged-in network?" — stays in
- * `AppStoreSubscriptionManager`, which compares the token against its own
- * networkId. A transaction for network A must not spin network B's poll — and
+ * `AppStoreSubscriptionManager`, which compares that network against its own
+ * networkId.
+ *
+ * An offer code redeemed through the App Store redeem sheet or link carries no
+ * appAccountToken. It is reported like any other transaction; the server binds
+ * it to the session network only when that network was issued the welcome
+ * offer code, and answers `credited` for the session network. Its credited
+ * network is therefore the session's (see
+ * `PurchaseReporter.creditedNetworkId`). A transaction for network A must not spin network B's poll — and
  * the server enforces the same boundary: `credited` is only answered when the
  * session network matches the token, so the sequence below can only fire for
  * the network that owns the purchase.
@@ -53,7 +60,7 @@ final class AppStoreTransactionMonitor: ObservableObject {
      * land" bump: the confirmation poll now starts from a server
      * acknowledgment, not hope. A published counter cannot be nil and cannot
      * be forgotten the way an optional callback can; consumers observe it and
-     * read `lastTransactionAppAccountToken` for the gating decision.
+     * read `lastCreditedNetworkId` for the gating decision.
      */
     @Published private(set) var transactionSequence: Int = 0
 
@@ -66,12 +73,13 @@ final class AppStoreTransactionMonitor: ObservableObject {
     @Published private(set) var wrongNetworkSequence: Int = 0
 
     /**
-     * The appAccountToken of the most recent credited transaction: the
-     * networkId the purchase was made under (see `purchase()` in
-     * `AppStoreSubscriptionManager`, which sets it). nil when the transaction
-     * carried no token.
+     * The network the most recent credited transaction was credited to: its
+     * appAccountToken (the networkId the purchase was made under, see
+     * `purchase()` in `AppStoreSubscriptionManager`), or for a transaction
+     * without a token (an offer-code redemption) the session network the
+     * server credited. nil when that cannot be told.
      */
-    private(set) var lastTransactionAppAccountToken: UUID?
+    private(set) var lastCreditedNetworkId: UUID?
 
     /**
      * Transactions whose report could not reach a terminal status yet —
@@ -86,16 +94,23 @@ final class AppStoreTransactionMonitor: ObservableObject {
     private var updatesTask: Task<Void, Never>?
     private var started = false
 
+    /// The current session's network id, nil when logged out.
+    private var sessionNetworkIdProvider: @MainActor () -> UUID? = { nil }
+
     /**
      * Idempotent. Called once from `NetworkApp.init` (process launch).
      * `apiProvider` returns whatever session api the app currently has (nil,
      * or an api with an empty byJwt, means logged out — reporting defers).
      */
-    func start(apiProvider: @escaping @MainActor () -> SdkApi?) {
+    func start(
+        apiProvider: @escaping @MainActor () -> SdkApi?,
+        sessionNetworkIdProvider: @escaping @MainActor () -> UUID?
+    ) {
         guard !started else {
             return
         }
         started = true
+        self.sessionNetworkIdProvider = sessionNetworkIdProvider
 
         PurchaseReporter.shared.configure(apiProvider: apiProvider)
 
@@ -178,7 +193,7 @@ final class AppStoreTransactionMonitor: ObservableObject {
             force: force
         )
         if scan.newlyCredited {
-            lastTransactionAppAccountToken = networkId
+            lastCreditedNetworkId = networkId
             transactionSequence += 1
         }
         return scan
@@ -208,6 +223,7 @@ final class AppStoreTransactionMonitor: ObservableObject {
             return .invalid
         }
 
+        let sessionBefore = sessionNetworkIdProvider()
         let outcome = await PurchaseReporter.shared.reportAndFinish(
             transaction: transaction,
             jws: jws
@@ -216,7 +232,11 @@ final class AppStoreTransactionMonitor: ObservableObject {
         switch outcome {
         case .credited:
             unreported.removeValue(forKey: transaction.id)
-            lastTransactionAppAccountToken = transaction.appAccountToken
+            lastCreditedNetworkId = PurchaseReporter.creditedNetworkId(
+                appAccountToken: transaction.appAccountToken,
+                sessionBefore: sessionBefore,
+                sessionAfter: sessionNetworkIdProvider()
+            )
             transactionSequence += 1
         case .wrongNetwork:
             unreported.removeValue(forKey: transaction.id)

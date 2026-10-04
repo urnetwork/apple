@@ -131,9 +131,14 @@ struct NetworkApp: App {
         // transaction stream to listen to
         #if !DIRECT_DOWNLOAD
         if startupMode != .rejectedHardwareTestRequest {
-            AppStoreTransactionMonitor.shared.start(apiProvider: { [weak deviceManager] in
-                deviceManager?.api
-            })
+            AppStoreTransactionMonitor.shared.start(
+                apiProvider: { [weak deviceManager] in
+                    deviceManager?.api
+                },
+                sessionNetworkIdProvider: { [weak deviceManager] in
+                    deviceManager?.parsedJwt?.networkId.flatMap { UUID(uuidString: $0.idStr) }
+                }
+            )
         }
         #endif
 

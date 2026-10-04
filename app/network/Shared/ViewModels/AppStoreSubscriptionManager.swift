@@ -110,9 +110,11 @@ class AppStoreSubscriptionManager: ObservableObject {
      * login. The subscription below replays the monitor's current state at
      * init, so a transaction that arrived while the login screen was up is
      * picked up the moment its network logs in (see the onAppear catch-up in
-     * `MainView`). Transactions whose appAccountToken does not match this
-     * manager's networkId are ignored: they belong to a different network and
-     * must not start this network's confirmation poll.
+     * `MainView`). Transactions credited to a network other than this
+     * manager's networkId (by appAccountToken, or for an offer-code
+     * redemption without one, by the session the server credited) are
+     * ignored: they belong to a different network and must not start this
+     * network's confirmation poll.
      */
     @Published private(set) var transactionUpdateSequence: Int = 0
 
@@ -132,14 +134,15 @@ class AppStoreSubscriptionManager: ObservableObject {
                 guard let self, 0 < sequence else {
                     return
                 }
-                // per-network gating: only a transaction purchased under THIS
-                // network (appAccountToken == networkId) may start its
-                // confirmation poll
+                // per-network gating: only a transaction credited to THIS
+                // network (its appAccountToken, or for an offer-code
+                // redemption without one the session network the server
+                // credited) may start its confirmation poll
                 guard
-                    let token = transactionMonitor.lastTransactionAppAccountToken,
+                    let creditedNetworkId = transactionMonitor.lastCreditedNetworkId,
                     let networkId = self.networkId,
                     let networkUUID = UUID(uuidString: networkId.idStr),
-                    token == networkUUID
+                    creditedNetworkId == networkUUID
                 else {
                     return
                 }

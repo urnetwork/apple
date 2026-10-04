@@ -66,12 +66,68 @@ struct PurchaseReporterTests {
         )
 
         // a transaction finished before any server contact is only reachable
-        // through its entitlement: it must be reported
-        #expect(verify.calls == ["jws-1", "jws-4"])
+        // through its entitlement: it must be reported. The entitlement
+        // without a token (an offer-code redemption) is reported too; only
+        // another network's is not.
+        #expect(verify.calls == ["jws-1", "jws-3", "jws-4"])
         #expect(scan.foundCurrent)
         #expect(scan.foundOther)
         #expect(scan.reportResults[1] == .credited)
         #expect(scan.reportResults[4] == .credited)
+    }
+
+    // MARK: offer-code redemptions (no appAccountToken)
+
+    /**
+     * UPGRADE.md A1: an offer code redeemed through the App Store redeem
+     * sheet or link carries no appAccountToken. Builds before the server
+     * binding finished it on `invalid`, so its entitlement is the only proof
+     * left: the scan must report it with the signed-in session so the server
+     * can bind it to the network that was issued the code.
+     */
+    @Test func anOfferCodeRedemptionWithoutATokenIsReportedAndCountsWhenCredited() async {
+        let verify = FakeVerify()
+        let reporter = makeReporter(defaults: makeDefaults(), verify: verify)
+
+        let scan = await reporter.reportEntitlements([proof(7, nil)], networkId: networkId, force: true)
+
+        #expect(verify.calls == ["jws-7"])
+        #expect(scan.reportResults[7] == .credited)
+        #expect(scan.newlyCredited)
+        #expect(scan.foundCurrent)
+        #expect(!scan.foundOther)
+    }
+
+    @Test func anOfferCodeRedemptionTheServerRefusesIsNotThisNetworks() async {
+        let verify = FakeVerify()
+        verify.answers["jws-7"] = .status(SdkPurchaseReportStatusInvalid)
+        let reporter = makeReporter(defaults: makeDefaults(), verify: verify)
+
+        let scan = await reporter.reportEntitlements([proof(7, nil)], networkId: networkId, force: true)
+
+        #expect(verify.calls == ["jws-7"])
+        #expect(scan.reportResults[7] == .invalid)
+        #expect(!scan.newlyCredited)
+        #expect(!scan.foundCurrent)
+        #expect(scan.foundOther)
+
+        // terminal: the launch scan does not report it again
+        _ = await reporter.reportEntitlements([proof(7, nil)], networkId: networkId, force: false)
+        #expect(verify.calls == ["jws-7"])
+    }
+
+    /**
+     * A credited transaction without a token was credited to the session
+     * network the report was made with, so that network's confirmation poll
+     * (and the redeem flow's success callback) must start.
+     */
+    @Test func aCreditedOfferCodeRedemptionIsCreditedToTheSessionNetwork() {
+        #expect(PurchaseReporter.creditedNetworkId(appAccountToken: nil, sessionBefore: networkId, sessionAfter: networkId) == networkId)
+        // a token always names the network
+        #expect(PurchaseReporter.creditedNetworkId(appAccountToken: otherNetworkId, sessionBefore: networkId, sessionAfter: networkId) == otherNetworkId)
+        // the session changed (or was gone) during the report: unknown
+        #expect(PurchaseReporter.creditedNetworkId(appAccountToken: nil, sessionBefore: networkId, sessionAfter: otherNetworkId) == nil)
+        #expect(PurchaseReporter.creditedNetworkId(appAccountToken: nil, sessionBefore: nil, sessionAfter: nil) == nil)
     }
 
     @Test func aStrandedPurchaseCreditedNowIsNewlyCredited() async {

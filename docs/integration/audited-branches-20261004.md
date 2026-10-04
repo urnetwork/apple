@@ -13,3 +13,10 @@ network-space, VPN, and picker lifecycle owners.
   `NetworkSpaceUpdateCallback`, now using `NetworkConfig` and preserving the
   user's selected network space. Restoring the deleted file or old constants
   would regress that current ownership; retain the current implementation.
+- `intents-debugging` (`34b07bb3`): current `DisconnectIntent` already awaits
+  `VPNManager.updateVpnServiceAndWait` (or stale-profile stop completion),
+  reports failure, and closes its controller with `defer`. Preserve that
+  current reconciliation owner. The old listeners had neither one-shot
+  continuation fencing nor removal and could resume a continuation repeatedly;
+  they also targeted a view-model path since removed. No such listeners are
+  reintroduced by this historical merge.

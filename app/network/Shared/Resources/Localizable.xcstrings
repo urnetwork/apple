@@ -5370,165 +5370,531 @@
       "comment" : "Plan picker with the welcome offer: the terms line under the button (trial, discounted first year, renewal price).",
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld يومًا مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld يوم مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يوم واحد مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يومان مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld أيام مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld يومًا مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld يوم مجانًا، ثم %2$@ لسنتك الأولى، ثم %3$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dní zdarma, poté %2$@ za první rok, poté %3$@/rok. Zrušit lze kdykoli."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld den zdarma, poté %2$@ za první rok, poté %3$@/rok. Zrušit lze kdykoli."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dny zdarma, poté %2$@ za první rok, poté %3$@/rok. Zrušit lze kdykoli."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dne zdarma, poté %2$@ za první rok, poté %3$@/rok. Zrušit lze kdykoli."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dní zdarma, poté %2$@ za první rok, poté %3$@/rok. Zrušit lze kdykoli."
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld Tage gratis, danach %2$@ für dein erstes Jahr, danach %3$@/Jahr. Jederzeit kündbar."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Tag gratis, danach %2$@ für dein erstes Jahr, danach %3$@/Jahr. Jederzeit kündbar."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Tage gratis, danach %2$@ für dein erstes Jahr, danach %3$@/Jahr. Jederzeit kündbar."
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld ημέρες δωρεάν, έπειτα %2$@ για τον πρώτο χρόνο, έπειτα %3$@/έτος. Ακύρωση οποτεδήποτε."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ημέρα δωρεάν, έπειτα %2$@ για τον πρώτο χρόνο, έπειτα %3$@/έτος. Ακύρωση οποτεδήποτε."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ημέρες δωρεάν, έπειτα %2$@ για τον πρώτο χρόνο, έπειτα %3$@/έτος. Ακύρωση οποτεδήποτε."
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld days free, then %2$@ for your first year, then %3$@/year. Cancel anytime."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld day free, then %2$@ for your first year, then %3$@/year. Cancel anytime."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld days free, then %2$@ for your first year, then %3$@/year. Cancel anytime."
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld días gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld día gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld días gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld días gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld día gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld días gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld días gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld día gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld días gratis, después %2$@ tu primer año, después %3$@/año. Cancela cuando quieras."
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld jours gratuits, puis %2$@ la première année, puis %3$@/an. Annulable à tout moment."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld jour gratuit, puis %2$@ la première année, puis %3$@/an. Annulable à tout moment."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld jours gratuits, puis %2$@ la première année, puis %3$@/an. Annulable à tout moment."
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld ימים בחינם, לאחר מכן %2$@ לשנה הראשונה, ואז %3$@/שנה. אפשר לבטל בכל עת."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יום אחד בחינם, לאחר מכן %2$@ לשנה הראשונה, ואז %3$@/שנה. אפשר לבטל בכל עת."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יומיים בחינם, לאחר מכן %2$@ לשנה הראשונה, ואז %3$@/שנה. אפשר לבטל בכל עת."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ימים בחינם, לאחר מכן %2$@ לשנה הראשונה, ואז %3$@/שנה. אפשר לבטל בכל עת."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ימים בחינם, לאחר מכן %2$@ לשנה הראשונה, ואז %3$@/שנה. אפשר לבטל בכל עת."
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld दिन मुफ़्त, फिर पहले साल %2$@, फिर %3$@/वर्ष। कभी भी रद्द करें।"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld दिन मुफ़्त, फिर पहले साल %2$@, फिर %3$@/वर्ष। कभी भी रद्द करें।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld दिन मुफ़्त, फिर पहले साल %2$@, फिर %3$@/वर्ष। कभी भी रद्द करें।"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld hari gratis, lalu %2$@ untuk tahun pertama, lalu %3$@/tahun. Batalkan kapan saja."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld hari gratis, lalu %2$@ untuk tahun pertama, lalu %3$@/tahun. Batalkan kapan saja."
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld giorni gratis, poi %2$@ per il primo anno, poi %3$@/anno. Annulla quando vuoi."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld giorno gratis, poi %2$@ per il primo anno, poi %3$@/anno. Annulla quando vuoi."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld giorni gratis, poi %2$@ per il primo anno, poi %3$@/anno. Annulla quando vuoi."
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld日間無料、初年度 %2$@、その後 %3$@/年。いつでもキャンセル可。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld日間無料、初年度 %2$@、その後 %3$@/年。いつでもキャンセル可。"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld일 무료, 첫해 %2$@, 이후 %3$@/년. 언제든 취소 가능."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld일 무료, 첫해 %2$@, 이후 %3$@/년. 언제든 취소 가능."
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dagen gratis, daarna %2$@ voor je eerste jaar, daarna %3$@/jaar. Altijd opzegbaar."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dag gratis, daarna %2$@ voor je eerste jaar, daarna %3$@/jaar. Altijd opzegbaar."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dagen gratis, daarna %2$@ voor je eerste jaar, daarna %3$@/jaar. Altijd opzegbaar."
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dni za darmo, potem %2$@ za pierwszy rok, potem %3$@/rok. Anuluj w każdej chwili."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dzień za darmo, potem %2$@ za pierwszy rok, potem %3$@/rok. Anuluj w każdej chwili."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dni za darmo, potem %2$@ za pierwszy rok, potem %3$@/rok. Anuluj w każdej chwili."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dni za darmo, potem %2$@ za pierwszy rok, potem %3$@/rok. Anuluj w każdej chwili."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dni za darmo, potem %2$@ za pierwszy rok, potem %3$@/rok. Anuluj w każdej chwili."
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dias grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dia grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dias grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dias grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dia grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dias grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dias grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dia grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dias grátis, depois %2$@ no primeiro ano, depois %3$@/ano. Cancele quando quiser."
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld дней бесплатно, далее %2$@ за первый год, затем %3$@/год. Отмена в любой момент."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld день бесплатно, далее %2$@ за первый год, затем %3$@/год. Отмена в любой момент."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дня бесплатно, далее %2$@ за первый год, затем %3$@/год. Отмена в любой момент."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дней бесплатно, далее %2$@ за первый год, затем %3$@/год. Отмена в любой момент."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дней бесплатно, далее %2$@ за первый год, затем %3$@/год. Отмена в любой момент."
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dagar gratis, därefter %2$@ för ditt första år, sedan %3$@/år. Avbryt när som helst."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dag gratis, därefter %2$@ för ditt första år, sedan %3$@/år. Avbryt när som helst."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dagar gratis, därefter %2$@ för ditt första år, sedan %3$@/år. Avbryt när som helst."
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ฟรี %1$lld วัน จากนั้น %2$@ สำหรับปีแรก แล้ว %3$@/ปี ยกเลิกได้ทุกเมื่อ"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ฟรี %1$lld วัน จากนั้น %2$@ สำหรับปีแรก แล้ว %3$@/ปี ยกเลิกได้ทุกเมื่อ"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld днів безкоштовно, далі %2$@ за перший рік, потім %3$@/рік. Скасування будь-коли."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld день безкоштовно, далі %2$@ за перший рік, потім %3$@/рік. Скасування будь-коли."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дні безкоштовно, далі %2$@ за перший рік, потім %3$@/рік. Скасування будь-коли."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld днів безкоштовно, далі %2$@ за перший рік, потім %3$@/рік. Скасування будь-коли."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld днів безкоштовно, далі %2$@ за перший рік, потім %3$@/рік. Скасування будь-коли."
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Miễn phí %1$lld ngày, sau đó %2$@ cho năm đầu, rồi %3$@/năm. Hủy bất cứ lúc nào."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Miễn phí %1$lld ngày, sau đó %2$@ cho năm đầu, rồi %3$@/năm. Hủy bất cứ lúc nào."
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "免费 %1$lld 天，首年 %2$@，之后 %3$@/年。可随时取消。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "免费 %1$lld 天，首年 %2$@，之后 %3$@/年。可随时取消。"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "免費 %1$lld 天，首年 %2$@，之後 %3$@/年。可隨時取消。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "免費 %1$lld 天，首年 %2$@，之後 %3$@/年。可隨時取消。"
+              }
+            }
+            }
           }
         }
       }
@@ -5537,165 +5903,531 @@
       "comment" : "Plan picker: the terms line under the button for the yearly plan with its trial.",
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld يومًا مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld يوم مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يوم واحد مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يومان مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld أيام مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld يومًا مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld يوم مجانًا، ثم %2$@/سنة. يمكنك الإلغاء في أي وقت."
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dní zdarma, poté %2$@/rok. Zrušit lze kdykoli."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld den zdarma, poté %2$@/rok. Zrušit lze kdykoli."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dny zdarma, poté %2$@/rok. Zrušit lze kdykoli."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dne zdarma, poté %2$@/rok. Zrušit lze kdykoli."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dní zdarma, poté %2$@/rok. Zrušit lze kdykoli."
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld Tage gratis, danach %2$@/Jahr. Jederzeit kündbar."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Tag gratis, danach %2$@/Jahr. Jederzeit kündbar."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld Tage gratis, danach %2$@/Jahr. Jederzeit kündbar."
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld ημέρες δωρεάν, έπειτα %2$@/έτος. Ακύρωση οποτεδήποτε."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ημέρα δωρεάν, έπειτα %2$@/έτος. Ακύρωση οποτεδήποτε."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ημέρες δωρεάν, έπειτα %2$@/έτος. Ακύρωση οποτεδήποτε."
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld days free, then %2$@/year. Cancel anytime."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld day free, then %2$@/year. Cancel anytime."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld days free, then %2$@/year. Cancel anytime."
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld días gratis, después %2$@/año. Cancela cuando quieras."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld día gratis, después %2$@/año. Cancela cuando quieras."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld días gratis, después %2$@/año. Cancela cuando quieras."
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld días gratis, después %2$@/año. Cancela cuando quieras."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld día gratis, después %2$@/año. Cancela cuando quieras."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld días gratis, después %2$@/año. Cancela cuando quieras."
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld días gratis, después %2$@/año. Cancela cuando quieras."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld día gratis, después %2$@/año. Cancela cuando quieras."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld días gratis, después %2$@/año. Cancela cuando quieras."
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld jours gratuits, puis %2$@/an. Annulable à tout moment."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld jour gratuit, puis %2$@/an. Annulable à tout moment."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld jours gratuits, puis %2$@/an. Annulable à tout moment."
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld ימים בחינם, לאחר מכן %2$@/שנה. אפשר לבטל בכל עת."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יום אחד בחינם, לאחר מכן %2$@/שנה. אפשר לבטל בכל עת."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יומיים בחינם, לאחר מכן %2$@/שנה. אפשר לבטל בכל עת."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ימים בחינם, לאחר מכן %2$@/שנה. אפשר לבטל בכל עת."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld ימים בחינם, לאחר מכן %2$@/שנה. אפשר לבטל בכל עת."
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld दिन मुफ़्त, फिर %2$@/वर्ष। कभी भी रद्द करें।"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld दिन मुफ़्त, फिर %2$@/वर्ष। कभी भी रद्द करें।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld दिन मुफ़्त, फिर %2$@/वर्ष। कभी भी रद्द करें।"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld hari gratis, lalu %2$@/tahun. Batalkan kapan saja."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld hari gratis, lalu %2$@/tahun. Batalkan kapan saja."
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld giorni gratis, poi %2$@/anno. Annulla quando vuoi."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld giorno gratis, poi %2$@/anno. Annulla quando vuoi."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld giorni gratis, poi %2$@/anno. Annulla quando vuoi."
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld日間無料、その後 %2$@/年。いつでもキャンセル可。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld日間無料、その後 %2$@/年。いつでもキャンセル可。"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld일 무료, 이후 %2$@/년. 언제든 취소 가능."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld일 무료, 이후 %2$@/년. 언제든 취소 가능."
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dagen gratis, daarna %2$@/jaar. Altijd opzegbaar."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dag gratis, daarna %2$@/jaar. Altijd opzegbaar."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dagen gratis, daarna %2$@/jaar. Altijd opzegbaar."
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dni za darmo, potem %2$@/rok. Anuluj w każdej chwili."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dzień za darmo, potem %2$@/rok. Anuluj w każdej chwili."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dni za darmo, potem %2$@/rok. Anuluj w każdej chwili."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dni za darmo, potem %2$@/rok. Anuluj w każdej chwili."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dni za darmo, potem %2$@/rok. Anuluj w każdej chwili."
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dias grátis, depois %2$@/ano. Cancele quando quiser."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dia grátis, depois %2$@/ano. Cancele quando quiser."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dias grátis, depois %2$@/ano. Cancele quando quiser."
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dias grátis, depois %2$@/ano. Cancele quando quiser."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dia grátis, depois %2$@/ano. Cancele quando quiser."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dias grátis, depois %2$@/ano. Cancele quando quiser."
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dias grátis, depois %2$@/ano. Cancele quando quiser."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dia grátis, depois %2$@/ano. Cancele quando quiser."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dias grátis, depois %2$@/ano. Cancele quando quiser."
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld дней бесплатно, далее %2$@/год. Отмена в любой момент."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld день бесплатно, далее %2$@/год. Отмена в любой момент."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дня бесплатно, далее %2$@/год. Отмена в любой момент."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дней бесплатно, далее %2$@/год. Отмена в любой момент."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дней бесплатно, далее %2$@/год. Отмена в любой момент."
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld dagar gratis, därefter %2$@/år. Avbryt när som helst."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dag gratis, därefter %2$@/år. Avbryt när som helst."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld dagar gratis, därefter %2$@/år. Avbryt när som helst."
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ฟรี %1$lld วัน จากนั้น %2$@/ปี ยกเลิกได้ทุกเมื่อ"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ฟรี %1$lld วัน จากนั้น %2$@/ปี ยกเลิกได้ทุกเมื่อ"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld днів безкоштовно, далі %2$@/рік. Скасування будь-коли."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld день безкоштовно, далі %2$@/рік. Скасування будь-коли."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld дні безкоштовно, далі %2$@/рік. Скасування будь-коли."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld днів безкоштовно, далі %2$@/рік. Скасування будь-коли."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%1$lld днів безкоштовно, далі %2$@/рік. Скасування будь-коли."
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Miễn phí %1$lld ngày, sau đó %2$@/năm. Hủy bất cứ lúc nào."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Miễn phí %1$lld ngày, sau đó %2$@/năm. Hủy bất cứ lúc nào."
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "免费 %1$lld 天，之后 %2$@/年。可随时取消。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "免费 %1$lld 天，之后 %2$@/年。可随时取消。"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "免費 %1$lld 天，之後 %2$@/年。可隨時取消。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "免費 %1$lld 天，之後 %2$@/年。可隨時取消。"
+              }
+            }
+            }
           }
         }
       }
@@ -7071,165 +7803,531 @@
       "comment" : "Onboarding offer screen headline. The number is the months the discount equals.",
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld أشهر من Pro مجانًا"
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld شهر من Pro مجانًا"
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "شهر واحد من Pro مجانًا"
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "شهران من Pro مجانًا"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld أشهر من Pro مجانًا"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld شهرًا من Pro مجانًا"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld شهر من Pro مجانًا"
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld měsíce Pro zdarma"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld měsíc Pro zdarma"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld měsíce Pro zdarma"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld měsíce Pro zdarma"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld měsíců Pro zdarma"
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld Monate Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld Monat Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld Monate Pro, gratis"
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld μήνες Pro, δωρεάν"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld μήνας Pro, δωρεάν"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld μήνες Pro, δωρεάν"
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld months of Pro, free"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld month of Pro, free"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld months of Pro, free"
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld meses de Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mes de Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld meses de Pro, gratis"
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld meses de Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mes de Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld meses de Pro, gratis"
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld meses de Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mes de Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld meses de Pro, gratis"
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld mois de Pro offerts"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mois de Pro offert"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mois de Pro offerts"
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld חודשי Pro בחינם"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "חודש Pro אחד בחינם"
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "חודשיים של Pro בחינם"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld חודשי Pro בחינם"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld חודשי Pro בחינם"
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro के %lld महीने, मुफ़्त"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pro का %lld महीना, मुफ़्त"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pro के %lld महीने, मुफ़्त"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld bulan Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld bulan Pro, gratis"
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld mesi di Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mese di Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mesi di Pro, gratis"
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proが%lldか月無料"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Proが%lldか月無料"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro %lld개월 무료"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pro %lld개월 무료"
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld maanden Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld maand Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld maanden Pro, gratis"
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld miesiące Pro za darmo"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld miesiąc Pro za darmo"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld miesiące Pro za darmo"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld miesięcy Pro za darmo"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld miesięcy Pro za darmo"
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld meses de Pro, grátis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mês de Pro, grátis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld meses de Pro, grátis"
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld meses de Pro, grátis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mês de Pro, grátis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld meses de Pro, grátis"
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld meses de Pro, grátis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld mês de Pro, grátis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld meses de Pro, grátis"
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld месяца Pro бесплатно"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld месяц Pro бесплатно"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld месяца Pro бесплатно"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld месяцев Pro бесплатно"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld месяцев Pro бесплатно"
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld månader Pro, gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld månad Pro, gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld månader Pro, gratis"
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro ฟรี %lld เดือน"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pro ฟรี %lld เดือน"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld місяці Pro безкоштовно"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld місяць Pro безкоштовно"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld місяці Pro безкоштовно"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld місяців Pro безкоштовно"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld місяців Pro безкоштовно"
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld tháng Pro miễn phí"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld tháng Pro miễn phí"
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro 免费 %lld 个月"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pro 免费 %lld 个月"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro 免費 %lld 個月"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pro 免費 %lld 個月"
+              }
+            }
+            }
           }
         }
       }
@@ -10164,7 +11262,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ ГіБ/день"
+            "value" : "+%@ GiB/день"
           }
         },
         "vi" : {
@@ -10323,7 +11421,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lf ГіБ/день"
+            "value" : "+%lf GiB/день"
           }
         },
         "vi" : {
@@ -10544,7 +11642,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ещё %lld"
+            "value" : "+ ещё %lld"
           }
         },
         "zh-Hans" : {
@@ -11186,7 +12284,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "100% с открытым исходным кодом и прозрачностью"
+            "value" : "100% открытый исходный код и прозрачность"
           }
         },
         "sv" : {
@@ -20538,7 +21636,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Списание раз в год · цена для %@"
+            "value" : "Списание раз в год · цена для страны %@"
           }
         },
         "sv" : {
@@ -22965,7 +24063,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "За замовчуванням ви отримуєте 10 ГіБ/місяць. Ось як можна отримати додаткову пропускну здатність:"
+            "value" : "За замовчуванням ви отримуєте 10 GiB/місяць. Ось як можна отримати додаткову пропускну здатність:"
           }
         },
         "vi" : {
@@ -49264,7 +50362,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Участвуйте в сети и получите бесплатный доступ к версии для сообщества."
+            "value" : "Получите бесплатный доступ к версии для сообщества."
           }
         },
         "sv" : {
@@ -50766,7 +51864,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Как наши успехи?"
+            "value" : "Как мы справляемся?"
           }
         },
         "sv" : {
@@ -58722,7 +59820,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "макс %@"
+            "value" : "макс. %@"
           }
         },
         "sv" : {
@@ -59057,7 +60155,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Больше подключений помогают нашему сообществу оставаться анонимным (и помогают вам зарабатывать!)"
+            "value" : "Больше подключений помогает нашему сообществу оставаться анонимным (и помогает вам зарабатывать!)"
           }
         },
         "sv" : {
@@ -73445,7 +74543,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы можете изменить настройку на «Всегда», чтобы быстрее получать бесплатные данные."
+            "value" : "Предоставление по умолчанию выключено. Ниже выберите, когда ваше устройство будет предоставлять доступ."
           }
         },
         "sv" : {
@@ -75628,7 +76726,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Порекомендовать друга"
+            "value" : "Пригласить друга"
           }
         },
         "sv" : {
@@ -75796,7 +76894,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Порекомендовать друга = +3 GiB/день"
+            "value" : "Пригласите друга = +3 GiB/день"
           }
         },
         "sv" : {
@@ -75963,7 +77061,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Порекомендовать друга = +30 GiB/месяц"
+            "value" : "Пригласите друга = +30 GiB/месяц"
           }
         },
         "sv" : {
@@ -75981,7 +77079,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Порекомендувати друга = +30 ГіБ/місяць"
+            "value" : "Порекомендувати друга = +30 GiB/місяць"
           }
         },
         "vi" : {
@@ -76034,7 +77132,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пригласите друга и вы оба получите бесплатный трафик"
+            "value" : "Пригласите друга, и вы оба получите бесплатный трафик"
           }
         },
         "zh-Hans" : {
@@ -83688,7 +84786,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Присылайте мне обновления продукта"
+            "value" : "Присылать мне новости о продукте"
           }
         },
         "sv" : {
@@ -89677,165 +90775,531 @@
       "comment" : "Onboarding offer screen: the single primary button. The number is the months the discount equals.",
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ابدأ التجربة المجانية مع %lld أشهر مجانًا"
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ابدأ التجربة المجانية مع %lld شهر مجانًا"
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ابدأ التجربة المجانية مع شهر واحد مجانًا"
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ابدأ التجربة المجانية مع شهرين مجانًا"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ابدأ التجربة المجانية مع %lld أشهر مجانًا"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ابدأ التجربة المجانية مع %lld شهرًا مجانًا"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ابدأ التجربة المجانية مع %lld شهر مجانًا"
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Začít zkušební období s %lld měsíci zdarma"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Začít zkušební období s %lld měsícem zdarma"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Začít zkušební období s %lld měsíci zdarma"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Začít zkušební období s %lld měsíce zdarma"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Začít zkušební období s %lld měsíci zdarma"
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kostenlos testen, mit %lld Gratismonaten"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Kostenlos testen, mit %lld Gratismonat"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Kostenlos testen, mit %lld Gratismonaten"
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ξεκίνα τη δωρεάν δοκιμή με %lld μήνες δωρεάν"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ξεκίνα τη δωρεάν δοκιμή με %lld μήνα δωρεάν"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ξεκίνα τη δωρεάν δοκιμή με %lld μήνες δωρεάν"
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start free trial with %lld months free"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Start free trial with %lld month free"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Start free trial with %lld months free"
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empezar la prueba gratis con %lld meses gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Empezar la prueba gratis con %lld mes gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Empezar la prueba gratis con %lld meses gratis"
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empezar la prueba gratis con %lld meses gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Empezar la prueba gratis con %lld mes gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Empezar la prueba gratis con %lld meses gratis"
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empezar la prueba gratis con %lld meses gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Empezar la prueba gratis con %lld mes gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Empezar la prueba gratis con %lld meses gratis"
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Essai gratuit avec %lld mois offerts"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Essai gratuit avec %lld mois offert"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Essai gratuit avec %lld mois offerts"
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התחילו ניסיון בחינם עם %lld חודשים במתנה"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "התחילו ניסיון בחינם עם חודש אחד במתנה"
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "התחילו ניסיון בחינם עם חודשיים במתנה"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "התחילו ניסיון בחינם עם %lld חודשים במתנה"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "התחילו ניסיון בחינם עם %lld חודשים במתנה"
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld मुफ़्त महीनों के साथ ट्रायल शुरू करें"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld मुफ़्त महीने के साथ ट्रायल शुरू करें"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld मुफ़्त महीनों के साथ ट्रायल शुरू करें"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mulai uji coba gratis dengan %lld bulan gratis"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Mulai uji coba gratis dengan %lld bulan gratis"
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inizia la prova gratuita con %lld mesi gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Inizia la prova gratuita con %lld mese gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Inizia la prova gratuita con %lld mesi gratis"
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無料トライアルを開始（%lldか月無料付き）"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "無料トライアルを開始（%lldか月無料付き）"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "무료 체험 시작 + %lld개월 무료"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "무료 체험 시작 + %lld개월 무료"
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start gratis proefperiode met %lld maanden gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Start gratis proefperiode met %lld maand gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Start gratis proefperiode met %lld maanden gratis"
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rozpocznij okres próbny z %lld miesiącami gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Rozpocznij okres próbny z %lld miesiącem gratis"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Rozpocznij okres próbny z %lld miesiącami gratis"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Rozpocznij okres próbny z %lld miesiącami gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Rozpocznij okres próbny z %lld miesiącami gratis"
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Começar o teste grátis com %lld meses grátis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Começar o teste grátis com %lld mês grátis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Começar o teste grátis com %lld meses grátis"
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Começar o teste grátis com %lld meses grátis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Começar o teste grátis com %lld mês grátis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Começar o teste grátis com %lld meses grátis"
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Começar o teste grátis com %lld meses grátis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Começar o teste grátis com %lld mês grátis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Começar o teste grátis com %lld meses grátis"
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Начать пробный период с %lld бесплатными месяцами"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Начать пробный период с %lld бесплатным месяцем"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Начать пробный период с %lld бесплатными месяцами"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Начать пробный период с %lld бесплатными месяцами"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Начать пробный период с %lld бесплатными месяцами"
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Starta gratis provperiod med %lld månader gratis"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Starta gratis provperiod med %lld månad gratis"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Starta gratis provperiod med %lld månader gratis"
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เริ่มทดลองใช้ฟรี พร้อมฟรี %lld เดือน"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "เริ่มทดลองใช้ฟรี พร้อมฟรี %lld เดือน"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Почати пробний період із %lld безкоштовними місяцями"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Почати пробний період із %lld безкоштовним місяцем"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Почати пробний період із %lld безкоштовними місяцями"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Почати пробний період із %lld безкоштовними місяцями"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Почати пробний період із %lld безкоштовними місяцями"
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bắt đầu dùng thử miễn phí, tặng %lld tháng"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Bắt đầu dùng thử miễn phí, tặng %lld tháng"
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始免费试用，另享 %lld 个月免费"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "开始免费试用，另享 %lld 个月免费"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開始免費試用，另享 %lld 個月免費"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "開始免費試用，另享 %lld 個月免費"
+              }
+            }
+            }
           }
         }
       }
@@ -89972,7 +91436,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Залишайтеся на зв’язку щодня = Заробляйте до 100 ГіБ/день"
+            "value" : "Залишайтеся на зв’язку щодня = Заробляйте до 100 GiB/день"
           }
         },
         "vi" : {
@@ -93657,7 +95121,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Известно, что самые строгие правила безопасности не работают в %@. Есть менее безопасные рекомендованные настройки DNS, которые работают лучше."
+            "value" : "%@: известно, что здесь самые строгие правила безопасности не работают. Есть менее безопасные рекомендуемые настройки DNS, которые работают лучше."
           }
         },
         "sv" : {
@@ -94114,7 +95578,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Есть непримененные рекомендуемые настройки для %@"
+            "value" : "%@: есть неприменённые рекомендуемые настройки"
           }
         },
         "sv" : {
@@ -94281,7 +95745,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Есть непримененные рекомендуемые настройки для %@"
+            "value" : "%@: есть неприменённые рекомендуемые настройки"
           }
         },
         "sv" : {
@@ -96821,6 +98285,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法通过 App Store 验证此次购买，因此无法将其应用到您的账户。如果您已被扣款但方案未更新，请联系支持团队。"
+          }
+        }
+      }
+    },
+    "this region" : {
+      "comment" : "dns settings",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذه المنطقة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tomto regionu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dieser Region"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η περιοχή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this region"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esta región"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esta región"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esta región"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette région"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אזור זה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस क्षेत्र"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wilayah ini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "questa regione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この地域"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 지역"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "deze regio"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tym regionie"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "regiões como esta"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "regiões como esta"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "regiões como esta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот регион"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "denna region"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ภูมิภาคนี้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "цього регіону"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "khu vực này"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此地区"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此地區"
           }
         }
       }
@@ -109103,7 +110734,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "При отключении вашей реферальной сети вы больше не сможете получать очки от %@."
+            "value" : "При отвязке реферальной сети вы больше не сможете получать очки от %@."
           }
         },
         "sv" : {
@@ -110439,7 +112070,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ви отримуєте 30 ГіБ/місяць назавжди"
+            "value" : "Ви отримуєте 30 GiB/місяць назавжди"
           }
         },
         "vi" : {
@@ -110630,7 +112261,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Участвуя в сети и предоставляя пропускную способность, вы можете получать награды."
+            "value" : "Вы получаете бесплатные данные каждый месяц и можете заработать больше, приглашая друзей."
           }
         },
         "sv" : {
@@ -110674,170 +112305,537 @@
     "You have %lld other devices online" : {
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لديك %lld من الأجهزة الأخرى المتصلة"
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ليس لديك أي أجهزة أخرى متصلة"
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "لديك جهاز آخر متصل"
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "لديك جهازان آخران متصلان"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "لديك %lld أجهزة أخرى متصلة"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "لديك %lld جهازًا آخر متصلًا"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "لديك %lld من الأجهزة الأخرى المتصلة"
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Máte %lld dalších zařízení online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Máte %lld další zařízení online"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Máte %lld další zařízení online"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Máte %lld dalšího zařízení online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Máte %lld dalších zařízení online"
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du hast %lld weitere Geräte online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Du hast %lld weiteres Gerät online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Du hast %lld weitere Geräte online"
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Έχετε %lld ακόμη συσκευές σε σύνδεση"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Έχετε %lld ακόμη συσκευή σε σύνδεση"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Έχετε %lld ακόμη συσκευές σε σύνδεση"
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You have %lld other devices online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "You have %lld other device online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "You have %lld other devices online"
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tienes %lld dispositivos más en línea"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tienes %lld dispositivo más en línea"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tienes %lld dispositivos más en línea"
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tienes %lld dispositivos más en línea"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tienes %lld dispositivo más en línea"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tienes %lld dispositivos más en línea"
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tienes %lld dispositivos más en línea"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tienes %lld dispositivo más en línea"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tienes %lld dispositivos más en línea"
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez %lld autres appareils en ligne"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Vous avez %lld autre appareil en ligne"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Vous avez %lld autres appareils en ligne"
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "יש לך %lld מכשירים נוספים מחוברים"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יש לך מכשיר נוסף אחד מחובר"
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יש לך שני מכשירים נוספים מחוברים"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יש לך %lld מכשירים נוספים מחוברים"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "יש לך %lld מכשירים נוספים מחוברים"
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "आपके %lld अन्य डिवाइस ऑनलाइन हैं"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "आपका %lld अन्य डिवाइस ऑनलाइन है"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "आपके %lld अन्य डिवाइस ऑनलाइन हैं"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anda memiliki %lld perangkat lain yang online"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Anda memiliki %lld perangkat lain yang online"
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hai altri %lld dispositivi online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hai %lld altro dispositivo online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hai altri %lld dispositivi online"
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "他に%lld台のデバイスがオンラインです"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "他に%lld台のデバイスがオンラインです"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다른 기기 %lld대가 온라인 상태입니다"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "다른 기기 %lld대가 온라인 상태입니다"
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je hebt nog %lld andere apparaten online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Je hebt nog %lld ander apparaat online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Je hebt nog %lld andere apparaten online"
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Masz %lld innych urządzeń online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Masz %lld inne urządzenie online"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Masz %lld inne urządzenia online"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Masz %lld innych urządzeń online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Masz %lld innych urządzeń online"
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tem %lld outros dispositivos online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tem %lld outro dispositivo online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tem %lld outros dispositivos online"
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Você tem %lld outros dispositivos online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Você tem %lld outro dispositivo online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Você tem %lld outros dispositivos online"
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tem %lld outros dispositivos online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tem %lld outro dispositivo online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tem %lld outros dispositivos online"
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "У вас %lld других устройств онлайн"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld другое устройство онлайн"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld других устройства онлайн"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld других устройств онлайн"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld других устройств онлайн"
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du har %lld andra enheter online"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Du har %lld annan enhet online"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Du har %lld andra enheter online"
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "คุณมีอุปกรณ์อื่นออนไลน์อยู่ %lld เครื่อง"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "คุณมีอุปกรณ์อื่นออนไลน์อยู่ %lld เครื่อง"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "У вас %lld інших пристроїв онлайн"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld інший пристрій онлайн"
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld інші пристрої онлайн"
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld інших пристроїв онлайн"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "У вас %lld інших пристроїв онлайн"
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bạn có %lld thiết bị khác đang trực tuyến"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Bạn có %lld thiết bị khác đang trực tuyến"
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你还有 %lld 台其他设备在线"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "你还有 %lld 台其他设备在线"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您還有 %lld 部其他裝置在線"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "您還有 %lld 部其他裝置在線"
+              }
+            }
+            }
           }
         }
       }
     },
     "You have 1 other device online" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -112899,7 +114897,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ваш друг отримує 30 ГіБ/місяць назавжди"
+            "value" : "Ваш друг отримує 30 GiB/місяць назавжди"
           }
         },
         "vi" : {
@@ -113209,7 +115207,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ваша сеть отображается как Анонимно, пока вы не включите это."
+            "value" : "Ваша сеть отображается как «Анонимно», пока вы не включите этот параметр."
           }
         },
         "sv" : {

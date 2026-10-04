@@ -213,13 +213,20 @@ struct PlanPresentation: Equatable {
 
     // MARK: button and terms
 
+    /// The welcome offer's headline, "3 months of Pro, free". The interpolated
+    /// count selects the catalog's plural form ("1 month", "3 months").
+    static func monthsFreeHeadline(_ months: Int) -> String {
+        String(localized: "\(months) months of Pro, free")
+    }
+
     func ctaTitle(for option: PaymentOption) -> String {
         switch option {
         case .monthly:
             return String(localized: "Subscribe")
         case .yearly:
             if let offer {
-                return String(format: String(localized: "Start free trial with %lld months free"), offer.monthsFree)
+                // an interpolated count selects the catalog's plural form ("1 month", "3 months")
+                return String(localized: "Start free trial with \(offer.monthsFree) months free")
             }
             guard trialDays != nil else {
                 return String(localized: "Subscribe")
@@ -242,12 +249,13 @@ struct PlanPresentation: Equatable {
             return String(format: String(localized: "%@ billed today, then every year. Cancel anytime."), yearly.display)
         }
         if let firstYearPrice {
-            return String(
-                format: String(localized: "%lld days free, then %@ for your first year, then %@/year. Cancel anytime."),
-                trialDays, firstYearPrice.display, yearly.display
-            )
+            // an interpolated count selects the catalog's plural form ("1 day", "14 days")
+            let firstYear = firstYearPrice.display
+            let regular = yearly.display
+            return String(localized: "\(trialDays) days free, then \(firstYear) for your first year, then \(regular)/year. Cancel anytime.")
         }
-        return String(format: String(localized: "%lld days free, then %@/year. Cancel anytime."), trialDays, yearly.display)
+        let regular = yearly.display
+        return String(localized: "\(trialDays) days free, then \(regular)/year. Cancel anytime.")
     }
 
     /// "Available until Friday, 12 September 2026 at 09:14" in the user's locale.

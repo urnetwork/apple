@@ -65,6 +65,32 @@ struct PlanPresentationTests {
         #expect(presentation.availableUntilLine()?.hasPrefix("Available until ") == true)
     }
 
+    // The offer and trial lines put a count in front of a noun. They were
+    // formatted from one fixed string, so every language got one noun form
+    // ("1 days free", Russian "1 месяца"); the catalog now has plural forms
+    // and the count selects one.
+    @Test func aCountOfOneReadsInTheSingular() {
+        let one = PlanPresentation.resolve(
+            tier: .standard,
+            offer: PlanOffer(percentOff: 25, monthsFree: 1, expiresAt: Date(timeIntervalSince1970: 1_800_000_000), appleOfferCode: "ABC"),
+            storeMonthly: nil,
+            storeYearly: nil,
+            trialDays: 1,
+            equivalent: nil
+        )
+        #expect(one.ctaTitle(for: .yearly) == "Start free trial with 1 month free")
+        #expect(one.termsLine(for: .yearly) == "1 day free, then $29.99 for your first year, then $39.99/year. Cancel anytime.")
+        let plain = PlanPresentation.resolve(
+            tier: .standard, offer: nil, storeMonthly: nil, storeYearly: nil, trialDays: 1, equivalent: nil
+        )
+        #expect(plain.termsLine(for: .yearly) == "1 day free, then $39.99/year. Cancel anytime.")
+    }
+
+    @Test func theOfferHeadlineSelectsItsPluralForm() {
+        #expect(PlanPresentation.monthsFreeHeadline(1) == "1 month of Pro, free")
+        #expect(PlanPresentation.monthsFreeHeadline(3) == "3 months of Pro, free")
+    }
+
     @Test func aLoadedProductRefinesItsOwnRowInItsOwnCurrency() {
         let euro: (Decimal) -> String = { "€\($0)" }
         let presentation = PlanPresentation.resolve(

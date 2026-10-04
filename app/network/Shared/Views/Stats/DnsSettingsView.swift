@@ -78,7 +78,7 @@ struct DnsSettingsView: View {
         if let code = connectedCountryCode {
             return code.uppercased()
         }
-        return "this region"
+        return String(localized: "this region")
     }
 
     /**

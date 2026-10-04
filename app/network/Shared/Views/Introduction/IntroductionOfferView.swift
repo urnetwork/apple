@@ -97,7 +97,7 @@ struct IntroductionOfferView: View {
 
                     Spacer().frame(height: 8)
 
-                    Text(String(format: String(localized: "%lld months of Pro, free"), presentation.offer?.monthsFree ?? 3))
+                    Text(PlanPresentation.monthsFreeHeadline(presentation.offer?.monthsFree ?? 3))
                         .font(themeManager.currentTheme.titleFont)
 
                     Spacer().frame(height: 8)

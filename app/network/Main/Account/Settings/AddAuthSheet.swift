@@ -34,6 +34,7 @@ struct AddAuthSheet: View {
     var onClosedUnverified: (() -> Void)?
 
     @StateObject private var verifyModel: AddedSignInVerifyModel
+    @StateObject private var bittensorFlow: AddAuthBittensorFlow
 
     // counts a rate limit down and ends the resend hold
     private let verifyTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -52,6 +53,7 @@ struct AddAuthSheet: View {
         self.onAdded = onAdded
         self.onClosedUnverified = onClosedUnverified
         _verifyModel = StateObject(wrappedValue: AddedSignInVerifyModel(api: api))
+        _bittensorFlow = StateObject(wrappedValue: AddAuthBittensorFlow(api: api))
     }
 
     @State private var email: String = ""
@@ -60,6 +62,7 @@ struct AddAuthSheet: View {
     @State private var selectedMethod: AddAuthSheetMethod = .email
     @State private var addError: String?
     @State private var walletConnectionTask: Task<Void, Never>?
+    @State private var selectedWalletChain: AddAuthWalletChain = .solana
     
     var body: some View {
         NavigationStack {
@@ -84,8 +87,8 @@ struct AddAuthSheet: View {
                             // the direct-download build offers Apple and Google
                             // through the browser instead of the native SDKs (BrowserSso)
                             ForEach(addAuthSheetMethods(
-                                appleAvailable: Config.isAppleSignInConfigured || Config.isBrowserSignInAvailable,
-                                googleAvailable: Config.isGoogleSignInConfigured || Config.isBrowserSignInAvailable
+                                appleAvailable: appleFlow != .unavailable,
+                                googleAvailable: googleFlow != .unavailable
                             ), id: \.self) { method in
                                 switch method {
                                 case .apple:
@@ -111,7 +114,7 @@ struct AddAuthSheet: View {
                             emailFields
                         }
                     
-                        if let error = addError {
+                        if let error = addError ?? (selectedMethod == .wallet && selectedWalletChain == .bittensor ? bittensorFlow.addError : nil) {
                             Text(error)
                                 .font(themeManager.currentTheme.secondaryBodyFont)
                                 .foregroundColor(.red)
@@ -154,11 +157,25 @@ struct AddAuthSheet: View {
                 }
                 walletConnectionTask?.cancel()
                 walletConnectionTask = nil
+                bittensorFlow.cancel()
                 connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
                 connectWalletProviderViewModel.pendingWalletAuthMessage = nil
                 #if os(macOS) && DIRECT_DOWNLOAD
                 cancelBrowserSignIn()
                 #endif
+            }
+            // a Bittensor bridge hand-back (urnetwork://bittensor-sign-message)
+            // for the sheet's own "add" session; any other purpose is ignored
+            .onOpenURL { url in
+                Task {
+                    _ = await bittensorFlow.handleOpenUrl(url)
+                }
+            }
+            .onAppear {
+                bittensorFlow.onAdded = {
+                    _ = await networkUserViewModel?.refreshNetworkUser()
+                    await signInAdded(.wallet, userAuth: "", message: String(localized: "Wallet sign-in method added"))
+                }
             }
             #if os(macOS) && DIRECT_DOWNLOAD
             // the api's oauth callback handing a Google or Apple browser
@@ -174,6 +191,15 @@ struct AddAuthSheet: View {
     }
     
     @Environment(\.dismiss) private var dismiss
+
+    // the login screen's flows on this build (LoginFullButtons)
+    private var appleFlow: AddAuthProviderFlow {
+        addAuthProviderFlow(nativeConfigured: Config.isAppleSignInConfigured, browserAvailable: Config.isBrowserSignInAvailable)
+    }
+
+    private var googleFlow: AddAuthProviderFlow {
+        addAuthProviderFlow(nativeConfigured: Config.isGoogleSignInConfigured, browserAvailable: Config.isBrowserSignInAvailable)
+    }
     
     private var formValid: Bool {
         switch selectedMethod {
@@ -192,19 +218,20 @@ struct AddAuthSheet: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             
-            #if os(iOS)
-            SignInWithAppleButton(.signIn) { request in
-                request.requestedScopes = [.email]
-            } onCompletion: { result in
-                Task {
-                    await handleAppleResult(result)
+            switch appleFlow {
+            case .native:
+                // iOS and the macOS App Store build, as at login
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.email]
+                } onCompletion: { result in
+                    Task {
+                        await handleAppleResult(result)
+                    }
                 }
-            }
-            .signInWithAppleButtonStyle(.white)
-            .frame(height: 50)
-            .cornerRadius(8)
-            #else
-            if Config.isBrowserSignInAvailable {
+                .signInWithAppleButtonStyle(.white)
+                .frame(height: 50)
+                .cornerRadius(8)
+            case .browser:
                 // the direct-download build: Apple's own web flow in the browser
                 UrButton(
                     text: "Sign in with Apple",
@@ -215,12 +242,9 @@ struct AddAuthSheet: View {
                     leadingSystemImage: "apple.logo",
                     isProcessing: isAdding
                 )
-            } else {
-                Text("Apple Sign-In is available on iOS.")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            case .unavailable:
+                EmptyView()
             }
-            #endif
         }
     }
     
@@ -234,7 +258,7 @@ struct AddAuthSheet: View {
             
             UrGoogleSignInButton(
                 action: {
-                    if Config.isBrowserSignInAvailable {
+                    if googleFlow == .browser {
                         // the direct-download build: Google's web flow in the browser
                         startBrowserSignIn(.google)
                     } else {
@@ -346,7 +370,65 @@ struct AddAuthSheet: View {
     
     private var walletSignInView: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Connect a Solana wallet (Phantom or Solflare) to add it as a sign-in method.")
+            Picker("Wallet", selection: $selectedWalletChain) {
+                ForEach(addAuthWalletChains, id: \.self) { chain in
+                    switch chain {
+                    case .solana:
+                        Text("Solana wallet").tag(chain)
+                    case .bittensor:
+                        Text("Bittensor wallet").tag(chain)
+                    }
+                }
+            }
+            .pickerStyle(.segmented)
+            .disabled(isAdding || bittensorFlow.isAdding)
+
+            switch selectedWalletChain {
+            case .solana:
+                solanaWalletView
+            case .bittensor:
+                bittensorWalletView
+            }
+        }
+    }
+
+    // MARK: - Bittensor Wallet
+
+    private var bittensorWalletView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Connect a Bittensor wallet to add it as a sign-in method.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+
+            if bittensorFlow.isAdding {
+                HStack {
+                    ProgressView()
+                    Text("Connecting to wallet...")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+            } else {
+                // the shared chooser (login, Earnings), signing for "add"
+                BittensorWalletSignView(
+                    connector: bittensorFlow.connector,
+                    onChoose: { walletId in
+                        Task {
+                            await bittensorFlow.choose(walletId: walletId)
+                        }
+                    },
+                    onCancel: {
+                        bittensorFlow.cancel()
+                    }
+                )
+            }
+        }
+    }
+
+    // MARK: - Solana Wallet
+
+    private var solanaWalletView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Connect a Solana wallet to add it as a sign-in method.")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             

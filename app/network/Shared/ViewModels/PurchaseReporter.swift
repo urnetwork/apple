@@ -266,8 +266,8 @@ final class PurchaseReporter {
 
     /**
      * Report-only for current entitlements: report every verified entitlement
-     * purchased under `networkId` (appAccountToken matches) and never finish
-     * anything.
+     * purchased under `networkId` (appAccountToken matches) or carrying no
+     * appAccountToken at all, and never finish anything.
      *
      * The report-then-finish contract above only covers transactions StoreKit
      * still redelivers. A transaction finished before any server contact (the
@@ -278,9 +278,17 @@ final class PurchaseReporter {
      * nothing to finish; one that is still unfinished stays owned by
      * `reportAndFinish` through redelivery.
      *
-     * Entitlements under another network (or without a token) are not
-     * reported: the server could only answer wrong_network or invalid, and
-     * the linked network is credited via its own session.
+     * An entitlement without a token is an offer code redeemed through the
+     * App Store redeem sheet or link (or a renewal of one). Only the server
+     * can tell whose it is: it binds the subscription to the session network
+     * when that network was issued the welcome offer code, and answers
+     * invalid otherwise. Builds before the binding finished such a redemption
+     * on `invalid`, so this scan is its only remaining proof. It counts as
+     * this network's only when the server credits it here.
+     *
+     * Entitlements under another network are not reported: the server could
+     * only answer wrong_network, and the linked network is credited via its
+     * own session.
      *
      * Each entitlement is reported once (see `reportedEntitlementsKey`) unless
      * `force` is set, which a user-triggered restore uses.
@@ -293,14 +301,21 @@ final class PurchaseReporter {
         var scan = EntitlementScanResult()
         var noSession = false
         for entitlement in entitlements {
-            guard let networkId, entitlement.appAccountToken == networkId else {
+            guard let networkId, entitlement.appAccountToken == nil || entitlement.appAccountToken == networkId else {
                 scan.foundOther = true
                 continue
             }
-            scan.foundCurrent = true
+            let unbound = entitlement.appAccountToken == nil
+            if !unbound {
+                scan.foundCurrent = true
+            }
 
             let transactionId = entitlement.transactionId
             if noSession || (!force && reportedEntitlements.contains(transactionId)) {
+                if unbound {
+                    // not reported now: whose it is stays unknown
+                    scan.foundOther = true
+                }
                 continue
             }
             guard !entitlementInFlight.contains(transactionId) else {
@@ -314,6 +329,15 @@ final class PurchaseReporter {
                 jws: entitlement.jws
             )
             scan.reportResults[transactionId] = result.outcome
+            if unbound {
+                switch result {
+                case .credited, .alreadyCredited:
+                    // the server credited it to this network
+                    scan.foundCurrent = true
+                default:
+                    scan.foundOther = true
+                }
+            }
             switch result {
             case .credited:
                 scan.newlyCredited = true
@@ -344,6 +368,29 @@ final class PurchaseReporter {
             reportedEntitlements.map { NSNumber(value: $0) },
             forKey: Self.reportedEntitlementsKey
         )
+    }
+
+    /**
+     * The network a `credited` answer from `reportAndFinish` was credited to.
+     * The server answers credited only for the session network, so a
+     * transaction with an appAccountToken was credited to that token. One
+     * without (an offer-code redemption) was credited to the session network
+     * the report was made with; when the session changed during the report
+     * that cannot be told, and nil keeps every network's confirmation poll
+     * from starting on it.
+     */
+    nonisolated static func creditedNetworkId(
+        appAccountToken: UUID?,
+        sessionBefore: UUID?,
+        sessionAfter: UUID?
+    ) -> UUID? {
+        if let appAccountToken {
+            return appAccountToken
+        }
+        guard let sessionBefore, sessionBefore == sessionAfter else {
+            return nil
+        }
+        return sessionBefore
     }
 
     // MARK: report loop

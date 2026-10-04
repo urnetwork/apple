@@ -92,14 +92,6 @@ private class ConnectLocationStateListener: NSObject, SdkConnectLocationChangeLi
     }
 }
 
-enum ConnectionStatus: String {
-    case disconnected = "DISCONNECTED"
-    case connecting = "CONNECTING"
-    case destinationSet = "DESTINATION_SET"
-    case connected = "CONNECTED"
-}
-
-
 @MainActor
 class ConnectViewModel: ObservableObject {
     
@@ -165,6 +157,16 @@ class ConnectViewModel: ObservableObject {
     // nil until a connect view reports the plan
     private var insufficientBalancePlan: Plan? = nil
     private var insufficientBalancePolling: Bool = false
+    // the start gate's inputs, replaced in tests: the App Group balance the
+    // app, the tunnel and the gate itself save on every fetch, the clock, and
+    // the bounded fetch used when that balance is stale
+    var loadCachedBalance: () -> WidgetBalanceSnapshot? = { WidgetSnapshotStore.loadBalance() }
+    var now: () -> Date = { Date() }
+    lazy var fetchBalance: () async -> WidgetBalanceSnapshot? = { [weak self] in
+        await StartConnectBalanceFetch.fetch(api: self?.api)
+    }
+    // a start waiting on its balance fetch; a repeated tap does not stack
+    private(set) var startConnectTask: Task<Void, Never>?
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -335,21 +337,108 @@ class ConnectViewModel: ObservableObject {
     }
 
     /**
+     * Every connect entry point in the app (the connect button and globe, the
+     * provider list, the macOS menu bar) passes through here. A start is
+     * decided on a fresh balance, fetched first when the cached one is stale;
+     * refused, it opens the upgrade sheet and calls `onUpgrade`. A connection
+     * that is already requested proceeds at once (see
+     * InsufficientBalancePolicy). `proceed` runs at most once.
+     */
+    private func admitConnect(
+        _ attempt: ConnectAttempt,
+        onUpgrade: (() -> Void)? = nil,
+        proceed: @escaping () -> Void
+    ) {
+        let apply = { [weak self] (decision: ConnectAttemptDecision) in
+            switch decision {
+            case .connect:
+                proceed()
+            case .upgrade:
+                self?.isPresentedUpgradeSheet = true
+                onUpgrade?()
+            }
+        }
+        let guards = startConnectGuards
+        if let decision = immediateStartConnectDecision(
+            attempt, guards: guards, cachedBalance: loadCachedBalance(), now: now()
+        ) {
+            apply(decision)
+            return
+        }
+        if startConnectTask != nil {
+            return
+        }
+        let fetchBalance = self.fetchBalance
+        startConnectTask = Task { @MainActor [weak self] in
+            let balance = await fetchBalance()
+            self?.startConnectTask = nil
+            apply(startConnectDecision(attempt, guards: guards, balance: balance))
+        }
+    }
+
+    private var startConnectGuards: StartConnectGuards {
+        StartConnectGuards(
+            contractInsufficientBalance: contractStatus?.insufficientBalance == true,
+            // before a connect view reports the plan (the macOS menu bar with
+            // the window never shown) the balance's Pro flag stands in
+            isSupporter: insufficientBalancePlan == .supporter,
+            isPollingSubscriptionBalance: insufficientBalancePolling
+        )
+    }
+
+    private var currentConnectAttempt: ConnectAttempt {
+        connectAttempt(connectionStatus: connectionStatus)
+    }
+
+    /**
      * Used in the provider list
      */
     func connect(_ provider: SdkConnectLocation) {
-        runBeforeConnect()
-        withCommandViewController { viewController in
-            viewController.connect(provider)
+        admitConnect(currentConnectAttempt) { [weak self] in
+            guard let self else {
+                return
+            }
+            self.runBeforeConnect()
+            self.withCommandViewController { viewController in
+                viewController.connect(provider)
+            }
+            try? self.device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
+            TunnelIntentAdoption.recordAppIntent(connect: true, device: self.device)
         }
-        try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
-        TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
     }
 
     /**
      * Used for the main  connect button
      */
     func connect() {
+        admitConnect(currentConnectAttempt) { [weak self] in
+            self?.connectSelected()
+        }
+    }
+
+    /**
+     * The main connect from outside the connect view: `onUpgrade` runs when a
+     * start is refused out of balance (the macOS menu bar opens the window
+     * for the sheet).
+     */
+    func connect(onUpgrade: @escaping () -> Void) {
+        admitConnect(currentConnectAttempt, onUpgrade: onUpgrade) { [weak self] in
+            self?.connectSelected()
+        }
+    }
+
+    /**
+     * Reconnects a connection the app itself dropped (the macOS purchase flow
+     * disconnects around the store): the user never left it, so it is not a
+     * start.
+     */
+    func restoreConnect() {
+        admitConnect(.alreadyConnected) { [weak self] in
+            self?.connectSelected()
+        }
+    }
+
+    private func connectSelected() {
         runBeforeConnect()
         if let selectedProvider = self.selectedProvider {
             withCommandViewController { viewController in
@@ -357,11 +446,17 @@ class ConnectViewModel: ObservableObject {
             }
             TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
         } else {
-            connectBestAvailable()
+            startBestAvailable()
         }
     }
 
     func connectBestAvailable() {
+        admitConnect(currentConnectAttempt) { [weak self] in
+            self?.startBestAvailable()
+        }
+    }
+
+    private func startBestAvailable() {
         runBeforeConnect()
         withCommandViewController { viewController in
             viewController.connectBestAvailable()
@@ -691,4 +786,78 @@ extension ConnectViewModel {
         }
     }
     
+}
+
+// MARK: start connect balance
+
+/// The bounded subscription balance fetch a start connect makes when the
+/// cached balance is stale (see InsufficientBalancePolicy). A result is saved
+/// to the App Group stamped now, so the other surfaces read it as fresh. No
+/// api, an error or the timeout give nil, which never blocks a start.
+enum StartConnectBalanceFetch {
+    static func fetch(api: SdkApi?, timeout: TimeInterval = startConnectBalanceFetchTimeout) async -> WidgetBalanceSnapshot? {
+        guard let api else {
+            return nil
+        }
+        let resume = StartConnectBalanceResume()
+        let balance = await withCheckedContinuation { (continuation: CheckedContinuation<WidgetBalanceSnapshot?, Never>) in
+            resume.set(continuation)
+            // the callback is held by the closure until it reports
+            let callback = StartConnectBalanceCallback { result in
+                resume.resume(result.map { result in
+                    WidgetBalanceSnapshot(
+                        updatedAt: Date(),
+                        startBalanceByteCount: result.startBalanceByteCount,
+                        balanceByteCount: result.balanceByteCount,
+                        openTransferByteCount: result.openTransferByteCount,
+                        isPro: result.currentSubscription != nil
+                    )
+                })
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
+                resume.resume(nil)
+            }
+            api.subscriptionBalance(callback)
+        }
+        if let balance {
+            WidgetSnapshotStore.save(balance)
+        }
+        return balance
+    }
+}
+
+/// Resumes the fetch's continuation exactly once, from the callback or the
+/// timeout, whichever comes first. Safe for concurrent use.
+private final class StartConnectBalanceResume: @unchecked Sendable {
+    private let stateLock = NSLock()
+    private var continuation: CheckedContinuation<WidgetBalanceSnapshot?, Never>?
+
+    func set(_ continuation: CheckedContinuation<WidgetBalanceSnapshot?, Never>) {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        self.continuation = continuation
+    }
+
+    func resume(_ balance: WidgetBalanceSnapshot?) {
+        let continuation: CheckedContinuation<WidgetBalanceSnapshot?, Never>? = {
+            stateLock.lock()
+            defer { stateLock.unlock() }
+            let continuation = self.continuation
+            self.continuation = nil
+            return continuation
+        }()
+        continuation?.resume(returning: balance)
+    }
+}
+
+private final class StartConnectBalanceCallback: NSObject, SdkSubscriptionBalanceCallbackProtocol {
+    private let callback: (SdkSubscriptionBalanceResult?) -> Void
+
+    init(_ callback: @escaping (SdkSubscriptionBalanceResult?) -> Void) {
+        self.callback = callback
+    }
+
+    func result(_ result: SdkSubscriptionBalanceResult?, err: Error?) {
+        callback(err == nil ? result : nil)
+    }
 }

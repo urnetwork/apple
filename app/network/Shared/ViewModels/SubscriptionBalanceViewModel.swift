@@ -289,13 +289,14 @@ class SubscriptionBalanceViewModel: ObservableObject {
                 openTransferByteCount: result.openTransferByteCount,
                 isPro: serverIsPro
             )
-            if balanceSnapshot.usedByteCount != lastWidgetBalanceSnapshot?.usedByteCount
+            // saved on every fetch, so its time stamp tells the start connect
+            // gate how fresh it is; the widgets reload only on a change
+            let balanceChanged = balanceSnapshot.usedByteCount != lastWidgetBalanceSnapshot?.usedByteCount
                 || balanceSnapshot.balanceByteCount != lastWidgetBalanceSnapshot?.balanceByteCount
-                || balanceSnapshot.startBalanceByteCount != lastWidgetBalanceSnapshot?.startBalanceByteCount {
-                lastWidgetBalanceSnapshot = balanceSnapshot
-                if WidgetSnapshotStore.save(balanceSnapshot) {
-                    WidgetRefresh.reloadDashboard()
-                }
+                || balanceSnapshot.startBalanceByteCount != lastWidgetBalanceSnapshot?.startBalanceByteCount
+            lastWidgetBalanceSnapshot = balanceSnapshot
+            if WidgetSnapshotStore.save(balanceSnapshot) && balanceChanged {
+                WidgetRefresh.reloadDashboard()
             }
 
             if serverIsPro != self.isPro {
@@ -507,9 +508,4 @@ private class PurchaseConfirmationListener: NSObject, SdkPurchaseConfirmationLis
     func purchaseConfirmationStateChanged(_ state: String?) {
         callback(state ?? "")
     }
-}
-
-enum Plan: String {
-    case supporter = "supporter"
-    case none = "none"
 }

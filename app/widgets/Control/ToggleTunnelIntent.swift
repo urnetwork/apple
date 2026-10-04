@@ -6,7 +6,8 @@
 //  toggle sets `value` to the requested state before calling perform(); the
 //  Home Screen widget's toggle is built with the target state explicitly.
 //
-//  It runs in the widget extension's process (it never asks for the app), so
+//  It runs in the widget extension's process (it asks for the app only to
+//  offer the upgrade when a connect is refused out of balance), so
 //  it must stay SDK-free and quick: it starts or stops the installed tunnel
 //  configuration, records the decision for the app, and waits a bounded time
 //  for NEVPNStatus to settle so the control re-renders with the right state.
@@ -47,12 +48,17 @@ struct ToggleTunnelIntent: SetValueIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        await TunnelControlSupport.setTunnel(on: value, source: source)
+        let decision = await TunnelControlSupport.setTunnel(on: value, source: source)
         // the surface that ran this intent is re-rendered by the system when
         // perform() returns; the others are not, and the tunnel extension's
         // own reload requests are best-effort, so re-render them from here
         // (the widget process is a first-class WidgetKit caller)
         WidgetRefresh.reloadAll()
+        // out of balance the tunnel was not started: open the app, where the
+        // connect view offers the upgrade
+        if decision == .upgrade, #available(iOS 18.2, macOS 15.2, *) {
+            return .result(opensIntent: OpenURnetworkIntent())
+        }
         return .result()
     }
 }

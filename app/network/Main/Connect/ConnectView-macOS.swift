@@ -321,7 +321,7 @@ import URnetworkSdk
                                 )
 
                                 if initiallyConnected {
-                                    connectViewModel.connect()
+                                    connectViewModel.restoreConnect()
                                 }
 
                             }

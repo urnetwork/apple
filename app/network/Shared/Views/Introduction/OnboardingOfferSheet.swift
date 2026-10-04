@@ -69,7 +69,7 @@ struct OnboardingOfferSheet: View {
             }
             #if os(macOS)
             if initiallyConnected {
-                connectViewModel.connect()
+                connectViewModel.restoreConnect()
             }
             #endif
         }

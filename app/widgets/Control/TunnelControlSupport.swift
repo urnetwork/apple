@@ -76,9 +76,23 @@ enum TunnelControlSupport {
     /// Connect or disconnect. Without an installed configuration this is an
     /// honest no-op: the control shows an "open the app" button in that case,
     /// and the app is the only process that can create the configuration.
-    static func setTunnel(on: Bool, source: String) async {
+    /// Out of balance (by a fresh App Group balance; this process cannot
+    /// fetch one) a connect that would start the tunnel is refused before
+    /// anything is recorded or started, and `.upgrade` tells the intent to
+    /// open the app (see InsufficientBalancePolicy).
+    @discardableResult
+    static func setTunnel(on: Bool, source: String) async -> ConnectAttemptDecision {
         guard let manager = await loadManager() else {
-            return
+            return .connect
+        }
+
+        if quickConnectDecision(
+            on: on,
+            tunnelActive: isActive(manager.connection.status),
+            cachedBalance: WidgetSnapshotStore.loadBalance(),
+            now: Date()
+        ) == .upgrade {
+            return .upgrade
         }
 
         // record first: even if the system call below fails, the app should
@@ -118,10 +132,11 @@ enum TunnelControlSupport {
                 manager.connection.stopVPNTunnel()
             }
         } catch {
-            return
+            return .connect
         }
 
         await waitForSettledStatus(manager.connection, on: on)
+        return .connect
     }
 
     /// The system re-reads the control's value the moment perform() returns,

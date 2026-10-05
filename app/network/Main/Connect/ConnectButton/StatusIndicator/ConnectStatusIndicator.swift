@@ -47,6 +47,8 @@ struct ConnectStatusIndicator: View {
                 case .connecting: return .urYellow
                 case .destinationSet: return .urYellow
                 case .connected: return displayReconnectTunnel ? .urCoral : .urGreen
+                // no provider could be reached; the drawer offers Retry
+                case .connectFailed: return .urCoral
                 case .none: return .urElectricBlue
             }
         }
@@ -71,6 +73,7 @@ struct ConnectStatusIndicator: View {
                         return String(localized: "Connected to \(windowCurrentSize) providers")
                     }
                 }
+                case .connectFailed: return String(localized: "Couldn't connect")
                 case .none: return ""
             }
         }

@@ -33,6 +33,12 @@ enum ConnectionStatus: String {
     case connecting = "CONNECTING"
     case destinationSet = "DESTINATION_SET"
     case connected = "CONNECTED"
+    // the sdk's CONNECT_FAILED: the connect window passed both of its outcome
+    // deadlines with no provider added. The session is still standing and
+    // keeps trying, so a provider that lands later moves it back to connecting
+    // or connected; until then the connect view shows the failure and offers
+    // Retry.
+    case connectFailed = "CONNECT_FAILED"
 }
 
 enum Plan: String {
@@ -56,12 +62,18 @@ struct ConnectActionButtons: Equatable {
     var connect: Bool = false
     var disconnect: Bool = false
     var reconnect: Bool = false
+    // shown beside disconnect
+    var retry: Bool = false
 }
 
 /// In the gate the upgrade button replaces connect and reconnect, but
 /// disconnect stays whenever a connect is requested, so the user can always
 /// release the tunnel. Outside the gate the rules are unchanged (a nil status
-/// shows disconnect, as before).
+/// shows disconnect, as before). A failed connect (the sdk's CONNECT_FAILED)
+/// offers retry next to disconnect: the session is still standing, and a
+/// retry connects to the selected location again, which the sdk rebuilds.
+/// The gate never offers it (out of balance a retry cannot succeed), and a
+/// tunnel to reconnect replaces it (reconnecting comes first).
 func connectActionButtons(
     gateActive: Bool,
     connectionStatus: ConnectionStatus?,
@@ -76,7 +88,8 @@ func connectActionButtons(
     return ConnectActionButtons(
         connect: connectionStatus == .disconnected,
         disconnect: connectionStatus != .disconnected && !displayReconnectTunnel,
-        reconnect: displayReconnectTunnel
+        reconnect: displayReconnectTunnel,
+        retry: connectionStatus == .connectFailed && !displayReconnectTunnel
     )
 }
 

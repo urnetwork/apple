@@ -208,7 +208,28 @@ struct ConnectActions: View {
                                 .connectActionsFold()
                             }
 
-                            if actionButtons.disconnect {
+                            if actionButtons.retry {
+                                /**
+                                 * the connect failed: retry connects to the
+                                 * selected location again (the sdk rebuilds
+                                 * it), and disconnect stays the way out
+                                 */
+                                HStack {
+                                    UrButton(
+                                        text: "Retry",
+                                        action: connect,
+                                        accessibilityIdentifier: "acceptance.connect.retry"
+                                    )
+
+                                    UrButton(
+                                        text: "Disconnect",
+                                        action: disconnect,
+                                        style: .outlineSecondary,
+                                        accessibilityIdentifier: "acceptance.disconnect"
+                                    )
+                                }
+                                .connectActionsFold()
+                            } else if actionButtons.disconnect {
                                 UrButton(
                                     text: "Disconnect",
                                     action: disconnect,

@@ -422,8 +422,14 @@ struct EarningsView: View {
     }
 
     private func removeSolanaWallet(_ wallet: UsdcWalletInfo) async {
-        if case .failure(let error) = await usdcViewModel.removeWallet(wallet.id) {
+        switch await usdcViewModel.removeWallet(wallet.id) {
+        case .failure(let error):
             snackbarManager.showSnackbar(message: ConnectSolanaWalletFlow.errorMessage(for: error))
+        case .success(let promoted?):
+            // another wallet became the payout wallet: say where payouts go now
+            snackbarManager.showSnackbar(message: String(localized: "Payouts now go to \(SnAlpha.shortSs58(promoted.address))."))
+        case .success(nil):
+            break
         }
     }
 }

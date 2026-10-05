@@ -280,6 +280,44 @@ struct UsdcWalletsViewModelTests {
         }
     }
 
+    /// Before the removal, the confirmation covers both outcomes: another of
+    /// the network's Solana or Polygon wallets takes over (the server picks
+    /// it), or USDC payouts are held while there is none. The retired line
+    /// said they were always held.
+    @Test func theRemoveConfirmationSaysPayoutsMoveOrAreHeld() throws {
+        let appRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let view = try String(
+            contentsOf: appRoot.appendingPathComponent("network/Main/Account/Earnings/EarningsView.swift"),
+            encoding: .utf8
+        )
+        let confirmation = "USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one."
+        let retired = "USDC payouts are held until another wallet is connected."
+        #expect(view.contains("Text(\"\(confirmation)\")"))
+        #expect(!view.contains(retired))
+
+        let data = try Data(contentsOf: appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: Any])
+        let entry = try #require(strings[confirmation] as? [String: Any], "the catalog has no remove confirmation")
+        #expect(entry["extractionState"] == nil)
+        let localizations = try #require(entry["localizations"] as? [String: Any])
+        // every locale the payouts line after the removal has
+        let promotedLine = try #require(strings["Payouts now go to %@."] as? [String: Any])
+        let locales = try #require(promotedLine["localizations"] as? [String: Any]).keys
+        #expect(Set(localizations.keys) == Set(locales))
+        for locale in locales where locale != "en" {
+            let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+            let value = try #require(unit?["value"] as? String, "\(locale) is missing")
+            #expect(value != confirmation, "\(locale) is English")
+            for name in ["USDC", "Solana", "Polygon"] {
+                #expect(value.contains(name), "\(locale) drops \(name)")
+            }
+        }
+        // xcode keeps a retired key as a stale entry
+        let retiredEntry = strings[retired] as? [String: Any]
+        #expect(retiredEntry == nil || retiredEntry?["extractionState"] as? String == "stale")
+    }
+
     @Test func aFailedRemoveReturnsTheErrorAndLeavesTheState() async {
         let client = FakeUsdcWalletsClient()
         client.walletRows = [Self.wallet("solana")]

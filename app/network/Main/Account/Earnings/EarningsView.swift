@@ -236,7 +236,11 @@ struct EarningsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("USDC payouts are held until another wallet is connected.")
+            // removing the payout wallet makes another of the network's Solana
+            // or Polygon wallets the payout wallet when there is one (the
+            // server picks it) and holds USDC payouts when there is none: one
+            // line for both
+            Text("USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one.")
         }
         .sheet(isPresented: $presentClaimSheet) {
             ClaimAlphaSheet(

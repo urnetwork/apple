@@ -111410,7 +111410,7 @@
       }
     },
     "The %@ extension was not found in this browser. Install it, then try again." : {
-      "comment" : "Error: the wallet's browser extension is not installed in this browser. The argument is the wallet product name (Talisman).",
+      "comment" : "Error: the wallet's browser extension is not installed in this browser (on ur.io, or in the apps when the ur.io bridge page returns extension_not_found). The argument is the wallet product name (Talisman).",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -111418,10 +111418,22 @@
             "value" : "لم يتم العثور على إضافة %@ في هذا المتصفح. ثبّتها ثم حاول مرة أخرى."
           }
         },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozšíření %@ nebylo v tomto prohlížeči nalezeno. Nainstalujte ho a zkuste to znovu."
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Die %@-Erweiterung wurde in diesem Browser nicht gefunden. Installiere sie und versuche es dann erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η επέκταση %@ δεν βρέθηκε σε αυτό το πρόγραμμα περιήγησης. Εγκαταστήστε την και δοκιμάστε ξανά."
           }
         },
         "en" : {
@@ -111436,16 +111448,130 @@
             "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo."
           }
         },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'extension %@ est introuvable dans ce navigateur. Installez-la, puis réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התוסף %@ לא נמצא בדפדפן הזה. התקינו אותו ונסו שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस ब्राउज़र में %@ एक्सटेंशन नहीं मिला। इसे इंस्टॉल करें, फिर दोबारा प्रयास करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekstensi %@ tidak ditemukan di browser ini. Pasang ekstensi tersebut, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'estensione %@ non è stata trovata in questo browser. Installala, poi riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このブラウザーで%@拡張機能が見つかりませんでした。インストールしてから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 브라우저에서 %@ 확장 프로그램을 찾을 수 없습니다. 설치한 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De %@-extensie is niet gevonden in deze browser. Installeer de extensie en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono rozszerzenia %@ w tej przeglądarce. Zainstaluj je, a potem spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A extensão %@ não foi encontrada neste navegador. Instale-a e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A extensão %@ não foi encontrada neste navegador. Instale-a e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A extensão %@ não foi encontrada neste navegador. Instale-a e tente novamente."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Расширение %@ не найдено в этом браузере. Установите его и повторите попытку."
           }
         },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillägget %@ hittades inte i den här webbläsaren. Installera det och försök sedan igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบส่วนขยาย %@ ในเบราว์เซอร์นี้ ติดตั้งส่วนขยาย แล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розширення %@ не знайдено в цьому браузері. Встановіть його й спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy tiện ích mở rộng %@ trong trình duyệt này. Hãy cài đặt tiện ích rồi thử lại."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在此浏览器中未找到 %@ 扩展。请安装后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此瀏覽器中找不到 %@ 擴充功能。請安裝後再試一次。"
           }
         }
       }
@@ -112196,6 +112322,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "REALITY 短 ID 最多只能包含 16 個十六進位字元。"
+          }
+        }
+      }
+    },
+    "The request was declined in your wallet. Start again and approve it to continue." : {
+      "comment" : "Bittensor wallet error in the apps, when the ur.io bridge page returns user_rejected: the user declined the connection or the signature request in the wallet (Talisman, or a WalletConnect wallet), so nothing was signed.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم رفض الطلب في محفظتك. ابدأ من جديد ووافق عليه للمتابعة."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Požadavek byl ve vaší peněžence zamítnut. Začněte znovu a schvalte ho, abyste mohli pokračovat."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anfrage wurde in deiner Wallet abgelehnt. Starte erneut und bestätige sie, um fortzufahren."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το αίτημα απορρίφθηκε στο πορτοφόλι σας. Ξεκινήστε ξανά και εγκρίνετέ το για να συνεχίσετε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The request was declined in your wallet. Start again and approve it to continue."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud se rechazó en tu billetera. Empieza de nuevo y apruébala para continuar."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud se rechazó en tu billetera. Comienza de nuevo y apruébala para continuar."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud se rechazó en tu cartera. Comienza de nuevo y apruébala para continuar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La demande a été refusée dans votre portefeuille. Recommencez et approuvez-la pour continuer."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הבקשה נדחתה בארנק שלכם. התחילו מחדש ואשרו אותה כדי להמשיך."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके वॉलेट में अनुरोध अस्वीकार कर दिया गया। जारी रखने के लिए फिर से शुरू करें और अनुरोध को स्वीकृत करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permintaan ditolak di dompet Anda. Mulai lagi dan setujui permintaan itu untuk melanjutkan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La richiesta è stata rifiutata nel tuo portafoglio. Ricomincia e approvala per continuare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォレットでリクエストが拒否されました。最初からやり直し、リクエストを承認して続行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지갑에서 요청이 거부되었습니다. 다시 시작하고 요청을 승인하여 계속하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het verzoek is geweigerd in je wallet. Begin opnieuw en keur het goed om door te gaan."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żądanie zostało odrzucone w Twoim portfelu. Zacznij od nowa i zatwierdź je, aby kontynuować."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pedido foi recusado na sua carteira. Comece de novo e aprove-o para continuar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A solicitação foi recusada na sua carteira. Comece de novo e aprove-a para continuar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pedido foi recusado na sua carteira. Comece de novo e aprove-o para continuar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запрос отклонен в вашем кошельке. Начните заново и подтвердите его, чтобы продолжить."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Begäran avvisades i din plånbok. Börja om och godkänn den för att fortsätta."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คำขอถูกปฏิเสธในกระเป๋าเงินของคุณ เริ่มใหม่และอนุมัติคำขอเพื่อดำเนินการต่อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запит відхилено у вашому гаманці. Почніть знову й підтвердьте його, щоб продовжити."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu cầu đã bị từ chối trong ví của bạn. Hãy bắt đầu lại và chấp thuận yêu cầu để tiếp tục."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该请求已在您的钱包中被拒绝。请重新开始并批准该请求以继续。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該請求已在你的錢包中被拒絕。請重新開始並批准該請求以繼續。"
           }
         }
       }
@@ -113319,6 +113612,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "签名的钱包与您输入的地址不一致。"
+          }
+        }
+      }
+    },
+    "The WalletConnect request expired before the wallet answered. Start again." : {
+      "comment" : "Bittensor wallet error in the apps, when the ur.io bridge page returns walletconnect_expired: the WalletConnect pairing or the signature request ran out of time before the wallet answered. WalletConnect is a product name.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتهت صلاحية طلب WalletConnect قبل أن تستجيب المحفظة. ابدأ من جديد."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Požadavek WalletConnect vypršel dříve, než peněženka odpověděla. Začněte znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die WalletConnect-Anfrage ist abgelaufen, bevor die Wallet geantwortet hat. Starte erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το αίτημα WalletConnect έληξε πριν απαντήσει το πορτοφόλι. Ξεκινήστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The WalletConnect request expired before the wallet answered. Start again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud de WalletConnect caducó antes de que respondiera la billetera. Empieza de nuevo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud de WalletConnect venció antes de que respondiera la billetera. Comienza de nuevo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud de WalletConnect venció antes de que respondiera la cartera. Comienza de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La demande WalletConnect a expiré avant que le portefeuille ne réponde. Recommencez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תוקף בקשת WalletConnect פג לפני שהארנק השיב. התחילו מחדש."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "वॉलेट के जवाब देने से पहले WalletConnect अनुरोध की समय-सीमा समाप्त हो गई। फिर से शुरू करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permintaan WalletConnect kedaluwarsa sebelum dompet menjawab. Mulai lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La richiesta WalletConnect è scaduta prima che il portafoglio rispondesse. Ricomincia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォレットが応答する前に WalletConnect のリクエストの有効期限が切れました。最初からやり直してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지갑이 응답하기 전에 WalletConnect 요청이 만료되었습니다. 다시 시작하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het WalletConnect-verzoek is verlopen voordat de wallet antwoordde. Begin opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żądanie WalletConnect wygasło, zanim portfel odpowiedział. Zacznij od nowa."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pedido WalletConnect expirou antes de a carteira responder. Comece de novo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A solicitação do WalletConnect expirou antes de a carteira responder. Comece de novo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pedido WalletConnect expirou antes de a carteira responder. Comece de novo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Срок действия запроса WalletConnect истек до того, как кошелек ответил. Начните заново."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect-begäran gick ut innan plånboken svarade. Börja om."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คำขอ WalletConnect หมดอายุก่อนที่กระเป๋าเงินจะตอบกลับ เริ่มใหม่อีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Термін дії запиту WalletConnect минув, перш ніж гаманець відповів. Почніть знову."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu cầu WalletConnect đã hết hạn trước khi ví phản hồi. Hãy bắt đầu lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "钱包响应之前，WalletConnect 请求已过期。请重新开始。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錢包回應之前，WalletConnect 請求已過期。請重新開始。"
           }
         }
       }
@@ -132792,6 +133252,173 @@
         }
       }
     },
+    "WalletConnect is not available right now. Try again later, or enter your address manually." : {
+      "comment" : "Bittensor wallet error in the apps, when the ur.io bridge page returns walletconnect_unavailable: the page has no WalletConnect project id, so it cannot pair a wallet. Manual entry still works. WalletConnect is a product name.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect غير متاح حاليًا. حاول مرة أخرى لاحقًا، أو أدخل عنوانك يدويًا."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect teď není k dispozici. Zkuste to později znovu, nebo zadejte adresu ručně."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect ist gerade nicht verfügbar. Versuche es später erneut oder gib deine Adresse manuell ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το WalletConnect δεν είναι διαθέσιμο αυτή τη στιγμή. Δοκιμάστε ξανά αργότερα ή εισαγάγετε τη διεύθυνσή σας χειροκίνητα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect is not available right now. Try again later, or enter your address manually."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect no está disponible en este momento. Inténtalo de nuevo más tarde o introduce tu dirección manualmente."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect no está disponible en este momento. Inténtalo de nuevo más tarde o ingresa tu dirección manualmente."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect no está disponible en este momento. Inténtalo de nuevo más tarde o ingresa tu dirección manualmente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect n'est pas disponible pour le moment. Réessayez plus tard ou saisissez votre adresse manuellement."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect אינו זמין כרגע. נסו שוב מאוחר יותר, או הזינו את הכתובת שלכם ידנית."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect अभी उपलब्ध नहीं है। बाद में फिर से प्रयास करें, या अपना पता मैन्युअल रूप से दर्ज करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect sedang tidak tersedia. Coba lagi nanti, atau masukkan alamat Anda secara manual."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect non è disponibile al momento. Riprova più tardi oppure inserisci il tuo indirizzo manualmente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect は現在利用できません。しばらくしてからもう一度お試しいただくか、アドレスを手動で入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금은 WalletConnect를 사용할 수 없습니다. 나중에 다시 시도하거나 주소를 직접 입력하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect is op dit moment niet beschikbaar. Probeer het later opnieuw of voer je adres handmatig in."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect jest teraz niedostępny. Spróbuj ponownie później lub wprowadź adres ręcznie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O WalletConnect não está disponível neste momento. Tente novamente mais tarde ou introduza o seu endereço manualmente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O WalletConnect não está disponível no momento. Tente novamente mais tarde ou digite seu endereço manualmente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O WalletConnect não está disponível neste momento. Tente novamente mais tarde ou introduza o seu endereço manualmente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect сейчас недоступен. Повторите попытку позже или введите адрес вручную."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect är inte tillgängligt just nu. Försök igen senare eller ange din adress manuellt."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect ไม่พร้อมใช้งานในขณะนี้ ลองอีกครั้งในภายหลัง หรือป้อนที่อยู่ของคุณด้วยตนเอง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect зараз недоступний. Спробуйте пізніше або введіть адресу вручну."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect hiện không khả dụng. Hãy thử lại sau hoặc nhập địa chỉ của bạn theo cách thủ công."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect 目前不可用。请稍后重试，或手动输入您的地址。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WalletConnect 目前無法使用。請稍後再試，或手動輸入你的地址。"
+          }
+        }
+      }
+    },
     "Wallets" : {
       "comment" : "Wallets Screen",
       "extractionState" : "stale",
@@ -138150,6 +138777,340 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你收到郵件了"
+          }
+        }
+      }
+    },
+    "Your %@ wallet doesn't have the address you entered. Add or connect that account in the wallet, or enter an address it has." : {
+      "comment" : "Bittensor wallet error, on the ur.io wallet card and sign-in, and in the apps when the ur.io bridge page returns address_not_in_wallet: the chosen wallet does not offer the account of the address the user typed (Talisman does not hold it or has not connected it to the site; a WalletConnect wallet connected another account), so nothing was signed. The argument is the wallet product name (Talisman or WalletConnect).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "محفظة %@ لديك لا تحتوي على العنوان الذي أدخلته. أضف هذا الحساب أو اربطه في المحفظة، أو أدخل عنوانًا موجودًا فيها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaše peněženka %@ neobsahuje adresu, kterou jste zadali. Přidejte nebo připojte tento účet v peněžence, nebo zadejte adresu, kterou obsahuje."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine %@-Wallet enthält die eingegebene Adresse nicht. Füge das Konto in der Wallet hinzu oder verbinde es dort. Oder gib eine Adresse ein, die sie enthält."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το πορτοφόλι %@ σας δεν περιέχει τη διεύθυνση που εισαγάγατε. Προσθέστε ή συνδέστε αυτόν τον λογαριασμό στο πορτοφόλι ή εισαγάγετε μια διεύθυνση που περιέχει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your %@ wallet doesn't have the address you entered. Add or connect that account in the wallet, or enter an address it has."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu billetera %@ no tiene la dirección que introdujiste. Añade o conecta esa cuenta en la billetera, o introduce una dirección que tenga."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu billetera %@ no tiene la dirección que ingresaste. Agrega o conecta esa cuenta en la billetera, o ingresa una dirección que tenga."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu cartera %@ no tiene la dirección que ingresaste. Agrega o conecta esa cuenta en la cartera, o ingresa una dirección que tenga."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre portefeuille %@ ne contient pas l'adresse que vous avez saisie. Ajoutez ou connectez ce compte dans le portefeuille, ou saisissez une adresse qu'il contient."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בארנק %@ שלכם אין את הכתובת שהזנתם. הוסיפו או חברו את החשבון הזה בארנק, או הזינו כתובת שקיימת בו."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके %@ वॉलेट में वह पता नहीं है जो आपने दर्ज किया है। उस खाते को वॉलेट में जोड़ें या कनेक्ट करें, या ऐसा पता दर्ज करें जो वॉलेट में हो।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dompet %@ Anda tidak memiliki alamat yang Anda masukkan. Tambahkan atau hubungkan akun tersebut di dompet, atau masukkan alamat yang ada di dompet itu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo portafoglio %@ non contiene l'indirizzo che hai inserito. Aggiungi o collega quell'account nel portafoglio, oppure inserisci un indirizzo che contiene."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お使いの%@ウォレットに、入力したアドレスがありません。ウォレットでそのアカウントを追加または接続するか、ウォレットにあるアドレスを入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 지갑에 입력한 주소가 없습니다. 지갑에서 해당 계정을 추가 또는 연결하거나, 지갑에 있는 주소를 입력하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je %@-wallet bevat het ingevoerde adres niet. Voeg dat account in de wallet toe of koppel het, of voer een adres in dat de wallet wel bevat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój portfel %@ nie zawiera wprowadzonego adresu. Dodaj lub połącz to konto w portfelu albo wprowadź adres, który się w nim znajduje."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sua carteira %@ não tem o endereço que introduziu. Adicione ou ligue essa conta na carteira, ou introduza um endereço que ela tenha."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua carteira %@ não tem o endereço que você digitou. Adicione ou conecte essa conta na carteira, ou digite um endereço que ela tenha."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sua carteira %@ não tem o endereço que introduziu. Adicione ou ligue essa conta na carteira, ou introduza um endereço que ela tenha."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В вашем кошельке %@ нет адреса, который вы ввели. Добавьте или подключите этот аккаунт в кошельке либо введите адрес, который в нём есть."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din %@-plånbok har inte adressen du angav. Lägg till eller anslut det kontot i plånboken, eller ange en adress som finns i den."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กระเป๋าเงิน %@ ของคุณไม่มีที่อยู่ที่คุณป้อน เพิ่มหรือเชื่อมต่อบัญชีนั้นในกระเป๋าเงิน หรือป้อนที่อยู่ที่มีอยู่ในกระเป๋าเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У вашому гаманці %@ немає адреси, яку ви ввели. Додайте або підключіть цей обліковий запис у гаманці чи введіть адресу, яка в ньому є."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ví %@ của bạn không có địa chỉ bạn đã nhập. Hãy thêm hoặc kết nối tài khoản đó trong ví, hoặc nhập một địa chỉ có trong ví."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的 %@ 钱包中没有您输入的地址。请在钱包中添加或连接该账户，或输入钱包中已有的地址。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 %@ 錢包中沒有你輸入的地址。請在錢包中新增或連接該帳戶，或輸入錢包中已有的地址。"
+          }
+        }
+      }
+    },
+    "Your %@ wallet has no account to sign with. Add or connect an account in the wallet, then try again." : {
+      "comment" : "Bittensor wallet error in the apps, when the ur.io bridge page returns no_account: the chosen wallet shared no account it can sign with (none is connected to the site, or it holds only accounts of another chain), so nothing was signed. The argument is the wallet product name (Talisman or WalletConnect).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا تحتوي محفظة %@ لديك على حساب للتوقيع به. أضف حسابًا أو اربطه في المحفظة، ثم حاول مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaše peněženka %@ nemá účet, kterým by mohla podepsat. Přidejte nebo připojte účet v peněžence a zkuste to znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine %@-Wallet hat kein Konto zum Signieren. Füge in der Wallet ein Konto hinzu oder verbinde eins und versuche es dann erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το πορτοφόλι %@ σας δεν έχει λογαριασμό για υπογραφή. Προσθέστε ή συνδέστε έναν λογαριασμό στο πορτοφόλι και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your %@ wallet has no account to sign with. Add or connect an account in the wallet, then try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu billetera %@ no tiene ninguna cuenta con la que firmar. Añade o conecta una cuenta en la billetera y vuelve a intentarlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu billetera %@ no tiene ninguna cuenta con la que firmar. Agrega o conecta una cuenta en la billetera y vuelve a intentarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu cartera %@ no tiene ninguna cuenta con la que firmar. Agrega o conecta una cuenta en la cartera y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre portefeuille %@ n'a aucun compte avec lequel signer. Ajoutez ou connectez un compte dans le portefeuille, puis réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בארנק %@ שלכם אין חשבון לחתימה. הוסיפו או חברו חשבון בארנק ונסו שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके %@ वॉलेट में हस्ताक्षर करने के लिए कोई खाता नहीं है। वॉलेट में कोई खाता जोड़ें या कनेक्ट करें, फिर दोबारा प्रयास करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dompet %@ Anda tidak memiliki akun untuk menandatangani. Tambahkan atau hubungkan akun di dompet, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo portafoglio %@ non ha un account con cui firmare. Aggiungi o collega un account nel portafoglio, poi riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お使いの%@ウォレットに、署名に使えるアカウントがありません。ウォレットでアカウントを追加または接続してから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 지갑에 서명할 계정이 없습니다. 지갑에서 계정을 추가하거나 연결한 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je %@-wallet heeft geen account om mee te ondertekenen. Voeg in de wallet een account toe of koppel er een, en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój portfel %@ nie ma konta, którym można podpisać. Dodaj lub połącz konto w portfelu, a potem spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sua carteira %@ não tem nenhuma conta para assinar. Adicione ou ligue uma conta na carteira e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua carteira %@ não tem nenhuma conta para assinar. Adicione ou conecte uma conta na carteira e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sua carteira %@ não tem nenhuma conta para assinar. Adicione ou ligue uma conta na carteira e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В вашем кошельке %@ нет аккаунта для подписи. Добавьте или подключите аккаунт в кошельке и попробуйте еще раз."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din %@-plånbok har inget konto att signera med. Lägg till eller anslut ett konto i plånboken och försök sedan igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กระเป๋าเงิน %@ ของคุณไม่มีบัญชีสำหรับลงนาม เพิ่มหรือเชื่อมต่อบัญชีในกระเป๋าเงิน แล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У вашому гаманці %@ немає облікового запису для підпису. Додайте або підключіть обліковий запис у гаманці й спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ví %@ của bạn không có tài khoản nào để ký. Hãy thêm hoặc kết nối một tài khoản trong ví rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的 %@ 钱包中没有可用于签名的账户。请在钱包中添加或连接一个账户，然后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 %@ 錢包中沒有可用於簽名的帳戶。請在錢包中新增或連接一個帳戶，然後再試一次。"
           }
         }
       }

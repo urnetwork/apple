@@ -92,8 +92,17 @@ enum ExtenderImportDecision: Equatable {
     /// its addresses could never be verified here, so the import is refused
     case foreignWithoutSettings(networkHost: String)
     /// a payload that can be imported. `requiresSettings` is a foreign network
-    /// whose addresses come only together with its settings.
-    case ready(count: Int, hasSettings: Bool, settingsHost: String, requiresSettings: Bool)
+    /// whose addresses come only together with its settings. `controlDohUrls`
+    /// are the bootstrap DoH servers the settings name, which replace this
+    /// space's when the settings are taken; empty when they name none, and an
+    /// import then leaves this space's alone.
+    case ready(
+        count: Int,
+        hasSettings: Bool,
+        settingsHost: String,
+        requiresSettings: Bool,
+        controlDohUrls: [String] = []
+    )
 }
 
 /// The decision for one decoded payload. Split from the sdk result so the
@@ -105,7 +114,8 @@ func extenderImportDecision(
     foreignHost: Bool,
     count: Int,
     hasSettings: Bool,
-    settingsHost: String
+    settingsHost: String,
+    controlDohUrls: [String] = []
 ) -> ExtenderImportDecision {
     guard ok, error.isEmpty else {
         return .invalid
@@ -118,7 +128,9 @@ func extenderImportDecision(
         count: count,
         hasSettings: hasSettings,
         settingsHost: settingsHost,
-        requiresSettings: foreignHost
+        requiresSettings: foreignHost,
+        // the servers ride only in a settings block
+        controlDohUrls: hasSettings ? controlDohUrls : []
     )
 }
 
@@ -130,8 +142,20 @@ func extenderImportDecision(_ result: SdkExtenderShareDecodeResult) -> ExtenderI
         foreignHost: result.foreignHost,
         count: result.count,
         hasSettings: result.hasSettings,
-        settingsHost: result.settingsHost
+        settingsHost: result.settingsHost,
+        controlDohUrls: controlDohStrings(result.controlDohUrls)
     )
+}
+
+/// The bootstrap DoH servers taking a payload's settings would set, as the
+/// import line lists them, or nil when it would set none. The importer's
+/// lookups of the space's names would go to them, which is why the switch and
+/// the confirmation name them.
+func extenderImportControlDohServers(_ decision: ExtenderImportDecision) -> String? {
+    guard case .ready(_, true, _, _, let controlDohUrls) = decision, !controlDohUrls.isEmpty else {
+        return nil
+    }
+    return controlDohUrls.joined(separator: ", ")
 }
 
 /// Whether the import action may run at all. A foreign network's payload is
@@ -140,7 +164,7 @@ func extenderImportAllowed(_ decision: ExtenderImportDecision, useSettings: Bool
     switch decision {
     case .invalid, .foreignWithoutSettings:
         return false
-    case .ready(_, _, _, let requiresSettings):
+    case .ready(_, _, _, let requiresSettings, _):
         return useSettings || !requiresSettings
     }
 }
@@ -155,7 +179,7 @@ func extenderImportNeedsConfirmation(_ decision: ExtenderImportDecision, useSett
     switch decision {
     case .invalid, .foreignWithoutSettings:
         return false
-    case .ready(_, let hasSettings, _, _):
+    case .ready(_, let hasSettings, _, _, _):
         return hasSettings
     }
 }

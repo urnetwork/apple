@@ -175,7 +175,7 @@
 		D1B95A6A2CEBDD6A00542E0E /* networkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A832CEBE76400542E0E /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		A1D000092F0D000100000009 /* URnetwork.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetwork.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1D000092F0D000100000009 /* URnetworkDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetworkDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = URnetworkVPNSystem.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -379,7 +379,7 @@
 				D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */,
 				B17E01012F0000010000A002 /* URnetworkWidgets.appex */,
 				1783A00D2D60111600024F80 /* URnetworkLaunchHelper */,
-				A1D000092F0D000100000009 /* URnetwork.app */,
+				A1D000092F0D000100000009 /* URnetworkDirect.app */,
 				A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */,
 			);
 			name = Products;
@@ -564,7 +564,7 @@
 				A1D0000F2F0D00010000000F /* GoogleSignInSwift */,
 			);
 			productName = network;
-			productReference = A1D000092F0D000100000009 /* URnetwork.app */;
+			productReference = A1D000092F0D000100000009 /* URnetworkDirect.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A1D000202F0D000100000020 /* URnetworkVPNSystem */ = {
@@ -1514,6 +1514,9 @@
 				UR_GOOGLE_URL_SCHEME = "$(DIRECT_GOOGLE_URL_SCHEME)";
 				UR_SHARED_KEYCHAIN_ACCESS_GROUP = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
 				UR_TUNNEL_PROVIDER_BUNDLE_ID = com.bringyour.urnetwork.extension;
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_NO = "$(TARGET_NAME).app";
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_YES = "$(PRODUCT_NAME).app";
+				WRAPPER_NAME = "$(UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_$(DEPLOYMENT_LOCATION))";
 				XROS_DEPLOYMENT_TARGET = 2.1;
 			};
 			name = Debug;
@@ -1594,6 +1597,9 @@
 				UR_GOOGLE_URL_SCHEME = "$(DIRECT_GOOGLE_URL_SCHEME)";
 				UR_SHARED_KEYCHAIN_ACCESS_GROUP = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
 				UR_TUNNEL_PROVIDER_BUNDLE_ID = com.bringyour.urnetwork.extension;
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_NO = "$(TARGET_NAME).app";
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_YES = "$(PRODUCT_NAME).app";
+				WRAPPER_NAME = "$(UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_$(DEPLOYMENT_LOCATION))";
 				XROS_DEPLOYMENT_TARGET = 2.1;
 			};
 			name = Release;

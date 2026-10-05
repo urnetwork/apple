@@ -378,9 +378,77 @@ func TestSharedInfoPlistUsesBuildSettings(t *testing.T) {
 	}
 }
 
-// With UR_DIRECT_APP pointing at a built URnetwork.app of the URnetworkDirect
-// scheme, the product itself is checked (skipped otherwise; the unsigned
-// macOS build in build.sh-style runs sets it).
+// The bundle an application target builds: its WRAPPER_NAME, or Xcode's
+// default $(PRODUCT_NAME).app, with every $(NAME) expanded innermost first
+// the way Xcode expands $(A_$(B)), for a build (DEPLOYMENT_LOCATION NO, into
+// a DerivedData's Build/Products/<Configuration>) or an archive (YES, into
+// the archive's Applications).
+func appBundleName(t *testing.T, target, configuration string, archive bool) string {
+	t.Helper()
+	buildSettingValues := targetBuildSettings(t, target, configuration)
+	buildSettingValues["TARGET_NAME"] = target
+	buildSettingValues["DEPLOYMENT_LOCATION"] = "NO"
+	if archive {
+		buildSettingValues["DEPLOYMENT_LOCATION"] = "YES"
+	}
+	name, ok := buildSettingValues["WRAPPER_NAME"]
+	if !ok {
+		name = "$(PRODUCT_NAME).app"
+	}
+	macroRe := regexp.MustCompile(`\$\((\w+)\)`)
+	for i := 0; i < 8 && strings.Contains(name, "$("); i++ {
+		name = macroRe.ReplaceAllStringFunc(name, func(macro string) string {
+			value, ok := buildSettingValues[macro[2:len(macro)-1]]
+			if !ok {
+				t.Fatalf("%s %s does not set %s", target, configuration, macro)
+			}
+			return value
+		})
+	}
+	if strings.Contains(name, "$(") {
+		t.Fatalf("%s %s bundle name does not expand: %q", target, configuration, name)
+	}
+	return name
+}
+
+// Both macOS app targets have PRODUCT_NAME URnetwork, and Xcode builds every
+// macOS target of a configuration into one Build/Products/<Configuration>
+// folder of a DerivedData: a target finds its Swift package products there
+// and embeds its extensions from there, so the folder cannot be split per
+// target. Under one bundle name each scheme built into the other's bundle,
+// and what only one family builds stayed behind: the App Store PlugIns in the
+// direct app (TestBuiltDirectProduct failed on them) and the direct system
+// extension in the App Store app. So the direct app builds as
+// URnetworkDirect.app, and only an install (an archive, DEPLOYMENT_LOCATION)
+// names it URnetwork.app, the name the Developer ID export, notarization, the
+// DMG and the updater zip use (UpdateInstallPlan.bundleName). Its executable,
+// CFBundleName and Swift module still come from PRODUCT_NAME.
+func TestDirectAppBuildsUnderItsOwnBundleName(t *testing.T) {
+	for _, configuration := range []string{"Debug", "Release"} {
+		// build.sh, the CI workflows and the build repo read the App Store
+		// build at Build/Products/<Configuration>/URnetwork.app
+		if got := appBundleName(t, "URnetwork", configuration, false); got != "URnetwork.app" {
+			t.Fatalf("URnetwork %s builds %s, want URnetwork.app", configuration, got)
+		}
+		if got := appBundleName(t, "URnetworkDirect", configuration, false); got != "URnetworkDirect.app" {
+			t.Fatalf("URnetworkDirect %s builds %s, want URnetworkDirect.app beside the App Store URnetwork.app", configuration, got)
+		}
+		for _, target := range []string{"URnetwork", "URnetworkDirect"} {
+			if got := appBundleName(t, target, configuration, true); got != "URnetwork.app" {
+				t.Fatalf("%s %s archives %s, want URnetwork.app", target, configuration, got)
+			}
+		}
+		if got := targetBuildSettings(t, "URnetworkDirect", configuration)["PRODUCT_NAME"]; got != "URnetwork" {
+			t.Fatalf("URnetworkDirect %s PRODUCT_NAME = %q, want URnetwork (the executable, CFBundleName and module)", configuration, got)
+		}
+	}
+}
+
+// With UR_DIRECT_APP pointing at a built app of the URnetworkDirect scheme
+// (URnetworkDirect.app in a DerivedData's Build/Products/<Configuration>, or
+// URnetwork.app from an archive or the Developer ID export), the product
+// itself is checked (skipped otherwise; the unsigned macOS build in
+// build.sh-style runs sets it).
 func TestBuiltDirectProduct(t *testing.T) {
 	app := os.Getenv("UR_DIRECT_APP")
 	if app == "" {
@@ -389,6 +457,10 @@ func TestBuiltDirectProduct(t *testing.T) {
 	info := plistJSON(t, filepath.Join(app, "Contents", "Info.plist"))
 	if info["CFBundleIdentifier"] != directApp {
 		t.Fatalf("CFBundleIdentifier = %v", info["CFBundleIdentifier"])
+	}
+	// whatever the bundle folder is called, the app in it is URnetwork
+	if info["CFBundleName"] != "URnetwork" || info["CFBundleExecutable"] != "URnetwork" {
+		t.Fatalf("CFBundleName / CFBundleExecutable = %v / %v", info["CFBundleName"], info["CFBundleExecutable"])
 	}
 	if got := stringList(info["NEVPNConfiguration"]); len(got) != 1 || got[0] != directTunnel {
 		t.Fatalf("NEVPNConfiguration = %v", got)

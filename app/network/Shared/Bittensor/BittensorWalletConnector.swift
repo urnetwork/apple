@@ -38,8 +38,11 @@ struct BittensorWalletProofInfo: Equatable {
 
 enum BittensorWalletOutcome: Equatable {
     case proof(BittensorWalletProofInfo)
-    /// the session refused the answer; code is a BittensorWalletError* value
-    case failed(code: String, walletMessage: String)
+    /// the session refused the answer; code is a BittensorWalletError* value.
+    /// For wallet_error from the bridge page, walletMessage is the page's text
+    /// and bridgeCode its code for the failure (BittensorWalletBridgeError*,
+    /// "" from a page before the codes)
+    case failed(code: String, walletMessage: String, bridgeCode: String = "")
     /// not this flow's answer (another purpose, a stray or late return):
     /// leave the flow as it is
     case ignored
@@ -127,18 +130,21 @@ enum BittensorWallet {
         SdkBittensorWalletErrorUnsupportedWallet,
     ]
 
-    static func outcome(proof: BittensorWalletProofInfo?, errorCode: String, errorMessage: String) -> BittensorWalletOutcome {
+    static func outcome(proof: BittensorWalletProofInfo?, errorCode: String, errorMessage: String, bridgeErrorCode: String = "") -> BittensorWalletOutcome {
         if let proof, errorCode.isEmpty {
             return .proof(proof)
         }
         if ignoredCodes.contains(errorCode) {
             return .ignored
         }
-        return .failed(code: errorCode, walletMessage: errorMessage)
+        return .failed(code: errorCode, walletMessage: errorMessage, bridgeCode: bridgeErrorCode)
     }
 
-    /// The user-facing text of a refusal.
-    static func errorText(code: String, walletMessage: String) -> String {
+    /// The user-facing text of a refusal. A wallet_error from the bridge page
+    /// reads in this app's words for the page's code when the app knows it,
+    /// else in the page's own text. walletId names the wallet in the texts
+    /// that take it.
+    static func errorText(code: String, walletMessage: String, bridgeCode: String = "", walletId: String = "") -> String {
         switch code {
         case SdkBittensorWalletErrorInvalidSignature:
             return String(localized: "That is not a valid signature. Paste the full 0x signature from your wallet.")
@@ -151,12 +157,38 @@ enum BittensorWallet {
         case SdkBittensorWalletErrorInvalidAddress:
             return String(localized: "That is not a valid Bittensor address.")
         case SdkBittensorWalletErrorWallet:
+            if let text = bridgeErrorText(bridgeCode, walletName: displayName(walletId)) {
+                return text
+            }
             // the bridge page's own text (the wallet's rejection)
             return walletMessage.isEmpty
                 ? String(localized: "There was an error connecting your wallet.")
                 : walletMessage
         default:
             return String(localized: "There was an error connecting your wallet.")
+        }
+    }
+
+    /// This app's words for the bridge page's code for a failure (sdk
+    /// BittensorWalletBridgeError*), nil for a code it does not know.
+    static func bridgeErrorText(_ bridgeCode: String, walletName: String) -> String? {
+        switch bridgeCode {
+        case SdkBittensorWalletBridgeErrorAddressNotInWallet:
+            return String(localized: "Your \(walletName) wallet doesn't have the address you entered. Add or connect that account in the wallet, or enter an address it has.")
+        case SdkBittensorWalletBridgeErrorAddressMismatch:
+            return String(localized: "The wallet that signed is not the address you entered.")
+        case SdkBittensorWalletBridgeErrorExtensionNotFound:
+            return String(localized: "The \(walletName) extension was not found in this browser. Install it, then try again.")
+        case SdkBittensorWalletBridgeErrorNoAccount:
+            return String(localized: "Your \(walletName) wallet has no account to sign with. Add or connect an account in the wallet, then try again.")
+        case SdkBittensorWalletBridgeErrorUserRejected:
+            return String(localized: "The request was declined in your wallet. Start again and approve it to continue.")
+        case SdkBittensorWalletBridgeErrorWalletConnectExpired:
+            return String(localized: "The WalletConnect request expired before the wallet answered. Start again.")
+        case SdkBittensorWalletBridgeErrorWalletConnectUnavailable:
+            return String(localized: "WalletConnect is not available right now. Try again later, or enter your address manually.")
+        default:
+            return nil
         }
     }
 }
@@ -228,7 +260,12 @@ final class SdkBittensorWalletSessionAdapter: BittensorWalletSessioning {
                 signature: $0.signature
             )
         }
-        return BittensorWallet.outcome(proof: proof, errorCode: result.errorCode, errorMessage: result.errorMessage)
+        return BittensorWallet.outcome(
+            proof: proof,
+            errorCode: result.errorCode,
+            errorMessage: result.errorMessage,
+            bridgeErrorCode: result.bridgeErrorCode
+        )
     }
 }
 
@@ -358,7 +395,7 @@ final class BittensorWalletConnector: ObservableObject {
         switch session.handleSignature(address: manualAddress, signature: manualSignature, nowMillis: now()) {
         case .proof(let proof):
             await finish(proof)
-        case .failed(let code, let walletMessage):
+        case .failed(let code, let walletMessage, _):
             if code == SdkBittensorWalletErrorExpired {
                 stage = .failed(BittensorWallet.errorText(code: code, walletMessage: walletMessage))
             } else {
@@ -385,8 +422,13 @@ final class BittensorWalletConnector: ObservableObject {
         switch session.handleBridgeReturn(url.absoluteString, nowMillis: now()) {
         case .proof(let proof):
             await finish(proof)
-        case .failed(let code, let walletMessage):
-            stage = .failed(BittensorWallet.errorText(code: code, walletMessage: walletMessage))
+        case .failed(let code, let walletMessage, let bridgeCode):
+            stage = .failed(BittensorWallet.errorText(
+                code: code,
+                walletMessage: walletMessage,
+                bridgeCode: bridgeCode,
+                walletId: session.walletId
+            ))
         case .ignored:
             break
         }

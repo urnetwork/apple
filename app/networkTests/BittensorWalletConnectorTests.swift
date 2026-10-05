@@ -107,6 +107,78 @@ struct BittensorWalletConnectorTests {
         #expect(BittensorWallet.errorText(code: "something_new", walletMessage: "x") == String(localized: "There was an error connecting your wallet."))
     }
 
+    // the bridge page hands a failure back with its code (sdk
+    // BittensorWalletResult.BridgeErrorCode) and its English text: a code
+    // this app knows reads in its own words, any other in the page's text
+    @Test func refusalTextsForTheBridgePagesCodes() {
+        let english = "The page's English text."
+        let texts: [(String, String)] = [
+            (SdkBittensorWalletBridgeErrorAddressNotInWallet, String(localized: "Your \("Talisman") wallet doesn't have the address you entered. Add or connect that account in the wallet, or enter an address it has.")),
+            (SdkBittensorWalletBridgeErrorAddressMismatch, String(localized: "The wallet that signed is not the address you entered.")),
+            (SdkBittensorWalletBridgeErrorExtensionNotFound, String(localized: "The \("Talisman") extension was not found in this browser. Install it, then try again.")),
+            (SdkBittensorWalletBridgeErrorNoAccount, String(localized: "Your \("Talisman") wallet has no account to sign with. Add or connect an account in the wallet, then try again.")),
+            (SdkBittensorWalletBridgeErrorUserRejected, String(localized: "The request was declined in your wallet. Start again and approve it to continue.")),
+            (SdkBittensorWalletBridgeErrorWalletConnectExpired, String(localized: "The WalletConnect request expired before the wallet answered. Start again.")),
+            (SdkBittensorWalletBridgeErrorWalletConnectUnavailable, String(localized: "WalletConnect is not available right now. Try again later, or enter your address manually.")),
+        ]
+        for (bridgeCode, text) in texts {
+            #expect(BittensorWallet.errorText(code: SdkBittensorWalletErrorWallet, walletMessage: english, bridgeCode: bridgeCode, walletId: SdkBittensorWalletTalisman) == text, "\(bridgeCode)")
+            #expect(!text.contains(english))
+        }
+        #expect(texts.first?.1.contains("Talisman") == true)
+        // a code this app does not know, the page's other failures, and a page before the codes
+        for bridgeCode in ["wallet_locked", SdkBittensorWalletBridgeErrorWallet, SdkBittensorWalletBridgeErrorInvalidRequest, ""] {
+            #expect(BittensorWallet.errorText(code: SdkBittensorWalletErrorWallet, walletMessage: english, bridgeCode: bridgeCode, walletId: SdkBittensorWalletTalisman) == english, "\(bridgeCode)")
+        }
+        // the session's own refusals keep their own message
+        #expect(BittensorWallet.errorText(code: SdkBittensorWalletErrorExpired, walletMessage: "", bridgeCode: SdkBittensorWalletBridgeErrorUserRejected) == String(localized: "This request expired. Start again to get a new message to sign."))
+        #expect(BittensorWallet.outcome(proof: nil, errorCode: SdkBittensorWalletErrorWallet, errorMessage: english, bridgeErrorCode: SdkBittensorWalletBridgeErrorUserRejected) == .failed(code: SdkBittensorWalletErrorWallet, walletMessage: english, bridgeCode: SdkBittensorWalletBridgeErrorUserRejected))
+    }
+
+    // …/apple/app/networkTests/BittensorWalletConnectorTests.swift -> …/apple/app
+    static let appRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+
+    @Test func theBridgeTextsAreTranslatedInEveryLocale() throws {
+        let data = try Data(contentsOf: Self.appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: Any])
+        // every locale the catalog ships a translation for
+        var locales = Set<String>()
+        for case let entry as [String: Any] in strings.values {
+            if let localizations = entry["localizations"] as? [String: Any] {
+                locales.formUnion(localizations.keys)
+            }
+        }
+        #expect(locales.contains("zh-Hans"))
+        for key in [
+            "Your %@ wallet doesn't have the address you entered. Add or connect that account in the wallet, or enter an address it has.",
+            "The %@ extension was not found in this browser. Install it, then try again.",
+            "Your %@ wallet has no account to sign with. Add or connect an account in the wallet, then try again.",
+            "The request was declined in your wallet. Start again and approve it to continue.",
+            "The WalletConnect request expired before the wallet answered. Start again.",
+            "WalletConnect is not available right now. Try again later, or enter your address manually.",
+        ] {
+            let entry = try #require(strings[key] as? [String: Any], "the catalog has no \(key)")
+            #expect(entry["extractionState"] as? String != "stale")
+            let localizations = try #require(entry["localizations"] as? [String: Any])
+            var missing: [String] = []
+            for locale in locales.sorted() {
+                let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+                guard let value = unit?["value"] as? String, !value.isEmpty else {
+                    missing.append(locale)
+                    continue
+                }
+                if locale != "en" {
+                    #expect(value != key, "\(locale) is English: \(key)")
+                }
+                #expect(value.contains("%@") == key.contains("%@"), "\(locale): \(value)")
+            }
+            #expect(missing.isEmpty, "not translated: \(missing) in \(key)")
+        }
+    }
+
     // MARK: connector, manual
 
     @Test func manualProofRefusesATypoThenAccepts() async {
@@ -297,6 +369,29 @@ struct BittensorWalletConnectorTests {
 
         await connector.handleBridgeReturn(Self.returnUrl(["errorCode": "-1", "errorMessage": "Cancelled", "purpose": "login"]))
         #expect(connector.stage == .failed("Cancelled"))
+    }
+
+    // the page's code goes through the real SDK session to the screen, in this
+    // app's words with the chosen wallet's name; a code the app does not know
+    // shows the page's text
+    @Test func bridgeErrorCodeShowsTheAppsOwnWords() async {
+        let english = "Your Talisman wallet doesn't have the address you entered. Add or connect that account in the wallet and try again, or enter your address manually."
+        let recorder = Recorder()
+        let talisman = Self.connector(platform: SdkBittensorWalletPlatformMacos, recorder: recorder)
+        await talisman.choose(walletId: "talisman", purpose: SdkBittensorWalletPurposeConnect, expectedAddress: Self.bob)
+        await talisman.handleBridgeReturn(Self.returnUrl(["errorCode": "address_not_in_wallet", "errorMessage": english, "purpose": "connect"]))
+        #expect(talisman.stage == .failed(String(localized: "Your \("Talisman") wallet doesn't have the address you entered. Add or connect that account in the wallet, or enter an address it has.")))
+
+        let walletConnect = Self.connector(platform: SdkBittensorWalletPlatformIos, recorder: recorder)
+        await walletConnect.choose(walletId: "walletconnect", purpose: SdkBittensorWalletPurposeLogin)
+        await walletConnect.handleBridgeReturn(Self.returnUrl(["errorCode": "user_rejected", "errorMessage": "User rejected.", "purpose": "login"]))
+        #expect(walletConnect.stage == .failed(String(localized: "The request was declined in your wallet. Start again and approve it to continue.")))
+
+        let unknown = Self.connector(platform: SdkBittensorWalletPlatformIos, recorder: recorder)
+        await unknown.choose(walletId: "walletconnect", purpose: SdkBittensorWalletPurposeLogin)
+        await unknown.handleBridgeReturn(Self.returnUrl(["errorCode": "wallet_locked", "errorMessage": "The wallet is locked.", "purpose": "login"]))
+        #expect(unknown.stage == .failed("The wallet is locked."))
+        #expect(recorder.proofs.isEmpty)
     }
 
     @Test func cancelDropsALateReturn() async {

@@ -68,6 +68,17 @@ struct ConnectActions: View {
     let referralLine: ReferralBonusLine
     // the usage bar referral row opens the one Referrals screen
     let openReferrals: () -> Void
+    // the usage bar's info button and the out-of-balance Why? open the
+    // "About your data" sheet
+    let openDataInfo: () -> Void
+    // why the balance is out (reserved or used up) and the reserved amount
+    // it names, from the last balance reading
+    let outOfBalanceKind: OutOfBalanceKind
+    let reservedByteCount: Int
+    // a connect insufficient balance blocked, waiting to be retried by
+    // itself; cancelBalanceRecovery is the refused start's Cancel
+    let balanceRecovery: BalanceRecoveryState
+    let cancelBalanceRecovery: () -> Void
     let isPro: Bool
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
@@ -108,6 +119,33 @@ struct ConnectActions: View {
         )
     }
 
+    private var notice: OutOfBalanceNotice {
+        outOfBalanceNotice(buttons: actionButtons, kind: outOfBalanceKind, recovery: balanceRecovery)
+    }
+
+    /// "You'll be reconnected when data is available again.", with Cancel for
+    /// a refused start, which has no Disconnect to stop it.
+    private var willReconnectLine: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("You'll be reconnected when data is available again.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("acceptance.insufficientBalance.willReconnect")
+
+            if notice.cancel {
+                Button(action: cancelBalanceRecovery) {
+                    Text("Cancel")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .underline()
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("acceptance.insufficientBalance.cancelReconnect")
+            }
+        }
+    }
+
     var body: some View {
             
             VStack {
@@ -133,14 +171,43 @@ struct ConnectActions: View {
                              * disconnect stays offered while a connect is
                              * requested, so the tunnel can always be released.
                              * The notice and both buttons sit above the fold
-                             * marker, so the collapsed drawer shows them.
+                             * marker, so the collapsed drawer shows them. The
+                             * notice leads with when the free data refreshes,
+                             * so upgrading does not read as the only way back.
                              */
 
-                            Text(InsufficientBalanceNotice.body)
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("acceptance.insufficientBalance.notice")
+                            if notice.refresh {
+                                HStack(alignment: .firstTextBaseline) {
+                                    FreeRefreshCountdownText()
+
+                                    Button(action: openDataInfo) {
+                                        Text("Why?")
+                                            .font(themeManager.currentTheme.secondaryBodyFont)
+                                            .underline()
+                                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier("acceptance.insufficientBalance.why")
+                                }
+                            }
+
+                            // reserved data comes back as connections close
+                            // (no time promised); used up waits for the
+                            // refresh or an upgrade
+                            OutOfBalanceKindText(kind: notice.kind, reservedByteCount: reservedByteCount)
+                                .accessibilityIdentifier("acceptance.insufficientBalance.kind")
+
+                            if notice.held {
+                                Text(InsufficientBalanceNotice.body)
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("acceptance.insufficientBalance.notice")
+                            }
+
+                            if notice.willReconnect {
+                                willReconnectLine
+                            }
                             
                             HStack {
                                 UrButton(
@@ -169,6 +236,15 @@ struct ConnectActions: View {
                              */
                          
                             /**
+                             * A start the gate refused waits on the balance
+                             * (the gate itself only shows while connected),
+                             * above the fold so the collapsed drawer shows it
+                             */
+                            if notice.willReconnect {
+                                willReconnectLine
+                            }
+
+                            /**
                              * Action buttons
                              */
                             if actionButtons.connect {
@@ -182,7 +258,28 @@ struct ConnectActions: View {
                                 .connectActionsFold()
                             }
 
-                            if actionButtons.disconnect {
+                            if actionButtons.retry {
+                                /**
+                                 * the connect failed: retry connects to the
+                                 * selected location again (the sdk rebuilds
+                                 * it), and disconnect stays the way out
+                                 */
+                                HStack {
+                                    UrButton(
+                                        text: "Retry",
+                                        action: connect,
+                                        accessibilityIdentifier: "acceptance.connect.retry"
+                                    )
+
+                                    UrButton(
+                                        text: "Disconnect",
+                                        action: disconnect,
+                                        style: .outlineSecondary,
+                                        accessibilityIdentifier: "acceptance.disconnect"
+                                    )
+                                }
+                                .connectActionsFold()
+                            } else if actionButtons.disconnect {
                                 UrButton(
                                     text: "Disconnect",
                                     action: disconnect,
@@ -265,10 +362,17 @@ struct ConnectActions: View {
                             
                             /**
                              * fixed IP
+                             * a Fixed IP window keeps its one exit for the session
+                             * (connect stickyExit): no hourly rotation, no spare
                              */
                             Toggle(isOn: $fixedIpSize) {
-                                Text("Fixed IP")
-                                    .font(themeManager.currentTheme.bodyFont)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Fixed IP")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                    Text("Keeps one exit for the session; changes only if that provider goes offline.")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                }
                             }
                             .disabled(selectedWindowType == .auto)
                             
@@ -354,7 +458,8 @@ struct ConnectActions: View {
                             meanReliabilityWeight: meanReliabilityWeight,
                             referralLine: referralLine,
                             dailyBalanceByteCount: dailyBalanceByteCount,
-                            openReferrals: openReferrals
+                            openReferrals: openReferrals,
+                            openDataInfo: openDataInfo
                         )
                         
                     }

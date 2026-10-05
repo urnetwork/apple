@@ -197,6 +197,127 @@ struct UsdcWalletsViewModelTests {
         #expect(!viewModel.isRemoving)
     }
 
+    // MARK: a removal that promotes another payout wallet
+
+    /// Removing the payout wallet makes another active Solana or Polygon wallet
+    /// of the network the payout wallet (server fix/remove-wallet-promote); the
+    /// removal names it so the Earnings screen says "Payouts now go to …".
+    @Test func removingThePayoutWalletNamesThePromotedWallet() async {
+        let client = FakeUsdcWalletsClient()
+        client.walletRows = [Self.wallet("solana"), Self.wallet("solana-2"), Self.wallet("polygon", chain: .matic)]
+        client.payoutId = "solana"
+        client.promoteOnRemove = "solana-2"
+        let viewModel = UsdcWalletsViewModel(client: client)
+        await viewModel.refresh()
+
+        let result = await viewModel.removeWallet("solana")
+        guard case .success(let promoted) = result else {
+            Issue.record("remove failed: \(result)")
+            return
+        }
+        #expect(promoted == Self.wallet("solana-2"))
+        #expect(viewModel.payoutWallet == Self.wallet("solana-2"))
+    }
+
+    @Test func removingThePayoutWalletWithNothingPromotedNamesNone() async {
+        let client = FakeUsdcWalletsClient()
+        client.walletRows = [Self.wallet("solana")]
+        client.payoutId = "solana"
+        let viewModel = UsdcWalletsViewModel(client: client)
+        await viewModel.refresh()
+
+        let result = await viewModel.removeWallet("solana")
+        guard case .success(let promoted) = result else {
+            Issue.record("remove failed: \(result)")
+            return
+        }
+        #expect(promoted == nil)
+    }
+
+    @Test func promotedPayoutWalletNeedsThePayoutWalletRemovedAndReplaced() {
+        let wallets = [Self.wallet("solana-2"), Self.wallet("polygon", chain: .matic)]
+        // the payout wallet was removed and another took its place
+        #expect(UsdcWalletsViewModel.promotedPayoutWallet(
+            removedId: "solana", priorPayoutWalletId: "solana", payoutWalletId: "polygon", wallets: wallets
+        ) == Self.wallet("polygon", chain: .matic))
+        // a wallet that was not the payout wallet
+        #expect(UsdcWalletsViewModel.promotedPayoutWallet(
+            removedId: "solana", priorPayoutWalletId: "solana-2", payoutWalletId: "solana-2", wallets: wallets
+        ) == nil)
+        // nothing promoted, or a payout read that failed and kept the removed id
+        #expect(UsdcWalletsViewModel.promotedPayoutWallet(
+            removedId: "solana", priorPayoutWalletId: "solana", payoutWalletId: nil, wallets: wallets
+        ) == nil)
+        #expect(UsdcWalletsViewModel.promotedPayoutWallet(
+            removedId: "solana", priorPayoutWalletId: "solana", payoutWalletId: "solana", wallets: wallets
+        ) == nil)
+        // a payout wallet that is not a USDC wallet (a Bittensor row)
+        #expect(UsdcWalletsViewModel.promotedPayoutWallet(
+            removedId: "solana", priorPayoutWalletId: "solana", payoutWalletId: "tao", wallets: wallets
+        ) == nil)
+    }
+
+    @Test func theEarningsScreenSaysWherePayoutsGo() throws {
+        // …/apple/app/networkTests/UsdcWalletsViewModelTests.swift -> …/apple/app
+        let appRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let view = try String(
+            contentsOf: appRoot.appendingPathComponent("network/Main/Account/Earnings/EarningsView.swift"),
+            encoding: .utf8
+        )
+        #expect(view.contains("case .success(let promoted?):"))
+        #expect(view.contains("String(localized: \"Payouts now go to \\(SnAlpha.shortSs58(promoted.address)).\")"))
+
+        let data = try Data(contentsOf: appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: Any])
+        let entry = try #require(strings["Payouts now go to %@."] as? [String: Any], "the catalog has no payouts line")
+        let localizations = try #require(entry["localizations"] as? [String: Any])
+        for locale in ["de", "ja", "zh-Hans", "ar"] {
+            let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+            let value = try #require(unit?["value"] as? String, "\(locale) is missing")
+            #expect(value.contains("%@"), "\(locale) drops the address")
+            #expect(value != "Payouts now go to %@.", "\(locale) is English")
+        }
+    }
+
+    /// Before the removal, the confirmation covers both outcomes: another of
+    /// the network's Solana or Polygon wallets takes over (the server picks
+    /// it), or USDC payouts are held while there is none. The retired line
+    /// said they were always held.
+    @Test func theRemoveConfirmationSaysPayoutsMoveOrAreHeld() throws {
+        let appRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let view = try String(
+            contentsOf: appRoot.appendingPathComponent("network/Main/Account/Earnings/EarningsView.swift"),
+            encoding: .utf8
+        )
+        let confirmation = "USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one."
+        let retired = "USDC payouts are held until another wallet is connected."
+        #expect(view.contains("Text(\"\(confirmation)\")"))
+        #expect(!view.contains(retired))
+
+        let data = try Data(contentsOf: appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: Any])
+        let entry = try #require(strings[confirmation] as? [String: Any], "the catalog has no remove confirmation")
+        #expect(entry["extractionState"] == nil)
+        let localizations = try #require(entry["localizations"] as? [String: Any])
+        // every locale the payouts line after the removal has
+        let promotedLine = try #require(strings["Payouts now go to %@."] as? [String: Any])
+        let locales = try #require(promotedLine["localizations"] as? [String: Any]).keys
+        #expect(Set(localizations.keys) == Set(locales))
+        for locale in locales where locale != "en" {
+            let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+            let value = try #require(unit?["value"] as? String, "\(locale) is missing")
+            #expect(value != confirmation, "\(locale) is English")
+            for name in ["USDC", "Solana", "Polygon"] {
+                #expect(value.contains(name), "\(locale) drops \(name)")
+            }
+        }
+        // xcode keeps a retired key as a stale entry
+        let retiredEntry = strings[retired] as? [String: Any]
+        #expect(retiredEntry == nil || retiredEntry?["extractionState"] as? String == "stale")
+    }
+
     @Test func aFailedRemoveReturnsTheErrorAndLeavesTheState() async {
         let client = FakeUsdcWalletsClient()
         client.walletRows = [Self.wallet("solana")]

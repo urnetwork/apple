@@ -162,6 +162,12 @@ struct AccountNavStackView: View {
                         .navigationTitle("Extenders")
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
 
+                case .vless:
+
+                    VlessSettingsView()
+                        .navigationTitle("VLESS")
+                        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
                 case .blockedLocations:
 
                     BlockedLocationsView(

@@ -58,7 +58,12 @@ struct ConnectButtonView: View {
                     
                     ConnectProcessingSubscriptionView()
                     
-                } else if (displayReconnectTunnel || (contractStatus?.insufficientBalance == true && currentPlan == .none)) {
+                } else if connectCanvasShowsWarning(
+                    connectionStatus: connectionStatus,
+                    displayReconnectTunnel: displayReconnectTunnel,
+                    insufficientBalance: contractStatus?.insufficientBalance == true,
+                    currentPlan: currentPlan
+                ) {
                     
                     ConnectErrorStateView()
                     
@@ -189,6 +194,22 @@ struct ConnectButtonView: View {
         
     }
     
+}
+
+/// The connector shows the warning in place of the provider grid while the
+/// tunnel needs reconnecting, while out of balance (not a supporter), and
+/// while the connect failed (the sdk's CONNECT_FAILED: no provider could be
+/// reached), as the desktop apps' connect canvas does in its error state. A
+/// provider that lands later, or a retry, brings the grid back.
+func connectCanvasShowsWarning(
+    connectionStatus: ConnectionStatus?,
+    displayReconnectTunnel: Bool,
+    insufficientBalance: Bool,
+    currentPlan: Plan
+) -> Bool {
+    displayReconnectTunnel
+        || (insufficientBalance && currentPlan == .none)
+        || connectionStatus == .connectFailed
 }
 
 #Preview {

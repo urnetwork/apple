@@ -5,7 +5,8 @@
 //  A scripted UsdcWalletsClient shared by the Solana wallet suites. It records
 //  every call and behaves like the server where that matters: linking a
 //  wallet makes it the payout wallet when the network has none, and removing
-//  the payout wallet drops the payout association.
+//  the payout wallet drops the payout association, or promotes
+//  `promoteOnRemove` in its place.
 //
 
 import Foundation
@@ -35,6 +36,8 @@ final class FakeUsdcWalletsClient: UsdcWalletsClient {
     var payoutIdError: Error?
     var setPayoutError: Error?
     var removeError: Error?
+    /// the wallet the server makes the payout wallet when the payout wallet is removed
+    var promoteOnRemove: String?
     var paymentRows: [UsdcPaymentInfo] = []
     var paymentsError: Error?
     /// runs in payments() after the call is recorded, before it returns
@@ -87,7 +90,7 @@ final class FakeUsdcWalletsClient: UsdcWalletsClient {
         }
         walletRows.removeAll { $0.id == id }
         if payoutId == id {
-            payoutId = nil
+            payoutId = promoteOnRemove
         }
     }
 

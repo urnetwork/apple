@@ -401,6 +401,17 @@ struct SettingsForm_macOS: View {
                             Spacer()
                         }
 
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        // what providing does while this Mac runs on battery
+                        HStack {
+                            ProvidePowerModePicker()
+
+                            Spacer()
+                        }
+
                         // the provider extender row (EXTENDER.md N7), only while
                         // the device reports the role supported, so an
                         // unsupported device shows this card as before
@@ -441,6 +452,49 @@ struct SettingsForm_macOS: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             navigate(.blockedLocations)
+                        }
+
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        /**
+                         * VLESS: a VLESS server the client strategy also
+                         * dials through, stored in the network space
+                         */
+                        HStack {
+                            Text("VLESS")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            navigate(.vless)
+                        }
+                        
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+                        
+                        // cloud proxies: the app has no protocol switch, so
+                        // WireGuard, SOCKS and HTTPS proxies are created on ur.io
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Use WireGuard / SOCKS / HTTPS proxy")
+                                Text("Opens ur.io in your browser. SOCKS and WireGuard need Pro.")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            #if canImport(AppKit)
+                            NSWorkspace.shared.open(CloudProxyLink.url)
+                            #endif
                         }
                         
                     }

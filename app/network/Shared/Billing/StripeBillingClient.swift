@@ -27,6 +27,10 @@ struct StripeCheckoutSessionResponse: Equatable {
 enum StripeBillingError: LocalizedError, Equatable {
     /// The server answered with an error message.
     case server(String)
+    /// The server refused the purchase because the network is a legacy guest
+    /// with no sign-in method (`guest_sign_in_required`): it adds one first
+    /// (GuestPurchaseGate), and no other checkout can sell it a plan.
+    case guestSignInRequired
     /// No usable answer (transport failure, or a session without the shape asked for).
     case unavailable
 
@@ -34,9 +38,15 @@ enum StripeBillingError: LocalizedError, Equatable {
         switch self {
         case .server(let message):
             return message
-        case .unavailable:
+        case .guestSignInRequired, .unavailable:
             return String(localized: "Something went wrong. Please try again later.")
         }
+    }
+
+    /// The error a refused payment sheet or checkout session throws: the
+    /// server's code when the app acts on it, else its message.
+    static func refused(code: String, message: String) -> StripeBillingError {
+        code == SdkPurchaseErrorCodeGuestSignInRequired ? .guestSignInRequired : .server(message)
     }
 }
 
@@ -91,7 +101,7 @@ final class SdkStripeBillingClient: StripeBillingClient {
             })
         }
         if let error = result.error {
-            throw StripeBillingError.server(error.message)
+            throw StripeBillingError.refused(code: error.code, message: error.message)
         }
         return StripePaymentSheetResponse(
             setupIntentClientSecret: result.setupIntentClientSecret,
@@ -118,7 +128,7 @@ final class SdkStripeBillingClient: StripeBillingClient {
             })
         }
         if let error = result.error {
-            throw StripeBillingError.server(error.message)
+            throw StripeBillingError.refused(code: error.code, message: error.message)
         }
         return StripeCheckoutSessionResponse(clientSecret: result.clientSecret, checkoutUrl: result.checkoutUrl)
     }

@@ -12,6 +12,8 @@ struct ReferralShareLink<Content: View>: View {
     
     // @StateObject var viewModel: ViewModel
     @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
+
+    @EnvironmentObject var deviceManager: DeviceManager
     
     let content: () -> Content
     
@@ -21,12 +23,12 @@ struct ReferralShareLink<Content: View>: View {
     }
     
     var body: some View {
-        // referrals no longer use deep links; share the code and friends enter
-        // it when they sign up. share a generic invite until the code loads
-        // (the poller keeps retrying), instead of permanently disabling sharing
+        // the code and its ur.io/c link (ReferralShare). share a generic invite
+        // until the code loads (the poller keeps retrying), instead of
+        // permanently disabling sharing
         let message: String = {
             if let code = referralLinkViewModel.referralCode, !code.isEmpty {
-                return String(localized: "Join me on URnetwork! Get the app and enter referral code \(code) when you sign up.")
+                return ReferralShare.text(code: code, networkSpace: deviceManager.networkSpace)
             }
             return String(localized: "Join me on URnetwork! Get the app and enter my referral code when you sign up.")
         }()

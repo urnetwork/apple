@@ -15,6 +15,7 @@ enum AccountNavigationPath: Hashable {
     case referrals
     case widgets
     case extenders
+    case vless
     case blockedLocations
     case transferBalanceCodes
     case providerContracts

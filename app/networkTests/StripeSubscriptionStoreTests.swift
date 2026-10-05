@@ -217,6 +217,52 @@ struct StripeSubscriptionStoreTests {
         #expect(store.purchaseError == "Something went wrong. Please try again later.")
     }
 
+    // MARK: a guest network
+
+    /// The server refuses every Stripe purchase of a legacy guest network with
+    /// `guest_sign_in_required`. No later stage can sell it a plan, so the store
+    /// stops there, shows no error and signals the add-sign-in sheet instead.
+    @Test @MainActor func aGuestRefusalOfThePaySheetStopsWithoutAnError() async {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.guestSignInRequired)
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_test_secret"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(client.calls == ["paymentSheet:yearly"])
+        #expect(store.guestSignInRequiredSequence == 1)
+        #expect(store.purchaseError == nil)
+        #expect(store.checkout == nil)
+        #expect(!store.isPurchasing)
+        #expect(!store.purchaseSuccess)
+        #expect(polled == 0)
+    }
+
+    @Test @MainActor func aGuestRefusalOfACheckoutSessionStopsToo() async {
+        // the embedded session
+        let client = FakeClient()
+        client.embedded = .failure(StripeBillingError.guestSignInRequired)
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.stripe.com/c/pay/cs_1"))
+        var opened: [URL] = []
+        let store = Self.store(client, opened: { opened.append($0); return true })
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded:never"])
+        #expect(opened.isEmpty)
+        #expect(store.guestSignInRequiredSequence == 1)
+        #expect(store.purchaseError == nil)
+        #expect(!store.isPurchasing)
+
+        // the hosted session, the last stage
+        client.calls.removeAll()
+        client.embedded = .failure(StripeBillingError.unavailable)
+        client.hosted = .failure(StripeBillingError.guestSignInRequired)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(client.calls == ["paymentSheet:yearly", "session:pro_yearly:embedded:never", "session:pro_yearly:hosted"])
+        #expect(store.guestSignInRequiredSequence == 2)
+        #expect(store.purchaseError == nil)
+        #expect(!store.isPurchasing)
+    }
+
     @Test @MainActor func aBrowserThatWillNotOpenIsAFailure() async {
         let client = FakeClient()
         client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.stripe.com/c/pay/cs_1"))

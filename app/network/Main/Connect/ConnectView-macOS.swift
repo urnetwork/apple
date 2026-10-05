@@ -63,6 +63,7 @@ import URnetworkSdk
         @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
         // the one Referrals screen, presented from the drawer's referral row
         @State private var isPresentedReferrals = false
+        @State private var isPresentedDataInfo = false
 
         init(
             api: SdkApi,
@@ -143,6 +144,13 @@ import URnetworkSdk
                                 openReferrals: {
                                     isPresentedReferrals = true
                                 },
+                                openDataInfo: {
+                                    isPresentedDataInfo = true
+                                },
+                                outOfBalanceKind: outOfBalanceKind(subscriptionBalanceViewModel.lastWidgetBalanceSnapshot),
+                                reservedByteCount: Int(subscriptionBalanceViewModel.lastWidgetBalanceSnapshot?.openTransferByteCount ?? 0),
+                                balanceRecovery: connectViewModel.balanceRecoveryState,
+                                cancelBalanceRecovery: connectViewModel.clearBalanceRecovery,
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
@@ -242,6 +250,14 @@ import URnetworkSdk
             .onChange(of: subscriptionBalanceViewModel.isPolling) { _ in
                 updateInsufficientBalanceGuards()
             }
+            // every balance reading feeds the recovery of a connect the
+            // balance blocked (ConnectViewModel.balanceReadingChanged)
+            .onChange(of: subscriptionBalanceViewModel.lastWidgetBalanceSnapshot) { _ in
+                connectViewModel.balanceReadingChanged()
+            }
+            .onChange(of: connectViewModel.balanceRecoveryRetryCount) { _ in
+                snackbarManager.showSnackbar(message: String(localized: "Data is available again. Reconnecting…"))
+            }
             .onAppear {
                 connectViewModel.updateGrid()
                 connectViewModel.refreshTunnelStatus()
@@ -280,6 +296,8 @@ import URnetworkSdk
                 .environmentObject(themeManager)
                 .frame(minWidth: 560, minHeight: 640)
             }
+            // "About your data", from the usage bar and the out-of-balance notice
+            .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 // a legacy guest adds a sign-in method to this network
@@ -349,6 +367,10 @@ import URnetworkSdk
                         restoreMessage: subscriptionStore.restoreResultMessage,
                         purchaseConfirmingTitle: subscriptionStore.purchaseConfirmingTitle,
                         purchaseConfirmingMessage: subscriptionStore.purchaseConfirmingMessage,
+                        showsFreeRefresh: upgradeShowsFreeRefresh(
+                            openedByStartConnectBlock: connectViewModel.upgradeOpenedByStartConnectBlock,
+                            isPro: isPro
+                        ),
                         dismiss: {
                             connectViewModel.isPresentedUpgradeSheet = false
                             // the purchase flags describe ONE attempt; letting them

@@ -10,8 +10,9 @@ import URnetworkSdk
  * Account > Extenders (EXTENDER.md K6).
  *
  * The three values of the active network space — the extender dns name, the
- * gossip url and the manual bootstrap hosts — plus the share and import
- * actions of K7, and the legacy single private extender behind Advanced.
+ * gossip url and the manual bootstrap hosts — plus its bootstrap DNS-over-HTTPS
+ * servers, the share and import actions of K7, and the legacy single private
+ * extender behind Advanced.
  *
  * Empty fields mean the derived default and show it as a placeholder, so
  * clearing a box is how a user goes back to it. Saving restarts the space's
@@ -25,6 +26,7 @@ struct ExtendersView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
 
     @StateObject private var store = ExtenderSettingsStore()
+    @StateObject private var controlDohStore = ControlDohSettingsStore()
 
     @State private var advancedExpanded: Bool = false
     @State private var presentedSheet: ExtenderSheet? = nil
@@ -88,6 +90,19 @@ struct ExtendersView: View {
                     #endif
 
                 }
+
+                Divider()
+                    .background(themeManager.currentTheme.borderBaseColor)
+
+                /**
+                 * The servers the space resolves its own names through ahead
+                 * of the default DoH servers. They save on their own, and are
+                 * off whenever the settings above are (no device to edit).
+                 */
+                ControlDohSettingsSection(
+                    store: controlDohStore,
+                    enabled: store.loaded && controlDohStore.loaded
+                )
 
                 Divider()
                     .background(themeManager.currentTheme.borderBaseColor)
@@ -164,6 +179,7 @@ struct ExtendersView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             store.setup(deviceManager)
+            controlDohStore.setup(deviceManager.networkSpace)
         }
         .onDisappear {
             store.reset()
@@ -174,7 +190,12 @@ struct ExtendersView: View {
                 case .share:
                     ShareExtendersView(store: store)
                 case .import:
-                    ImportExtendersView(store: store)
+                    ImportExtendersView(
+                        store: store,
+                        // an import with settings may have replaced the
+                        // space's bootstrap DoH servers
+                        onImported: { controlDohStore.reload() }
+                    )
                 }
             }
             .environmentObject(themeManager)

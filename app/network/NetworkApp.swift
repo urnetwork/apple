@@ -101,6 +101,10 @@ struct NetworkApp: App {
     @StateObject var transportSettingsStore = TransportSettingsStore()
     @StateObject var networkPeersStore = NetworkPeersStore()
     @StateObject var reliabilityStore = ReliabilityStore()
+    // this device's provider status from the server, for the provider statistics
+    @StateObject var providerStatusStore = ProviderStatusStore()
+    // what providing does on battery, and the power state (P077)
+    @StateObject var providePowerStore = ProvidePowerStore()
     // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
     @StateObject var deepLinkRouter = DeepLinkRouter()
 
@@ -196,6 +200,7 @@ struct NetworkApp: App {
         transportSettingsStore.setup(device, localState: localState)
         networkPeersStore.setup(device)
         reliabilityStore.setup(device)
+        providerStatusStore.setup(device)
     }
 
     private func resetDeviceStores() {
@@ -205,6 +210,7 @@ struct NetworkApp: App {
         transportSettingsStore.reset()
         networkPeersStore.reset()
         reliabilityStore.reset()
+        providerStatusStore.reset()
     }
 
     // Cold launch already gets a fresh JWT (the SDK's token manager refreshes
@@ -236,6 +242,7 @@ struct NetworkApp: App {
         switch transition {
         case .resume:
             deviceManager.applicationDidBecomeActive()
+            providePowerStore.applicationDidBecomeActive()
             updateConnectViewModel(deviceManager.device)
         case .suspend:
             deviceManager.applicationDidBecomeInactive()
@@ -320,6 +327,8 @@ struct NetworkApp: App {
                 .environmentObject(transportSettingsStore)
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
+                .environmentObject(providerStatusStore)
+                .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
@@ -390,6 +399,8 @@ struct NetworkApp: App {
                 .environmentObject(transportSettingsStore)
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
+                .environmentObject(providerStatusStore)
+                .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in

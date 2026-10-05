@@ -73,6 +73,18 @@ struct EarningsView: View {
                         Task {
                             await accountPointsStore.fetchAccountPoints()
                         }
+                    },
+                    payoutLine: viewModel.payoutLine(
+                        nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+                        formatTime: { SnPayoutLine.formatTime($0) }
+                    ),
+                    claim: {
+                        viewModel.resetClaimProgress()
+                        presentClaimSheet = true
+                    },
+                    setColdkey: {
+                        connectFlow.reset()
+                        presentConnectSheet = true
                     }
                 )
 
@@ -224,7 +236,11 @@ struct EarningsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("USDC payouts are held until another wallet is connected.")
+            // removing the payout wallet makes another of the network's Solana
+            // or Polygon wallets the payout wallet when there is one (the
+            // server picks it) and holds USDC payouts when there is none: one
+            // line for both
+            Text("USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one.")
         }
         .sheet(isPresented: $presentClaimSheet) {
             ClaimAlphaSheet(
@@ -410,8 +426,14 @@ struct EarningsView: View {
     }
 
     private func removeSolanaWallet(_ wallet: UsdcWalletInfo) async {
-        if case .failure(let error) = await usdcViewModel.removeWallet(wallet.id) {
+        switch await usdcViewModel.removeWallet(wallet.id) {
+        case .failure(let error):
             snackbarManager.showSnackbar(message: ConnectSolanaWalletFlow.errorMessage(for: error))
+        case .success(let promoted?):
+            // another wallet became the payout wallet: say where payouts go now
+            snackbarManager.showSnackbar(message: String(localized: "Payouts now go to \(SnAlpha.shortSs58(promoted.address))."))
+        case .success(nil):
+            break
         }
     }
 }

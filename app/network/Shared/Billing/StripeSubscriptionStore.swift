@@ -63,6 +63,10 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     @Published private(set) var checkout: StripeCheckoutRequest?
     /// The last hosted checkout URL handed to the browser (for the "opened in browser" state).
     private(set) var openedInBrowser: URL?
+    /// Bumped when the server refused a purchase because the network is a
+    /// legacy guest (`guest_sign_in_required`): MainView marks the network a
+    /// guest, so the purchase's GuestPurchaseGate opens the add-sign-in sheet.
+    @Published private(set) var guestSignInRequiredSequence: Int = 0
 
     /// Stripe has no restore; "restore" re-checks the plan with the server.
     let isRestoringPurchases: Bool = false
@@ -183,6 +187,10 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
                 checkout = StripeCheckoutRequest(id: attempt, stage: .paySheet, url: url)
                 return
             }
+        } catch StripeBillingError.guestSignInRequired {
+            guard attempt == self.attempt else { return }
+            refuseForGuest()
+            return
         } catch {
             guard attempt == self.attempt else { return }
             print("[StripeSubscriptionStore] payment sheet failed: \(error)")
@@ -209,6 +217,10 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
                 checkout = StripeCheckoutRequest(id: attempt, stage: .embedded, url: url)
                 return
             }
+        } catch StripeBillingError.guestSignInRequired {
+            guard attempt == self.attempt else { return }
+            refuseForGuest()
+            return
         } catch {
             guard attempt == self.attempt else { return }
             print("[StripeSubscriptionStore] embedded checkout failed: \(error)")
@@ -233,6 +245,9 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             purchaseSuccess = true
             isPurchasing = false
             onPurchaseSuccess?()
+        } catch StripeBillingError.guestSignInRequired {
+            guard attempt == self.attempt else { return }
+            refuseForGuest()
         } catch {
             guard attempt == self.attempt else { return }
             let message: String?
@@ -335,6 +350,21 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         attempt += 1
         checkout = nil
         isPurchasing = false
+    }
+
+    /// The server refused the purchase because the network is a legacy guest
+    /// (`guest_sign_in_required`). No fallback can sell it a plan and it is
+    /// not an error to show: the add-sign-in sheet opens instead
+    /// (guestSignInRequiredSequence).
+    private func refuseForGuest() {
+        if !outcomeEmitted {
+            outcomeEmitted = true
+            ClientEvents.shared.purchaseFailed(store: storeName, product: eventProduct, plan: eventPlan, trial: false, price: eventPrice, currency: eventCurrency, errorClass: SdkPurchaseErrorCodeGuestSignInRequired)
+        }
+        attempt += 1
+        checkout = nil
+        isPurchasing = false
+        guestSignInRequiredSequence += 1
     }
 
     private func fail(message: String?, errorClass: String) {

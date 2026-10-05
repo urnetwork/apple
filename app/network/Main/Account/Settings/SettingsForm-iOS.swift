@@ -287,6 +287,9 @@ struct SettingsForm_iOS: View {
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                 }
+
+                // what providing does while this device runs on battery
+                ProvidePowerModePicker()
                 
                 
                 UrSwitchToggle(isOn: Binding(
@@ -309,7 +312,46 @@ struct SettingsForm_iOS: View {
                     navigate(.blockedLocations)
                     // navigate to blocked
                 }
+
+                /**
+                 * VLESS: a VLESS server the client strategy also dials
+                 * through, stored in the network space
+                 */
+                HStack {
+                    Text("VLESS")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.vless)
+                }
                 
+                /**
+                 * Cloud proxies: the app has no protocol switch, so WireGuard,
+                 * SOCKS and HTTPS proxies are created on ur.io
+                 */
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Use WireGuard / SOCKS / HTTPS proxy")
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        Text("Opens ur.io in your browser. SOCKS and WireGuard need Pro.")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    Spacer()
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    #if canImport(UIKit)
+                    UIApplication.shared.open(CloudProxyLink.url, options: [:], completionHandler: nil)
+                    #endif
+                }
                 
             }
             

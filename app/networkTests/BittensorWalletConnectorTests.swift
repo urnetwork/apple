@@ -339,7 +339,7 @@ struct BittensorWalletConnectorTests {
         func syncChainSettings() async throws {}
         func gasKey() -> SnGasKeyInfo? { nil }
         func gasBalanceTao() async throws -> Double { 0 }
-        func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64) { ([], 0) }
+        func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?) { ([], 0, nil) }
         func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void) {}
         func accountEpochs() async throws -> [AccountEpochInfo] { [] }
         func head() async throws -> SnHeadInfo? { nil }

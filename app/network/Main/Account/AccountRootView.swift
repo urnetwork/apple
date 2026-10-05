@@ -30,6 +30,7 @@ struct AccountRootView: View {
 
     /// StoreKit's manage-subscriptions sheet (iOS; macOS opens the App Store page).
     @State private var isPresentedManageSubscriptions: Bool = false
+    @State private var isPresentedDataInfo: Bool = false
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     /// A Pro network's plan label replays the Pro celebration.
@@ -166,7 +167,9 @@ struct AccountRootView: View {
                             
                         /**
                          * An App Store subscription can only be changed or cancelled
-                         * through Apple; this hands off to it (see ManageSubscription).
+                         * through Apple; this hands off to it. A Pro plan billed
+                         * elsewhere opens ur.io's Manage Subscription (see
+                         * ManageSubscription).
                          */
                         if let manageAction = manageSubscriptionAction(
                             platform: .current,
@@ -191,6 +194,22 @@ struct AccountRootView: View {
                                                 snackbarManager.showSnackbar(message: String(localized: "Couldn't open the subscription portal. Please try again."))
                                             }
                                         }
+                                    case .manageOnWeb:
+                                        // a Pro plan this Apple ID does not bill
+                                        // (Stripe, Google Play): ur.io's Manage
+                                        // Subscription, signed in with a one-time
+                                        // code (one use, five minutes)
+                                        Task {
+                                            do {
+                                                let result = try await urApiService.createAuthCode()
+                                                guard let url = manageSubscriptionOnWebURL(authCode: result.authCode) else {
+                                                    throw URLError(.badURL)
+                                                }
+                                                openURL(url)
+                                            } catch {
+                                                snackbarManager.showSnackbar(message: String(localized: "Couldn't open the subscription portal. Please try again."))
+                                            }
+                                        }
                                     }
                                 }) {
                                     Text("Manage subscription")
@@ -208,7 +227,8 @@ struct AccountRootView: View {
                             meanReliabilityWeight: meanReliabilityWeight,
                             referralLine: referralLinkViewModel.referralBonusLine,
                             dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
-                            openReferrals: { openReferrals(isGuest: isGuest) }
+                            openReferrals: { openReferrals(isGuest: isGuest) },
+                            openDataInfo: { isPresentedDataInfo = true }
                         )
                         
                         /**
@@ -491,6 +511,8 @@ struct AccountRootView: View {
                 await subscriptionBalanceViewModel.fetchSubscriptionBalance()
             }
         }
+        // "About your data", from the usage bar's info button
+        .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
         .sheet(isPresented: $viewModel.isPresentedRedeemBalanceCodeSheet) {
             
             VStack {

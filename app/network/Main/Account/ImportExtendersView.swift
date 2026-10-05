@@ -20,7 +20,8 @@ import VisionKit
  * sdk decodes it and says what it would do, and nothing is applied until the
  * user acts on that. A payload naming another operator's network is refused
  * unless its settings are taken too, which replaces this space's extender dns
- * name, gossip url and trust anchor — so that case is confirmed first.
+ * name, gossip url and trust anchor, and its bootstrap DoH servers when the
+ * payload names any — so that case is confirmed first.
  *
  * Platforms (K8): iOS scans with VisionKit and decodes photos with Vision;
  * macOS takes a photo or a file and has no camera entry.
@@ -32,6 +33,9 @@ struct ImportExtendersView: View {
     @Environment(\.dismiss) private var dismiss
 
     @ObservedObject var store: ExtenderSettingsStore
+    /// after an import, which with settings may also have replaced the space's
+    /// bootstrap DoH servers
+    var onImported: () -> Void = {}
 
     /// the payload text behind the current decision
     @State private var payload: String = ""
@@ -118,6 +122,12 @@ struct ImportExtendersView: View {
                 runImport()
             }
             Button("Cancel", role: .cancel) {}
+        } message: {
+            // the settings also set the payload's bootstrap DoH servers, which
+            // would see this space's lookups
+            if let decision, let servers = extenderImportControlDohServers(decision) {
+                Text("This code also sets bootstrap DNS-over-HTTPS servers. They will see URnetwork's server lookups: \(servers)")
+            }
         }
     }
 
@@ -187,7 +197,7 @@ struct ImportExtendersView: View {
                 .foregroundColor(.urCoral)
                 .fixedSize(horizontal: false, vertical: true)
 
-        case .ready(let count, let hasSettings, let settingsHost, let requiresSettings):
+        case .ready(let count, let hasSettings, let settingsHost, let requiresSettings, _):
 
             Text("\(count) extenders")
                 .font(themeManager.currentTheme.bodyFont)
@@ -199,6 +209,15 @@ struct ImportExtendersView: View {
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                 }
+            }
+
+            if let servers = extenderImportControlDohServers(decision) {
+                // the settings would also set bootstrap DoH servers, which see
+                // this space's lookups: name them before they are taken
+                Text("This code also sets bootstrap DNS-over-HTTPS servers. They will see URnetwork's server lookups: \(servers)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if requiresSettings {
@@ -221,7 +240,7 @@ struct ImportExtendersView: View {
     /// The message of the settings confirmation: taking a payload's settings
     /// replaces this space's extender lookups (K7).
     private var settingsConfirmationMessage: Text {
-        guard case .ready(_, _, let settingsHost, _) = decision else {
+        guard case .ready(_, _, let settingsHost, _, _) = decision else {
             return Text(verbatim: "")
         }
         return Text("Use the extender settings from this code? Extender lookups will use \(settingsHost).")
@@ -236,7 +255,7 @@ struct ImportExtendersView: View {
         let decision = store.decodeShare(text)
         self.decision = decision
         // a foreign payload can only be taken with its settings, so start there
-        if case .ready(_, let hasSettings, _, let requiresSettings) = decision {
+        if case .ready(_, let hasSettings, _, let requiresSettings, _) = decision {
             useSettings = hasSettings && requiresSettings
         } else {
             useSettings = false
@@ -260,6 +279,7 @@ struct ImportExtendersView: View {
         let networkHost = payloadNetworkHost
         switch store.importShare(payload, useSettings: useSettings) {
         case .imported(let count):
+            onImported()
             snackbarManager.showSnackbar(
                 message: String(localized: "Imported \(count) extenders")
             )

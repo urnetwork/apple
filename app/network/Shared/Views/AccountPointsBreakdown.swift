@@ -76,7 +76,7 @@ struct AccountPointsBreakdown: View {
                     Text("Seeker Token Verified!")
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
-                    Text("The Seeker multiplier applies to points only.")
+                    Text("Doubles your points, free daily data and referral data.")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 }

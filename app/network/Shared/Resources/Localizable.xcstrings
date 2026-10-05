@@ -118373,6 +118373,173 @@
         }
       }
     },
+    "This signature isn't from the address you entered. In %@, sign the message with that address, then paste the signature again." : {
+      "comment" : "Bittensor wallet connect (Earnings), manual entry (TAO.com, or Talisman on a phone): the server refused the pasted signature because it does not verify for the address the user typed over the shown message (POST /sn/wallet error.code signature_mismatch). Usually the user signed with another account in the wallet. The server cannot tell which account signed. The argument is the wallet product name (TAO.com or Talisman).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا التوقيع ليس من العنوان الذي أدخلته. في %@، وقّع الرسالة باستخدام ذلك العنوان، ثم الصق التوقيع مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento podpis nepochází z adresy, kterou jste zadali. V peněžence %@ podepište zprávu touto adresou a potom podpis vložte znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Signatur stammt nicht von der eingegebenen Adresse. Signiere die Nachricht in %@ mit dieser Adresse und füge die Signatur dann erneut ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η υπογραφή δεν προέρχεται από τη διεύθυνση που εισαγάγατε. Στο %@, υπογράψτε το μήνυμα με αυτήν τη διεύθυνση και, στη συνέχεια, επικολλήστε ξανά την υπογραφή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This signature isn't from the address you entered. In %@, sign the message with that address, then paste the signature again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta firma no es de la dirección que introdujiste. En %@, firma el mensaje con esa dirección y vuelve a pegar la firma."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta firma no es de la dirección que ingresaste. En %@, firma el mensaje con esa dirección y vuelve a pegar la firma."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta firma no es de la dirección que ingresaste. En %@, firma el mensaje con esa dirección y vuelve a pegar la firma."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette signature ne provient pas de l'adresse que vous avez saisie. Dans %@, signez le message avec cette adresse, puis collez à nouveau la signature."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החתימה הזו אינה מהכתובת שהזנתם. ב-%@, חתמו על ההודעה עם הכתובת שהזנתם, ואז הדביקו שוב את החתימה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह हस्ताक्षर आपके दर्ज किए गए पते का नहीं है। %@ में उस पते से संदेश पर हस्ताक्षर करें, फिर हस्ताक्षर दोबारा पेस्ट करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanda tangan ini bukan dari alamat yang Anda masukkan. Di %@, tanda tangani pesan dengan alamat tersebut, lalu tempel tanda tangannya lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa firma non proviene dall'indirizzo che hai inserito. In %@, firma il messaggio con quell'indirizzo, poi incolla di nuovo la firma."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この署名は、入力したアドレスによるものではありません。%@ でそのアドレスを使ってメッセージに署名し、署名をもう一度貼り付けてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 서명은 입력한 주소의 서명이 아닙니다. %@에서 해당 주소로 메시지에 서명한 다음 서명을 다시 붙여 넣으세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze handtekening is niet van het adres dat je hebt ingevoerd. Onderteken het bericht in %@ met dat adres en plak de handtekening daarna opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten podpis nie pochodzi z wprowadzonego adresu. W portfelu %@ podpisz wiadomość tym adresem, a następnie ponownie wklej podpis."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta assinatura não é do endereço que introduziu. Na carteira %@, assine a mensagem com esse endereço e, em seguida, cole novamente a assinatura."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta assinatura não é do endereço que você digitou. Na carteira %@, assine a mensagem com esse endereço e depois cole a assinatura novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta assinatura não é do endereço que introduziu. Na carteira %@, assine a mensagem com esse endereço e, em seguida, cole novamente a assinatura."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта подпись сделана не с того адреса, который вы ввели. В кошельке %@ подпишите сообщение с введённого адреса, затем снова вставьте подпись."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här signaturen kommer inte från adressen du angav. Signera meddelandet med den adressen i %@ och klistra sedan in signaturen igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลายเซ็นนี้ไม่ได้มาจากที่อยู่ที่คุณป้อน ใน %@ ให้ลงนามข้อความด้วยที่อยู่นั้น แล้ววางลายเซ็นอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей підпис зроблено не з адреси, яку ви ввели. У гаманці %@ підпишіть повідомлення з цієї адреси, а потім знову вставте підпис."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chữ ký này không phải từ địa chỉ bạn đã nhập. Trong %@, hãy ký tin nhắn bằng địa chỉ đó, rồi dán lại chữ ký."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此签名不是来自您输入的地址。请在 %@ 中使用该地址签署消息，然后重新粘贴签名。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此簽署並非來自你輸入的地址。請在 %@ 中使用該地址簽署訊息，然後重新貼上簽署。"
+          }
+        }
+      }
+    },
     "This TLS fingerprint is not supported." : {
       "comment" : "VLESS settings error: the TLS fingerprint name is not one this app knows.",
       "localizations" : {

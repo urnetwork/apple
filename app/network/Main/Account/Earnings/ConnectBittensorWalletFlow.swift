@@ -210,7 +210,23 @@ final class ConnectBittensorWalletFlow: ObservableObject {
             let wallet = try await connect(address, signature, message)
             onConnected(wallet)
         } catch {
-            stage = .failed(error.localizedDescription)
+            stage = .failed(Self.failureText(error, walletId: walletId, platform: platform))
         }
+    }
+
+    /// What a refused connect shows. POST /sn/wallet refuses a pasted
+    /// signature that does not verify for the entered address: the user
+    /// signed with another account in the wallet (the server cannot say
+    /// which). Only a manual wallet pastes, so only then is the line about
+    /// signing again in that wallet; a browser-bridge signature and every
+    /// other refusal show the error as before.
+    static func failureText(_ error: Error, walletId: String?, platform: String) -> String {
+        if case EarningsClientError.signatureMismatch = error,
+           let walletId,
+           BittensorWallet.transport(walletId, platform: platform) == SdkBittensorWalletTransportManual {
+            let walletName = BittensorWallet.displayName(walletId)
+            return String(localized: "This signature isn't from the address you entered. In \(walletName), sign the message with that address, then paste the signature again.")
+        }
+        return error.localizedDescription
     }
 }

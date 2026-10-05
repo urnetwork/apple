@@ -318,6 +318,8 @@ struct BittensorWalletConnectorTests {
         var validations: [String] = []
         var connected: [(String, String, String)] = []
         var existsOnChain = true
+        // thrown by the next connectWallet calls instead of connecting
+        var connectError: Error?
         private struct Unsupported: Error {}
 
         func validateSs58(_ address: String) -> Bool { SdkValidateSs58(address) }
@@ -333,6 +335,9 @@ struct BittensorWalletConnectorTests {
         func fetchWallet() async throws -> SnWalletInfo? { nil }
         func connectWallet(coldkeySs58: String, signature: String, message: String) async throws -> SnWalletInfo {
             connected.append((coldkeySs58, signature, message))
+            if let connectError {
+                throw connectError
+            }
             return SnWalletInfo(coldkeySs58: coldkeySs58, clientId: "", setAtMillis: 0)
         }
         func observeWallet(_ onChange: @escaping (SnWalletInfo?) -> Void) -> EarningsSubscription { EarningsSubscription {} }
@@ -407,6 +412,64 @@ struct BittensorWalletConnectorTests {
         await flow.continueAnyway()
         #expect(client.connected.count == 1)
         #expect(client.connected.first?.0 == Self.bob)
+    }
+
+    // POST /sn/wallet refuses a pasted signature that does not verify for the
+    // entered address with error.code signature_mismatch, which the SDK keeps
+    // in SnError.code. The user signed with another account in the wallet; the
+    // server cannot say which.
+    static let serverMismatchMessage = "The signature does not match this coldkey address. Sign the challenge with this address."
+
+    /// An SnError as the SDK hands one to the client.
+    static func snError(code: String, message: String) -> SdkSnError {
+        let error = SdkSnError()
+        error.code = code
+        error.message = message
+        return error
+    }
+
+    @Test func earningsClientKeepsTheSignatureMismatchCode() {
+        #expect(EarningsSdkClient.error(Self.snError(code: "signature_mismatch", message: Self.serverMismatchMessage)) == .signatureMismatch(Self.serverMismatchMessage))
+        // any other code reads as before
+        #expect(EarningsSdkClient.error(Self.snError(code: "server_error", message: "400 invalid signature encoding")) == .message("server_error: 400 invalid signature encoding"))
+        #expect(EarningsSdkClient.error(nil) == nil)
+    }
+
+    @Test func earningsTaoComSignatureFromAnotherAccountSaysToSignWithTheEnteredAddress() async {
+        let recorder = Recorder()
+        let client = FakeClient()
+        client.connectError = EarningsClientError.signatureMismatch(Self.serverMismatchMessage)
+        let flow = Self.flow(platform: SdkBittensorWalletPlatformIos, client: client, recorder: recorder)
+
+        await flow.chooseWallet("taocom")
+        flow.manualAddress = Self.alice
+        await flow.submitManualAddress()
+        flow.connector.manualSignature = Self.signature
+        await flow.connector.submitManual()
+        #expect(client.connected.count == 1)
+        #expect(flow.stage == .failed("This signature isn't from the address you entered. In TAO.com, sign the message with that address, then paste the signature again."))
+
+        // Retry asks for a new challenge for the same address, then the pasted
+        // signature again
+        client.connectError = nil
+        await flow.retry()
+        #expect(flow.stage == .signing)
+        #expect(recorder.challengeArgs.count == 2)
+        #expect(recorder.challengeArgs.last?.walletAddress == Self.alice)
+    }
+
+    @Test func signatureMismatchTextNamesTheManualWalletOnly() {
+        let mismatch = EarningsClientError.signatureMismatch(Self.serverMismatchMessage)
+        // manual: TAO.com everywhere, Talisman on iOS
+        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "taocom", platform: SdkBittensorWalletPlatformMacos) == "This signature isn't from the address you entered. In TAO.com, sign the message with that address, then paste the signature again.")
+        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "talisman", platform: SdkBittensorWalletPlatformIos) == "This signature isn't from the address you entered. In Talisman, sign the message with that address, then paste the signature again.")
+        // a browser-bridge wallet signed with the account it returned: nothing
+        // was pasted, so the error reads as before
+        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "talisman", platform: SdkBittensorWalletPlatformMacos) == "signature_mismatch: \(Self.serverMismatchMessage)")
+        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "walletconnect", platform: SdkBittensorWalletPlatformIos) == "signature_mismatch: \(Self.serverMismatchMessage)")
+        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: nil, platform: SdkBittensorWalletPlatformIos) == "signature_mismatch: \(Self.serverMismatchMessage)")
+        // other refusals are unchanged
+        #expect(ConnectBittensorWalletFlow.failureText(EarningsClientError.message("server_error: 400 invalid signature encoding"), walletId: "taocom", platform: SdkBittensorWalletPlatformIos) == "server_error: 400 invalid signature encoding")
     }
 
     @Test func earningsTalismanOnIosIsManual() async {

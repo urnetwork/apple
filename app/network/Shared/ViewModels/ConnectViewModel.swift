@@ -130,7 +130,19 @@ class ConnectViewModel: ObservableObject {
     /**
      * Upgrade prompts
      */
-    @Published var isPresentedUpgradeSheet: Bool = false
+    @Published var isPresentedUpgradeSheet: Bool = false {
+        didSet {
+            if !isPresentedUpgradeSheet {
+                upgradeOpenedByStartConnectBlock = false
+            }
+        }
+    }
+
+    /// The upgrade sheet was opened by a start connect refused for the
+    /// balance (admitConnect), not by Get Pro or a link: the sheet then says
+    /// when the free data refreshes (upgradeShowsFreeRefresh). Cleared when the
+    /// sheet closes.
+    @Published private(set) var upgradeOpenedByStartConnectBlock = false
     
     private var api: SdkApi?
     var device: SdkDeviceRemote?
@@ -354,6 +366,7 @@ class ConnectViewModel: ObservableObject {
             case .connect:
                 proceed()
             case .upgrade:
+                self?.upgradeOpenedByStartConnectBlock = true
                 self?.isPresentedUpgradeSheet = true
                 onUpgrade?()
             }

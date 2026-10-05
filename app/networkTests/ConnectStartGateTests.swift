@@ -205,6 +205,39 @@ struct ConnectStartGateTests {
         #expect(!model.isPresentedUpgradeSheet)
     }
 
+    // MARK: the upgrade sheet's free refresh
+
+    /// A refused start opens the upgrade sheet marked as the balance block's,
+    /// so the sheet says when the free data refreshes and offers to wait for
+    /// it (upgradeShowsFreeRefresh). Closing the sheet clears the mark.
+    @Test func refusedStartMarksTheUpgradeSheetUntilItCloses() async {
+        let model = Self.model(cached: Self.balance(0))
+        #expect(!model.upgradeOpenedByStartConnectBlock)
+        #expect(!(await Self.recordsIntent(model) { model.connect() }))
+        #expect(model.isPresentedUpgradeSheet)
+        #expect(model.upgradeOpenedByStartConnectBlock)
+        model.isPresentedUpgradeSheet = false
+        #expect(!model.upgradeOpenedByStartConnectBlock)
+
+        // the refusal after a balance fetch marks it too
+        let fetched = Self.model(cached: Self.balance(Self.gib, age: 30 * 60), fetched: Self.balance(0))
+        #expect(!(await Self.recordsIntent(fetched) { fetched.connect() }))
+        #expect(fetched.upgradeOpenedByStartConnectBlock)
+    }
+
+    /// Get Pro, the onboarding offer link and a guest's purchase open the same
+    /// sheet without the mark, and a start that proceeds never sets it.
+    @Test func otherUpgradeEntriesAreNotMarked() async {
+        let model = Self.model(cached: Self.balance(Self.gib))
+        model.isPresentedUpgradeSheet = true
+        #expect(!model.upgradeOpenedByStartConnectBlock)
+        model.isPresentedUpgradeSheet = false
+
+        #expect(await Self.recordsIntent(model) { model.connect() })
+        #expect(!model.isPresentedUpgradeSheet)
+        #expect(!model.upgradeOpenedByStartConnectBlock)
+    }
+
     /// Lets the listener's main queue hop run.
     private static func drainMain() async {
         await withCheckedContinuation { continuation in

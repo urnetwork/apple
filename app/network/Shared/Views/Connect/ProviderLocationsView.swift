@@ -20,11 +20,16 @@ import URnetworkSdk
  * There is deliberately no device-location sync here. Core Location has no
  * injection point an app can reach on a shipping device (see
  * PROVIDERLOCATIONS.md, "Apple"), so the Android toggle has no counterpart.
+ *
+ * The selected row offers "Stay on this exit" (see `stayOnExitState`), which
+ * reconnects to that one provider by its client id.
  */
 struct ProviderLocationsView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var connectViewModel: ConnectViewModel
+    @Environment(\.dismiss) private var dismiss
 
     @StateObject private var store = ProviderLocationsStore()
     @StateObject private var identityStore = PostQuantumIdentityStore()
@@ -41,6 +46,12 @@ struct ProviderLocationsView: View {
             }
         }
         return byClientId
+    }
+
+    // the client id of the current location when it is a client id location
+    // (a stayed exit or a network peer)
+    private var stayingClientId: String? {
+        connectViewModel.selectedProvider?.connectLocationId?.clientId?.idStr
     }
 
     var body: some View {
@@ -92,7 +103,19 @@ struct ProviderLocationsView: View {
                                     row: row,
                                     selected: row.id == store.selectedClientId,
                                     onSelect: { store.select(row.id) },
-                                    pqIdenticon: pqIdenticonByClientId[row.id]
+                                    pqIdenticon: pqIdenticonByClientId[row.id],
+                                    stayState: stayOnExitState(
+                                        row,
+                                        selectedClientId: store.selectedClientId,
+                                        stayingClientId: stayingClientId
+                                    ),
+                                    // the context menu offers it on any provider
+                                    // the connection does not already stay on
+                                    onStay: stayOnExitState(
+                                        row,
+                                        selectedClientId: row.id,
+                                        stayingClientId: stayingClientId
+                                    ) == .offer ? { stayOnExit(row) } : nil
                                 )
                                 .listRowBackground(themeManager.currentTheme.backgroundColor)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -140,6 +163,15 @@ struct ProviderLocationsView: View {
         }
     }
 
+    /**
+     * Stay on this exit: reconnect to the one provider, through the same
+     * connect gate as a location pick, and return to the grid.
+     */
+    private func stayOnExit(_ row: ProviderLocationRow) {
+        connectViewModel.connect(stayOnExitLocation(row))
+        dismiss()
+    }
+
     private var unavailableState: some View {
         VStack {
             Spacer()
@@ -162,7 +194,8 @@ struct ProviderLocationsView: View {
  * One provider: a fixed-size country-color dot column on the left (so the row
  * never shifts when the selection ring appears) and four stacked labels on the
  * right — the client id (tap to copy), the place, the coordinates, and how long
- * the provider has been connected.
+ * the provider has been connected — then the "Stay on this exit" action on the
+ * selected row, or the line that says the connection already stays here.
  */
 private struct ProviderLocationRowView: View {
 
@@ -176,6 +209,9 @@ private struct ProviderLocationRowView: View {
     // only when the provider has an identity-verified end-to-end encrypted
     // session; rendered as a small badge to the right of the client id
     let pqIdenticon: IdenticonImage?
+    let stayState: StayOnExitState
+    // stays on this provider; nil when the connection already stays on it
+    let onStay: (() -> Void)?
 
     private static let rowPadding: CGFloat = 16
 
@@ -239,6 +275,30 @@ private struct ProviderLocationRowView: View {
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                         .lineLimit(1)
                 }
+
+                switch stayState {
+                case .offer:
+                    Text("Keeps this provider's IP address until it goes offline.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .padding(.top, 4)
+                    if let onStay {
+                        // borderless, so only the button takes the tap and the
+                        // row's own tap still selects
+                        Button(action: onStay) {
+                            Text("Stay on this exit")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                case .staying:
+                    Text("Staying on this exit. If it goes offline, choose another location.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .padding(.top, 4)
+                case .none:
+                    EmptyView()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -253,6 +313,11 @@ private struct ProviderLocationRowView: View {
                 copyClientId()
             } label: {
                 Label("Copy client ID", systemImage: "doc.on.doc")
+            }
+            if let onStay {
+                Button(action: onStay) {
+                    Label("Stay on this exit", systemImage: "pin")
+                }
             }
         }
     }
@@ -387,4 +452,88 @@ func providerConnectedDurationLabel(_ row: ProviderLocationRow, now: Date) -> St
         return String(format: String(localized: "%lldm"), minutes)
     }
     return String(format: String(localized: "%llds"), seconds)
+}
+
+// MARK: - stay on this exit
+//
+// "Stay on this exit" reconnects to one provider of the current connection, by
+// its client id, so new connections keep that provider's IP address. The SDK
+// dials a client id location directly (connect's fixed destination: nothing is
+// discovered and nothing replaces it), and the location is not marked as a
+// network peer, so the provider keeps carrying the traffic as the public exit
+// it already is. The rows are the user's own current exits, so this pins one
+// of them; it is not a way to browse or pick from all providers.
+
+/// What a provider row shows for "Stay on this exit".
+enum StayOnExitState: Equatable {
+    case none
+    /// the selected row offers the action
+    case offer
+    /// the connection already stays on this provider
+    case staying
+}
+
+/// The selected row offers to stay on its provider; the provider the connection
+/// already stays on says so instead, selected or not. `stayingClientId` is the
+/// client id of the current location when it is a client id location (a stayed
+/// exit or a network peer).
+func stayOnExitState(
+    _ row: ProviderLocationRow,
+    selectedClientId: String?,
+    stayingClientId: String?
+) -> StayOnExitState {
+    let clientId = row.id
+    if clientId.isEmpty {
+        return .none
+    }
+    if let stayingClientId, clientId.caseInsensitiveCompare(stayingClientId) == .orderedSame {
+        return .staying
+    }
+    if let selectedClientId, clientId.caseInsensitiveCompare(selectedClientId) == .orderedSame {
+        return .offer
+    }
+    return .none
+}
+
+/// "018f…5c6d": the first and last four characters of a client id, the form the
+/// Android connect drawer shows a client id location in. A short id is returned
+/// as it is.
+func shortClientId(_ clientId: String) -> String {
+    let id = clientId.trimmingCharacters(in: .whitespaces)
+    if id.count <= 12 {
+        return id
+    }
+    return "\(id.prefix(4))…\(id.suffix(4))"
+}
+
+/// "018f…5c6d · Berlin, Germany": the short client id, which is what makes the
+/// location one provider, then the city (or the region) and the country. The
+/// id comes first so a narrow drawer trims the place rather than the id. Just
+/// the short id when the server does not know where the provider is.
+func stayOnExitName(_ row: ProviderLocationRow) -> String {
+    let shortId = shortClientId(row.id)
+    guard row.hasLocation else {
+        return shortId
+    }
+    let place = [row.city.isEmpty ? row.region : row.city, row.country]
+        .filter { !$0.isEmpty }
+        .joined(separator: ", ")
+    return place.isEmpty ? shortId : "\(shortId) · \(place)"
+}
+
+/// The location "Stay on this exit" connects to: the provider alone, by its
+/// client id, as a public exit rather than one of the user's own network peers
+/// (which would egress under the network provide mode).
+func stayOnExitLocation(_ row: ProviderLocationRow) -> SdkConnectLocation {
+    let location = SdkConnectLocation()
+    let locationId = SdkConnectLocationId()
+    locationId.clientId = row.clientId
+    location.connectLocationId = locationId
+    location.name = stayOnExitName(row)
+    location.city = row.city
+    location.region = row.region
+    location.country = row.country
+    location.countryCode = row.countryCode
+    location.networkPeer = false
+    return location
 }

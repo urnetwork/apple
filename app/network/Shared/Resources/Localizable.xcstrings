@@ -42977,6 +42977,173 @@
         }
       }
     },
+    "Doubles your points, free daily data and referral data." : {
+      "comment" : "Seeker/Saga token multiplier: what a verified token gives. It doubles points and the free daily data and referral data grants; it does not grant Pro.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يضاعف نقاطك وبيانات الاستخدام اليومية المجانية وبيانات الإحالة."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zdvojnásobí vaše body, bezplatná denní data a data za doporučení."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verdoppelt deine Punkte, dein kostenloses Tagesdatenvolumen und dein Empfehlungsdatenvolumen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διπλασιάζει τους πόντους σας, τα δωρεάν ημερήσια δεδομένα και τα δεδομένα παραπομπών."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doubles your points, free daily data and referral data."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplica tus puntos, tus datos diarios gratuitos y tus datos por referidos."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplica tus puntos, tus datos diarios gratuitos y tus datos por referidos."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplica tus puntos, tus datos diarios gratuitos y tus datos por referidos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double vos points, vos données quotidiennes gratuites et vos données de parrainage."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מכפיל את הנקודות שלך, את הנתונים היומיים החינמיים ואת נתוני ההפניות."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके पॉइंट, मुफ़्त दैनिक डेटा और रेफ़रल डेटा को दोगुना करता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menggandakan poin, data harian gratis, dan data referral Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raddoppia i tuoi punti, i dati giornalieri gratuiti e i dati dei referral."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポイント、無料の毎日のデータ、紹介データが 2 倍になります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "포인트, 무료 일일 데이터, 추천 데이터가 두 배가 됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verdubbelt je punten, gratis dagelijkse data en verwijzingsdata."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podwaja Twoje punkty, darmowe dzienne dane i dane za polecenia."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dobra seus pontos, dados diários gratuitos e dados de indicação."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dobra seus pontos, dados diários gratuitos e dados de indicação."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplica os seus pontos, os dados diários gratuitos e os dados de referência."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удваивает ваши очки, бесплатные ежедневные данные и данные за рефералов."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fördubblar dina poäng, gratis daglig data och värvningsdata."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพิ่มคะแนน ดาต้าฟรีรายวัน และดาต้าจากการแนะนำของคุณเป็นสองเท่า"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подвоює ваші бали, безкоштовні щоденні дані та дані за запрошення."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhân đôi điểm, dữ liệu miễn phí hằng ngày và dữ liệu giới thiệu của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将你的积分、每日免费流量和推荐流量翻倍。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將你的積分、每日免費數據及推薦數據加倍。"
+          }
+        }
+      }
+    },
     "Dualstack" : {
       "comment" : "Column label of the IP version status row in the connect drawer, for providers that carry both IPv4 and IPv6. Set in the pixel display face beside the IPv4 and IPv6 labels, so keep it short.",
       "localizations" : {
@@ -100058,6 +100225,7 @@
     },
     "The Seeker multiplier applies to points only." : {
       "comment" : "Note on the Seeker verification action.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import URnetworkSdk
 @testable import URnetwork
 
 /// The ur.io pay/checkout URLs and their urnetwork:// returns (direct-download macOS build).
@@ -94,6 +95,64 @@ struct StripeCheckoutLinksTests {
         #expect(!BillingDeepLink.checkoutFailed(code: "-1", message: nil).isConfirmed)
         #expect(BillingDeepLink.checkoutFailed(code: "-1", message: "declined").errorMessage == "declined")
         #expect(BillingDeepLink.payDone.errorMessage == nil)
+    }
+
+    // the checkout page hands a failure back with its code (SDK
+    // CheckoutBridgeError*) and its English text: a code this app knows reads
+    // in its own words, any other in the page's text
+    @Test func checkoutFailuresReadInTheAppsWordsForTheCodesItKnows() {
+        let english = "The page's English text."
+        #expect(BillingDeepLink.checkoutFailed(code: SdkCheckoutBridgeErrorUnavailable, message: english).errorMessage
+            == String(localized: "Checkout isn't available right now. Please try again later."))
+        #expect(BillingDeepLink.checkoutFailed(code: SdkCheckoutBridgeErrorStripeUnavailable, message: english).errorMessage
+            == String(localized: "The payment form couldn't load. Check your internet connection, then try again."))
+        // the page's other failures, a code this app does not know, a page
+        // before the codes, and no code
+        let others: [String?] = [SdkCheckoutBridgeErrorInvalidRequest, SdkCheckoutBridgeErrorCheckout, "checkout_paused", "-1", nil]
+        for code in others {
+            #expect(BillingDeepLink.checkoutFailed(code: code, message: english).errorMessage == english, "\(code ?? "no code")")
+        }
+        // as the page sends it
+        #expect(BillingDeepLink(url: URL(string: "urnetwork://checkout?errorCode=stripe_unavailable&errorMessage=Could+not+load+Stripe.")!)?.errorMessage
+            == String(localized: "The payment form couldn't load. Check your internet connection, then try again."))
+    }
+
+    // …/apple/app/networkTests/StripeCheckoutLinksTests.swift -> …/apple/app
+    private static let appRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+
+    @Test func theCheckoutFailureTextsAreTranslatedInEveryLocale() throws {
+        let data = try Data(contentsOf: Self.appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: Any])
+        var locales = Set<String>()
+        for case let entry as [String: Any] in strings.values {
+            if let localizations = entry["localizations"] as? [String: Any] {
+                locales.formUnion(localizations.keys)
+            }
+        }
+        #expect(locales.contains("zh-Hans"))
+        for key in [
+            "Checkout isn't available right now. Please try again later.",
+            "The payment form couldn't load. Check your internet connection, then try again.",
+        ] {
+            let entry = try #require(strings[key] as? [String: Any], "the catalog has no \(key)")
+            #expect(entry["extractionState"] as? String != "stale")
+            let localizations = try #require(entry["localizations"] as? [String: Any])
+            var missing: [String] = []
+            for locale in locales.sorted() {
+                let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+                guard let value = unit?["value"] as? String, !value.isEmpty else {
+                    missing.append(locale)
+                    continue
+                }
+                if locale != "en" {
+                    #expect(value != key, "\(locale) is English: \(key)")
+                }
+            }
+            #expect(missing.isEmpty, "not translated: \(missing) in \(key)")
+        }
     }
 
     // MARK: the pay page's message

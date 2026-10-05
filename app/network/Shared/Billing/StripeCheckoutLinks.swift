@@ -18,7 +18,10 @@
 //  no card data ever touches the app — and hands control back by navigating
 //  to the redirect_link:
 //    done:  urnetwork://checkout?status=complete&session_id=cs_...
-//    error: urnetwork://checkout?errorCode=-1&errorMessage=...
+//    error: urnetwork://checkout?errorCode=<code>&errorMessage=...
+//  The error's code is one of the SDK's CheckoutBridgeError* (-1 from pages
+//  before the codes): the app shows its own words for a code it knows and
+//  the page's English text for any other.
 //  The session is redirect_on_completion "never", and the url says so, so the
 //  done hand-back comes from Stripe's onComplete on the page, in place, not
 //  from a redirect through the server's return_url (the SDK's
@@ -57,15 +60,16 @@ enum BillingDeepLink: Equatable {
         }
     }
 
-    /// The failure's message, when the page gave one.
+    /// The failure's message, when the page gave one: for embedded checkout,
+    /// this app's words for a code it knows, else the page's own text.
     var errorMessage: String? {
         switch self {
         case .payDone, .checkoutComplete:
             return nil
         case .payError(let message):
             return message
-        case .checkoutFailed(_, let message):
-            return message
+        case .checkoutFailed(let code, let message):
+            return StripeCheckoutLinks.checkoutErrorText(code: code) ?? message
         }
     }
 }
@@ -218,6 +222,24 @@ enum StripeCheckoutLinks {
             return nil
         }
         return value
+    }
+
+    /// This app's words for the checkout page's code for a failure (SDK
+    /// CheckoutBridgeError*), nil for any other: the page's invalid_request
+    /// and checkout_error, whose text says what, and the -1 of pages before
+    /// the codes.
+    static func checkoutErrorText(code: String?) -> String? {
+        guard let code else {
+            return nil
+        }
+        switch code {
+        case SdkCheckoutBridgeErrorUnavailable:
+            return String(localized: "Checkout isn't available right now. Please try again later.")
+        case SdkCheckoutBridgeErrorStripeUnavailable:
+            return String(localized: "The payment form couldn't load. Check your internet connection, then try again.")
+        default:
+            return nil
+        }
     }
 
     // MARK: the pay page's message

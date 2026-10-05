@@ -104,13 +104,17 @@ final class UsdcWalletsViewModel: ObservableObject {
         loadedOnce = true
     }
 
-    /// Removes the wallet, then refreshes. The server drops the payout wallet
-    /// with it, so USDC payouts are held until another wallet is connected.
-    func removeWallet(_ id: String) async -> Result<Void, Error> {
+    /// Removes the wallet, then refreshes. Removing the payout wallet makes
+    /// another active Solana or Polygon wallet of the network the payout
+    /// wallet when there is one (server fix/remove-wallet-promote); the
+    /// success value is that wallet, for "Payouts now go to …". With none,
+    /// USDC payouts are held until another wallet is connected.
+    func removeWallet(_ id: String) async -> Result<UsdcWalletInfo?, Error> {
         guard !isRemoving else {
             return .failure(UsdcWalletsClientError.message("A wallet is already being removed"))
         }
         isRemoving = true
+        let priorPayoutWalletId = payoutWalletId
         do {
             try await client.removeWallet(id: id)
         } catch {
@@ -120,7 +124,30 @@ final class UsdcWalletsViewModel: ObservableObject {
         walletQueuedForRemoval = nil
         await refresh()
         isRemoving = false
-        return .success(())
+        return .success(Self.promotedPayoutWallet(
+            removedId: id,
+            priorPayoutWalletId: priorPayoutWalletId,
+            payoutWalletId: payoutWalletId,
+            wallets: wallets
+        ))
+    }
+
+    /// The wallet payouts go to after `removedId` was removed, from the refresh
+    /// that followed: nil when the removed wallet was not the payout wallet,
+    /// when nothing took its place (an older server, or no other Solana or
+    /// Polygon wallet), or when the new payout wallet is not a USDC wallet.
+    static func promotedPayoutWallet(
+        removedId: String,
+        priorPayoutWalletId: String?,
+        payoutWalletId: String?,
+        wallets: [UsdcWalletInfo]
+    ) -> UsdcWalletInfo? {
+        guard priorPayoutWalletId == removedId,
+              let payoutWalletId,
+              payoutWalletId != removedId else {
+            return nil
+        }
+        return wallets.first { $0.id == payoutWalletId }
     }
 }
 

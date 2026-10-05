@@ -26,6 +26,7 @@ struct ProviderIdleReasonTests {
             controlMode: controlMode,
             liveProvideMode: live,
             providePaused: paused,
+            powerPauseReason: nil,
             provideNetworkMode: network,
             recentProviderBytes: bytes
         )
@@ -117,6 +118,8 @@ struct ProviderIdleReasonTests {
             .networkOnly: "Shared only with your own devices. Choose Always to share with everyone.",
             .pausedWifiOnly: "Paused: providing is set to Wi-Fi only, and this device isn't on Wi-Fi.",
             .pausedNoNetwork: "Paused: this device can't provide on its current network.",
+            .pausedLowPower: "Paused: Low Power Mode is on.",
+            .pausedNotCharging: "Paused: this device isn't charging.",
             .noTrafficYet: "New providers need several hours of steady uptime and a speed test before clients are sent to them. Traffic also depends on demand in your region.",
         ]
         #expect(ProviderIdleReason.none.text == nil)

@@ -16,6 +16,7 @@ struct ProviderStatsSection: View {
     @EnvironmentObject var transportSettingsStore: TransportSettingsStore
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var providerStatusStore: ProviderStatusStore
+    @EnvironmentObject var providePowerStore: ProvidePowerStore
 
     let navigate: (AccountNavigationPath) -> Void
 
@@ -41,6 +42,7 @@ struct ProviderStatsSection: View {
             controlMode: deviceManager.provideControlMode,
             liveProvideMode: deviceManager.currentProvideMode,
             providePaused: deviceManager.providePaused,
+            powerPauseReason: providePowerStore.powerPauseReason,
             provideNetworkMode: providerIdleNetworkMode(
                 allowProvidingCell: deviceManager.allowProvidingCell
             ),

@@ -27,17 +27,25 @@ enum ProviderIdleReason: Equatable, CaseIterable {
     /// "all", and always below iOS 18 / macOS 15 (`canProvideOnNetwork`).
     /// The text stays true in every one of those cases.
     case pausedNoNetwork
+    /// paused for Low Power Mode, or off external power for a provider set to
+    /// provide only while charging (P077)
+    case pausedLowPower
+    case pausedNotCharging
     case noTrafficYet
 }
 
 /// The idle reason from the live provide state. The first match wins:
 /// a mode that is not shared with everyone, then a pause, then no traffic.
+/// A pause the battery explains says so: the app sees the power state, not
+/// the extension's network path.
 ///
 /// - Parameters:
 ///   - controlMode: the provide mode the user picked; nil when the device
 ///     reports a mode this build does not know (the sdk's `manual`)
 ///   - liveProvideMode: the device's live provide mode (`SdkProvideMode*`)
 ///   - providePaused: whether the device paused providing
+///   - powerPauseReason: the battery's reason to pause from the same power
+///     state and mode the extension reads (ProvidePausePolicy), nil for none
 ///   - provideNetworkMode: `.WiFi` when providing is set to Wi-Fi only
 ///   - recentProviderBytes: the bytes this device relayed in the throughput
 ///     window
@@ -45,6 +53,7 @@ func providerIdleReason(
     controlMode: ProvideControlMode?,
     liveProvideMode: Int,
     providePaused: Bool,
+    powerPauseReason: ProvidePauseReason?,
     provideNetworkMode: ProvideNetworkMode,
     recentProviderBytes: Int64
 ) -> ProviderIdleReason {
@@ -60,6 +69,14 @@ func providerIdleReason(
         break
     }
     if providePaused {
+        switch powerPauseReason {
+        case .lowPowerMode:
+            return .pausedLowPower
+        case .notCharging:
+            return .pausedNotCharging
+        case .network, nil:
+            break
+        }
         return provideNetworkMode == .WiFi ? .pausedWifiOnly : .pausedNoNetwork
     }
     if liveProvideMode == SdkProvideModePublic && recentProviderBytes == 0 {
@@ -97,6 +114,10 @@ extension ProviderIdleReason {
             return "Paused: providing is set to Wi-Fi only, and this device isn't on Wi-Fi."
         case .pausedNoNetwork:
             return "Paused: this device can't provide on its current network."
+        case .pausedLowPower:
+            return "Paused: Low Power Mode is on."
+        case .pausedNotCharging:
+            return "Paused: this device isn't charging."
         case .noTrafficYet:
             return "New providers need several hours of steady uptime and a speed test before clients are sent to them. Traffic also depends on demand in your region."
         }

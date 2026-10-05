@@ -401,6 +401,17 @@ struct SettingsForm_macOS: View {
                             Spacer()
                         }
 
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        // what providing does while this Mac runs on battery
+                        HStack {
+                            ProvidePowerModePicker()
+
+                            Spacer()
+                        }
+
                         // the provider extender row (EXTENDER.md N7), only while
                         // the device reports the role supported, so an
                         // unsupported device shows this card as before

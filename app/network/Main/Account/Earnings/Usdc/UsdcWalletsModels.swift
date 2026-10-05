@@ -49,6 +49,12 @@ enum UsdcFormat {
     static func usd(nanoCents: Int64) -> String {
         String(format: "%.2f", Double(nanoCents) / 1_000_000_000)
     }
+
+    /// "Final USDC payout: 3.87 USDC waiting". Payouts moved to the UR
+    /// subnet, so the USDC still pending is the last USDC payout.
+    static func finalPayoutWaiting(_ pendingUsd: String) -> String {
+        String(localized: "Final USDC payout: \(pendingUsd) USDC waiting")
+    }
 }
 
 enum UsdcWalletsClientError: LocalizedError, Equatable {

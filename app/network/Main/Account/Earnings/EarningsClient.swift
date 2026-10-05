@@ -53,7 +53,9 @@ protocol EarningsClient: AnyObject {
     func syncChainSettings() async throws
     func gasKey() -> SnGasKeyInfo?
     func gasBalanceTao() async throws -> Double
-    func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64)
+    /// the vault claims, with the current epoch's schedule when the SDK could
+    /// read the coordinator's policy
+    func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?)
     func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void)
 
     // points history and head spot
@@ -289,7 +291,7 @@ final class EarningsSdkClient: EarningsClient {
         return result.tao
     }
 
-    func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64) {
+    func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?) {
         let device = try requireDevice()
         let result: SdkSnClaimsResult = try await withCheckedThrowingContinuation { continuation in
             let callback = SnClaimsCallback { result, err in
@@ -324,7 +326,16 @@ final class EarningsSdkClient: EarningsClient {
                 ))
             }
         }
-        return (claims, result.totalClaimableRao)
+        var schedule: SnEpochScheduleInfo?
+        if let sdkSchedule = result.schedule {
+            schedule = SnEpochScheduleInfo(
+                epoch: sdkSchedule.epoch,
+                endMillis: sdkSchedule.endMillis,
+                claimOpenMillis: sdkSchedule.claimOpenMillis,
+                expiryMillis: sdkSchedule.expiryMillis
+            )
+        }
+        return (claims, result.totalClaimableRao, schedule)
     }
 
     func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void) {
@@ -511,6 +522,7 @@ final class EarningsPreviewClient: EarningsClient {
     var headInfo: SnHeadInfo?
     var epochRows: [AccountEpochInfo]
     var claimRows: [SnEpochClaimInfo]
+    var scheduleInfo: SnEpochScheduleInfo?
     var gasTao: Double
 
     init(
@@ -518,12 +530,14 @@ final class EarningsPreviewClient: EarningsClient {
         head: SnHeadInfo? = nil,
         epochs: [AccountEpochInfo] = [],
         claims: [SnEpochClaimInfo] = [],
+        schedule: SnEpochScheduleInfo? = nil,
         gasTao: Double = 0
     ) {
         self.wallet = wallet
         self.headInfo = head
         self.epochRows = epochs
         self.claimRows = claims
+        self.scheduleInfo = schedule
         self.gasTao = gasTao
     }
 
@@ -553,8 +567,8 @@ final class EarningsPreviewClient: EarningsClient {
         SnGasKeyInfo(address: "0x1111111111111111111111111111111111111111", mirrorSs58: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
     }
     func gasBalanceTao() async throws -> Double { gasTao }
-    func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64) {
-        (claimRows, claimRows.filter { $0.status == .claimable }.reduce(0) { $0 + $1.amountRao })
+    func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?) {
+        (claimRows, claimRows.filter { $0.status == .claimable }.reduce(0) { $0 + $1.amountRao }, scheduleInfo)
     }
     func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void) {
         for epoch in epochs {

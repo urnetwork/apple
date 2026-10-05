@@ -46,7 +46,7 @@ struct ClaimAlphaSheet: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Claims open 48 hours after an epoch is finalized and stay open for the vault's expiry window.")
+                    Text("Each epoch's claims open after its payout list is finalized and stay open until they expire.")
                     Text("Your device sends the claim to the vault contract. Gas is paid in TAO from your gas key. Alpha lands on your coldkey.")
                 }
                 .font(themeManager.currentTheme.secondaryBodyFont)

@@ -11,6 +11,21 @@ import Foundation
 import SwiftUI
 import URnetworkSdk
 
+/// What the referral network card offers.
+enum ReferralNetworkAction: Equatable {
+    /// no referral network: the primary "Add referral code" action
+    case addCode
+    /// the network this one signed up with, and Update
+    case update(networkName: String)
+
+    static func of(networkName: String?) -> ReferralNetworkAction {
+        guard let networkName, !networkName.isEmpty else {
+            return .addCode
+        }
+        return .update(networkName: networkName)
+    }
+}
+
 extension ReferralsView {
 
     @MainActor

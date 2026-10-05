@@ -63,6 +63,9 @@ extension CreateNetworkView {
         ) {
             self.urApiService = urApiService
             self.authType = authType
+            self.referralEntry = ReferralCodeEntry(validate: { code in
+                try await urApiService.validateReferralCode(code)
+            })
             
             let check: NetworkNameCheck.Check
             if let checkNetworkName {
@@ -131,8 +134,6 @@ extension CreateNetworkView {
         
         @Published private(set) var networkNameCheckState: NetworkNameCheckState = .empty
         
-        @Published private(set) var referralCodeInputSupportingText: LocalizedStringKey = ""
-        
         @Published var password: String = "" {
             didSet {
                 createNetworkErrorMessage = nil
@@ -162,49 +163,14 @@ extension CreateNetworkView {
             createNetworkErrorMessage = message
         }
         
-        @Published var isPresentedAddBonusSheet: Bool = false
-        
-        @Published private(set) var isValidReferralCode: Bool = false
-        
-        @Published private(set) var isCappedReferralCode: Bool = false
-        
-        @Published var bonusReferralCode: String = "" {
-            didSet {
-                self.isValidReferralCode = false
-                self.referralValidationFailed = false
-                self.buildReferralInputSupportingText()
-            }
-        }
+        /// The optional referral code, always visible above Continue: typing
+        /// checks it, and the create call carries its createCode.
+        let referralEntry: ReferralCodeEntry
 
-        @Published private(set) var isValidatingReferralCode: Bool = false
-        @Published private(set) var referralValidationComplete: Bool = false
-        // the check itself failed (no network, a rate limit, a server error):
-        // not the same as the server answering that the code is invalid
-        @Published private(set) var referralValidationFailed: Bool = false
-        
         private func setNetworkNameSupportingText(_ text: LocalizedStringKey) {
             networkNameSupportingText = text
         }
         
-        private func buildReferralInputSupportingText() {
-            
-            var msg: LocalizedStringKey = ""
-            
-            if !self.isValidatingReferralCode && !self.bonusReferralCode.isEmpty && self.referralValidationComplete {
-
-                if self.referralValidationFailed {
-                    msg = LocalizedStringKey("Something went wrong. Please try again later.")
-                } else if (self.isCappedReferralCode) {
-                    msg = LocalizedStringKey("This code has been used up")
-                } else if (!self.isValidReferralCode) {
-                    msg = LocalizedStringKey("This code is not valid")
-                }
-
-            }
-            
-            
-            self.referralCodeInputSupportingText = msg
-        }
         
         private func validateForm() {
             // todo - need to update validation to handle jwtAuth too (no password)
@@ -217,44 +183,6 @@ extension CreateNetworkView {
                                 || (authType == .apple || authType == .google || authType == .solana)
                             ) &&
                             termsAgreed
-        }
-        
-        func validateReferralCode() async -> Result<SdkValidateReferralCodeResult, Error> {
-            
-            if isValidatingReferralCode {
-                return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "already validating"]))
-            }
-            
-            isValidatingReferralCode = true
-            referralValidationComplete = false
-            
-            do {
-                
-                let result = try await urApiService.validateReferralCode(bonusReferralCode)
-                    
-                self.isValidReferralCode = result.isValid
-                self.isCappedReferralCode = result.isCapped
-                self.referralValidationFailed = false
-                self.isValidatingReferralCode = false
-                self.referralValidationComplete = true
-
-                self.buildReferralInputSupportingText()
-
-                return .success(result)
-
-            } catch(let error) {
-
-                self.isValidatingReferralCode = false
-                self.isValidReferralCode = false
-                self.referralValidationFailed = true
-                self.referralValidationComplete = true
-                
-                self.buildReferralInputSupportingText()
-                
-                return .failure(error)
-                
-            }
-            
         }
         
         // debounced, retried and timed out by NetworkNameCheck
@@ -329,8 +257,8 @@ extension CreateNetworkView {
                     args.walletAuth = walletAuth
                 }
 
-                if self.isValidReferralCode && !self.isCappedReferralCode {
-                    args.referralCode = self.bonusReferralCode
+                if let referralCode = referralEntry.createCode {
+                    args.referralCode = referralCode
                 }
                 
                 let result = try await urApiService.createNetwork(args)

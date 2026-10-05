@@ -31,36 +31,19 @@ extension CreateNetworkInstantView {
         @Published private(set) var errorMessage: String?
 
         /**
-         * Referral code entry. Instant accounts can be referred too -- the
-         * server links the referral on any create path. Mirrors the referral
-         * cluster in CreateNetworkViewModel.
+         * The optional referral code, always visible above Create Account.
+         * Instant accounts can be referred too -- the server links the
+         * referral on any create path.
          */
-        @Published var isPresentedAddBonusSheet: Bool = false
-
-        @Published var bonusReferralCode: String = "" {
-            didSet {
-                if bonusReferralCode != oldValue {
-                    isValidReferralCode = false
-                    referralValidationFailed = false
-                    referralValidationComplete = false
-                    referralCodeInputSupportingText = ""
-                }
-            }
-        }
-
-        @Published private(set) var isValidReferralCode: Bool = false
-        @Published private(set) var isCappedReferralCode: Bool = false
-        @Published private(set) var isValidatingReferralCode: Bool = false
-        @Published private(set) var referralValidationComplete: Bool = false
-        // the check itself failed (no network, a rate limit, a server error):
-        // not the same as the server answering that the code is invalid
-        @Published private(set) var referralValidationFailed: Bool = false
-        @Published private(set) var referralCodeInputSupportingText: LocalizedStringKey = ""
+        let referralEntry: ReferralCodeEntry
 
         let domain = "CreateNetworkInstantViewModel"
 
         init(urApiService: UrApiServiceProtocol) {
             self.urApiService = urApiService
+            self.referralEntry = ReferralCodeEntry(validate: { code in
+                try await urApiService.validateReferralCode(code)
+            })
         }
 
         func setErrorMessage(_ message: String?) {
@@ -69,49 +52,6 @@ extension CreateNetworkInstantView {
 
         private func validateForm() {
             formIsValid = termsAgreed && !isCreatingAccount
-        }
-
-        private func buildReferralInputSupportingText() {
-            if !referralValidationComplete {
-                referralCodeInputSupportingText = ""
-            } else if referralValidationFailed {
-                referralCodeInputSupportingText = "Something went wrong. Please try again later."
-            } else if isCappedReferralCode {
-                referralCodeInputSupportingText = "This code has been used up"
-            } else if !isValidReferralCode {
-                referralCodeInputSupportingText = "This code is not valid"
-            } else {
-                referralCodeInputSupportingText = ""
-            }
-        }
-
-        func validateReferralCode() async -> Result<SdkValidateReferralCodeResult, Error> {
-
-            if isValidatingReferralCode {
-                return .failure(NSError(domain: domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "validation already in progress"]))
-            }
-
-            isValidatingReferralCode = true
-            referralValidationComplete = false
-
-            defer {
-                isValidatingReferralCode = false
-                referralValidationComplete = true
-                buildReferralInputSupportingText()
-            }
-
-            do {
-                let result = try await urApiService.validateReferralCode(bonusReferralCode)
-                isValidReferralCode = result.isValid
-                isCappedReferralCode = result.isCapped
-                referralValidationFailed = false
-                return .success(result)
-            } catch {
-                isValidReferralCode = false
-                referralValidationFailed = true
-                return .failure(error)
-            }
-
         }
 
         func createInstantAccount() async -> (jwt: String, seedphrase: String)? {
@@ -133,11 +73,8 @@ extension CreateNetworkInstantView {
             }
 
             do {
-                let referralCode = (isValidReferralCode && !isCappedReferralCode)
-                    ? bonusReferralCode
-                    : nil
                 let result = try await urApiService.createInstantAccount(
-                    referralCode: referralCode,
+                    referralCode: referralEntry.createCode,
                     productUpdatesOptOut: !productUpdates
                 )
                 return result

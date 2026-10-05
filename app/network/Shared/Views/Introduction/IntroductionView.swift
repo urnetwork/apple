@@ -127,10 +127,7 @@ struct IntroductionView: View {
             serverGuest: subscriptionBalanceViewModel.isGuest
         )
         if GuestAccount.purchaseEntry(isGuest: isGuest) == .addSignInMethod {
-            // a legacy guest adds a sign-in method to this network first:
-            // the upgrade sheet opens the conversion (GuestPurchaseGate)
-            close()
-            connectViewModel.isPresentedUpgradeSheet = true
+            openGuestConversion()
             return
         }
         let subscriptionStore = self.subscriptionStore
@@ -161,6 +158,13 @@ struct IntroductionView: View {
             }
 #endif
         }
+    }
+
+    /// A legacy guest adds a sign-in method to this network first: the
+    /// upgrade sheet opens the conversion (GuestPurchaseGate).
+    private func openGuestConversion() {
+        close()
+        connectViewModel.isPresentedUpgradeSheet = true
     }
 
     private func restorePurchases() {
@@ -448,6 +452,11 @@ struct IntroductionView: View {
                 celebratedPurchase = false
             }
             celebrateIfConfirmed()
+        }
+        .onChange(of: stripeSubscriptionStore.guestSignInRequiredSequence) { _ in
+            // the server refused the purchase for a guest network the app did
+            // not know was one (StripeSubscriptionStore.refuseForGuest)
+            openGuestConversion()
         }
         
     }

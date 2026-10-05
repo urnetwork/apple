@@ -184,6 +184,14 @@ struct MainView: View {
              */
             subscriptionBalanceViewModel.updateIsPro(newValue)
         }
+        .onChange(of: stripeSubscriptionStore.guestSignInRequiredSequence) { _ in
+            /**
+             * The server refused a Stripe purchase for a legacy guest network
+             * the app did not know was one: marked a guest, the purchase's
+             * GuestPurchaseGate opens the add-sign-in sheet instead of an error.
+             */
+            subscriptionBalanceViewModel.serverRefusedGuestPurchase()
+        }
         #if !DIRECT_DOWNLOAD
         .onChange(of: transactionMonitor.wrongNetworkSequence) { _ in
             /**

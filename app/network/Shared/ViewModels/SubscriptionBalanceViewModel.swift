@@ -413,6 +413,17 @@ class SubscriptionBalanceViewModel: ObservableObject {
         purchaseConfirmation.stop()
     }
 
+    /**
+     * The server refused a purchase because the network is a legacy guest
+     * (`guest_sign_in_required`): the app had not read the server's `guest`
+     * yet. The refusal reads the same live auth methods, so the network is a
+     * guest until a sign-in method is added, which the next balance read
+     * reflects. GuestPurchaseGate opens the add-sign-in sheet from this.
+     */
+    func serverRefusedGuestPurchase() {
+        isGuest = true
+    }
+
     func clearPurchaseConfirmationTimeout() {
         if purchaseConfirmationTimedOut {
             purchaseConfirmationTimedOut = false

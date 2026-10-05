@@ -44,6 +44,7 @@ struct ReferralGoldPanel: View {
     var onRetry: (() -> Void)? = nil
 
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var deviceManager: DeviceManager
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var crowned: Bool { totalReferrals > 0 }
@@ -99,7 +100,7 @@ struct ReferralGoldPanel: View {
                 Spacer().frame(height: 12)
 
                 ShareLink(
-                    item: String(localized: "Join me on URnetwork! Get the app and enter referral code \(referralCode) when you sign up."),
+                    item: ReferralShare.text(code: referralCode, networkSpace: deviceManager.networkSpace),
                     subject: Text("URnetwork Referral Code")
                 ) {
                     GoldShareLabel()
@@ -344,4 +345,5 @@ struct ReferralProgressBar: View {
     }
     .background(Color.urBlack)
     .environmentObject(ThemeManager.shared)
+    .environmentObject(DeviceManager())
 }

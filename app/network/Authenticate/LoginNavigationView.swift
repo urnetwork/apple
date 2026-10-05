@@ -64,9 +64,10 @@ struct LoginNavigationView: View {
                             api: api
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-                    case .createNetwork(let authLoginArgs):
+                    case .createNetwork(let authLoginArgs, let bittensorWalletId):
                         CreateNetworkView(
                             authLoginArgs: authLoginArgs,
+                            bittensorWalletId: bittensorWalletId,
                             navigate: viewModel.navigate,
                             handleSuccess: { jwt in
                                 await handleSuccess(.created(jwt))

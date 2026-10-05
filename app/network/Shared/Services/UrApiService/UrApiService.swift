@@ -328,9 +328,9 @@ extension UrApiService {
                 }
                 
                 if let resultError = result.error {
-                    
-                    continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "result.error exists \(resultError.message)"]))
-                    
+
+                    continuation.resume(throwing: UrApiService.authLoginRefusal(resultError))
+
                     return
                 }
                 
@@ -575,12 +575,34 @@ extension UrApiService {
     }
     
     /// A create the server refused, with its reason for the form (a taken
-    /// network name, an account that already exists).
+    /// network name, an account that already exists), or a wallet signature
+    /// that is not from the entered address (its signature_mismatch code).
     static func createNetworkRefusal(_ result: SdkNetworkCreateResult) -> NetworkCreateError? {
         guard let resultError = result.error else {
             return nil
         }
+        if resultError.code == BittensorWallet.signatureMismatchCode {
+            return .signatureMismatch(message: resultError.message)
+        }
         return .refused(message: resultError.message)
+    }
+
+    /// A sign-in the server refused: a wallet signature that is not from the
+    /// entered address keeps its own error (WalletSignatureMismatchError).
+    static func authLoginRefusal(_ resultError: SdkAuthLoginResultError) -> Error {
+        if resultError.code == BittensorWallet.signatureMismatchCode {
+            return WalletSignatureMismatchError(message: resultError.message)
+        }
+        return NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "result.error exists \(resultError.message)"])
+    }
+
+    /// An added sign-in method the server refused, with its message: a wallet
+    /// signature that is not from the entered address keeps its own error.
+    static func addAuthRefusal(_ resultError: SdkAddAuthError) -> Error {
+        if resultError.code == BittensorWallet.signatureMismatchCode {
+            return WalletSignatureMismatchError(message: resultError.message)
+        }
+        return NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message])
     }
     
 }
@@ -669,8 +691,8 @@ extension UrApiService {
                     return
                 }
 
-                if let errMsg = result.error?.message {
-                    continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: errMsg]))
+                if let resultError = result.error {
+                    continuation.resume(throwing: UrApiService.addAuthRefusal(resultError))
                     return
                 }
 
@@ -1614,12 +1636,30 @@ enum LoginNetworkResult {
 enum NetworkCreateError: LocalizedError, Equatable {
     /// the server answered but did not create the network
     case refused(message: String)
+    /// the wallet signature is not from the entered address (signature_mismatch):
+    /// the wallet signed with another account; the server's message
+    case signatureMismatch(message: String)
 
     var errorDescription: String? {
         switch self {
         case .refused(let message):
             return message
+        case .signatureMismatch(let message):
+            return message
         }
+    }
+}
+
+/// A wallet sign-in or added sign-in method the server refused because the
+/// signature is not from the entered address (signature_mismatch): the wallet
+/// signed with another account, and the server cannot say which. Reads as the
+/// server's message; a manual wallet has its own words
+/// (BittensorWallet.signatureMismatchText).
+struct WalletSignatureMismatchError: LocalizedError, Equatable {
+    let message: String
+
+    var errorDescription: String? {
+        message
     }
 }
 

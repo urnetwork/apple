@@ -222,10 +222,8 @@ final class ConnectBittensorWalletFlow: ObservableObject {
     /// other refusal show the error as before.
     static func failureText(_ error: Error, walletId: String?, platform: String) -> String {
         if case EarningsClientError.signatureMismatch = error,
-           let walletId,
-           BittensorWallet.transport(walletId, platform: platform) == SdkBittensorWalletTransportManual {
-            let walletName = BittensorWallet.displayName(walletId)
-            return String(localized: "This signature isn't from the address you entered. In \(walletName), sign the message with that address, then paste the signature again.")
+           let text = BittensorWallet.signatureMismatchText(walletId: walletId, platform: platform) {
+            return text
         }
         return error.localizedDescription
     }

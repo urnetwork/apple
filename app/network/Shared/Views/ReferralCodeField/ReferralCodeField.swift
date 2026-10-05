@@ -88,7 +88,8 @@ final class ReferralCodeEntry: ObservableObject {
 
     // a typed code is a new edit; answers carry the edit they were asked for
     private var edit = 0
-    private var pendingCheck: Task<Void, Never>?
+    // the check that runs after the pause; tests wait on it
+    private(set) var pendingCheck: Task<Void, Never>?
 
     init(
         checkDelay: Duration = ReferralCodeField.checkDelay,
@@ -141,6 +142,8 @@ final class ReferralCodeEntry: ObservableObject {
         await check()
     }
 
+    /// A changed code drops the verdict and any pending check, and is checked
+    /// after the pause unless it is empty.
     private func edited(from oldValue: String) {
         guard ReferralCodeField.normalize(code) != ReferralCodeField.normalize(oldValue) else {
             return
@@ -162,6 +165,8 @@ final class ReferralCodeEntry: ObservableObject {
         }
     }
 
+    /// Asks the server about the code; an answer for text changed meanwhile is
+    /// dropped.
     private func check() async {
         let normalized = ReferralCodeField.normalize(code)
         // nothing to check, or the check for this text is already out

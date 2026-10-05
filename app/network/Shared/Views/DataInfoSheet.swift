@@ -81,6 +81,8 @@ struct DataInfoSheet: View {
         }
     }
 
+    /// One amount: the usage bar's dot and name, the amount, and what it
+    /// means.
     private func row(label: String, color: Color, amount: String, explanation: Text) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -135,6 +137,8 @@ struct DataInfoSheetPresenter: ViewModifier {
 }
 
 extension View {
+    /// Presents "About your data" while `isPresented`, from the current
+    /// balance.
     func dataInfoSheet(isPresented: Binding<Bool>, isPro: Bool) -> some View {
         modifier(DataInfoSheetPresenter(isPresented: isPresented, isPro: isPro))
     }

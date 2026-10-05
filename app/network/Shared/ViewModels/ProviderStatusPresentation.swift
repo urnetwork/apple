@@ -143,6 +143,8 @@ enum ProviderDemandArea: Equatable {
     case histogram(ProviderDemandHistogram)
 }
 
+/// What the provider statistics show: the chart area, and whether the
+/// "Why?" panel follows it.
 struct ProviderStatusPresentation: Equatable {
     let area: ProviderDemandArea
     /// the expandable "Why?" with the ranking numbers

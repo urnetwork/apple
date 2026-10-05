@@ -20,6 +20,8 @@
 
 import Foundation
 
+/// One preset: the ranges a service publishes for use outside a VPN, and
+/// where it publishes them.
 struct SplitRulePreset: Identifiable {
     let id: String
     let name: String.LocalizationValue

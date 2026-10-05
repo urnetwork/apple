@@ -9,6 +9,7 @@
 
 import SwiftUI
 
+/// The "When on battery" picker, bound to the user's choice.
 struct ProvidePowerModePicker: View {
 
     @EnvironmentObject var themeManager: ThemeManager

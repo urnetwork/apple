@@ -46,7 +46,10 @@ enum NetworkNameCheckState: Equatable {
 /// scheduled actions, on one thread.
 final class NetworkNameCheck {
 
+    /// One online check of a name: true or false for available or taken, nil
+    /// when it errored.
     typealias Check = (_ networkName: String, _ onResult: @escaping (_ available: Bool?) -> Void) -> Void
+    /// Runs an action after a delay; the returned function cancels it.
     typealias Schedule = (_ delay: TimeInterval, _ action: @escaping () -> Void) -> () -> Void
 
     static let minLength = 6
@@ -117,6 +120,8 @@ final class NetworkNameCheck {
         }
     }
 
+    /// The state the name has without asking the server (empty or too
+    /// short), nil when it needs the online check.
     private func localState() -> NetworkNameCheckState? {
         if networkName.isEmpty {
             return .empty
@@ -149,6 +154,8 @@ final class NetworkNameCheck {
         }
     }
 
+    /// Applies the answer of the attempt in flight, and schedules a retry of
+    /// a failed check while retries are left.
     private func finish(_ available: Bool?) {
         // a late answer for this attempt is ignored
         attempt += 1
@@ -169,11 +176,13 @@ final class NetworkNameCheck {
         }
     }
 
+    /// Cancels the scheduled debounce, timeout or retry.
     private func cancelPending() {
         cancelScheduled?()
         cancelScheduled = nil
     }
 
+    /// Publishes a state change; an unchanged state is not reported again.
     private func setState(_ nextState: NetworkNameCheckState) {
         if state != nextState {
             state = nextState

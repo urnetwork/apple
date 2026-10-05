@@ -11,6 +11,7 @@
 
 import SwiftUI
 
+/// The "Demand" plot and its "Why?" panel, from the provider status snapshot.
 struct ProviderDemandSection: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -75,6 +76,8 @@ struct ProviderDemandSection: View {
             .frame(maxWidth: .infinity, minHeight: chartHeight)
     }
 
+    /// The bars of the last hour, the note when they are all empty, and the
+    /// time axis under them.
     private func chart(_ histogram: ProviderDemandHistogram) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             ProviderDemandBars(

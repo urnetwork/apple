@@ -190,6 +190,8 @@ extension CreateNetworkView {
             networkNameCheck?.validate(networkName)
         }
         
+        /// Shows a name check state: the supporting text, the field's
+        /// validation style and whether the form may be submitted.
         private func applyNetworkNameCheck(_ state: NetworkNameCheckState) {
             networkNameCheckState = state
             

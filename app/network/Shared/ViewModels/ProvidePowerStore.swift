@@ -13,6 +13,8 @@ import Foundation
 import NetworkExtension
 import SwiftUI
 
+/// The "When on battery" choice and this device's power state, for the
+/// settings and the provider card.
 @MainActor
 class ProvidePowerStore: ObservableObject {
 
@@ -37,6 +39,8 @@ class ProvidePowerStore: ObservableObject {
     private var powerStateObserver: NSObjectProtocol?
     private var tunnelStatusObserver: NSObjectProtocol?
 
+    /// Follows Low Power Mode, external power, and tunnels that connect, which
+    /// get the mode at once.
     init() {
         powerStateObserver = NotificationCenter.default.addObserver(
             forName: Notification.Name.NSProcessInfoPowerStateDidChange,
@@ -91,6 +95,7 @@ class ProvidePowerStore: ObservableObject {
         sendModeToTunnel()
     }
 
+    /// Reads the power state again, publishing only a change.
     private func updatePower() {
         let power = ProvidePowerState(
             lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
@@ -120,6 +125,8 @@ class ProvidePowerStore: ObservableObject {
         }
     }
 
+    /// Hands `mode` to the tunnel behind `session`. A failure is logged; the
+    /// tunnel gets the mode again when it connects.
     private nonisolated static func send(_ mode: ProvidePowerMode, to session: NETunnelProviderSession) {
         do {
             try session.sendProviderMessage(ProvidePowerModeMessage.encode(mode)) { _ in }

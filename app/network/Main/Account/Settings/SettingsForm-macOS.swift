@@ -442,6 +442,25 @@ struct SettingsForm_macOS: View {
                         .onTapGesture {
                             navigate(.blockedLocations)
                         }
+
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        /**
+                         * VLESS: a VLESS server the client strategy also
+                         * dials through, stored in the network space
+                         */
+                        HStack {
+                            Text("VLESS")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            navigate(.vless)
+                        }
                         
                     }
                     .padding()

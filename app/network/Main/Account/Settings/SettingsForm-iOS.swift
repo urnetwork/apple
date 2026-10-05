@@ -309,6 +309,22 @@ struct SettingsForm_iOS: View {
                     navigate(.blockedLocations)
                     // navigate to blocked
                 }
+
+                /**
+                 * VLESS: a VLESS server the client strategy also dials
+                 * through, stored in the network space
+                 */
+                HStack {
+                    Text("VLESS")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.vless)
+                }
                 
                 
             }

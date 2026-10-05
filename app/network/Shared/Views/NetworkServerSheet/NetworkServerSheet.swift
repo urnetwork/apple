@@ -8,13 +8,19 @@
 //  both iOS and macOS (unlike the Solana wallet sign-in flow, which is
 //  iOS-only). Ported from Android's `NetworkServerSelector.kt`.
 //
+//  The VLESS row opens the VLESS settings of the active network space, so a
+//  VLESS server can be set before signing in.
+//
 
 import SwiftUI
 
 struct NetworkServerSheet: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    // the VLESS editor edits the space the device manager has active
+    @EnvironmentObject var deviceManager: DeviceManager
     @StateObject private var viewModel: ViewModel
+    @State private var presentVlessSettings = false
 
     var currentApiUrl: String
     var currentConnectUrl: String
@@ -45,6 +51,17 @@ struct NetworkServerSheet: View {
     }
 
     var body: some View {
+        #if os(iOS)
+        // with the VLESS row the sheet is taller than a small iPhone
+        ScrollView {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+
+    private var content: some View {
         VStack(alignment: .leading) {
 
             Spacer().frame(height: 24)
@@ -150,10 +167,43 @@ struct NetworkServerSheet: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
 
+            Spacer().frame(height: 20)
+
+            Divider()
+
+            Spacer().frame(height: 12)
+
+            /**
+             * The VLESS settings save on their own, to the space that is
+             * active now; Apply Network API does not touch them.
+             */
+            Button(action: {
+                presentVlessSettings = true
+            }) {
+                HStack {
+                    Text("VLESS")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!managerAvailable)
+
             Spacer()
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 24)
+        .sheet(isPresented: $presentVlessSettings) {
+            StatsSheetContainer(title: "VLESS") {
+                VlessSettingsView()
+            }
+            .environmentObject(themeManager)
+            .environmentObject(deviceManager)
+        }
     }
 
     private func apply(hostName: String, apiUrl: String, connectUrl: String) {

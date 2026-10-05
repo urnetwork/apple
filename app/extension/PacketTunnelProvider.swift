@@ -1195,13 +1195,32 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 }
             })
 
+            // whether this device is on external power, for a provider set to
+            // provide only while charging (P077)
+            let chargingMonitor = ProvideChargingMonitor()
             let updatePath = { (path: Network.NWPath) in
                 let canProvideOnCell = device.getProvideNetworkMode() == "all"
                 let canProvideOnNetwork = canProvideOnNetwork(path: path, canProvideOnCell: canProvideOnCell)
-                self.logger.info(
-                    "[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) expensive=\(path.isExpensive) constrained=\(path.isConstrained) provide=\(canProvideOnNetwork)"
+                // the battery pauses providing too: in Low Power Mode by
+                // default, and off external power when the user chose to
+                // provide only while charging. One decision from both, so a
+                // path update cannot clear a battery pause (P077)
+                let power = ProvidePowerState(
+                    lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
+                    charging: chargingMonitor.charging
                 )
-                device.setProvidePaused(!canProvideOnNetwork)
+                let powerMode = ProvidePowerModeStore.load()
+                let pauseReason = ProvidePausePolicy.pauseReason(
+                    networkCanProvide: canProvideOnNetwork,
+                    power: power,
+                    mode: powerMode
+                )
+                let chargingText = power.charging.map { $0 ? "true" : "false" } ?? "unknown"
+                let reasonText = pauseReason?.rawValue ?? "none"
+                self.logger.info(
+                    "[PacketTunnelProvider]provider network update cell=\(canProvideOnCell) expensive=\(path.isExpensive) constrained=\(path.isConstrained) provide=\(canProvideOnNetwork) lowPower=\(power.lowPowerMode) charging=\(chargingText, privacy: .public) powerMode=\(powerMode.rawValue, privacy: .public) provide paused = \(pauseReason != nil) reason=\(reasonText, privacy: .public)"
+                )
+                device.setProvidePaused(pauseReason != nil)
             }
             let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
             let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
@@ -1361,13 +1380,25 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     handlePathUpdate(pathMonitor.currentPath)
                 }
             }
-            // low power / thermal transitions ease or restore the probe timings
+            // low power / thermal transitions ease or restore the probe timings,
+            // and Low Power Mode pauses or resumes providing (P077)
             let powerStateObserver = NotificationCenter.default.addObserver(
                 forName: Notification.Name.NSProcessInfoPowerStateDidChange,
                 object: nil,
                 queue: nil
             ) { _ in
-                pathMonitorQueue.async { updatePerformanceDegraded() }
+                pathMonitorQueue.async {
+                    updatePerformanceDegraded()
+                    guard self.providerSessions.isCurrent(providerTicket) else { return }
+                    updatePath(pathMonitor.currentPath)
+                }
+            }
+            // a charger connecting or disconnecting decides the pause again
+            chargingMonitor.start {
+                pathMonitorQueue.async {
+                    guard self.providerSessions.isCurrent(providerTicket) else { return }
+                    updatePath(pathMonitor.currentPath)
+                }
             }
             let thermalStateObserver = NotificationCenter.default.addObserver(
                 forName: ProcessInfo.thermalStateDidChangeNotification,
@@ -1435,6 +1466,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 defaultPathObservation.invalidate()
                 NotificationCenter.default.removeObserver(powerStateObserver)
                 NotificationCenter.default.removeObserver(thermalStateObserver)
+                chargingMonitor.stop()
 #if os(iOS)
                 NotificationCenter.default.removeObserver(cellularTypeObserver)
 #endif
@@ -2275,6 +2307,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // the ones describing whatever the user is reporting, are still in
             // this process's memory when the app reads the files.
             SdkFlushGlog()
+            completionHandler?(Data("ok".utf8))
+            return
+        }
+
+        if let mode = ProvidePowerModeMessage.decode(messageData) {
+            // what providing does on battery, the user's choice (P077): kept
+            // for the next tunnel start, and the pause is decided again now
+            ProvidePowerModeStore.save(mode)
+            logger.info("[PacketTunnelProvider]provide power mode=\(mode.rawValue, privacy: .public)")
+            networkStateRefresh?()
             completionHandler?(Data("ok".utf8))
             return
         }

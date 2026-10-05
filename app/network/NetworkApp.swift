@@ -103,6 +103,8 @@ struct NetworkApp: App {
     @StateObject var reliabilityStore = ReliabilityStore()
     // this device's provider status from the server, for the provider statistics
     @StateObject var providerStatusStore = ProviderStatusStore()
+    // what providing does on battery, and the power state (P077)
+    @StateObject var providePowerStore = ProvidePowerStore()
     // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
     @StateObject var deepLinkRouter = DeepLinkRouter()
 
@@ -240,6 +242,7 @@ struct NetworkApp: App {
         switch transition {
         case .resume:
             deviceManager.applicationDidBecomeActive()
+            providePowerStore.applicationDidBecomeActive()
             updateConnectViewModel(deviceManager.device)
         case .suspend:
             deviceManager.applicationDidBecomeInactive()
@@ -325,6 +328,7 @@ struct NetworkApp: App {
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
                 .environmentObject(providerStatusStore)
+                .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in
@@ -396,6 +400,7 @@ struct NetworkApp: App {
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
                 .environmentObject(providerStatusStore)
+                .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 .onOpenURL { url in

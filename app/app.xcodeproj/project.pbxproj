@@ -19,6 +19,10 @@
 		B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
 		B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
 		B17E01102F0000010000A011 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
+		B17E01612F0000010000A061 /* network/Shared/ProvidePausePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */; };
+		B17E01622F0000010000A062 /* network/Shared/ProvidePausePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */; };
+		B17E01642F0000010000A064 /* network/Shared/ProvideChargingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */; };
+		B17E01652F0000010000A065 /* network/Shared/ProvideChargingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */; };
 		B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
 		B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
 		B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
@@ -140,6 +144,8 @@
 		B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/DiagnosticsLogContract.swift; sourceTree = SOURCE_ROOT; };
 		B17E01012F0000010000A002 /* URnetworkWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/TunnelIntentStore.swift; sourceTree = SOURCE_ROOT; };
+		B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ProvidePausePolicy.swift; sourceTree = SOURCE_ROOT; };
+		B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ProvideChargingMonitor.swift; sourceTree = SOURCE_ROOT; };
 		B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetSnapshots.swift; sourceTree = SOURCE_ROOT; };
 		B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetRefresh.swift; sourceTree = SOURCE_ROOT; };
 		B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/GlobeGeometry.swift; sourceTree = SOURCE_ROOT; };
@@ -321,6 +327,8 @@
 				B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */,
 				B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */,
 				B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */,
+				B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */,
+				B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */,
 				B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */,
 				B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */,
 				B17E01302F0000010000A030 /* network/Shared/Widgets/WidgetTheme.swift */,
@@ -787,6 +795,8 @@
 			files = (
 				B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
 				B17E01102F0000010000A011 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
+				B17E01612F0000010000A061 /* network/Shared/ProvidePausePolicy.swift in Sources */,
+				B17E01642F0000010000A064 /* network/Shared/ProvideChargingMonitor.swift in Sources */,
 				B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
 				B17E01162F0000010000A017 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
 			);
@@ -805,6 +815,8 @@
 			files = (
 				A1D000282F0D000100000028 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
 				A1D000292F0D000100000029 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
+				B17E01622F0000010000A062 /* network/Shared/ProvidePausePolicy.swift in Sources */,
+				B17E01652F0000010000A065 /* network/Shared/ProvideChargingMonitor.swift in Sources */,
 				A1D0002A2F0D00010000002A /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
 				A1D0002B2F0D00010000002B /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
 			);

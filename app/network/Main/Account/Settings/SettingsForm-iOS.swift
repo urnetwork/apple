@@ -287,6 +287,9 @@ struct SettingsForm_iOS: View {
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
                 }
+
+                // what providing does while this device runs on battery
+                ProvidePowerModePicker()
                 
                 
                 UrSwitchToggle(isOn: Binding(

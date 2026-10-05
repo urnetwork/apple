@@ -40,7 +40,7 @@ func providerStatusLine(
     serverReasonText: String
 ) -> ProviderStatusLine? {
     switch idleReason {
-    case .autoNotConnected, .networkOnly, .pausedWifiOnly, .pausedNoNetwork:
+    case .autoNotConnected, .networkOnly, .pausedWifiOnly, .pausedNoNetwork, .pausedLowPower, .pausedNotCharging:
         return .idle(idleReason)
     case .none, .noTrafficYet:
         break

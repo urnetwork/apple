@@ -43,15 +43,21 @@ struct ProviderStatusSnapshot: Equatable {
 /// The sdk controller as the store drives it. A protocol so the owner test can
 /// stand in for the sdk.
 protocol ProviderStatusControlling: AnyObject {
+    /// Polls the server about once a minute until stopped.
     func start()
+    /// Stops polling; the last snapshot stays readable.
     func stop()
+    /// Calls `changed` after every poll, until the subscription is closed.
     func addStatusListener(_ changed: @escaping () -> Void) -> SdkSubProtocol?
+    /// The controller's current state, from one status object.
     func readSnapshot() -> ProviderStatusSnapshot
 }
 
 /// What opens and closes the controller: the device in the app.
 protocol ProviderStatusControllerOwner: AnyObject {
+    /// A new controller for this device, nil when there is none.
     func openProviderStatusController() -> ProviderStatusControlling?
+    /// Closes a controller this owner opened.
     func closeProviderStatusController(_ controller: ProviderStatusControlling)
 }
 
@@ -77,10 +83,13 @@ class ProviderStatusStore: ObservableObject {
     // true while the provider statistics show the demand chart
     private var visible = false
 
+    /// Reads the status through `device`.
     func setup(_ device: SdkDeviceRemote) {
         setup(owner: device)
     }
 
+    /// Reads the status through `owner`, opening its controller at once when
+    /// the chart already shows.
     func setup(owner: ProviderStatusControllerOwner) {
         reset()
 
@@ -90,6 +99,7 @@ class ProviderStatusStore: ObservableObject {
         }
     }
 
+    /// Closes the controller and drops the device and its snapshot.
     func reset() {
         closeController()
         owner = nil
@@ -112,6 +122,7 @@ class ProviderStatusStore: ObservableObject {
         }
     }
 
+    /// Opens the controller the first time, then starts it polling.
     private func startController() {
         if controller == nil, let owner, let controller = owner.openProviderStatusController() {
             self.controller = controller
@@ -125,6 +136,7 @@ class ProviderStatusStore: ObservableObject {
         update()
     }
 
+    /// Stops following the controller, then stops and closes it.
     private func closeController() {
         // the listener goes first, so nothing reads a closed controller
         statusSub?.close()
@@ -136,6 +148,7 @@ class ProviderStatusStore: ObservableObject {
         controller = nil
     }
 
+    /// Reads the controller's snapshot.
     private func update() {
         guard let controller else {
             return
@@ -148,6 +161,7 @@ class ProviderStatusStore: ObservableObject {
     }
 }
 
+/// The sdk's provider status listener, calling a closure.
 private class ProviderStatusListener: NSObject, SdkProviderStatusListenerProtocol {
     private let callback: () -> Void
 
@@ -219,6 +233,7 @@ extension SdkDeviceRemote: ProviderStatusControllerOwner {
 
 extension ProviderStatusNumber {
 
+    /// A copy of the sdk's number.
     init(_ number: SdkProviderRankingNumber) {
         self.init(
             name: number.name,

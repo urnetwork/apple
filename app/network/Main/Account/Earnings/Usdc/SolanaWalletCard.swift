@@ -4,8 +4,8 @@
 //
 //  The Solana wallet USDC payouts go to until the migration to Bittensor is
 //  complete: the address with copy, the Default badge, the migration note,
-//  the final USDC payout still waiting and the way to remove the wallet. A legacy Polygon
-//  payout wallet shows on the same card with the Polygon logo.
+//  the final USDC payout still waiting and the way to remove the wallet. A
+//  legacy Polygon payout wallet shows on the same card with the Polygon logo.
 //
 
 import SwiftUI

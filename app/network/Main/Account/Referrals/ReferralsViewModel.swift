@@ -18,6 +18,8 @@ enum ReferralNetworkAction: Equatable {
     /// the network this one signed up with, and Update
     case update(networkName: String)
 
+    /// The action for the network this one signed up with: Add referral code
+    /// when there is none.
     static func of(networkName: String?) -> ReferralNetworkAction {
         guard let networkName, !networkName.isEmpty else {
             return .addCode

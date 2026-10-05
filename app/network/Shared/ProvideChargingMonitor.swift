@@ -85,6 +85,7 @@ final class ProvideChargingMonitor {
         }
     }
 
+    /// Stops observing on the main queue; `changed` does not run again.
     func stop() {
         DispatchQueue.main.async {
             self.started = false
@@ -103,7 +104,7 @@ final class ProvideChargingMonitor {
         }
     }
 
-    // main queue
+    /// Reads the power source again and reports it (main queue).
     private func update() {
         guard started else {
             return
@@ -112,6 +113,7 @@ final class ProvideChargingMonitor {
         changed?()
     }
 
+    /// Stores the reading for readers on any thread.
     private func setCharging(_ charging: Bool?) {
         lock.lock()
         defer { lock.unlock() }
@@ -119,13 +121,13 @@ final class ProvideChargingMonitor {
     }
 
     #if os(iOS)
-    // main queue
+    /// The battery state UIDevice reports (main queue).
     private static func readCharging() -> Bool? {
         charging(batteryState: UIDevice.current.batteryState)
     }
 
-    /// Charging or full counts as external power; unknown (monitoring off, or
-    /// a simulator) says nothing.
+    /// External power while charging or full; unknown (monitoring off, or a
+    /// simulator) says nothing.
     static func charging(batteryState: UIDevice.BatteryState) -> Bool? {
         switch batteryState {
         case .charging, .full:
@@ -139,6 +141,7 @@ final class ProvideChargingMonitor {
         }
     }
     #elseif os(macOS)
+    /// The type of the power source IOKit says this Mac runs on.
     private static func readCharging() -> Bool? {
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let type = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() else {

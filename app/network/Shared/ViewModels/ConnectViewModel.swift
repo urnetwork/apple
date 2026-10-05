@@ -708,6 +708,7 @@ extension ConnectViewModel {
         balanceRecoveryRetryCount += 1
     }
 
+    /// Publishes the recovery's state, only when it changed.
     private func publishBalanceRecoveryState() {
         let state = balanceRecovery.state
         if balanceRecoveryState != state {

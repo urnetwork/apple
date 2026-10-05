@@ -133,16 +133,17 @@ struct ReferralCodeFieldTests {
         #expect(entry.createCode == nil)
     }
 
-    @Test func typingChecksTheCodeAfterThePause() async throws {
+    @Test func typingChecksTheCodeAfterThePause() async {
         let recorder = Recorder()
         let entry = ReferralCodeEntry(checkDelay: .milliseconds(10), validate: { code in
             await MainActor.run { recorder.asked.append(code) }
             return Self.result(valid: true)
         })
         entry.code = "ab12cd"
-        for _ in 0..<500 where entry.verdict != .valid {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        // nothing is asked before the pause
+        #expect(recorder.asked.isEmpty)
+        // the check the edit scheduled: it waits out the pause, then asks
+        await entry.pendingCheck?.value
         #expect(recorder.asked == ["AB12CD"])
         #expect(entry.verdict == .valid)
     }

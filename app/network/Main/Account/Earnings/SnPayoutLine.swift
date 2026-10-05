@@ -27,6 +27,7 @@ struct SnPayoutTimes: Equatable {
     let expiry: String
 }
 
+/// What the foot of the points card says about payouts.
 enum SnPayoutLine: Equatable {
     /// no coldkey yet: "Set your Bittensor coldkey to get paid", and the
     /// action opens the coldkey flow

@@ -263,7 +263,7 @@ struct StripeSubscriptionStoreTests {
         // the embedded session
         let client = FakeClient()
         client.embedded = .failure(StripeBillingError.guestSignInRequired)
-        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.stripe.com/c/pay/cs_1"))
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_1"))
         var opened: [URL] = []
         let store = Self.store(client, opened: { opened.append($0); return true })
         await store.purchase(plan: .monthly, onSuccess: {})

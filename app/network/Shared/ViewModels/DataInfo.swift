@@ -28,6 +28,7 @@ func nextFreeRefresh(after now: Date) -> Date {
     return Date(timeIntervalSince1970: (day + 1) * freeRefreshDay)
 }
 
+/// Whole hours and minutes until the free data refreshes.
 struct RefreshCountdown: Equatable {
     var hours: Int
     var minutes: Int
@@ -53,6 +54,7 @@ func freeRefreshCountdownLabel(now: Date) -> String {
     return String(format: String(localized: "%lldm"), countdown.minutes)
 }
 
+/// The sheet's amounts, formatted.
 struct DataInfo: Equatable {
     var used: String
     var pending: String
@@ -87,6 +89,7 @@ func dataInfoShowsFreeRefresh(isPro: Bool) -> Bool {
     !isPro
 }
 
+/// What the out-of-balance notice shows.
 struct OutOfBalanceNotice: Equatable {
     /// "Free data refreshes in {time}." with a Why? link to the data sheet.
     var refresh: Bool
@@ -96,7 +99,7 @@ struct OutOfBalanceNotice: Equatable {
     var kind: OutOfBalanceKind = .unknown
     /// "You'll be reconnected when data is available again."
     var willReconnect: Bool = false
-    /// Cancel next to it: a refused start has no Disconnect to stop it.
+    /// A Cancel action next to it: a refused start has no Disconnect to stop it.
     var cancel: Bool = false
 }
 

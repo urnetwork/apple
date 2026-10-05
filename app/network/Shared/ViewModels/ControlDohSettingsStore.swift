@@ -52,6 +52,8 @@ func controlDohValidationErrorId(_ urls: [String]) -> String {
     return ""
 }
 
+/// The field of the active network space's bootstrap DoH servers: its text,
+/// the check of each line, and the save.
 @MainActor
 final class ControlDohSettingsStore: ObservableObject {
 
@@ -107,6 +109,8 @@ final class ControlDohSettingsStore: ObservableObject {
         validationErrorId = controlDohValidationErrorId(controlDohUrls(text))
     }
 
+    /// An edit: the last save's outcome no longer applies, and each line is
+    /// checked again.
     private func textChanged() {
         saveOutcome = nil
         validationErrorId = controlDohValidationErrorId(controlDohUrls(text))
@@ -154,6 +158,8 @@ final class ControlDohSettingsStore: ObservableObject {
         await store([])
     }
 
+    /// Writes `urls` to the space off the main actor and shows the list it
+    /// read back, unless the space or the field changed meanwhile.
     private func store(_ urls: [String]) async {
         guard loaded, !saving, let networkSpace else {
             return

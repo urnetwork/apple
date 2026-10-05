@@ -1611,6 +1611,7 @@ enum LoginNetworkResult {
     case failure(Error)
 }
 
+/// Why a network create the server answered did not create the network.
 enum NetworkCreateError: LocalizedError, Equatable {
     /// the server answered but did not create the network
     case refused(message: String)

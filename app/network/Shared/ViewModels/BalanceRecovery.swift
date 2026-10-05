@@ -73,12 +73,13 @@ func outOfBalanceKind(_ balance: WidgetBalanceSnapshot?) -> OutOfBalanceKind {
     return .exhausted
 }
 
+/// The retry one balance observation asks for.
 enum BalanceRecoveryStep<Target> {
     /// Nothing to retry now (named apart from Optional's `.none`).
     case noRetry
-    /// Start the connect the gate refused, to the target the user asked for.
+    /// The connect the gate refused, to the target the user asked for.
     case start(Target)
-    /// Rebuild the held connection (connect again to its location).
+    /// The held connection, connected again to its location.
     case rebuild
 }
 
@@ -92,6 +93,8 @@ struct BalanceRecoveryState: Equatable {
     var retriesLeft = true
 }
 
+/// The self-recovery of a connect the balance blocked, as the file header
+/// describes. A value: its owner keeps one and feeds it every observation.
 struct BalanceRecovery<Target> {
     // boxed, so a nil target (the best available provider) is still a start
     private struct RefusedStart {
@@ -108,6 +111,7 @@ struct BalanceRecovery<Target> {
     private var retries = 0
     private var lastRetryAt = Date.distantPast
 
+    /// The defaults are the shipped bounds; tests pass their own.
     init(
         thresholdByteCount: Int64 = balanceRecoveryThresholdByteCount,
         maxRetries: Int = balanceRecoveryMaxRetries,
@@ -181,6 +185,8 @@ struct BalanceRecovery<Target> {
         return .start(start.target)
     }
 
+    /// Arms the recovery at `at` unless it is armed already: only a reading
+    /// fetched at or after then can retry.
     private mutating func arm(_ at: Date) {
         if armedAt == nil {
             armedAt = at

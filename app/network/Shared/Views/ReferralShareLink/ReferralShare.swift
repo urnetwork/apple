@@ -13,6 +13,7 @@
 import Foundation
 import URnetworkSdk
 
+/// The invitation's text and its link.
 enum ReferralShare {
 
     // RFC 3986 unreserved: everything else in a code is percent-encoded, so a

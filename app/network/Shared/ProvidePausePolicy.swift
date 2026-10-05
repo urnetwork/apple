@@ -48,6 +48,7 @@ struct ProvidePowerState: Equatable {
     var charging: Bool?
 }
 
+/// When providing pauses: for the path first, then for the battery.
 enum ProvidePausePolicy {
 
     /// The battery's reason to pause providing, nil to provide.
@@ -85,6 +86,7 @@ enum ProvidePowerModeMessage {
 
     static let prefix = "provide-power-mode:"
 
+    /// The message that hands `mode` to the extension.
     static func encode(_ mode: ProvidePowerMode) -> Data {
         Data("\(prefix)\(mode.rawValue)".utf8)
     }
@@ -106,10 +108,12 @@ enum ProvidePowerModeStore {
 
     static let key = "network.ur.provide-power-mode"
 
+    /// The kept mode, or the default before one is kept.
     static func load(from defaults: UserDefaults = .standard) -> ProvidePowerMode {
         defaults.string(forKey: key).flatMap { ProvidePowerMode(rawValue: $0) } ?? .defaultMode
     }
 
+    /// Keeps `mode` for this process and its later starts.
     static func save(_ mode: ProvidePowerMode, to defaults: UserDefaults = .standard) {
         defaults.set(mode.rawValue, forKey: key)
     }

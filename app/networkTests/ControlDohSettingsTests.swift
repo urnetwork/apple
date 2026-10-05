@@ -42,37 +42,37 @@ struct ControlDohSettingsTests {
 
     // windows (\r\n), old mac (\r) and unix (\n) line endings read the same
     @Test func aLineEndsAtANewlineOrACarriageReturn() {
-        #expect(controlDohUrls("https://223.5.5.5/dns-query\r\nhttps://223.6.6.6/dns-query\rhttps://1.12.12.12/dns-query\n") == [
-            "https://223.5.5.5/dns-query",
-            "https://223.6.6.6/dns-query",
-            "https://1.12.12.12/dns-query",
+        #expect(controlDohUrls("https://192.0.2.1/dns-query\r\nhttps://198.51.100.1/dns-query\rhttps://203.0.113.1/dns-query\n") == [
+            "https://192.0.2.1/dns-query",
+            "https://198.51.100.1/dns-query",
+            "https://203.0.113.1/dns-query",
         ])
     }
 
     @Test func blankLinesAndPaddingAreNotServers() {
-        #expect(controlDohUrls("  https://223.5.5.5/dns-query \n\n\t\r\n   \nhttps://[2400:3200::1]/dns-query\t") == [
-            "https://223.5.5.5/dns-query",
-            "https://[2400:3200::1]/dns-query",
+        #expect(controlDohUrls("  https://192.0.2.1/dns-query \n\n\t\r\n   \nhttps://[2001:db8::1]/dns-query\t") == [
+            "https://192.0.2.1/dns-query",
+            "https://[2001:db8::1]/dns-query",
         ])
         #expect(controlDohUrls("") == [])
         #expect(controlDohUrls(" \r\n\t\n") == [])
     }
 
     @Test func aCommaDoesNotSeparateServers() {
-        #expect(controlDohUrls("https://223.5.5.5/dns-query,https://223.6.6.6/dns-query") == [
-            "https://223.5.5.5/dns-query,https://223.6.6.6/dns-query",
+        #expect(controlDohUrls("https://192.0.2.1/dns-query,https://198.51.100.1/dns-query") == [
+            "https://192.0.2.1/dns-query,https://198.51.100.1/dns-query",
         ])
-        #expect(controlDohUrls("https://223.5.5.5/dns-query, https://223.6.6.6/dns-query") == [
-            "https://223.5.5.5/dns-query, https://223.6.6.6/dns-query",
+        #expect(controlDohUrls("https://192.0.2.1/dns-query, https://198.51.100.1/dns-query") == [
+            "https://192.0.2.1/dns-query, https://198.51.100.1/dns-query",
         ])
     }
 
     // the order typed is the order tried, and the sdk drops the repeat
     @Test func theLinesKeepTheirOrderAndRepeatsForTheSdk() {
-        #expect(controlDohUrls("https://1.12.12.12/dns-query\nhttps://223.5.5.5/dns-query\nhttps://1.12.12.12/dns-query") == [
-            "https://1.12.12.12/dns-query",
-            "https://223.5.5.5/dns-query",
-            "https://1.12.12.12/dns-query",
+        #expect(controlDohUrls("https://203.0.113.1/dns-query\nhttps://192.0.2.1/dns-query\nhttps://203.0.113.1/dns-query") == [
+            "https://203.0.113.1/dns-query",
+            "https://192.0.2.1/dns-query",
+            "https://203.0.113.1/dns-query",
         ])
     }
 
@@ -91,12 +91,12 @@ struct ControlDohSettingsTests {
         #expect(controlDohValidationErrorId(ControlDohFixtures.chinaPreset) == "")
         #expect(controlDohValidationErrorId([]) == "")
         #expect(controlDohValidationErrorId([
-            "https://223.5.5.5/dns-query",
-            "http://223.6.6.6/dns-query",
-            "https://dns.alidns.com/dns-query",
+            "https://192.0.2.1/dns-query",
+            "http://198.51.100.1/dns-query",
+            "https://dns.example/dns-query",
         ]) == ControlDohErrorId.httpsRequired)
-        #expect(controlDohValidationErrorId(["https://dns.alidns.com/dns-query"]) == ControlDohErrorId.ipRequired)
-        #expect(controlDohValidationErrorId(["223.5.5.5"]) != "")
+        #expect(controlDohValidationErrorId(["https://dns.example/dns-query"]) == ControlDohErrorId.ipRequired)
+        #expect(controlDohValidationErrorId(["192.0.2.1"]) != "")
     }
 
     // MARK: errors
@@ -159,21 +159,21 @@ struct ControlDohSettingsTests {
     @Test func aDecodeResultWithServersNamesThem() {
         let result = SdkExtenderShareDecodeResult()
         result.ok = true
-        result.networkHost = "bringyour.com"
+        result.networkHost = "network.example"
         result.count = 5
         result.hasSettings = true
-        result.settingsHost = "extender.bringyour.com"
-        result.controlDohUrls = ControlDohFixtures.stringList(["https://223.5.5.5/dns-query", "https://1.12.12.12/dns-query"])
+        result.settingsHost = "extender.network.example"
+        result.controlDohUrls = ControlDohFixtures.stringList(["https://192.0.2.1/dns-query", "https://203.0.113.1/dns-query"])
 
         let decision = extenderImportDecision(result)
         #expect(decision == .ready(
             count: 5,
             hasSettings: true,
-            settingsHost: "extender.bringyour.com",
+            settingsHost: "extender.network.example",
             requiresSettings: false,
-            controlDohUrls: ["https://223.5.5.5/dns-query", "https://1.12.12.12/dns-query"]
+            controlDohUrls: ["https://192.0.2.1/dns-query", "https://203.0.113.1/dns-query"]
         ))
-        #expect(extenderImportControlDohServers(decision) == "https://223.5.5.5/dns-query, https://1.12.12.12/dns-query")
+        #expect(extenderImportControlDohServers(decision) == "https://192.0.2.1/dns-query, https://203.0.113.1/dns-query")
         // taking them is taking the settings, which is confirmed first
         #expect(extenderImportNeedsConfirmation(decision, useSettings: true))
         #expect(!extenderImportNeedsConfirmation(decision, useSettings: false))
@@ -182,16 +182,16 @@ struct ControlDohSettingsTests {
     @Test func aPayloadThatSetsNoServersHasNoLine() {
         // settings that name none leave this space's servers alone
         let settingsOnly = extenderImportDecision(
-            ok: true, error: "", networkHost: "bringyour.com", foreignHost: false,
-            count: 3, hasSettings: true, settingsHost: "extender.bringyour.com"
+            ok: true, error: "", networkHost: "network.example", foreignHost: false,
+            count: 3, hasSettings: true, settingsHost: "extender.network.example"
         )
         #expect(extenderImportControlDohServers(settingsOnly) == nil)
 
         // servers ride only in a settings block
         let noSettings = extenderImportDecision(
-            ok: true, error: "", networkHost: "bringyour.com", foreignHost: false,
+            ok: true, error: "", networkHost: "network.example", foreignHost: false,
             count: 3, hasSettings: false, settingsHost: "",
-            controlDohUrls: ["https://223.5.5.5/dns-query"]
+            controlDohUrls: ["https://192.0.2.1/dns-query"]
         )
         #expect(noSettings == .ready(count: 3, hasSettings: false, settingsHost: "", requiresSettings: false))
         #expect(extenderImportControlDohServers(noSettings) == nil)
@@ -203,7 +203,7 @@ struct ControlDohSettingsTests {
         let result = SdkExtenderShareDecodeResult()
         result.ok = true
         result.hasSettings = true
-        result.settingsHost = "extender.bringyour.com"
+        result.settingsHost = "extender.network.example"
         #expect(extenderImportControlDohServers(extenderImportDecision(result)) == nil)
     }
 
@@ -342,13 +342,13 @@ struct ControlDohSettingsStoreTests {
     // typed so it can be fixed, and an edit clears the outcome
     @Test func aHostNameIsRefusedAndNothingIsSaved() async throws {
         try await withNetworkSpace { _, space in
-            #expect(space.setControlDohUrls(ControlDohFixtures.stringList(["https://120.53.53.53/dns-query"])) == "")
+            #expect(space.setControlDohUrls(ControlDohFixtures.stringList(["https://192.0.2.2/dns-query"])) == "")
 
             let store = ControlDohSettingsStore()
             store.setup(space)
-            #expect(store.text == "https://120.53.53.53/dns-query")
+            #expect(store.text == "https://192.0.2.2/dns-query")
 
-            let typed = "https://223.5.5.5/dns-query\nhttps://dns.alidns.com/dns-query"
+            let typed = "https://192.0.2.1/dns-query\nhttps://dns.example/dns-query"
             store.text = typed
             // the live check already names the line
             #expect(store.errorId == ControlDohErrorId.ipRequired)
@@ -357,9 +357,9 @@ struct ControlDohSettingsStoreTests {
             #expect(store.saveOutcome == .failed(errorId: ControlDohErrorId.ipRequired))
             #expect(store.errorId == ControlDohErrorId.ipRequired)
             #expect(store.text == typed)
-            #expect(controlDohStrings(space.getControlDohUrls()) == ["https://120.53.53.53/dns-query"])
+            #expect(controlDohStrings(space.getControlDohUrls()) == ["https://192.0.2.2/dns-query"])
 
-            store.text = "https://223.5.5.5/dns-query"
+            store.text = "https://192.0.2.1/dns-query"
             #expect(store.saveOutcome == nil)
             #expect(store.errorId == nil)
         }
@@ -371,11 +371,11 @@ struct ControlDohSettingsStoreTests {
         try await withNetworkSpace { _, space in
             let store = ControlDohSettingsStore()
             store.setup(space)
-            store.text = "\r\n https://[2400:3200::1]/dns-query \r\nhttps://223.5.5.5/dns-query\n\nhttps://223.5.5.5/dns-query\n"
+            store.text = "\r\n https://[2001:db8::1]/dns-query \r\nhttps://192.0.2.1/dns-query\n\nhttps://192.0.2.1/dns-query\n"
             await store.save()
             #expect(store.saveOutcome == .saved)
-            #expect(store.text == "https://223.5.5.5/dns-query\nhttps://[2400:3200::1]/dns-query")
-            #expect(controlDohStrings(space.getControlDohUrlsIpv6()) == ["https://[2400:3200::1]/dns-query"])
+            #expect(store.text == "https://192.0.2.1/dns-query\nhttps://[2001:db8::1]/dns-query")
+            #expect(controlDohStrings(space.getControlDohUrlsIpv6()) == ["https://[2001:db8::1]/dns-query"])
         }
     }
 
@@ -403,13 +403,13 @@ struct ControlDohSettingsStoreTests {
             store.setup(space)
             #expect(store.text == "")
 
-            #expect(space.setControlDohUrls(ControlDohFixtures.stringList(["https://1.12.12.12/dns-query"])) == "")
+            #expect(space.setControlDohUrls(ControlDohFixtures.stringList(["https://203.0.113.1/dns-query"])) == "")
             // the same space again keeps the field as it is
             store.setup(space)
             #expect(store.text == "")
 
             store.reload()
-            #expect(store.text == "https://1.12.12.12/dns-query")
+            #expect(store.text == "https://203.0.113.1/dns-query")
         }
     }
 

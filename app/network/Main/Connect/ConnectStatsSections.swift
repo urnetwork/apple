@@ -387,6 +387,9 @@ struct ConnectStatsSheets: ViewModifier {
                 .environmentObject(dnsSettingsStore)
                 .environmentObject(transportSettingsStore)
                 .environmentObject(snackbarManager)
+                // Provider Locations reads the current location and connects
+                // for "Stay on this exit"
+                .environmentObject(connectViewModel)
             }
     }
 

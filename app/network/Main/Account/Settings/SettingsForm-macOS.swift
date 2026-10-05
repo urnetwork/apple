@@ -462,6 +462,30 @@ struct SettingsForm_macOS: View {
                             navigate(.vless)
                         }
                         
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+                        
+                        // cloud proxies: the app has no protocol switch, so
+                        // WireGuard, SOCKS and HTTPS proxies are created on ur.io
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Use WireGuard / SOCKS / HTTPS proxy")
+                                Text("Opens ur.io in your browser. SOCKS and WireGuard need Pro.")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            #if canImport(AppKit)
+                            NSWorkspace.shared.open(CloudProxyLink.url)
+                            #endif
+                        }
+                        
                     }
                     .padding()
                     .background(themeManager.currentTheme.tintedBackgroundBase)

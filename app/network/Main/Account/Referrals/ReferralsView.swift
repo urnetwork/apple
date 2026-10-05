@@ -178,7 +178,9 @@ struct ReferralsView: View {
 
     /**
      * The referral network this network signed up with, and the editor to
-     * link or unlink one (moved here from Settings).
+     * link or unlink one (moved here from Settings). With none yet, the card
+     * is the code entry itself: a friend who missed the field at sign-up adds
+     * the code here (support inbox 1698).
      */
     private var referralNetworkCard: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -190,23 +192,28 @@ struct ReferralsView: View {
 
             Spacer().frame(height: 8)
 
-            HStack {
-                if let name = viewModel.referralNetwork?.name, !name.isEmpty {
+            switch ReferralNetworkAction.of(networkName: viewModel.referralNetwork?.name) {
+            case .addCode:
+                UrButton(
+                    text: "Add referral code",
+                    action: {
+                        viewModel.presentUpdateReferralNetworkSheet = true
+                    },
+                    accessibilityIdentifier: "acceptance.referrals.addCode"
+                )
+            case .update(let name):
+                HStack {
                     Text(name)
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
-                } else {
-                    Text("None")
-                        .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                }
 
-                Spacer()
+                    Spacer()
 
-                Button(action: {
-                    viewModel.presentUpdateReferralNetworkSheet = true
-                }) {
-                    Text("Update")
+                    Button(action: {
+                        viewModel.presentUpdateReferralNetworkSheet = true
+                    }) {
+                        Text("Update")
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import URnetworkSdk
 @testable import URnetwork
 
 /// The direct-download build's Stripe purchase flow: pay sheet, then embedded
@@ -153,6 +154,26 @@ struct StripeSubscriptionStoreTests {
         #expect(store.purchaseError == nil, "a new attempt starts clean")
         store.handle(.checkoutFailed(code: "-1", message: nil))
         #expect(store.purchaseError == "Something went wrong. Please try again later.")
+    }
+
+    // the embedded checkout page's failure, with its code, reaches the plans in
+    // this app's words for a code it knows and in the page's text for any other
+    @Test @MainActor func anEmbeddedCheckoutFailureReadsInTheAppsWords() async throws {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.server("no sheet"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret"))
+        let store = Self.store(client)
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(store.checkout?.stage == .embedded)
+        let link = BillingDeepLink(url: URL(string: "urnetwork://checkout?errorCode=checkout_unavailable&errorMessage=Checkout+is+not+configured.")!)
+        #expect(store.handle(try #require(link)) == false)
+        #expect(store.purchaseError == String(localized: "Checkout isn't available right now. Please try again later."))
+        #expect(!store.isPurchasing)
+
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(store.checkout?.stage == .embedded)
+        store.handle(.checkoutFailed(code: SdkCheckoutBridgeErrorCheckout, message: "The checkout session is not valid."))
+        #expect(store.purchaseError == "The checkout session is not valid.")
     }
 
     @Test @MainActor func noPaySheetFallsBackToTheEmbeddedCheckout() async {

@@ -10,6 +10,7 @@
 
 import Foundation
 import Testing
+import URnetworkSdk
 @testable import URnetwork
 
 /// Holds a scripted address check open until the test releases it.
@@ -417,24 +418,143 @@ struct ConnectSolanaWalletFlowTests {
 
     // MARK: failure wording
 
-    @Test func theProvidersRejectionReadsAsTheWalletsMessage() {
+    /// The stage a wallet hand-back carrying `errorCode` and `errorMessage`
+    /// leaves the flow in, through the wallet provider's deep link handling.
+    private static func failedStage(host: String, errorCode: String, errorMessage: String) -> ConnectSolanaWalletFlow.Stage {
         let provider = ConnectWalletProviderViewModel()
         let flow = Self.flow(FakeUsdcWalletsClient())
         flow.openWallet = { _ in true }
-        flow.start(.solflare)
-
-        // what Phantom, Solflare and the ur.io bridge send for a declined connect
+        flow.start(host.hasPrefix("solflare") ? .solflare : .phantom)
+        var components = URLComponents(string: "urnetwork://\(host)")!
+        components.queryItems = [
+            URLQueryItem(name: "errorCode", value: errorCode),
+            URLQueryItem(name: "errorMessage", value: errorMessage),
+        ]
         provider.handleDeepLink(
-            URL(string: "urnetwork://solflare-connect?errorCode=4001&errorMessage=User%20rejected%20the%20request.")!,
+            components.url!,
             onPublicKeyRetrieved: { _, _ in
-                Issue.record("a declined connect carries no key")
+                Issue.record("a failed connect carries no key")
             },
             onError: { error in
                 flow.handleWalletError(error)
             }
         )
+        return flow.stage
+    }
 
-        #expect(flow.stage == .failed("There was an error connecting your wallet: User rejected the request."))
+    // Phantom and Solflare decline with 4001 (their apps on iOS): the app's
+    // own words, not the wallet's English
+    @Test func aDeclinedConnectReadsInTheAppsWords() {
+        #expect(Self.failedStage(host: "solflare-connect", errorCode: "4001", errorMessage: "User rejected the request.")
+            == .failed("There was an error connecting your wallet: The request was declined in your wallet. Start again and approve it to continue."))
+    }
+
+    // the ur.io bridge (macOS) hands a failure back with its code (sdk
+    // SolanaWalletBridgeError*) and its English text: a code this app knows
+    // reads in its own words, with the wallet's name where the text has one
+    @Test func theBridgePagesCodesReadInTheAppsWords() {
+        let english = "The page's English text."
+        let cases: [(host: String, code: String, detail: String)] = [
+            ("phantom-connect", SdkSolanaWalletBridgeErrorExtensionNotFound, "The Phantom extension was not found in this browser. Install it, then try again."),
+            ("solflare-connect", SdkSolanaWalletBridgeErrorExtensionNotFound, "The Solflare extension was not found in this browser. Install it, then try again."),
+            ("solflare-connect", SdkSolanaWalletBridgeErrorNoAccount, "Your Solflare wallet has no account to sign with. Add or connect an account in the wallet, then try again."),
+            ("phantom-connect", SdkSolanaWalletBridgeErrorUserRejected, "The request was declined in your wallet. Start again and approve it to continue."),
+            ("phantom-connect", SdkSolanaWalletBridgeErrorSessionNotFound, "The wallet connection wasn't found in this browser. Start again to reconnect your wallet."),
+        ]
+        for c in cases {
+            #expect(Self.failedStage(host: c.host, errorCode: c.code, errorMessage: english)
+                == .failed("There was an error connecting your wallet: \(c.detail)"), "\(c.host) \(c.code)")
+        }
+        // the page's other failures, a code this app does not know, and a page
+        // before the codes: the page's text
+        for code in [SdkSolanaWalletBridgeErrorInvalidRequest, SdkSolanaWalletBridgeErrorWallet, "wallet_locked", "-1"] {
+            #expect(Self.failedStage(host: "phantom-connect", errorCode: code, errorMessage: english)
+                == .failed("There was an error connecting your wallet: \(english)"), "\(code)")
+        }
+    }
+
+    // the sign step's refusal comes back the same way (the bridge on macOS)
+    @Test func aSignatureRefusalCarriesTheAppsWordsToo() {
+        let provider = ConnectWalletProviderViewModel()
+        var errors: [Error] = []
+        for (code, message) in [(SdkSolanaWalletBridgeErrorSessionNotFound, "No wallet session found. Please connect first."), ("wallet_locked", "The wallet is locked.")] {
+            var components = URLComponents(string: "urnetwork://phantom-sign-message")!
+            components.queryItems = [URLQueryItem(name: "errorCode", value: code), URLQueryItem(name: "errorMessage", value: message)]
+            provider.handleDeepLink(
+                components.url!,
+                onSignature: { _ in
+                    Issue.record("a refused signature carries no signature")
+                },
+                onError: { error in
+                    errors.append(error)
+                }
+            )
+        }
+        #expect(errors.count == 2)
+        if case WalletDeepLinkError.walletError(let text)? = errors.first {
+            #expect(text == "The wallet connection wasn't found in this browser. Start again to reconnect your wallet.")
+        } else {
+            Issue.record("session_not_found: \(String(describing: errors.first))")
+        }
+        // a code this app does not know keeps the wallet's own text
+        #expect(errors.last?.localizedDescription == "Wallet signing error: The wallet is locked.")
+    }
+
+    @Test func eachCodeHasItsText() {
+        #expect(SolanaWalletReturnError.text(code: SdkSolanaWalletBridgeErrorExtensionNotFound, provider: .phantom)
+            == String(localized: "The \("Phantom") extension was not found in this browser. Install it, then try again."))
+        #expect(SolanaWalletReturnError.text(code: SdkSolanaWalletBridgeErrorNoAccount, provider: .phantom)
+            == String(localized: "Your \("Phantom") wallet has no account to sign with. Add or connect an account in the wallet, then try again."))
+        #expect(SolanaWalletReturnError.text(code: SdkSolanaWalletBridgeErrorSessionNotFound, provider: .solflare)
+            == String(localized: "The wallet connection wasn't found in this browser. Start again to reconnect your wallet."))
+        for code in [SdkSolanaWalletBridgeErrorUserRejected, SolanaWalletReturnError.walletUserRejectedCode] {
+            #expect(SolanaWalletReturnError.text(code: code, provider: .solflare)
+                == String(localized: "The request was declined in your wallet. Start again and approve it to continue."))
+        }
+        for code in [SdkSolanaWalletBridgeErrorInvalidRequest, SdkSolanaWalletBridgeErrorWallet, "-1", "-32603", ""] {
+            #expect(SolanaWalletReturnError.text(code: code, provider: .phantom) == nil, "\(code)")
+        }
+    }
+
+    // …/apple/app/networkTests/ConnectSolanaWalletFlowTests.swift -> …/apple/app
+    private static let appRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+
+    @Test func theWalletReturnTextsAreTranslatedInEveryLocale() throws {
+        let data = try Data(contentsOf: Self.appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: Any])
+        var locales = Set<String>()
+        for case let entry as [String: Any] in strings.values {
+            if let localizations = entry["localizations"] as? [String: Any] {
+                locales.formUnion(localizations.keys)
+            }
+        }
+        #expect(locales.contains("zh-Hans"))
+        for key in [
+            "The %@ extension was not found in this browser. Install it, then try again.",
+            "Your %@ wallet has no account to sign with. Add or connect an account in the wallet, then try again.",
+            "The request was declined in your wallet. Start again and approve it to continue.",
+            "The wallet connection wasn't found in this browser. Start again to reconnect your wallet.",
+        ] {
+            let entry = try #require(strings[key] as? [String: Any], "the catalog has no \(key)")
+            #expect(entry["extractionState"] as? String != "stale")
+            let localizations = try #require(entry["localizations"] as? [String: Any])
+            var missing: [String] = []
+            for locale in locales.sorted() {
+                let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+                guard let value = unit?["value"] as? String, !value.isEmpty else {
+                    missing.append(locale)
+                    continue
+                }
+                if locale != "en" {
+                    #expect(value != key, "\(locale) is English: \(key)")
+                }
+                #expect(value.contains("%@") == key.contains("%@"), "\(locale): \(value)")
+            }
+            #expect(missing.isEmpty, "not translated: \(missing) in \(key)")
+        }
     }
 
     @Test func failuresWithoutAServerMessageReadAsTheSentenceAlone() {

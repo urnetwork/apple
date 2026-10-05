@@ -342,7 +342,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
         if let errorCode = queryItems.first(where: { $0.name == "errorCode" })?.value,
            let errorMessage = queryItems.first(where: { $0.name == "errorMessage" })?.value {
             print("Wallet signing error: Code \(errorCode) - \(errorMessage)")
-            onError?(walletDeepLinkError("Wallet signing error: \(errorMessage)"))
+            onError?(walletReturnError(code: errorCode, provider: connectedWalletProvider) ?? walletDeepLinkError("Wallet signing error: \(errorMessage)"))
             return
         }
         
@@ -411,7 +411,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
            let errorMessage = queryItems.first(where: { $0.name == "errorMessage" })?.value {
             print("Wallet connect error: Code \(errorCode) - \(errorMessage)")
             clearConnectionState()
-            onError?(walletDeepLinkError("Wallet connect error: \(errorMessage)"))
+            onError?(walletReturnError(code: errorCode, provider: connectedWalletProvider) ?? walletDeepLinkError("Wallet connect error: \(errorMessage)"))
             return
         }
 
@@ -542,6 +542,13 @@ class ConnectWalletProviderViewModel: ObservableObject {
     
     private func walletDeepLinkError(_ message: String) -> Error {
         NSError(domain: "ConnectWalletProviderViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
+    }
+
+    /// A failure the wallet or the ur.io bridge handed back, in this app's
+    /// words when it knows the code; nil for any other code, whose own text
+    /// the caller shows.
+    private func walletReturnError(code: String, provider: ConnectedWalletProvider) -> Error? {
+        SolanaWalletReturnError.text(code: code, provider: provider).map { WalletDeepLinkError.walletError($0) }
     }
 
     #if canImport(AppKit)
@@ -702,6 +709,35 @@ enum ConnectedWalletProvider {
     case solflare
     case phantom
     case bittensor
+}
+
+/// This app's words for the error a Solana wallet hand-back carries: the ur.io
+/// bridge page's codes on macOS (sdk SolanaWalletBridgeError*, sent next to
+/// the page's English text), and on iOS the wallet apps' own 4001, a declined
+/// request. Any other code (the page's invalid_request and wallet_error, a
+/// wallet's other codes, the -1 of pages before the codes) has none: its own
+/// text is shown.
+enum SolanaWalletReturnError {
+    /// Phantom's and Solflare's deep link code for a request the user declined
+    static let walletUserRejectedCode = "4001"
+
+    /// The words for `code`, with the wallet's product name where the text
+    /// takes one; nil for a code this app does not know.
+    static func text(code: String, provider: ConnectedWalletProvider) -> String? {
+        let walletName = provider == .solflare ? "Solflare" : "Phantom"
+        switch code {
+        case SdkSolanaWalletBridgeErrorExtensionNotFound:
+            return String(localized: "The \(walletName) extension was not found in this browser. Install it, then try again.")
+        case SdkSolanaWalletBridgeErrorNoAccount:
+            return String(localized: "Your \(walletName) wallet has no account to sign with. Add or connect an account in the wallet, then try again.")
+        case SdkSolanaWalletBridgeErrorSessionNotFound:
+            return String(localized: "The wallet connection wasn't found in this browser. Start again to reconnect your wallet.")
+        case SdkSolanaWalletBridgeErrorUserRejected, walletUserRejectedCode:
+            return String(localized: "The request was declined in your wallet. Start again and approve it to continue.")
+        default:
+            return nil
+        }
+    }
 }
 
 private struct SignMessagePayload: Encodable {

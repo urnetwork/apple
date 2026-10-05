@@ -147,6 +147,10 @@ import URnetworkSdk
                                 openDataInfo: {
                                     isPresentedDataInfo = true
                                 },
+                                outOfBalanceKind: outOfBalanceKind(subscriptionBalanceViewModel.lastWidgetBalanceSnapshot),
+                                reservedByteCount: Int(subscriptionBalanceViewModel.lastWidgetBalanceSnapshot?.openTransferByteCount ?? 0),
+                                balanceRecovery: connectViewModel.balanceRecoveryState,
+                                cancelBalanceRecovery: connectViewModel.clearBalanceRecovery,
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
@@ -245,6 +249,14 @@ import URnetworkSdk
             }
             .onChange(of: subscriptionBalanceViewModel.isPolling) { _ in
                 updateInsufficientBalanceGuards()
+            }
+            // every balance reading feeds the recovery of a connect the
+            // balance blocked (ConnectViewModel.balanceReadingChanged)
+            .onChange(of: subscriptionBalanceViewModel.lastWidgetBalanceSnapshot) { _ in
+                connectViewModel.balanceReadingChanged()
+            }
+            .onChange(of: connectViewModel.balanceRecoveryRetryCount) { _ in
+                snackbarManager.showSnackbar(message: String(localized: "Data is available again. Reconnecting…"))
             }
             .onAppear {
                 connectViewModel.updateGrid()

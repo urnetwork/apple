@@ -155,3 +155,32 @@ struct FreeRefreshCountdownText: View {
         }
     }
 }
+
+/// Whether the missing data is reserved by open connections, with the
+/// reserved amount, or used up (outOfBalanceKind); nothing for neither. For
+/// the out-of-balance notice and the upgrade sheet a blocked connect opens,
+/// under the refresh line.
+struct OutOfBalanceKindText: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let kind: OutOfBalanceKind
+    let reservedByteCount: Int
+
+    var body: some View {
+        switch kind {
+        case .reserved:
+            Text("\(formatBalanceBytes(reservedByteCount)) is reserved for your open connections. What they don't use is returned as they close.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+        case .exhausted:
+            Text("You're out of data until the free refresh or an upgrade.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+        case .unknown:
+            EmptyView()
+        }
+    }
+}

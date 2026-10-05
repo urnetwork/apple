@@ -71,6 +71,14 @@ struct ConnectActions: View {
     // the usage bar's info button and the out-of-balance Why? open the
     // "About your data" sheet
     let openDataInfo: () -> Void
+    // why the balance is out (reserved or used up) and the reserved amount
+    // it names, from the last balance reading
+    let outOfBalanceKind: OutOfBalanceKind
+    let reservedByteCount: Int
+    // a connect insufficient balance blocked, waiting to be retried by
+    // itself; cancelBalanceRecovery is the refused start's Cancel
+    let balanceRecovery: BalanceRecoveryState
+    let cancelBalanceRecovery: () -> Void
     let isPro: Bool
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
@@ -112,7 +120,30 @@ struct ConnectActions: View {
     }
 
     private var notice: OutOfBalanceNotice {
-        outOfBalanceNotice(buttons: actionButtons)
+        outOfBalanceNotice(buttons: actionButtons, kind: outOfBalanceKind, recovery: balanceRecovery)
+    }
+
+    /// "You'll be reconnected when data is available again.", with Cancel for
+    /// a refused start, which has no Disconnect to stop it.
+    private var willReconnectLine: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("You'll be reconnected when data is available again.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("acceptance.insufficientBalance.willReconnect")
+
+            if notice.cancel {
+                Button(action: cancelBalanceRecovery) {
+                    Text("Cancel")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .underline()
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("acceptance.insufficientBalance.cancelReconnect")
+            }
+        }
     }
 
     var body: some View {
@@ -160,12 +191,22 @@ struct ConnectActions: View {
                                 }
                             }
 
+                            // reserved data comes back as connections close
+                            // (no time promised); used up waits for the
+                            // refresh or an upgrade
+                            OutOfBalanceKindText(kind: notice.kind, reservedByteCount: reservedByteCount)
+                                .accessibilityIdentifier("acceptance.insufficientBalance.kind")
+
                             if notice.held {
                                 Text(InsufficientBalanceNotice.body)
                                     .font(themeManager.currentTheme.secondaryBodyFont)
                                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("acceptance.insufficientBalance.notice")
+                            }
+
+                            if notice.willReconnect {
+                                willReconnectLine
                             }
                             
                             HStack {
@@ -194,6 +235,15 @@ struct ConnectActions: View {
                              * sufficient balance
                              */
                          
+                            /**
+                             * A start the gate refused waits on the balance
+                             * (the gate itself only shows while connected),
+                             * above the fold so the collapsed drawer shows it
+                             */
+                            if notice.willReconnect {
+                                willReconnectLine
+                            }
+
                             /**
                              * Action buttons
                              */

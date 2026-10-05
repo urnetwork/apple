@@ -849,6 +849,173 @@
         }
       }
     },
+    "%@ is reserved for your open connections. What they don't use is returned as they close." : {
+      "comment" : "Out-of-balance notice (and the Upgrade screen when a blocked connect opened it), shown when most of what is missing is held by open connections rather than used up. {amount} is the reserved (Pending) data as a size, e.g. 1.4 GB. The unused part is returned as those connections close. Do not add a time promise.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ محجوزة لاتصالاتك المفتوحة. ما لا تستخدمه منها يُعاد عند إغلاقها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ je rezervováno pro vaše otevřená připojení. Co nevyužijí, se vrátí, až se ukončí."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sind für deine offenen Verbindungen reserviert. Was sie nicht verbrauchen, wird zurückgegeben, sobald sie geschlossen werden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ είναι δεσμευμένα για τις ανοιχτές συνδέσεις σας. Ό,τι δεν χρησιμοποιήσουν επιστρέφεται καθώς κλείνουν."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is reserved for your open connections. What they don't use is returned as they close."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ están reservados para tus conexiones abiertas. Lo que no usen se devuelve a medida que se cierran."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ están reservados para tus conexiones abiertas. Lo que no usen se devuelve a medida que se cierran."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ están reservados para tus conexiones abiertas. Lo que no usen se devuelve a medida que se cierran."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sont réservés à vos connexions ouvertes. Ce qu’elles n’utilisent pas vous est rendu à mesure qu’elles se ferment."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ שמורים לחיבורים הפתוחים שלך. מה שהם לא מנצלים מוחזר כשהם נסגרים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ आपके खुले कनेक्शनों के लिए आरक्षित है। वे जो उपयोग नहीं करते, वह उनके बंद होने पर वापस मिल जाता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ dicadangkan untuk koneksi Anda yang sedang terbuka. Data yang tidak terpakai dikembalikan saat koneksi ditutup."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sono riservati alle tue connessioni aperte. Quello che non usano ti viene restituito man mano che si chiudono."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ が開いている接続のために予約されています。使われなかった分は、接続が閉じるにつれて戻ります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@이(가) 열려 있는 연결을 위해 예약되어 있습니다. 사용하지 않은 만큼은 연결이 닫히는 대로 돌아옵니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is gereserveerd voor je open verbindingen. Wat ze niet gebruiken, krijg je terug zodra ze worden gesloten."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ jest zarezerwowane dla Twoich otwartych połączeń. To, czego nie wykorzystają, wraca w miarę ich zamykania."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ estão reservados para suas conexões abertas. O que elas não usarem é devolvido à medida que forem fechadas."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ estão reservados para suas conexões abertas. O que elas não usarem é devolvido à medida que forem fechadas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ estão reservados para as suas ligações abertas. O que não utilizarem é devolvido à medida que forem fechadas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ зарезервировано для ваших открытых подключений. То, что они не используют, возвращается по мере их закрытия."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ är reserverat för dina öppna anslutningar. Det som inte används återförs när de stängs."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ถูกจองไว้สำหรับการเชื่อมต่อที่เปิดอยู่ของคุณ ส่วนที่ไม่ได้ใช้จะได้รับคืนเมื่อการเชื่อมต่อปิดลง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ зарезервовано для ваших відкритих підключень. Те, що вони не використають, повертається в міру їх закриття."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ đang được giữ trước cho các kết nối đang mở của bạn. Phần không dùng đến sẽ được trả lại khi các kết nối đóng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已为你当前打开的连接预留。未使用的部分会在连接关闭时退回。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已為你目前開啟的連線預留。未使用的部分會在連線關閉時退回。"
+          }
+        }
+      }
+    },
     "%@ of block" : {
       "comment" : "History row: the network's share of the block.",
       "localizations" : {
@@ -41847,6 +42014,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "數據來源"
+          }
+        }
+      }
+    },
+    "Data is available again. Reconnecting…" : {
+      "comment" : "Short note shown when the balance comes back (reserved data returned, the free refresh or an upgrade) and the app retries, by itself, the connect that insufficient balance had blocked.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "البيانات متاحة مجددًا. جارٍ إعادة الاتصال…"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data jsou opět k dispozici. Znovu se připojuje…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten sind wieder verfügbar. Verbindung wird wiederhergestellt…"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα δεδομένα είναι ξανά διαθέσιμα. Επανασύνδεση…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data is available again. Reconnecting…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve a haber datos disponibles. Reconectando…"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve a haber datos disponibles. Reconectando…"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve a haber datos disponibles. Reconectando…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Des données sont de nouveau disponibles. Reconnexion…"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש שוב נתונים זמינים. מתחבר מחדש…"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डेटा फिर से उपलब्ध है। दोबारा कनेक्ट हो रहा है…"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data tersedia lagi. Menyambungkan kembali…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I dati sono di nuovo disponibili. Riconnessione in corso…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データが再び利用可能になりました。再接続しています…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터를 다시 사용할 수 있습니다. 다시 연결하는 중…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Er is weer data beschikbaar. Opnieuw verbinden…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dane są znów dostępne. Ponowne łączenie…"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Há dados disponíveis novamente. Reconectando…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Há dados disponíveis novamente. Reconectando…"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltou a haver dados disponíveis. A ligar novamente…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные снова доступны. Переподключение…"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data finns tillgänglig igen. Återansluter…"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "มีข้อมูลใช้งานได้อีกครั้ง กำลังเชื่อมต่อใหม่…"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дані знову доступні. Повторне підключення…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã có dữ liệu trở lại. Đang kết nối lại…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据已再次可用。正在重新连接…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數據已再次可用。正在重新連線…"
           }
         }
       }
@@ -136149,6 +136483,173 @@
         }
       }
     },
+    "You'll be reconnected when data is available again." : {
+      "comment" : "Out-of-balance notice, while a connect the user asked for is waiting on the balance: the app retries that connect by itself once data is available again (reserved data returned, the free refresh or an upgrade). Shown with a Cancel action when the connect has not started yet.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ستتم إعادة توصيلك عندما تتوفر البيانات مجددًا."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Až budou data znovu k dispozici, znovu vás připojíme."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du wirst wieder verbunden, sobald wieder Daten verfügbar sind."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Θα επανασυνδεθείτε όταν υπάρξουν ξανά διαθέσιμα δεδομένα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You'll be reconnected when data is available again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te volveremos a conectar cuando vuelva a haber datos disponibles."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te volveremos a conectar cuando vuelva a haber datos disponibles."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te volveremos a conectar cuando vuelva a haber datos disponibles."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous serez reconnecté dès que des données seront de nouveau disponibles."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החיבור יחודש כשיהיו שוב נתונים זמינים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डेटा फिर से उपलब्ध होने पर आपको दोबारा कनेक्ट कर दिया जाएगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anda akan tersambung kembali saat data tersedia lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verrai ricollegato quando i dati saranno di nuovo disponibili."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データが再び利用可能になると、再接続されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터를 다시 사용할 수 있게 되면 다시 연결됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je wordt opnieuw verbonden zodra er weer data beschikbaar is."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połączymy Cię ponownie, gdy dane znów będą dostępne."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você será reconectado quando houver dados disponíveis novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você será reconectado quando houver dados disponíveis novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Será novamente ligado quando voltar a haver dados disponíveis."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы будете переподключены, когда данные снова станут доступны."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du återansluts när data finns tillgänglig igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คุณจะได้รับการเชื่อมต่อใหม่เมื่อมีข้อมูลใช้งานได้อีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вас буде повторно підключено, коли дані знову стануть доступними."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn sẽ được kết nối lại khi có dữ liệu trở lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据再次可用时，将为你重新连接。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數據再次可用時，將為你重新連線。"
+          }
+        }
+      }
+    },
     "You’ll unlock even faster speeds, and first dibs on new features like robust anti-censorship measures and data control." : {
       "comment" : "Used in Shared/Views/UpgradeSubscriptionSheet.swift.",
       "localizations" : {
@@ -136479,6 +136980,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您正在獲得 2 倍積分"
+          }
+        }
+      }
+    },
+    "You're out of data until the free refresh or an upgrade." : {
+      "comment" : "Out-of-balance notice (and the Upgrade screen when a blocked connect opened it), shown when the data is used up and almost nothing is held by open connections, so nothing meaningful will come back on its own. It follows the \"Free data refreshes in {time}.\" line, which says when the free refresh is.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نفدت بياناتك حتى التجديد المجاني أو الترقية."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Došla vám data až do bezplatného obnovení nebo přechodu na vyšší tarif."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Daten sind bis zur kostenlosen Erneuerung oder einem Upgrade aufgebraucht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα δεδομένα σας έχουν τελειώσει μέχρι τη δωρεάν ανανέωση ή μια αναβάθμιση."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're out of data until the free refresh or an upgrade."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te quedaste sin datos hasta la renovación gratis o hasta que mejores tu plan."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te quedaste sin datos hasta la renovación gratis o hasta que mejores tu plan."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te quedaste sin datos hasta la renovación gratis o hasta que mejores tu plan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous n’avez plus de données jusqu’au renouvellement gratuit ou à un passage à une offre supérieure."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נגמרו לך הנתונים עד לחידוש החינמי או לשדרוג."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "निःशुल्क रीफ़्रेश या अपग्रेड तक आपका डेटा खत्म हो गया है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data Anda habis sampai pembaruan gratis atau sampai Anda meningkatkan paket."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hai esaurito i dati fino al rinnovo gratuito o a un upgrade."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料の更新またはアップグレードまで、使えるデータがありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무료 갱신 또는 업그레이드 전까지 데이터가 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je data is op tot de gratis vernieuwing of een upgrade."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skończyły Ci się dane do darmowego odnowienia lub przejścia na wyższy plan."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seus dados acabaram até a renovação grátis ou um upgrade."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seus dados acabaram até a renovação grátis ou um upgrade."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os seus dados esgotaram-se até à renovação gratuita ou a um upgrade."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные закончились до бесплатного обновления или повышения тарифа."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din data är slut tills den kostnadsfria förnyelsen eller en uppgradering."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ข้อมูลของคุณหมดแล้วจนกว่าจะมีการรีเฟรชฟรีหรืออัปเกรด"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дані закінчилися до безкоштовного оновлення або підвищення тарифу."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn đã hết dữ liệu cho đến lần làm mới miễn phí hoặc khi nâng cấp."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在免费数据更新或升级之前，你的数据已用完。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在免費數據更新或升級之前，你的數據已用完。"
           }
         }
       }

@@ -238,6 +238,88 @@ struct ConnectStartGateTests {
         #expect(!model.upgradeOpenedByStartConnectBlock)
     }
 
+    // MARK: recovering by itself
+
+    /// A balance read `seconds` after `now`.
+    private static func reading(_ balanceByteCount: Int64, at seconds: TimeInterval) -> WidgetBalanceSnapshot {
+        WidgetBalanceSnapshot(
+            updatedAt: now.addingTimeInterval(seconds),
+            startBalanceByteCount: 30 * gib,
+            balanceByteCount: balanceByteCount,
+            openTransferByteCount: 0,
+            isPro: false
+        )
+    }
+
+    /// A start refused out of balance waits on the balance: readings that are
+    /// still empty change nothing, and once data is back (the free refresh,
+    /// reserved data returned) the connect the user asked for starts by
+    /// itself, once, and the connect views are told to say so.
+    @Test func refusedStartConnectsByItselfOnceTheBalanceIsBack() async {
+        var cached: WidgetBalanceSnapshot? = Self.balance(0)
+        let model = Self.model(cached: nil)
+        model.loadCachedBalance = { cached }
+        #expect(!(await Self.recordsIntent(model) { model.connect() }))
+        #expect(model.isPresentedUpgradeSheet)
+        #expect(model.balanceRecoveryState.startWaiting)
+
+        cached = Self.reading(0, at: 60)
+        model.now = { Self.now.addingTimeInterval(60) }
+        #expect(!(await Self.recordsIntent(model) { model.balanceReadingChanged() }))
+        #expect(model.balanceRecoveryRetryCount == 0)
+
+        cached = Self.reading(30 * Self.gib, at: 120)
+        model.now = { Self.now.addingTimeInterval(120) }
+        #expect(await Self.recordsIntent(model) { model.balanceReadingChanged() })
+        #expect(model.balanceRecoveryRetryCount == 1)
+        #expect(!model.balanceRecoveryState.startWaiting)
+
+        // once: later readings do not connect again
+        cached = Self.reading(30 * Self.gib, at: 180)
+        model.now = { Self.now.addingTimeInterval(180) }
+        #expect(!(await Self.recordsIntent(model) { model.balanceReadingChanged() }))
+        #expect(model.balanceRecoveryRetryCount == 1)
+    }
+
+    /// Nobody asked to connect: the balance running out and coming back never
+    /// starts a connection.
+    @Test func balanceComingBackNeverConnectsAUserWhoDidNotAsk() async {
+        var cached: WidgetBalanceSnapshot? = Self.balance(0)
+        let model = Self.model(cached: nil)
+        model.loadCachedBalance = { cached }
+        for step in 1...6 {
+            let seconds = TimeInterval(step * 60)
+            cached = Self.reading(step.isMultiple(of: 2) ? 30 * Self.gib : 0, at: seconds)
+            model.now = { Self.now.addingTimeInterval(seconds) }
+            #expect(!(await Self.recordsIntent(model) { model.balanceReadingChanged() }), "\(step)")
+        }
+        #expect(model.balanceRecoveryRetryCount == 0)
+        #expect(!model.balanceRecoveryState.startWaiting)
+    }
+
+    /// Cancel, and the user's own disconnect, end the wait: data coming back
+    /// afterwards starts nothing.
+    @Test func cancelOrDisconnectEndsTheWait() async {
+        for end in ["cancel", "disconnect"] {
+            var cached: WidgetBalanceSnapshot? = Self.balance(0)
+            let model = Self.model(cached: nil)
+            model.loadCachedBalance = { cached }
+            #expect(!(await Self.recordsIntent(model) { model.connect() }))
+            #expect(model.balanceRecoveryState.startWaiting)
+            if end == "cancel" {
+                model.clearBalanceRecovery()
+            } else {
+                _ = await Self.recordsIntent(model) { model.disconnect() }
+            }
+            #expect(!model.balanceRecoveryState.startWaiting, "\(end)")
+
+            cached = Self.reading(30 * Self.gib, at: 120)
+            model.now = { Self.now.addingTimeInterval(120) }
+            #expect(!(await Self.recordsIntent(model) { model.balanceReadingChanged() }), "\(end)")
+            #expect(model.balanceRecoveryRetryCount == 0, "\(end)")
+        }
+    }
+
     /// Lets the listener's main queue hop run.
     private static func drainMain() async {
         await withCheckedContinuation { continuation in

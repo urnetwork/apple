@@ -362,10 +362,17 @@ struct ConnectActions: View {
                             
                             /**
                              * fixed IP
+                             * a Fixed IP window keeps its one exit for the session
+                             * (connect stickyExit): no hourly rotation, no spare
                              */
                             Toggle(isOn: $fixedIpSize) {
-                                Text("Fixed IP")
-                                    .font(themeManager.currentTheme.bodyFont)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Fixed IP")
+                                        .font(themeManager.currentTheme.bodyFont)
+                                    Text("Keeps one exit for the session; changes only if that provider goes offline.")
+                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                }
                             }
                             .disabled(selectedWindowType == .auto)
                             

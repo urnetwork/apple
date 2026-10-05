@@ -4,7 +4,8 @@
 //
 //  The points headline of the Earnings screen: the total earned, the
 //  providing / referral / reliability breakdown and the Seeker multiplier
-//  row. Points are URnetwork's own system and never depend on a wallet.
+//  row, then how and when SN payouts happen. Points are URnetwork's own
+//  system and never depend on a wallet.
 //
 
 import SwiftUI
@@ -21,6 +22,11 @@ struct AccountPointsBreakdown: View {
     /// the points are shown only once loaded; a failed fetch is not 0 points
     var load: SectionLoad = .loaded
     var retry: () -> Void = {}
+    /// how and when the provider is paid on the UR subnet, at the foot of
+    /// the card whatever the points load did
+    var payoutLine: SnPayoutLine? = nil
+    var claim: () -> Void = {}
+    var setColdkey: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -35,6 +41,13 @@ struct AccountPointsBreakdown: View {
             case .failed:
                 Spacer().frame(height: 8)
                 SectionLoadFailedView(retry: retry)
+            }
+
+            if let payoutLine {
+                Spacer().frame(height: 12)
+                Divider()
+                Spacer().frame(height: 12)
+                SnPayoutLineView(line: payoutLine, claim: claim, setColdkey: setColdkey)
             }
         }
         .padding()

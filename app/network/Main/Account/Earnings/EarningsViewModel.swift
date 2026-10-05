@@ -24,6 +24,9 @@ final class EarningsViewModel: ObservableObject {
     @Published private(set) var epochs: [AccountEpochInfo] = []
     @Published private(set) var claims: [SnEpochClaimInfo] = []
     @Published private(set) var totalClaimableRao: Int64 = 0
+    /// the current epoch's schedule from the claims read (the coordinator's
+    /// policy); nil until read or when the policy could not be read
+    @Published private(set) var schedule: SnEpochScheduleInfo?
     @Published private(set) var gasKey: SnGasKeyInfo?
     @Published private(set) var gasTao: Double?
     @Published private(set) var head: SnHeadInfo?
@@ -90,6 +93,20 @@ final class EarningsViewModel: ObservableObject {
         return head.eligible || head.bound
     }
 
+    /// How and when the provider is paid, for the foot of the points card;
+    /// nil until the wallet read settles (a failed read with no cached wallet
+    /// says nothing about the coldkey).
+    func payoutLine(nowMillis: Int64, formatTime: (Int64) -> String) -> SnPayoutLine? {
+        SnPayoutLine.of(
+            walletKnown: loadedOnce && (hasWallet || !walletLoadFailed),
+            hasColdkey: hasWallet,
+            totalClaimableRao: totalClaimableRao,
+            schedule: schedule,
+            nowMillis: nowMillis,
+            formatTime: formatTime
+        )
+    }
+
     func refresh() async {
         if isLoading {
             return
@@ -133,6 +150,7 @@ final class EarningsViewModel: ObservableObject {
         guard hasWallet else {
             claims = []
             totalClaimableRao = 0
+            schedule = nil
             gasTao = nil
             return
         }
@@ -143,12 +161,13 @@ final class EarningsViewModel: ObservableObject {
         }
         gasKey = client.gasKey()
         async let balanceTask: Double? = try? client.gasBalanceTao()
-        async let claimsTask: (claims: [SnEpochClaimInfo], totalClaimableRao: Int64)? = try? client.claims()
+        async let claimsTask: (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?)? = try? client.claims()
         let (balance, claimsResult) = await (balanceTask, claimsTask)
         gasTao = balance
         if let claimsResult {
             claims = claimsResult.claims.sorted { $0.epoch > $1.epoch }
             totalClaimableRao = claimsResult.totalClaimableRao
+            schedule = claimsResult.schedule
         }
     }
 

@@ -4,7 +4,7 @@
 //
 //  The Solana wallet USDC payouts go to until the migration to Bittensor is
 //  complete: the address with copy, the Default badge, the migration note,
-//  the USDC still waiting and the way to remove the wallet. A legacy Polygon
+//  the final USDC payout still waiting and the way to remove the wallet. A legacy Polygon
 //  payout wallet shows on the same card with the Polygon logo.
 //
 
@@ -60,7 +60,7 @@ struct SolanaWalletCard: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             if let pendingUsd {
-                Text("\(pendingUsd) USDC waiting")
+                Text(verbatim: UsdcFormat.finalPayoutWaiting(pendingUsd))
                     .font(themeManager.currentTheme.bodyFontLarge)
                     .foregroundColor(themeManager.currentTheme.textColor)
             }

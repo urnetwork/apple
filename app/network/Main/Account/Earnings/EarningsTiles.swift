@@ -4,7 +4,8 @@
 //
 //  The tiles of the Earnings screen: the Top 200 head
 //  spot, the Bittensor wallet block with its wallet options, the unclaimed
-//  alpha tile and the epoch history rows.
+//  alpha tile, the SN payout line of the points card and the epoch history
+//  rows.
 //
 
 import SwiftUI
@@ -117,7 +118,8 @@ struct BittensorWalletCard: View {
     let wallet: SnWalletInfo?
     let shortAddress: (String) -> String
     let connect: () -> Void
-    /// the USDC waiting while there is no Solana payout wallet, or nil
+    /// the final USDC payout waiting while there is no Solana payout wallet,
+    /// or nil
     let pendingUsd: String?
     let connectSolana: () -> Void
     /// the wallet read failed with no cached wallet: whether one is connected
@@ -183,11 +185,12 @@ struct BittensorWalletCard: View {
         .cornerRadius(12)
     }
 
-    /// "3.87 USDC waiting", while payouts are held for want of a Solana wallet
+    /// "Final USDC payout: 3.87 USDC waiting", while the last USDC payout is
+    /// held for want of a Solana wallet
     @ViewBuilder
     private var pendingLine: some View {
         if let pendingUsd {
-            Text("\(pendingUsd) USDC waiting")
+            Text(verbatim: UsdcFormat.finalPayoutWaiting(pendingUsd))
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
         }
@@ -330,6 +333,54 @@ struct UnclaimedAlphaTile: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+}
+
+/// How and when the provider is paid on the UR subnet, at the foot of the
+/// points card. With a coldkey: the explanation, the current epoch's times
+/// when known, and Claim while something is claimable (the claim sheet; the
+/// app never claims by itself). Without one: the prompt to set it, with the
+/// action that opens the coldkey flow.
+struct SnPayoutLineView: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let line: SnPayoutLine
+    let claim: () -> Void
+    let setColdkey: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            switch line {
+            case .setColdkey:
+                Text("Set your Bittensor coldkey to get paid")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                Button(action: setColdkey) {
+                    Text("Set coldkey")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("acceptance.earnings.setColdkey")
+            case .schedule(let times, let claimable):
+                Text("Earnings settle every epoch and are paid in SN25α to your Bittensor coldkey when you claim them.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                if let times {
+                    Text("This epoch ends \(times.epochEnd). Claim your share from \(times.claimOpen) until \(times.expiry).")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                if claimable {
+                    Spacer().frame(height: 4)
+                    UrButton(text: "Claim", action: claim)
+                        .accessibilityIdentifier("acceptance.earnings.payoutClaim")
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("acceptance.earnings.payoutLine")
     }
 }
 

@@ -73,6 +73,18 @@ struct EarningsView: View {
                         Task {
                             await accountPointsStore.fetchAccountPoints()
                         }
+                    },
+                    payoutLine: viewModel.payoutLine(
+                        nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+                        formatTime: { SnPayoutLine.formatTime($0) }
+                    ),
+                    claim: {
+                        viewModel.resetClaimProgress()
+                        presentClaimSheet = true
+                    },
+                    setColdkey: {
+                        connectFlow.reset()
+                        presentConnectSheet = true
                     }
                 )
 

@@ -125780,6 +125780,7 @@
     },
     "USDC payouts are held until another wallet is connected." : {
       "comment" : "Body of the remove confirmation for the Solana payout wallet (the title is remove_wallet).",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -125856,6 +125857,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在迁移到 Bittensor 完成之前，USDC 支付将继续发送到此钱包。"
+          }
+        }
+      }
+    },
+    "USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one." : {
+      "comment" : "Body of the remove confirmation for the payout wallet (the title is remove_wallet). Removing the payout wallet makes another of the account's active Solana or Polygon wallets the payout wallet when there is one (the server picks it; payouts_now_go_to names it after the removal), and holds USDC payouts until the user connects a wallet when there is none.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تنتقل مدفوعات USDC إلى محفظة Solana أو Polygon أخرى لديك، أو تُحتجز حتى تربط واحدة."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výplaty v USDC se přesunou na jinou vaši peněženku Solana nebo Polygon, nebo budou zadrženy, dokud nějakou nepřipojíte."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC-Auszahlungen gehen an eine andere deiner Solana- oder Polygon-Wallets oder werden zurückgehalten, bis du eine verbindest."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι πληρωμές USDC μεταφέρονται σε άλλο πορτοφόλι σας Solana ή Polygon· αν δεν υπάρχει, παραμένουν σε αναμονή μέχρι να συνδέσετε ένα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los pagos en USDC pasan a otra de tus billeteras de Solana o Polygon, o quedan retenidos hasta que conectes una."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los pagos en USDC pasan a otra de tus billeteras de Solana o Polygon, o quedan retenidos hasta que conectes una."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los pagos en USDC pasan a otra de tus carteras de Solana o Polygon, o quedan retenidos hasta que conectes una."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les paiements en USDC sont envoyés à un autre de vos portefeuilles Solana ou Polygon, ou retenus jusqu’à ce que vous en connectiez un."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תשלומי USDC עוברים לארנק Solana או Polygon אחר שלך, או מוחזקים עד שתחבר אחד."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC भुगतान आपके किसी दूसरे Solana या Polygon वॉलेट पर चले जाते हैं, या जब तक आप कोई वॉलेट कनेक्ट नहीं करते, तब तक रोक दिए जाते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran USDC dialihkan ke dompet Solana atau Polygon Anda yang lain, atau ditahan sampai Anda menghubungkan dompet."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I pagamenti in USDC passano a un altro dei tuoi portafogli Solana o Polygon, oppure vengono trattenuti finché non ne connetti uno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC の支払いは、別の Solana または Polygon ウォレットがあればそちらに移り、なければウォレットを接続するまで保留されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC 지급은 다른 Solana 또는 Polygon 지갑이 있으면 그 지갑으로 옮겨지고, 없으면 지갑을 연결할 때까지 보류됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC-uitbetalingen gaan naar een van je andere Solana- of Polygon-wallets, of worden vastgehouden totdat je er een verbindt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wypłaty w USDC trafią na inny Twój portfel Solana lub Polygon albo zostaną wstrzymane, dopóki nie połączysz takiego portfela."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os pagamentos em USDC passam para outra das suas carteiras Solana ou Polygon, ou ficam retidos até você conectar uma."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os pagamentos em USDC passam para outra das suas carteiras Solana ou Polygon, ou ficam retidos até você conectar uma."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os pagamentos em USDC passam para outra das suas carteiras Solana ou Polygon, ou ficam retidos até conectar uma."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выплаты в USDC перейдут на другой ваш кошелек Solana или Polygon, а если его нет, будут приостановлены, пока вы не подключите кошелек."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC-utbetalningar går till en annan av dina Solana- eller Polygon-plånböcker, eller hålls kvar tills du ansluter en."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การจ่าย USDC จะย้ายไปยังกระเป๋าเงิน Solana หรือ Polygon อื่นของคุณ หรือจะถูกพักไว้จนกว่าคุณจะเชื่อมต่อกระเป๋าเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виплати в USDC перейдуть на інший ваш гаманець Solana або Polygon, а якщо його немає, будуть призупинені, доки ви не підключите гаманець."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các khoản thanh toán USDC sẽ chuyển sang một ví Solana hoặc Polygon khác của bạn, hoặc bị giữ lại cho đến khi bạn kết nối một ví."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC 支付将转到你的另一个 Solana 或 Polygon 钱包；若没有，则暂停发放，直到你连接一个钱包。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USDC 支付會轉到你的另一個 Solana 或 Polygon 錢包；若沒有，則暫停發放，直到你連接一個錢包。"
           }
         }
       }

@@ -31,6 +31,20 @@ struct ProviderStatsSection: View {
         )
     }
 
+    /// Why the enabled provider is idle (P008), from the live provide state
+    /// and the bytes relayed in the throughput window.
+    private var idleReason: ProviderIdleReason {
+        providerIdleReason(
+            controlMode: deviceManager.provideControlMode,
+            liveProvideMode: deviceManager.currentProvideMode,
+            providePaused: deviceManager.providePaused,
+            provideNetworkMode: providerIdleNetworkMode(
+                allowProvidingCell: deviceManager.allowProvidingCell
+            ),
+            recentProviderBytes: throughputStore.providerTransportDistribution.byteCount
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
@@ -49,6 +63,13 @@ struct ProviderStatsSection: View {
             // the current provide mode, rendered like the settings picker;
             // tapping the row opens settings to change it
             ProvideModeRow(action: { navigate(.settings) })
+
+            // why the enabled provider is idle, under the mode it explains.
+            // Change opens the same settings as the row
+            if let text = idleReason.text {
+                Spacer().frame(height: 6)
+                ProviderIdleReasonRow(text: text, change: { navigate(.settings) })
+            }
 
             #if os(macOS)
             // the Extender row, read-only, under the provide mode row and
@@ -122,6 +143,35 @@ struct ProviderStatsSection: View {
             .environmentObject(themeManager)
             .environmentObject(transportSettingsStore)
         }
+    }
+}
+
+/// One muted line saying why the provider is idle, with a Change action. A
+/// button, so a tap opens settings rather than the section's provider
+/// contracts.
+private struct ProviderIdleReasonRow: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let text: LocalizedStringResource
+    let change: () -> Void
+
+    var body: some View {
+        Button(action: change) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(text)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Change")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .underline()
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

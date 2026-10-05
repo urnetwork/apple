@@ -1011,47 +1011,6 @@
       "extractionState" : "stale",
       "shouldTranslate" : false
     },
-    "%@ USDC waiting" : {
-      "comment" : "The pending USDC payout total waiting to be sent to the Solana payout wallet; shown on the Solana wallet block and, while no Solana wallet is connected, next to the wallet actions. Mirrors the email headline.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ USDC بانتظار الإرسال"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ USDC ausstehend"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ USDC waiting"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ USDC pendientes"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ USDC ожидают выплаты"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ USDC 待发放"
-          }
-        }
-      }
-    },
     "%@ wallet" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -26404,47 +26363,6 @@
         }
       }
     },
-    "Claims open 48 hours after an epoch is finalized and stay open for the vault's expiry window." : {
-      "comment" : "Explainer in the claim dialog.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تُفتح المطالبات بعد 48 ساعة من اكتمال الفترة وتظل مفتوحة طوال نافذة انتهاء صلاحية الخزنة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einlösungen sind 48 Stunden nach dem Abschluss einer Epoche möglich und bleiben für das Ablauffenster des Vaults offen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claims open 48 hours after an epoch is finalized and stay open for the vault's expiry window."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las reclamaciones se abren 48 horas después de que finaliza una época y siguen abiertas durante el periodo de caducidad de la bóveda."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Получение открывается через 48 часов после завершения эпохи и остаётся доступным в течение срока действия хранилища."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "领取在周期确认 48 小时后开放，并在金库的有效期窗口内保持开放。"
-          }
-        }
-      }
-    },
     "Clear" : {
       "comment" : "General UI string: a button that clears a field or setting.",
       "localizations" : {
@@ -41845,6 +41763,173 @@
         }
       }
     },
+    "Each epoch's claims open after its payout list is finalized and stay open until they expire." : {
+      "comment" : "Explainer in the claim dialog and on the unclaimed tile. No durations: the claim-open time and the expiry come from the chain's epoch schedule (sn_payout_schedule_times), so the copy never fixes the 48-hour finalize offset or the nine-epoch claim window.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تُفتح المطالبات الخاصة بكل فترة بعد اعتماد قائمة دفعاتها، وتظل مفتوحة حتى تنتهي صلاحيتها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nároky za každou epochu se otevřou po finalizaci jejího seznamu výplat a zůstanou otevřené až do vypršení."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Einlösung einer Epoche öffnet, sobald ihre Auszahlungsliste abgeschlossen ist, und bleibt bis zum Ablauf offen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι διεκδικήσεις κάθε εποχής ανοίγουν μόλις οριστικοποιηθεί η λίστα πληρωμών της και μένουν ανοιχτές μέχρι να λήξουν."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each epoch's claims open after its payout list is finalized and stay open until they expire."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las reclamaciones de cada época se abren cuando se finaliza su lista de pagos y siguen abiertas hasta que vencen."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las reclamaciones de cada época se abren cuando se finaliza su lista de pagos y siguen abiertas hasta que vencen."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las reclamaciones de cada época se abren cuando se finaliza su lista de pagos y siguen abiertas hasta que vencen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les réclamations de chaque époque s'ouvrent une fois sa liste de paiements finalisée et restent ouvertes jusqu'à leur expiration."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המימושים של כל תקופה נפתחים לאחר שרשימת התשלומים שלה סופית, ונשארים פתוחים עד שתוקפם פג."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हर एपोक के दावे उसकी भुगतान सूची अंतिम होने के बाद खुलते हैं और समाप्त होने तक खुले रहते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klaim setiap epoch dibuka setelah daftar pembayarannya difinalisasi dan tetap terbuka hingga kedaluwarsa."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I riscatti di ogni epoca si aprono dopo che la sua lista dei pagamenti è finalizzata e restano aperti fino alla scadenza."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各エポックの受け取りは、その支払いリストが確定した後に開始され、期限切れになるまで受け付けられます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "각 에포크의 받기는 해당 지급 목록이 확정된 후 열리며 만료될 때까지 열려 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het opeisen voor elke epoch opent zodra de uitbetalingslijst is afgerond en blijft open tot het verloopt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odbiór za każdą epokę otwiera się po sfinalizowaniu jej listy wypłat i pozostaje otwarty do wygaśnięcia."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os resgates de cada época abrem depois que a lista de pagamentos é finalizada e ficam abertos até expirarem."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os resgates de cada época abrem depois que a lista de pagamentos é finalizada e ficam abertos até expirarem."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As reivindicações de cada época abrem depois de a sua lista de pagamentos ser finalizada e ficam abertas até expirarem."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получение за каждую эпоху открывается после утверждения её списка выплат и остаётся открытым до истечения срока."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uttag för varje epok öppnar när dess utbetalningslista har slutförts och är öppna tills de löper ut."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การรับของแต่ละอีพอคจะเปิดหลังจากรายการจ่ายเงินของอีพอคนั้นสรุปแล้ว และเปิดอยู่จนกว่าจะหมดอายุ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отримання за кожну епоху відкривається після затвердження її списку виплат і залишається відкритим до завершення строку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Việc nhận cho mỗi epoch mở sau khi danh sách thanh toán của epoch đó được hoàn tất và vẫn mở cho đến khi hết hạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每个周期的领取会在其支付名单确认后开放，并保持开放直到过期。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每個週期的領取會在其支付名單確認後開放，並保持開放直到過期。"
+          }
+        }
+      }
+    },
     "Earning multipliers" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -42175,6 +42260,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "收益"
+          }
+        }
+      }
+    },
+    "Earnings settle every epoch and are paid in SN25α to your Bittensor coldkey when you claim them." : {
+      "comment" : "Earnings card: how providers are paid on the UR subnet (WHITEPAPER §5.2, §8.3). Earnings settle per epoch and are paid in SN25α as stake to the provider's Bittensor coldkey once the provider claims them; nothing is paid automatically. Followed by sn_payout_schedule_times when the epoch schedule is known.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تُسوّى الأرباح في كل فترة وتُدفع بعملة SN25α إلى coldkey الخاص بك على Bittensor عند المطالبة بها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výdělky se vypořádávají každou epochu a vyplácejí se v SN25α na váš Bittensor coldkey, když si je vyzvednete."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einnahmen werden jede Epoche abgerechnet und in SN25α an deinen Bittensor-Coldkey ausgezahlt, sobald du sie einlöst."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα κέρδη εκκαθαρίζονται σε κάθε εποχή και πληρώνονται σε SN25α στο Bittensor coldkey σας όταν τα διεκδικήσετε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earnings settle every epoch and are paid in SN25α to your Bittensor coldkey when you claim them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las ganancias se liquidan cada época y se pagan en SN25α a tu coldkey de Bittensor cuando las reclamas."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las ganancias se liquidan cada época y se pagan en SN25α a tu coldkey de Bittensor cuando las reclamas."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las ganancias se liquidan cada época y se pagan en SN25α a tu coldkey de Bittensor cuando las reclamas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les gains sont réglés à chaque époque et versés en SN25α sur votre coldkey Bittensor lorsque vous les réclamez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרווחים מסולקים בכל תקופה ומשולמים ב-SN25α ל-coldkey שלך ב-Bittensor כשתממש אותם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कमाई हर एपोक में तय होती है और जब आप उस पर दावा करते हैं, तो SN25α में आपके Bittensor coldkey पर भुगतान की जाती है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penghasilan diselesaikan setiap epoch dan dibayarkan dalam SN25α ke coldkey Bittensor Anda saat Anda mengklaimnya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I guadagni vengono regolati a ogni epoca e pagati in SN25α sulla tua coldkey Bittensor quando li riscatti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収益はエポックごとに確定し、受け取ると SN25α で Bittensor の coldkey に支払われます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "수익은 에포크마다 정산되며, 받기를 하면 SN25α로 Bittensor coldkey에 지급됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verdiensten worden elke epoch afgerekend en in SN25α uitbetaald aan je Bittensor-coldkey wanneer je ze opeist."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zarobki są rozliczane w każdej epoce i wypłacane w SN25α na Twój coldkey Bittensor, gdy je odbierzesz."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os ganhos são liquidados a cada época e pagos em SN25α na sua coldkey Bittensor quando você os reivindica."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os ganhos são liquidados a cada época e pagos em SN25α na sua coldkey Bittensor quando você os resgata."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os ganhos são liquidados em cada época e pagos em SN25α na sua coldkey Bittensor quando os reivindicar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заработок рассчитывается каждую эпоху и выплачивается в SN25α на ваш coldkey Bittensor, когда вы его получаете."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intäkter avräknas varje epok och betalas ut i SN25α till din Bittensor-coldkey när du hämtar dem."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รายได้จะสรุปทุกอีพอคและจ่ายเป็น SN25α ไปยัง coldkey Bittensor ของคุณเมื่อคุณกดรับ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заробіток розраховується кожну епоху й виплачується в SN25α на ваш coldkey Bittensor, коли ви його отримуєте."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu nhập được quyết toán mỗi epoch và được trả bằng SN25α vào coldkey Bittensor của bạn khi bạn nhận."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收益每个周期结算一次，你领取后会以 SN25α 支付到你的 Bittensor coldkey。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收益每個週期結算一次，你領取後會以 SN25α 支付到你的 Bittensor coldkey。"
           }
         }
       }
@@ -49188,6 +49440,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "反饋"
+          }
+        }
+      }
+    },
+    "Final USDC payout: %@ USDC waiting" : {
+      "comment" : "The last USDC payout still pending since provider payouts moved to the UR subnet; shown on the Solana wallet block and, while no Solana wallet is connected, next to the wallet actions, only while a USDC amount is pending. Mirrors the email headline.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آخر دفعة USDC: %@ USDC بانتظار الإرسال"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslední výplata v USDC: %@ USDC čeká na odeslání"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte USDC-Auszahlung: %@ USDC ausstehend"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τελική πληρωμή USDC: %@ USDC σε αναμονή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Final USDC payout: %@ USDC waiting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último pago en USDC: %@ USDC pendientes"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último pago en USDC: %@ USDC pendientes"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último pago en USDC: %@ USDC pendientes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dernier versement en USDC : %@ USDC en attente"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תשלום USDC אחרון: %@ USDC ממתינים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अंतिम USDC भुगतान: %@ USDC प्रतीक्षा में"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran USDC terakhir: %@ USDC menunggu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ultimo pagamento in USDC: %@ USDC in attesa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最後の USDC 支払い: %@ USDC が送金待ち"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마지막 USDC 지급: %@ USDC 대기 중"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laatste USDC-uitbetaling: %@ USDC in afwachting"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnia wypłata w USDC: %@ USDC oczekuje"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último pagamento em USDC: %@ USDC pendentes"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último pagamento em USDC: %@ USDC pendentes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último pagamento em USDC: %@ USDC pendentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя выплата в USDC: %@ USDC ожидают выплаты"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sista USDC-utbetalningen: %@ USDC väntar"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การจ่าย USDC ครั้งสุดท้าย: %@ USDC รอการโอน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Остання виплата в USDC: %@ USDC очікують на виплату"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khoản thanh toán USDC cuối cùng: %@ USDC đang chờ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最后一笔 USDC 付款：%@ USDC 待发放"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最後一筆 USDC 付款：%@ USDC 待發放"
           }
         }
       }
@@ -69284,174 +69703,6 @@
         }
       }
     },
-    "Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold." : {
-      "comment" : "Wallet Screen",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تحدث الدفعات كل يوم أحد في الساعة 00:00 بتوقيت UTC، ويتطلب ذلك تحقيق حد أدنى من USDC."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Výplaty probíhají každou neděli v 00:00 UTC a vyžadují dosažení minimální hranice USDC."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auszahlungen erfolgen jeden Sonntag um 00:00 UTC und erfordern das Erreichen eines Mindest-USDC-Schwellenwerts."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Οι πληρωμές πραγματοποιούνται κάθε Κυριακή στις 00:00 UTC και απαιτούν την επίτευξη ενός ελάχιστου ορίου USDC."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payouts occur every Sunday at 00:00 UTC, and require meeting a minimum USDC threshold."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los pagos se realizan cada domingo a las 00:00 UTC y requieren cumplir con un umbral mínimo de USDC."
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los pagos se realizan cada domingo a las 00:00 UTC y requieren cumplir con un umbral mínimo de USDC."
-          }
-        },
-        "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los pagos se realizan cada domingo a las 00:00 UTC y requieren cumplir con un umbral mínimo de USDC."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les paiements ont lieu chaque dimanche à 00h00 UTC et nécessitent d’atteindre un seuil minimum de USDC."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התשלומים מתבצעים בכל יום ראשון בשעה 00:00 UTC ודורשים עמידה בסף מינימלי של USDC."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भुगतान हर रविवार 00:00 UTC पर होते हैं, और न्यूनतम USDC सीमा पूरी करनी होती है।"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pembayaran dilakukan setiap hari Minggu pukul 00:00 UTC dan memerlukan pencapaian ambang minimum USDC."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I pagamenti avvengono ogni domenica alle 00:00 UTC e richiedono il raggiungimento di una soglia minima di USDC."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支払いは毎週日曜日の00:00 UTCに行われ、最低USDC基準を満たす必要があります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "지급은 매주 일요일 00:00 UTC에 이루어지며, 최소 USDC 기준을 충족해야 합니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uitbetalingen vinden elke zondag om 00:00 UTC plaats en vereisen het behalen van een minimale USDC-drempel."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wypłaty odbywają się w każdą niedzielę o 00:00 UTC i wymagają spełnienia minimalnego progu USDC."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os pagamentos ocorrem todos os domingos às 00:00 UTC e exigem atingir um limite mínimo de USDC."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os pagamentos ocorrem todo domingo às 00:00 UTC e exigem atingir um limite mínimo de USDC."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os pagamentos ocorrem todos os domingos às 00:00 UTC e exigem atingir um limite mínimo de USDC."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выплаты происходят каждое воскресенье в 00:00 UTC и требуют достижения минимального порога USDC."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utbetalningar sker varje söndag kl. 00:00 UTC och kräver att en minsta USDC-gräns uppnås."
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "การจ่ายเงินจะเกิดขึ้นทุกวันอาทิตย์ เวลา 00:00 UTC และต้องถึงขั้นต่ำขั้นต่ำของ USDC"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Виплати відбуваються щонеділі о 00:00 UTC і вимагають досягнення мінімального порогу USDC."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thanh toán diễn ra vào mỗi Chủ Nhật lúc 00:00 UTC và yêu cầu đạt ngưỡng USDC tối thiểu."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支付在每周日 00:00 UTC 进行，并且需要达到最低 USDC 门槛。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每週日 00:00 UTC 進行支付，並且需要達到最低 USDC 門檻。"
-          }
-        }
-      }
-    },
     "Peer discovery disabled until connected" : {
       "comment" : "Replaces the network peer count/list while the app is not attached to its remote device (the network extension or service rpc is down — not connected): the peer state lives in the remote device, so the stat is unavailable rather than zero. Shown with a gray dot.",
       "localizations" : {
@@ -85990,6 +86241,340 @@
         }
       }
     },
+    "Set coldkey" : {
+      "comment" : "Earnings card: the action next to set_coldkey_to_get_paid. Opens the existing coldkey setting (the connect Bittensor wallet flow).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعيين coldkey"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavit coldkey"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coldkey festlegen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ορισμός coldkey"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set coldkey"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurar coldkey"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurar coldkey"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurar coldkey"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Définir la coldkey"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגדרת coldkey"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "coldkey सेट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atur coldkey"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imposta coldkey"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "coldkey を設定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "coldkey 설정"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coldkey instellen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustaw coldkey"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definir coldkey"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definir coldkey"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definir coldkey"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Указать coldkey"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange coldkey"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตั้งค่า coldkey"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Указати coldkey"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt coldkey"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置 coldkey"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 coldkey"
+          }
+        }
+      }
+    },
+    "Set your Bittensor coldkey to get paid" : {
+      "comment" : "Earnings card: shown in place of sn_payout_schedule while no Bittensor coldkey is set. SN payouts go only to a coldkey; the set_coldkey action next to it opens the coldkey (connect wallet) flow.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عيّن coldkey الخاص بك على Bittensor لتحصل على أرباحك"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavte svůj Bittensor coldkey, abyste dostávali výplaty"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lege deinen Bittensor-Coldkey fest, um ausgezahlt zu werden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ορίστε το Bittensor coldkey σας για να πληρώνεστε"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set your Bittensor coldkey to get paid"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura tu coldkey de Bittensor para cobrar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura tu coldkey de Bittensor para cobrar"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura tu coldkey de Bittensor para cobrar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Définissez votre coldkey Bittensor pour être payé"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגדר את ה-coldkey שלך ב-Bittensor כדי לקבל תשלום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "भुगतान पाने के लिए अपना Bittensor coldkey सेट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atur coldkey Bittensor Anda agar dibayar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imposta la tua coldkey Bittensor per essere pagato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支払いを受け取るには Bittensor の coldkey を設定してください"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지급을 받으려면 Bittensor coldkey를 설정하세요"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stel je Bittensor-coldkey in om uitbetaald te worden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustaw swój coldkey Bittensor, aby otrzymywać wypłaty"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defina sua coldkey Bittensor para receber pagamentos"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defina sua coldkey Bittensor para receber pagamentos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defina a sua coldkey Bittensor para receber pagamentos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Укажите свой coldkey Bittensor, чтобы получать выплаты"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange din Bittensor-coldkey för att få betalt"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตั้งค่า coldkey Bittensor ของคุณเพื่อรับเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Укажіть свій coldkey Bittensor, щоб отримувати виплати"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt coldkey Bittensor của bạn để được thanh toán"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置你的 Bittensor coldkey 以获得报酬"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定你的 Bittensor coldkey 以獲得報酬"
+          }
+        }
+      }
+    },
     "Setting up" : {
       "comment" : "Extender status while the role is starting and there is no outcome yet: the carriers are binding, or the first activation is in flight.",
       "localizations" : {
@@ -98944,6 +99529,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此裝置可被發現"
+          }
+        }
+      }
+    },
+    "This epoch ends %@. Claim your share from %@ until %@." : {
+      "comment" : "Earnings card, after sn_payout_schedule: when the current epoch ends, when its share can be claimed and when an unclaimed share expires. The three values are local date-times the app fills from the chain's epoch schedule (the coordinator's policy: the claim-open offset and the claim TTL), never fixed durations.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تنتهي هذه الفترة في %1$@. طالِب بحصتك من %2$@ حتى %3$@."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tato epocha končí %1$@. Svůj podíl si vyzvedněte od %2$@ do %3$@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Epoche endet am %1$@. Löse deinen Anteil zwischen %2$@ und %3$@ ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η εποχή λήγει στις %1$@. Διεκδικήστε το μερίδιό σας από %2$@ έως %3$@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This epoch ends %1$@. Claim your share from %2$@ until %3$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta época termina el %1$@. Reclama tu parte desde el %2$@ hasta el %3$@."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta época termina el %1$@. Reclama tu parte desde el %2$@ hasta el %3$@."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta época termina el %1$@. Reclama tu parte desde el %2$@ hasta el %3$@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette époque se termine le %1$@. Réclamez votre part du %2$@ au %3$@."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התקופה הזו מסתיימת ב-%1$@. ממש את חלקך מ-%2$@ עד %3$@."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह एपोक %1$@ को समाप्त होता है। अपने हिस्से का दावा %2$@ से %3$@ तक करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epoch ini berakhir %1$@. Klaim bagian Anda mulai %2$@ hingga %3$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa epoca termina il %1$@. Riscatta la tua quota dal %2$@ al %3$@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このエポックは %1$@ に終了します。あなたの取り分は %2$@ から %3$@ まで受け取れます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 에포크는 %1$@에 끝납니다. 내 몫은 %2$@부터 %3$@까지 받을 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze epoch eindigt op %1$@. Eis je aandeel op van %2$@ tot %3$@."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta epoka kończy się %1$@. Odbierz swój udział od %2$@ do %3$@."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta época termina em %1$@. Reivindique sua parte de %2$@ até %3$@."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta época termina em %1$@. Resgate sua parte de %2$@ até %3$@."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta época termina a %1$@. Reivindique a sua parte de %2$@ até %3$@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта эпоха заканчивается %1$@. Получите свою долю с %2$@ до %3$@."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här epoken slutar %1$@. Hämta din andel från %2$@ till %3$@."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อีพอคนี้สิ้นสุด %1$@ รับส่วนแบ่งของคุณได้ตั้งแต่ %2$@ ถึง %3$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ця епоха закінчується %1$@. Отримайте свою частку з %2$@ до %3$@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epoch này kết thúc vào %1$@. Nhận phần của bạn từ %2$@ đến %3$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周期于 %1$@ 结束。请在 %2$@ 至 %3$@ 之间领取你的份额。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本週期於 %1$@ 結束。請在 %2$@ 至 %3$@ 之間領取你的份額。"
           }
         }
       }

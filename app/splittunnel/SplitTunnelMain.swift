@@ -12,8 +12,10 @@
 import Foundation
 import NetworkExtension
 
+/// The extension's entry point.
 @main
 enum SplitTunnelMain {
+    /// Hands the process to NetworkExtension; never returns.
     static func main() {
         autoreleasepool {
             NEProvider.startSystemExtensionMode()

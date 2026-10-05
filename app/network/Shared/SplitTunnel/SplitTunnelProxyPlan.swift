@@ -41,6 +41,7 @@ struct SplitTunnelProxyObserved: Equatable {
     )
 }
 
+/// What the plan decides from: what the app wants and what the system holds.
 struct SplitTunnelProxyInputs: Equatable {
     /// The excluded apps from a rule list this process can vouch for as the
     /// whole list (see BlockActionsStore); nil until there is one, and then
@@ -52,18 +53,26 @@ struct SplitTunnelProxyInputs: Equatable {
     var observed: SplitTunnelProxyObserved?
 }
 
+/// The one next step toward what the app wants.
 enum SplitTunnelProxyStep: Equatable {
+    /// nothing to do until an input changes
     case none
+    /// read the configurations the system holds
     case load
+    /// ask macOS to activate the extension; the result re-runs the plan
     case activateExtension
-    /// save (create or replace) the configuration, enabled; when the proxy
-    /// is running the controller also hands it the new list
+    /// create or replace the configuration, enabled; when the proxy is
+    /// running the controller also hands it the new list
     case save(SplitTunnelProxyConfiguration)
+    /// delete the configuration from the system's preferences
     case remove
+    /// launch the proxy
     case start
+    /// shut the proxy down
     case stop
 }
 
+/// What the Apps section shows.
 enum SplitTunnelProxyStatus: Equatable {
     /// no app is excluded
     case off
@@ -79,8 +88,11 @@ enum SplitTunnelProxyStatus: Equatable {
     case active
 }
 
+/// Pure functions of the inputs (see the file comment).
 enum SplitTunnelProxyPlan {
 
+    /// The step for these inputs; `.none` once the system holds what the app
+    /// wants.
     static func nextStep(_ inputs: SplitTunnelProxyInputs) -> SplitTunnelProxyStep {
         guard let observed = inputs.observed else {
             return .load

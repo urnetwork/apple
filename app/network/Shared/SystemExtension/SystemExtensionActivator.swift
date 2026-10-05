@@ -2,7 +2,7 @@
 //  SystemExtensionActivator.swift
 //  URnetwork
 //
-//  Asks macOS to install a SYSTEM extension embedded in this app bundle
+//  Asks macOS to install a system extension embedded in this app bundle
 //  (Contents/Library/SystemExtensions). Two use it: the direct-download
 //  build (`DIRECT_DOWNLOAD`) for its packet tunnel
 //  (URnetworkVPNSystem.systemextension, bundle id
@@ -33,6 +33,8 @@ final class SystemExtensionActivator: NSObject, ObservableObject, OSSystemExtens
     /// `providerBundleIdentifier`.
     let extensionBundleIdentifier: String
 
+    /// Activates the extension `extensionBundleIdentifier` names, the packet
+    /// tunnel's unless another is given.
     init(extensionBundleIdentifier: String = TunnelProviderIdentity.bundleIdentifier) {
         self.extensionBundleIdentifier = extensionBundleIdentifier
         super.init()

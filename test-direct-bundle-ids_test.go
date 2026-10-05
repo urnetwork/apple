@@ -52,7 +52,7 @@ const (
 	// created in the portal for the split tunnel extension (see
 	// app/splittunnel/splittunnel-direct.entitlements)
 	directSplitTunnelProfile = "URnetwork Split Tunnel Download"
-	developerIDIdentity      = "Developer ID Application"
+	developerIdIdentity      = "Developer ID Application"
 )
 
 func repoRoot(t *testing.T) string {
@@ -171,14 +171,14 @@ func TestDirectTargetsUseTheBringYourBundleIds(t *testing.T) {
 			t.Fatalf("URnetworkVPNSystem %s plist/entitlements = %q / %q", configuration, ext["INFOPLIST_FILE"], ext["CODE_SIGN_ENTITLEMENTS"])
 		}
 
-		split := targetBuildSettings(t, "URnetworkSplitTunnelDirect", configuration)
-		if split["PRODUCT_BUNDLE_IDENTIFIER"] != directSplitTunnel {
-			t.Fatalf("URnetworkSplitTunnelDirect %s PRODUCT_BUNDLE_IDENTIFIER = %q, want %q", configuration, split["PRODUCT_BUNDLE_IDENTIFIER"], directSplitTunnel)
+		splitTunnelBuildSettingValues := targetBuildSettings(t, "URnetworkSplitTunnelDirect", configuration)
+		if splitTunnelBuildSettingValues["PRODUCT_BUNDLE_IDENTIFIER"] != directSplitTunnel {
+			t.Fatalf("URnetworkSplitTunnelDirect %s PRODUCT_BUNDLE_IDENTIFIER = %q, want %q", configuration, splitTunnelBuildSettingValues["PRODUCT_BUNDLE_IDENTIFIER"], directSplitTunnel)
 		}
-		if split["INFOPLIST_FILE"] != "splittunnel/Info-direct.plist" || split["CODE_SIGN_ENTITLEMENTS"] != "splittunnel/splittunnel-direct.entitlements" {
-			t.Fatalf("URnetworkSplitTunnelDirect %s plist/entitlements = %q / %q", configuration, split["INFOPLIST_FILE"], split["CODE_SIGN_ENTITLEMENTS"])
+		if splitTunnelBuildSettingValues["INFOPLIST_FILE"] != "splittunnel/Info-direct.plist" || splitTunnelBuildSettingValues["CODE_SIGN_ENTITLEMENTS"] != "splittunnel/splittunnel-direct.entitlements" {
+			t.Fatalf("URnetworkSplitTunnelDirect %s plist/entitlements = %q / %q", configuration, splitTunnelBuildSettingValues["INFOPLIST_FILE"], splitTunnelBuildSettingValues["CODE_SIGN_ENTITLEMENTS"])
 		}
-		if !strings.Contains(split["SWIFT_ACTIVE_COMPILATION_CONDITIONS"], "DIRECT_DOWNLOAD") {
+		if !strings.Contains(splitTunnelBuildSettingValues["SWIFT_ACTIVE_COMPILATION_CONDITIONS"], "DIRECT_DOWNLOAD") {
 			t.Fatalf("URnetworkSplitTunnelDirect %s does not define DIRECT_DOWNLOAD", configuration)
 		}
 	}
@@ -193,30 +193,30 @@ func TestSplitTunnelTargets(t *testing.T) {
 			"URnetworkSplitTunnel":       {storeSplitTunnel, "splittunnel/Info.plist", "splittunnel/splittunnel.entitlements"},
 			"URnetworkSplitTunnelDirect": {directSplitTunnel, "splittunnel/Info-direct.plist", "splittunnel/splittunnel-direct.entitlements"},
 		} {
-			settings := targetBuildSettings(t, target, configuration)
-			if settings["PRODUCT_BUNDLE_IDENTIFIER"] != want[0] || settings["INFOPLIST_FILE"] != want[1] || settings["CODE_SIGN_ENTITLEMENTS"] != want[2] {
-				t.Fatalf("%s %s = %q / %q / %q, want %v", target, configuration, settings["PRODUCT_BUNDLE_IDENTIFIER"], settings["INFOPLIST_FILE"], settings["CODE_SIGN_ENTITLEMENTS"], want)
+			buildSettingValues := targetBuildSettings(t, target, configuration)
+			if buildSettingValues["PRODUCT_BUNDLE_IDENTIFIER"] != want[0] || buildSettingValues["INFOPLIST_FILE"] != want[1] || buildSettingValues["CODE_SIGN_ENTITLEMENTS"] != want[2] {
+				t.Fatalf("%s %s = %q / %q / %q, want %v", target, configuration, buildSettingValues["PRODUCT_BUNDLE_IDENTIFIER"], buildSettingValues["INFOPLIST_FILE"], buildSettingValues["CODE_SIGN_ENTITLEMENTS"], want)
 			}
-			if settings["SDKROOT"] != "macosx" || settings["SUPPORTED_PLATFORMS"] != "macosx" || settings["MACOSX_DEPLOYMENT_TARGET"] != "15.0" {
-				t.Fatalf("%s %s is not a macOS 15 target: %q %q %q", target, configuration, settings["SDKROOT"], settings["SUPPORTED_PLATFORMS"], settings["MACOSX_DEPLOYMENT_TARGET"])
+			if buildSettingValues["SDKROOT"] != "macosx" || buildSettingValues["SUPPORTED_PLATFORMS"] != "macosx" || buildSettingValues["MACOSX_DEPLOYMENT_TARGET"] != "15.0" {
+				t.Fatalf("%s %s is not a macOS 15 target: %q %q %q", target, configuration, buildSettingValues["SDKROOT"], buildSettingValues["SUPPORTED_PLATFORMS"], buildSettingValues["MACOSX_DEPLOYMENT_TARGET"])
 			}
-			if settings["ENABLE_APP_SANDBOX"] != "YES" || settings["ENABLE_HARDENED_RUNTIME"] != "YES" {
-				t.Fatalf("%s %s sandbox/hardened runtime = %q / %q", target, configuration, settings["ENABLE_APP_SANDBOX"], settings["ENABLE_HARDENED_RUNTIME"])
+			if buildSettingValues["ENABLE_APP_SANDBOX"] != "YES" || buildSettingValues["ENABLE_HARDENED_RUNTIME"] != "YES" {
+				t.Fatalf("%s %s sandbox/hardened runtime = %q / %q", target, configuration, buildSettingValues["ENABLE_APP_SANDBOX"], buildSettingValues["ENABLE_HARDENED_RUNTIME"])
 			}
 			// the release pipeline stamps every MARKETING_VERSION and
 			// CURRENT_PROJECT_VERSION in the pbxproj; a system extension
 			// whose version never changes is never replaced by an update
-			if settings["MARKETING_VERSION"] == "" || settings["CURRENT_PROJECT_VERSION"] == "" {
+			if buildSettingValues["MARKETING_VERSION"] == "" || buildSettingValues["CURRENT_PROJECT_VERSION"] == "" {
 				t.Fatalf("%s %s carries no version settings for the pipeline to stamp", target, configuration)
 			}
 		}
 	}
 
-	pbx, err := os.ReadFile(filepath.Join(repoRoot(t), "app", "app.xcodeproj", "project.pbxproj"))
+	pbxprojBytes, err := os.ReadFile(filepath.Join(repoRoot(t), "app", "app.xcodeproj", "project.pbxproj"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	text := string(pbx)
+	pbxprojText := string(pbxprojBytes)
 	for _, want := range []string{
 		// the App Store app embeds its extension for macOS only; without the
 		// filters the iOS build refuses a macOS binary inside the app
@@ -225,7 +225,7 @@ func TestSplitTunnelTargets(t *testing.T) {
 		// the direct app embeds its own next to the packet tunnel
 		"A1D000112F0D000100000011 /* URnetworkVPNSystem.systemextension in Embed System Extensions */,\n\t\t\t\tC5A100022F0E000100000002 /* URnetworkSplitTunnelDirect.systemextension in Embed System Extensions */,",
 	} {
-		if !strings.Contains(text, want) {
+		if !strings.Contains(pbxprojText, want) {
 			t.Fatalf("project.pbxproj lacks %q", want)
 		}
 	}
@@ -250,8 +250,8 @@ func TestDirectTargetsSignManuallyWithDeveloperID(t *testing.T) {
 			if settings["CODE_SIGN_STYLE"] != "Manual" {
 				t.Fatalf("%s %s CODE_SIGN_STYLE = %q, want Manual", target, configuration, settings["CODE_SIGN_STYLE"])
 			}
-			if settings["CODE_SIGN_IDENTITY"] != developerIDIdentity {
-				t.Fatalf("%s %s CODE_SIGN_IDENTITY = %q, want %q", target, configuration, settings["CODE_SIGN_IDENTITY"], developerIDIdentity)
+			if settings["CODE_SIGN_IDENTITY"] != developerIdIdentity {
+				t.Fatalf("%s %s CODE_SIGN_IDENTITY = %q, want %q", target, configuration, settings["CODE_SIGN_IDENTITY"], developerIdIdentity)
 			}
 			if settings["DEVELOPMENT_TEAM"] != directTeam {
 				t.Fatalf("%s %s DEVELOPMENT_TEAM = %q, want %q", target, configuration, settings["DEVELOPMENT_TEAM"], directTeam)
@@ -389,42 +389,54 @@ func TestDirectEntitlementsAndSysextPlistAgree(t *testing.T) {
 	for _, family := range []struct {
 		entitlements, info, group, machService, provider string
 	}{
-		{"splittunnel-direct.entitlements", "Info-direct.plist", directGroup, directSplitTunnelMachService, "app-proxy-provider-systemextension"},
-		{"splittunnel.entitlements", "Info.plist", storeGroup, storeSplitTunnelMachService, "app-proxy-provider"},
+		{
+			entitlements: "splittunnel-direct.entitlements",
+			info:         "Info-direct.plist",
+			group:        directGroup,
+			machService:  directSplitTunnelMachService,
+			provider:     "app-proxy-provider-systemextension",
+		},
+		{
+			entitlements: "splittunnel.entitlements",
+			info:         "Info.plist",
+			group:        storeGroup,
+			machService:  storeSplitTunnelMachService,
+			provider:     "app-proxy-provider",
+		},
 	} {
-		split := plistJSON(t, filepath.Join(root, "app", "splittunnel", family.entitlements))
-		if groups := stringList(split["com.apple.security.application-groups"]); len(groups) != 1 || groups[0] != family.group {
-			t.Fatalf("%s application-groups = %v, want [%s]", family.entitlements, groups, family.group)
+		entitlementValues := plistJSON(t, filepath.Join(root, "app", "splittunnel", family.entitlements))
+		if appGroups := stringList(entitlementValues["com.apple.security.application-groups"]); len(appGroups) != 1 || appGroups[0] != family.group {
+			t.Fatalf("%s application-groups = %v, want [%s]", family.entitlements, appGroups, family.group)
 		}
-		if _, present := split["keychain-access-groups"]; present {
+		if _, present := entitlementValues["keychain-access-groups"]; present {
 			t.Fatalf("%s carries keychain-access-groups (root boundary)", family.entitlements)
 		}
-		if ne := stringList(split["com.apple.developer.networking.networkextension"]); len(ne) != 1 || ne[0] != family.provider {
-			t.Fatalf("%s networkextension = %v, want [%s]", family.entitlements, ne, family.provider)
+		if networkExtensionTypes := stringList(entitlementValues["com.apple.developer.networking.networkextension"]); len(networkExtensionTypes) != 1 || networkExtensionTypes[0] != family.provider {
+			t.Fatalf("%s networkextension = %v, want [%s]", family.entitlements, networkExtensionTypes, family.provider)
 		}
-		for key := range split {
+		for key := range entitlementValues {
 			switch key {
 			case "com.apple.security.application-groups", "com.apple.developer.networking.networkextension":
 			default:
 				t.Fatalf("%s carries %s, which its profile may not grant", family.entitlements, key)
 			}
 		}
-		splitInfo := plistJSON(t, filepath.Join(root, "app", "splittunnel", family.info))
-		network, _ := splitInfo["NetworkExtension"].(map[string]any)
-		if network["NEMachServiceName"] != family.machService || !strings.HasPrefix(family.machService, family.group+".") {
-			t.Fatalf("%s NEMachServiceName = %v, want %s (prefixed by %s)", family.info, network["NEMachServiceName"], family.machService, family.group)
+		infoValues := plistJSON(t, filepath.Join(root, "app", "splittunnel", family.info))
+		networkExtensionValues, _ := infoValues["NetworkExtension"].(map[string]any)
+		if networkExtensionValues["NEMachServiceName"] != family.machService || !strings.HasPrefix(family.machService, family.group+".") {
+			t.Fatalf("%s NEMachServiceName = %v, want %s (prefixed by %s)", family.info, networkExtensionValues["NEMachServiceName"], family.machService, family.group)
 		}
-		classes, _ := network["NEProviderClasses"].(map[string]any)
-		if len(classes) != 1 || classes["com.apple.networkextension.app-proxy"] != "$(PRODUCT_MODULE_NAME).SplitTunnelProxyProvider" {
-			t.Fatalf("%s NEProviderClasses = %v", family.info, classes)
+		providerTypeClasses, _ := networkExtensionValues["NEProviderClasses"].(map[string]any)
+		if len(providerTypeClasses) != 1 || providerTypeClasses["com.apple.networkextension.app-proxy"] != "$(PRODUCT_MODULE_NAME).SplitTunnelProxyProvider" {
+			t.Fatalf("%s NEProviderClasses = %v", family.info, providerTypeClasses)
 		}
 	}
 
 	// the App Store app may now install a system extension and configure a
 	// transparent proxy; its profiles grant both
-	store := plistJSON(t, filepath.Join(root, "app", "network", "network-macOS.entitlements"))
-	if store["com.apple.developer.system-extension.install"] != true || !contains(stringList(store["com.apple.developer.networking.networkextension"]), "app-proxy-provider") {
-		t.Fatalf("App Store macOS app entitlements lack system-extension.install or app-proxy-provider: %v", store)
+	storeEntitlementValues := plistJSON(t, filepath.Join(root, "app", "network", "network-macOS.entitlements"))
+	if storeEntitlementValues["com.apple.developer.system-extension.install"] != true || !contains(stringList(storeEntitlementValues["com.apple.developer.networking.networkextension"]), "app-proxy-provider") {
+		t.Fatalf("App Store macOS app entitlements lack system-extension.install or app-proxy-provider: %v", storeEntitlementValues)
 	}
 }
 
@@ -538,13 +550,13 @@ func TestBuiltDirectProduct(t *testing.T) {
 	if network["NEMachServiceName"] != directMachService {
 		t.Fatalf("built NEMachServiceName = %v", network["NEMachServiceName"])
 	}
-	splitInfo := plistJSON(t, filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkSplitTunnelDirect.systemextension", "Contents", "Info.plist"))
-	if splitInfo["CFBundleIdentifier"] != directSplitTunnel || splitInfo["CFBundlePackageType"] != "SYSX" {
-		t.Fatalf("split tunnel sysext CFBundleIdentifier/CFBundlePackageType = %v / %v", splitInfo["CFBundleIdentifier"], splitInfo["CFBundlePackageType"])
+	splitTunnelInfoValues := plistJSON(t, filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkSplitTunnelDirect.systemextension", "Contents", "Info.plist"))
+	if splitTunnelInfoValues["CFBundleIdentifier"] != directSplitTunnel || splitTunnelInfoValues["CFBundlePackageType"] != "SYSX" {
+		t.Fatalf("split tunnel sysext CFBundleIdentifier/CFBundlePackageType = %v / %v", splitTunnelInfoValues["CFBundleIdentifier"], splitTunnelInfoValues["CFBundlePackageType"])
 	}
-	splitNetwork, _ := splitInfo["NetworkExtension"].(map[string]any)
-	if splitNetwork["NEMachServiceName"] != directSplitTunnelMachService {
-		t.Fatalf("built split tunnel NEMachServiceName = %v", splitNetwork["NEMachServiceName"])
+	splitTunnelNetworkExtensionValues, _ := splitTunnelInfoValues["NetworkExtension"].(map[string]any)
+	if splitTunnelNetworkExtensionValues["NEMachServiceName"] != directSplitTunnelMachService {
+		t.Fatalf("built split tunnel NEMachServiceName = %v", splitTunnelNetworkExtensionValues["NEMachServiceName"])
 	}
 	if _, err := os.Stat(filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkSplitTunnel.systemextension")); err == nil {
 		t.Fatal("the direct product embeds the App Store split tunnel extension")

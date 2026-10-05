@@ -87,11 +87,11 @@ struct InstalledApplicationCatalogTests {
     @Test func theListLeavesOutThisAppAndItsExtensions() {
         let catalog = InstalledApplicationCatalog.catalog(
             [
-                app("network.ur", name: "URnetwork"),
-                app("6BGU69Q742.network.ur.splittunnel", name: "Odd", bundle: "network.ur.splittunnel"),
+                app("com.example.vpn", name: "VPN"),
+                app("ABCDE12345.com.example.vpn.splittunnel", name: "Odd", bundle: "com.example.vpn.splittunnel"),
                 app("com.example.Bank", name: "Bank"),
             ],
-            excluding: ["network.ur", "network.ur.extension", "NETWORK.UR.SPLITTUNNEL"]
+            excluding: ["com.example.vpn", "com.example.vpn.extension", "COM.EXAMPLE.VPN.SPLITTUNNEL"]
         )
         #expect(catalog.map(\.identifier) == ["com.example.Bank"])
     }
@@ -112,16 +112,16 @@ struct InstalledApplicationCatalogTests {
 
     @Test func searchMatchesEveryWordInTheNameOrIdentifier() {
         let catalog = [
-            app("com.microsoft.teams2", name: "Microsoft Teams"),
-            app("com.microsoft.Word", name: "Microsoft Word"),
-            app("us.zoom.xos", name: "zoom.us"),
+            app("com.example.acme.chat2", name: "Acme Chat"),
+            app("com.example.acme.Writer", name: "Acme Writer"),
+            app("example.meet.xos", name: "meet.example"),
             app("com.example.coffee", name: "Café"),
         ]
         #expect(InstalledApplicationCatalog.search(catalog, query: "").count == 4)
         #expect(InstalledApplicationCatalog.search(catalog, query: "  ").count == 4)
-        #expect(InstalledApplicationCatalog.search(catalog, query: "microsoft").map(\.name) == ["Microsoft Teams", "Microsoft Word"])
-        #expect(InstalledApplicationCatalog.search(catalog, query: "micro TEAMS").map(\.name) == ["Microsoft Teams"])
-        #expect(InstalledApplicationCatalog.search(catalog, query: "xos").map(\.name) == ["zoom.us"])
+        #expect(InstalledApplicationCatalog.search(catalog, query: "acme").map(\.name) == ["Acme Chat", "Acme Writer"])
+        #expect(InstalledApplicationCatalog.search(catalog, query: "acm CHAT").map(\.name) == ["Acme Chat"])
+        #expect(InstalledApplicationCatalog.search(catalog, query: "xos").map(\.name) == ["meet.example"])
         #expect(InstalledApplicationCatalog.search(catalog, query: "cafe").map(\.name) == ["Café"])
         #expect(InstalledApplicationCatalog.search(catalog, query: "bank").isEmpty)
     }

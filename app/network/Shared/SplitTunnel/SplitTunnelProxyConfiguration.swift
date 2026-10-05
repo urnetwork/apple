@@ -21,8 +21,10 @@
 
 import Foundation
 
+/// The excluded apps as the extension receives them (see the file comment).
 struct SplitTunnelProxyConfiguration: Equatable {
 
+    // the providerConfiguration layout and its keys
     static let version = 1
     static let versionKey = "version"
     static let excludedAppsKey = "excluded_apps"
@@ -35,12 +37,15 @@ struct SplitTunnelProxyConfiguration: Equatable {
     /// Lowercase-insensitive unique, sorted signing identifiers.
     let excludedApps: [String]
 
+    /// Takes any list and normalizes it.
     init(excludedApps: [String]) {
         self.excludedApps = Self.normalize(excludedApps)
     }
 
+    /// The configuration that excludes no app.
     static let empty = SplitTunnelProxyConfiguration(excludedApps: [])
 
+    /// No app is excluded.
     var isEmpty: Bool {
         excludedApps.isEmpty
     }
@@ -83,6 +88,7 @@ struct SplitTunnelProxyConfiguration: Equatable {
 
     // MARK: providerConfiguration
 
+    /// The NETunnelProviderProtocol.providerConfiguration value.
     var providerConfiguration: [String: Any] {
         [
             Self.versionKey: Self.version,
@@ -101,11 +107,13 @@ struct SplitTunnelProxyConfiguration: Equatable {
 
     // MARK: provider message
 
+    /// The provider message: providerConfiguration as JSON.
     var messageData: Data {
         // a dictionary of a version and strings always serializes
         (try? JSONSerialization.data(withJSONObject: providerConfiguration, options: [.sortedKeys])) ?? Data()
     }
 
+    /// nil when the message is not a JSON object carrying a list.
     init?(messageData: Data) {
         guard let object = try? JSONSerialization.jsonObject(with: messageData),
               let dictionary = object as? [String: Any] else {

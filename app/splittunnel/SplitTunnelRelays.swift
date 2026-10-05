@@ -15,6 +15,7 @@ import Network
 import NetworkExtension
 import OSLog
 
+/// One relayed flow; the provider keeps it until it finishes.
 protocol SplitTunnelRelay: AnyObject {
     /// the source app, for closing the relay when the app is no longer
     /// excluded
@@ -26,6 +27,7 @@ protocol SplitTunnelRelay: AnyObject {
     func cancel()
 }
 
+/// How the relays dial out, and how their failures reach the app.
 enum SplitTunnelRelayParameters {
 
     /// The connection leaves through the physical interface: utun is the
@@ -41,12 +43,15 @@ enum SplitTunnelRelayParameters {
         return parameters
     }
 
+    /// Datagrams to one destination, out of the physical interface like
+    /// `tcp(interface:)`.
     static func udp(interface: NWInterface?) -> NWParameters {
         let parameters = NWParameters.udp
         bypassTunnel(parameters, interface: interface)
         return parameters
     }
 
+    /// Never the tunnel's utun, and the given interface when there is one.
     private static func bypassTunnel(_ parameters: NWParameters, interface: NWInterface?) {
         parameters.prohibitedInterfaceTypes = [.other]
         if let interface {
@@ -88,6 +93,8 @@ enum SplitTunnelRelayParameters {
     }
 }
 
+/// One TCP flow, relayed as a byte stream; the flow is opened only once the
+/// remote accepted.
 final class SplitTunnelTCPRelay: SplitTunnelRelay {
 
     private static let readSize = 128 * 1024
@@ -107,6 +114,7 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
     /// the remote shut its sending side (and the flow's write side is closed)
     private var remoteDone = false
 
+    /// Creates the connection to the remote; `start` starts it.
     init(
         flow: NEAppProxyTCPFlow,
         remoteEndpoint: Network.NWEndpoint,
@@ -121,6 +129,7 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
         self.connection = NWConnection(to: remoteEndpoint, using: SplitTunnelRelayParameters.tcp(interface: interface))
     }
 
+    /// Connects to the remote; the flow opens when the connection is ready.
     func start(signingIdentifier: String, onFinish: @escaping () -> Void) {
         self.signingIdentifier = signingIdentifier
         self.onFinish = onFinish
@@ -132,10 +141,13 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
         connection.start(queue: queue)
     }
 
+    /// Closes the connection and the flow now.
     func cancel() {
         finish(error: nil)
     }
 
+    /// Opens the flow once the remote accepted; a connection that cannot go
+    /// on fails the flow.
     private func connectionStateChanged(_ state: NWConnection.State) {
         switch state {
         case .ready:
@@ -175,6 +187,8 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
         }
     }
 
+    /// Copies the app's bytes to the remote one read at a time, and passes
+    /// the app's half-close on.
     private func pumpAppToRemote() {
         flow.readData { [weak self] data, error in
             guard let self else {
@@ -217,6 +231,7 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
         }
     }
 
+    /// Copies the remote's bytes to the app one receive at a time.
     private func pumpRemoteToApp() {
         connection.receive(minimumIncompleteLength: 1, maximumLength: Self.readSize) { [weak self] data, _, isComplete, error in
             // on the relay queue
@@ -246,6 +261,8 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
         }
     }
 
+    /// After a receive: the remote's half-close closes the flow's write side,
+    /// an error finishes the relay, and anything else receives again.
     private func remoteReceived(isComplete: Bool, error: NWError?) {
         if isComplete {
             remoteDone = true
@@ -258,12 +275,15 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
         }
     }
 
+    /// Finishes once both sides have half-closed.
     private func finishIfBothDone() {
         if appDone && remoteDone {
             finish(error: nil)
         }
     }
 
+    /// Closes the connection and the flow, once; `error` reaches the app as
+    /// its connection's failure.
     private func finish(error: Error?) {
         guard !finished else {
             return
@@ -284,6 +304,8 @@ final class SplitTunnelTCPRelay: SplitTunnelRelay {
     }
 }
 
+/// One UDP flow, relayed as datagrams over a connection per destination,
+/// bounded and closed when idle.
 final class SplitTunnelUDPRelay: SplitTunnelRelay {
 
     /// distinct destinations one flow may send to
@@ -303,6 +325,7 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
     private var lastActivity = Date()
     private var idleTimer: DispatchSourceTimer?
 
+    /// Nothing is opened until `start`.
     init(
         flow: NEAppProxyUDPFlow,
         interface: NWInterface?,
@@ -315,6 +338,7 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         self.logger = logger
     }
 
+    /// Opens the flow, then reads the app's datagrams.
     func start(signingIdentifier: String, onFinish: @escaping () -> Void) {
         self.signingIdentifier = signingIdentifier
         self.onFinish = onFinish
@@ -339,10 +363,13 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         }
     }
 
+    /// Closes every connection and the flow now.
     func cancel() {
         finish(error: nil)
     }
 
+    /// Sends the app's datagrams on to their destinations; the app closing
+    /// its socket finishes the relay.
     private func readFromApp() {
         flow.readDatagrams { [weak self] datagrams, error in
             guard let self else {
@@ -370,6 +397,8 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         }
     }
 
+    /// One datagram over its destination's connection, opened on first use
+    /// while under the bound.
     private func send(_ datagram: Data, to endpoint: Network.NWEndpoint) {
         let connection: NWConnection
         if let existing = connections[endpoint] {
@@ -384,6 +413,8 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         connection.send(content: datagram, completion: .contentProcessed { _ in })
     }
 
+    /// A connection to one destination, dropped from the table when it can
+    /// no longer send.
     private func connect(to endpoint: Network.NWEndpoint) -> NWConnection {
         // a destination the tunnel does not capture (a LAN peer) keeps the
         // route the system would give it; only tunneled ones are pinned to
@@ -415,6 +446,8 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         return connection
     }
 
+    /// Writes the destination's datagrams back to the app, as from that
+    /// destination.
     private func receiveFromRemote(_ connection: NWConnection, endpoint: Network.NWEndpoint) {
         connection.receiveMessage { [weak self, weak connection] data, _, _, error in
             // on the relay queue
@@ -438,6 +471,8 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         }
     }
 
+    /// Checks every 30 seconds for `idleTimeout` without a datagram either
+    /// way.
     private func startIdleTimer() {
         let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.schedule(deadline: .now() + 30, repeating: 30)
@@ -453,6 +488,7 @@ final class SplitTunnelUDPRelay: SplitTunnelRelay {
         timer.resume()
     }
 
+    /// Closes every connection and the flow, once.
     private func finish(error: Error?) {
         guard !finished else {
             return

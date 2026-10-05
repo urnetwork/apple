@@ -34,6 +34,7 @@ struct SplitTunnelAppMatcher: Equatable {
     private let exact: Set<String>
     private let withHelpers: Set<String>
 
+    /// Matching ignores case; empty identifiers are dropped.
     init(excludedApps: [String]) {
         var exact = Set<String>()
         var withHelpers = Set<String>()
@@ -52,10 +53,14 @@ struct SplitTunnelAppMatcher: Equatable {
         self.withHelpers = withHelpers
     }
 
+    /// No app is excluded.
     var isEmpty: Bool {
         exact.isEmpty
     }
 
+    /// Whether a flow signed with this identifier belongs to an excluded
+    /// app: the app itself, or one of its helpers below an identifier of
+    /// three or more labels.
     func matches(signingIdentifier: String) -> Bool {
         let identifier = signingIdentifier.lowercased()
         guard !identifier.isEmpty else {
@@ -86,6 +91,8 @@ struct SplitTunnelAppMatcher: Equatable {
 /// interface, or 100.64.0.0/10 behind another VPN's more specific route.
 enum SplitTunnelDestination {
 
+    /// An address literal (a scoped IPv6 literal included) or a name. A name
+    /// is tunneled unless it is local: localhost, or a multicast DNS name.
     static func isTunneled(host: String) -> Bool {
         // a scoped IPv6 literal (fe80::1%en0) is link-local by construction
         let address = host.split(separator: "%", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? host
@@ -106,6 +113,8 @@ enum SplitTunnelDestination {
         return true
     }
 
+    /// The 4 bytes of an IPv4 address in network order; any other count is
+    /// not an address the tunnel captures.
     static func isTunneled(ipv4 bytes: [UInt8]) -> Bool {
         guard bytes.count == 4 else {
             return false
@@ -133,6 +142,8 @@ enum SplitTunnelDestination {
         }
     }
 
+    /// The 16 bytes of an IPv6 address in network order; an IPv4-mapped
+    /// address is classified as its IPv4 address.
     static func isTunneled(ipv6 bytes: [UInt8]) -> Bool {
         guard bytes.count == 16 else {
             return false
@@ -160,6 +171,7 @@ enum SplitTunnelDestination {
         return true
     }
 
+    /// The bytes of a dotted IPv4 literal; nil for anything else.
     private static func ipv4Bytes(_ address: String) -> [UInt8]? {
         var addr = in_addr()
         guard inet_pton(AF_INET, address, &addr) == 1 else {
@@ -168,6 +180,7 @@ enum SplitTunnelDestination {
         return withUnsafeBytes(of: &addr) { Array($0) }
     }
 
+    /// The bytes of an IPv6 literal without a zone; nil for anything else.
     private static func ipv6Bytes(_ address: String) -> [UInt8]? {
         var addr = in6_addr()
         guard inet_pton(AF_INET6, address, &addr) == 1 else {
@@ -177,6 +190,7 @@ enum SplitTunnelDestination {
     }
 }
 
+/// What the proxy does with a new flow.
 enum SplitTunnelFlowVerdict: Equatable {
     /// The proxy takes the flow and relays it outside the tunnel.
     case relay
@@ -184,8 +198,13 @@ enum SplitTunnelFlowVerdict: Equatable {
     case decline
 }
 
+/// The one decision the extension makes per flow, here so the tests pin it.
 enum SplitTunnelFlowDecision {
 
+    /// Relays a flow only when it comes from an excluded app, on a socket
+    /// the app did not bind, to a destination the tunnel captures; declines
+    /// every other flow.
+    ///
     /// - Parameters:
     ///   - signingIdentifier: NEFlowMetaData.sourceAppSigningIdentifier
     ///   - destinationTunneled: whether the flow's remote address is one the
@@ -221,7 +240,7 @@ enum SplitTunnelFlowFailure: Equatable {
     case peerReset
     case aborted
 
-    /// From the POSIX error the outbound connection failed with.
+    /// The failure for the POSIX error the outbound connection failed with.
     static func from(posixErrorCode code: Int32) -> SplitTunnelFlowFailure {
         switch code {
         case ECONNREFUSED:

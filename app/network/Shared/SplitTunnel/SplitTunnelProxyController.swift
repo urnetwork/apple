@@ -29,16 +29,22 @@ import Foundation
 import NetworkExtension
 import URnetworkSdk
 
+/// Hands the device's connect intent to a closure; the sdk takes a listener
+/// object and calls it on a thread of its own.
 private class SplitTunnelConnectListener: NSObject, SdkConnectChangeListenerProtocol {
     private let callback: (Bool) -> Void
+    /// `callback` runs on the sdk's thread.
     init(callback: @escaping (Bool) -> Void) {
         self.callback = callback
     }
+    /// Passes a changed connect intent to the callback.
     func connectChanged(_ connectEnabled: Bool) {
         callback(connectEnabled)
     }
 }
 
+/// Keeps the split tunnel extension and its configuration in step with the
+/// excluded apps and the connect intent (see the file comment).
 final class SplitTunnelProxyController: ObservableObject {
 
     /// The extension is built on the macOS 15 flow API.
@@ -163,12 +169,14 @@ final class SplitTunnelProxyController: ObservableObject {
         reconcile()
     }
 
+    /// The Network Extensions pane, where the user approves the extension.
     func openSystemSettings() {
         activator.openSystemSettings()
     }
 
     // MARK: inputs
 
+    /// A new list (an empty one at logout) clears the failure latch.
     private func setWantedApps(_ excludedApps: [String]) {
         guard inputs.wantedApps != excludedApps else {
             return
@@ -178,6 +186,7 @@ final class SplitTunnelProxyController: ObservableObject {
         reconcile()
     }
 
+    /// An activation state change clears the failure latch.
     private func setExtensionState(_ state: SystemExtensionActivationState) {
         guard inputs.extensionState != state else {
             return
@@ -187,6 +196,7 @@ final class SplitTunnelProxyController: ObservableObject {
         reconcile()
     }
 
+    /// The device's connect intent; it leaves the failure latch alone.
     private func setConnectEnabled(_ connectEnabled: Bool) {
         guard inputs.connectEnabled != connectEnabled else {
             return
@@ -195,6 +205,8 @@ final class SplitTunnelProxyController: ObservableObject {
         reconcile()
     }
 
+    /// Follows a new device's connect intent; without a device, connect is
+    /// off.
     private func setDevice(_ device: SdkDeviceRemote?) {
         connectSub?.close()
         connectSub = nil
@@ -212,6 +224,7 @@ final class SplitTunnelProxyController: ObservableObject {
 
     // MARK: the loop
 
+    /// Starts a pass, or asks for another one when a pass is running.
     private func reconcile() {
         guard !reconciling else {
             reconcileAgain = true
@@ -221,6 +234,7 @@ final class SplitTunnelProxyController: ObservableObject {
         runNextStep(remaining: Self.maximumStepsPerPass)
     }
 
+    /// Publishes the status and runs the pass asked for meanwhile, if any.
     private func finishPass() {
         let status = SplitTunnelProxyPlan.status(inputs, failed: failed)
         if self.status != status {
@@ -233,6 +247,9 @@ final class SplitTunnelProxyController: ObservableObject {
         }
     }
 
+    /// Performs the plan's next step and keeps going while steps succeed,
+    /// for at most `remaining` steps; a failed step ends the pass and sets
+    /// the failure latch.
     private func runNextStep(remaining: Int) {
         let next: (Bool) -> Void = { [weak self] succeeded in
             guard let self else {
@@ -278,6 +295,8 @@ final class SplitTunnelProxyController: ObservableObject {
 
     // MARK: steps
 
+    /// Reads the system's transparent proxy configurations and keeps the
+    /// split tunnel's, if there is one.
     private func load(completion: @escaping (Bool) -> Void) {
         NETransparentProxyManager.loadAllFromPreferences { [weak self] managers, error in
             DispatchQueue.main.async {
@@ -296,6 +315,8 @@ final class SplitTunnelProxyController: ObservableObject {
         }
     }
 
+    /// Creates or updates the configuration with the list, enabled, and
+    /// reads it back; a running proxy is also handed the list.
     private func save(_ configuration: SplitTunnelProxyConfiguration, completion: @escaping (Bool) -> Void) {
         let manager = self.manager ?? NETransparentProxyManager()
         let tunnelProtocol = (manager.protocolConfiguration as? NETunnelProviderProtocol) ?? NETunnelProviderProtocol()
@@ -359,6 +380,7 @@ final class SplitTunnelProxyController: ObservableObject {
         }
     }
 
+    /// Removes the configuration; with none installed there is nothing to do.
     private func remove(completion: @escaping (Bool) -> Void) {
         guard let manager else {
             setManager(nil)
@@ -381,6 +403,7 @@ final class SplitTunnelProxyController: ObservableObject {
         }
     }
 
+    /// Starts the proxy; a refused start sets the failure latch.
     private func start() {
         guard let manager else {
             return
@@ -395,6 +418,8 @@ final class SplitTunnelProxyController: ObservableObject {
 
     // MARK: observation
 
+    /// Observes the status of this manager only, replacing the previous
+    /// observer.
     private func setManager(_ manager: NETransparentProxyManager?) {
         if let connectionObserver {
             NotificationCenter.default.removeObserver(connectionObserver)
@@ -418,11 +443,13 @@ final class SplitTunnelProxyController: ObservableObject {
         }
     }
 
+    /// Whether a configuration is the split tunnel's, by its provider.
     private static func isSplitTunnel(_ manager: NETransparentProxyManager) -> Bool {
         (manager.protocolConfiguration as? NETunnelProviderProtocol)?.providerBundleIdentifier
             == TunnelProviderIdentity.splitTunnelBundleIdentifier
     }
 
+    /// What the plan sees of a configuration; none is `.absent`.
     private static func observe(_ manager: NETransparentProxyManager?) -> SplitTunnelProxyObserved {
         guard let manager else {
             return .absent

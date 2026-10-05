@@ -51,10 +51,10 @@ struct SplitTunnelProxyConfigurationTests {
     }
 
     @Test func theProviderConfigurationRoundTrips() {
-        let configuration = SplitTunnelProxyConfiguration(excludedApps: ["com.example.Bank", "us.zoom.xos"])
+        let configuration = SplitTunnelProxyConfiguration(excludedApps: ["com.example.Bank", "example.meet.xos"])
         let dictionary = configuration.providerConfiguration
         #expect(dictionary["version"] as? Int == SplitTunnelProxyConfiguration.version)
-        #expect(dictionary["excluded_apps"] as? [String] == ["com.example.Bank", "us.zoom.xos"])
+        #expect(dictionary["excluded_apps"] as? [String] == ["com.example.Bank", "example.meet.xos"])
         #expect(SplitTunnelProxyConfiguration(providerConfiguration: dictionary) == configuration)
     }
 

@@ -27,9 +27,9 @@ struct SplitTunnelAppRulesTests {
     @Test func routedLocallyAppsAreExcludedInRuleOrder() {
         let rules = [
             rule("a", ["com.example.Bank"], local: true),
-            rule("b", ["us.zoom.xos", "com.example.Game"], local: true),
+            rule("b", ["example.meet.xos", "com.example.Game"], local: true),
         ]
-        #expect(SplitTunnelAppRules.excludedApps(rules) == ["com.example.Bank", "us.zoom.xos", "com.example.Game"])
+        #expect(SplitTunnelAppRules.excludedApps(rules) == ["com.example.Bank", "example.meet.xos", "com.example.Game"])
     }
 
     @Test func appsRoutedThroughTheTunnelAreNotExcluded() {
@@ -122,7 +122,7 @@ struct SplitTunnelAppRulesTests {
 
         let list = try #require(SdkBlockActionOverrideList())
         list.add(override(hosts: ["example.com"], local: true))
-        list.add(override(appIds: ["com.example.Bank", "us.zoom.xos"], local: true))
+        list.add(override(appIds: ["com.example.Bank", "example.meet.xos"], local: true))
         try localState.setBlockActionOverrides(list)
 
         let read = try #require(localState.getBlockActionOverrides())
@@ -134,6 +134,6 @@ struct SplitTunnelAppRulesTests {
             }
         }
         #expect(appRules.count == 1)
-        #expect(SplitTunnelAppRules.excludedApps(appRules) == ["com.example.Bank", "us.zoom.xos"])
+        #expect(SplitTunnelAppRules.excludedApps(appRules) == ["com.example.Bank", "example.meet.xos"])
     }
 }

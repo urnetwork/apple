@@ -32,6 +32,8 @@ import Network
 import NetworkExtension
 import OSLog
 
+/// The transparent proxy: relays the excluded apps' flows and declines every
+/// other flow (see the file comment).
 final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPFlowHandling {
 
     private let logger = Logger(subsystem: "network.ur.splittunnel", category: "SplitTunnelProxy")
@@ -42,6 +44,8 @@ final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPF
     private var relays: [ObjectIdentifier: SplitTunnelRelay] = [:]
     private var pathMonitor: NWPathMonitor?
 
+    /// Takes the list from the configuration, follows the physical interface
+    /// and asks for every outbound TCP and UDP flow.
     override func startProxy(options: [String: Any]? = nil, completionHandler: @escaping (Error?) -> Void) {
         let configuration = SplitTunnelProxyConfiguration(
             providerConfiguration: (protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration
@@ -86,6 +90,7 @@ final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPF
         }
     }
 
+    /// Stops following the interface and closes every relay.
     override func stopProxy(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         logger.info("[SplitTunnelProxy]stop reason=\(reason.rawValue, privacy: .public)")
         queue.async { [self] in
@@ -110,6 +115,7 @@ final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPF
         completionHandler?(nil)
     }
 
+    /// A new TCP flow: relayed, or declined by returning false.
     override func handleNewFlow(_ flow: NEAppProxyFlow) -> Bool {
         // UDP flows arrive through handleNewUDPFlow
         guard let tcpFlow = flow as? NEAppProxyTCPFlow else {
@@ -130,6 +136,7 @@ final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPF
         return true
     }
 
+    /// A new UDP flow: relayed, or declined by returning false.
     func handleNewUDPFlow(_ flow: NEAppProxyUDPFlow, initialRemoteFlowEndpoint remoteEndpoint: Network.NWEndpoint) -> Bool {
         guard verdict(flow: flow, remoteEndpoint: remoteEndpoint) == .relay else {
             return false
@@ -144,6 +151,7 @@ final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPF
         return true
     }
 
+    /// The shared decision for a new flow, against the current list.
     private func verdict(flow: NEAppProxyFlow, remoteEndpoint: Network.NWEndpoint) -> SplitTunnelFlowVerdict {
         SplitTunnelFlowDecision.verdict(
             signingIdentifier: flow.metaData.sourceAppSigningIdentifier,
@@ -171,6 +179,8 @@ final class SplitTunnelProxyProvider: NETransparentProxyProvider, NEAppProxyUDPF
         }
     }
 
+    /// Keeps the relay until it finishes, so a stop or a changed list can
+    /// close it.
     private func start(_ relay: SplitTunnelRelay, signingIdentifier: String) {
         queue.async { [self] in
             let key = ObjectIdentifier(relay)
@@ -205,24 +215,28 @@ private final class SplitTunnelProxyState {
     private var currentMatcher = SplitTunnelAppMatcher(excludedApps: [])
     private var currentInterface: NWInterface?
 
+    /// The excluded apps new flows are matched against.
     func matcher() -> SplitTunnelAppMatcher {
         lock.lock()
         defer { lock.unlock() }
         return currentMatcher
     }
 
+    /// A changed list; new flows follow it at once.
     func setMatcher(_ matcher: SplitTunnelAppMatcher) {
         lock.lock()
         defer { lock.unlock() }
         currentMatcher = matcher
     }
 
+    /// The physical interface new relays bind to; nil while there is none.
     func interface() -> NWInterface? {
         lock.lock()
         defer { lock.unlock() }
         return currentInterface
     }
 
+    /// Set by the path monitor: its best physical interface, or nil.
     func setInterface(_ interface: NWInterface?) {
         lock.lock()
         defer { lock.unlock() }

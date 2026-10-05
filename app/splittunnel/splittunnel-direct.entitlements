@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  The split tunnel SYSTEM extension of the direct-download build
+  The split tunnel system extension of the direct-download build
   (URnetworkSplitTunnelDirect target, com.bringyour.urnetwork.splittunnel,
   Developer ID, manual signing). Outside the Mac App Store a network
   extension takes the "-systemextension" entitlement variant. Like the

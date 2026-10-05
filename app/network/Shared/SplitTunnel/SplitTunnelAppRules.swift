@@ -9,7 +9,7 @@
 //  overrides without hosts); the platform enforces them -- android with
 //  per-app VpnService routing, macOS with the split tunnel system extension.
 //
-//  macOS takes apps OUT of the tunnel only (route locally). Which apps that
+//  macOS only takes apps out of the tunnel (route locally). Which apps that
 //  is follows the sdk's own derivation (DeviceLocal.GetLocalOverrideAppIds,
 //  whose "included" set is the local-routed apps) so a rule means the same
 //  thing on every platform: a pin that stays in the tunnel is placement, not
@@ -30,6 +30,8 @@ struct SplitTunnelAppRule: Identifiable, Equatable {
     let pin: Bool
 }
 
+/// The excluded apps the rules make, derived the way the sdk derives them
+/// (see the file comment).
 enum SplitTunnelAppRules {
 
     /// The signing identifiers the rules route locally, in rule order.
@@ -38,7 +40,7 @@ enum SplitTunnelAppRules {
         var excluded: [String] = []
         for rule in rules {
             if rule.pin && !rule.local {
-                // a pin holds the app to one exit INSIDE the tunnel
+                // a pin holds the app to one exit inside the tunnel
                 continue
             }
             for appId in rule.appIds {

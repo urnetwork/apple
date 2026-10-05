@@ -16,6 +16,7 @@ import AppKit
 import Foundation
 import Security
 
+/// Reads /Applications for the picker (see the file comment).
 enum InstalledApplicationScanner {
 
     static let applicationsDirectory = URL(fileURLWithPath: "/Applications", isDirectory: true)
@@ -45,10 +46,13 @@ enum InstalledApplicationScanner {
         ])
     }
 
+    /// The app's icon as Finder shows it.
     static func icon(for application: InstalledApplication) -> NSImage {
         NSWorkspace.shared.icon(forFile: application.path)
     }
 
+    /// The app bundles in `directory` and in its folders, `depth` levels
+    /// deep in all; a bundle is never entered.
     private static func bundleURLs(in directory: URL, depth: Int) -> [URL] {
         guard 0 < depth,
               let entries = try? FileManager.default.contentsOfDirectory(

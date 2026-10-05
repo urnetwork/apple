@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Info.plist of the split tunnel SYSTEM extension in the App Store build
+  Info.plist of the split tunnel system extension in the App Store build
   (URnetworkSplitTunnel target, network.ur.splittunnel). A transparent proxy
   is an app-proxy provider; a system extension declares it under
   NetworkExtension, with a mach service name prefixed by one of its app

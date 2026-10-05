@@ -25,25 +25,27 @@ struct SplitTunnelFlowDecisionTests {
     }
 
     @Test func anExcludedAppCoversItsHelperProcesses() {
-        // Chrome's network service runs in "Google Chrome Helper"
-        let matcher = SplitTunnelAppMatcher(excludedApps: ["com.google.Chrome"])
-        #expect(matcher.matches(signingIdentifier: "com.google.Chrome.helper"))
-        #expect(matcher.matches(signingIdentifier: "com.google.Chrome.helper.renderer"))
+        // a browser's network service runs in a helper process, signed below
+        // the browser's own identifier
+        let matcher = SplitTunnelAppMatcher(excludedApps: ["com.example.Browser"])
+        #expect(matcher.matches(signingIdentifier: "com.example.Browser.helper"))
+        #expect(matcher.matches(signingIdentifier: "com.example.Browser.helper.renderer"))
     }
 
     @Test func helperMatchingNeedsTheDotBoundary() {
-        let matcher = SplitTunnelAppMatcher(excludedApps: ["com.google.Chrome"])
-        #expect(!matcher.matches(signingIdentifier: "com.google.ChromeCanary"))
-        #expect(!matcher.matches(signingIdentifier: "com.google"))
-        #expect(!matcher.matches(signingIdentifier: "com.google.chrom"))
+        let matcher = SplitTunnelAppMatcher(excludedApps: ["com.example.Browser"])
+        #expect(!matcher.matches(signingIdentifier: "com.example.BrowserBeta"))
+        #expect(!matcher.matches(signingIdentifier: "com.example"))
+        #expect(!matcher.matches(signingIdentifier: "com.example.browse"))
     }
 
     @Test func aShortIdentifierNeverTakesAWholeVendorOutOfTheTunnel() {
-        // "com.apple" must not cover com.apple.Safari, mDNSResponder & co.
-        let matcher = SplitTunnelAppMatcher(excludedApps: ["com.apple", "Tool"])
-        #expect(matcher.matches(signingIdentifier: "com.apple"))
-        #expect(!matcher.matches(signingIdentifier: "com.apple.Safari"))
-        #expect(!matcher.matches(signingIdentifier: "com.apple.WebKit.Networking"))
+        // a vendor's two-label prefix must not cover every app and system
+        // process the vendor signs
+        let matcher = SplitTunnelAppMatcher(excludedApps: ["com.example", "Tool"])
+        #expect(matcher.matches(signingIdentifier: "com.example"))
+        #expect(!matcher.matches(signingIdentifier: "com.example.Browser"))
+        #expect(!matcher.matches(signingIdentifier: "com.example.Engine.Networking"))
         #expect(matcher.matches(signingIdentifier: "Tool"))
         #expect(!matcher.matches(signingIdentifier: "Tool.helper"))
     }
@@ -58,7 +60,9 @@ struct SplitTunnelFlowDecisionTests {
     // MARK: destinations
 
     @Test func publicAddressesAreTunneled() {
-        for host in ["1.1.1.1", "8.8.8.8", "142.250.80.46", "2606:4700:4700::1111", "2001:4860:4860::8888", "64:ff9b::808:808"] {
+        // documentation addresses (RFC 5737, RFC 3849), and one of them behind
+        // the NAT64 prefix (RFC 6052)
+        for host in ["192.0.2.1", "198.51.100.7", "203.0.113.46", "2001:db8::1", "2001:db8:85a3::8a2e:370:7334", "64:ff9b::c000:201"] {
             #expect(SplitTunnelDestination.isTunneled(host: host), "\(host)")
         }
     }
@@ -89,7 +93,7 @@ struct SplitTunnelFlowDecisionTests {
         #expect(SplitTunnelDestination.isTunneled(host: "100.128.0.0"))
         #expect(SplitTunnelDestination.isTunneled(host: "169.253.255.255"))
         #expect(SplitTunnelDestination.isTunneled(host: "223.255.255.255"))
-        #expect(SplitTunnelDestination.isTunneled(host: "::ffff:8.8.8.8"))
+        #expect(SplitTunnelDestination.isTunneled(host: "::ffff:203.0.113.1"))
         #expect(SplitTunnelDestination.isTunneled(host: "fec0::1"))
         #expect(SplitTunnelDestination.isTunneled(host: "fe00::1"))
     }
@@ -104,13 +108,13 @@ struct SplitTunnelFlowDecisionTests {
 
     @Test func theAddressBytesTheExtensionReadsClassifyTheSameWay() {
         // the provider classifies Network.framework's raw address bytes
-        #expect(SplitTunnelDestination.isTunneled(ipv4: [8, 8, 8, 8]))
+        #expect(SplitTunnelDestination.isTunneled(ipv4: [203, 0, 113, 1]))
         #expect(!SplitTunnelDestination.isTunneled(ipv4: [192, 168, 0, 1]))
         #expect(!SplitTunnelDestination.isTunneled(ipv4: [1, 2, 3]))
         var loopback = [UInt8](repeating: 0, count: 16)
         loopback[15] = 1
         #expect(!SplitTunnelDestination.isTunneled(ipv6: loopback))
-        #expect(SplitTunnelDestination.isTunneled(ipv6: [0x20, 0x01, 0x48, 0x60] + [UInt8](repeating: 0, count: 11) + [0x88]))
+        #expect(SplitTunnelDestination.isTunneled(ipv6: [0x20, 0x01, 0x0d, 0xb8] + [UInt8](repeating: 0, count: 11) + [0x88]))
     }
 
     // MARK: the verdict

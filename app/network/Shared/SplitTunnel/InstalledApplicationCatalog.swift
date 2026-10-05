@@ -14,6 +14,7 @@
 
 import Foundation
 
+/// An app bundle the picker offers.
 struct InstalledApplication: Identifiable, Equatable, Hashable {
     /// what an app rule stores and the extension matches
     let identifier: String
@@ -24,6 +25,7 @@ struct InstalledApplication: Identifiable, Equatable, Hashable {
     var id: String { identifier }
 }
 
+/// Turns the bundles the scanner found into the picker's list.
 enum InstalledApplicationCatalog {
 
     /// One app bundle, from its Info.plist and its signing identifier.

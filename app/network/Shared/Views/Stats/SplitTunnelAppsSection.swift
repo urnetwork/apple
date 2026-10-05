@@ -14,6 +14,8 @@
 import AppKit
 import SwiftUI
 
+/// The split rules screen's Apps section: the status line, the add row and
+/// the excluded apps.
 @available(macOS 15.0, *)
 struct SplitTunnelAppsSection: View {
 
@@ -94,6 +96,7 @@ struct SplitTunnelAppsSection: View {
         }
     }
 
+    /// A status line with the one action that resolves it.
     private func statusMessage(
         _ message: LocalizedStringKey,
         action: LocalizedStringKey,
@@ -112,6 +115,7 @@ struct SplitTunnelAppsSection: View {
         .listRowBackground(Color.clear)
     }
 
+    /// Opens the picker; disabled until the store can vouch for the rule list.
     @ViewBuilder
     private var addAppRow: some View {
         Button(action: {
@@ -141,6 +145,7 @@ struct SplitTunnelAppsSection: View {
         .listRowBackground(Color.clear)
     }
 
+    /// Reads /Applications off the main actor (a signature read per bundle).
     private func scanApplications() async {
         let scanned = await Task.detached(priority: .userInitiated) {
             InstalledApplicationScanner.scan()
@@ -255,6 +260,8 @@ struct SplitTunnelAppPickerView: View {
         .background(themeManager.currentTheme.backgroundColor)
     }
 
+    /// One app: picking it excludes it and closes the sheet; an app already
+    /// excluded is checked and cannot be picked again.
     private func applicationRow(_ application: InstalledApplication) -> some View {
         let excluded = SplitTunnelAppRules.isExcluded(application.identifier, in: blockActionsStore.appRules)
         return Button(action: {

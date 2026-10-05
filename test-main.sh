@@ -15,6 +15,9 @@
 #   ./test-main.sh --skip-build    reuse cached DerivedData/build IDs
 #   ./test-main.sh --keep-fixture  retain the private instant-account fixture
 #   ./test-main.sh --headless      keep Simulator hidden and unactivated
+#   ./test-main.sh --defer-macos-ui-automation
+#                                 explicitly defer macOS UI/tunnel coverage
+#                                 only when a read-only permission probe denies it
 #
 # Environment:
 #   UR_ACCEPT_VAULT=<path>         alternate main acceptance credentials
@@ -37,12 +40,15 @@ headless="${HEADLESS:-0}"
 keep_fixture="${UR_ACCEPT_KEEP_FIXTURE:-0}"
 result_matrix="${UR_ACCEPT_RESULT_FILE:-}"
 platforms="ios macos"
+defer_macos_ui_automation=0
+macos_only_requested=0
 
 for arg in "$@"; do
   case "$arg" in
     --repeat=*) repeat_count="${arg#*=}" ;;
     --ios-only) platforms="ios" ;;
-    --macos-only) platforms="macos" ;;
+    --macos-only) platforms="macos"; macos_only_requested=1 ;;
+    --defer-macos-ui-automation) defer_macos_ui_automation=1 ;;
     --skip-build) skip_build=1 ;;
     --keep-fixture) keep_fixture=1 ;;
     --headless) headless=1 ;;
@@ -50,6 +56,13 @@ for arg in "$@"; do
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
+if [ "$defer_macos_ui_automation" -eq 1 ]; then
+  if [ "$macos_only_requested" -eq 1 ]; then
+    echo "--defer-macos-ui-automation cannot be combined with --macos-only" >&2
+    exit 2
+  fi
+  platforms=ios
+fi
 case "$repeat_count" in
   ''|*[!0-9]*) echo "--repeat must be a positive integer" >&2; exit 2 ;;
   0) echo "--repeat must be at least 1" >&2; exit 2 ;;
@@ -94,6 +107,38 @@ timestamp="$(date +%Y%m%d-%H%M%S)"
 artifacts="$here/tests/__acceptance__/$timestamp"
 cache="$here/tests/__acceptance__/build"
 mkdir -p "$artifacts" "$cache" "$(dirname "$fixture")"
+coverage_file="$artifacts/macos-automation-coverage.json"
+permission_probe=""
+coverage_scope=full
+coverage_deferred='[]'
+coverage_required='["apple/ios-ui-acceptance","apple/macos-ui-acceptance","apple/macos-data-plane","apple/macos-peer-to-peer"]'
+if [ "$defer_macos_ui_automation" -eq 1 ]; then
+  coverage_scope=tailored-macos-ui-automation-deferred
+  coverage_deferred='["apple/macos-ui-acceptance","apple/macos-data-plane","apple/macos-peer-to-peer"]'
+  coverage_required='["apple/ios-ui-acceptance"]'
+elif [ "$platforms" = ios ]; then
+  coverage_scope=ios-only
+  coverage_required='["apple/ios-ui-acceptance"]'
+elif [ "$platforms" = macos ]; then
+  coverage_scope=macos-only
+  coverage_required='["apple/macos-ui-acceptance","apple/macos-data-plane","apple/macos-peer-to-peer"]'
+fi
+write_coverage() {
+  local temporary="$coverage_file.tmp"
+  jq -n --arg run_id "${URNETWORK_RUN_ID:-}" \
+    --arg plan_sha256 "${URNETWORK_PLAN_SHA256:-}" \
+    --arg coverage_scope "$coverage_scope" \
+    --argjson deferred "$coverage_deferred" --argjson required "$coverage_required" \
+    --arg permission_probe "$permission_probe" --arg verdict "$1" \
+    --argjson passed "$2" --argjson cleanup_complete "$3" \
+    '{version: 1, run_id: $run_id, plan_sha256: $plan_sha256,
+      coverage_scope: $coverage_scope, deferred: $deferred, required: $required,
+      permission_probe: $permission_probe, verdict: $verdict,
+      passed: $passed, cleanup_complete: $cleanup_complete}' >"$temporary" &&
+    chmod 400 "$temporary" && mv -f "$temporary" "$coverage_file"
+}
+write_coverage NOT_RUN false false || die "could not record selected Apple coverage"
+selected_tests_complete=0
 acceptance_temp_root="${TMPDIR:-/tmp}"
 if [ "$acceptance_temp_root" != / ]; then
   acceptance_temp_root="${acceptance_temp_root%/}"
@@ -178,24 +223,34 @@ stop_test_runner_watch() {
 
 cleanup() {
   exit_status=$?
-  local simulator_state=""
+  local simulator_state="" cleanup_complete=true coverage_passed=false coverage_verdict=FAIL
+  trap - EXIT INT TERM
+  set +e
   stop_test_runner_watch
   if ! stop_peer_provider; then
     exit_status=1
+    cleanup_complete=false
   fi
   if ! release_provider_client; then
     echo "[apple acceptance] could not release the retained peer provider client" >&2
     exit_status=1
+    cleanup_complete=false
   fi
-  rm -f "$cache/ios/Build/Products/.acceptance.xctestrun" "$cache/macos/Build/Products/.acceptance.xctestrun"
+  if ! rm -f "$cache/ios/Build/Products/.acceptance.xctestrun" "$cache/macos/Build/Products/.acceptance.xctestrun"; then
+    exit_status=1
+    cleanup_complete=false
+  fi
   if [ -n "$simulator_udid" ]; then
     timeout 15 xcrun simctl terminate "$simulator_udid" network.ur >/dev/null 2>&1 || true
   fi
-  timeout 15 osascript -e 'tell application id "network.ur" to quit' >/dev/null 2>&1 || true
+  case " $platforms " in
+    *" macos "*) timeout 15 osascript -e 'tell application id "network.ur" to quit' >/dev/null 2>&1 || true ;;
+  esac
   for platform_out in "$artifacts/ios" "$artifacts/macos"; do
     if ! release_platform_clients "$platform_out"; then
       echo "[apple acceptance] could not release every retained network client in $platform_out" >&2
       exit_status=1
+      cleanup_complete=false
     fi
   done
   if [ ! -f "$fixture" ]; then
@@ -211,12 +266,14 @@ cleanup() {
     if ! timeout 5 xcrun simctl pbcopy "$simulator_udid" <"$clipboard_dir/simulator.txt" >/dev/null 2>&1; then
       echo "[apple acceptance] could not restore the simulator text clipboard" >&2
       exit_status=1
+      cleanup_complete=false
     fi
   fi
   if [ "$host_clipboard_saved" -eq 1 ]; then
     if ! timeout 5 pbcopy <"$clipboard_dir/host.txt" >/dev/null 2>&1; then
       echo "[apple acceptance] could not restore the host text clipboard" >&2
       exit_status=1
+      cleanup_complete=false
     fi
   fi
   if [ -n "$simulator_udid" ] && [ "$simulator_was_booted" -eq 0 ]; then
@@ -224,17 +281,24 @@ cleanup() {
     if ! simulator_state="$(timeout 15 xcrun simctl list devices)"; then
       echo "[apple acceptance] could not verify the acceptance simulator state" >&2
       exit_status=1
+      cleanup_complete=false
     elif printf '%s\n' "$simulator_state" | grep -F "$simulator_udid" | grep -q Booted; then
       echo "[apple acceptance] could not stop the acceptance simulator" >&2
       exit_status=1
+      cleanup_complete=false
     fi
   fi
   if ! apple_acceptance_remove_temp_tree "$clipboard_dir" "$acceptance_temp_root"; then
     echo "[apple acceptance] could not remove $clipboard_dir" >&2
     exit_status=1
+    cleanup_complete=false
+  fi
+  if [ "$exit_status" -eq 0 ] && [ "$selected_tests_complete" -ne 1 ]; then
+    echo "[apple acceptance] selected Apple acceptance did not complete" >&2
+    exit_status=1
   fi
   if [ -n "$result_matrix" ]; then
-    mkdir -p "$(dirname "$result_matrix")"
+    mkdir -p "$(dirname "$result_matrix")" || exit_status=1
     matrix_status=PASS
     matrix_detail="all selected Apple destinations completed"
     if [ "$exit_status" -ne 0 ]; then
@@ -243,14 +307,53 @@ cleanup() {
     fi
     matrix_cases="email phone instant password data-plane"
     case " $platforms " in *" macos "*) matrix_cases="$matrix_cases peer-to-peer" ;; esac
+    if [ "$defer_macos_ui_automation" -eq 1 ]; then
+      matrix_cases="email phone instant password data-plane peer-to-peer"
+      if [ "$exit_status" -eq 0 ]; then
+        matrix_detail="iOS-only UI acceptance passed; macOS UI automation DEFERRED ($permission_probe)"
+      fi
+    fi
     for matrix_case in $matrix_cases; do
-      printf 'apple\t%s\t%s\t%s\n' "$matrix_case" "$matrix_status" "$matrix_detail" >>"$result_matrix"
+      if [ "$defer_macos_ui_automation" -eq 1 ] && [ "$exit_status" -eq 0 ] && \
+         { [ "$matrix_case" = data-plane ] || [ "$matrix_case" = peer-to-peer ]; }; then
+        printf 'apple\t%s\tDEFERRED\tmacOS UI automation permission denied (%s); no native macOS tunnel coverage\n' \
+          "$matrix_case" "$permission_probe" >>"$result_matrix" || exit_status=1
+      else
+        printf 'apple\t%s\t%s\t%s\n' "$matrix_case" "$matrix_status" "$matrix_detail" >>"$result_matrix" || exit_status=1
+      fi
     done
-    chmod 600 "$result_matrix"
+    chmod 600 "$result_matrix" || exit_status=1
+  fi
+  if [ "$exit_status" -eq 0 ]; then
+    coverage_passed=true
+    coverage_verdict=PASS
+    [ "$defer_macos_ui_automation" -ne 1 ] || coverage_verdict=PASS_TAILORED
+  fi
+  if ! write_coverage "$coverage_verdict" "$coverage_passed" "$cleanup_complete"; then
+    echo "[apple acceptance] could not record completed Apple coverage" >&2
+    exit_status=1
+  fi
+  # Only this owner can attest selected iOS tests and their completed cleanup.
+  # Never overwrite a receipt or publish one from a failed/partial execution.
+  if [ "$exit_status" -eq 0 ] && [ "$defer_macos_ui_automation" -eq 1 ] && \
+     [ "${URNETWORK_RUNNER_SUITE:-}" = main ]; then
+    if [ -z "${URNETWORK_RUNNER_MACOS_AUTOMATION_COVERAGE_FILE:-}" ] || \
+       [ -z "${URNETWORK_RUN_ID:-}" ] || [ -z "${URNETWORK_PLAN_SHA256:-}" ] || \
+       [ -e "$URNETWORK_RUNNER_MACOS_AUTOMATION_COVERAGE_FILE" ] || \
+       [ -L "$URNETWORK_RUNNER_MACOS_AUTOMATION_COVERAGE_FILE" ] || \
+       ! (set -C; cat "$coverage_file" >"$URNETWORK_RUNNER_MACOS_AUTOMATION_COVERAGE_FILE"); then
+      echo "[apple acceptance] could not publish the runner-owned macOS automation coverage receipt" >&2
+      exit_status=1
+      write_coverage FAIL false "$cleanup_complete" || true
+    fi
   fi
   echo
   if [ "$exit_status" -eq 0 ]; then
-    echo "[apple acceptance] ✓ ACCEPTANCE PASSED (artifacts: $artifacts)"
+    if [ "$defer_macos_ui_automation" -eq 1 ]; then
+      echo "[apple acceptance] PASS_TAILORED: iOS UI acceptance passed; macOS UI, data-plane, and peer-to-peer DEFERRED (artifacts: $artifacts)"
+    else
+      echo "[apple acceptance] ✓ ACCEPTANCE PASSED (artifacts: $artifacts)"
+    fi
   else
     echo "[apple acceptance] ✗ ACCEPTANCE FAILED (artifacts: $artifacts)"
   fi
@@ -273,12 +376,21 @@ case "$sdk_version" in
   ''|*[!A-Za-z0-9.+-]*) die "local SDK version contains unsupported characters" ;;
 esac
 
-case " $platforms " in
-  *" macos "*)
-    apple_acceptance_macos_automation_ready || \
-      die "macOS UI automation privacy grants are missing"
-    ;;
-esac
+if [ "$defer_macos_ui_automation" -eq 1 ]; then
+  permission_probe="$(apple_acceptance_macos_automation_probe)" || \
+    die "macOS UI automation deferral requires a valid read-only permission probe"
+  [ "$permission_probe" != 'listen=true post=true' ] || \
+    die "macOS UI automation deferral requires at least one denied permission"
+  echo "[apple acceptance] TAILORED: macOS UI, data-plane, and peer-to-peer DEFERRED ($permission_probe); all iOS UI acceptance remains required"
+else
+  case " $platforms " in
+    *" macos "*)
+      apple_acceptance_macos_automation_ready || \
+        die "macOS UI automation privacy grants are missing"
+      permission_probe='listen=true post=true'
+      ;;
+  esac
+fi
 
 if [ "$skip_build" -ne 1 ]; then
   tools_dir="${UR_ACCEPT_APPLE_TOOLS:-$root/build/all/apple/.acceptance-tools}"
@@ -627,4 +739,5 @@ if [ "$overall" -eq 0 ] && [ "$keep_fixture" -ne 1 ] && [ -f "$fixture" ]; then
   fi
 fi
 
+[ "$overall" -ne 0 ] || selected_tests_complete=1
 exit "$overall"

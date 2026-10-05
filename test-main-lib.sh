@@ -25,12 +25,25 @@ apple_acceptance_open_simulator() {
 # macOS UI testing asks the process responsible for xcodebuild to listen for
 # and post input events. When either TCC grant is absent, XCTest waits a minute
 # and reports only that automation mode timed out, before any app test starts.
-apple_acceptance_macos_automation_ready() {
+apple_acceptance_macos_automation_probe() {
   local probe="${1:-swift}" result
   result="$("$probe" -e '
     import CoreGraphics
     print("listen=\(CGPreflightListenEventAccess()) post=\(CGPreflightPostEventAccess())")
   ')" || return 1
+  case "$result" in
+    'listen=true post=true'|'listen=true post=false'|'listen=false post=true'|'listen=false post=false') ;;
+    *)
+      echo "[apple acceptance] invalid macOS UI automation permission probe" >&2
+      return 1
+      ;;
+  esac
+  printf '%s\n' "$result"
+}
+
+apple_acceptance_macos_automation_ready() {
+  local result
+  result="$(apple_acceptance_macos_automation_probe "${1:-swift}")" || return 1
   [ "$result" = "listen=true post=true" ] || {
     echo "[apple acceptance] macOS UI automation is unavailable ($result)" >&2
     echo "[apple acceptance] enable the terminal running xcodebuild in Privacy & Security > Accessibility and Input Monitoring, then restart it" >&2

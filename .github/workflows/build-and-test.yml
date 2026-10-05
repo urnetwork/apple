@@ -35,10 +35,10 @@ jobs:
       # builds and tests, so a constant is the honest value rather than a fake
       # version. The Makefile tolerates it being empty; this is just legible.
       WARP_VERSION: 0.0.0-ci
-      # The pinned Go below is a CEILING, not just a floor (see the setup-go
-      # step). `local` turns a future sibling bumping its go directive past
-      # 1.26 into a loud "requires go >= 1.27" error instead of a silent
-      # toolchain download that re-breaks the bind.
+      # The pinned Go below is the release host's (see the setup-go step).
+      # `local` turns a sibling bumping its go directive past it into a loud
+      # "requires go >= ..." error instead of a silent download of another
+      # toolchain.
       GOTOOLCHAIN: local
     steps:
       # The checkout MUST be a subdirectory named `apple`: the app links the
@@ -108,24 +108,27 @@ jobs:
           xcodebuild -version
           xcrun simctl list runtimes | grep -i ios
 
-      # NOT `go-version: stable`, which the sibling Go workflows use. stable is
-      # 1.27, and sdk/build/Makefile's build_apple exports GODEBUG=gotypesalias=0,
-      # which the go 1.27 runtime fatals on -- its own comment says
-      # gomobile/gobind must be built with go <= 1.26. go-version-file pins to
-      # the 1.26.5 in sdk/build/go.mod, the same convention server/test.yml uses.
+      # The Go the release host builds the SDK with: build/all/run.sh requires
+      # exactly 1.27.1, and build/all/build-fdroid.sh installs it for the
+      # F-Droid build. Not `stable`, which moves with every Go release, and not
+      # go-version-file, which would install the minimum sdk/build/go.mod
+      # declares instead. go 1.27 can run the binds since sdk f36da2ab:
+      # build_apple no longer exports GODEBUG=gotypesalias=0, a setting go
+      # 1.27 removed and gomobile exits on at startup.
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: sdk/build/go.mod
+          go-version: "1.27.1"
           cache-dependency-path: sdk/build/go.sum
 
       # init_tools, not `init`: build.sh uses `init` because it is a local dev
       # script, but `init` additionally runs `go get golang.org/x/mobile/bind`
       # (dirtying go.mod -- x/mobile is already pinned there at the same
-      # GOMOBILE_VERSION) and ends with `go clean -cache && go clean -modcache`,
-      # throwing away everything it just downloaded along with the setup-go
-      # cache. The Makefile says as much: init_tools exists "so acceptance
-      # builds do not install tools or clean shared Go caches".
+      # GOMOBILE_VERSION), and until sdk 40432c72 it ended with `go clean
+      # -cache && go clean -modcache`, throwing away everything it had just
+      # downloaded along with the setup-go cache. The Makefile says as much:
+      # init_tools exists "so acceptance builds do not install tools or clean
+      # shared Go caches".
       #
       # build_apple then binds URnetworkSdk.xcframework and
       # URnetworkExtensionSdk.xcframework for ios/arm64 + iossimulator/arm64 +

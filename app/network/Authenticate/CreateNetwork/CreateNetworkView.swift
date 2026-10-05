@@ -352,7 +352,7 @@ struct CreateNetworkView: View {
             break
         case .failure(let error):
             print("CreateNetworkView: handleResult: \(error.localizedDescription)")
-            viewModel.setCreateNetworkErrorMessage("There was an error creating your network. Please try again.")
+            viewModel.setCreateNetworkErrorMessage(createNetworkFailureMessage(error))
             break
             
         }

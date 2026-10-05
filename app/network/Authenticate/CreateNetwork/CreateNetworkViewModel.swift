@@ -22,6 +22,19 @@ enum AuthType {
     case solana
 }
 
+/// The message shown when creating the network fails: the server's reason
+/// when it refused the create with one, otherwise the generic error. A taken
+/// name submitted while the availability check was failing is caught here.
+func createNetworkFailureMessage(_ error: Error) -> String {
+    if case NetworkCreateError.refused(let message) = error {
+        let reason = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !reason.isEmpty {
+            return reason
+        }
+    }
+    return "There was an error creating your network. Please try again."
+}
+
 extension CreateNetworkView {
     
     @MainActor
@@ -29,22 +42,80 @@ extension CreateNetworkView {
         
         private let urApiService: UrApiServiceProtocol
         private var networkNameValidationVc: SdkNetworkNameValidationViewController?
-        private static let networkNameTooShort: LocalizedStringKey = "Network names must be 6 characters or more"
-        private static let networkNameUnavailable: LocalizedStringKey = "This network name is already taken"
-        private static let networkNameCheckError: LocalizedStringKey = "There was an error checking the network name"
-        private static let networkNameAvailable: LocalizedStringKey = "Nice! This network name is available"
+        private var networkNameCheck: NetworkNameCheck?
+        static let networkNameTooShort: LocalizedStringKey = "Network names must be 6 characters or more"
+        static let networkNameUnavailable: LocalizedStringKey = "This network name is already taken"
+        static let networkNameCheckFailed: LocalizedStringKey = "Couldn't check availability. You can still continue."
+        static let networkNameAvailable: LocalizedStringKey = "Nice! This network name is available"
         private static let minPasswordLength = 12
         private let domain = "CreateNetworkView.ViewModel"
         
         private var authType: AuthType
         
-        init(api: SdkApi, urApiService: UrApiServiceProtocol, authType: AuthType) {
+        // `checkNetworkName` and `schedule` replace the online check and the
+        // main queue timers in tests
+        init(
+            api: SdkApi,
+            urApiService: UrApiServiceProtocol,
+            authType: AuthType,
+            checkNetworkName: NetworkNameCheck.Check? = nil,
+            schedule: @escaping NetworkNameCheck.Schedule = ViewModel.scheduleOnMain
+        ) {
             self.urApiService = urApiService
             self.authType = authType
             
-            networkNameValidationVc = SdkNetworkNameValidationViewController(api)
+            let check: NetworkNameCheck.Check
+            if let checkNetworkName {
+                check = checkNetworkName
+            } else {
+                let networkNameValidationVc = SdkNetworkNameValidationViewController(api)
+                self.networkNameValidationVc = networkNameValidationVc
+                check = { networkName, onResult in
+                    ViewModel.checkOnline(networkNameValidationVc, networkName: networkName, onResult: onResult)
+                }
+            }
+            
+            networkNameCheck = NetworkNameCheck(
+                check: check,
+                schedule: schedule,
+                onStateChange: { [weak self] state in
+                    self?.applyNetworkNameCheck(state)
+                }
+            )
             
             setNetworkNameSupportingText(ViewModel.networkNameTooShort)
+        }
+        
+        /// Runs `action` on the main queue after `delay`; the returned
+        /// function cancels it.
+        nonisolated static func scheduleOnMain(_ delay: TimeInterval, _ action: @escaping () -> Void) -> () -> Void {
+            let workItem = DispatchWorkItem(block: action)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+            return { workItem.cancel() }
+        }
+        
+        /// One online availability check. An error or a missing result answers
+        /// nil, which the name check treats as failed, not as a taken name.
+        nonisolated private static func checkOnline(
+            _ networkNameValidationVc: SdkNetworkNameValidationViewController?,
+            networkName: String,
+            onResult: @escaping (Bool?) -> Void
+        ) {
+            guard let networkNameValidationVc else {
+                onResult(nil)
+                return
+            }
+            let callback = NetworkCheckCallback { result, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        print("error checking network name: \(error.localizedDescription)")
+                        onResult(nil)
+                        return
+                    }
+                    onResult(result?.available)
+                }
+            }
+            networkNameValidationVc.networkCheck(networkName, callback: callback)
         }
         
         @Published var networkName: String = "" {
@@ -57,6 +128,8 @@ extension CreateNetworkView {
         }
         
         @Published private(set) var networkNameValidationState: ValidationState = .notChecked
+        
+        @Published private(set) var networkNameCheckState: NetworkNameCheckState = .empty
         
         @Published private(set) var referralCodeInputSupportingText: LocalizedStringKey = ""
         
@@ -133,12 +206,10 @@ extension CreateNetworkView {
             self.referralCodeInputSupportingText = msg
         }
         
-        // for debouncing calls to check network name availability
-        private var networkCheckWorkItem: DispatchWorkItem?
-        
         private func validateForm() {
             // todo - need to update validation to handle jwtAuth too (no password)
-            formIsValid = networkNameValidationState == .valid &&
+            // a failed availability check allows create: the server checks the name again
+            formIsValid = networkNameCheckState.allowsCreate &&
                             (
                                 // if auth type is password, check password length
                                 (authType == .password && password.count >= ViewModel.minPasswordLength)
@@ -186,74 +257,33 @@ extension CreateNetworkView {
             
         }
         
+        // debounced, retried and timed out by NetworkNameCheck
         private func checkNetworkName() {
+            networkNameCheck?.validate(networkName)
+        }
+        
+        private func applyNetworkNameCheck(_ state: NetworkNameCheckState) {
+            networkNameCheckState = state
             
-            networkCheckWorkItem?.cancel()
-            
-            if networkName.count < 6 {
-
-                if networkNameSupportingText != ViewModel.networkNameTooShort {
-                    setNetworkNameSupportingText(ViewModel.networkNameTooShort)
-                }
-
+            switch state {
+            case .empty, .tooShort:
+                setNetworkNameSupportingText(ViewModel.networkNameTooShort)
                 networkNameValidationState = .notChecked
-                validateForm()
-                return
+            case .checking:
+                networkNameValidationState = .validating
+            case .available:
+                setNetworkNameSupportingText(ViewModel.networkNameAvailable)
+                networkNameValidationState = .valid
+            case .unavailable:
+                setNetworkNameSupportingText(ViewModel.networkNameUnavailable)
+                networkNameValidationState = .invalid
+            case .failed:
+                // not a verdict on the name, so not styled as an error
+                setNetworkNameSupportingText(ViewModel.networkNameCheckFailed)
+                networkNameValidationState = .notChecked
             }
             
-            self.networkNameValidationState = .validating
-            
-            if networkNameValidationVc != nil {
-                let checkedNetworkName = networkName
-                
-                let callback = NetworkCheckCallback { [weak self] result, error in
-                    
-                    DispatchQueue.main.async {
-                        
-                        guard let self = self else { return }
-                        guard self.networkName == checkedNetworkName else { return }
-                        
-                        if let error = error {
-                            print("error checking network name: \(error.localizedDescription)")
-                            
-                            self.setNetworkNameSupportingText(ViewModel.networkNameCheckError)
-                            self.networkNameValidationState = .invalid
-                            self.validateForm()
-                            
-                            
-                            return
-                        }
-                        
-                        if let result = result {
-                            print("result checking network name \(checkedNetworkName): \(result.available)")
-                            self.networkNameValidationState = result.available ? .valid : .invalid
-                            
-                            
-                            if (result.available) {
-                                self.setNetworkNameSupportingText(ViewModel.networkNameAvailable)
-                            } else {
-                                self.setNetworkNameSupportingText(ViewModel.networkNameUnavailable)
-                            }
-                        }
-                        
-                        self.validateForm()
-                    }
-            
-                }
-                
-                networkCheckWorkItem = DispatchWorkItem { [weak self] in
-                    guard let self = self else { return }
-                    
-                    self.networkNameValidationVc?.networkCheck(checkedNetworkName, callback: callback)
-                }
-                
-                if let workItem = networkCheckWorkItem {
-                    // delay .5 seconds
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
-                }
-                
-            }
-            
+            validateForm()
         }
         
         func createNetwork(

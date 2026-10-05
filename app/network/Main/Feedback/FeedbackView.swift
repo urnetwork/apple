@@ -146,11 +146,7 @@ struct FeedbackView: View {
             viewModel.setStarCount(0)
             
             if viewModel.attachLogs, let feedbackIdStr = result.feedbackId?.idStr {
-                do {
-                    try deviceManager.uploadLogs(feedbackId: feedbackIdStr)
-                } catch(let err) {
-                    print("error uploading logs: \(err)")
-                }
+                deviceManager.uploadLogs(feedbackId: feedbackIdStr)
             }
 
         case .failure:

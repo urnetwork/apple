@@ -855,8 +855,16 @@ class DeviceManager: ObservableObject {
         device?.setVpnInterfaceWhileOffline(value)
     }
     
-    func uploadLogs(feedbackId: String) throws {
-        try device?.uploadLogs(feedbackId, callback: nil)
+    /// "Send feedback with logs": the extension uploads while the device rpc
+    /// reaches it, else this process does (FeedbackLogUpload). Either one
+    /// reads the log files from disk before it returns, so this runs off the
+    /// main actor.
+    func uploadLogs(feedbackId: String) {
+        let steps = FeedbackLogUpload.Steps.live(device: device, api: api)
+        Task.detached(priority: .utility) {
+            let outcome = await FeedbackLogUpload.upload(feedbackId: feedbackId, steps: steps)
+            print("[FeedbackLogUpload]\(outcome)")
+        }
     }
     
     

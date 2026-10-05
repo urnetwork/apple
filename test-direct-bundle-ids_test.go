@@ -385,20 +385,20 @@ func TestSharedInfoPlistUsesBuildSettings(t *testing.T) {
 // the archive's Applications).
 func appBundleName(t *testing.T, target, configuration string, archive bool) string {
 	t.Helper()
-	settings := targetBuildSettings(t, target, configuration)
-	settings["TARGET_NAME"] = target
-	settings["DEPLOYMENT_LOCATION"] = "NO"
+	buildSettingValues := targetBuildSettings(t, target, configuration)
+	buildSettingValues["TARGET_NAME"] = target
+	buildSettingValues["DEPLOYMENT_LOCATION"] = "NO"
 	if archive {
-		settings["DEPLOYMENT_LOCATION"] = "YES"
+		buildSettingValues["DEPLOYMENT_LOCATION"] = "YES"
 	}
-	name, ok := settings["WRAPPER_NAME"]
+	name, ok := buildSettingValues["WRAPPER_NAME"]
 	if !ok {
 		name = "$(PRODUCT_NAME).app"
 	}
-	reference := regexp.MustCompile(`\$\((\w+)\)`)
+	macroRe := regexp.MustCompile(`\$\((\w+)\)`)
 	for i := 0; i < 8 && strings.Contains(name, "$("); i++ {
-		name = reference.ReplaceAllStringFunc(name, func(macro string) string {
-			value, ok := settings[macro[2:len(macro)-1]]
+		name = macroRe.ReplaceAllStringFunc(name, func(macro string) string {
+			value, ok := buildSettingValues[macro[2:len(macro)-1]]
 			if !ok {
 				t.Fatalf("%s %s does not set %s", target, configuration, macro)
 			}

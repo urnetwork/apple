@@ -222,6 +222,36 @@ enum TunnelIntentStore {
         return now.timeIntervalSince1970 - markedAt <= appStopWindow
     }
 
+    // MARK: Start source
+
+    /// The key under which a URnetwork process that starts the tunnel names
+    /// itself in the options it starts it with, so the packet tunnel
+    /// extension's logs say who started it (`startSource(options:)`).
+    static let startSourceOptionKey = "network.ur.start-source"
+
+    /// The options a URnetwork process starts the tunnel with: `source` is
+    /// `sourceApp`, `sourceControl` or `sourceWidget`.
+    static func startOptions(source: String) -> [String: NSObject] {
+        [startSourceOptionKey: source as NSString]
+    }
+
+    /// Who started the tunnel, from the options the packet tunnel extension
+    /// was started with: the URnetwork process named in them, or
+    /// `sourceSystem` when there are none, which NetworkExtension gives for a
+    /// start the app did not make (VPN On Demand, or the switch in Settings),
+    /// or "unknown". Only these names come back, never other text the options
+    /// hold.
+    static func startSource(options: [String: NSObject]?) -> String {
+        guard let options else {
+            return sourceSystem
+        }
+        guard let source = options[startSourceOptionKey] as? String,
+              [sourceApp, sourceControl, sourceWidget].contains(source) else {
+            return "unknown"
+        }
+        return source
+    }
+
     // MARK: Provider configuration (direct-download system extension)
 
     /// The key under which the app places the intent in

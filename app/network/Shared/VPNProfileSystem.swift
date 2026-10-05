@@ -94,7 +94,11 @@ enum VPNProfileSystem {
         guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
             throw VPNProfileSystemAccessError()
         }
-        try manager.connection.startVPNTunnel()
+        // the app names itself, so the extension's log tells its starts from
+        // the system's (TunnelIntentStore.startSource)
+        try manager.connection.startVPNTunnel(
+            options: TunnelIntentStore.startOptions(source: TunnelIntentStore.sourceApp)
+        )
     }
 
     @discardableResult

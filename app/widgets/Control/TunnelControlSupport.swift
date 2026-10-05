@@ -26,10 +26,6 @@ enum TunnelControlSupport {
 
     static let providerBundleIdentifier = "network.ur.extension"
 
-    /// Passed to the packet tunnel extension's startTunnel(options:) so its
-    /// logs say who started it.
-    static let startSourceOptionKey = "network.ur.start-source"
-
     /// How long perform() waits for the status to leave its transitional
     /// state. Well under the 30 s the system allows an intent.
     static let settleTimeout: TimeInterval = 8
@@ -118,8 +114,10 @@ enum TunnelControlSupport {
                 }
                 try await manager.saveToPreferences()
                 try await manager.loadFromPreferences()
+                // names the surface, so the extension's logs say who started
+                // it (TunnelIntentStore.startSource)
                 try manager.connection.startVPNTunnel(
-                    options: [startSourceOptionKey: source as NSString]
+                    options: TunnelIntentStore.startOptions(source: source)
                 )
             } else {
                 // on-demand must be off before the stop, or the system brings

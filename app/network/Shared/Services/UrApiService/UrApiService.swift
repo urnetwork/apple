@@ -542,8 +542,8 @@ extension UrApiService {
                     return
                 }
 
-                if let resultError = result.error {
-                    continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                if let refusal = UrApiService.createNetworkRefusal(result) {
+                    continuation.resume(throwing: refusal)
                     return
                 }
 
@@ -572,6 +572,15 @@ extension UrApiService {
             api.networkCreate(args, callback: callback)
             
         }
+    }
+    
+    /// A create the server refused, with its reason for the form (a taken
+    /// network name, an account that already exists).
+    static func createNetworkRefusal(_ result: SdkNetworkCreateResult) -> NetworkCreateError? {
+        guard let resultError = result.error else {
+            return nil
+        }
+        return .refused(message: resultError.message)
     }
     
 }
@@ -1600,6 +1609,18 @@ enum LoginNetworkResult {
     // the notice says whether the server sent the code
     case successWithVerificationRequired(VerifySendNotice)
     case failure(Error)
+}
+
+enum NetworkCreateError: LocalizedError, Equatable {
+    /// the server answered but did not create the network
+    case refused(message: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .refused(let message):
+            return message
+        }
+    }
 }
 
 enum NetworkDeleteError: Error {

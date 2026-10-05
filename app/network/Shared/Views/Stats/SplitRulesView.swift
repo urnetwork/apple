@@ -79,12 +79,11 @@ struct SplitRulesView: View {
                 )
 
             /**
-             * Info: how rules apply, and why they match sites rather than apps
+             * Info: how rules apply, and what they match
              */
             VStack(alignment: .leading, spacing: 8) {
                 Text("Rules apply to the whole co-associated network cluster, so related traffic is caught together.")
-                // per-app VPN (NEAppRule) is MDM-only on iOS and macOS
-                Text("Split rules match sites and addresses, not apps: Apple allows per-app VPN only on devices managed by an organization (MDM). To keep an app off the VPN, route the sites it uses locally, or start from a preset. Local network addresses already bypass the VPN.")
+                appsLimitText
             }
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textMutedColor)
@@ -146,6 +145,15 @@ struct SplitRulesView: View {
                 }
 
             }
+
+            /**
+             * Excluded apps (macOS 15+: the split tunnel system extension)
+             */
+            #if os(macOS)
+            if #available(macOS 15.0, *) {
+                SplitTunnelAppsSection()
+            }
+            #endif
 
             /**
              * Live block actions
@@ -465,6 +473,25 @@ struct SplitRulesView: View {
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textMutedColor)
             .textCase(nil)
+    }
+
+    /**
+     * Whether the rules can match apps. Per-app VPN (NEAppRule) is MDM-only
+     * on iOS and macOS, but macOS 15 and later run the split tunnel system
+     * extension, a transparent proxy that keeps the apps under Apps off the
+     * VPN; before that, and on iOS, rules match sites and addresses only.
+     */
+    @ViewBuilder
+    private var appsLimitText: some View {
+        #if os(macOS)
+        if #available(macOS 15.0, *) {
+            Text("Split rules match sites and addresses. To keep an app off the VPN on this Mac, add it under Apps. Local network addresses already bypass the VPN.")
+        } else {
+            Text("Split rules match sites and addresses, not apps: Apple allows per-app VPN only on devices managed by an organization (MDM). To keep an app off the VPN, route the sites it uses locally, or start from a preset. Local network addresses already bypass the VPN.")
+        }
+        #else
+        Text("Split rules match sites and addresses, not apps: Apple allows per-app VPN only on devices managed by an organization (MDM). To keep an app off the VPN, route the sites it uses locally, or start from a preset. Local network addresses already bypass the VPN.")
+        #endif
     }
 }
 

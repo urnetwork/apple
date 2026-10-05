@@ -29,6 +29,11 @@
   through a folder the user picks once in an open panel); bookmarks.app-scope
   below lets that choice persist as a security-scoped bookmark so the
   panel is asked once, not on every update (DirectUpdater.swift).
+  app-proxy-provider-systemextension is the per-app split tunnel: the app
+  saves the NETransparentProxyManager configuration of the split tunnel
+  system extension (splittunnel/splittunnel-direct.entitlements, which also
+  lists the portal steps for that extension's own App ID and profile).
+  "URnetwork Download" already grants it.
 -->
 <plist version="1.0">
 <dict>
@@ -42,6 +47,7 @@
 	<array>
 		<string>packet-tunnel-provider-systemextension</string>
 		<string>dns-settings</string>
+		<string>app-proxy-provider-systemextension</string>
 	</array>
 	<key>com.apple.developer.system-extension.install</key>
 	<true/>

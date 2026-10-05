@@ -17,6 +17,12 @@
   The running binary still resolves the granted identifier from its own
   signature at runtime (DiagnosticsLogContract.appGroupIdentifier), so a build
   signed by another team resolves its own container.
+  app-proxy-provider and system-extension.install are the macOS per-app split
+  tunnel: the app activates the split tunnel system extension
+  (OSSystemExtensionRequest) and saves its NETransparentProxyManager
+  configuration. The network.ur App ID already has the Network Extensions and
+  System Extension capabilities, so its profiles grant both (see
+  splittunnel/splittunnel.entitlements for the extension's own App ID).
 -->
 <plist version="1.0">
 <dict>
@@ -39,7 +45,10 @@
 		<string>dns-settings</string>
 		<string>packet-tunnel-provider</string>
 		<string>dns-proxy</string>
+		<string>app-proxy-provider</string>
 	</array>
+	<key>com.apple.developer.system-extension.install</key>
+	<true/>
 	<key>com.apple.developer.networking.vpn.api</key>
 	<array>
 		<string>allow-vpn</string>

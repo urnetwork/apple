@@ -2,21 +2,24 @@
 //  SystemExtensionActivator.swift
 //  URnetwork
 //
-//  Direct-download macOS build only (`DIRECT_DOWNLOAD`): asks macOS to
-//  install the packet tunnel SYSTEM extension embedded in this app bundle
-//  (Contents/Library/SystemExtensions/URnetworkVPNSystem.systemextension,
-//  bundle id TunnelProviderIdentity.bundleIdentifier -- the same provider id
-//  the tunnel manager uses).
+//  Asks macOS to install a SYSTEM extension embedded in this app bundle
+//  (Contents/Library/SystemExtensions). Two use it: the direct-download
+//  build (`DIRECT_DOWNLOAD`) for its packet tunnel
+//  (URnetworkVPNSystem.systemextension, bundle id
+//  TunnelProviderIdentity.bundleIdentifier -- the same provider id the
+//  tunnel manager uses), and both macOS builds for the split tunnel
+//  (TunnelProviderIdentity.splitTunnelBundleIdentifier, activated by
+//  SplitTunnelProxyController once an app is excluded).
 //
-//  Driven at launch and again before every connect: activation is
-//  idempotent, so the second call is free when the extension is already
-//  installed, and it is what re-prompts the user who skipped the one-time
-//  System Settings approval the first time. The decisions live in
+//  The tunnel's is driven at launch and again before every connect:
+//  activation is idempotent, so the second call is free when the extension
+//  is already installed, and it is what re-prompts the user who skipped the
+//  one-time System Settings approval the first time. The decisions live in
 //  SystemExtensionActivation.swift; this file only talks to the framework
-//  and draws the prompt.
+//  and draws the tunnel's prompt.
 //
 
-#if os(macOS) && DIRECT_DOWNLOAD
+#if os(macOS)
 
 import Foundation
 import SwiftUI
@@ -25,9 +28,15 @@ import AppKit
 
 final class SystemExtensionActivator: NSObject, ObservableObject, OSSystemExtensionRequestDelegate {
 
-    /// PRODUCT_BUNDLE_IDENTIFIER of the URnetworkVPNSystem target, and what
-    /// VPNManager installs as `providerBundleIdentifier`.
-    static let extensionBundleIdentifier = TunnelProviderIdentity.bundleIdentifier
+    /// PRODUCT_BUNDLE_IDENTIFIER of the extension's target. The default is
+    /// the URnetworkVPNSystem target's, what VPNManager installs as
+    /// `providerBundleIdentifier`.
+    let extensionBundleIdentifier: String
+
+    init(extensionBundleIdentifier: String = TunnelProviderIdentity.bundleIdentifier) {
+        self.extensionBundleIdentifier = extensionBundleIdentifier
+        super.init()
+    }
 
     /// System Settings > General > Login Items & Extensions > Network Extensions.
     static let networkExtensionsSettingsURL = URL(string:
@@ -54,7 +63,7 @@ final class SystemExtensionActivator: NSObject, ObservableObject, OSSystemExtens
         guard location.canActivate else { return }
 
         let request = OSSystemExtensionRequest.activationRequest(
-            forExtensionWithIdentifier: Self.extensionBundleIdentifier,
+            forExtensionWithIdentifier: extensionBundleIdentifier,
             queue: .main
         )
         request.delegate = self
@@ -182,7 +191,8 @@ final class SystemExtensionActivator: NSObject, ObservableObject, OSSystemExtens
     }
 }
 
-/// The one-time approval / move-to-Applications prompt.
+/// The packet tunnel's one-time approval / move-to-Applications prompt
+/// (direct-download build).
 struct SystemExtensionApprovalView: View {
 
     @EnvironmentObject var activator: SystemExtensionActivator

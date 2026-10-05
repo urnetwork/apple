@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The split tunnel SYSTEM extension of the direct-download build
+  (URnetworkSplitTunnelDirect target, com.bringyour.urnetwork.splittunnel,
+  Developer ID, manual signing). Outside the Mac App Store a network
+  extension takes the "-systemextension" entitlement variant. Like the
+  packet tunnel system extension it runs as root and carries no keychain
+  group; the app group is the direct build's own, there for the
+  NEMachServiceName prefix (Info-direct.plist).
+
+  Every key here must be granted by the Developer ID profile the target is
+  signed with, "URnetwork Split Tunnel Download", which does not exist until
+  the owner creates it. Once, before the direct-download build is archived:
+  1. Certificates, Identifiers & Profiles > Identifiers > + > App IDs > App:
+     com.bringyour.urnetwork.splittunnel, with the Network Extensions
+     capability (a Developer ID profile of such an App ID grants
+     app-proxy-provider-systemextension).
+  2. Profiles > + > Distribution > Developer ID > that App ID > the
+     "Developer ID Application" certificate (all/make-apple-dist-identity.sh
+     developer-id) > name it exactly "URnetwork Split Tunnel Download" >
+     download the .provisionprofile into ~/.provisionprofiles/ on the build
+     host.
+  3. build repo, all/run.sh: add "URnetwork Split Tunnel Download" to
+     MACOS_DIRECT_PROFILE_NAMES so the startup gate checks it.
+  ExportOptions-DeveloperID.plist already maps the bundle id to that name.
+  The app needs nothing new: "URnetwork Download" already grants
+  app-proxy-provider-systemextension and system-extension.install.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>6BGU69Q742.group.com.bringyour.urnetwork</string>
+	</array>
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>app-proxy-provider-systemextension</string>
+	</array>
+</dict>
+</plist>

@@ -117,7 +117,16 @@ class BlockActionsStore: ObservableObject {
      * newest first
      */
     @Published private(set) var blockActions: [BlockActionItem] = []
+    /// the site rules (overrides with hosts)
     @Published private(set) var splitRules: [SplitRuleItem] = []
+    /// the app rules (overrides with app ids): the macOS split tunnel's
+    /// excluded apps, stored with the site rules; see `SplitTunnelAppRules`
+    @Published private(set) var appRules: [SplitTunnelAppRule] = []
+    /// The apps the rules take out of the tunnel, published only from a list
+    /// this process can vouch for as the whole list -- the same reads the
+    /// mirror is written from (see `updateOverrides`). nil until there is
+    /// one; SplitTunnelProxyController never acts on less.
+    @Published private(set) var authoritativeExcludedApps: [String]? = nil
     /// A rule may be created from here only once this process has a list it
     /// can vouch for -- see `createRule`.
     @Published private(set) var canCreateRule: Bool = false
@@ -267,6 +276,8 @@ class BlockActionsStore: ObservableObject {
 
         blockActions = []
         splitRules = []
+        appRules = []
+        authoritativeExcludedApps = nil
         sdkOverrides = []
         canCreateRule = false
         allowedCount = 0
@@ -508,12 +519,18 @@ class BlockActionsStore: ObservableObject {
         }
         var overrides: [SdkBlockActionOverride] = []
         var items: [SplitRuleItem] = []
+        var appItems: [SplitTunnelAppRule] = []
         if let list = device.getBlockActionOverrides() {
             for i in 0..<list.len() {
                 guard let override = list.get(i), let overrideId = override.overrideId else {
                     continue
                 }
                 overrides.append(override)
+                if let appRule = Self.appRule(override) {
+                    // an app rule has no hosts; it is not a site rule
+                    appItems.append(appRule)
+                    continue
+                }
                 let ruleHosts = stringListToArray(override.hosts)
                 let ruleHostNames = ruleHosts.filter { !isIpAddressValue($0) }
                 let ruleIps = ruleHosts.filter { isIpAddressValue($0) }
@@ -537,8 +554,15 @@ class BlockActionsStore: ObservableObject {
         if items != splitRules {
             splitRules = items
         }
+        if appItems != appRules {
+            appRules = appItems
+        }
         if afterEdit || device.getConnected() {
             persistOverrides()
+            let excludedApps = SplitTunnelAppRules.excludedApps(appItems)
+            if excludedApps != authoritativeExcludedApps {
+                authoritativeExcludedApps = excludedApps
+            }
         }
         // Latched here rather than in `setup` because the change listeners are
         // registered before the first read, so a connect landing in between
@@ -650,6 +674,48 @@ class BlockActionsStore: ObservableObject {
         }
         device.removeBlockActionOverride(override.overrideId)
         updateOverrides(afterEdit: true)
+    }
+
+    /**
+     * Takes an app out of the tunnel (the macOS split tunnel): an app rule
+     * routing the app's signing identifier locally, stored with the site
+     * rules. Gated like `createRule`, for the same reason. Removing it is
+     * `removeRule`.
+     */
+    func addAppRule(identifier: String) {
+        guard let device = self.device,
+              canCreateRule,
+              SplitTunnelProxyConfiguration.isValidIdentifier(identifier),
+              !SplitTunnelAppRules.isExcluded(identifier, in: appRules) else {
+            return
+        }
+        let override = SdkBlockActionOverride()
+        override.overrideId = SdkNewId()
+        override.appIds = arrayToStringList([identifier])
+        override.routeOverride = SplitRuleMode.excluded.toSdkRouteOverride()
+        device.add(override)
+        updateOverrides(afterEdit: true)
+    }
+
+    /**
+     * the app rule an override is, when it names apps (android stores its
+     * app split rules the same way, with package names)
+     */
+    nonisolated static func appRule(_ override: SdkBlockActionOverride) -> SplitTunnelAppRule? {
+        guard let overrideId = override.overrideId, let list = override.appIds, 0 < list.len() else {
+            return nil
+        }
+        var appIds: [String] = []
+        appIds.reserveCapacity(list.len())
+        for i in 0..<list.len() {
+            appIds.append(list.get(i))
+        }
+        return SplitTunnelAppRule(
+            id: overrideId.idStr,
+            appIds: appIds,
+            local: override.routeOverride?.local ?? false,
+            pin: override.routeOverride?.pin ?? false
+        )
     }
 
     private func stringListToArray(_ list: SdkStringList?) -> [String] {

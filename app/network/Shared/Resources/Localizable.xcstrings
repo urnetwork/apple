@@ -15406,6 +15406,173 @@
         }
       }
     },
+    "Add an app" : {
+      "comment" : "Split rules screen on macOS, Apps section: the row (and the title of the sheet it opens) that adds an app from /Applications to the apps that bypass the VPN.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إضافة تطبيق"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat aplikaci"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App hinzufügen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προσθήκη εφαρμογής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add an app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir una app"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agregar una app"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agregar una app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter une application"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסף אפליקציה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऐप जोड़ें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tambahkan aplikasi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungi un’app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを追加"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 추가"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App toevoegen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj aplikację"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar um app"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar um app"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar uma aplicação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить приложение"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lägg till en app"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพิ่มแอป"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додати застосунок"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ứng dụng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加应用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增應用程式"
+          }
+        }
+      }
+    },
     "Add at least one emoji." : {
       "comment" : "Points leaderboard: emoji editor error when the field has no emoji.",
       "localizations" : {
@@ -19040,6 +19207,340 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "套用網絡 API"
+          }
+        }
+      }
+    },
+    "Apps" : {
+      "comment" : "transfer stats and split rules",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التطبيقات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikace"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εφαρμογές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applications"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפליקציות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऐप्स"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikasi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikacje"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicações"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicações"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appar"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แอป"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Застосунки"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式"
+          }
+        }
+      }
+    },
+    "Apps listed here bypass the VPN." : {
+      "comment" : "Description of the split-tunneling app list: the listed apps do not go through the tunnel.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التطبيقات المدرجة هنا تتجاوز شبكة VPN."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikace uvedené zde obcházejí VPN."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier aufgeführte Apps umgehen das VPN."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι εφαρμογές που αναφέρονται εδώ παρακάμπτουν το VPN."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps listed here bypass the VPN."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las aplicaciones que aparecen aquí omiten la VPN."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las aplicaciones que aparecen aquí omiten la VPN."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las aplicaciones que aparecen aquí omiten la VPN."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les applications listées ici contournent le VPN."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפליקציות המופיעות כאן עוקפות את ה-VPN."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यहां सूचीबद्ध ऐप्स VPN को बायपास करते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikasi yang tercantum di sini melewati VPN."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le app elencate qui aggirano la VPN."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここに表示されているアプリは VPN を経由しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여기에 나열된 앱은 VPN을 우회합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps in deze lijst omzeilen de VPN."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikacje z tej listy omijają VPN."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As aplicações listadas aqui ignoram a VPN."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os aplicativos listados aqui ignoram a VPN."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As aplicações listadas aqui ignoram a VPN."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения из этого списка не используют VPN."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appar i den här listan går utanför VPN:et."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แอปที่แสดงที่นี่จะไม่ผ่าน VPN"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Програми з цього списку не використовують VPN."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các ứng dụng trong danh sách này bỏ qua VPN."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此处列出的应用将绕过 VPN。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此處列出的應用程式將繞過 VPN。"
           }
         }
       }
@@ -72060,6 +72561,173 @@
         }
       }
     },
+    "No apps found" : {
+      "comment" : "App split rules: empty state when the search matches no installed app.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتم العثور على تطبيقات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nebyly nalezeny žádné aplikace"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Apps gefunden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν βρέθηκαν εφαρμογές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No apps found"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron aplicaciones"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron aplicaciones"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron aplicaciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune application trouvée"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא נמצאו אפליקציות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कोई ऐप नहीं मिला"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak ada aplikasi yang ditemukan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessuna app trovata"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリが見つかりません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 찾을 수 없습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen apps gevonden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono aplikacji"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma aplicação encontrada"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum app encontrado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma aplicação encontrada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения не найдены"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga appar hittades"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบแอป"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Застосунків не знайдено"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy ứng dụng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到应用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到應用程式"
+          }
+        }
+      }
+    },
     "No balance codes found" : {
       "comment" : "Used in Main/Account/TransferBalanceCodes/TransferBalanceCodesView.swift.",
       "localizations" : {
@@ -76297,6 +76965,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開源軟件"
+          }
+        }
+      }
+    },
+    "Open System Settings" : {
+      "comment" : "macOS: the button that opens System Settings at the network extensions the user must allow. Use the name macOS gives System Settings in the language.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فتح إعدادات النظام"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otevřít Nastavení systému"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemeinstellungen öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Άνοιγμα Ρυθμίσεων συστήματος"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes del Sistema"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Configuración del Sistema"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Configuración del Sistema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir Réglages Système"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פתח את הגדרות המערכת"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सिस्टम सेटिंग्ज़ खोलें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buka Pengaturan Sistem"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri Impostazioni di Sistema"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム設定を開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 설정 열기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Systeeminstellingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz Ustawienia systemowe"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes do Sistema"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes do Sistema"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Definições do Sistema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть Системные настройки"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna Systeminställningar"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิดการตั้งค่าระบบ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити Системні параметри"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Cài đặt hệ thống"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开系统设置"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開系統設定"
           }
         }
       }
@@ -95688,6 +96523,173 @@
         }
       }
     },
+    "Search apps" : {
+      "comment" : "App split rules: placeholder in the search field that filters the installed apps by name or package id.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "البحث في التطبيقات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hledat aplikace"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps suchen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αναζήτηση εφαρμογών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search apps"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar aplicaciones"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar aplicaciones"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar aplicaciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher des applications"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חפש אפליקציות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऐप्स खोजें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cari aplikasi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerca app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを検索"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 검색"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoek apps"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj aplikacji"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesquisar aplicações"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar apps"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesquisar aplicações"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск приложений"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sök appar"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ค้นหาแอป"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук застосунків"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm ứng dụng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索应用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋應用程式"
+          }
+        }
+      }
+    },
     "Search providers" : {
       "comment" : "Search providers input label",
       "localizations" : {
@@ -105091,6 +106093,173 @@
         }
       }
     },
+    "Split rules match sites and addresses. To keep an app off the VPN on this Mac, add it under Apps. Local network addresses already bypass the VPN." : {
+      "comment" : "Split rules screen on macOS 15 and later: the rules match sites and addresses, and an app is kept off the VPN by adding it in the Apps section below (the section is titled with the \"Apps\" string, so use the same word as that title). Notes that local network addresses already bypass the VPN. Keep Mac and VPN unchanged.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تطابق قواعد التقسيم المواقع والعناوين. لإبقاء تطبيق خارج VPN على جهاز Mac هذا، أضفه ضمن التطبيقات. عناوين الشبكة المحلية تتجاوز VPN بالفعل."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pravidla rozdělení se vztahují na weby a adresy. Chcete-li na tomto Macu ponechat aplikaci mimo VPN, přidejte ji v části Aplikace. Adresy místní sítě už VPN obcházejí."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split-Regeln gelten für Websites und Adressen. Um eine App auf diesem Mac vom VPN auszunehmen, füge sie unter Apps hinzu. Adressen im lokalen Netzwerk umgehen das VPN bereits."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι κανόνες διαχωρισμού ισχύουν για ιστότοπους και διευθύνσεις. Για να κρατήσετε μια εφαρμογή εκτός VPN σε αυτό το Mac, προσθέστε την στις Εφαρμογές. Οι διευθύνσεις του τοπικού δικτύου παρακάμπτουν ήδη το VPN."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split rules match sites and addresses. To keep an app off the VPN on this Mac, add it under Apps. Local network addresses already bypass the VPN."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las reglas de división se aplican a sitios y direcciones. Para dejar una app fuera de la VPN en este Mac, añádela en Apps. Las direcciones de la red local ya omiten la VPN."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las reglas de división se aplican a sitios y direcciones. Para dejar una app fuera de la VPN en esta Mac, agrégala en Apps. Las direcciones de la red local ya omiten la VPN."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las reglas de división se aplican a sitios y direcciones. Para dejar una app fuera de la VPN en esta Mac, agrégala en Apps. Las direcciones de la red local ya omiten la VPN."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les règles de séparation s’appliquent aux sites et aux adresses. Pour garder une app hors du VPN sur ce Mac, ajoutez-la dans Applications. Les adresses du réseau local contournent déjà le VPN."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כללי פיצול חלים על אתרים וכתובות. כדי להשאיר אפליקציה מחוץ ל-VPN ב-Mac הזה, הוסף אותה תחת אפליקציות. כתובות ברשת המקומית כבר עוקפות את ה-VPN."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "स्प्लिट नियम साइटों और पतों पर लागू होते हैं। इस Mac पर किसी ऐप को VPN से बाहर रखने के लिए, उसे ऐप्स में जोड़ें। लोकल नेटवर्क के पते पहले से VPN को बायपास करते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aturan pemisahan berlaku untuk situs dan alamat. Agar aplikasi tidak melalui VPN di Mac ini, tambahkan di Aplikasi. Alamat jaringan lokal sudah tidak melalui VPN."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le regole di suddivisione si applicano a siti e indirizzi. Per tenere un’app fuori dalla VPN su questo Mac, aggiungila in App. Gli indirizzi della rete locale aggirano già la VPN."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分割ルールが対象にするのはサイトとアドレスです。このMacでアプリをVPNの対象外にするには、「アプリ」に追加してください。ローカルネットワークのアドレスは、すでにVPNを経由しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "분할 규칙은 사이트와 주소에 적용됩니다. 이 Mac에서 앱을 VPN에서 제외하려면 '앱'에 추가하세요. 로컬 네트워크 주소는 이미 VPN을 우회합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Splitsregels gelden voor sites en adressen. Om een app op deze Mac buiten de VPN te houden, voeg je hem toe onder Apps. Adressen in het lokale netwerk omzeilen de VPN al."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reguły podziału dotyczą witryn i adresów. Aby wyłączyć aplikację z VPN na tym Macu, dodaj ją w sekcji Aplikacje. Adresy sieci lokalnej już omijają VPN."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As regras de divisão se aplicam a sites e endereços. Para manter um app fora da VPN neste Mac, adicione-o em Aplicações. Os endereços da rede local já ignoram a VPN."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As regras de divisão se aplicam a sites e endereços. Para manter um app fora da VPN neste Mac, adicione-o em Apps. Os endereços da rede local já ignoram a VPN."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As regras de divisão aplicam-se a sites e endereços. Para manter uma aplicação fora da VPN neste Mac, adicione-a em Aplicações. Os endereços da rede local já ignoram a VPN."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Правила разделения применяются к сайтам и адресам. Чтобы приложение на этом Mac работало вне VPN, добавьте его в разделе «Приложения». Адреса локальной сети уже идут в обход VPN."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delningsregler gäller webbplatser och adresser. Om du vill hålla en app utanför VPN:et på den här Macen lägger du till den under Appar. Adresser i det lokala nätverket kringgår redan VPN:et."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กฎแยกเส้นทางใช้กับเว็บไซต์และที่อยู่ หากต้องการให้แอปบน Mac เครื่องนี้ไม่ผ่าน VPN ให้เพิ่มแอปนั้นในส่วนแอป ที่อยู่ในเครือข่ายภายในข้าม VPN อยู่แล้ว"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Правила розділення застосовуються до сайтів і адрес. Щоб застосунок на цьому Mac працював поза VPN, додайте його в розділі «Застосунки». Адреси локальної мережі вже оминають VPN."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quy tắc tách luồng áp dụng cho trang web và địa chỉ. Để giữ một ứng dụng ngoài VPN trên máy Mac này, hãy thêm ứng dụng đó trong mục Ứng dụng. Địa chỉ mạng cục bộ vốn đã bỏ qua VPN."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分流规则针对的是网站和地址。要让此 Mac 上的某个应用不走 VPN，请将它添加到“应用”中。本地网络地址本来就不经过 VPN。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分流規則針對的是網站和地址。如要讓這部 Mac 上的某個應用程式不經 VPN，請將它加入「應用程式」。本地網絡地址本來就不經過 VPN。"
+          }
+        }
+      }
+    },
     "Start 2 week free trial" : {
       "comment" : "Used in Shared/Views/Introduction/IntroductionView.swift.",
       "extractionState" : "stale",
@@ -113658,6 +114827,173 @@
         }
       }
     },
+    "These apps can't bypass the VPN right now. Retry, and allow the proxy configuration if macOS asks." : {
+      "comment" : "Split rules screen on macOS, Apps section: the split tunnel extension or its proxy configuration could not be installed or started, so the listed apps still use the VPN. The Retry button follows; macOS asks the user to allow URnetwork's proxy configuration the first time. Keep VPN and macOS unchanged.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن لهذه التطبيقات تجاوز VPN الآن. أعد المحاولة، واسمح بإعداد الوكيل إذا طلب macOS ذلك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tyto aplikace teď nemohou obejít VPN. Zkuste to znovu, a pokud se macOS zeptá, povolte konfiguraci proxy."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Apps können das VPN gerade nicht umgehen. Versuche es erneut und erlaube die Proxy-Konfiguration, wenn macOS danach fragt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτές οι εφαρμογές δεν μπορούν να παρακάμψουν το VPN αυτή τη στιγμή. Προσπαθήστε ξανά και επιτρέψτε τη διαμόρφωση διακομιστή μεσολάβησης, αν το ζητήσει το macOS."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These apps can't bypass the VPN right now. Retry, and allow the proxy configuration if macOS asks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas apps no pueden omitir la VPN ahora mismo. Reintenta y permite la configuración de proxy si macOS lo pide."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas apps no pueden omitir la VPN en este momento. Reintenta y permite la configuración de proxy si macOS lo solicita."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas apps no pueden omitir la VPN en este momento. Reintenta y permite la configuración de proxy si macOS lo solicita."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ces applications ne peuvent pas contourner le VPN pour le moment. Réessayez et autorisez la configuration de proxy si macOS le demande."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "האפליקציות האלה לא יכולות לעקוף את ה-VPN כרגע. נסה שוב, ואשר את תצורת הפרוקסי אם macOS מבקש זאת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ये ऐप्स अभी VPN को बायपास नहीं कर सकते। पुनः प्रयास करें, और macOS पूछे तो प्रॉक्सी कॉन्फ़िगरेशन को अनुमति दें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikasi ini belum bisa melewati VPN saat ini. Coba lagi, dan izinkan konfigurasi proxy jika macOS memintanya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queste app al momento non possono aggirare la VPN. Riprova e consenti la configurazione proxy se macOS lo chiede."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在、これらのアプリはVPNを回避できません。再試行し、macOSから求められたらプロキシ構成を許可してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금은 이 앱들이 VPN을 우회할 수 없습니다. 다시 시도하고, macOS에서 요청하면 프록시 구성을 허용하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze apps kunnen de VPN nu niet omzeilen. Probeer het opnieuw en sta de proxyconfiguratie toe als macOS erom vraagt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te aplikacje nie mogą teraz omijać VPN. Spróbuj ponownie i zezwól na konfigurację proxy, jeśli macOS o to poprosi."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esses apps não podem ignorar a VPN agora. Tente novamente e permita a configuração de proxy se o macOS pedir."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esses apps não podem ignorar a VPN agora. Tente novamente e permita a configuração de proxy se o macOS pedir."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas aplicações não conseguem ignorar a VPN neste momento. Tente novamente e permita a configuração de proxy se o macOS o pedir."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сейчас эти приложения не могут работать в обход VPN. Повторите попытку и разрешите конфигурацию прокси, если macOS попросит."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De här apparna kan inte gå utanför VPN:et just nu. Försök igen och tillåt proxykonfigurationen om macOS frågar."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ขณะนี้แอปเหล่านี้ไม่สามารถข้าม VPN ได้ ลองอีกครั้ง และอนุญาตการกำหนดค่าพร็อกซีหาก macOS ถาม"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зараз ці застосунки не можуть працювати в обхід VPN. Повторіть спробу й дозвольте конфігурацію проксі, якщо macOS попросить."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện các ứng dụng này không thể bỏ qua VPN. Hãy thử lại và cho phép cấu hình proxy nếu macOS yêu cầu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些应用目前无法绕过 VPN。请重试，并在 macOS 询问时允许代理配置。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這些應用程式目前無法繞過 VPN。請重試，並在 macOS 詢問時允許代理設定。"
+          }
+        }
+      }
+    },
     "These wallets are not affiliated or controlled by URnetwork. We will send earnings into the connected wallet." : {
       "comment" : "Used in Main/Account/Wallets/ConnectWalletSheet/ConnectWalletSheetView.swift.",
       "extractionState" : "stale",
@@ -117746,6 +119082,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TLS 指紋"
+          }
+        }
+      }
+    },
+    "To keep these apps off the VPN, allow the URnetwork Split Tunnel extension in System Settings." : {
+      "comment" : "Split rules screen on macOS, Apps section: the split tunnel system extension waits for the user's one-time approval in System Settings (General > Login Items & Extensions > Network Extensions). Use the name macOS gives System Settings in the language. Keep URnetwork Split Tunnel (the extension's name) and VPN unchanged.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لإبقاء هذه التطبيقات خارج VPN، اسمح بملحق URnetwork Split Tunnel في إعدادات النظام."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chcete-li tyto aplikace ponechat mimo VPN, povolte v Nastavení systému rozšíření URnetwork Split Tunnel."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damit diese Apps das VPN umgehen, erlaube die Erweiterung URnetwork Split Tunnel in den Systemeinstellungen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Για να κρατήσετε αυτές τις εφαρμογές εκτός VPN, επιτρέψτε την επέκταση URnetwork Split Tunnel στις Ρυθμίσεις συστήματος."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To keep these apps off the VPN, allow the URnetwork Split Tunnel extension in System Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para dejar estas apps fuera de la VPN, permite la extensión URnetwork Split Tunnel en Ajustes del Sistema."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para dejar estas apps fuera de la VPN, permite la extensión URnetwork Split Tunnel en Configuración del Sistema."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para dejar estas apps fuera de la VPN, permite la extensión URnetwork Split Tunnel en Configuración del Sistema."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour garder ces applications hors du VPN, autorisez l’extension URnetwork Split Tunnel dans Réglages Système."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי להשאיר את האפליקציות האלה מחוץ ל-VPN, אשר את התוסף URnetwork Split Tunnel בהגדרות המערכת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इन ऐप्स को VPN से बाहर रखने के लिए, सिस्टम सेटिंग्ज़ में URnetwork Split Tunnel एक्सटेंशन को अनुमति दें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agar aplikasi ini tidak melalui VPN, izinkan ekstensi URnetwork Split Tunnel di Pengaturan Sistem."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per tenere queste app fuori dalla VPN, consenti l’estensione URnetwork Split Tunnel in Impostazioni di Sistema."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらのアプリをVPNの対象外にするには、システム設定でURnetwork Split Tunnel拡張機能を許可してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱들을 VPN에서 제외하려면 시스템 설정에서 URnetwork Split Tunnel 확장 프로그램을 허용하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sta de extensie URnetwork Split Tunnel toe in Systeeminstellingen om deze apps buiten de VPN te houden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aby wyłączyć te aplikacje z VPN, zezwól na rozszerzenie URnetwork Split Tunnel w Ustawieniach systemowych."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para manter esses apps fora da VPN, permita a extensão URnetwork Split Tunnel nos Ajustes do Sistema."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para manter esses apps fora da VPN, permita a extensão URnetwork Split Tunnel nos Ajustes do Sistema."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para manter estas aplicações fora da VPN, permita a extensão URnetwork Split Tunnel nas Definições do Sistema."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы эти приложения работали вне VPN, разрешите расширение URnetwork Split Tunnel в Системных настройках."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om du vill hålla de här apparna utanför VPN:et tillåter du tillägget URnetwork Split Tunnel i Systeminställningar."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หากต้องการให้แอปเหล่านี้ไม่ผ่าน VPN ให้อนุญาตส่วนขยาย URnetwork Split Tunnel ในการตั้งค่าระบบ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб ці застосунки працювали поза VPN, дозвольте розширення URnetwork Split Tunnel у Системних параметрах."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để giữ các ứng dụng này ngoài VPN, hãy cho phép tiện ích mở rộng URnetwork Split Tunnel trong Cài đặt hệ thống."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要让这些应用不走 VPN，请在系统设置中允许 URnetwork Split Tunnel 扩展。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如要讓這些應用程式不經 VPN，請在系統設定中允許 URnetwork Split Tunnel 延伸功能。"
           }
         }
       }

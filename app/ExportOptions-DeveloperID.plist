@@ -12,6 +12,8 @@
 		<string>URnetwork Download</string>
 		<key>com.bringyour.urnetwork.extension</key>
 		<string>URnetwork Extension Download</string>
+		<key>com.bringyour.urnetwork.splittunnel</key>
+		<string>URnetwork Split Tunnel Download</string>
 	</dict>
 	<key>signingCertificate</key>
 	<string>Developer ID Application</string>

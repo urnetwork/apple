@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The split tunnel SYSTEM extension of the App Store build
+  (URnetworkSplitTunnel target, network.ur.splittunnel, automatic signing).
+  A transparent proxy is an app-proxy provider, and macOS runs transparent
+  proxies only as system extensions -- also in the App Store build, whose
+  packet tunnel is an app extension. It reads nothing but its
+  NETunnelProviderProtocol, so no keychain group; the app group is there
+  because NEMachServiceName (Info.plist) must be prefixed by one of the
+  extension's app groups (the team id is literal for the reason in
+  extension-macOS.entitlements). App Sandbox and outgoing connections come
+  from the target's ENABLE_* build settings.
+
+  Developer portal, once, before the App Store build is archived: register
+  the App ID network.ur.splittunnel (Certificates, Identifiers & Profiles >
+  Identifiers > + > App IDs > App) with the Network Extensions capability.
+  Automatic signing (the pipeline archives with -allowProvisioningUpdates)
+  then issues its development and Mac App Store profiles, which grant
+  app-proxy-provider. Nothing changes for the app: the network.ur App ID
+  already has Network Extensions and System Extension, so its profiles grant
+  the app-proxy-provider and system-extension.install entitlements that
+  network-macOS.entitlements now asks for.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>6BGU69Q742.group.network.ur</string>
+	</array>
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>app-proxy-provider</string>
+	</array>
+</dict>
+</plist>

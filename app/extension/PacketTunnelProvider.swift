@@ -272,6 +272,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         subsystem: "network.ur.extension",
         category: "PacketTunnel"
     )
+    // support lines for the logs "send feedback with logs" uploads, which are
+    // this process's glog files only (TunnelDiagnosticLog)
+    private let diagnosticLog: TunnelDiagnosticLog = {
+        let logger = Logger(subsystem: "network.ur.extension", category: "PacketTunnel")
+        return TunnelDiagnosticLog(
+            osLog: { line in logger.info("\(line, privacy: .public)") },
+            sdkLog: { tag, line in SdkLogAppInfo(tag, line) }
+        )
+    }()
     private let lifecycleId = String(UUID().uuidString.prefix(8))
     private let lifecycleLock = NSLock()
     private var sleepStartedAt: Date?
@@ -407,6 +416,21 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func startTunnel(options: [String : NSObject]? = nil, completionHandler: @escaping ((any Error)?) -> Void) {
         logger.info("[PacketTunnelProvider][\(self.lifecycleId)] start")
+        // who started the tunnel (the system for VPN On Demand), and why no
+        // network country is reported, for the uploaded logs
+        diagnosticLog.write(
+            tag: TunnelDiagnosticLog.tunnelTag,
+            line: "start source=\(TunnelIntentStore.startSource(options: options))"
+        )
+#if os(iOS)
+        let platformHasCellular = true
+#else
+        let platformHasCellular = false
+#endif
+        diagnosticLog.write(
+            tag: TunnelDiagnosticLog.networkCountryTag,
+            line: tunnelNetworkCountryLogLine(platformHasCellular: platformHasCellular)
+        )
         recordRecoveryStage("startup", "started")
         memoryMonitor?.sample(event: "start-requested")
 
@@ -1234,6 +1258,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             var physicalPathWasUnavailable = false
             var lastPathConstrained: Bool = false
             var qualityTracker = TunnelNetworkQualityTracker()
+            // the settled path, for the uploaded logs: a line each time it
+            // changes, bounded per session (TunnelDiagnosticLog)
+            var pathLineFilter = TunnelDiagnosticLineFilter(limit: TunnelDiagnosticLog.pathLineLimit)
+            let writePathLine = { (diagnostic: TunnelPathDiagnostic) in
+                if let line = pathLineFilter.admit(diagnostic.line) {
+                    self.diagnosticLog.write(tag: TunnelDiagnosticLog.pathTag, line: line)
+                }
+            }
 #if os(iOS)
             let telephonyInfo = CTTelephonyNetworkInfo()
 #endif
@@ -1270,6 +1302,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     if stablePathSignature != nil {
                         physicalPathWasUnavailable = true
                     }
+                    // an unusable path (and why) is logged once it settles,
+                    // as a usable one is below
+                    let diagnostic = TunnelPathDiagnostic(path: path, cellularTypes: [])
+                    pathMonitorQueue.asyncAfter(
+                        deadline: .now() + self.transportRecoveryDebounce
+                    ) {
+                        guard self.providerSessions.isCurrent(providerTicket) else { return }
+                        guard generation == pathSignatureGeneration else { return }
+                        writePathLine(diagnostic)
+                    }
                     return
                 }
 
@@ -1301,12 +1343,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     cellularTypes: cellularTypes,
                     wifiSignalLevel: wifiSignalLevel
                 )
+                let diagnostic = TunnelPathDiagnostic(path: path, cellularTypes: cellularTypes)
 
                 pathMonitorQueue.asyncAfter(
                     deadline: .now() + self.transportRecoveryDebounce
                 ) {
                     guard self.providerSessions.isCurrent(providerTicket) else { return }
                     guard generation == pathSignatureGeneration else { return }
+                    writePathLine(diagnostic)
                     let hardPathChange = stablePathSignature.map {
                         $0 != pathSignature || physicalPathWasUnavailable
                     } ?? false

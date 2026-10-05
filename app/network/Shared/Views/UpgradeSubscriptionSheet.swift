@@ -218,6 +218,18 @@ struct UpgradeSubscriptionSheet: View {
 
                                     FreeRefreshCountdownText()
 
+                                    // reserved data may come back before the
+                                    // refresh; used up does not
+                                    let balance = subscriptionBalanceViewModel.lastWidgetBalanceSnapshot
+                                    if outOfBalanceKind(balance) != .unknown {
+                                        Spacer().frame(height: 8)
+
+                                        OutOfBalanceKindText(
+                                            kind: outOfBalanceKind(balance),
+                                            reservedByteCount: Int(balance?.openTransferByteCount ?? 0)
+                                        )
+                                    }
+
                                     Spacer().frame(height: 16)
 
                                     UrButton(

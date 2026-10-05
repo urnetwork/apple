@@ -184,6 +184,17 @@ class ConnectViewModel: ObservableObject {
         notice: { action in InsufficientBalanceNotice.apply(action) }
     )
 
+    // a connect insufficient balance blocked, retried by itself once the
+    // balance is back (BalanceRecovery): a start the gate refused, with the
+    // location the user asked for (nil: the best available provider), or the
+    // held connection
+    private var balanceRecovery = BalanceRecovery<SdkConnectLocation?>()
+    /// What the out-of-balance notice says about the recovery.
+    @Published private(set) var balanceRecoveryState = BalanceRecoveryState()
+    /// Bumps each time the recovery retried a blocked connect, so the connect
+    /// views tell the user ("Data is available again. Reconnecting…").
+    @Published private(set) var balanceRecoveryRetryCount = 0
+
     // last published grid signature; skip redundant re-renders when the SDK
     // re-emits a logically unchanged grid (its point objects get fresh
     // identities each notification, which would otherwise storm @Published)
@@ -265,6 +276,8 @@ class ConnectViewModel: ObservableObject {
         self.isPresentedUpgradeSheet = false
         // a signed out account's episode is over: withdraw its notice
         self.insufficientBalanceReaction.reset()
+        // and a connect it asked for must not start later
+        self.clearBalanceRecovery()
     }
 
     private func closeListeners() {
@@ -358,14 +371,23 @@ class ConnectViewModel: ObservableObject {
      */
     private func admitConnect(
         _ attempt: ConnectAttempt,
+        target: SdkConnectLocation?,
         onUpgrade: (() -> Void)? = nil,
         proceed: @escaping () -> Void
     ) {
         let apply = { [weak self] (decision: ConnectAttemptDecision) in
             switch decision {
             case .connect:
+                // this connect replaces one still waiting on the balance
+                self?.clearBalanceRecovery()
                 proceed()
             case .upgrade:
+                // the refused start waits on the balance and is retried by
+                // itself once it is back (BalanceRecovery)
+                if let self {
+                    self.balanceRecovery.startRefused(target, now: self.now())
+                    self.publishBalanceRecoveryState()
+                }
                 self?.upgradeOpenedByStartConnectBlock = true
                 self?.isPresentedUpgradeSheet = true
                 onUpgrade?()
@@ -407,7 +429,7 @@ class ConnectViewModel: ObservableObject {
      * Used in the provider list
      */
     func connect(_ provider: SdkConnectLocation) {
-        admitConnect(currentConnectAttempt) { [weak self] in
+        admitConnect(currentConnectAttempt, target: provider) { [weak self] in
             guard let self else {
                 return
             }
@@ -424,7 +446,7 @@ class ConnectViewModel: ObservableObject {
      * Used for the main  connect button
      */
     func connect() {
-        admitConnect(currentConnectAttempt) { [weak self] in
+        admitConnect(currentConnectAttempt, target: selectedProvider) { [weak self] in
             self?.connectSelected()
         }
     }
@@ -435,7 +457,7 @@ class ConnectViewModel: ObservableObject {
      * for the sheet).
      */
     func connect(onUpgrade: @escaping () -> Void) {
-        admitConnect(currentConnectAttempt, onUpgrade: onUpgrade) { [weak self] in
+        admitConnect(currentConnectAttempt, target: selectedProvider, onUpgrade: onUpgrade) { [weak self] in
             self?.connectSelected()
         }
     }
@@ -446,7 +468,7 @@ class ConnectViewModel: ObservableObject {
      * start.
      */
     func restoreConnect() {
-        admitConnect(.alreadyConnected) { [weak self] in
+        admitConnect(.alreadyConnected, target: selectedProvider) { [weak self] in
             self?.connectSelected()
         }
     }
@@ -464,7 +486,7 @@ class ConnectViewModel: ObservableObject {
     }
 
     func connectBestAvailable() {
-        admitConnect(currentConnectAttempt) { [weak self] in
+        admitConnect(currentConnectAttempt, target: nil) { [weak self] in
             self?.startBestAvailable()
         }
     }
@@ -478,6 +500,8 @@ class ConnectViewModel: ObservableObject {
     }
 
     func disconnect() {
+        // the user's disconnect: nothing is reconnected by itself after it
+        clearBalanceRecovery()
         withCommandViewController { viewController in
             viewController.disconnect()
         }
@@ -618,6 +642,7 @@ extension ConnectViewModel {
             isPolling: insufficientBalancePolling || insufficientBalancePlan == nil,
             connectionStatus: connectionStatus
         )
+        evaluateBalanceRecovery()
     }
 
     private static func contractStatusEqual(_ a: SdkContractStatus?, _ b: SdkContractStatus?) -> Bool {
@@ -626,6 +651,68 @@ extension ConnectViewModel {
         return a.insufficientBalance == b.insufficientBalance
             && a.noPermission == b.noPermission
             && a.premium == b.premium
+    }
+}
+
+// MARK: balance recovery
+extension ConnectViewModel {
+    /// A new account balance reading: the subscription views fetch it and
+    /// save it to the App Group, where `loadCachedBalance` reads it.
+    func balanceReadingChanged() {
+        evaluateBalanceRecovery()
+    }
+
+    /// The user cancelled the wait (Cancel), connected, disconnected or signed
+    /// out: nothing they asked for is waiting on the balance any more.
+    func clearBalanceRecovery() {
+        balanceRecovery.clear()
+        publishBalanceRecoveryState()
+    }
+
+    /// Feeds the recovery the gate this view model renders, whether a
+    /// connection is requested and the last account balance, and makes the
+    /// retry it decides on. The gate is not asked again for the retry: the
+    /// recovery decided on a fresh balance, and a held connection still
+    /// reports insufficient balance until the rebuild replaces it.
+    private func evaluateBalanceRecovery() {
+        let step = balanceRecovery.observe(
+            gate: insufficientBalanceGateActive(
+                insufficientBalance: contractStatus?.insufficientBalance == true,
+                plan: insufficientBalancePlan ?? Plan.none,
+                isPollingSubscriptionBalance: insufficientBalancePolling
+            ),
+            connectRequested: connectAttempt(connectionStatus: connectionStatus) == .alreadyConnected,
+            balance: loadCachedBalance(),
+            now: now()
+        )
+        publishBalanceRecoveryState()
+        let target: SdkConnectLocation?
+        switch step {
+        case .noRetry:
+            return
+        case .start(let location):
+            target = location
+        case .rebuild:
+            target = device?.getConnectLocation() ?? selectedProvider
+        }
+        print("[connect]balance is back: retrying the blocked connect")
+        runBeforeConnect()
+        if let target {
+            withCommandViewController { viewController in
+                viewController.connect(target)
+            }
+            TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
+        } else {
+            startBestAvailable()
+        }
+        balanceRecoveryRetryCount += 1
+    }
+
+    private func publishBalanceRecoveryState() {
+        let state = balanceRecovery.state
+        if balanceRecoveryState != state {
+            balanceRecoveryState = state
+        }
     }
 }
 
@@ -790,6 +877,7 @@ extension ConnectViewModel {
                 return
             }
             self.connectionStatus = status
+            evaluateBalanceRecovery()
             
             if status == .connected {
                 if let requestReview = self.requestReview {

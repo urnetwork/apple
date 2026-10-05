@@ -73,8 +73,10 @@ class SubscriptionBalanceViewModel: ObservableObject {
     private var isPro: Bool
 
     // the last balance published for the Home Screen dashboard, so the
-    // 30 s poll only rewrites the snapshot (and reloads the widget) on change
-    private var lastWidgetBalanceSnapshot: WidgetBalanceSnapshot?
+    // 30 s poll only rewrites the snapshot (and reloads the widget) on change.
+    // Published, stamped with every fetch: the connect views feed each
+    // reading to the balance recovery and read why the balance is out from it
+    @Published private(set) var lastWidgetBalanceSnapshot: WidgetBalanceSnapshot?
 
     /**
      * The plan data the server sends with the balance: the price tier resolved

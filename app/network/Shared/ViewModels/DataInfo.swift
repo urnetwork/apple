@@ -92,14 +92,39 @@ struct OutOfBalanceNotice: Equatable {
     var refresh: Bool
     /// Traffic is held in the tunnel until the user upgrades or disconnects.
     var held: Bool
+    /// "{amount} is reserved ..." or "You're out of data ...", or neither.
+    var kind: OutOfBalanceKind = .unknown
+    /// "You'll be reconnected when data is available again."
+    var willReconnect: Bool = false
+    /// Cancel next to it: a refused start has no Disconnect to stop it.
+    var cancel: Bool = false
 }
 
 /// The notice above the drawer's out-of-balance buttons. It leads with when
 /// the free data refreshes, so the upgrade button does not read as the only
-/// way back; Why? opens the "About your data" sheet. The held-traffic line
-/// follows, shown whenever the gate holds as before.
-func outOfBalanceNotice(buttons: ConnectActionButtons) -> OutOfBalanceNotice {
-    OutOfBalanceNotice(refresh: buttons.upgrade, held: buttons.upgrade)
+/// way back; Why? opens the "About your data" sheet. Then whether the data is
+/// reserved or used up (BalanceRecovery.swift), and the held-traffic line,
+/// shown whenever the gate holds as before.
+///
+/// While a connect the user asked for waits on the balance (`recovery`, nil
+/// when there is none), it says the app reconnects by itself: for a held
+/// connection, and for a refused start even outside the gate, since that
+/// start can still fire. A refused start gets Cancel, the only way to stop it.
+func outOfBalanceNotice(
+    buttons: ConnectActionButtons,
+    kind: OutOfBalanceKind = .unknown,
+    recovery: BalanceRecoveryState? = nil
+) -> OutOfBalanceNotice {
+    let startWaiting = recovery?.startWaiting == true
+    let willReconnect = recovery?.retriesLeft == true
+        && (startWaiting || (buttons.upgrade && buttons.disconnect))
+    return OutOfBalanceNotice(
+        refresh: buttons.upgrade,
+        held: buttons.upgrade,
+        kind: buttons.upgrade ? kind : .unknown,
+        willReconnect: willReconnect,
+        cancel: willReconnect && startWaiting
+    )
 }
 
 /// Whether the upgrade sheet leads with when the free data refreshes and

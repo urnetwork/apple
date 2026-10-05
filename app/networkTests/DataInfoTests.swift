@@ -165,6 +165,39 @@ struct DataInfoTests {
         #expect(!insufficientBalanceGateActive(insufficientBalance: true, plan: .none, isPollingSubscriptionBalance: true))
     }
 
+    @Test func outOfBalanceNoticeSaysReservedOrExhaustedOnlyInTheGate() {
+        for kind in [OutOfBalanceKind.unknown, .reserved, .exhausted] {
+            for status in [ConnectionStatus.connecting, .destinationSet, .connected, .disconnected] {
+                let gated = connectActionButtons(gateActive: true, connectionStatus: status, displayReconnectTunnel: false)
+                #expect(outOfBalanceNotice(buttons: gated, kind: kind).kind == kind, "\(kind) \(status)")
+                let funded = connectActionButtons(gateActive: false, connectionStatus: status, displayReconnectTunnel: false)
+                #expect(outOfBalanceNotice(buttons: funded, kind: kind).kind == .unknown, "\(kind) \(status) funded")
+            }
+        }
+    }
+
+    @Test func outOfBalanceNoticeSaysTheConnectComesBackByItself() {
+        let held = connectActionButtons(gateActive: true, connectionStatus: .connected, displayReconnectTunnel: false)
+        let disconnected = connectActionButtons(gateActive: false, connectionStatus: .disconnected, displayReconnectTunnel: false)
+        let waiting = BalanceRecoveryState(startWaiting: false, retriesLeft: true)
+        let startWaiting = BalanceRecoveryState(startWaiting: true, retriesLeft: true)
+        let spent = BalanceRecoveryState(startWaiting: false, retriesLeft: false)
+
+        // a held connection is rebuilt by itself; Disconnect is its way out
+        let heldNotice = outOfBalanceNotice(buttons: held, recovery: waiting)
+        #expect(heldNotice.willReconnect)
+        #expect(!heldNotice.cancel)
+        // a refused start waits with Cancel (the gate only shows while connected)
+        let startNotice = outOfBalanceNotice(buttons: disconnected, recovery: startWaiting)
+        #expect(startNotice.willReconnect)
+        #expect(startNotice.cancel)
+        // nothing the user asked for is waiting: no promise
+        #expect(!outOfBalanceNotice(buttons: disconnected, recovery: waiting).willReconnect)
+        // the retries are used up, or there is no recovery: no promise
+        #expect(!outOfBalanceNotice(buttons: held, recovery: spent).willReconnect)
+        #expect(!outOfBalanceNotice(buttons: held).willReconnect)
+    }
+
     @Test func upgradeShowsTheRefreshOnlyWhenABlockedConnectOpenedIt() {
         #expect(upgradeShowsFreeRefresh(openedByStartConnectBlock: true, isPro: false))
         // Get Pro, the onboarding links, a legacy guest's purchase

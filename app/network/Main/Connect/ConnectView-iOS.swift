@@ -274,6 +274,10 @@ struct ConnectView_iOS: View {
                                     isSheetExpanded = false
                                     isPresentedDataInfo = true
                                 },
+                                outOfBalanceKind: outOfBalanceKind(subscriptionBalanceViewModel.lastWidgetBalanceSnapshot),
+                                reservedByteCount: Int(subscriptionBalanceViewModel.lastWidgetBalanceSnapshot?.openTransferByteCount ?? 0),
+                                balanceRecovery: connectViewModel.balanceRecoveryState,
+                                cancelBalanceRecovery: connectViewModel.clearBalanceRecovery,
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
@@ -537,6 +541,14 @@ struct ConnectView_iOS: View {
             }
             .onChange(of: subscriptionBalanceViewModel.isPolling) { _ in
                 updateInsufficientBalanceGuards()
+            }
+            // every balance reading feeds the recovery of a connect the
+            // balance blocked (ConnectViewModel.balanceReadingChanged)
+            .onChange(of: subscriptionBalanceViewModel.lastWidgetBalanceSnapshot) { _ in
+                connectViewModel.balanceReadingChanged()
+            }
+            .onChange(of: connectViewModel.balanceRecoveryRetryCount) { _ in
+                snackbarManager.showSnackbar(message: String(localized: "Data is available again. Reconnecting…"))
             }
             .onChange(of: collapseDrawerSignal) { _ in
                 // the connect tab was re-tapped. close the drawer.

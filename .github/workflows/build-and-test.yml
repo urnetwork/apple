@@ -72,6 +72,11 @@ jobs:
       - name: Check out goidenticons dependency
         run: git clone --depth 1 https://github.com/urnetwork/goidenticons.git goidenticons
 
+      # urnetwork's gvisor fork, from its `go` branch. Without it the module
+      # graph does not load ("reading ../../gvisor/go.mod").
+      - name: Check out gvisor dependency
+        run: git clone --depth 1 --branch go https://github.com/urnetwork/gvisor.git gvisor
+
       # The sdk references RenderPngV2. goidenticons publishes it today, so
       # this no-ops -- but an unconditional shim would be a REDECLARATION that
       # fails the build, so write it only when the symbol is genuinely absent.

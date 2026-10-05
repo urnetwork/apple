@@ -166,7 +166,9 @@ struct AccountRootView: View {
                             
                         /**
                          * An App Store subscription can only be changed or cancelled
-                         * through Apple; this hands off to it (see ManageSubscription).
+                         * through Apple; this hands off to it. A Pro plan billed
+                         * elsewhere opens ur.io's Manage Subscription (see
+                         * ManageSubscription).
                          */
                         if let manageAction = manageSubscriptionAction(
                             platform: .current,
@@ -187,6 +189,22 @@ struct AccountRootView: View {
                                         Task {
                                             do {
                                                 openURL(try await stripeSubscriptionStore.customerPortalURL())
+                                            } catch {
+                                                snackbarManager.showSnackbar(message: String(localized: "Couldn't open the subscription portal. Please try again."))
+                                            }
+                                        }
+                                    case .manageOnWeb:
+                                        // a Pro plan this Apple ID does not bill
+                                        // (Stripe, Google Play): ur.io's Manage
+                                        // Subscription, signed in with a one-time
+                                        // code (one use, five minutes)
+                                        Task {
+                                            do {
+                                                let result = try await urApiService.createAuthCode()
+                                                guard let url = manageSubscriptionOnWebURL(authCode: result.authCode) else {
+                                                    throw URLError(.badURL)
+                                                }
+                                                openURL(url)
                                             } catch {
                                                 snackbarManager.showSnackbar(message: String(localized: "Couldn't open the subscription portal. Please try again."))
                                             }

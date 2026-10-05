@@ -43,6 +43,7 @@ struct SplitRulesView: View {
 
     private static let topMarkerId = "split-rules-top"
     private static let newRuleTargetId = "split-rules-new"
+    private static let presetTargetIdPrefix = "split-rules-preset-"
 
     private var pendingCount: Int {
         let displayedIds = Set(displayedActions.map { $0.id })
@@ -78,20 +79,24 @@ struct SplitRulesView: View {
                 )
 
             /**
-             * Info: how rules apply
+             * Info: how rules apply, and why they match sites rather than apps
              */
-            Text("Rules apply to the whole co-associated network cluster, so related traffic is caught together.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(themeManager.currentTheme.tintedBackgroundBase)
-                )
-                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Rules apply to the whole co-associated network cluster, so related traffic is caught together.")
+                // per-app VPN (NEAppRule) is MDM-only on iOS and macOS
+                Text("Split rules match sites and addresses, not apps: Apple allows per-app VPN only on devices managed by an organization (MDM). To keep an app off the VPN, route the sites it uses locally, or start from a preset. Local network addresses already bypass the VPN.")
+            }
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(themeManager.currentTheme.tintedBackgroundBase)
+            )
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
 
             /**
              * Pinned split rules
@@ -101,6 +106,8 @@ struct SplitRulesView: View {
             ) {
 
                 addRuleRow
+
+                presetRow
 
                 if blockActionsStore.splitRules.isEmpty {
                     Text("Add a host above, or tap traffic below to route it locally or hold it to one provider.")
@@ -393,6 +400,63 @@ struct SplitRulesView: View {
                     .foregroundColor(themeManager.currentTheme.textFaintColor)
             }
         }
+        .listRowBackground(Color.clear)
+    }
+
+    /**
+     * Starts a route-locally rule from a preset: the ranges a service
+     * publishes for use outside a VPN (see `SplitRulePreset`). It opens the
+     * ordinary editor with them selected, so what will bypass the tunnel is on
+     * screen before the rule is created. Gated like "Add a rule", and a preset
+     * one of the rules already holds is shown as added.
+     */
+    @ViewBuilder
+    private var presetRow: some View {
+        let ruleHosts = blockActionsStore.splitRules.map { $0.hosts }
+        Menu {
+            Section("Ranges each service publishes for use outside a VPN") {
+                ForEach(SplitRulePreset.all) { preset in
+                    let applied = preset.isApplied(in: ruleHosts)
+                    Button(action: {
+                        editorTarget = EditorTarget(
+                            id: Self.presetTargetIdPrefix + preset.id,
+                            candidates: preset.hosts,
+                            selected: Set(preset.hosts),
+                            ruleId: nil,
+                            mode: .excluded
+                        )
+                    }) {
+                        if applied {
+                            Label(String(localized: preset.name), systemImage: "checkmark")
+                        } else {
+                            Text(String(localized: preset.name))
+                        }
+                    }
+                    .disabled(applied)
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "list.bullet.circle.fill")
+                    .foregroundColor(
+                        blockActionsStore.canCreateRule
+                            ? .urGreen
+                            : themeManager.currentTheme.textFaintColor
+                    )
+                Text("Start from a preset")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(
+                        blockActionsStore.canCreateRule
+                            ? themeManager.currentTheme.textColor
+                            : themeManager.currentTheme.textFaintColor
+                    )
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .disabled(!blockActionsStore.canCreateRule)
         .listRowBackground(Color.clear)
     }
 

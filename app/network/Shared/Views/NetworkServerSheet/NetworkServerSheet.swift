@@ -9,7 +9,10 @@
 //  iOS-only). Ported from Android's `NetworkServerSelector.kt`.
 //
 //  The VLESS row opens the VLESS settings of the active network space, so a
-//  VLESS server can be set before signing in.
+//  VLESS server can be set before signing in. The bootstrap DNS-over-HTTPS
+//  row does the same for the servers the space resolves its own names
+//  through: where the default DoH servers are blocked (mainland China), a
+//  fresh install cannot sign in without them.
 //
 
 import SwiftUI
@@ -17,10 +20,12 @@ import SwiftUI
 struct NetworkServerSheet: View {
 
     @EnvironmentObject var themeManager: ThemeManager
-    // the VLESS editor edits the space the device manager has active
+    // the VLESS and bootstrap DoH editors edit the space the device manager
+    // has active
     @EnvironmentObject var deviceManager: DeviceManager
     @StateObject private var viewModel: ViewModel
     @State private var presentVlessSettings = false
+    @State private var presentControlDohSettings = false
 
     var currentApiUrl: String
     var currentConnectUrl: String
@@ -193,6 +198,28 @@ struct NetworkServerSheet: View {
             .buttonStyle(.plain)
             .disabled(!managerAvailable)
 
+            Spacer().frame(height: 12)
+
+            /**
+             * The bootstrap DoH servers save on their own too, to the space
+             * that is active now; Apply Network API does not touch them.
+             */
+            Button(action: {
+                presentControlDohSettings = true
+            }) {
+                HStack {
+                    Text("Bootstrap DNS-over-HTTPS servers")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!managerAvailable)
+
             Spacer()
         }
         .padding(.horizontal, 12)
@@ -200,6 +227,13 @@ struct NetworkServerSheet: View {
         .sheet(isPresented: $presentVlessSettings) {
             StatsSheetContainer(title: "VLESS") {
                 VlessSettingsView()
+            }
+            .environmentObject(themeManager)
+            .environmentObject(deviceManager)
+        }
+        .sheet(isPresented: $presentControlDohSettings) {
+            StatsSheetContainer(title: "Bootstrap DNS-over-HTTPS servers") {
+                ControlDohSettingsView()
             }
             .environmentObject(themeManager)
             .environmentObject(deviceManager)

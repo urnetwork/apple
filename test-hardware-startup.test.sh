@@ -681,16 +681,97 @@ for lifecycle_command in shutdown delete; do
     exit 1
   }
 done
-[ "$(grep -c 'IPHONEOS_DEPLOYMENT_TARGET = 16.0;' \
-  "$here/app/app.xcodeproj/project.pbxproj")" -eq 8 ] || {
-  echo "an app, extension, or test target lost deployment support for iOS 16" >&2
-  exit 1
+
+# Follow the project target/configuration references. Counting setting strings
+# also counts macOS-only targets, whose copied iOS settings are irrelevant.
+# Widgets intentionally require iOS 17; the app, VPN and tests retain iOS 16.
+ios_16_targets='["URnetwork", "URnetworkVPN", "networkTests", "networkUITests"]'
+assert_ios_16_target_settings() {
+  jq -e --argjson required_targets "$ios_16_targets" '
+    .objects as $objects
+    | [$objects[.rootObject].targets[] | $objects[.]] as $targets
+    | $required_targets[] as $name
+    | [$targets[] | select(.isa == "PBXNativeTarget" and .name == $name)]
+    | if length != 1 then error("missing or duplicate iOS target: " + $name)
+      else .[0] end
+    | [$objects[.buildConfigurationList].buildConfigurations[] | $objects[.]] as $configs
+    | if (["Debug", "Release"] - ($configs | map(.name)) | length) != 0 then
+        error("missing Debug or Release configuration: " + $name)
+      else . end
+    | $configs[]
+    | .name as $configuration
+    | if .isa != "XCBuildConfiguration"
+        or (.buildSettings.SUPPORTED_PLATFORMS | split(" ")
+          | contains(["iphoneos", "iphonesimulator"]) | not) then
+        error("missing iOS platforms: " + $name + "/" + $configuration)
+      else . end
+    | .buildSettings
+    | if .IPHONEOS_DEPLOYMENT_TARGET != "16.0" then
+        error("iOS 16.0 deployment target changed: " + $name + "/" + $configuration)
+      else . end
+    | if any(to_entries[];
+        (.key | startswith("IPHONEOS_DEPLOYMENT_TARGET[")) and .value != "16.0") then
+        error("iOS 16.0 deployment target overridden: " + $name + "/" + $configuration)
+      else true end
+  ' "$1" >/dev/null
 }
-if grep -Eq 'IPHONEOS_DEPLOYMENT_TARGET = (16\.6|18\.1);' \
-  "$here/app/app.xcodeproj/project.pbxproj"; then
-  echo "a raised deployment target excludes supported iOS 16 devices" >&2
-  exit 1
-fi
+
+project_json="$test_root/project.json"
+plutil -convert json -o "$project_json" "$here/app/app.xcodeproj/project.pbxproj"
+assert_ios_16_target_settings "$project_json"
+
+# Every supported target/configuration must be checked independently: unrelated
+# 16.0 settings must never compensate for a raised or missing core setting.
+core_configurations="$(jq -r --argjson required_targets "$ios_16_targets" '
+  .objects as $objects
+  | $objects[.rootObject].targets[] | $objects[.]
+  | select(.name as $name | $required_targets | index($name))
+  | .name as $name
+  | $objects[.buildConfigurationList].buildConfigurations[]
+  | [$name, $objects[.].name, .] | @tsv
+' "$project_json")"
+while IFS=$'\t' read -r target configuration config_id; do
+  for mutation in raised missing conditional unreferenced; do
+    if [ "$mutation" = unreferenced ]; then
+      case "$configuration" in Debug|Release) ;; *) continue ;; esac
+    fi
+    jq --arg id "$config_id" --arg mutation "$mutation" '
+      if $mutation == "unreferenced" then
+        (.objects[] | select(.isa == "XCConfigurationList").buildConfigurations)
+          |= map(select(. != $id))
+      else
+        .objects[$id].buildSettings |= (
+          if $mutation == "raised" then .IPHONEOS_DEPLOYMENT_TARGET = "17.0"
+          elif $mutation == "missing" then del(.IPHONEOS_DEPLOYMENT_TARGET)
+          else .["IPHONEOS_DEPLOYMENT_TARGET[sdk=iphoneos*]"] = "16.1" end
+        )
+      end
+    ' "$project_json" >"$test_root/project-mutated.json"
+    if assert_ios_16_target_settings "$test_root/project-mutated.json" 2>/dev/null; then
+      echo "$target/$configuration accepted a $mutation iOS deployment target" >&2
+      exit 1
+    fi
+  done
+done <<<"$core_configurations"
+
+# Orphaned objects still contain the original settings after their project
+# references are removed, but must not satisfy the support contract.
+for target in URnetwork URnetworkVPN networkTests networkUITests; do
+  jq --arg target "$target" '
+    .objects as $objects
+    | .objects[.rootObject].targets |= map(select($objects[.].name != $target))
+  ' "$project_json" >"$test_root/project-mutated.json"
+  if assert_ios_16_target_settings "$test_root/project-mutated.json" 2>/dev/null; then
+    echo "an unreferenced $target target satisfied the iOS deployment guard" >&2
+    exit 1
+  fi
+done
+
+# Changing irrelevant macOS settings must not break iOS deployment support.
+jq '(.objects[] | select(.buildSettings.SUPPORTED_PLATFORMS == "macosx")
+  | .buildSettings.IPHONEOS_DEPLOYMENT_TARGET) = "18.1"' \
+  "$project_json" >"$test_root/project-macos.json"
+assert_ios_16_target_settings "$test_root/project-macos.json"
 
 bash "$here/test-hardware-startup-runner.test.sh"
 echo "apple simulator startup runner tests passed"

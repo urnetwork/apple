@@ -776,6 +776,8 @@ private struct LoginInitialFormView: View {
                 }
             )
             .environmentObject(themeManager)
+            // the sheet's VLESS row edits the active network space
+            .environmentObject(deviceManager)
             #if os(macOS)
             .frame(minWidth: 420, minHeight: 480)
             #endif

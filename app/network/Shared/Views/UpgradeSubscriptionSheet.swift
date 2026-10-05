@@ -73,6 +73,10 @@ struct UpgradeSubscriptionSheet: View {
     /// Store; nil keeps the StoreKit copy.
     var purchaseConfirmingTitle: String? = nil
     var purchaseConfirmingMessage: String? = nil
+    /// A start connect blocked by the balance opened the sheet: it leads with
+    /// when the free data refreshes and offers Wait for refresh, which
+    /// dismisses it (upgradeShowsFreeRefresh).
+    var showsFreeRefresh: Bool = false
     var dismiss: () -> Void
 
     @State var selectedPaymentOption: PaymentOption = .yearly
@@ -206,7 +210,24 @@ struct UpgradeSubscriptionSheet: View {
                                 }
 
                                 // No explainer under the title: the screen is the title and
-                                // the two plan options.
+                                // the two plan options. A blocked connect is the exception:
+                                // upgrading must not read as the only way back, so it says
+                                // when the free data refreshes and offers to wait for it.
+                                if showsFreeRefresh {
+                                    Spacer().frame(height: 8)
+
+                                    FreeRefreshCountdownText()
+
+                                    Spacer().frame(height: 16)
+
+                                    UrButton(
+                                        text: "Wait for refresh",
+                                        action: dismiss,
+                                        style: .outlineSecondary,
+                                        accessibilityIdentifier: "acceptance.upgrade.waitForRefresh"
+                                    )
+                                }
+
                                 Spacer().frame(height: 24)
 
                                 /**

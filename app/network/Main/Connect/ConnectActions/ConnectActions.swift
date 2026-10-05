@@ -68,6 +68,9 @@ struct ConnectActions: View {
     let referralLine: ReferralBonusLine
     // the usage bar referral row opens the one Referrals screen
     let openReferrals: () -> Void
+    // the usage bar's info button and the out-of-balance Why? open the
+    // "About your data" sheet
+    let openDataInfo: () -> Void
     let isPro: Bool
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
@@ -108,6 +111,10 @@ struct ConnectActions: View {
         )
     }
 
+    private var notice: OutOfBalanceNotice {
+        outOfBalanceNotice(buttons: actionButtons)
+    }
+
     var body: some View {
             
             VStack {
@@ -133,14 +140,33 @@ struct ConnectActions: View {
                              * disconnect stays offered while a connect is
                              * requested, so the tunnel can always be released.
                              * The notice and both buttons sit above the fold
-                             * marker, so the collapsed drawer shows them.
+                             * marker, so the collapsed drawer shows them. The
+                             * notice leads with when the free data refreshes,
+                             * so upgrading does not read as the only way back.
                              */
 
-                            Text(InsufficientBalanceNotice.body)
-                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("acceptance.insufficientBalance.notice")
+                            if notice.refresh {
+                                HStack(alignment: .firstTextBaseline) {
+                                    FreeRefreshCountdownText()
+
+                                    Button(action: openDataInfo) {
+                                        Text("Why?")
+                                            .font(themeManager.currentTheme.secondaryBodyFont)
+                                            .underline()
+                                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier("acceptance.insufficientBalance.why")
+                                }
+                            }
+
+                            if notice.held {
+                                Text(InsufficientBalanceNotice.body)
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("acceptance.insufficientBalance.notice")
+                            }
                             
                             HStack {
                                 UrButton(
@@ -354,7 +380,8 @@ struct ConnectActions: View {
                             meanReliabilityWeight: meanReliabilityWeight,
                             referralLine: referralLine,
                             dailyBalanceByteCount: dailyBalanceByteCount,
-                            openReferrals: openReferrals
+                            openReferrals: openReferrals,
+                            openDataInfo: openDataInfo
                         )
                         
                     }

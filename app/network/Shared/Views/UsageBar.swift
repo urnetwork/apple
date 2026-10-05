@@ -32,6 +32,9 @@ struct UsageBar: View {
     let openReferrals: (() -> Void)?
     // the referral row; off where referrals have their own screen
     let showReferrals: Bool
+    // when set, an info button by the daily balance opens the "About your
+    // data" sheet (DataInfoSheet)
+    let openDataInfo: (() -> Void)?
 
     init(
         availableByteCount: Int,
@@ -41,7 +44,8 @@ struct UsageBar: View {
         referralLine: ReferralBonusLine = .unavailable,
         dailyBalanceByteCount: Int,
         openReferrals: (() -> Void)? = nil,
-        showReferrals: Bool = true
+        showReferrals: Bool = true,
+        openDataInfo: (() -> Void)? = nil
     ) {
         // the series names are also the chart legend labels, so they localize;
         // they must match the chartForegroundStyleScale keys below exactly
@@ -58,6 +62,7 @@ struct UsageBar: View {
         cappedReliabilityData = min(meanReliabilityWeight * 100, 100)
         self.dailyBalanceByteCount = dailyBalanceByteCount
         self.openReferrals = openReferrals
+        self.openDataInfo = openDataInfo
         self.showReferrals = showReferrals
     }
     
@@ -148,6 +153,17 @@ struct UsageBar: View {
                 Text("Daily Data Balance:")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundStyle(themeManager.currentTheme.textMutedColor)
+
+                if let openDataInfo = openDataInfo {
+                    Button(action: openDataInfo) {
+                        Image(systemName: "info.circle")
+                            .imageScale(.small)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("About your data")
+                    .accessibilityIdentifier("acceptance.usageBar.dataInfo")
+                }
                 
                 Spacer()
                 

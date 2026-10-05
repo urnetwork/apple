@@ -63,6 +63,7 @@ import URnetworkSdk
         @ObservedObject var referralLinkViewModel: ReferralLinkViewModel
         // the one Referrals screen, presented from the drawer's referral row
         @State private var isPresentedReferrals = false
+        @State private var isPresentedDataInfo = false
 
         init(
             api: SdkApi,
@@ -142,6 +143,9 @@ import URnetworkSdk
                                 referralLine: referralLinkViewModel.referralBonusLine,
                                 openReferrals: {
                                     isPresentedReferrals = true
+                                },
+                                openDataInfo: {
+                                    isPresentedDataInfo = true
                                 },
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
@@ -280,6 +284,8 @@ import URnetworkSdk
                 .environmentObject(themeManager)
                 .frame(minWidth: 560, minHeight: 640)
             }
+            // "About your data", from the usage bar and the out-of-balance notice
+            .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 // a legacy guest adds a sign-in method to this network
@@ -349,6 +355,10 @@ import URnetworkSdk
                         restoreMessage: subscriptionStore.restoreResultMessage,
                         purchaseConfirmingTitle: subscriptionStore.purchaseConfirmingTitle,
                         purchaseConfirmingMessage: subscriptionStore.purchaseConfirmingMessage,
+                        showsFreeRefresh: upgradeShowsFreeRefresh(
+                            openedByStartConnectBlock: connectViewModel.upgradeOpenedByStartConnectBlock,
+                            isPro: isPro
+                        ),
                         dismiss: {
                             connectViewModel.isPresentedUpgradeSheet = false
                             // the purchase flags describe ONE attempt; letting them

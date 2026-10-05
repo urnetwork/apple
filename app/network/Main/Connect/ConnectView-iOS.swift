@@ -45,6 +45,7 @@ struct ConnectView_iOS: View {
     @State private var isSheetExpanded = false
     // the one Referrals screen, presented from the drawer's referral row
     @State private var isPresentedReferrals = false
+    @State private var isPresentedDataInfo = false
     @State private var sheetDragTranslation: CGFloat = 0
     @State private var presentedStatsSheet: ConnectStatsSheet? = nil
     
@@ -269,6 +270,10 @@ struct ConnectView_iOS: View {
                                     isSheetExpanded = false
                                     isPresentedReferrals = true
                                 },
+                                openDataInfo: {
+                                    isSheetExpanded = false
+                                    isPresentedDataInfo = true
+                                },
                                 isPro: isPro,
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
@@ -445,6 +450,8 @@ struct ConnectView_iOS: View {
             )
             .environmentObject(themeManager)
         }
+        // "About your data", from the usage bar and the out-of-balance notice
+        .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
             // upgrade subscription
             .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 // a legacy guest adds a sign-in method to this network
@@ -498,6 +505,10 @@ struct ConnectView_iOS: View {
                         },
                         isRestoringPurchases: subscriptionManager.isRestoringPurchases,
                         restoreMessage: subscriptionManager.restoreResultMessage,
+                        showsFreeRefresh: upgradeShowsFreeRefresh(
+                            openedByStartConnectBlock: connectViewModel.upgradeOpenedByStartConnectBlock,
+                            isPro: isPro
+                        ),
                         dismiss: {
                             connectViewModel.isPresentedUpgradeSheet = false
                             // the purchase flags describe ONE attempt; letting them

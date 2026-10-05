@@ -30,6 +30,7 @@ struct AccountRootView: View {
 
     /// StoreKit's manage-subscriptions sheet (iOS; macOS opens the App Store page).
     @State private var isPresentedManageSubscriptions: Bool = false
+    @State private var isPresentedDataInfo: Bool = false
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     /// A Pro network's plan label replays the Pro celebration.
@@ -226,7 +227,8 @@ struct AccountRootView: View {
                             meanReliabilityWeight: meanReliabilityWeight,
                             referralLine: referralLinkViewModel.referralBonusLine,
                             dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
-                            openReferrals: { openReferrals(isGuest: isGuest) }
+                            openReferrals: { openReferrals(isGuest: isGuest) },
+                            openDataInfo: { isPresentedDataInfo = true }
                         )
                         
                         /**
@@ -509,6 +511,8 @@ struct AccountRootView: View {
                 await subscriptionBalanceViewModel.fetchSubscriptionBalance()
             }
         }
+        // "About your data", from the usage bar's info button
+        .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
         .sheet(isPresented: $viewModel.isPresentedRedeemBalanceCodeSheet) {
             
             VStack {

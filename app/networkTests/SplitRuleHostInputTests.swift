@@ -148,4 +148,62 @@ struct SplitRuleHostInputTests {
             #expect(!SplitRuleHostInput.message(for: error).isEmpty)
         }
     }
+
+    // MARK: presets
+
+    /// A preset creates a rule from its values without the field in between,
+    /// so each value must be one this grammar accepts and stores exactly as
+    /// written, with no duplicate or covered value in the same preset.
+    /// Anything else would be the silent dead rule described above.
+    @Test func presetValuesAreAcceptedAsWritten() {
+        for preset in SplitRulePreset.all {
+            var existing: [String] = []
+            for host in preset.hosts {
+                let validation = SplitRuleHostInput.validate(host, existing: existing)
+                #expect(validation.isAccepted, "\(preset.id): \(host) is refused")
+                #expect(validation.normalized == host, "\(preset.id): \(host) is stored as \(validation.normalized ?? "nothing")")
+                existing.append(host)
+            }
+        }
+    }
+
+    /// The tunnel is dual-stack, so a call can reach the service over either
+    /// family. A preset with ranges for one family would bypass only half.
+    @Test func presetsCoverBothAddressFamilies() {
+        for preset in SplitRulePreset.all {
+            #expect(preset.hosts.contains { SplitRuleHostInput.maskedPrefix($0).map { !$0.contains(":") } == true },
+                "\(preset.id) has no IPv4 range")
+            #expect(preset.hosts.contains { SplitRuleHostInput.maskedPrefix($0)?.contains(":") == true },
+                "\(preset.id) has no IPv6 range")
+        }
+    }
+
+    /// The bar for a preset is that the service publishes the values itself
+    /// for use outside a VPN, so each preset names that source, on the
+    /// service's own domain.
+    @Test func presetsCiteTheServicesOwnDocumentation() {
+        let owners = ["microsoft-teams": "microsoft.com", "google-meet": "google.com"]
+        #expect(Set(SplitRulePreset.all.map { $0.id }) == Set(owners.keys))
+        for preset in SplitRulePreset.all {
+            let host = preset.source.host ?? ""
+            #expect(preset.source.scheme == "https")
+            #expect(host.hasSuffix("." + (owners[preset.id] ?? "-")), "\(preset.id) cites \(host)")
+        }
+    }
+
+    /// Starting from a preset that one rule already holds would only add a
+    /// second copy of that rule, so the menu shows it as added.
+    @Test func aPresetIsAddedOnlyWhenOneRuleHoldsAllOfIt() {
+        let teams = SplitRulePreset.microsoftTeams
+        #expect(!teams.isApplied(in: []))
+        #expect(teams.isApplied(in: [["example.com"], teams.hosts]))
+        // other values in the same rule do not matter
+        #expect(teams.isApplied(in: [["example.com"] + teams.hosts]))
+        // part of the preset is not the preset
+        #expect(!teams.isApplied(in: [Array(teams.hosts.dropLast())]))
+        // nor is the preset split across two rules
+        #expect(!teams.isApplied(in: [[teams.hosts[0]], Array(teams.hosts.dropFirst())]))
+        // one preset does not count as another
+        #expect(!SplitRulePreset.googleMeet.isApplied(in: [teams.hosts]))
+    }
 }

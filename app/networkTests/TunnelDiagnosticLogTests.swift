@@ -151,7 +151,7 @@ struct TunnelDiagnosticLogTests {
     @Test func thePathLineIsBoundedAndClean() {
         let line = Self.path(
             interfaces: [.wifi, .cellular, .wiredEthernet, .other, .loopback],
-            cellular: (0..<50).map { "CTRadioAccessTechnology\($0)\(String(repeating: "Z", count: 40))\n10.0.0.1" }
+            cellular: (0..<50).map { "CTRadioAccessTechnology\($0)\(String(repeating: "Z", count: 40))\n192.0.2.1" }
         ).line
         #expect(line.utf8.count < 300)
         #expect(line.unicodeScalars.allSatisfy { CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789 =,-").contains($0) })

@@ -40,6 +40,7 @@ struct TunnelDiagnosticLog {
     let osLog: (String) -> Void
     let sdkLog: (_ tag: String, _ line: String) -> Void
 
+    /// Writes `line` under `tag` to both logs.
     func write(tag: String, line: String) {
         osLog("[\(tag)] \(line)")
         sdkLog(tag, line)
@@ -137,6 +138,7 @@ struct TunnelPathDiagnostic: Equatable {
         )
     }
 
+    /// Each field as given, for a diagnostic built without an NWPath (tests).
     init(
         status: NWPath.Status,
         unsatisfiedReason: NWPath.UnsatisfiedReason?,
@@ -193,6 +195,7 @@ struct TunnelPathDiagnostic: Equatable {
     private static let interfaceNameOrder = ["wifi", "cellular", "wired", "other", "loopback"]
 }
 
+/// A path status as the line names it.
 func tunnelPathStatusName(_ status: NWPath.Status) -> String {
     switch status {
     case .satisfied: return "satisfied"
@@ -219,6 +222,7 @@ func tunnelPathUnsatisfiedReasonName(_ reason: NWPath.UnsatisfiedReason) -> Stri
     }
 }
 
+/// An interface type as the line names it.
 func tunnelInterfaceTypeName(_ type: NWInterface.InterfaceType) -> String {
     switch type {
     case .wifi: return "wifi"

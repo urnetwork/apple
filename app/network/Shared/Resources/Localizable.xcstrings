@@ -64156,6 +64156,173 @@
         }
       }
     },
+    "Keeps one exit for the session; changes only if that provider goes offline." : {
+      "comment" : "Subtitle under the Fixed IP toggle in the connect options. With Fixed IP on, the connection keeps the same exit (provider) for the whole session, so the egress IP stays the same unless that provider goes offline.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتفظ بمخرج واحد طوال الجلسة؛ ولا يتغير إلا إذا انقطع اتصال ذلك المزود."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ponechá jeden výstup po celou relaci; změní se, jen když se tento poskytovatel odpojí."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behält einen Exit für die Sitzung; wechselt nur, wenn dieser Anbieter offline geht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διατηρεί μία έξοδο για όλη τη συνεδρία· αλλάζει μόνο αν αυτός ο πάροχος αποσυνδεθεί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps one exit for the session; changes only if that provider goes offline."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantiene una sola salida durante la sesión; solo cambia si ese proveedor se desconecta."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantiene una sola salida durante la sesión; solo cambia si ese proveedor se desconecta."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantiene una sola salida durante la sesión; solo cambia si ese proveedor se desconecta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conserve une seule sortie pendant la session ; elle ne change que si ce fournisseur se déconnecte."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שומר על יציאה אחת לאורך ההפעלה; משתנה רק אם הספק הזה מתנתק."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पूरे सत्र में एक ही एग्ज़िट रखता है; यह तभी बदलता है जब वह प्रदाता ऑफ़लाइन हो जाए।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mempertahankan satu titik keluar selama sesi; hanya berubah jika penyedia tersebut offline."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantiene una sola uscita per tutta la sessione; cambia solo se quel provider va offline."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "セッション中は同じ出口を使い続けます。そのプロバイダーがオフラインになった場合にのみ変わります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세션 동안 하나의 출구를 유지하며, 해당 제공자가 오프라인이 될 때만 바뀝니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Houdt één exit aan voor de sessie; wisselt alleen als die aanbieder offline gaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utrzymuje jedno wyjście przez całą sesję; zmienia się tylko wtedy, gdy ten dostawca przejdzie w tryb offline."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantém uma única saída durante a sessão; só muda se esse provedor ficar offline."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantém uma única saída durante a sessão; só muda se esse provedor ficar offline."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantém uma única saída durante a sessão; só muda se esse fornecedor ficar offline."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохраняет один выход на всю сессию; меняется, только если этот провайдер отключится."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behåller en utgång under hela sessionen; byts bara om den leverantören går offline."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ใช้ทางออกเดียวตลอดเซสชัน และจะเปลี่ยนก็ต่อเมื่อผู้ให้บริการนั้นออฟไลน์เท่านั้น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберігає один вихід на всю сесію; змінюється, лише якщо цей провайдер відключиться."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giữ một điểm thoát trong suốt phiên; chỉ thay đổi nếu nhà cung cấp đó ngoại tuyến."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在整个会话中保持同一个出口；仅当该提供商离线时才会更换。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在整個工作階段中保持同一個出口；只有該供應商離線時才會更換。"
+          }
+        }
+      }
+    },
     "Keeps this provider's IP address until it goes offline." : {
       "comment" : "Muted line under the Stay on this exit button in the Provider Locations sheet: what staying on one provider does.",
       "localizations" : {

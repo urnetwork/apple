@@ -92,9 +92,15 @@ final class EarningsSdkClient: EarningsClient {
         return device
     }
 
-    private static func error(_ snError: SdkSnError?) -> EarningsClientError? {
+    /// An SDK result's error as a client error (nil for none). The POST
+    /// /sn/wallet signature mismatch keeps its own case for the connect flow;
+    /// any other error reads "code: message", or the code alone.
+    static func error(_ snError: SdkSnError?) -> EarningsClientError? {
         guard let snError else {
             return nil
+        }
+        if snError.code == EarningsClientError.signatureMismatchCode {
+            return .signatureMismatch(snError.message)
         }
         if snError.message.isEmpty {
             return .message(snError.code)

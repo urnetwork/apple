@@ -104,6 +104,13 @@ enum EarningsClientError: LocalizedError, Equatable {
     case noWallet
     case emptyResult
     case message(String)
+    /// POST /sn/wallet refused the coldkey signature: it does not verify for
+    /// the address (the wallet signed with another account, or other text).
+    /// Carries the server's message.
+    case signatureMismatch(String)
+
+    /// the SDK's SnError code for `signatureMismatch` (sdk SnErrorCodeSignatureMismatch)
+    static let signatureMismatchCode = "signature_mismatch"
 
     var errorDescription: String? {
         switch self {
@@ -115,6 +122,9 @@ enum EarningsClientError: LocalizedError, Equatable {
             return "The chain RPC is unreachable. Try again."
         case .message(let message):
             return message
+        case .signatureMismatch(let message):
+            // as any other coded SDK error reads
+            return "\(Self.signatureMismatchCode): \(message)"
         }
     }
 }

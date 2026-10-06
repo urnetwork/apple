@@ -1928,6 +1928,10 @@ extension DeviceManager {
 
     func logout() {
         guard beginLogout() else { return }
+        // The credential the api attaches to its calls goes at once: the next
+        // sign-in's calls would otherwise carry the signed-out network's
+        // (each network starts fresh, owner decision 2026-10-05).
+        api?.setByJwt(nil)
         if startupMode.allowsVPNProfileSystemAccess {
             SharedTunnelJwtStore.clear()
         }

@@ -77167,6 +77167,173 @@
         }
       }
     },
+    "Extenders reset" : {
+      "comment" : "Confirmation after the extenders were reset (Extenders section under account).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمت إعادة ضبط الموسّعات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extendery byly resetovány"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender zurückgesetzt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Έγινε επαναφορά των επεκτατών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extenders reset"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensores restablecidos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensores restablecidos"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensores restablecidos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extendeurs réinitialisés"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המרחיבים אופסו"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक्सटेंडर रीसेट हो गए"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender disetel ulang"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender reimpostati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エクステンダーをリセットしました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "익스텐더를 재설정했습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extenders gereset"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zresetowano extendery"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensores repostos"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensores redefinidos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensores repostos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экстендеры сброшены"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extendrarna har återställts"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รีเซ็ตตัวขยายแล้ว"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Екстендери скинуто"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã đặt lại bộ mở rộng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扩展器已重置"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "擴展器已重設"
+          }
+        }
+      }
+    },
     "Extra silent destinations required per this many flows before a busy exit can be benched on soft evidence: a 24-flow exit at 8 needs 3 silent sites, not 2. Off keeps the flat minimum" : {
       "comment" : "Developer tools screen: explanatory subtext under the 'load corroboration' control.",
       "localizations" : {
@@ -139871,6 +140038,173 @@
         }
       }
     },
+    "Reset extenders" : {
+      "comment" : "Button in the Extenders section under account, the title of its confirmation, and the confirmation's action: removes the extenders the user added and clears everything learned about extenders.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة ضبط الموسّعات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetovat extendery"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender zurücksetzen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επαναφορά επεκτατών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset extenders"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer extensores"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer extensores"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer extensores"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser les extendeurs"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איפוס מרחיבים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक्सटेंडर रीसेट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setel ulang extender"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimposta extender"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エクステンダーをリセット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "익스텐더 재설정"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extenders resetten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetuj extendery"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repor extensores"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redefinir extensores"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repor extensores"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить экстендеры"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Återställ extendrar"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รีเซ็ตตัวขยาย"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скинути екстендери"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt lại bộ mở rộng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置扩展器"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重設擴展器"
+          }
+        }
+      }
+    },
     "Reset it." : {
       "comment" : "Button text for resetting password",
       "localizations" : {
@@ -174713,6 +175047,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此地區"
+          }
+        }
+      }
+    },
+    "This removes the extenders you added and clears everything learned about extenders, which are then discovered again from scratch." : {
+      "comment" : "Body of the confirmation before resetting extenders (Extenders section under account): what the reset removes and clears.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيؤدي هذا إلى إزالة الموسّعات التي أضفتها ومسح كل ما عُرف عن الموسّعات، ثم يُعاد اكتشافها من البداية."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tím odeberete extendery, které jste přidali, a vymažete vše, co se o extenderech zjistilo. Extendery se pak vyhledají znovu od začátku."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dadurch werden die Extender entfernt, die du hinzugefügt hast, und alles gelöscht, was über Extender bekannt ist. Danach werden Extender von Grund auf neu gesucht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Έτσι αφαιρούνται οι επεκτατές που προσθέσατε και διαγράφονται όσα είναι γνωστά για τους επεκτατές, οι οποίοι στη συνέχεια εντοπίζονται ξανά από την αρχή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This removes the extenders you added and clears everything learned about extenders, which are then discovered again from scratch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina los extensores que añadiste y borra todo lo que se sabe sobre los extensores, que después se vuelven a descubrir desde cero."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina los extensores que agregaste y borra todo lo que se sabe sobre los extensores, que después se vuelven a descubrir desde cero."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina los extensores que agregaste y borra todo lo que se sabe sobre los extensores, que después se vuelven a descubrir desde cero."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action supprime les extendeurs que vous avez ajoutés et efface tout ce qui est connu sur les extendeurs. Ils sont ensuite redécouverts depuis le début."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פעולה זו מסירה את המרחיבים שהוספת ומוחקת את כל מה שידוע על מרחיבים. לאחר מכן המרחיבים יאותרו מחדש מההתחלה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इससे आपके जोड़े गए एक्सटेंडर हट जाएंगे और एक्सटेंडर के बारे में जुटाई गई सारी जानकारी मिट जाएगी। इसके बाद एक्सटेंडर शुरू से फिर खोजे जाएंगे।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ini menghapus extender yang Anda tambahkan dan semua yang diketahui tentang extender. Setelah itu, extender ditemukan lagi dari awal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa azione rimuove gli extender che hai aggiunto e cancella tutto ciò che si sa sugli extender, che vengono poi individuati di nuovo da zero."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加したエクステンダーが削除され、エクステンダーについて把握している情報がすべて消去されます。その後、エクステンダーは最初から検出し直されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가한 익스텐더가 삭제되고 익스텐더에 대해 알고 있던 정보가 모두 지워집니다. 이후 익스텐더를 처음부터 다시 찾습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiermee worden de extenders die je hebt toegevoegd verwijderd en wordt alles gewist wat over extenders bekend is. Daarna worden extenders opnieuw vanaf nul gezocht."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spowoduje to usunięcie dodanych przez Ciebie extenderów i wyczyszczenie wszystkiego, co wiadomo o extenderach. Extendery zostaną potem wykryte od nowa."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto remove os extensores que adicionou e apaga tudo o que se sabe sobre os extensores, que voltam depois a ser descobertos do zero."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso remove os extensores que você adicionou e apaga tudo o que se sabe sobre os extensores, que depois são descobertos de novo do zero."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto remove os extensores que adicionou e apaga tudo o que se sabe sobre os extensores, que voltam depois a ser descobertos do zero."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавленные вами экстендеры будут удалены, а всё, что известно об экстендерах, будет стёрто. Затем экстендеры будут найдены заново."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detta tar bort de extendrar du har lagt till och rensar allt som är känt om extendrar. Sedan söks extendrar upp igen från början."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การดำเนินการนี้จะลบตัวขยายที่คุณเพิ่มไว้และล้างข้อมูลทั้งหมดที่รู้เกี่ยวกับตัวขยาย จากนั้นจะค้นหาตัวขยายใหม่ตั้งแต่ต้น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додані вами екстендери буде видалено, а все, що відомо про екстендери, буде стерто. Потім екстендери буде знайдено заново."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thao tác này xóa các bộ mở rộng bạn đã thêm và xóa mọi thông tin đã biết về bộ mở rộng. Sau đó bộ mở rộng sẽ được tìm lại từ đầu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这会移除已添加的扩展器，并清除已知的所有扩展器信息，之后将从头重新发现扩展器。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這會移除已新增的擴展器，並清除已知的所有擴展器資料，之後會從頭重新發現擴展器。"
           }
         }
       }

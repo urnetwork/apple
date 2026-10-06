@@ -161307,7 +161307,7 @@
       }
     },
     "Support" : {
-      "comment" : "Used in Shared/ViewModels/SubscriptionBalanceViewModel.swift.",
+      "comment" : "Navigation: the Support tab, page or section, where users send feedback and contact the URnetwork support team. Customer support, not backing; use the word the language uses for a support team.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -161360,7 +161360,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Support"
+            "value" : "Assistance"
           }
         },
         "he" : {
@@ -161384,7 +161384,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Supporto"
+            "value" : "Assistenza"
           }
         },
         "ja" : {
@@ -161396,19 +161396,19 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "지원"
+            "value" : "고객 지원"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ondersteuning"
+            "value" : "Support"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wsparcie"
+            "value" : "Pomoc techniczna"
           }
         },
         "pt" : {
@@ -161444,7 +161444,7 @@
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "สนับสนุน"
+            "value" : "ฝ่ายสนับสนุน"
           }
         },
         "uk" : {
@@ -161462,7 +161462,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支持"
+            "value" : "客户支持"
           }
         },
         "zh-HK" : {

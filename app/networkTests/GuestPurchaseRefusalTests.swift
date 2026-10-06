@@ -8,6 +8,12 @@
 //  (GuestPurchaseGate) instead of an error: a refreshed guest reads as an
 //  account until the balance reports it, so the app could get this far.
 //
+//  Every other refusal keeps its code and message, and the purchase words
+//  the code the way ur.io's payment screens do (CheckoutRefusal, as
+//  paymentFailure.js): a code with a line reads that translated line alone,
+//  invalid_request and start_failed the screen's own line, and any other
+//  code, or none, the screen's own line with the server's words under it.
+//
 
 import Foundation
 import Testing
@@ -24,11 +30,92 @@ struct GuestPurchaseRefusalTests {
         #expect(StripeBillingError.refused(code: "guest_sign_in_required", message: Self.message) == .guestSignInRequired)
     }
 
-    @Test func otherRefusalsKeepTheServersMessage() {
-        // an older server sends no code; other refusals have none
-        #expect(StripeBillingError.refused(code: "", message: "Unknown plan.") == .server("Unknown plan."))
-        #expect(StripeBillingError.refused(code: "GUEST_SIGN_IN_REQUIRED", message: Self.message) == .server(Self.message))
-        #expect(StripeBillingError.refused(code: "verify_rate_limited", message: "Too many.") == .server("Too many."))
+    @Test func otherRefusalsKeepTheirCodeAndMessage() {
+        // an older server sends no code; codes compare exactly
+        #expect(StripeBillingError.refused(code: "", message: "Unknown plan.") == .refusal(code: "", message: "Unknown plan."))
+        #expect(StripeBillingError.refused(code: "GUEST_SIGN_IN_REQUIRED", message: Self.message) == .refusal(code: "GUEST_SIGN_IN_REQUIRED", message: Self.message))
+        #expect(StripeBillingError.refused(code: "already_subscribed", message: "Already subscribed.") == .refusal(code: "already_subscribed", message: "Already subscribed."))
+    }
+
+    // MARK: the words for a refusal's code
+
+    private static let screenLine = "The screen's own line."
+    private static let words = "The server's own words."
+
+    /// The codes with a line of their own, and the line's source (its English).
+    private static let lines = [
+        ("already_subscribed", "You already have Pro, so nothing was charged. Manage your subscription from your account."),
+        ("plan_unavailable", "This plan is not available right now. Try again later."),
+        ("checkout_unavailable", "Checkout isn't available right now. Please try again later."),
+    ]
+
+    @Test func aCodeWithALineReadsThatLineAlone() {
+        #expect(CheckoutRefusal.message(code: "already_subscribed", words: Self.words, screenLine: Self.screenLine)
+            == String(localized: "You already have Pro, so nothing was charged. Manage your subscription from your account."))
+        #expect(CheckoutRefusal.message(code: "plan_unavailable", words: Self.words, screenLine: Self.screenLine)
+            == String(localized: "This plan is not available right now. Try again later."))
+        #expect(CheckoutRefusal.message(code: "checkout_unavailable", words: Self.words, screenLine: Self.screenLine)
+            == String(localized: "Checkout isn't available right now. Please try again later."))
+    }
+
+    @Test func invalidRequestAndStartFailedReadTheScreensLineAlone() {
+        // a client defect, and a start to try again
+        for code in ["invalid_request", "start_failed"] {
+            #expect(CheckoutRefusal.message(code: code, words: Self.words, screenLine: Self.screenLine) == Self.screenLine, "\(code)")
+        }
+    }
+
+    @Test func anyOtherCodeOrNoneReadsTheScreensLineWithTheServersWords() {
+        // no code from an older server, codes without a line here, and codes
+        // that match one only when case is ignored
+        for code in ["", "rate_limited", "item_unavailable", "offer_unavailable", "ALREADY_SUBSCRIBED", "Start_Failed"] {
+            #expect(CheckoutRefusal.message(code: code, words: Self.words, screenLine: Self.screenLine)
+                == "The screen's own line.\nThe server's own words.", "\(code)")
+        }
+        // nothing goes under the line when the server said nothing more
+        #expect(CheckoutRefusal.message(code: "", words: "", screenLine: Self.screenLine) == Self.screenLine)
+        #expect(CheckoutRefusal.message(code: "", words: Self.screenLine, screenLine: Self.screenLine) == Self.screenLine)
+    }
+
+    private static func catalogStrings() throws -> [String: Any] {
+        let data = try Data(contentsOf: appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        return try #require(catalog?["strings"] as? [String: Any])
+    }
+
+    private static func value(_ localizations: [String: Any], _ locale: String) -> String? {
+        let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+        return unit?["value"] as? String
+    }
+
+    /// The lines come from the localizations store, translated for every
+    /// locale the catalog ships.
+    @Test func theLinesAreTranslatedInEveryLocale() throws {
+        let strings = try Self.catalogStrings()
+        var locales = Set<String>()
+        for case let entry as [String: Any] in strings.values {
+            if let localizations = entry["localizations"] as? [String: Any] {
+                locales.formUnion(localizations.keys)
+            }
+        }
+        #expect(locales.contains("zh-Hans"))
+
+        for (code, source) in Self.lines {
+            let entry = try #require(strings[source] as? [String: Any], "the catalog has no line for \(code)")
+            #expect(entry["extractionState"] as? String != "stale")
+            let localizations = try #require(entry["localizations"] as? [String: Any])
+            var missing: [String] = []
+            for locale in locales.sorted() {
+                guard let value = Self.value(localizations, locale), !value.isEmpty else {
+                    missing.append(locale)
+                    continue
+                }
+                if locale != "en" {
+                    #expect(value != source, "\(code): \(locale) is English")
+                }
+            }
+            #expect(missing.isEmpty, "\(code) is not translated: \(missing)")
+        }
     }
 
     @MainActor

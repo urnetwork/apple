@@ -224,18 +224,75 @@ struct StripeSubscriptionStoreTests {
         #expect(polled == 2)
     }
 
-    @Test @MainActor func everythingFailingRendersTheServersMessage() async {
+    @Test @MainActor func everythingFailingRendersTheSheetsLineWithTheServersWords() async {
         let client = FakeClient()
-        client.hosted = .failure(StripeBillingError.server("Billing is unavailable in your region."))
+        // an older server's refusal has no code
+        client.hosted = .failure(StripeBillingError.refused(code: "", message: "Billing is unavailable in your region."))
         let store = Self.store(client)
         await store.purchase(plan: .yearly, onSuccess: {})
-        #expect(store.purchaseError == "Billing is unavailable in your region.")
+        #expect(store.purchaseError == "Something went wrong. Please try again later.\nBilling is unavailable in your region.")
         #expect(!store.isPurchasing)
         #expect(!store.purchaseSuccess)
 
+        // no answer at all: the sheet's line alone
         client.hosted = .failure(StripeBillingError.unavailable)
         await store.purchase(plan: .yearly, onSuccess: {})
         #expect(store.purchaseError == "Something went wrong. Please try again later.")
+    }
+
+    // MARK: a refused checkout session
+
+    /// The hosted session is the last stage, so its refusal is the one the
+    /// sheet shows: this app's line for a code that has one, the sheet's own
+    /// line for invalid_request and start_failed, and the sheet's own line
+    /// with the server's words under it for any other code.
+    @Test @MainActor func aHostedRefusalReadsInTheAppsWordsForItsCode() async {
+        let words = "The server's own words."
+        let screenLine = String(localized: "Something went wrong. Please try again later.")
+        let cases = [
+            ("already_subscribed", String(localized: "You already have Pro, so nothing was charged. Manage your subscription from your account.")),
+            ("plan_unavailable", String(localized: "This plan is not available right now. Try again later.")),
+            ("checkout_unavailable", String(localized: "Checkout isn't available right now. Please try again later.")),
+            ("invalid_request", screenLine),
+            ("start_failed", screenLine),
+            ("rate_limited", "\(screenLine)\n\(words)"),
+        ]
+        let client = FakeClient()
+        var opened: [URL] = []
+        let store = Self.store(client, opened: { opened.append($0); return true })
+        var polled = 0
+        for (code, purchaseError) in cases {
+            client.hosted = .failure(StripeBillingError.refused(code: code, message: words))
+            await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+            #expect(store.purchaseError == purchaseError, "\(code)")
+            #expect(!store.isPurchasing, "\(code)")
+            #expect(!store.purchaseSuccess, "\(code)")
+        }
+        #expect(opened.isEmpty)
+        #expect(polled == 0)
+        #expect(store.guestSignInRequiredSequence == 0)
+    }
+
+    /// The pay sheet's and the embedded session's refusals still fall through
+    /// to the next stage: the sheet shows the hosted session's refusal, and a
+    /// hosted page that opens still wins.
+    @Test @MainActor func theEarlierStagesRefusalsFallThroughToTheHostedSession() async {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.refused(code: "plan_unavailable", message: "No pay sheet price."))
+        client.embedded = .failure(StripeBillingError.refused(code: "start_failed", message: "Stripe did not answer."))
+        client.hosted = .failure(StripeBillingError.refused(code: "already_subscribed", message: "Already subscribed."))
+        let store = Self.store(client)
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded:never", "session:pro_monthly:hosted"])
+        #expect(store.purchaseError == String(localized: "You already have Pro, so nothing was charged. Manage your subscription from your account."))
+
+        // and a hosted page that opens still wins
+        client.calls.removeAll()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_1"))
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded:never", "session:pro_monthly:hosted"])
+        #expect(store.purchaseError == nil)
+        #expect(store.purchaseSuccess)
     }
 
     // MARK: a guest network

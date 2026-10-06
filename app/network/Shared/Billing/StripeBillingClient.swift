@@ -27,6 +27,10 @@ struct StripeCheckoutSessionResponse: Equatable {
 enum StripeBillingError: LocalizedError, Equatable {
     /// The server answered with an error message.
     case server(String)
+    /// The server refused a payment sheet or checkout session: its code (one
+    /// of the server's PurchaseErrorCode* values, empty from an older server)
+    /// and its English message. The purchase words it with CheckoutRefusal.
+    case refusal(code: String, message: String)
     /// The server refused the purchase because the network is a legacy guest
     /// with no sign-in method (`guest_sign_in_required`): it adds one first
     /// (GuestPurchaseGate), and no other checkout can sell it a plan.
@@ -36,7 +40,7 @@ enum StripeBillingError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .server(let message):
+        case .server(let message), .refusal(_, let message):
             return message
         case .guestSignInRequired, .unavailable:
             return String(localized: "Something went wrong. Please try again later.")
@@ -44,9 +48,9 @@ enum StripeBillingError: LocalizedError, Equatable {
     }
 
     /// The error a refused payment sheet or checkout session throws: the
-    /// server's code when the app acts on it, else its message.
+    /// guest refusal the app acts on, else the server's code and message.
     static func refused(code: String, message: String) -> StripeBillingError {
-        code == SdkPurchaseErrorCodeGuestSignInRequired ? .guestSignInRequired : .server(message)
+        code == SdkPurchaseErrorCodeGuestSignInRequired ? .guestSignInRequired : .refusal(code: code, message: message)
     }
 }
 

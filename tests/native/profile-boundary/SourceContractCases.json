@@ -1,0 +1,301 @@
+[
+  {
+    "name": "clean",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {}\n",
+    "want_reject": false
+  },
+  {
+    "name": "raw_oneline_stop",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) { manager.connection.stopVPNTunnel() }\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_newline_stop",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager.connection\n        .stopVPNTunnel()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "safe_newline_stop",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    VPNProfileSystem\n        .stopVPNTunnel(manager)\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "raw_oneline_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) { manager.saveToPreferences { _ in } }\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_newline_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager\n        .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "safe_newline_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    VPNProfileSystem\n        .saveToPreferences(manager) { _ in }\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "raw_newline_reload",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager\n        .loadFromPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_newline_remove",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager\n        .removeFromPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_newline_start",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) throws {\n    try manager.connection\n        .startVPNTunnel()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_newline_static_load",
+    "source": "import NetworkExtension\n\nfunc audit() {\n    NETransparentProxyManager\n        .loadAllFromPreferences { _, _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_newline_explicit_init",
+    "source": "import NetworkExtension\n\nfunc audit() {\n    let _ = NETransparentProxyManager\n        .init()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_line_comment_stop",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager.connection // an ordinary continuation comment\n        .stopVPNTunnel()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_block_comment_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager /* an ordinary token-separating comment */ .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_multiline_comment_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager /* an ordinary\n        multiline comment */ .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_nested_comment_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager /* outer /* nested */ ordinary comment */ .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_optional_newline_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager?) {\n    manager?\n        .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_forced_newline_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager?) {\n    manager!\n        .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_parenthesized_newline_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    (manager)\n        .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_subscript_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ managers: [NETunnelProviderManager]) {\n    managers[0].saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "raw_backtick_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager.`saveToPreferences` { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "safe_comment_save",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    VPNProfileSystem /* an ordinary comment */ .saveToPreferences(manager) { _ in }\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "safe_full_line_comment",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    // manager.connection.stopVPNTunnel()\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "safe_block_comment",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    /* manager.connection.stopVPNTunnel() */\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "mixed_safe_raw_newline",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    VPNProfileSystem.stopVPNTunnel(manager); manager.connection\n        .stopVPNTunnel()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "allow_escaped_delimiters",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    \"quoted \\\" manager.saveToPreferences { _ in } \\\" and literal \\\\(manager.connection.stopVPNTunnel())\"\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_escaped_gateway",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    `VPNProfileSystem` /* split tokens */ .saveToPreferences(manager) { _ in }\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_escaped_multiline_delimiter",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    \"\"\"\n    escaped closing \\\"\"\" manager.saveToPreferences { _ in }\n    \"\"\"\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_gateway_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    \"\\(VPNProfileSystem.stopVPNTunnel(manager))\"\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_literal_comment_delimiters",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    let _ = \"/* literal comment marker */ // manager.saveToPreferences\"\n    VPNProfileSystem.stopVPNTunnel(manager)\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_multiline_string",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    \"\"\"\n    NETransparentProxyManager()\n    manager\n        .saveToPreferences { _ in }\n    \"\"\"\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_nested_comment",
+    "source": "import NetworkExtension\n\nfunc audit() {\n    /* manager.saveToPreferences { _ in }\n       /* NETransparentProxyManager() */\n       manager.connection.stopVPNTunnel() */\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_ordinary_string",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    \"manager.saveToPreferences { _ in }; NEVPNManager.shared()\"\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_raw_escaped_delimiters",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    #\"quoted \\#\" manager.saveToPreferences { _ in } \\#\" and literal \\(manager.connection.stopVPNTunnel())\"#\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_raw_hash_mismatch_literal",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    ##\"manager.saveToPreferences { _ in }; \\#(manager.connection.stopVPNTunnel())\"##\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "allow_raw_multiline_string",
+    "source": "import NetworkExtension\n\nfunc audit() -> String {\n    #\"\"\"\n    \"quote\" and \\(manager.connection.stopVPNTunnel())\n    manager.saveToPreferences { _ in }\n    \"\"\"#\n}\n",
+    "want_reject": false
+  },
+  {
+    "name": "reject_after_even_backslashes",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    let _ = \"ending slash \\\\\"; manager.connection.stopVPNTunnel()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_escaped_qualified_gateway_impostor",
+    "source": "import NetworkExtension\n\nstruct AuditNamespace {\n    let VPNProfileSystem: NETunnelProviderManager\n}\n\nfunc audit(_ namespace: AuditNamespace) {\n    namespace.`VPNProfileSystem` /* split tokens */ .`saveToPreferences` { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_interpolation_with_nested_comments",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    \"\\(manager.connection /* outer /* inner ) */ still outside ) */ .stopVPNTunnel())\"\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_line_comment_punctuation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    manager.connection // punctuation ends the comment.\n        .stopVPNTunnel()\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_multiline_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    \"\"\"\n    \\(manager.connection\n        .stopVPNTunnel())\n    \"\"\"\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_nested_comment_receiver",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    (manager) /* outer /* inner */ end */ .saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_nested_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    \"\\(\"nested \\(manager.connection.stopVPNTunnel())\")\"\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_optional_subscript_receiver",
+    "source": "import NetworkExtension\n\nfunc audit(_ managers: [NETunnelProviderManager?]) {\n    managers[0]?.saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_ordinary_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    \"\\(manager.connection.stopVPNTunnel())\"\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_parenthesized_receiver",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    (manager).saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_prefix_gateway_impostor",
+    "source": "import NetworkExtension\n\nfunc audit(_ NotVPNProfileSystem: NETunnelProviderManager) {\n    NotVPNProfileSystem.saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_qualified_gateway_impostor",
+    "source": "import NetworkExtension\n\nstruct AuditNamespace {\n    let VPNProfileSystem: NETunnelProviderManager\n}\n\nfunc audit(_ namespace: AuditNamespace) {\n    namespace.VPNProfileSystem.saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_raw_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    #\"\\#(manager.connection.stopVPNTunnel())\"#\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_raw_multiline_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    ##\"\"\"\n    \\##(manager.connection\n        .stopVPNTunnel())\n    \"\"\"##\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_raw_triple_hash_interpolation",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) -> String {\n    ###\"literal \\##(notDeclared.connection.stopVPNTunnel()); actual \\###(manager.connection.stopVPNTunnel())\"###\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_subscript_receiver",
+    "source": "import NetworkExtension\n\nfunc audit(_ managers: [NETunnelProviderManager]) {\n    managers[0].saveToPreferences { _ in }\n}\n",
+    "want_reject": true
+  },
+  {
+    "name": "reject_cr_line_comment",
+    "source": "import NetworkExtension\r\rfunc audit(_ manager: NETunnelProviderManager) {\r    // harmless comment.\r    manager.connection.stopVPNTunnel()\r}\r",
+    "want_reject": true
+  },
+  {
+    "name": "reject_crlf_line_comment",
+    "source": "import NetworkExtension\r\n\r\nfunc audit(_ manager: NETunnelProviderManager) {\r\n    // harmless comment.\r\n    manager.connection.stopVPNTunnel()\r\n}\r\n",
+    "want_reject": true
+  },
+  {
+    "name": "bare_regex_feature_requested",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    let x = 1\n    /foo\\//; manager.connection.stopVPNTunnel()\n    _ = x\n}\n",
+    "want_reject": true,
+    "compiler_flags": [
+      "-enable-bare-slash-regex"
+    ]
+  },
+  {
+    "name": "bare_regex_feature_string_mask",
+    "source": "import NetworkExtension\n\nfunc audit(_ manager: NETunnelProviderManager) {\n    let x = 1\n    /\"/; manager.connection.stopVPNTunnel(); /\"x/\n    _ = x\n}\n",
+    "want_reject": true,
+    "compiler_flags": [
+      "-enable-bare-slash-regex"
+    ]
+  },
+  {
+    "name": "bare_regex_feature_division",
+    "source": "import NetworkExtension\n\nfunc audit() -> Double {\n    let a: Double = 1\n    let b: Double = 60\n    return a/b\n}\n",
+    "want_reject": false,
+    "compiler_flags": [
+      "-enable-bare-slash-regex"
+    ]
+  },
+  {
+    "name": "safe_multiline_division",
+    "source": "import NetworkExtension\n\nfunc audit(_ count: Int, _ chunkSize: Int) -> Int {\n    return max(\n        1,\n        (count + chunkSize - 1)\n            / chunkSize\n    )\n}\n",
+    "want_reject": false
+  }
+]

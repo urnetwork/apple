@@ -601,29 +601,16 @@ apple_hardware_verify_test_log() {
 }
 
 apple_hardware_find_unguarded_profile_calls() {
-  local source_root="$1" gateway="$2" match matches scan_status=0
-
-  # Exclude the gateway receiver at each occurrence, never the whole line:
-  # an adjacent raw operation still needs to fail the audit.
-  matches="$(
-    rg --pcre2 -n --no-heading \
-      'NEVPNManager|NE(?:TunnelProvider|TransparentProxy|AppProxyProvider)Manager\s*(?:\.\s*init\s*)?\(|NE(?:TunnelProvider|TransparentProxy|AppProxyProvider)Manager\s*\.\s*loadAllFromPreferences\b|(?<!["A-Za-z0-9_])(?!VPNProfileSystem\s*\.)(?:[A-Za-z_][A-Za-z0-9_]*|\))\s*[?!]?\s*\.\s*(?:saveToPreferences|loadFromPreferences|removeFromPreferences|startVPNTunnel|stopVPNTunnel)\b' \
-      "$source_root" --glob '*.swift'
-  )" || scan_status=$?
-  # rg uses 1 for no matches; every other failure is an incomplete audit.
-  case "$scan_status" in 0|1) ;; *) return "$scan_status" ;; esac
-
-  while IFS= read -r match; do
-    [ -n "$match" ] || continue
-    case "$match" in
-      "$gateway":*) continue ;;
-    esac
-    if printf '%s\n' "$match" | grep -Eq \
-      '^[^:]+:[0-9]+:[[:space:]]*//'; then
-      continue
-    fi
-    printf '%s\n' "$match"
-  done <<<"$matches"
+  local source_root="$1" gateway="$2" scanner_directory
+  scanner_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" || return 1
+  # Tokenize whole files: valid Swift can separate an operation's receiver,
+  # dot and escaped name with newlines or nested comments. Interpolation is code.
+  # Keep go run alive to reap its signal-aware CLI; the timeout owns their
+  # common group, including compilation, and has a finite hard-kill grace.
+  timeout --kill-after=5 90 /bin/bash -c 'trap "" TERM; exec "$@"' profile-scan \
+    env GOMAXPROCS=2 GOTOOLCHAIN=local GOPROXY=off \
+    GOSUMDB=off GOWORK=off GOFLAGS= go run -p 1 \
+    "$scanner_directory/test-hardware-profile-scan.go" "$source_root" "$gateway"
 }
 
 apple_hardware_source_contract() {

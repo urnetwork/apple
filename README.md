@@ -17,7 +17,7 @@ In the console app, under Action, check:
 ### Native profile invariants
 
 `test-hardware-startup.sh`, called by the full MAIN harness, runs the profile
-gateway and split-tunnel device-subscription regressions before runtime
+gateway, split-tunnel device-subscription, and source-contract regressions before runtime
 inventory or provisioning. A failure stops the startup lane; the retained
 `profile-boundary-test.log` is in that run's artifact directory. The existing
 simulator matrix and its full unit/UI corpora still run afterward.
@@ -38,4 +38,19 @@ runs clear the source-root and sanitizer investigation overrides. The command
 contract, failure propagation, and ordering are tested by
 `bash apple/test-hardware-startup.test.sh` with fake tools.
 
+The source contract uses `test-hardware-profile-scan.go` to audit the same
+`app/network` Swift scope. It recognizes direct profile operations across
+newlines, nested comments, escaped names and expression receivers, and scans
+executable string interpolation while ignoring ordinary/raw/multiline literal
+text. Only the exact gateway file and unqualified `VPNProfileSystem` receiver
+are exempt. This lexical check does not resolve arbitrary Swift type aliases or
+dynamic dispatch; unsupported regex literals and ambiguous slash forms fail
+closed. Native-SDK-typechecked controls exercise the actual Bash contract;
+bare-slash-regex controls explicitly enable that otherwise-disabled feature.
+
+Each scanner invocation has a 90-second compile-inclusive timeout with a
+five-second hard-kill grace, a 60-second scan budget, and bounded inventory,
+file, total-source and nesting sizes. Go uses two processors and one build
+worker without toolchain downloads. Readiness-barrier tests cover inventory
+cancellation and outer termination, including the Go wrapper and compiled CLI.
 

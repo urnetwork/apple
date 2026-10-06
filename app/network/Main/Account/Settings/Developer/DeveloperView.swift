@@ -1015,6 +1015,15 @@ struct DeveloperView: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
 
+            // the provider's security rules generation, once its first
+            // diagnostics arrive. An exit with a lower number than the others
+            // runs older rules
+            if let policyGenerationLine = exit.policyGenerationLine {
+                Text(verbatim: policyGenerationLine)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+
             // migrate is the only per-exit action: probing is a full sweep
             // (see the Probing section), matching the android screen
             Button("Migrate") {

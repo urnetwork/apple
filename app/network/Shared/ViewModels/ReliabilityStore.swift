@@ -178,6 +178,12 @@ struct ReliabilityExit: Identifiable, Equatable {
     let proven: Bool
     // seconds since last proven; -1 is never
     let probeAgeSeconds: Int64
+    // the provider's diagnostics have arrived; before them nothing is known
+    // about its policy
+    let providerDiagnosticsAvailable: Bool
+    // the built-in security rules generation the provider enforces; 0 is
+    // unknown (a provider from before the field, or a custom policy)
+    let providerSecurityPolicyGeneration: Int64
 
     /**
      * nil for an exit with no client id. The go side always populates one, so
@@ -203,6 +209,8 @@ struct ReliabilityExit: Identifiable, Equatable {
         effectiveTier = exit.effectiveTier
         proven = exit.proven
         probeAgeSeconds = exit.probeAgeSeconds
+        providerDiagnosticsAvailable = exit.providerDiagnosticsAvailable
+        providerSecurityPolicyGeneration = exit.providerSecurityPolicyGeneration
     }
 
     /**
@@ -258,6 +266,27 @@ struct ReliabilityExit: Identifiable, Equatable {
             parts.append("proven")
         }
         return parts.joined(separator: " · ")
+    }
+
+    /**
+     * The policy line under the state line: the built-in security rules
+     * generation the exit's provider enforces (connect
+     * SecurityPolicyRulesGeneration). Connect raises the number with every
+     * reviewed rules change, so an exit with a lower number than the others
+     * runs a provider with older rules, which can drop flows this device's
+     * rules admit. "unknown" is a provider that reports its policy without a
+     * generation (it predates the field or runs a custom policy); nil is no
+     * diagnostics from the provider yet. The sdk never sends a negative
+     * generation.
+     */
+    var policyGenerationLine: String? {
+        guard providerDiagnosticsAvailable else {
+            return nil
+        }
+        guard 0 < providerSecurityPolicyGeneration else {
+            return String(localized: "policy generation unknown")
+        }
+        return String(localized: "policy generation \(providerSecurityPolicyGeneration)")
     }
 }
 

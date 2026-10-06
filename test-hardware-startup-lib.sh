@@ -601,7 +601,17 @@ apple_hardware_verify_test_log() {
 }
 
 apple_hardware_find_unguarded_profile_calls() {
-  local source_root="$1" gateway="$2" match
+  local source_root="$1" gateway="$2" match matches scan_status=0
+
+  # Exclude the gateway receiver at each occurrence, never the whole line:
+  # an adjacent raw operation still needs to fail the audit.
+  matches="$(
+    rg --pcre2 -n --no-heading \
+      'NEVPNManager|NE(?:TunnelProvider|TransparentProxy|AppProxyProvider)Manager\s*(?:\.\s*init\s*)?\(|NE(?:TunnelProvider|TransparentProxy|AppProxyProvider)Manager\s*\.\s*loadAllFromPreferences\b|(?<!["A-Za-z0-9_])(?!VPNProfileSystem\s*\.)(?:[A-Za-z_][A-Za-z0-9_]*|\))\s*[?!]?\s*\.\s*(?:saveToPreferences|loadFromPreferences|removeFromPreferences|startVPNTunnel|stopVPNTunnel)\b' \
+      "$source_root" --glob '*.swift'
+  )" || scan_status=$?
+  # rg uses 1 for no matches; every other failure is an incomplete audit.
+  case "$scan_status" in 0|1) ;; *) return "$scan_status" ;; esac
 
   while IFS= read -r match; do
     [ -n "$match" ] || continue
@@ -612,16 +622,8 @@ apple_hardware_find_unguarded_profile_calls() {
       '^[^:]+:[0-9]+:[[:space:]]*//'; then
       continue
     fi
-    if printf '%s\n' "$match" | grep -Eq \
-      'VPNProfileSystem[[:space:]]*\.[[:space:]]*(loadAllFromPreferences|saveToPreferences|loadFromPreferences|removeFromPreferences|startVPNTunnel|stopVPNTunnel)([^A-Za-z0-9_]|$)'; then
-      continue
-    fi
     printf '%s\n' "$match"
-  done < <(
-    rg --pcre2 -n --no-heading \
-      'NEVPNManager|NETunnelProviderManager\s*\(|NETunnelProviderManager\s*\.\s*loadAllFromPreferences\b|(?<!["A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*|\))\s*\.\s*(?:saveToPreferences|loadFromPreferences|removeFromPreferences|startVPNTunnel|stopVPNTunnel)\b' \
-      "$source_root" --glob '*.swift' || true
-  )
+  done <<<"$matches"
 }
 
 apple_hardware_source_contract() {
@@ -633,7 +635,7 @@ apple_hardware_source_contract() {
   dangerous_matches="$(
     apple_hardware_find_unguarded_profile_calls \
       "$apple_root/app/network" "$gateway"
-  )"
+  )" || return 1
   [ -z "$dangerous_matches" ] || {
     printf '%s\n' "$dangerous_matches" >&2
     return 1

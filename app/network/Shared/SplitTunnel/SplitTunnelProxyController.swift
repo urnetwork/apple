@@ -85,6 +85,8 @@ final class SplitTunnelProxyController: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var connectSub: SdkSubProtocol?
+    /// Closing a subscription cannot retract a callback already on main.
+    private var connectGeneration = UUID()
     private var connectionObserver: NSObjectProtocol?
     private var terminateObserver: NSObjectProtocol?
 
@@ -151,7 +153,9 @@ final class SplitTunnelProxyController: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.manager?.connection.stopVPNTunnel()
+            if let manager = self?.manager {
+                VPNProfileSystem.stopVPNTunnel(manager)
+            }
         }
     }
 
@@ -208,6 +212,8 @@ final class SplitTunnelProxyController: ObservableObject {
     /// Follows a new device's connect intent; without a device, connect is
     /// off.
     private func setDevice(_ device: SdkDeviceRemote?) {
+        let generation = UUID()
+        connectGeneration = generation
         connectSub?.close()
         connectSub = nil
         guard let device else {
@@ -216,7 +222,10 @@ final class SplitTunnelProxyController: ObservableObject {
         }
         connectSub = device.add(SplitTunnelConnectListener { [weak self] connectEnabled in
             DispatchQueue.main.async {
-                self?.setConnectEnabled(connectEnabled)
+                guard let self, self.connectGeneration == generation else {
+                    return
+                }
+                self.setConnectEnabled(connectEnabled)
             }
         })
         setConnectEnabled(device.getConnectEnabled())
@@ -288,7 +297,9 @@ final class SplitTunnelProxyController: ObservableObject {
             // the status notification re-runs the plan
             finishPass()
         case .stop:
-            manager?.connection.stopVPNTunnel()
+            if let manager {
+                VPNProfileSystem.stopVPNTunnel(manager)
+            }
             finishPass()
         }
     }
@@ -298,7 +309,7 @@ final class SplitTunnelProxyController: ObservableObject {
     /// Reads the system's transparent proxy configurations and keeps the
     /// split tunnel's, if there is one.
     private func load(completion: @escaping (Bool) -> Void) {
-        NETransparentProxyManager.loadAllFromPreferences { [weak self] managers, error in
+        VPNProfileSystem.loadAllTransparentProxyManagers { [weak self] managers, error in
             DispatchQueue.main.async {
                 guard let self else {
                     return
@@ -318,7 +329,14 @@ final class SplitTunnelProxyController: ObservableObject {
     /// Creates or updates the configuration with the list, enabled, and
     /// reads it back; a running proxy is also handed the list.
     private func save(_ configuration: SplitTunnelProxyConfiguration, completion: @escaping (Bool) -> Void) {
-        let manager = self.manager ?? NETransparentProxyManager()
+        let manager: NETransparentProxyManager
+        do {
+            manager = try self.manager ?? VPNProfileSystem.makeTransparentProxyManager()
+        } catch {
+            print("[SplitTunnelProxyController]create failed: \(error.localizedDescription)")
+            completion(false)
+            return
+        }
         let tunnelProtocol = (manager.protocolConfiguration as? NETunnelProviderProtocol) ?? NETunnelProviderProtocol()
         tunnelProtocol.providerBundleIdentifier = TunnelProviderIdentity.splitTunnelBundleIdentifier
         // required, and shown in System Settings; the proxy has no server
@@ -329,7 +347,7 @@ final class SplitTunnelProxyController: ObservableObject {
         manager.isEnabled = true
         let wasRunning = inputs.observed?.isRunning ?? false
 
-        manager.saveToPreferences { [weak self] error in
+        VPNProfileSystem.saveToPreferences(manager) { [weak self] error in
             DispatchQueue.main.async {
                 guard let self else {
                     return
@@ -341,7 +359,7 @@ final class SplitTunnelProxyController: ObservableObject {
                     return
                 }
                 // a saved configuration is loaded again before it can start
-                manager.loadFromPreferences { [weak self] error in
+                VPNProfileSystem.loadFromPreferences(manager) { [weak self] error in
                     DispatchQueue.main.async {
                         guard let self else {
                             return
@@ -369,14 +387,14 @@ final class SplitTunnelProxyController: ObservableObject {
             return
         }
         guard let session = manager.connection as? NETunnelProviderSession else {
-            manager.connection.stopVPNTunnel()
+            VPNProfileSystem.stopVPNTunnel(manager)
             return
         }
         do {
             try session.sendProviderMessage(configuration.messageData) { _ in }
         } catch {
             print("[SplitTunnelProxyController]hand over failed: \(error.localizedDescription)")
-            manager.connection.stopVPNTunnel()
+            VPNProfileSystem.stopVPNTunnel(manager)
         }
     }
 
@@ -387,7 +405,7 @@ final class SplitTunnelProxyController: ObservableObject {
             completion(true)
             return
         }
-        manager.removeFromPreferences { [weak self] error in
+        VPNProfileSystem.removeFromPreferences(manager) { [weak self] error in
             DispatchQueue.main.async {
                 guard let self else {
                     return
@@ -409,7 +427,7 @@ final class SplitTunnelProxyController: ObservableObject {
             return
         }
         do {
-            try manager.connection.startVPNTunnel()
+            try VPNProfileSystem.startTransparentProxy(manager)
         } catch {
             print("[SplitTunnelProxyController]start failed: \(error.localizedDescription)")
             failed = true

@@ -221,6 +221,22 @@ case "$(uname -m)" in
   *) die "iOS simulator startup requires an arm64 host for the local Apple SDK" ;;
 esac
 
+# These compile the actual profile gateway/controller against counting fakes,
+# then typecheck against Apple's SDK. They use no simulator or profile service.
+# Canonical runs always test this source tree with the normal compiler arm.
+echo "[apple iOS simulators] verifying native profile invariants"
+if ! run_bounded 360 env \
+  -u UR_PROFILE_BOUNDARY_SOURCE_ROOT \
+  -u UR_DEVICE_GENERATION_SOURCE_ROOT \
+  -u UR_DEVICE_GENERATION_SANITIZER \
+  GOMAXPROCS=2 go test -p 1 -parallel 1 -count=1 \
+  "$here/test-vpn-profile-system_test.go" \
+  "$here/test-split-tunnel-device-generation_test.go" \
+  >"$artifacts/profile-boundary-test.log" 2>&1; then
+  tail -n 40 "$artifacts/profile-boundary-test.log" >&2
+  die "native profile invariants failed"
+fi
+
 capture_runtime_inventory() {
   local output="$1" temporary="${1}.tmp"
   [ ! -e "$output" ] && [ ! -e "$temporary" ] || return 2

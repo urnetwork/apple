@@ -57,8 +57,40 @@ enum VPNProfileSystem {
         return NETunnelProviderManager()
     }
 
+    #if os(macOS)
+    /// Transparent proxies have their own preference collection; they share
+    /// the same process access policy as packet tunnels.
+    static func loadAllTransparentProxyManagers(
+        completionHandler: @escaping ([NETransparentProxyManager]?, Error?) -> Void
+    ) {
+        guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
+            completionHandler(nil, VPNProfileSystemAccessError())
+            return
+        }
+        NETransparentProxyManager.loadAllFromPreferences(
+            completionHandler: completionHandler
+        )
+    }
+
+    static func makeTransparentProxyManager() throws -> NETransparentProxyManager {
+        guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
+            throw VPNProfileSystemAccessError()
+        }
+        return NETransparentProxyManager()
+    }
+
+    /// The proxy reads its saved configuration and has no packet-tunnel
+    /// start-intent options.
+    static func startTransparentProxy(_ manager: NETransparentProxyManager) throws {
+        guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
+            throw VPNProfileSystemAccessError()
+        }
+        try manager.connection.startVPNTunnel(options: nil)
+    }
+    #endif
+
     static func saveToPreferences(
-        _ manager: NETunnelProviderManager,
+        _ manager: NEVPNManager,
         completionHandler: @escaping (Error?) -> Void
     ) {
         guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
@@ -69,7 +101,7 @@ enum VPNProfileSystem {
     }
 
     static func loadFromPreferences(
-        _ manager: NETunnelProviderManager,
+        _ manager: NEVPNManager,
         completionHandler: @escaping (Error?) -> Void
     ) {
         guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
@@ -80,7 +112,7 @@ enum VPNProfileSystem {
     }
 
     static func removeFromPreferences(
-        _ manager: NETunnelProviderManager,
+        _ manager: NEVPNManager,
         completionHandler: @escaping (Error?) -> Void
     ) {
         guard accessAllowed(mode: HardwareNoVPNLaunchContract.current) else {
@@ -102,7 +134,7 @@ enum VPNProfileSystem {
     }
 
     @discardableResult
-    static func stopVPNTunnel(_ manager: NETunnelProviderManager) -> Bool {
+    static func stopVPNTunnel(_ manager: NEVPNManager) -> Bool {
         performIfAllowed(mode: HardwareNoVPNLaunchContract.current) {
             manager.connection.stopVPNTunnel()
         }

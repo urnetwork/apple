@@ -637,6 +637,95 @@ if [ -z "$(apple_hardware_find_unguarded_profile_calls \
   exit 1
 fi
 
+# Every raw occurrence is rejected even beside a guarded call, while the
+# gateway itself and comment-only documentation remain valid.
+audit_failures=0
+while IFS=$'\t' read -r expected label source_line; do
+  printf '%s\n' "$source_line" >"$test_root/source-audit/EscapedProfileAccess.swift"
+  matches="$(apple_hardware_find_unguarded_profile_calls \
+    "$test_root/source-audit" "$test_root/source-audit/VPNProfileSystem.swift")"
+  if { [ "$expected" = reject ] && [ -z "$matches" ]; } || \
+      { [ "$expected" = accept ] && [ -n "$matches" ]; }; then
+    echo "profile source audit got $label wrong ($expected): $matches" >&2
+    audit_failures=$((audit_failures + 1))
+  fi
+done <<'PROFILE_CALLS'
+reject	transparent-create	let manager = NETransparentProxyManager()
+reject	transparent-init	let manager = NETransparentProxyManager.init()
+reject	transparent-load	NETransparentProxyManager.loadAllFromPreferences { _, _ in }
+reject	app-proxy-create	let manager = NEAppProxyProviderManager()
+reject	app-proxy-load	NEAppProxyProviderManager.loadAllFromPreferences { _, _ in }
+reject	tunnel-create	let manager = NETunnelProviderManager()
+reject	tunnel-load	NETunnelProviderManager.loadAllFromPreferences { _, _ in }
+reject	shared-manager	let manager = NEVPNManager.shared()
+reject	optional-save	manager?.saveToPreferences { _ in }
+reject	optional-reload	manager?.loadFromPreferences { _ in }
+reject	optional-remove	manager?.removeFromPreferences { _ in }
+reject	optional-start	try session?.startVPNTunnel()
+reject	optional-stop	session?.stopVPNTunnel()
+reject	forced-receiver	manager!.saveToPreferences { _ in }
+reject	guarded-then-raw	VPNProfileSystem.stopVPNTunnel(safe); unsafe.connection.startVPNTunnel()
+reject	raw-then-guarded	unsafe.connection.stopVPNTunnel(); VPNProfileSystem.stopVPNTunnel(safe)
+reject	gateway-in-comment	unsafe.connection.stopVPNTunnel() // VPNProfileSystem.stopVPNTunnel(safe)
+reject	gateway-prefix	OtherVPNProfileSystem.stopVPNTunnel(unsafe)
+accept	guarded-save	VPNProfileSystem.saveToPreferences(manager) { _ in }
+accept	guarded-load	VPNProfileSystem.loadFromPreferences(manager) { _ in }
+accept	guarded-stop	VPNProfileSystem.stopVPNTunnel(manager)
+accept	guarded-transparent-load	VPNProfileSystem.loadAllTransparentProxyManagers { _, _ in }
+accept	comment	// manager.connection.stopVPNTunnel()
+PROFILE_CALLS
+[ "$audit_failures" -eq 0 ] || exit 1
+printf 'manager.connection.stopVPNTunnel()\n' >"$test_root/source-audit/VPNProfileSystem.swift"
+printf '// manager.connection.stopVPNTunnel()\n' >"$test_root/source-audit/EscapedProfileAccess.swift"
+[ -z "$(apple_hardware_find_unguarded_profile_calls \
+  "$test_root/source-audit" "$test_root/source-audit/VPNProfileSystem.swift")" ] || {
+  echo "the canonical gateway's raw system operation was rejected" >&2
+  exit 1
+}
+
+# Scanner failure is not evidence that source contains no forbidden calls.
+scan_failures=0
+if apple_hardware_find_unguarded_profile_calls \
+  "$test_root/missing-source" "$test_root/missing-source/VPNProfileSystem.swift" \
+  >"$test_root/missing-source.log" 2>&1; then
+  echo "a missing source root passed the profile audit" >&2
+  scan_failures=$((scan_failures + 1))
+fi
+mkdir "$test_root/empty-source" "$test_root/failing-rg"
+empty_matches="$(apple_hardware_find_unguarded_profile_calls \
+  "$test_root/empty-source" "$test_root/empty-source/VPNProfileSystem.swift")"
+[ -z "$empty_matches" ] || {
+  echo "a clean source scan found forbidden calls" >&2
+  exit 1
+}
+cat >"$test_root/failing-rg/rg" <<'SH'
+#!/usr/bin/env bash
+if [ "$APPLE_TEST_RG_OUTPUT" = match ]; then
+  printf '%s:1:manager.connection.stopVPNTunnel()\n' "$APPLE_TEST_RG_SOURCE"
+fi
+exit 2
+SH
+chmod 700 "$test_root/failing-rg/rg"
+for output in empty match; do
+  if PATH="$test_root/failing-rg:$PATH" APPLE_TEST_RG_OUTPUT="$output" \
+    APPLE_TEST_RG_SOURCE="$test_root/empty-source/Escaped.swift" \
+    apple_hardware_find_unguarded_profile_calls \
+      "$test_root/empty-source" "$test_root/empty-source/VPNProfileSystem.swift" \
+      >"$test_root/failing-rg-$output.log" 2>&1; then
+    echo "a failed scanner ($output output) passed the profile audit" >&2
+    scan_failures=$((scan_failures + 1))
+  fi
+  # This conditional intentionally disables errexit inside the call tree.
+  if PATH="$test_root/failing-rg:$PATH" APPLE_TEST_RG_OUTPUT="$output" \
+    APPLE_TEST_RG_SOURCE="$test_root/empty-source/Escaped.swift" \
+    apple_hardware_source_contract "$here" \
+      >"$test_root/failing-contract-$output.log" 2>&1; then
+    echo "a failed scanner ($output output) passed the full source contract" >&2
+    scan_failures=$((scan_failures + 1))
+  fi
+done
+[ "$scan_failures" -eq 0 ] || exit 1
+
 inventory_line="$(grep -n 'capture_runtime_inventory "$runtime_inventory"' "$here/test-hardware-startup.sh" | cut -d: -f1)"
 build_line="$(grep -n 'xcodebuild build-for-testing' "$here/test-hardware-startup.sh" | sed -n '1s/:.*//p')"
 [ "$inventory_line" -lt "$build_line" ] || {

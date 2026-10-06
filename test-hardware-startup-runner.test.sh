@@ -31,6 +31,7 @@ SH
 cat >"$test_root/bin/timeout" <<'SH'
 #!/usr/bin/env bash
 [ "${1:-}" != --foreground ] || shift
+export APPLE_RUNNER_TIMEOUT="$1"
 shift
 exec "$@"
 SH
@@ -38,6 +39,24 @@ cat >"$test_root/bin/ioreg" <<'SH'
 #!/usr/bin/env bash
 printf 'physical ioreg %s\n' "$*" >>"$APPLE_RUNNER_CALLS"
 exit 97
+SH
+cat >"$test_root/bin/go" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+[ "${GOMAXPROCS:-}" = 2 ]
+[ "${APPLE_RUNNER_TIMEOUT:-}" = 360 ]
+[ "${UR_PROFILE_BOUNDARY_SOURCE_ROOT+x}" != x ]
+[ "${UR_DEVICE_GENERATION_SOURCE_ROOT+x}" != x ]
+[ "${UR_DEVICE_GENERATION_SANITIZER+x}" != x ]
+apple_root="$(cd "$URNETWORK_ROOT/apple" && pwd)"
+expected="test -p 1 -parallel 1 -count=1 $apple_root/test-vpn-profile-system_test.go $apple_root/test-split-tunnel-device-generation_test.go"
+[ "$*" = "$expected" ] || {
+  printf 'native test argv mismatch: expected [%s], got [%s]\n' "$expected" "$*" >&2
+  exit 98
+}
+printf 'profile invariants\n' >>"$APPLE_RUNNER_CALLS"
+[ "$APPLE_RUNNER_MODE" != profile-invariant-failure ] || exit 6
+printf 'profile invariant fixture passed\n'
 SH
 cat >"$test_root/bin/make" <<'SH'
 #!/usr/bin/env bash
@@ -214,11 +233,16 @@ run_fixture() {
   printf '99999999-1111-2222-3333-444444444444\tuser-simulator\n' >"$fixture/devices.tsv"
   : >"$fixture/calls.log"
   status=0
-  env PATH="$test_root/bin:$PATH" URNETWORK_ROOT="$fixture" \
+  # The runner resolves its own directory; force a same-root alias so exact
+  # native argv checks never depend on TMPDIR's spelling or trailing slash.
+  env PATH="$test_root/bin:$PATH" URNETWORK_ROOT="$fixture/./" \
     URNETWORK_NETWORK_TEST_LOCK_HELD=1 UR_ACCEPT_APPLE_TOOLS="$fixture/tools" \
     WARP_VERSION=fixture UR_ACCEPT_REPEAT=2 UR_ACCEPT_RESULT_FILE="$fixture/matrix.tsv" \
     APPLE_RUNNER_MODE="$mode" APPLE_RUNNER_CALLS="$fixture/calls.log" \
     APPLE_RUNNER_DEVICES="$fixture/devices.tsv" \
+    UR_PROFILE_BOUNDARY_SOURCE_ROOT=/untrusted-fixture/profile \
+    UR_DEVICE_GENERATION_SOURCE_ROOT=/untrusted-fixture/device \
+    UR_DEVICE_GENERATION_SANITIZER=untrusted-fixture \
     URNETWORK_RUN_ID=fixture-run URNETWORK_PLAN_SHA256=fixture-plan \
     URNETWORK_RUNNER_MAIN_COVERAGE_FILE="$fixture/coverage.json" \
     bash "$fixture/apple/test-hardware-startup.sh" ${startup_args[@]+"${startup_args[@]}"} >"$fixture/run.log" 2>&1 || status=$?
@@ -228,6 +252,13 @@ run_fixture() {
   fi
   if grep -q '^physical ' "$fixture/calls.log"; then
     fail "$mode contacted a physical iPhone command"
+  fi
+  if [ "$mode" = unsupported-host ]; then
+    ! grep -q '^profile invariants$' "$fixture/calls.log" || \
+      fail "unsupported host reached native profile invariants"
+  else
+    [ "$(grep -c '^profile invariants$' "$fixture/calls.log")" -eq 1 ] || \
+      fail "$mode did not run both native profile invariant files exactly once"
   fi
   [ "$(wc -l <"$fixture/matrix.tsv" | tr -d ' ')" -eq 1 ] || \
     fail "$mode did not write exactly one aggregate result"
@@ -278,8 +309,21 @@ run_fixture() {
     ! grep -Eq '^sdk build$|^xcodebuild build-for-testing |^xcrun simctl create ' "$fixture/calls.log" || \
       fail "an incomplete runtime matrix proceeded to build or create a simulator"
   fi
+  if [ "$mode" = profile-invariant-failure ]; then
+    grep -q 'native profile invariants failed' "$fixture/run.log" || \
+      fail "native invariant failure omitted its diagnostic"
+    ! grep -Eq '^sdk build$|^xcodebuild build-for-testing |^xcodebuild -downloadPlatform |^xcrun simctl ' \
+      "$fixture/calls.log" || fail "failed native invariants reached provisioning, build or simulator access"
+  fi
   case "$mode" in
     success|deferred)
+      local profile_line inventory_line
+      profile_line="$(grep -n '^profile invariants$' "$fixture/calls.log" | cut -d: -f1)"
+      inventory_line="$(grep -n '^xcrun simctl list runtimes --json$' "$fixture/calls.log" | sed -n '1s/:.*//p')"
+      [ "$profile_line" -lt "$inventory_line" ] || \
+        fail "$mode inventoried runtimes before native profile invariants"
+      grep -q '^profile invariant fixture passed$' "$artifacts/profile-boundary-test.log" || \
+        fail "$mode omitted the native profile invariant log"
       [ "$(grep -c '^sdk slice-check ' "$fixture/calls.log")" -eq 2 ] || \
         fail "$mode did not verify both SDK arm64 simulator binaries"
       grep -q '^sdk slice-check URnetworkSdk$' "$fixture/calls.log" && \
@@ -314,6 +358,7 @@ if [ "$#" -ne 0 ]; then
 fi
 
 run_fixture success 0
+run_fixture profile-invariant-failure 1
 run_fixture deferred 0
 run_fixture deferred-cleanup-failure 1
 run_fixture unit-failure 1

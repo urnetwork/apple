@@ -178,6 +178,12 @@ struct ReliabilityExit: Identifiable, Equatable {
     let proven: Bool
     // seconds since last proven; -1 is never
     let probeAgeSeconds: Int64
+    // the provider's diagnostics have arrived; before them nothing is known
+    // about its policy
+    let providerDiagnosticsAvailable: Bool
+    // the built-in security rules generation the provider enforces; 0 is
+    // unknown (a provider from before the field, or a custom policy)
+    let providerSecurityPolicyGeneration: Int64
 
     /**
      * nil for an exit with no client id. The go side always populates one, so
@@ -203,6 +209,8 @@ struct ReliabilityExit: Identifiable, Equatable {
         effectiveTier = exit.effectiveTier
         proven = exit.proven
         probeAgeSeconds = exit.probeAgeSeconds
+        providerDiagnosticsAvailable = exit.providerDiagnosticsAvailable
+        providerSecurityPolicyGeneration = exit.providerSecurityPolicyGeneration
     }
 
     /**
@@ -219,45 +227,70 @@ struct ReliabilityExit: Identifiable, Equatable {
     /**
      * The one-line state summary: window type, tier (with the effective-tier
      * demotion when selection has demoted the exit), the warning state by
-     * name, and the lifecycle chips. The warning cause string passes through
-     * verbatim -- new causes must display without an app update.
+     * name, and the lifecycle chips. Every word comes from the string catalog
+     * (the dev_state_* keys the Windows and Linux pages use), except the
+     * tokens the sdk names: the window type and the warning cause pass through
+     * verbatim, so new ones display without an app update.
      */
     var stateLine: String {
-        var parts: [String] = [windowType.isEmpty ? "auto" : windowType]
+        // the sdk's window type token; an exit with none reads as the sdk's
+        // auto window type
+        var parts: [String] = [windowType.isEmpty ? SdkWindowTypeAuto : windowType]
 
         // the platform's rank for this provider. only the best rank present is
         // raced until it is at the flow cap, so a tier above the minimum with
         // 0 flows is a spare, not a failure. effectiveTier is the rank
         // selection actually uses (tier plus live demerits); when it differs
-        // the exit is demoted and "tier N→M" makes that visible
-        var tierPart = "tier \(tier)"
+        // the exit is demoted and "N→M" makes that visible
+        var tierValue = "\(tier)"
         if tier < effectiveTier {
-            tierPart += "→\(effectiveTier)"
+            tierValue += "→\(effectiveTier)"
         }
-        parts.append(tierPart)
+        parts.append(String(localized: "tier \(tierValue)"))
 
-        // "benched" is a quarantine (a soft verdict held against a loaded
-        // exit -- it stops taking new placements while its flows keep running,
-        // and receive progress acquits it); otherwise the resize pass's cause
+        // benched is a quarantine (a soft verdict held against a loaded exit:
+        // it stops taking new placements while its flows keep running, and
+        // receive progress acquits it); otherwise the resize pass's cause
         // string, verbatim
         if quarantined {
-            parts.append("benched")
+            parts.append(String(localized: "benched"))
         } else if warning {
-            parts.append(warningCause.isEmpty ? "warned" : warningCause)
+            parts.append(warningCause.isEmpty ? String(localized: "warned") : warningCause)
         }
         if done {
-            parts.append("done")
+            parts.append(String(localized: "done"))
         }
         if p2pOnly {
-            parts.append("p2p")
+            parts.append(String(localized: "p2p"))
         }
         // a probe pass (or the exit's own traffic) proved this provider dials
         // real destinations within the qualification window. Absence of the
         // chip is "not yet proven", never "bad"
         if proven {
-            parts.append("proven")
+            parts.append(String(localized: "proven"))
         }
         return parts.joined(separator: " · ")
+    }
+
+    /**
+     * The policy line under the state line: the built-in security rules
+     * generation the exit's provider enforces (connect
+     * SecurityPolicyRulesGeneration). Connect raises the number with every
+     * reviewed rules change, so an exit with a lower number than the others
+     * runs a provider with older rules, which can drop flows this device's
+     * rules admit. "unknown" is a provider that reports its policy without a
+     * generation (it predates the field or runs a custom policy); nil is no
+     * diagnostics from the provider yet. The sdk never sends a negative
+     * generation.
+     */
+    var policyGenerationLine: String? {
+        guard providerDiagnosticsAvailable else {
+            return nil
+        }
+        guard 0 < providerSecurityPolicyGeneration else {
+            return String(localized: "policy generation unknown")
+        }
+        return String(localized: "policy generation \(providerSecurityPolicyGeneration)")
     }
 }
 

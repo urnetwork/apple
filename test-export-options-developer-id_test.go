@@ -36,10 +36,12 @@ func exportOptions(t *testing.T, name string) map[string]any {
 // must be a Developer ID export of the same team: anything else either fails
 // notarization or produces the store-only signature that does not launch
 // outside the Mac App Store. Signing is manual: Xcode's automatic "Mac Team
-// Provisioning Profile"s never carry packet-tunnel-provider-systemextension,
-// only the account's two Developer ID profiles do, so the export names them
-// per bundle id (the same names the targets are signed with in
-// project.pbxproj; test-direct-bundle-ids_test.go checks they agree).
+// Provisioning Profile"s never carry the "-systemextension" network extension
+// entitlements, only the account's Developer ID profiles do, so the export
+// names them per bundle id (the same names the targets are signed with in
+// project.pbxproj; test-direct-bundle-ids_test.go checks they agree). The
+// split tunnel extension's profile is created in the portal first (see
+// app/splittunnel/splittunnel-direct.entitlements).
 func TestDeveloperIDExportOptions(t *testing.T) {
 	options := exportOptions(t, "ExportOptions-DeveloperID.plist")
 	want := map[string]any{
@@ -57,8 +59,9 @@ func TestDeveloperIDExportOptions(t *testing.T) {
 	}
 	profiles, _ := options["provisioningProfiles"].(map[string]any)
 	wantProfiles := map[string]any{
-		"com.bringyour.urnetwork":           "URnetwork Download",
-		"com.bringyour.urnetwork.extension": "URnetwork Extension Download",
+		"com.bringyour.urnetwork":             "URnetwork Download",
+		"com.bringyour.urnetwork.extension":   "URnetwork Extension Download",
+		"com.bringyour.urnetwork.splittunnel": "URnetwork Split Tunnel Download",
 	}
 	if len(profiles) != len(wantProfiles) {
 		t.Fatalf("ExportOptions-DeveloperID.plist provisioningProfiles = %v, want %v", profiles, wantProfiles)

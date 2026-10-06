@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Info.plist of the split tunnel system extension in the direct-download
+  build (URnetworkSplitTunnelDirect target, com.bringyour.urnetwork.splittunnel).
+  Same provider as Info.plist; the mach service is prefixed by the direct
+  build's app group (splittunnel-direct.entitlements).
+-->
+<plist version="1.0">
+<dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NetworkExtension</key>
+	<dict>
+		<key>NEMachServiceName</key>
+		<string>6BGU69Q742.group.com.bringyour.urnetwork.splittunnel</string>
+		<key>NEProviderClasses</key>
+		<dict>
+			<key>com.apple.networkextension.app-proxy</key>
+			<string>$(PRODUCT_MODULE_NAME).SplitTunnelProxyProvider</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

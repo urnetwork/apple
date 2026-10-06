@@ -81,6 +81,9 @@ struct NetworkApp: App {
     // Settings
     @StateObject private var directUpdater = DirectUpdater()
     #endif
+    // the per-app split tunnel (macOS 15+): the system extension and its
+    // transparent proxy configuration, kept in step with the excluded apps
+    @StateObject private var splitTunnelProxyController = SplitTunnelProxyController()
 #endif
     
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
@@ -402,7 +405,16 @@ struct NetworkApp: App {
                 .environmentObject(providerStatusStore)
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
+                .environmentObject(splitTunnelProxyController)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
+                .onAppear {
+                    // follows the device and the rule store for the life of
+                    // the process, window shown or not
+                    splitTunnelProxyController.setup(
+                        deviceManager: deviceManager,
+                        blockActionsStore: blockActionsStore
+                    )
+                }
                 .onOpenURL { url in
                     if let destination = WidgetDestination(url: url) {
                         // a Home Screen widget tap: the tab view and the

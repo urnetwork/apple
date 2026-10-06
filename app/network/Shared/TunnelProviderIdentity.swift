@@ -15,8 +15,10 @@
 //  Info.plist settings), the two *-direct / *-sysext entitlements files,
 //  extension/Info-macOS-sysext.plist and DiagnosticsLogContract
 //  .appGroupIdentifierBase (compiled into the extension targets, which do
-//  not compile this file). test-direct-bundle-ids_test.go in the repo root
-//  checks those files agree with this one.
+//  not compile this file), and for the macOS split tunnel system extension
+//  (`<app>.splittunnel`) the splittunnel/ plists and entitlements.
+//  test-direct-bundle-ids_test.go in the repo root checks those files agree
+//  with this one.
 //
 
 import Foundation
@@ -33,20 +35,27 @@ enum TunnelProviderIdentity {
         let appGroupBase: String
         /// keychain-access-groups entry, without $(AppIdentifierPrefix).
         let keychainAccessGroupSuffix: String
+        /// PRODUCT_BUNDLE_IDENTIFIER of the macOS split tunnel system
+        /// extension (the transparent proxy that takes excluded apps out of
+        /// the tunnel), and its NETransparentProxyManager's
+        /// `providerBundleIdentifier`.
+        let splitTunnelBundleIdentifier: String
     }
 
     static let appStore = Set(
         appBundleIdentifier: "network.ur",
         tunnelBundleIdentifier: "network.ur.extension",
         appGroupBase: "group.network.ur",
-        keychainAccessGroupSuffix: "network.ur.tunnel-credentials"
+        keychainAccessGroupSuffix: "network.ur.tunnel-credentials",
+        splitTunnelBundleIdentifier: "network.ur.splittunnel"
     )
 
     static let direct = Set(
         appBundleIdentifier: "com.bringyour.urnetwork",
         tunnelBundleIdentifier: "com.bringyour.urnetwork.extension",
         appGroupBase: "group.com.bringyour.urnetwork",
-        keychainAccessGroupSuffix: "com.bringyour.urnetwork.tunnel-credentials"
+        keychainAccessGroupSuffix: "com.bringyour.urnetwork.tunnel-credentials",
+        splitTunnelBundleIdentifier: "com.bringyour.urnetwork.splittunnel"
     )
 
     #if DIRECT_DOWNLOAD
@@ -57,6 +66,10 @@ enum TunnelProviderIdentity {
 
     /// The provider id the tunnel manager installs and matches profiles by.
     static var bundleIdentifier: String { flavor.tunnelBundleIdentifier }
+
+    /// The split tunnel system extension this binary activates and
+    /// configures (macOS only; the iOS build never uses it).
+    static var splitTunnelBundleIdentifier: String { flavor.splitTunnelBundleIdentifier }
 }
 
 /// Google sign-in is configured per OAuth client, and an OAuth client is

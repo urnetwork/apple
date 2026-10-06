@@ -78,7 +78,7 @@ The only genuinely iPad-adaptive screen is login (`LoginInitialView.swift:52-95`
 - "Review URnetwork" explicit row (`AccountRootView.swift`); Android fires in-app review programmatically instead.
 
 **Android-only (iOS lacks):**
-- Per-app split tunnel (`AppSplitRulesScreen.kt` + drawer apps panel) — platform limitation on iOS, by design.
+- Per-app split tunnel (`AppSplitRulesScreen.kt` + drawer apps panel) — platform limitation on iOS, by design. macOS 15+ excludes apps through the split tunnel system extension (`splittunnel/`, a transparent proxy; Apps section of the split rules sheet); exclude only, no include list.
 - **Profile network-name editing** with live validation (`ProfileScreen.kt`); iOS displays only. Portable.
 - Account switcher popup + switch-account screen (`AccountSwitcher.kt`, `SwitchAccountScreen.kt`); iOS has the lighter `AccountMenu`.
 - API-error full retry screen (`ApiErrorScreen.kt`); iOS uses snackbars.
@@ -174,7 +174,7 @@ Key surfaces:
 | Account/Settings tree | ✓ | ✓ | ✓ | ◐ | ✗ | ✓ |
 | Wallets/points/reliability | ✓ | ✓ | ✓ | ◐ | ✗ | ◐ (no points) |
 | Leaderboard + Support | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| Per-app split tunnel | n/a | ✓ | n/a | ✓ | ✗ | n/a |
+| Per-app split tunnel | n/a | ✓ | ◐ (exclude, macOS 15+) | ✓ | ✗ | n/a |
 | Large-screen layout | ✗ | ◐ | ✓ | ✓ | ✓ | ✓ |
 | Compiled & runtime-verified | ✓ | ✓ | ✓ | **✗** | **✗** | ✓ |
 

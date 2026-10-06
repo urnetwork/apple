@@ -333,8 +333,9 @@ private struct SplitRuleCountLabel: View {
 
     var body: some View {
         // real plural rules live in Localizable.xcstrings ("%lld split rules");
-        // never inflect in the interpolation, it is untranslatable
-        Text("\(blockActionsStore.splitRules.count) split rules")
+        // never inflect in the interpolation, it is untranslatable. The macOS
+        // excluded apps are split rules too (app rules)
+        Text("\(blockActionsStore.splitRules.count + blockActionsStore.appRules.count) split rules")
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textColor)
     }
@@ -357,6 +358,10 @@ struct ConnectStatsSheets: ViewModifier {
     @EnvironmentObject var transportSettingsStore: TransportSettingsStore
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var connectViewModel: ConnectViewModel
+    #if os(macOS)
+    // the split rules sheet's Apps section
+    @EnvironmentObject var splitTunnelProxyController: SplitTunnelProxyController
+    #endif
 
     func body(content: Content) -> some View {
         content
@@ -390,6 +395,9 @@ struct ConnectStatsSheets: ViewModifier {
                 // Provider Locations reads the current location and connects
                 // for "Stay on this exit"
                 .environmentObject(connectViewModel)
+                #if os(macOS)
+                .environmentObject(splitTunnelProxyController)
+                #endif
             }
     }
 

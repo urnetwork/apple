@@ -11,7 +11,9 @@ import URnetworkSdk
 enum LoginInitialNavigationPath: Hashable {
     // case initial
     case password(_ userAuth: String)
-    case createNetwork(_ authLoginArgs: SdkAuthLoginArgs)
+    // `bittensorWalletId`: the Bittensor wallet that signed the create's wallet
+    // auth, named when the server refuses a signature from another account
+    case createNetwork(_ authLoginArgs: SdkAuthLoginArgs, bittensorWalletId: String? = nil)
     // `sendNotice` is whether the server sent the code
     case verify(_ userAuth: String, sendNotice: VerifySendNotice)
     case resetPassword(_ userAuth: String)

@@ -24,8 +24,19 @@ enum AuthType {
 
 /// The message shown when creating the network fails: the server's reason
 /// when it refused the create with one, otherwise the generic error. A taken
-/// name submitted while the availability check was failing is caught here.
-func createNetworkFailureMessage(_ error: Error) -> String {
+/// name submitted while the availability check was failing is caught here. A
+/// wallet signature pasted from `bittensorWalletId` that is not from the
+/// entered address says so in that wallet's words.
+func createNetworkFailureMessage(_ error: Error, bittensorWalletId: String? = nil) -> String {
+    if case NetworkCreateError.signatureMismatch(let message) = error {
+        if let text = BittensorWallet.signatureMismatchText(walletId: bittensorWalletId) {
+            return text
+        }
+        let reason = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !reason.isEmpty {
+            return reason
+        }
+    }
     if case NetworkCreateError.refused(let message) = error {
         let reason = message.trimmingCharacters(in: .whitespacesAndNewlines)
         if !reason.isEmpty {
@@ -257,6 +268,9 @@ extension CreateNetworkView {
 
                 if let walletAuth {
                     args.walletAuth = walletAuth
+                    // a signature from another account than the address comes
+                    // back as result.error.code (a 401 error otherwise)
+                    args.resultErrors = true
                 }
 
                 if let referralCode = referralEntry.createCode {

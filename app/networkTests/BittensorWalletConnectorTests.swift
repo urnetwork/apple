@@ -575,6 +575,90 @@ struct BittensorWalletConnectorTests {
         #expect(recorder.opened.isEmpty)
     }
 
+    // MARK: sign-in, network create and add-auth
+
+    // Sign-in, network create and add-auth refuse a pasted signature from
+    // another account than the entered address with the code POST /sn/wallet
+    // uses (signature_mismatch); sign-in and create ask for it with
+    // result_errors, add-auth answers it in its result.
+    static let walletAuthMismatchMessage = "The signature does not match this wallet address. Sign the challenge with this address."
+
+    static func mismatchLine(_ walletName: String) -> String {
+        "This signature isn't from the address you entered. In \(walletName), sign the message with that address, then paste the signature again."
+    }
+
+    @Test func walletAuthRefusalsKeepTheSignatureMismatchCode() {
+        let login = SdkAuthLoginResultError()
+        login.code = "signature_mismatch"
+        login.message = Self.walletAuthMismatchMessage
+        #expect(UrApiService.authLoginRefusal(login) as? WalletSignatureMismatchError == WalletSignatureMismatchError(message: Self.walletAuthMismatchMessage))
+        let loginOther = SdkAuthLoginResultError()
+        loginOther.message = "Invalid login credentials."
+        #expect(!(UrApiService.authLoginRefusal(loginOther) is WalletSignatureMismatchError))
+
+        let create = SdkNetworkCreateResult()
+        let createError = SdkNetworkCreateResultError()
+        createError.code = "signature_mismatch"
+        createError.message = Self.walletAuthMismatchMessage
+        create.error = createError
+        #expect(UrApiService.createNetworkRefusal(create) == .signatureMismatch(message: Self.walletAuthMismatchMessage))
+
+        let add = SdkAddAuthError()
+        add.code = "signature_mismatch"
+        add.message = Self.walletAuthMismatchMessage
+        #expect(UrApiService.addAuthRefusal(add) as? WalletSignatureMismatchError == WalletSignatureMismatchError(message: Self.walletAuthMismatchMessage))
+        let addOther = SdkAddAuthError()
+        addOther.message = "This wallet is already linked to another account."
+        #expect(!(UrApiService.addAuthRefusal(addOther) is WalletSignatureMismatchError))
+        #expect(UrApiService.addAuthRefusal(addOther).localizedDescription == "This wallet is already linked to another account.")
+    }
+
+    @Test func bittensorSignInAsksForCodedRefusals() {
+        let viewModel = LoginInitialView.ViewModel(urApiService: MockUrApiService())
+        let args = viewModel.createBittensorAuthLoginArgs(BittensorWalletProofInfo(walletId: "taocom", purpose: "login", address: Self.alice, message: Self.message, signature: Self.signature))
+        #expect(args.resultErrors)
+        #expect(args.walletAuth?.blockchain == SdkTAO)
+    }
+
+    @Test func signInCreateAndAddNameTheManualWalletOnly() {
+        let mismatch = WalletSignatureMismatchError(message: Self.walletAuthMismatchMessage)
+        // sign-in: manual is TAO.com everywhere, Talisman on iOS
+        let refused = AuthLoginResult.failure(mismatch)
+        #expect(bittensorSignInFailureText(refused, walletId: "taocom", platform: SdkBittensorWalletPlatformMacos) == Self.mismatchLine("TAO.com"))
+        #expect(bittensorSignInFailureText(refused, walletId: "talisman", platform: SdkBittensorWalletPlatformIos) == Self.mismatchLine("Talisman"))
+        // a browser-bridge wallet signed with the account it returned
+        #expect(bittensorSignInFailureText(refused, walletId: "talisman", platform: SdkBittensorWalletPlatformMacos) == nil)
+        #expect(bittensorSignInFailureText(refused, walletId: "walletconnect", platform: SdkBittensorWalletPlatformIos) == nil)
+        #expect(bittensorSignInFailureText(.failure(NSError(domain: "UrApiService", code: -1)), walletId: "taocom") == nil)
+
+        // create (TAO.com is manual on every platform)
+        #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage), bittensorWalletId: "taocom") == Self.mismatchLine("TAO.com"))
+        #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage), bittensorWalletId: "walletconnect") == Self.walletAuthMismatchMessage)
+        #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage)) == Self.walletAuthMismatchMessage)
+
+        // add
+        #expect(AddAuthBittensorFlow.failureText(mismatch, walletId: "taocom", platform: SdkBittensorWalletPlatformIos) == Self.mismatchLine("TAO.com"))
+        #expect(AddAuthBittensorFlow.failureText(mismatch, walletId: "walletconnect", platform: SdkBittensorWalletPlatformIos) == Self.walletAuthMismatchMessage)
+        let other = NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "This wallet is already linked to another account."])
+        #expect(AddAuthBittensorFlow.failureText(other, walletId: "taocom", platform: SdkBittensorWalletPlatformIos) == "This wallet is already linked to another account.")
+    }
+
+    @Test func addTaoComSignatureFromAnotherAccountSaysToSignWithTheEnteredAddress() async {
+        let recorder = Recorder()
+        let flow = AddAuthBittensorFlow(
+            connector: Self.connector(platform: SdkBittensorWalletPlatformIos, recorder: recorder),
+            addAuth: { _ in
+                throw WalletSignatureMismatchError(message: Self.walletAuthMismatchMessage)
+            }
+        )
+        await flow.choose(walletId: "taocom")
+        flow.connector.manualAddress = Self.alice
+        flow.connector.manualSignature = Self.signature
+        await flow.connector.submitManual()
+        #expect(flow.addError == Self.mismatchLine("TAO.com"))
+        #expect(!flow.isAdding)
+    }
+
     // MARK: the wallet provider
 
     /// The sign-in screen used to hand every urnetwork://bittensor-sign-message

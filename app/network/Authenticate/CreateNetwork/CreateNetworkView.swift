@@ -11,6 +11,9 @@ import URnetworkSdk
 struct CreateNetworkView: View {
 
     var authLoginArgs: SdkAuthLoginArgs
+    // the Bittensor wallet that signed the wallet auth (nil: none): a refusal of
+    // a signature from another account names it
+    var bittensorWalletId: String?
     var navigate: (LoginInitialNavigationPath) -> Void
     
     var userAuth: String?
@@ -28,6 +31,7 @@ struct CreateNetworkView: View {
     
     init(
         authLoginArgs: SdkAuthLoginArgs,
+        bittensorWalletId: String? = nil,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
         handleSuccess: @escaping (_ jwt: String) async -> Void,
         api: SdkApi,
@@ -55,6 +59,7 @@ struct CreateNetworkView: View {
         ))
         
         self.authLoginArgs = authLoginArgs
+        self.bittensorWalletId = bittensorWalletId
         
         if !authLoginArgs.userAuth.isEmpty {
             self.userAuth = authLoginArgs.userAuth
@@ -238,7 +243,7 @@ struct CreateNetworkView: View {
             break
         case .failure(let error):
             print("CreateNetworkView: handleResult: \(error.localizedDescription)")
-            viewModel.setCreateNetworkErrorMessage(createNetworkFailureMessage(error))
+            viewModel.setCreateNetworkErrorMessage(createNetworkFailureMessage(error, bittensorWalletId: bittensorWalletId))
             break
             
         }

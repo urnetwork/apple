@@ -86,7 +86,19 @@ final class AddAuthBittensorFlow: ObservableObject {
             await onAdded()
         } catch {
             isAdding = false
-            addError = error.localizedDescription
+            addError = Self.failureText(error, walletId: proof.walletId, platform: connector.platform)
         }
+    }
+
+    /// What a refused add shows: a signature pasted from `walletId` that is
+    /// not from the entered address (the server's signature_mismatch), in that
+    /// wallet's words; a browser-bridge signature and every other refusal show
+    /// the error as before.
+    static func failureText(_ error: Error, walletId: String, platform: String) -> String {
+        if error is WalletSignatureMismatchError,
+           let text = BittensorWallet.signatureMismatchText(walletId: walletId, platform: platform) {
+            return text
+        }
+        return error.localizedDescription
     }
 }

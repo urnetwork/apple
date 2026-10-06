@@ -497,7 +497,9 @@ struct LoginInitialView: View {
         #endif
     }
 
-    private func handleAuthLoginResult(_ authLoginResult: AuthLoginResult) async {
+    /// `failureMessage` replaces the generic line for a failure that has its
+    /// own words (bittensorSignInFailureText).
+    private func handleAuthLoginResult(_ authLoginResult: AuthLoginResult, failureMessage: String? = nil) async {
         
         switch authLoginResult {
             
@@ -565,9 +567,10 @@ struct LoginInitialView: View {
         case .failure(let error):
             print("auth login error: \(error.localizedDescription)")
             viewModel.setIsCheckingUserAuth(false)
-            viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+            let message = failureMessage ?? String(localized: "There was an error logging in")
+            viewModel.setLoginErrorMessage(message)
             if deviceManager.device != nil {
-                snackbarManager.showSnackbar(message: String(localized: "There was an error logging in"))
+                snackbarManager.showSnackbar(message: message)
             }
             break
             
@@ -591,7 +594,9 @@ struct LoginInitialView: View {
 
         if proof.purpose == SdkBittensorWalletPurposeCreate {
             viewModel.isSigningForCreateNetwork = false
-            navigate(.createNetwork(args))
+            // the create names the wallet when it refuses a signature from
+            // another account
+            navigate(.createNetwork(args, bittensorWalletId: proof.walletId))
             return
         }
 
@@ -604,7 +609,11 @@ struct LoginInitialView: View {
         }
 
         let result = await viewModel.authLogin(args: args)
-        await self.handleAuthLoginResult(result)
+        // a pasted signature from another account than the entered address
+        await self.handleAuthLoginResult(
+            result,
+            failureMessage: bittensorSignInFailureText(result, walletId: proof.walletId)
+        )
     }
     
 }

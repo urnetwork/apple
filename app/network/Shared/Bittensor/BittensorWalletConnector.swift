@@ -99,6 +99,25 @@ enum BittensorWallet {
         SdkBittensorWalletTransportFor(walletId, platform)
     }
 
+    /// The server's code for a well-formed signature that does not verify for
+    /// the entered address: sign-in, network create, add-auth (sdk
+    /// WalletAuthErrorCodeSignatureMismatch) and POST /sn/wallet (sdk
+    /// SnErrorCodeSignatureMismatch) refuse it with this code.
+    static let signatureMismatchCode = "signature_mismatch"
+
+    /// The line for a signature pasted from `walletId` that the server refused
+    /// as not from the entered address: the user signed with another account
+    /// in the wallet (the server cannot say which). Only a manual wallet
+    /// pastes, so nil for a browser-bridge wallet (it signed with the account
+    /// it returned) and for none: the error then reads as before.
+    static func signatureMismatchText(walletId: String?, platform: String = BittensorWallet.platform) -> String? {
+        guard let walletId, transport(walletId, platform: platform) == SdkBittensorWalletTransportManual else {
+            return nil
+        }
+        let walletName = displayName(walletId)
+        return String(localized: "This signature isn't from the address you entered. In \(walletName), sign the message with that address, then paste the signature again.")
+    }
+
     /// Opens the bridge page in the default browser (the one with the
     /// extension).
     @MainActor
@@ -296,7 +315,9 @@ final class BittensorWalletConnector: ObservableObject {
     /// awaited, so a caller (and a test) sees the whole hand-off finish
     var onProof: (BittensorWalletProofInfo) async -> Void = { _ in }
 
-    private let platform: String
+    /// the platform column of the SDK's transport table (the refusal words
+    /// read it too)
+    let platform: String
     private let redirectLink: String
     private let makeSession: (_ walletId: String, _ platform: String, _ purpose: String, _ redirectLink: String) throws -> BittensorWalletSessioning
     private let fetchChallenge: (SdkAuthWalletChallengeArgs) async throws -> SdkAuthWalletChallengeResult

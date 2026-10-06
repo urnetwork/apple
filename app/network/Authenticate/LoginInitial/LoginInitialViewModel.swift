@@ -284,10 +284,24 @@ extension LoginInitialView.ViewModel {
         walletAuth.publicKey = proof.address
 
         args.walletAuth = walletAuth
+        // a signature from another account than the address comes back as
+        // result.error.code (a 401 error otherwise)
+        args.resultErrors = true
 
         return args
 
     }
+}
+
+/// What a refused Bittensor sign-in shows instead of the generic line: a
+/// signature pasted from `walletId` that is not from the entered address (the
+/// server's signature_mismatch), in that wallet's words. nil for any other
+/// answer, and for a wallet that signed itself (a browser bridge).
+func bittensorSignInFailureText(_ result: AuthLoginResult, walletId: String, platform: String = BittensorWallet.platform) -> String? {
+    guard case .failure(let error) = result, error is WalletSignatureMismatchError else {
+        return nil
+    }
+    return BittensorWallet.signatureMismatchText(walletId: walletId, platform: platform)
 }
 
 // MARK: Browser sign in (Google and Apple without a native flow: the

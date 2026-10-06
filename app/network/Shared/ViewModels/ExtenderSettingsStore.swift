@@ -9,10 +9,10 @@ import URnetworkSdk
 
 /**
  * The extender settings, share and import of the active network space
- * (EXTENDER.md K6, K7).
+ * (EXTENDER.md K6, K7), and its reset (E7).
  *
- * Everything that decides anything — encoding, decoding, applying, what the
- * defaults are — lives in the sdk's `ExtenderViewController`, one
+ * Everything that decides anything — encoding, decoding, applying, resetting,
+ * what the defaults are — lives in the sdk's `ExtenderViewController`, one
  * implementation for every app. This store owns that controller's lifetime,
  * maps its values onto plain Swift values the account screens bind to, and
  * carries the one thing the controller does not: the legacy single private
@@ -190,6 +190,22 @@ enum ExtenderImportOutcome: Equatable {
     case failed(error: String)
 }
 
+// MARK: - the controller
+
+/// What the store asks of the sdk's `ExtenderViewController`. The account
+/// screen's controller is the sdk's own, opened on the device; tests stand in
+/// for it, so the store runs without a device or a tunnel.
+protocol ExtenderSettingsController: AnyObject {
+    func getSettings() -> SdkExtenderSettings?
+    func setSettings(_ dnsName: String?, gossipUrl: String?, hosts: SdkStringList?) -> SdkExtenderSettings?
+    func resetExtenders() -> SdkExtenderSettings?
+    func buildShare(_ includeSettings: Bool) -> SdkExtenderShareResult?
+    func decodeShare(_ text: String?) -> SdkExtenderShareDecodeResult?
+    func importShare(_ text: String?, useSettings: Bool) -> SdkExtenderImportResult?
+}
+
+extension SdkExtenderViewController: ExtenderSettingsController {}
+
 // MARK: - store
 
 private class ExtenderNetworkSpaceUpdateCallback: NSObject, SdkNetworkSpaceUpdateProtocol {
@@ -218,41 +234,52 @@ class ExtenderSettingsStore: ObservableObject {
     /// true once the sdk settings have been read, so the form does not save a
     /// blank over a stored value while it is still loading
     @Published private(set) var loaded: Bool = false
+    /// true while the reset's confirmation is up: the button only asks, and
+    /// the reset runs on the confirmation's action (E7)
+    @Published var confirmingResetExtenders: Bool = false
+    /// true while a reset runs. The form holds Save meanwhile: a save in
+    /// between would write the values from before the reset back over it.
+    @Published private(set) var resettingExtenders: Bool = false
 
-    private var device: SdkDeviceRemote?
     private weak var deviceManager: DeviceManager?
-    private var viewController: SdkExtenderViewController?
+    private var viewController: ExtenderSettingsController?
+    /// stops and closes `viewController`
+    private var closeViewController: (() -> Void)?
 
     func setup(_ deviceManager: DeviceManager) {
         reset()
 
         self.deviceManager = deviceManager
-        guard let device = deviceManager.device else {
+        guard let device = deviceManager.device,
+              let viewController = device.openExtenderViewController() else {
             return
         }
-        self.device = device
-        let vc = device.openExtenderViewController()
-        self.viewController = vc
-        vc?.start()
+        viewController.start()
+        attach(viewController, close: {
+            viewController.stop()
+            device.close(viewController)
+        })
+    }
+
+    /// Drives the store with `viewController` until the next `reset`, which
+    /// calls `close`. The account screen's is the device's (`setup`); tests
+    /// attach their own.
+    func attach(_ viewController: ExtenderSettingsController, close: @escaping () -> Void) {
+        self.viewController = viewController
+        closeViewController = close
         load()
     }
 
     func reset() {
-        if let viewController {
-            viewController.stop()
-            if let device {
-                device.close(viewController)
-            } else {
-                viewController.close()
-            }
-        }
+        closeViewController?()
+        closeViewController = nil
         viewController = nil
-        device = nil
         deviceManager = nil
         fields = ExtenderSettingsFields()
         placeholders = .empty
         privateExtender = PrivateExtenderFields()
         loaded = false
+        confirmingResetExtenders = false
     }
 
     private func load() {
@@ -352,6 +379,51 @@ class ExtenderSettingsStore: ObservableObject {
         if let updated {
             deviceManager.setActiveNetworkSpace(updated)
         }
+    }
+
+    // MARK: reset
+
+    /// The "Reset extenders" button: it only asks (E7). Before the settings
+    /// have loaded there is nothing to reset, the same rule as Save's.
+    func requestResetExtenders() {
+        guard loaded, !resettingExtenders else {
+            return
+        }
+        confirmingResetExtenders = true
+    }
+
+    /**
+     * The confirmation's action (E7): the device's extender state goes back to
+     * a fresh install's, and the form shows what the reset leaves — every
+     * setting its default, no hosts and no private extender — over any
+     * unsaved edit. The sdk resets this process's space and hands the reset to
+     * the tunnel's process, at once while it is connected and when it next
+     * connects otherwise.
+     *
+     * The reset restarts the space's extender network and waits for the
+     * tunnel's process, so it runs off the main actor. Returns whether it ran,
+     * which is when the screen says so.
+     */
+    func resetExtenders() async -> Bool {
+        confirmingResetExtenders = false
+        guard loaded, !resettingExtenders, let viewController else {
+            return false
+        }
+        resettingExtenders = true
+        defer {
+            resettingExtenders = false
+        }
+        let settings = await Task.detached(priority: .userInitiated) {
+            viewController.resetExtenders()
+        }.value
+        // a screen that closed meanwhile has nothing to show it on
+        if self.viewController === viewController {
+            if let settings {
+                apply(settings)
+            }
+            loadPrivateExtender()
+        }
+        return true
     }
 
     // MARK: share and import

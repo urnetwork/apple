@@ -11,8 +11,8 @@ import URnetworkSdk
  *
  * The three values of the active network space — the extender dns name, the
  * gossip url and the manual bootstrap hosts — plus its bootstrap DNS-over-HTTPS
- * servers, the share and import actions of K7, and the legacy single private
- * extender behind Advanced.
+ * servers, the share and import actions of K7, the reset of E7 behind a
+ * confirmation, and the legacy single private extender behind Advanced.
  *
  * Empty fields mean the derived default and show it as a placeholder, so
  * clearing a box is how a user goes back to it. Saving restarts the space's
@@ -76,7 +76,7 @@ struct ExtendersView: View {
                     UrButton(
                         text: "Save",
                         action: save,
-                        enabled: store.loaded
+                        enabled: store.loaded && !store.resettingExtenders
                     )
                     .accessibilityIdentifier("acceptance.extenders.save")
 
@@ -121,6 +121,18 @@ struct ExtendersView: View {
                         action: { presentedSheet = .import },
                         style: .outlineSecondary,
                         leadingSystemImage: "qrcode.viewfinder"
+                    )
+
+                    // back to a fresh install's extenders (E7): what the user
+                    // added is removed and what was learned is cleared, so it
+                    // asks first
+                    UrButton(
+                        text: "Reset extenders",
+                        action: { store.requestResetExtenders() },
+                        style: .outlineSecondary,
+                        enabled: store.loaded,
+                        leadingSystemImage: "arrow.counterclockwise",
+                        isProcessing: store.resettingExtenders
                     )
 
                 }
@@ -201,6 +213,20 @@ struct ExtendersView: View {
             .environmentObject(themeManager)
             .environmentObject(snackbarManager)
         }
+        .confirmationDialog(
+            "Reset extenders",
+            isPresented: $store.confirmingResetExtenders,
+            titleVisibility: .visible
+        ) {
+            Button("Reset extenders", role: .destructive) {
+                Task {
+                    await resetExtenders()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes the extenders you added and clears everything learned about extenders, which are then discovered again from scratch.")
+        }
     }
 
     /// The placeholder of an empty field: the default that applies when the
@@ -212,5 +238,11 @@ struct ExtendersView: View {
     private func save() {
         store.save()
         snackbarManager.showSnackbar(message: String(localized: "Extender settings saved"))
+    }
+
+    private func resetExtenders() async {
+        if await store.resetExtenders() {
+            snackbarManager.showSnackbar(message: String(localized: "Extenders reset"))
+        }
     }
 }

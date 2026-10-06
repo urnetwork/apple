@@ -680,12 +680,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             throw TunnelLocalAuthIdentityError.incomplete
                         }
                         self.recordRecoveryStage("auth-observation", "accepted")
+                        let storedNetworkId = storedOwner?.networkId
                         return TunnelLocalAuthIdentitySnapshot(
                             isEmpty: snapshot.getEmpty(),
                             instanceId: snapshot.getInstanceId()?.string(),
                             knownClientOwnerConflict: storedOwner.flatMap { stored in
                                 configuredOwner.map { !stored.matches($0) }
-                            } ?? false
+                            } ?? false,
+                            sameNetwork: storedNetworkId != nil && storedNetworkId == configuredOwner?.networkId
                         )
                     } catch {
                         self.recordRecoveryStage("auth-observation", "failed")
@@ -704,6 +706,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         self.recordRecoveryStage("auth-reset", "completed")
                     } catch {
                         self.recordRecoveryStage("auth-reset", "failed")
+                        throw error
+                    }
+                },
+                clearStaleIdentity: {
+                    // The reset kept the identity file; another network's
+                    // device must not run on it, now or after a failed start,
+                    // so it goes with the rest of the reset store.
+                    do {
+                        try localState.logout()
+                        keyMaterial = nil
+                        self.recordRecoveryStage("identity-reset", "completed")
+                    } catch {
+                        self.recordRecoveryStage("identity-reset", "failed")
                         throw error
                     }
                 },

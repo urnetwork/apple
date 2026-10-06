@@ -962,6 +962,10 @@ struct TunnelLocalAuthIdentitySnapshot {
     let isEmpty: Bool
     let instanceId: String?
     var knownClientOwnerConflict: Bool = false
+    // The stored client and the configured one name the same network. Only
+    // then may a reset keep the stored device identity; see
+    // prepareTunnelLocalAuthState.
+    var sameNetwork: Bool = false
 }
 
 enum TunnelLocalAuthIdentityError: Error {
@@ -992,10 +996,21 @@ func tunnelLocalStateRequiresReset(
 // Read-only auth selection and an authorized reset precede construction. The
 // SDK commits auth at successful publication; later consumers must read the
 // constructed device's client, which may supersede this preliminary selection.
+//
+// A reset keeps the stored device identity only for the same network. The
+// app's instance changes when it signs in again after its auth was wiped, and
+// a sign-out it could not tell this process about (the tunnel was not running)
+// looks the same, so the stored identity may be the signed-out network's:
+// unless both clients name the same network, it is cleared too
+// (clearStaleIdentity) and the configured network starts on a new one (owner
+// decision 2026-10-05: logout must not cross contaminate other networks).
 func prepareTunnelLocalAuthState<Session>(
     configuredInstanceId: String,
     readAuthIdentity: () throws -> TunnelLocalAuthIdentitySnapshot,
     clearStaleState: () throws -> Void,
+    // the tunnel passes its LocalState logout; a caller without a store to
+    // clear (a pure test of the other steps) passes nothing
+    clearStaleIdentity: () throws -> Void = {},
     selectClientJwt: () throws -> String,
     startSession: (String) throws -> Session
 ) throws -> Session {
@@ -1005,6 +1020,9 @@ func prepareTunnelLocalAuthState<Session>(
         configuredInstanceId: configuredInstanceId
     ) {
         try clearStaleState()
+        if !snapshot.sameNetwork {
+            try clearStaleIdentity()
+        }
     }
     let selectedClientJwt = try selectClientJwt()
     return try startSession(selectedClientJwt)

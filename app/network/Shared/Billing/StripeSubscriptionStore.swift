@@ -229,7 +229,9 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     }
 
     /// 3. hosted checkout in the default browser, then the confirmation poll
-    /// so Pro flips the moment the webhook lands.
+    /// so Pro flips the moment the webhook lands. Its refusal is the one the
+    /// sheet shows (the earlier stages fall through to the next), in this
+    /// app's words for the server's code (CheckoutRefusal).
     private func openHostedCheckout(attempt: Int) async {
         do {
             let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeHosted, redirectOnCompletion: "", storefrontCountry: nil)
@@ -248,15 +250,13 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         } catch StripeBillingError.guestSignInRequired {
             guard attempt == self.attempt else { return }
             refuseForGuest()
-        } catch {
+        } catch StripeBillingError.refusal(let code, let message) {
             guard attempt == self.attempt else { return }
-            let message: String?
-            if case StripeBillingError.server(let text) = error, !text.isEmpty {
-                message = text
-            } else {
-                message = nil
-            }
-            fail(message: message, errorClass: "transport")
+            fail(message: CheckoutRefusal.message(code: code, words: message, screenLine: Self.screenLine), errorClass: "transport")
+        } catch {
+            // no answer from the server
+            guard attempt == self.attempt else { return }
+            fail(message: nil, errorClass: "transport")
         }
     }
 
@@ -367,6 +367,11 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         guestSignInRequiredSequence += 1
     }
 
+    /// The sheet's own line for a failure it has no other words for.
+    private static var screenLine: String {
+        String(localized: "Something went wrong. Please try again later.")
+    }
+
     private func fail(message: String?, errorClass: String) {
         if !outcomeEmitted {
             outcomeEmitted = true
@@ -375,7 +380,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         attempt += 1
         checkout = nil
         isPurchasing = false
-        purchaseError = (message?.isEmpty == false ? message : nil) ?? String(localized: "Something went wrong. Please try again later.")
+        purchaseError = (message?.isEmpty == false ? message : nil) ?? Self.screenLine
     }
 
     func resetPurchaseState() {

@@ -557,8 +557,8 @@ func appBundleName(t *testing.T, target, configuration string, archive bool) str
 // CFBundleName and Swift module still come from PRODUCT_NAME.
 func TestDirectAppBuildsUnderItsOwnBundleName(t *testing.T) {
 	for _, configuration := range []string{"Debug", "Release"} {
-		// build.sh, the CI workflows and the build repo read the App Store
-		// build at Build/Products/<Configuration>/URnetwork.app
+		// build.sh and the build repo read the App Store build at
+		// Build/Products/<Configuration>/URnetwork.app
 		if got := appBundleName(t, "URnetwork", configuration, false); got != "URnetwork.app" {
 			t.Fatalf("URnetwork %s builds %s, want URnetwork.app", configuration, got)
 		}

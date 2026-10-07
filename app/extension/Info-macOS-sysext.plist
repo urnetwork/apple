@@ -12,6 +12,8 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSSystemExtensionUsageDescription</key>
+	<string>URnetwork uses this extension to connect your Mac to the URnetwork VPN.</string>
 	<key>NetworkExtension</key>
 	<dict>
 		<key>NEMachServiceName</key>

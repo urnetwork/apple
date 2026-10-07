@@ -220,10 +220,10 @@ func TestSplitTunnelTargets(t *testing.T) {
 	for _, want := range []string{
 		// the App Store app embeds its extension for macOS only; without the
 		// filters the iOS build refuses a macOS binary inside the app
-		`/* URnetworkSplitTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100212F0E000100000021 /* URnetworkSplitTunnel.systemextension */; platformFilters = (macos, );`,
+		`/* network.ur.splittunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */; platformFilters = (macos, );`,
 		"isa = PBXTargetDependency;\n\t\t\tplatformFilters = (\n\t\t\t\tmacos,\n\t\t\t);\n\t\t\ttarget = C5A100412F0E000100000041 /* URnetworkSplitTunnel */;",
 		// the direct app embeds its own next to the packet tunnel
-		"A1D000112F0D000100000011 /* URnetworkVPNSystem.systemextension in Embed System Extensions */,\n\t\t\t\tC5A100022F0E000100000002 /* URnetworkSplitTunnelDirect.systemextension in Embed System Extensions */,",
+		"A1D000112F0D000100000011 /* com.bringyour.urnetwork.extension.systemextension in Embed System Extensions */,\n\t\t\t\tC5A100022F0E000100000002 /* com.bringyour.urnetwork.splittunnel.systemextension in Embed System Extensions */,",
 	} {
 		if !strings.Contains(pbxprojText, want) {
 			t.Fatalf("project.pbxproj lacks %q", want)
@@ -510,12 +510,12 @@ func TestSharedInfoPlistUsesBuildSettings(t *testing.T) {
 	}
 }
 
-// The bundle an application target builds: its WRAPPER_NAME, or Xcode's
-// default $(PRODUCT_NAME).app, with every $(NAME) expanded innermost first
+// The bundle a target builds: its WRAPPER_NAME, or Xcode's default derived
+// from PRODUCT_NAME, with every $(NAME) expanded innermost first
 // the way Xcode expands $(A_$(B)), for a build (DEPLOYMENT_LOCATION NO, into
 // a DerivedData's Build/Products/<Configuration>) or an archive (YES, into
 // the archive's Applications).
-func appBundleName(t *testing.T, target, configuration string, archive bool) string {
+func productBundleName(t *testing.T, target, configuration, extension string, archive bool) string {
 	t.Helper()
 	buildSettingValues := targetBuildSettings(t, target, configuration)
 	buildSettingValues["TARGET_NAME"] = target
@@ -525,7 +525,7 @@ func appBundleName(t *testing.T, target, configuration string, archive bool) str
 	}
 	name, ok := buildSettingValues["WRAPPER_NAME"]
 	if !ok {
-		name = "$(PRODUCT_NAME).app"
+		name = "$(PRODUCT_NAME)." + extension
 	}
 	macroRe := regexp.MustCompile(`\$\((\w+)\)`)
 	for i := 0; i < 8 && strings.Contains(name, "$("); i++ {
@@ -541,6 +541,48 @@ func appBundleName(t *testing.T, target, configuration string, archive bool) str
 		t.Fatalf("%s %s bundle name does not expand: %q", target, configuration, name)
 	}
 	return name
+}
+
+// System extension directory names must be their bundle identifiers plus
+// .systemextension (App Store validation 90939). Keep the executable/module
+// names separate so NEProviderClasses still resolves the existing providers.
+func TestSystemExtensionPackagingConfigurations(t *testing.T) {
+	project := plistJSON(t, filepath.Join(repoRoot(t), "app", "app.xcodeproj", "project.pbxproj"))
+	objects := project["objects"].(map[string]any)
+	for target, bundleID := range map[string]string{
+		"URnetworkVPNSystem":         directTunnel,
+		"URnetworkSplitTunnel":       storeSplitTunnel,
+		"URnetworkSplitTunnelDirect": directSplitTunnel,
+	} {
+		for _, configuration := range []string{"Debug", "Release"} {
+			for _, archive := range []bool{false, true} {
+				if got := productBundleName(t, target, configuration, "systemextension", archive); got != bundleID+".systemextension" {
+					t.Fatalf("%s %s archive=%v bundle name = %q", target, configuration, archive, got)
+				}
+			}
+			settings := targetBuildSettings(t, target, configuration)
+			info := plistJSON(t, filepath.Join(repoRoot(t), "app", settings["INFOPLIST_FILE"]))
+			usage, _ := info["NSSystemExtensionUsageDescription"].(string)
+			if strings.TrimSpace(usage) == "" || strings.Contains(usage, "$(") {
+				t.Fatalf("%s %s has no usable NSSystemExtensionUsageDescription", target, configuration)
+			}
+		}
+		found := false
+		for _, value := range objects {
+			object := value.(map[string]any)
+			if object["isa"] != "PBXNativeTarget" || object["name"] != target {
+				continue
+			}
+			found = true
+			product := objects[object["productReference"].(string)].(map[string]any)
+			if product["path"] != bundleID+".systemextension" || product["sourceTree"] != "BUILT_PRODUCTS_DIR" {
+				t.Fatalf("%s product reference cannot embed its bundle: %v", target, product)
+			}
+		}
+		if !found {
+			t.Fatalf("missing target %s", target)
+		}
+	}
 }
 
 // Both macOS app targets have PRODUCT_NAME URnetwork, and Xcode builds every
@@ -559,20 +601,81 @@ func TestDirectAppBuildsUnderItsOwnBundleName(t *testing.T) {
 	for _, configuration := range []string{"Debug", "Release"} {
 		// build.sh and the build repo read the App Store build at
 		// Build/Products/<Configuration>/URnetwork.app
-		if got := appBundleName(t, "URnetwork", configuration, false); got != "URnetwork.app" {
+		if got := productBundleName(t, "URnetwork", configuration, "app", false); got != "URnetwork.app" {
 			t.Fatalf("URnetwork %s builds %s, want URnetwork.app", configuration, got)
 		}
-		if got := appBundleName(t, "URnetworkDirect", configuration, false); got != "URnetworkDirect.app" {
+		if got := productBundleName(t, "URnetworkDirect", configuration, "app", false); got != "URnetworkDirect.app" {
 			t.Fatalf("URnetworkDirect %s builds %s, want URnetworkDirect.app beside the App Store URnetwork.app", configuration, got)
 		}
 		for _, target := range []string{"URnetwork", "URnetworkDirect"} {
-			if got := appBundleName(t, target, configuration, true); got != "URnetwork.app" {
+			if got := productBundleName(t, target, configuration, "app", true); got != "URnetwork.app" {
 				t.Fatalf("%s %s archives %s, want URnetwork.app", target, configuration, got)
 			}
 		}
 		if got := targetBuildSettings(t, "URnetworkDirect", configuration)["PRODUCT_NAME"]; got != "URnetwork" {
 			t.Fatalf("URnetworkDirect %s PRODUCT_NAME = %q, want URnetwork (the executable, CFBundleName and module)", configuration, got)
 		}
+	}
+}
+
+// Check the shipped boundary too: generated plists, copied product names and
+// provider module names can differ from the source settings.
+func builtSystemExtension(t *testing.T, app, bundleID, module, provider string) map[string]any {
+	t.Helper()
+	bundle := filepath.Join(app, "Contents", "Library", "SystemExtensions", bundleID+".systemextension")
+	info := plistJSON(t, filepath.Join(bundle, "Contents", "Info.plist"))
+	if info["CFBundleIdentifier"] != bundleID || info["CFBundlePackageType"] != "SYSX" || info["CFBundleExecutable"] != module {
+		t.Fatalf("%s identity/type/executable = %v / %v / %v", bundle, info["CFBundleIdentifier"], info["CFBundlePackageType"], info["CFBundleExecutable"])
+	}
+	usage, _ := info["NSSystemExtensionUsageDescription"].(string)
+	if strings.TrimSpace(usage) == "" || strings.Contains(usage, "$(") {
+		t.Fatalf("%s has no usable NSSystemExtensionUsageDescription", bundle)
+	}
+	network, _ := info["NetworkExtension"].(map[string]any)
+	classes, _ := network["NEProviderClasses"].(map[string]any)
+	if len(classes) != 1 {
+		t.Fatalf("%s NEProviderClasses = %v", bundle, classes)
+	}
+	for _, class := range classes {
+		if class != module+"."+provider {
+			t.Fatalf("%s provider class = %v, want %s.%s", bundle, class, module, provider)
+		}
+	}
+	if executable, err := os.Stat(filepath.Join(bundle, "Contents", "MacOS", module)); err != nil || executable.Mode()&0111 == 0 {
+		t.Fatalf("%s has no executable %s: %v", bundle, module, err)
+	}
+	return info
+}
+
+func assertSystemExtensionSet(t *testing.T, app string, bundleIDs ...string) {
+	t.Helper()
+	entries, err := os.ReadDir(filepath.Join(app, "Contents", "Library", "SystemExtensions"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != len(bundleIDs) {
+		t.Fatalf("%s embeds %d system extensions, want %d", app, len(entries), len(bundleIDs))
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() || !contains(bundleIDs, strings.TrimSuffix(entry.Name(), ".systemextension")) || !strings.HasSuffix(entry.Name(), ".systemextension") {
+			t.Fatalf("%s embeds unexpected system extension %s", app, entry.Name())
+		}
+	}
+}
+
+func TestBuiltAppStoreSystemExtensions(t *testing.T) {
+	app := os.Getenv("UR_APP_STORE_APP")
+	if app == "" {
+		t.Skip("UR_APP_STORE_APP not set")
+	}
+	if info := plistJSON(t, filepath.Join(app, "Contents", "Info.plist")); info["CFBundleIdentifier"] != storeApp {
+		t.Fatalf("%s is not the App Store app", app)
+	}
+	assertSystemExtensionSet(t, app, storeSplitTunnel)
+	info := builtSystemExtension(t, app, storeSplitTunnel, "URnetworkSplitTunnel", "SplitTunnelProxyProvider")
+	network, _ := info["NetworkExtension"].(map[string]any)
+	if network["NEMachServiceName"] != storeSplitTunnelMachService {
+		t.Fatalf("built App Store split tunnel NEMachServiceName = %v", network["NEMachServiceName"])
 	}
 }
 
@@ -613,35 +716,28 @@ func TestBuiltDirectProduct(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(app, "Contents", "PlugIns")); err == nil {
 		t.Fatal("the direct product embeds app extensions")
 	}
-	sysext := filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkVPNSystem.systemextension", "Contents", "Info.plist")
-	ext := plistJSON(t, sysext)
-	if ext["CFBundleIdentifier"] != directTunnel || ext["CFBundlePackageType"] != "SYSX" {
-		t.Fatalf("sysext CFBundleIdentifier/CFBundlePackageType = %v / %v", ext["CFBundleIdentifier"], ext["CFBundlePackageType"])
-	}
+	assertSystemExtensionSet(t, app, directTunnel, directSplitTunnel)
+	ext := builtSystemExtension(t, app, directTunnel, "URnetworkVPNSystem", "PacketTunnelProvider")
 	network, _ := ext["NetworkExtension"].(map[string]any)
 	if network["NEMachServiceName"] != directMachService {
 		t.Fatalf("built NEMachServiceName = %v", network["NEMachServiceName"])
 	}
-	splitTunnelInfoValues := plistJSON(t, filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkSplitTunnelDirect.systemextension", "Contents", "Info.plist"))
-	if splitTunnelInfoValues["CFBundleIdentifier"] != directSplitTunnel || splitTunnelInfoValues["CFBundlePackageType"] != "SYSX" {
-		t.Fatalf("split tunnel sysext CFBundleIdentifier/CFBundlePackageType = %v / %v", splitTunnelInfoValues["CFBundleIdentifier"], splitTunnelInfoValues["CFBundlePackageType"])
-	}
+	splitTunnelInfoValues := builtSystemExtension(t, app, directSplitTunnel, "URnetworkSplitTunnelDirect", "SplitTunnelProxyProvider")
 	splitTunnelNetworkExtensionValues, _ := splitTunnelInfoValues["NetworkExtension"].(map[string]any)
 	if splitTunnelNetworkExtensionValues["NEMachServiceName"] != directSplitTunnelMachService {
 		t.Fatalf("built split tunnel NEMachServiceName = %v", splitTunnelNetworkExtensionValues["NEMachServiceName"])
 	}
-	if _, err := os.Stat(filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkSplitTunnel.systemextension")); err == nil {
-		t.Fatal("the direct product embeds the App Store split tunnel extension")
-	}
 
-	// A signed product (the Developer ID export) embeds the two profiles;
+	// A signed product (the Developer ID export) embeds all three profiles;
 	// an unsigned build has none and skips this part.
-	sysextBundle := filepath.Join(app, "Contents", "Library", "SystemExtensions", "URnetworkVPNSystem.systemextension")
+	sysextBundle := filepath.Join(app, "Contents", "Library", "SystemExtensions", directTunnel+".systemextension")
+	splitTunnelBundle := filepath.Join(app, "Contents", "Library", "SystemExtensions", directSplitTunnel+".systemextension")
 	for _, bundle := range []struct {
-		path, profile, appId string
+		path, profile, appId, provider string
 	}{
-		{app, directAppProfile, directApp},
-		{sysextBundle, directTunnelProfile, directTunnel},
+		{app, directAppProfile, directApp, "packet-tunnel-provider-systemextension"},
+		{sysextBundle, directTunnelProfile, directTunnel, "packet-tunnel-provider-systemextension"},
+		{splitTunnelBundle, directSplitTunnelProfile, directSplitTunnel, "app-proxy-provider-systemextension"},
 	} {
 		embedded := filepath.Join(bundle.path, "Contents", "embedded.provisionprofile")
 		if _, err := os.Stat(embedded); err != nil {
@@ -655,12 +751,12 @@ func TestBuiltDirectProduct(t *testing.T) {
 		if entitlements["com.apple.application-identifier"] != directTeam+"."+bundle.appId {
 			t.Fatalf("%s profile com.apple.application-identifier = %v", bundle.path, entitlements["com.apple.application-identifier"])
 		}
-		if !contains(stringList(entitlements["com.apple.developer.networking.networkextension"]), "packet-tunnel-provider-systemextension") {
-			t.Fatalf("%s profile does not grant packet-tunnel-provider-systemextension: %v", bundle.path, entitlements["com.apple.developer.networking.networkextension"])
+		if !contains(stringList(entitlements["com.apple.developer.networking.networkextension"]), bundle.provider) {
+			t.Fatalf("%s profile does not grant %s: %v", bundle.path, bundle.provider, entitlements["com.apple.developer.networking.networkextension"])
 		}
 		signed := signedEntitlements(t, bundle.path)
-		if !contains(stringList(signed["com.apple.developer.networking.networkextension"]), "packet-tunnel-provider-systemextension") {
-			t.Fatalf("%s is signed without packet-tunnel-provider-systemextension: %v", bundle.path, signed)
+		if !contains(stringList(signed["com.apple.developer.networking.networkextension"]), bundle.provider) {
+			t.Fatalf("%s is signed without %s: %v", bundle.path, bundle.provider, signed)
 		}
 		for _, key := range []string{"com.apple.developer.applesignin", "com.apple.developer.networking.vpn.api"} {
 			if _, present := signed[key]; present {

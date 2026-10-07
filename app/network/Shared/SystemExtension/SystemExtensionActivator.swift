@@ -5,7 +5,7 @@
 //  Asks macOS to install a system extension embedded in this app bundle
 //  (Contents/Library/SystemExtensions). Two use it: the direct-download
 //  build (`DIRECT_DOWNLOAD`) for its packet tunnel
-//  (URnetworkVPNSystem.systemextension, bundle id
+//  (com.bringyour.urnetwork.extension.systemextension, bundle id
 //  TunnelProviderIdentity.bundleIdentifier -- the same provider id the
 //  tunnel manager uses), and both macOS builds for the split tunnel
 //  (TunnelProviderIdentity.splitTunnelBundleIdentifier, activated by

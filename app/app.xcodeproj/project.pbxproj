@@ -54,7 +54,7 @@
 		A1D0000B2F0D00010000000B /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0000F2F0D00010000000F /* GoogleSignInSwift */; };
 		A1D0000C2F0D00010000000C /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A1D000102F0D000100000010 /* URnetworkSdk */; };
 		A1D0000D2F0D00010000000D /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
-		A1D000112F0D000100000011 /* URnetworkVPNSystem.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1D000112F0D000100000011 /* com.bringyour.urnetwork.extension.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1D000282F0D000100000028 /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
 		A1D000292F0D000100000029 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
 		A1D0002A2F0D00010000002A /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
@@ -62,8 +62,8 @@
 		A1D0002C2F0D00010000002C /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */; };
 		A1D0002D2F0D00010000002D /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		A1D0002E2F0D00010000002E /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
-		C5A100012F0E000100000001 /* URnetworkSplitTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100212F0E000100000021 /* URnetworkSplitTunnel.systemextension */; platformFilters = (macos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		C5A100022F0E000100000002 /* URnetworkSplitTunnelDirect.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100222F0E000100000022 /* URnetworkSplitTunnelDirect.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C5A100012F0E000100000001 /* network.ur.splittunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */; platformFilters = (macos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C5A100022F0E000100000002 /* com.bringyour.urnetwork.splittunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C5A100032F0E000100000003 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */; };
 		C5A100042F0E000100000004 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A100322F0E000100000032 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift */; };
 		C5A100052F0E000100000005 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */; };
@@ -152,8 +152,8 @@
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				A1D000112F0D000100000011 /* URnetworkVPNSystem.systemextension in Embed System Extensions */,
-				C5A100022F0E000100000002 /* URnetworkSplitTunnelDirect.systemextension in Embed System Extensions */,
+				A1D000112F0D000100000011 /* com.bringyour.urnetwork.extension.systemextension in Embed System Extensions */,
+				C5A100022F0E000100000002 /* com.bringyour.urnetwork.splittunnel.systemextension in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -164,7 +164,7 @@
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				C5A100012F0E000100000001 /* URnetworkSplitTunnel.systemextension in Embed System Extensions */,
+				C5A100012F0E000100000001 /* network.ur.splittunnel.systemextension in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -210,9 +210,9 @@
 		D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A832CEBE76400542E0E /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		A1D000092F0D000100000009 /* URnetworkDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetworkDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = URnetworkVPNSystem.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
-		C5A100212F0E000100000021 /* URnetworkSplitTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = URnetworkSplitTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
-		C5A100222F0E000100000022 /* URnetworkSplitTunnelDirect.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = URnetworkSplitTunnelDirect.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.bringyour.urnetwork.extension.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = network.ur.splittunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.bringyour.urnetwork.splittunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift; sourceTree = SOURCE_ROOT; };
 		C5A100322F0E000100000032 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -462,9 +462,9 @@
 				B17E01012F0000010000A002 /* URnetworkWidgets.appex */,
 				1783A00D2D60111600024F80 /* URnetworkLaunchHelper */,
 				A1D000092F0D000100000009 /* URnetworkDirect.app */,
-				A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */,
-				C5A100212F0E000100000021 /* URnetworkSplitTunnel.systemextension */,
-				C5A100222F0E000100000022 /* URnetworkSplitTunnelDirect.systemextension */,
+				A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */,
+				C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */,
+				C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -674,7 +674,7 @@
 				A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */,
 			);
 			productName = extension;
-			productReference = A1D000272F0D000100000027 /* URnetworkVPNSystem.systemextension */;
+			productReference = A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */;
 			productType = "com.apple.product-type.system-extension";
 		};
 		C5A100412F0E000100000041 /* URnetworkSplitTunnel */ = {
@@ -696,7 +696,7 @@
 			packageProductDependencies = (
 			);
 			productName = splittunnel;
-			productReference = C5A100212F0E000100000021 /* URnetworkSplitTunnel.systemextension */;
+			productReference = C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */;
 			productType = "com.apple.product-type.system-extension";
 		};
 		C5A100422F0E000100000042 /* URnetworkSplitTunnelDirect */ = {
@@ -718,7 +718,7 @@
 			packageProductDependencies = (
 			);
 			productName = splittunnel;
-			productReference = C5A100222F0E000100000022 /* URnetworkSplitTunnelDirect.systemextension */;
+			productReference = C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */;
 			productType = "com.apple.product-type.system-extension";
 		};
 /* End PBXNativeTarget section */
@@ -1818,6 +1818,7 @@
 				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Extension Download";
 				REGISTER_APP_GROUPS = NO;
 				SKIP_INSTALL = YES;
@@ -1863,6 +1864,7 @@
 				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Extension Download";
 				REGISTER_APP_GROUPS = NO;
 				SKIP_INSTALL = YES;
@@ -1908,6 +1910,7 @@
 				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = network.ur.splittunnel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = NO;
 				SKIP_INSTALL = YES;
@@ -1950,6 +1953,7 @@
 				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = network.ur.splittunnel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = NO;
 				SKIP_INSTALL = YES;
@@ -1993,6 +1997,7 @@
 				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.splittunnel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Split Tunnel Download";
 				REGISTER_APP_GROUPS = NO;
 				SKIP_INSTALL = YES;
@@ -2036,6 +2041,7 @@
 				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.splittunnel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Split Tunnel Download";
 				REGISTER_APP_GROUPS = NO;
 				SKIP_INSTALL = YES;

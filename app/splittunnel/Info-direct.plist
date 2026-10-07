@@ -10,6 +10,8 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSSystemExtensionUsageDescription</key>
+	<string>URnetwork uses this extension to apply your split tunnel rules to app traffic.</string>
 	<key>NetworkExtension</key>
 	<dict>
 		<key>NEMachServiceName</key>

@@ -207,6 +207,13 @@ struct ExtenderProvideDisplay: Equatable {
             return String(localized: "Revoked by the operator")
         case SdkExtenderProvideErrorStart:
             return String(format: String(localized: "Could not start: %@"), status.reason)
+        case SdkExtenderProvideErrorTcpUnavailable:
+            // the role is off until it can bind tcp 443, which the sdk tries
+            // again every few minutes; the reason is the bind error
+            return String(
+                format: String(localized: "TCP port 443 is in use by another program. Trying again every few minutes: %@"),
+                status.reason
+            )
         case SdkExtenderProvideErrorListen:
             return String(format: String(localized: "Could not listen: %@"), status.reason)
         case SdkExtenderProvideErrorActivationRefused:

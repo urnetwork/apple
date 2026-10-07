@@ -122,6 +122,8 @@ struct ExtenderProvideRowTests {
 
         let otherFields: [(String, (SdkExtenderProvideStatus) -> Void)] = [
             ("startError", { $0.startError = "noise" }),
+            // the bind error reaches the row as the reason of its case
+            ("tcpUnavailableError", { $0.tcpUnavailableError = "noise" }),
             ("listening", { $0.listening = true }),
             ("listenError", { $0.listenError = "noise" }),
             ("ipv4", { $0.ipv4 = "192.0.2.1" }),
@@ -130,6 +132,13 @@ struct ExtenderProvideRowTests {
             ("lastActivationError", { $0.lastActivationError = "noise" }),
             ("revokedTime", { $0.revokedTime = 1_700_000_000_000 }),
             ("dnsPorts", { $0.dnsPorts = "53,4053" }),
+            ("peerPingCount", { $0.peerPingCount = 9 }),
+            ("peerPingCosignedCount", { $0.peerPingCosignedCount = 5 }),
+            ("peerPingRejectedCount", { $0.peerPingRejectedCount = 2 }),
+            ("peerPingUnknownCount", { $0.peerPingUnknownCount = 2 }),
+            ("lastPeerPingTime", { $0.lastPeerPingTime = 1_700_000_000_000 }),
+            ("limitedBySubnetsCount", { $0.limitedBySubnetsCount = 3 }),
+            ("limitedBySourceCount", { $0.limitedBySourceCount = 4 }),
             ("connectionCount", { $0.connectionCount = 7 }),
         ]
         for (name, change) in otherFields {
@@ -187,6 +196,22 @@ struct ExtenderProvideRowTests {
         )
         #expect(row.dot == .red)
         #expect(row.text == "Could not start: no extender directory")
+        #expect(row.isError)
+    }
+
+    // the role is off because another program, often another provider on this
+    // computer, holds tcp 443: the calm label with the bind error, in the error
+    // color like every error case, never the bare reason of an unknown case
+    @Test func tcpUnavailableIsRedWithTheBindError() {
+        let reason = "listen tcp :443: bind: address already in use"
+        let row = reading(
+            state: SdkExtenderProvideStateError,
+            errorCase: SdkExtenderProvideErrorTcpUnavailable,
+            reason: reason
+        )
+        #expect(row.dot == .red)
+        #expect(row.text == "TCP port 443 is in use by another program. Trying again every few minutes: \(reason)")
+        #expect(row.text != reason)
         #expect(row.isError)
     }
 
@@ -257,6 +282,14 @@ struct ExtenderProvideRowTests {
             activatedV6: true,
             lastActivationRefused: true
         ).text == "Could not start: x")
+        #expect(reading(
+            state: error,
+            errorCase: SdkExtenderProvideErrorTcpUnavailable,
+            reason: "x",
+            activatedV4: true,
+            activatedV6: true,
+            lastActivationRefused: true
+        ).text == "TCP port 443 is in use by another program. Trying again every few minutes: x")
         #expect(reading(
             state: error,
             errorCase: SdkExtenderProvideErrorListen,

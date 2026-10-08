@@ -111,7 +111,7 @@ case "${1:-}" in
         jq -Rn --arg mode "$APPLE_RUNNER_MODE" '{devices: {fixture: [
           inputs | split("\t") | {
             udid: .[0], name: (if $mode == "ownership-mismatch" and .[1] != "user-simulator"
-              then "changed-owner" else .[1] end), state: "Booted", isAvailable: true
+              then "changed-owner" else .[1] end), state: (.[2] // "Booted"), isAvailable: true
           }
         ]}}' <"$APPLE_RUNNER_DEVICES"
         ;;
@@ -121,11 +121,37 @@ case "${1:-}" in
   create)
     release="${2#urnetwork-acceptance-ios-}"
     release="${release%%-*}"
-    udid="$(printf '%08d-1111-2222-3333-444444444444' "$release")"
-    printf '%s\t%s\n' "$udid" "$2" >>"$APPLE_RUNNER_DEVICES"
+    count_file="$APPLE_RUNNER_DEVICES.create-count"
+    create_count="$(cat "$count_file" 2>/dev/null || printf '0')"
+    create_count=$((create_count + 1))
+    printf '%s\n' "$create_count" >"$count_file"
+    udid="$(printf '%08d-1111-2222-3333-%012d' "$release" "$create_count")"
+    if [[ "$APPLE_RUNNER_MODE" == extension-generation-* ]] && \
+       [ "$(wc -l <"$APPLE_RUNNER_DEVICES" | tr -d ' ')" -ne 1 ]; then
+      echo 'fixture extension: next owner created before prior simulator deletion' >&2
+      exit 65
+    fi
+    printf '%s\t%s\tShutdown\n' "$udid" "$2" >>"$APPLE_RUNNER_DEVICES"
     printf '%s\n' "$udid"
     ;;
-  boot|spawn|shutdown) ;;
+  boot)
+    awk -F '\t' -v OFS='\t' -v udid="$2" \
+      '$1 == udid { $3 = "Booted" } { print }' "$APPLE_RUNNER_DEVICES" \
+      >"$APPLE_RUNNER_DEVICES.tmp"
+    mv "$APPLE_RUNNER_DEVICES.tmp" "$APPLE_RUNNER_DEVICES"
+    ;;
+  spawn) ;;
+  shutdown)
+    # Joining the simulator ends pending extension launches, including one
+    # retained after xcodebuild has already returned its unit or UI result.
+    [ "$APPLE_RUNNER_MODE" != extension-generation-shutdown-failure ] || exit 8
+    rm -f -- "$APPLE_RUNNER_DEVICES.$2.pending-extension"
+    printf '%s\n' "$2" >"$APPLE_RUNNER_DEVICES.$2.joined"
+    awk -F '\t' -v OFS='\t' -v udid="$2" \
+      '$1 == udid { $3 = "Shutdown" } { print }' "$APPLE_RUNNER_DEVICES" \
+      >"$APPLE_RUNNER_DEVICES.tmp"
+    mv "$APPLE_RUNNER_DEVICES.tmp" "$APPLE_RUNNER_DEVICES"
+    ;;
   bootstatus)
     if [ "$APPLE_RUNNER_MODE" = terminate ]; then
       kill -TERM "$PPID"
@@ -133,7 +159,11 @@ case "${1:-}" in
     ;;
   delete)
     [ "$2" != 99999999-1111-2222-3333-444444444444 ] || exit 99
-    case "$APPLE_RUNNER_MODE" in cleanup-failure|deferred-cleanup-failure) exit 8 ;; esac
+    case "$APPLE_RUNNER_MODE" in cleanup-failure|deferred-cleanup-failure|extension-generation-cleanup-failure) exit 8 ;; esac
+    if [[ "$APPLE_RUNNER_MODE" == extension-generation-* ]]; then
+      [ -f "$APPLE_RUNNER_DEVICES.$2.joined" ] || exit 65
+      [ ! -f "$APPLE_RUNNER_DEVICES.$2.pending-extension" ] || exit 65
+    fi
     awk -F '\t' -v udid="$2" '$1 != udid' "$APPLE_RUNNER_DEVICES" \
       >"$APPLE_RUNNER_DEVICES.tmp"
     mv "$APPLE_RUNNER_DEVICES.tmp" "$APPLE_RUNNER_DEVICES"
@@ -199,6 +229,21 @@ case "$mode" in
     source "$URNETWORK_ROOT/apple/test-hardware-startup-lib.sh"
     nonce="$(plutil -extract TestConfigurations.0.TestTargets.1.EnvironmentVariables.UR_HARDWARE_UI_TEST_NONCE raw "$xctestrun")"
     apple_hardware_xctestrun_has_paired_no_vpn_contract "$xctestrun" "$nonce" "$udid"
+    case "$APPLE_RUNNER_MODE" in
+      extension-generation-unit-ui|extension-generation-repetition)
+        # Force the observed ordering synchronously: an extension launch
+        # still names the installed generation when the next action replaces
+        # that app. The process needs no scheduler timing or negative wait.
+        if [ -f "$APPLE_RUNNER_DEVICES.$udid.pending-extension" ]; then
+          echo "fixture extension: Invalid bundle record for stale generation during $target" >&2
+          exit 65
+        fi
+        if [ "$APPLE_RUNNER_MODE" = extension-generation-unit-ui ] || \
+           [[ "$target" == networkUITests/* ]]; then
+          printf '%s\n' "$target" >"$APPLE_RUNNER_DEVICES.$udid.pending-extension"
+        fi
+        ;;
+    esac
     case "$target" in
       networkTests)
         [ "$APPLE_RUNNER_MODE" != unit-failure ] || exit 6
@@ -218,6 +263,7 @@ chmod 700 "$test_root/bin/"*
 
 run_fixture() {
   local mode="$1" expected_status="$2" fixture status artifacts
+  local expected_actions lane repetition corpus owner owner_out action_count owner_count
   local -a startup_args
   startup_args=()
   case "$mode" in deferred*) startup_args=(--defer-ios-17-2) ;; esac
@@ -291,7 +337,9 @@ run_fixture() {
   if [ "$expected_status" -ne 0 ] && [ -e "$fixture/coverage.json" ]; then
     fail "$mode published passing tailored coverage after failure"
   fi
-  if [ "$mode" = cleanup-failure ] || [ "$mode" = deferred-cleanup-failure ] || [ "$mode" = ownership-mismatch ]; then
+  if [ "$mode" = cleanup-failure ] || [ "$mode" = deferred-cleanup-failure ] || \
+     [ "$mode" = extension-generation-cleanup-failure ] || \
+     [ "$mode" = extension-generation-shutdown-failure ] || [ "$mode" = ownership-mismatch ]; then
     [ -n "$(find "$artifacts/simulators" -name .cleanup-required -print -quit)" ] || \
       fail "$mode disarmed required cleanup"
   else
@@ -300,6 +348,59 @@ run_fixture() {
       fail "$mode leaked an owned simulator or changed an existing simulator"
     [ -z "$(find "$artifacts/simulators" -name .cleanup-required -print -quit)" ] || \
       fail "$mode left cleanup armed after deletion"
+  fi
+  if [[ "$mode" == extension-generation-* ]]; then
+    if [ "$mode" = extension-generation-cleanup-failure ] || \
+       [ "$mode" = extension-generation-shutdown-failure ]; then
+      [ "$(grep -c '^xcrun simctl create ' "$fixture/calls.log")" -eq 1 ] || \
+        fail 'failed owner cleanup allowed another simulator creation'
+      [ "$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log")" -eq 1 ] || \
+        fail 'failed owner cleanup allowed another app installation'
+      if [ "$mode" = extension-generation-shutdown-failure ]; then
+        ! grep -q '^xcrun simctl delete ' "$fixture/calls.log" || \
+          fail 'simulator deletion proceeded without joining the owner'
+      fi
+    fi
+  fi
+  if [ "$expected_status" -eq 0 ]; then
+    # Keep both complete corpora on every selected release and repetition,
+    # including the original full/deferred controls, with one owner per action.
+    expected_actions=$((4 * $(jq 'length' "$artifacts/simulator-plan.json")))
+    [ "$(grep -c '^xcrun simctl create ' "$fixture/calls.log")" -eq "$expected_actions" ] || \
+      fail 'test actions did not each create a fresh simulator'
+    [ "$(grep -c '^xcrun simctl shutdown ' "$fixture/calls.log")" -eq "$expected_actions" ] || \
+      fail 'test actions did not each join their simulator'
+    [ "$(grep -c '^xcrun simctl delete ' "$fixture/calls.log")" -eq "$expected_actions" ] || \
+      fail 'test actions did not each delete their simulator'
+    [ "$(wc -l <"$artifacts/owned-simulators.tsv" | tr -d ' ')" -eq "$expected_actions" ] || \
+      fail 'ownership journal lost an action identity'
+    while IFS= read -r lane; do
+      jq -e --arg lane "$lane" '
+        .version == 2 and .lane == $lane
+        and .owners == [
+          $lane + "-unit-1", $lane + "-ui-1",
+          $lane + "-unit-2", $lane + "-ui-2"
+        ]
+      ' "$artifacts/simulators/$lane/identity.json" >/dev/null || \
+        fail "$lane lost its exact action ownership plan"
+      for repetition in 1 2; do
+        [ -f "$artifacts/simulators/$lane/unit-test-$repetition.log" ] && \
+          [ -f "$artifacts/simulators/$lane/test-$repetition.log" ] || \
+          fail "$lane repetition $repetition lost a corpus artifact"
+        for corpus in unit ui; do
+          owner="$lane-$corpus-$repetition"
+          owner_out="$artifacts/simulators/$owner"
+          jq -e --arg lane "$lane" --arg owner "$owner" \
+            --arg corpus "$corpus" --argjson repetition "$repetition" '
+            .lane == $lane and .owner == $owner and .corpus == $corpus
+            and .repetition == $repetition
+          ' "$owner_out/identity.json" >/dev/null || \
+            fail "$owner lost its exact simulator identity"
+          grep -q $'\tPASS\ttested-and-deleted$' "$owner_out/action-status.tsv" || \
+            fail "$owner lost its successful test and cleanup receipt"
+        done
+      done
+    done < <(jq -r '.[].identifier' "$artifacts/simulator-plan.json")
   fi
   if [ "$mode" = ownership-mismatch ]; then
     ! grep -Eq '^xcrun simctl (shutdown|delete) ' "$fixture/calls.log" || \
@@ -343,12 +444,20 @@ run_fixture() {
         fail "$mode reached linking or simulator creation"
       ;;
   esac
+  action_count="$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log" || true)"
+  owner_count=0
+  if [ -f "$artifacts/owned-simulators.tsv" ]; then
+    owner_count="$(wc -l <"$artifacts/owned-simulators.tsv" | tr -d ' ')"
+  fi
+  printf 'apple simulator fixture passed: %s status=%s actions=%s owners=%s\n' \
+    "$mode" "$status" "$action_count" "$owner_count"
 }
 
 if [ "$#" -ne 0 ]; then
   [ "$#" -eq 1 ] || fail "expected one fixture name"
   case "$1" in
-    success|deferred) run_fixture "$1" 0 ;;
+    success|deferred|extension-generation-unit-ui|extension-generation-repetition) run_fixture "$1" 0 ;;
+    extension-generation-cleanup-failure|extension-generation-shutdown-failure) run_fixture "$1" 1 ;;
     unsupported-host|missing-app-slice|missing-extension-slice|wrong-app-slice|wrong-extension-slice)
       run_fixture "$1" 1 ;;
     *) fail "unknown fixture name" ;;
@@ -372,4 +481,8 @@ run_fixture missing-app-slice 1
 run_fixture missing-extension-slice 1
 run_fixture wrong-app-slice 1
 run_fixture wrong-extension-slice 1
+run_fixture extension-generation-unit-ui 0
+run_fixture extension-generation-repetition 0
+run_fixture extension-generation-cleanup-failure 1
+run_fixture extension-generation-shutdown-failure 1
 echo 'apple simulator startup entry-point tests passed'

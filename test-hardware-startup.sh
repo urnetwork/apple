@@ -10,7 +10,7 @@
 #   ./test-hardware-startup.sh --defer-ios-17-2  (explicit user authorization only)
 #
 # Environment:
-#   UR_ACCEPT_REPEAT=N  Run both deterministic corpora N times per simulator.
+#   UR_ACCEPT_REPEAT=N  Run both deterministic corpora N times per release.
 #
 # The simulator inventory is captured into an immutable four-release plan.
 # The only temporary coverage exception is an explicit iOS 17.2 deferral;
@@ -377,36 +377,8 @@ while IFS=$'\t' read -r simulator_lane requested_release runtime_version \
     runtime_identifier device_type_identifier device_type_name; do
   simulator_out="$simulator_results_root/$simulator_lane"
   mkdir "$simulator_out"
-  simulator_name="urnetwork-acceptance-ios-${requested_release}-${timestamp}"
-  echo "[apple iOS simulators] creating $simulator_lane with iOS $runtime_version ($device_type_name)"
-
-  if ! simulator_udid="$(run_bounded 60 xcrun simctl create \
-    "$simulator_name" "$device_type_identifier" "$runtime_identifier" \
-    2>"$simulator_out/create.log")"; then
-    apple_hardware_write_result_once \
-      "$simulator_out/status.tsv" "$simulator_lane" FAIL create-failed
-    overall=1
-    continue
-  fi
-  if ! apple_ios_simulator_udid_is_valid "$simulator_udid"; then
-    apple_hardware_write_result_once \
-      "$simulator_out/status.tsv" "$simulator_lane" FAIL malformed-created-udid
-    overall=1
-    continue
-  fi
-
-  active_simulator_lane="$simulator_lane"
-  active_simulator_udid="$simulator_udid"
-  active_simulator_name="$simulator_name"
-  apple_ios_append_owned_simulator \
-    "$owned_simulators" "$simulator_lane" "$simulator_udid" \
-    "$simulator_name" || \
-    die "could not journal the newly created simulator $simulator_udid"
-  touch "$simulator_out/.cleanup-required"
-  active_simulator_lane=""
-  active_simulator_udid=""
-  active_simulator_name=""
-
+  # The runtime still owns one result row. Its immutable identity now lists
+  # the separate process owners rather than naming one reused simulator.
   jq -n \
     --arg lane "$simulator_lane" \
     --arg requested_release "$requested_release" \
@@ -414,105 +386,173 @@ while IFS=$'\t' read -r simulator_lane requested_release runtime_version \
     --arg runtime_identifier "$runtime_identifier" \
     --arg device_type_identifier "$device_type_identifier" \
     --arg device_type_name "$device_type_name" \
-    --arg name "$simulator_name" \
-    --arg udid "$simulator_udid" '
+    --argjson repeat_count "$repeat_count" '
       {
-        lane: $lane,
+        version: 2, lane: $lane,
         requestedRelease: $requested_release,
         runtimeVersion: $runtime_version,
         runtimeIdentifier: $runtime_identifier,
         deviceTypeIdentifier: $device_type_identifier,
         deviceTypeName: $device_type_name,
-        name: $name,
-        udid: $udid
+        owners: [range(1; $repeat_count + 1) as $repetition
+          | ["unit", "ui"][] as $corpus
+          | $lane + "-" + $corpus + "-" + ($repetition | tostring)]
       }
     ' >"$simulator_out/identity.json"
   chmod 400 "$simulator_out/identity.json"
-
   simulator_test_status=0
-  if ! run_bounded 60 xcrun simctl boot "$simulator_udid" \
-      >"$simulator_out/boot.log" 2>&1 || \
-     ! run_bounded 300 xcrun simctl bootstatus "$simulator_udid" -b \
-      >"$simulator_out/bootstatus.log" 2>&1 || \
-     ! run_bounded 30 xcrun simctl spawn "$simulator_udid" \
-      launchctl print system >"$simulator_out/readiness.log" 2>&1; then
-    simulator_test_status=1
-  fi
-
-  simulator_xctestrun="$(dirname "$simulator_xctestrun_source")/hardware-startup-$simulator_lane-$simulator_udid.xctestrun"
-  apple_hardware_prepare_xctestrun \
-    "$simulator_xctestrun_source" "$simulator_xctestrun" "$nonce" \
-    "$simulator_udid" || \
-    die "could not prepare the paired xctestrun for $simulator_lane"
-  apple_hardware_xctestrun_has_paired_no_vpn_contract \
-    "$simulator_xctestrun" "$nonce" "$simulator_udid" || \
-    die "paired no-VPN xctestrun is invalid for $simulator_lane"
-  chmod 400 "$simulator_xctestrun"
-  simulator_xctestrun_hash="$(apple_hardware_sha256 "$simulator_xctestrun")"
-
   repetition=1
   while [ "$simulator_test_status" -eq 0 ] && \
       [ "$repetition" -le "$repeat_count" ]; do
     echo "[apple iOS simulators] $simulator_lane repetition $repetition/$repeat_count"
-    apple_hardware_xctestrun_has_paired_no_vpn_contract \
-      "$simulator_xctestrun" "$nonce" "$simulator_udid" || \
-      die "no-VPN unit-test contract was lost for $simulator_lane"
-    [ "$(apple_hardware_sha256 "$simulator_xctestrun")" = \
-      "$simulator_xctestrun_hash" ] || \
-      die "paired xctestrun changed before unit tests for $simulator_lane"
-    set +e
-    run_bounded 900 xcodebuild test-without-building \
-      -jobs 1 \
-      -xctestrun "$simulator_xctestrun" \
-      -destination "platform=iOS Simulator,id=$simulator_udid" \
-      -derivedDataPath "$simulator_derived" \
-      -parallel-testing-enabled NO \
-      -only-testing:networkTests \
-      -resultBundlePath "$simulator_out/unit-result-$repetition.xcresult" \
-      2>&1 | tee "$simulator_out/unit-test-$repetition.log"
-    simulator_unit_status=${PIPESTATUS[0]}
-    set -e
+    # Returning from xcodebuild joins its test process, not the widget work
+    # owned by that installed app. The next action reinstalls the app and
+    # can invalidate a pending extension launch. Own a fresh simulator for
+    # each action, and join/delete it before any subsequent installation.
+    for simulator_corpus in unit ui; do
+      simulator_owner="$simulator_lane-$simulator_corpus-$repetition"
+      simulator_owner_out="$simulator_results_root/$simulator_owner"
+      mkdir "$simulator_owner_out"
+      simulator_name="urnetwork-acceptance-${simulator_owner}-${timestamp}"
+      echo "[apple iOS simulators] creating $simulator_owner with iOS $runtime_version ($device_type_name)"
+      if ! simulator_udid="$(run_bounded 60 xcrun simctl create \
+        "$simulator_name" "$device_type_identifier" "$runtime_identifier" \
+        2>"$simulator_owner_out/create.log")"; then
+        apple_hardware_write_result_once \
+          "$simulator_owner_out/action-status.tsv" "$simulator_owner" FAIL create-failed
+        simulator_test_status=1
+        continue
+      fi
+      if ! apple_ios_simulator_udid_is_valid "$simulator_udid"; then
+        apple_hardware_write_result_once \
+          "$simulator_owner_out/action-status.tsv" "$simulator_owner" FAIL malformed-created-udid
+        simulator_test_status=1
+        continue
+      fi
 
-    apple_hardware_xctestrun_has_paired_no_vpn_contract \
-      "$simulator_xctestrun" "$nonce" "$simulator_udid" || \
-      die "no-VPN UI-test contract was lost for $simulator_lane"
-    [ "$(apple_hardware_sha256 "$simulator_xctestrun")" = \
-      "$simulator_xctestrun_hash" ] || \
-      die "paired xctestrun changed before UI tests for $simulator_lane"
-    set +e
-    run_bounded 600 xcodebuild test-without-building \
-      -jobs 1 \
-      -xctestrun "$simulator_xctestrun" \
-      -destination "platform=iOS Simulator,id=$simulator_udid" \
-      -derivedDataPath "$simulator_derived" \
-      -parallel-testing-enabled NO \
-      -only-testing:networkUITests/HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess \
-      -resultBundlePath "$simulator_out/result-$repetition.xcresult" \
-      2>&1 | tee "$simulator_out/test-$repetition.log"
-    simulator_ui_status=${PIPESTATUS[0]}
-    set -e
+      active_simulator_lane="$simulator_owner"
+      active_simulator_udid="$simulator_udid"
+      active_simulator_name="$simulator_name"
+      apple_ios_append_owned_simulator \
+        "$owned_simulators" "$simulator_owner" "$simulator_udid" \
+        "$simulator_name" || \
+        die "could not journal the newly created simulator $simulator_udid"
+      touch "$simulator_owner_out/.cleanup-required"
+      active_simulator_lane=""
+      active_simulator_udid=""
+      active_simulator_name=""
 
-    if [ "$simulator_unit_status" -ne 0 ] || \
-       ! apple_hardware_verify_unit_log \
-         "$simulator_out/unit-test-$repetition.log" || \
-       [ "$simulator_ui_status" -ne 0 ] || \
-       ! apple_hardware_verify_test_log \
-         "$simulator_out/test-$repetition.log" "$simulator_udid"; then
-      simulator_test_status=1
-      break
-    fi
+      jq -n \
+        --arg lane "$simulator_lane" \
+        --arg owner "$simulator_owner" \
+        --arg corpus "$simulator_corpus" \
+        --argjson repetition "$repetition" \
+        --arg requested_release "$requested_release" \
+        --arg runtime_version "$runtime_version" \
+        --arg runtime_identifier "$runtime_identifier" \
+        --arg device_type_identifier "$device_type_identifier" \
+        --arg device_type_name "$device_type_name" \
+        --arg name "$simulator_name" \
+        --arg udid "$simulator_udid" '
+          {
+            lane: $lane, owner: $owner, corpus: $corpus, repetition: $repetition,
+            requestedRelease: $requested_release,
+            runtimeVersion: $runtime_version,
+            runtimeIdentifier: $runtime_identifier,
+            deviceTypeIdentifier: $device_type_identifier,
+            deviceTypeName: $device_type_name,
+            name: $name,
+            udid: $udid
+          }
+        ' >"$simulator_owner_out/identity.json"
+      chmod 400 "$simulator_owner_out/identity.json"
+
+      simulator_action_status=0
+      if ! run_bounded 60 xcrun simctl boot "$simulator_udid" \
+          >"$simulator_owner_out/boot.log" 2>&1 || \
+         ! run_bounded 300 xcrun simctl bootstatus "$simulator_udid" -b \
+          >"$simulator_owner_out/bootstatus.log" 2>&1 || \
+         ! run_bounded 30 xcrun simctl spawn "$simulator_udid" \
+          launchctl print system >"$simulator_owner_out/readiness.log" 2>&1; then
+        simulator_action_status=1
+      fi
+
+      if [ "$simulator_action_status" -eq 0 ]; then
+        simulator_xctestrun="$(dirname "$simulator_xctestrun_source")/hardware-startup-$simulator_owner-$simulator_udid.xctestrun"
+        apple_hardware_prepare_xctestrun \
+          "$simulator_xctestrun_source" "$simulator_xctestrun" "$nonce" \
+          "$simulator_udid" || \
+          die "could not prepare the paired xctestrun for $simulator_owner"
+        apple_hardware_xctestrun_has_paired_no_vpn_contract \
+          "$simulator_xctestrun" "$nonce" "$simulator_udid" || \
+          die "paired no-VPN xctestrun is invalid for $simulator_owner"
+        chmod 400 "$simulator_xctestrun"
+        simulator_xctestrun_hash="$(apple_hardware_sha256 "$simulator_xctestrun")"
+
+        apple_hardware_xctestrun_has_paired_no_vpn_contract \
+          "$simulator_xctestrun" "$nonce" "$simulator_udid" || \
+          die "no-VPN test contract was lost for $simulator_owner"
+        [ "$(apple_hardware_sha256 "$simulator_xctestrun")" = \
+          "$simulator_xctestrun_hash" ] || \
+          die "paired xctestrun changed before tests for $simulator_owner"
+        set +e
+        if [ "$simulator_corpus" = unit ]; then
+          run_bounded 900 xcodebuild test-without-building \
+            -jobs 1 \
+            -xctestrun "$simulator_xctestrun" \
+            -destination "platform=iOS Simulator,id=$simulator_udid" \
+            -derivedDataPath "$simulator_derived" \
+            -parallel-testing-enabled NO \
+            -only-testing:networkTests \
+            -resultBundlePath "$simulator_out/unit-result-$repetition.xcresult" \
+            2>&1 | tee "$simulator_out/unit-test-$repetition.log"
+          simulator_action_status=${PIPESTATUS[0]}
+          apple_hardware_verify_unit_log \
+            "$simulator_out/unit-test-$repetition.log" || simulator_action_status=1
+        else
+          run_bounded 600 xcodebuild test-without-building \
+            -jobs 1 \
+            -xctestrun "$simulator_xctestrun" \
+            -destination "platform=iOS Simulator,id=$simulator_udid" \
+            -derivedDataPath "$simulator_derived" \
+            -parallel-testing-enabled NO \
+            -only-testing:networkUITests/HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess \
+            -resultBundlePath "$simulator_out/result-$repetition.xcresult" \
+            2>&1 | tee "$simulator_out/test-$repetition.log"
+          simulator_action_status=${PIPESTATUS[0]}
+          apple_hardware_verify_test_log \
+            "$simulator_out/test-$repetition.log" "$simulator_udid" || simulator_action_status=1
+        fi
+        set -e
+      fi
+
+      simulator_cleanup_status=0
+      if ! apple_ios_cleanup_owned_simulators \
+        "$owned_simulators" "$simulator_results_root" \
+        "$simulator_owner_out/cleanup-status.tsv"; then
+        simulator_cleanup_status=1
+      fi
+      if [ "$simulator_action_status" -eq 0 ] && \
+         [ "$simulator_cleanup_status" -eq 0 ]; then
+        apple_hardware_write_result_once \
+          "$simulator_owner_out/action-status.tsv" "$simulator_owner" PASS tested-and-deleted
+      else
+        apple_hardware_write_result_once \
+          "$simulator_owner_out/action-status.tsv" "$simulator_owner" FAIL test-or-cleanup
+        simulator_test_status=1
+      fi
+      chmod 400 "$simulator_owner_out/action-status.tsv"
+      if [ "$simulator_cleanup_status" -ne 0 ]; then
+        apple_hardware_write_result_once \
+          "$simulator_out/status.tsv" "$simulator_lane" FAIL owned-simulator-cleanup
+        chmod 400 "$simulator_out/status.tsv"
+        die "could not join and remove $simulator_owner; no later action may install"
+      fi
+    done
     repetition=$((repetition + 1))
   done
 
-  simulator_cleanup_status=0
-  if ! apple_ios_cleanup_owned_simulators \
-    "$owned_simulators" "$simulator_results_root" \
-    "$simulator_out/cleanup-status.tsv"; then
-    simulator_cleanup_status=1
-  fi
-
-  if [ "$simulator_test_status" -eq 0 ] && \
-     [ "$simulator_cleanup_status" -eq 0 ]; then
+  if [ "$simulator_test_status" -eq 0 ]; then
     apple_hardware_write_result_once \
       "$simulator_out/status.tsv" "$simulator_lane" PASS \
       "startup-no-vpn-ios-$runtime_version-$repeat_count-repetition(s)"

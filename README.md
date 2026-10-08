@@ -54,3 +54,21 @@ file, total-source and nesting sizes. Go uses two processors and one build
 worker without toolchain downloads. Readiness-barrier tests cover inventory
 cancellation and outer termination, including the Go wrapper and compiled CLI.
 
+### Simulator startup ownership
+
+Every unit or UI action, including each repetition, owns a fresh disposable
+simulator. The runner shuts down and deletes that exact owner before the next
+action installs the app. This prevents pending widget launches from retaining
+an installation that a later Xcode action replaces; widgets remain enabled.
+Shutdown or deletion failure stops subsequent actions. Runtime result rows,
+unit/UI logs and Xcode result-bundle paths stay under `simulators/<lane>`.
+Its version-2 `identity.json` lists the action owners; each
+`simulators/<lane>-<unit|ui>-<repetition>` directory records the exact simulator
+identity, action result and cleanup evidence. `owned-simulators.tsv` contains
+one entry per action. The fake-command regressions cover both handoffs,
+cleanup failures, identity validation and cancellation without Apple services:
+
+```sh
+GOMAXPROCS=2 go test -p 1 -parallel 1 -count=1 \
+  apple/test-hardware-simulator-generation_test.go
+```

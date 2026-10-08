@@ -218,9 +218,16 @@ apple_ios_simulator_lane_is_valid() {
   return 1
 }
 
+# A disposable owner belongs to one test action, including its repetition.
+# Retain the plain release form for previously written ownership journals.
+apple_ios_simulator_owner_is_valid() {
+  apple_ios_simulator_lane_is_valid "$1" || \
+    [[ "$1" =~ ^ios-(17|18|2026|27)-(unit|ui)-[1-9][0-9]*$ ]]
+}
+
 apple_ios_simulator_name_is_valid() {
   local lane="$1" name="$2" release
-  apple_ios_simulator_lane_is_valid "$lane" || return 1
+  apple_ios_simulator_owner_is_valid "$lane" || return 1
   release="${lane#ios-}"
   [[ "$name" =~ ^urnetwork-acceptance-ios-${release}-[0-9]{8}-[0-9]{6}Z$ ]]
 }
@@ -232,7 +239,7 @@ apple_ios_validate_owned_simulator_journal() {
   while IFS=$'\t' read -r lane udid name extra || \
       [ -n "$lane$udid$name$extra" ]; do
     [ -z "$extra" ] || return 1
-    apple_ios_simulator_lane_is_valid "$lane" || return 1
+    apple_ios_simulator_owner_is_valid "$lane" || return 1
     apple_ios_simulator_udid_is_valid "$udid" || return 1
     apple_ios_simulator_name_is_valid "$lane" "$name" || return 1
   done <"$journal"
@@ -247,7 +254,7 @@ apple_ios_validate_owned_simulator_journal() {
 apple_ios_append_owned_simulator() {
   local journal="$1" lane="$2" udid="$3" name="$4"
   local temporary="${journal}.tmp"
-  apple_ios_simulator_lane_is_valid "$lane" || return 2
+  apple_ios_simulator_owner_is_valid "$lane" || return 2
   apple_ios_simulator_udid_is_valid "$udid" || return 2
   apple_ios_simulator_name_is_valid "$lane" "$name" || return 2
   [ ! -L "$journal" ] && [ ! -e "$temporary" ] || return 2
@@ -356,10 +363,17 @@ apple_ios_cleanup_owned_simulators() {
         "$before" "$udid" "$name"; then
         detail="owned-identity-mismatch"
       else
-        timeout --foreground 30 xcrun simctl shutdown "$udid" \
-          >"$lane_root/cleanup-shutdown.log" 2>&1 || true
-        if ! timeout --foreground 30 xcrun simctl delete "$udid" \
-          >"$lane_root/cleanup-delete.log" 2>&1; then
+        # A failed shutdown has not joined the old extension generation.
+        # A prior cleanup attempt may already have shut the device down;
+        # that exact inventoried state needs no second shutdown request.
+        if ! jq -e --arg udid "$udid" '
+          [.devices[] | .[]] | any(.udid == $udid and .state == "Shutdown")
+        ' "$before" >/dev/null && \
+           ! timeout --foreground 30 xcrun simctl shutdown "$udid" \
+             >"$lane_root/cleanup-shutdown.log" 2>&1; then
+          detail="shutdown-failed"
+        elif ! timeout --foreground 30 xcrun simctl delete "$udid" \
+            >"$lane_root/cleanup-delete.log" 2>&1; then
           detail="delete-failed"
         fi
       fi

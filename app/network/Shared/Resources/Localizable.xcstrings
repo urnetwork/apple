@@ -27979,7 +27979,7 @@
       }
     },
     "Apps" : {
-      "comment" : "transfer stats and split rules",
+      "comment" : "transfer stats and split rules; Linux: the header over the apps not yet excluded in Settings > Exclude apps from the VPN.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -188358,7 +188358,7 @@
       }
     },
     "URnetwork Status" : {
-      "comment" : "Used in NetworkApp.swift.",
+      "comment" : "Used in NetworkApp.swift. Also the Windows and Linux status strip's name for its connection state field, read by screen readers.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

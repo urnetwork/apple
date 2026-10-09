@@ -454,9 +454,8 @@ struct ConnectSolanaWalletFlowTests {
     // reads in its own words, with the wallet's name where the text has one
     @Test func theBridgePagesCodesReadInTheAppsWords() {
         let english = "The page's English text."
+        // (a missing extension has a stage of its own: aMissingExtensionOffersManualEntry)
         let cases: [(host: String, code: String, detail: String)] = [
-            ("phantom-connect", SdkSolanaWalletBridgeErrorExtensionNotFound, "The Phantom extension was not found in this browser. Install it, then try again."),
-            ("solflare-connect", SdkSolanaWalletBridgeErrorExtensionNotFound, "The Solflare extension was not found in this browser. Install it, then try again."),
             ("solflare-connect", SdkSolanaWalletBridgeErrorNoAccount, "Your Solflare wallet has no account to sign with. Add or connect an account in the wallet, then try again."),
             ("phantom-connect", SdkSolanaWalletBridgeErrorUserRejected, "The request was declined in your wallet. Start again and approve it to continue."),
             ("phantom-connect", SdkSolanaWalletBridgeErrorSessionNotFound, "The wallet connection wasn't found in this browser. Start again to reconnect your wallet."),
@@ -471,6 +470,94 @@ struct ConnectSolanaWalletFlowTests {
             #expect(Self.failedStage(host: "phantom-connect", errorCode: code, errorMessage: english)
                 == .failed("There was an error connecting your wallet: \(english)"), "\(code)")
         }
+    }
+
+    // MARK: no extension of the wallet (macOS)
+
+    // Reported defect (android, the same flow): a wallet the app cannot hand
+    // off to was answered only with "install a wallet", although the sheet's
+    // manual entry takes any wallet's address. The bridge's missing extension
+    // is a stage of its own that offers it.
+    @Test func aMissingExtensionOffersManualEntry() {
+        let english = "Phantom wasn't detected in this browser. Install the Phantom extension, then try again."
+        #expect(Self.failedStage(host: "phantom-connect", errorCode: SdkSolanaWalletBridgeErrorExtensionNotFound, errorMessage: english)
+            == .extensionNotFound(.phantom))
+        #expect(Self.failedStage(host: "solflare-connect", errorCode: SdkSolanaWalletBridgeErrorExtensionNotFound, errorMessage: english)
+            == .extensionNotFound(.solflare))
+    }
+
+    @Test func theMissingExtensionLineNamesTheWalletAndManualEntry() {
+        #expect(ConnectSolanaWalletFlow.extensionNotFoundMessage(for: .phantom)
+            == String(localized: "The \("Phantom") extension was not found in this browser. Install it and try again, or choose “Enter address manually” to paste your wallet address."))
+        #expect(ConnectSolanaWalletFlow.extensionNotFoundMessage(for: .solflare)
+            == String(localized: "The \("Solflare") extension was not found in this browser. Install it and try again, or choose “Enter address manually” to paste your wallet address."))
+        // the shared words, which signing in keeps, do not change
+        #expect(SolanaWalletReturnError.text(code: SdkSolanaWalletBridgeErrorExtensionNotFound, provider: .phantom)
+            == String(localized: "The \("Phantom") extension was not found in this browser. Install it, then try again."))
+    }
+
+    @Test func enterManuallyAfterAMissingExtensionOpensTheAddressField() async {
+        let client = FakeUsdcWalletsClient()
+        let flow = Self.flow(client)
+        var connected: [String] = []
+        flow.openWallet = { _ in true }
+        flow.onConnected = { connected.append($0) }
+
+        flow.start(.phantom)
+        flow.handleWalletError(WalletDeepLinkError.extensionNotFound("no extension"))
+        #expect(flow.stage == .extensionNotFound(.phantom))
+
+        flow.enterManually()
+        #expect(flow.stage == .manualEntry)
+        flow.manualAddress = Self.address
+        await flow.validationTask?.value
+        await flow.submitManualAddress()
+
+        #expect(client.calls == [.validate(Self.address), .add(Self.address), .payoutWalletId])
+        #expect(connected == ["wallet-new"])
+    }
+
+    @Test func retryAfterAMissingExtensionReopensTheSameWallet() async {
+        let flow = Self.flow(FakeUsdcWalletsClient())
+        var opened: [ConnectSolanaWalletFlow.WalletApp] = []
+        flow.openWallet = { app in
+            opened.append(app)
+            return true
+        }
+
+        flow.start(.solflare)
+        flow.handleWalletError(WalletDeepLinkError.extensionNotFound("no extension"))
+        await flow.retry()
+
+        #expect(opened == [.solflare, .solflare])
+        #expect(flow.stage == .awaitingWallet(.solflare))
+    }
+
+    // the bridge page's Try again, once the extension is installed, returns a
+    // key for the same hand-off
+    @Test func aKeyAfterAMissingExtensionStillLinks() async {
+        let client = FakeUsdcWalletsClient()
+        let flow = Self.flow(client)
+        var connected: [String] = []
+        flow.openWallet = { _ in true }
+        flow.onConnected = { connected.append($0) }
+
+        flow.start(.phantom)
+        flow.handleWalletError(WalletDeepLinkError.extensionNotFound("no extension"))
+        await flow.handleWalletReturn(publicKey: Self.address, provider: .phantom)
+
+        #expect(client.calls == [.add(Self.address), .payoutWalletId])
+        #expect(connected == ["wallet-new"])
+    }
+
+    @Test func otherWalletErrorsStillFail() {
+        let flow = Self.flow(FakeUsdcWalletsClient())
+        flow.openWallet = { _ in true }
+
+        flow.start(.phantom)
+        flow.handleWalletError(WalletDeepLinkError.walletError("The request was declined in your wallet. Start again and approve it to continue."))
+
+        #expect(flow.stage == .failed("There was an error connecting your wallet: The request was declined in your wallet. Start again and approve it to continue."))
     }
 
     // the sign step's refusal comes back the same way (the bridge on macOS)

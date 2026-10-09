@@ -62,8 +62,10 @@ struct ConnectSolanaWalletSheet: View {
                     open(.solflare)
                 })
             }
+            // no wallet app to hand off to (iOS; macOS always has the bridge).
+            // Any wallet's address can still be entered, by the control below
             if !isPhantomInstalled && !isSolflareInstalled {
-                Text("Please install Phantom or Solflare to use this feature")
+                Text("No compatible Solana wallet app was found on this device. Choose “Enter address manually” to paste your wallet address instead.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
             }
@@ -115,6 +117,33 @@ struct ConnectSolanaWalletSheet: View {
                     await flow.retry()
                 }
             })
+            cancelButton
+
+        case .extensionNotFound(let app):
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(themeManager.currentTheme.dangerColor)
+                Text(verbatim: ConnectSolanaWalletFlow.extensionNotFoundMessage(for: app))
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            }
+            // a typed address works with any wallet: offered first
+            UrButton(
+                text: "Enter address manually",
+                action: {
+                    flow.enterManually()
+                },
+                accessibilityIdentifier: "acceptance.solana.manualAfterNoExtension"
+            )
+            UrButton(
+                text: "Retry",
+                action: {
+                    Task {
+                        await flow.retry()
+                    }
+                },
+                style: .secondary
+            )
             cancelButton
         }
     }

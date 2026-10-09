@@ -28,6 +28,10 @@ final class ConnectSolanaWalletFlow: ObservableObject {
         case manualEntry
         case connecting
         case failed(String)
+        /// the ur.io bridge found no extension of the wallet in the browser
+        /// (macOS). Any wallet's address can be entered by hand, so this
+        /// stage offers manual entry next to retrying.
+        case extensionNotFound(WalletApp)
     }
 
     private enum Attempt {
@@ -121,7 +125,7 @@ final class ConnectSolanaWalletFlow: ObservableObject {
             return
         }
         switch stage {
-        case .awaitingWallet, .failed:
+        case .awaitingWallet, .failed, .extensionNotFound:
             break
         case .chooser, .manualEntry, .connecting:
             return
@@ -135,12 +139,27 @@ final class ConnectSolanaWalletFlow: ObservableObject {
     }
 
     /// The wallet came back with an error: rejected, or an envelope that did
-    /// not decrypt.
+    /// not decrypt. A browser without the wallet's extension (the ur.io
+    /// bridge on macOS) is told apart, since the address can be entered
+    /// instead.
     func handleWalletError(_ error: Error) {
-        guard case .awaitingWallet = stage else {
+        guard case .awaitingWallet(let app) = stage else {
+            return
+        }
+        if case WalletDeepLinkError.extensionNotFound = error {
+            stage = .extensionNotFound(app)
             return
         }
         stage = .failed(Self.errorMessage(for: error))
+    }
+
+    /// "The Phantom extension was not found in this browser. Install it and
+    /// try again, or choose “Enter address manually” …", naming the sheet's
+    /// manual entry in its own words.
+    static func extensionNotFoundMessage(for app: WalletApp) -> String {
+        // product names, never translated
+        let walletName = app == .solflare ? "Solflare" : "Phantom"
+        return String(localized: "The \(walletName) extension was not found in this browser. Install it and try again, or choose “Enter address manually” to paste your wallet address.")
     }
 
     /// Repeats the last attempt: re-opens the same wallet, or returns to the
@@ -240,9 +259,10 @@ final class ConnectSolanaWalletFlow: ObservableObject {
     private static func errorDetail(_ error: Error) -> String {
         let description: String
         if let deepLinkError = error as? WalletDeepLinkError {
-            if case .walletError(let message) = deepLinkError {
+            switch deepLinkError {
+            case .walletError(let message), .extensionNotFound(let message):
                 description = message
-            } else {
+            default:
                 description = ""
             }
         } else if let clientError = error as? UsdcWalletsClientError {

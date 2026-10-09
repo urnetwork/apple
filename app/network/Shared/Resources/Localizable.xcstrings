@@ -108132,6 +108132,173 @@
         }
       }
     },
+    "No compatible Solana wallet app was found on this device. Choose “Enter address manually” to paste your wallet address instead." : {
+      "comment" : "Body of the no-wallet alert (android) and note (iOS) of the Solana payout wallet's connect sheet, when no wallet app on the device can connect (android: no wallet app answers the Mobile Wallet Adapter request, as reported with Brave Wallet installed; iOS: neither Phantom nor Solflare is installed). A typed address works with any wallet, so the line points at the sheet's manual entry, naming its Enter address manually control in that control's own words (enter_address_manually); the android alert also offers that control as its action. Signing in needs a wallet app and keeps no_wallets_found_alert_content.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتم العثور على تطبيق محفظة Solana متوافق على هذا الجهاز. اختر «إدخال العنوان يدويًا» للصق عنوان محفظتك بدلاً من ذلك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na tomto zařízení nebyla nalezena žádná kompatibilní aplikace peněženky Solana. Zvolte „Zadat adresu ručně“ a vložte místo toho adresu své peněženky."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesem Gerät wurde keine kompatible Solana-Wallet-App gefunden. Wähle „Adresse manuell eingeben“, um stattdessen deine Wallet-Adresse einzufügen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν βρέθηκε συμβατή εφαρμογή πορτοφολιού Solana σε αυτήν τη συσκευή. Επιλέξτε «Χειροκίνητη εισαγωγή διεύθυνσης» για να επικολλήσετε αντί γι’ αυτό τη διεύθυνση του πορτοφολιού σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No compatible Solana wallet app was found on this device. Choose “Enter address manually” to paste your wallet address instead."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró ninguna app de billetera de Solana compatible en este dispositivo. Elige «Introducir la dirección manualmente» para pegar la dirección de tu billetera en su lugar."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró ninguna app de billetera de Solana compatible en este dispositivo. Elige \"Ingresar la dirección manualmente\" para pegar la dirección de tu billetera en su lugar."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró ninguna app de cartera de Solana compatible en este dispositivo. Elige \"Ingresar la dirección manualmente\" para pegar la dirección de tu cartera en su lugar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune application de portefeuille Solana compatible n’a été trouvée sur cet appareil. Choisissez « Saisir l’adresse manuellement » pour coller l’adresse de votre portefeuille à la place."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא נמצאה במכשיר זה אפליקציית ארנק Solana תואמת. בחרו \"הזנת הכתובת ידנית\" כדי להדביק במקום זאת את כתובת הארנק שלכם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस डिवाइस पर कोई संगत Solana वॉलेट ऐप नहीं मिला। इसके बजाय अपने वॉलेट का पता पेस्ट करने के लिए \"पता मैन्युअल रूप से डालें\" चुनें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak ada aplikasi dompet Solana yang kompatibel di perangkat ini. Pilih “Masukkan alamat secara manual” untuk menempelkan alamat dompet Anda sebagai gantinya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessuna app di portafoglio Solana compatibile trovata su questo dispositivo. Scegli «Inserisci l’indirizzo manualmente» per incollare invece l’indirizzo del tuo portafoglio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスに対応する Solana ウォレットアプリが見つかりません。代わりにウォレットのアドレスを貼り付けるには、「アドレスを手動で入力」を選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기에서 호환되는 Solana 지갑 앱을 찾을 수 없습니다. 대신 지갑 주소를 붙여 넣으려면 '주소 직접 입력'을 선택하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Er is geen compatibele Solana-wallet-app gevonden op dit apparaat. Kies ‘Adres handmatig invoeren’ om in plaats daarvan je walletadres te plakken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na tym urządzeniu nie znaleziono zgodnej aplikacji portfela Solana. Wybierz „Wpisz adres ręcznie”, aby zamiast tego wkleić adres swojego portfela."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi encontrada nenhuma aplicação de carteira Solana compatível neste dispositivo. Escolha \"Introduzir o endereço manualmente\" para colar o endereço da sua carteira em vez disso."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum app de carteira Solana compatível foi encontrado neste dispositivo. Escolha \"Digitar o endereço manualmente\" para colar o endereço da sua carteira em vez disso."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi encontrada nenhuma aplicação de carteira Solana compatível neste dispositivo. Escolha \"Introduzir o endereço manualmente\" para colar o endereço da sua carteira em vez disso."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На этом устройстве не найдено совместимое приложение кошелька Solana. Выберите «Ввести адрес вручную», чтобы вместо этого вставить адрес вашего кошелька."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen kompatibel Solana-plånboksapp hittades på den här enheten. Välj ”Ange adressen manuellt” för att klistra in din plånboksadress i stället."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบแอปกระเป๋าเงิน Solana ที่รองรับบนอุปกรณ์นี้ เลือก “ป้อนที่อยู่ด้วยตนเอง” เพื่อวางที่อยู่กระเป๋าเงินของคุณแทน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На цьому пристрої не знайдено сумісного застосунку гаманця Solana. Виберіть «Ввести адресу вручну», щоб натомість вставити адресу свого гаманця."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy ứng dụng ví Solana tương thích trên thiết bị này. Thay vào đó, hãy chọn “Nhập địa chỉ thủ công” để dán địa chỉ ví của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备上未找到兼容的 Solana 钱包应用。请选择“手动输入地址”，改为粘贴您的钱包地址。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置上找不到相容的 Solana 錢包應用程式。請選擇「手動輸入地址」，改為貼上你的錢包地址。"
+          }
+        }
+      }
+    },
     "No contracts" : {
       "comment" : "Contracts widget empty state while connected with no open client contracts.",
       "localizations" : {
@@ -165488,6 +165655,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這不是有效的 Solana 地址。"
+          }
+        }
+      }
+    },
+    "The %@ extension was not found in this browser. Install it and try again, or choose “Enter address manually” to paste your wallet address." : {
+      "comment" : "Error in the Solana payout wallet's connect sheet of the desktop apps (macOS, Windows, Linux) when the ur.io wallet bridge page returns extension_not_found: the chosen wallet's browser extension is not in this browser. The argument is the wallet product name (Phantom or Solflare). The sheet also takes a typed address, which works with any wallet, so the line points at its Enter address manually control, named in that control's own words (enter_address_manually). Signing in has no manual entry and keeps bittensor_error_extension_not_found.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتم العثور على إضافة %@ في هذا المتصفح. ثبّتها وحاول مرة أخرى، أو اختر «إدخال العنوان يدويًا» للصق عنوان محفظتك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozšíření %@ nebylo v tomto prohlížeči nalezeno. Nainstalujte ho a zkuste to znovu, nebo zvolte „Zadat adresu ručně“ a vložte adresu své peněženky."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die %@-Erweiterung wurde in diesem Browser nicht gefunden. Installiere sie und versuche es erneut oder wähle „Adresse manuell eingeben“, um deine Wallet-Adresse einzufügen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η επέκταση %@ δεν βρέθηκε σε αυτό το πρόγραμμα περιήγησης. Εγκαταστήστε την και δοκιμάστε ξανά ή επιλέξτε «Χειροκίνητη εισαγωγή διεύθυνσης» για να επικολλήσετε τη διεύθυνση του πορτοφολιού σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The %@ extension was not found in this browser. Install it and try again, or choose “Enter address manually” to paste your wallet address."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo, o elige «Introducir la dirección manualmente» para pegar la dirección de tu billetera."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo, o elige \"Ingresar la dirección manualmente\" para pegar la dirección de tu billetera."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la extensión de %@ en este navegador. Instálala y vuelve a intentarlo, o elige \"Ingresar la dirección manualmente\" para pegar la dirección de tu cartera."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’extension %@ est introuvable dans ce navigateur. Installez-la et réessayez, ou choisissez « Saisir l’adresse manuellement » pour coller l’adresse de votre portefeuille."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התוסף %@ לא נמצא בדפדפן הזה. התקינו אותו ונסו שוב, או בחרו \"הזנת הכתובת ידנית\" כדי להדביק את כתובת הארנק שלכם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस ब्राउज़र में %@ एक्सटेंशन नहीं मिला। इसे इंस्टॉल करके फिर से प्रयास करें, या अपने वॉलेट का पता पेस्ट करने के लिए \"पता मैन्युअल रूप से डालें\" चुनें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekstensi %@ tidak ditemukan di browser ini. Pasang ekstensi tersebut lalu coba lagi, atau pilih “Masukkan alamat secara manual” untuk menempelkan alamat dompet Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’estensione %@ non è stata trovata in questo browser. Installala e riprova, oppure scegli «Inserisci l’indirizzo manualmente» per incollare l’indirizzo del tuo portafoglio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このブラウザーで%@拡張機能が見つかりませんでした。インストールしてからもう一度お試しいただくか、「アドレスを手動で入力」を選択してウォレットのアドレスを貼り付けてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 브라우저에서 %@ 확장 프로그램을 찾을 수 없습니다. 설치한 후 다시 시도하거나 '주소 직접 입력'을 선택해 지갑 주소를 붙여 넣으세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De %@-extensie is niet gevonden in deze browser. Installeer de extensie en probeer het opnieuw, of kies ‘Adres handmatig invoeren’ om je walletadres te plakken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono rozszerzenia %@ w tej przeglądarce. Zainstaluj je i spróbuj ponownie albo wybierz „Wpisz adres ręcznie”, aby wkleić adres swojego portfela."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A extensão %@ não foi encontrada neste navegador. Instale-a e tente novamente, ou escolha \"Introduzir o endereço manualmente\" para colar o endereço da sua carteira."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A extensão %@ não foi encontrada neste navegador. Instale-a e tente novamente, ou escolha \"Digitar o endereço manualmente\" para colar o endereço da sua carteira."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A extensão %@ não foi encontrada neste navegador. Instale-a e tente novamente, ou escolha \"Introduzir o endereço manualmente\" para colar o endereço da sua carteira."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расширение %@ не найдено в этом браузере. Установите его и повторите попытку или выберите «Ввести адрес вручную», чтобы вставить адрес вашего кошелька."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillägget %@ hittades inte i den här webbläsaren. Installera det och försök igen, eller välj ”Ange adressen manuellt” för att klistra in din plånboksadress."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบส่วนขยาย %@ ในเบราว์เซอร์นี้ ติดตั้งส่วนขยายแล้วลองอีกครั้ง หรือเลือก “ป้อนที่อยู่ด้วยตนเอง” เพื่อวางที่อยู่กระเป๋าเงินของคุณ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розширення %@ не знайдено в цьому браузері. Встановіть його й спробуйте ще раз або виберіть «Ввести адресу вручну», щоб вставити адресу свого гаманця."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy tiện ích mở rộng %@ trong trình duyệt này. Hãy cài đặt tiện ích rồi thử lại, hoặc chọn “Nhập địa chỉ thủ công” để dán địa chỉ ví của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此浏览器中未找到 %@ 扩展。请安装后重试，或选择“手动输入地址”以粘贴您的钱包地址。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此瀏覽器中找不到 %@ 擴充功能。請安裝後再試一次，或選擇「手動輸入地址」以貼上你的錢包地址。"
           }
         }
       }

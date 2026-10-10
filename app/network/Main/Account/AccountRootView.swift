@@ -320,6 +320,27 @@ struct AccountRootView: View {
                                 
                             }
                         )
+
+                        /**
+                         * Sessions: the account's signed-in apps and devices,
+                         * each of which can be signed out. Always shown; the
+                         * screen itself says when the server does not support
+                         * sessions yet. A guest creates an account first, as
+                         * for Profile: signing a guest's only session out
+                         * would lose the network for good.
+                         */
+                        AccountNavLink(
+                            name: "Sessions",
+                            iconPath: "ur.symbols.session.face",
+                            action: {
+                                if isGuest {
+                                    viewModel.isPresentedCreateAccount = true
+                                } else {
+                                    navigate(.sessions)
+                                }
+                            }
+                        )
+                        .accessibilityIdentifier("acceptance.account.sessions")
                         AccountNavLink(
                             name: "Settings",
                             iconPath: "ur.symbols.sliders",

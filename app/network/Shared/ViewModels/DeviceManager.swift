@@ -241,6 +241,10 @@ class DeviceManager: ObservableObject {
             retireDeviceAuthCallbacks()
 //            setApi(networkSpace?.getApi())
             // updateParsedJwt()
+            // each space owns its own api: report this app's device type and
+            // version with its calls (Account > Sessions shows them), before
+            // a device is built on the space
+            AppClientInfo.apply(to: networkSpace?.getApi())
         }
     }
 

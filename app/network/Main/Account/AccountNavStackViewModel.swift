@@ -10,6 +10,7 @@ import URnetworkSdk
 
 enum AccountNavigationPath: Hashable {
     case profile
+    case sessions
     case settings
     case earnings
     case referrals

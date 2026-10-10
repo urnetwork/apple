@@ -1,4 +1,5 @@
 import Foundation
+import URnetworkSdk
 import XCTest
 @testable import URnetwork
 
@@ -35,7 +36,7 @@ private final class DeviceAuthTestingSource: DeviceAuthCallbackSource {
     private(set) var refreshCloses = 0
     private(set) var logoutCloses = 0
     private var refresh: (@Sendable (String?) -> Void)?
-    private var logout: (@Sendable () -> Void)?
+    private var logout: (@Sendable (String) -> Void)?
 
     init(instanceId: String? = "same-instance") {
         self.instanceId = instanceId
@@ -48,13 +49,14 @@ private final class DeviceAuthTestingSource: DeviceAuthCallbackSource {
         return { [weak self] in self?.refreshCloses += 1 }
     }
 
-    func observeAuthLogout(_ callback: @escaping @Sendable () -> Void) -> () -> Void {
+    func observeAuthLogout(_ callback: @escaping @Sendable (String) -> Void) -> () -> Void {
         logout = callback
         return { [weak self] in self?.logoutCloses += 1 }
     }
 
     func emitRefresh(_ jwt: String?) { refresh?(jwt) }
-    func emitLogout() { logout?() }
+    // the device's logout with the cause it reports (Device.GetAuthLogoutCause)
+    func emitLogout(cause: String = "") { logout?(cause) }
 }
 
 // These sinks stand in for the externally destructive operations only.
@@ -386,5 +388,109 @@ final class DeviceAuthCallbackOwnershipTests: XCTestCase {
         source.emitLogout()
         fixture.dispatcher.deliverBatch()
         XCTAssertEqual(fixture.effects.logouts, 1)
+    }
+}
+
+// The logout's cause (REVOKE-UI-FINAL.md §5): the device reports the trusted
+// session-revoked cause with its AuthLogout when another device signed this
+// session out, and "" for every other logout. Only the trusted cause leaves
+// the notice the sign-in screen shows once; the logout itself is the same.
+@MainActor
+final class DeviceAuthLogoutNoticeTests: XCTestCase {
+    func testRevokedSessionLogoutLeavesTheSignedOutRemotelyNotice() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        XCTAssertNil(fixture.manager.signedOutNotice, "the notice landed before the main-actor delivery")
+
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.effects.logouts, 1)
+        XCTAssertEqual(fixture.manager.signedOutNotice, .signedOutRemotely)
+        XCTAssertEqual(fixture.manager.signedOutNotice?.message, "This session was signed out from another device.")
+    }
+
+    // this session signed out from Account > Sessions, a generic rejection,
+    // or any cause the app does not know: signed out as before, nothing new
+    func testLogoutWithAnyOtherCauseLeavesNoNotice() {
+        for cause in ["", "client_removed", "SESSION_REVOKED"] {
+            let fixture = DeviceAuthTestingFixture()
+            let source = DeviceAuthTestingSource()
+            fixture.manager.setupDeviceAuthListeners(source: source)
+            source.emitLogout(cause: cause)
+            fixture.dispatcher.deliverBatch()
+            XCTAssertEqual(fixture.effects.logouts, 1, "cause \(cause)")
+            XCTAssertNil(fixture.manager.signedOutNotice, "cause \(cause)")
+        }
+    }
+
+    // the app's own sign-out retires a device logout already queued, cause
+    // and all
+    func testExplicitSignOutLeavesNoNoticeEvenForAQueuedRevokedLogout() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        XCTAssertTrue(fixture.manager.beginLogout())
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.effects.logouts, 0)
+        XCTAssertNil(fixture.manager.signedOutNotice)
+    }
+
+    func testRetiredDeviceRevokedLogoutLeavesNoNotice() {
+        let fixture = DeviceAuthTestingFixture()
+        let old = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: old)
+        old.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.manager.setupDeviceAuthListeners(source: DeviceAuthTestingSource())
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.effects.logouts, 0)
+        XCTAssertNil(fixture.manager.signedOutNotice)
+    }
+
+    // shown once: dismissed, it is gone, and the same sign-out reported
+    // again does not bring it back
+    func testADismissedNoticeIsGone() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.manager.signedOutNotice, .signedOutRemotely)
+
+        fixture.manager.dismissSignedOutNotice()
+        XCTAssertNil(fixture.manager.signedOutNotice)
+
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        XCTAssertEqual(fixture.dispatcher.deliverBatch(), 1)
+        XCTAssertEqual(fixture.effects.logouts, 1)
+        XCTAssertNil(fixture.manager.signedOutNotice)
+    }
+
+    // a notice never shown does not outlive the next login
+    func testANewLoginClearsAPendingNotice() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.manager.signedOutNotice, .signedOutRemotely)
+
+        fixture.manager.acceptNetworkLogin {
+            fixture.effects.admin = "admin-next"
+        }
+        XCTAssertNil(fixture.manager.signedOutNotice)
+    }
+
+    func testAFailedLoginKeepsThePendingNotice() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.dispatcher.deliverBatch()
+
+        enum WriteFailure: Error { case refused }
+        XCTAssertThrowsError(try fixture.manager.acceptNetworkLogin { throw WriteFailure.refused })
+        XCTAssertEqual(fixture.manager.signedOutNotice, .signedOutRemotely)
     }
 }

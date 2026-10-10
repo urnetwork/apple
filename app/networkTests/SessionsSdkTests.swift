@@ -68,6 +68,7 @@ struct SessionsSdkTests {
         bulkAction.loading = true
         let error = SdkClientSessionError()
         error.signInRequired = true
+        error.sessionRevoked = true
         error.message = "a raw message the screen never shows"
 
         let snapshot = SdkClientSessionSnapshot()
@@ -110,7 +111,7 @@ struct SessionsSdkTests {
             actions: [
                 SessionActionItem(sessionId: Self.otherSession, loading: false, pending: true, error: SessionErrorItem(retryable: true)),
             ],
-            error: SessionErrorItem(retryable: false, signInRequired: true, unsupported: false)
+            error: SessionErrorItem(retryable: false, signInRequired: true, sessionRevoked: true, unsupported: false)
         ))
     }
 

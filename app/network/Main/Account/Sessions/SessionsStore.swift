@@ -56,6 +56,9 @@ struct SessionItem: Equatable, Identifiable {
 struct SessionErrorItem: Equatable {
     var retryable: Bool = false
     var signInRequired: Bool = false
+    /// with signInRequired: the server confirmed that another device signed
+    /// this session out; never set for a sign-out made here
+    var sessionRevoked: Bool = false
     var unsupported: Bool = false
 }
 
@@ -82,6 +85,8 @@ enum SessionsContent: Equatable {
     case loading
     /// the first load failed
     case loadFailed
+    /// the account's sign-in was rejected: the user signs in again
+    case signInRequired
     /// the server does not support sessions yet
     case unsupported
     /// loaded with no sessions
@@ -108,6 +113,11 @@ struct SessionsSnapshot: Equatable {
         if !supported || error?.unsupported == true {
             return .unsupported
         }
+        // nothing loads or signs out until the user signs in again, so
+        // neither an earlier list nor a refresh in flight stands in for it
+        if error?.signInRequired == true {
+            return .signInRequired
+        }
         if !loaded {
             // a retry after a failed first load shows progress again
             return error != nil && !loading ? .loadFailed : .loading
@@ -118,7 +128,7 @@ struct SessionsSnapshot: Equatable {
     /// A refresh failed after a list was loaded: the list stays, with a
     /// non-blocking notice.
     var refreshFailed: Bool {
-        loaded && error != nil && content != .unsupported
+        error != nil && (content == .list || content == .empty)
     }
 
     func isCurrent(_ session: SessionItem) -> Bool {
@@ -132,6 +142,12 @@ struct SessionsSnapshot: Equatable {
 
     var signingOutOthers: Bool {
         bulkAction?.inProgress ?? false
+    }
+
+    /// The last sign-out of the other sessions failed; the button stays for
+    /// another try, which the controller runs with the same operation.
+    var signOutOthersFailed: Bool {
+        !signingOutOthers && bulkAction?.error != nil
     }
 
     /// Older sign-ins appear once they renew.
@@ -546,6 +562,7 @@ extension SessionErrorItem {
         self.init(
             retryable: error.retryable,
             signInRequired: error.signInRequired,
+            sessionRevoked: error.sessionRevoked,
             unsupported: error.unsupported
         )
     }

@@ -122,6 +122,24 @@ struct LoginNavigationView: View {
                 }
             }
         }
+        // why the server signed this app out, when it said (SignedOutNotice):
+        // shown once, dismissing it clears it
+        .alert(
+            deviceManager.signedOutNotice?.message ?? "",
+            isPresented: Binding(
+                get: { deviceManager.signedOutNotice != nil },
+                set: { presented in
+                    if !presented {
+                        deviceManager.dismissSignedOutNotice()
+                    }
+                }
+            ),
+            presenting: deviceManager.signedOutNotice
+        ) { _ in
+            Button(String(localized: "Got it")) {
+                deviceManager.dismissSignedOutNotice()
+            }
+        }
     }
 }
 

@@ -359,12 +359,52 @@ struct SessionsPresentationTests {
         // Try again: the controller keeps the error while it loads again
         snapshot.loading = true
         #expect(snapshot.content == .loading)
+    }
 
-        // sign-in required uses the same generic wording; the app's own
-        // logout flow takes over (the SDK rejected the credential)
-        snapshot.loading = false
+    // §5: a rejected sign-in is its own state with its own wording, not the
+    // load-failed text and its Try again. The SDK reports it on an empty
+    // snapshot once the credential is gone; the app's logout flow follows.
+    @Test func signInRequiredSaysToSignInAgain() {
+        var snapshot = SessionsSnapshot()
         snapshot.error = SessionErrorItem(signInRequired: true)
-        #expect(snapshot.content == .loadFailed)
+        #expect(snapshot.content == .signInRequired)
+        #expect(snapshot.signInRequiredMessage == "Sign in again to manage sessions.")
+        #expect(!snapshot.refreshFailed)
+
+        // a poll or pull keeps it rather than showing progress
+        snapshot.loading = true
+        #expect(snapshot.content == .signInRequired)
+
+        // an earlier list can no longer be managed either
+        snapshot.loading = false
+        snapshot.loaded = true
+        snapshot.sessions = [Self.session()]
+        #expect(snapshot.content == .signInRequired)
+        #expect(!snapshot.refreshFailed)
+        snapshot.refreshing = true
+        #expect(snapshot.content == .signInRequired)
+
+        // an unsupported server still says so
+        snapshot.supported = false
+        #expect(snapshot.content == .unsupported)
+    }
+
+    // the controller's trusted cause; it never sets it for this session
+    // signed out here, which keeps the generic wording
+    @Test func aSessionSignedOutFromAnotherDeviceSaysSo() {
+        var snapshot = SessionsSnapshot()
+        snapshot.error = SessionErrorItem(signInRequired: true, sessionRevoked: true)
+        #expect(snapshot.content == .signInRequired)
+        #expect(snapshot.signInRequiredMessage == "This session was signed out from another device.")
+    }
+
+    // a retryable failure is still a failed load with Try again
+    @Test func onlySignInRequiredLeavesTheLoadFailedState() {
+        var snapshot = SessionsSnapshot()
+        for error in [SessionErrorItem(), SessionErrorItem(retryable: true)] {
+            snapshot.error = error
+            #expect(snapshot.content == .loadFailed)
+        }
     }
 
     @Test func aFailedRefreshKeepsTheListWithANotice() {
@@ -404,6 +444,38 @@ struct SessionsPresentationTests {
         // refreshing keeps what is shown
         snapshot.refreshing = true
         #expect(snapshot.content == .empty)
+    }
+
+    // §4: a failed sign-out of the other sessions says so under the button,
+    // which stays; a retry in flight shows progress instead
+    @Test func aFailedSignOutOfTheOtherSessionsSaysSoUnderTheButton() {
+        var snapshot = SessionsSnapshot()
+        snapshot.loaded = true
+        snapshot.sessions = [
+            SessionItem(id: Self.sessionId, current: true, kind: "google"),
+            SessionItem(id: "02b2e4d3-0000-4000-8000-00000000000b", kind: "password"),
+        ]
+        #expect(snapshot.showsSignOutOthers)
+        #expect(snapshot.signOutOthersFailedMessage == nil)
+
+        snapshot.bulkAction = SessionActionItem(loading: true)
+        #expect(snapshot.signOutOthersFailedMessage == nil)
+
+        for error in [SessionErrorItem(), SessionErrorItem(retryable: true)] {
+            snapshot.bulkAction = SessionActionItem(error: error)
+            #expect(snapshot.signOutOthersFailed)
+            #expect(!snapshot.signingOutOthers)
+            #expect(snapshot.signOutOthersFailedMessage == "Couldn't sign out the other sessions. Try again.")
+        }
+
+        snapshot.bulkAction = SessionActionItem(pending: true, error: SessionErrorItem(retryable: true))
+        #expect(snapshot.signingOutOthers)
+        #expect(snapshot.signOutOthersFailedMessage == nil)
+
+        // a row's failure is the row's own
+        snapshot.bulkAction = nil
+        snapshot.actions = [SessionActionItem(sessionId: Self.sessionId, error: SessionErrorItem())]
+        #expect(snapshot.signOutOthersFailedMessage == nil)
     }
 
     // §5: the legacy note only while coverage is partial

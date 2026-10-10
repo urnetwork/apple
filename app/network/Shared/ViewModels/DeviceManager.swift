@@ -148,7 +148,9 @@ struct NetworkSpaceStartup {
 protocol DeviceAuthCallbackSource: AnyObject {
     func authCallbackInstanceId() -> String?
     func observeAuthRefresh(_ callback: @escaping @Sendable (String?) -> Void) -> () -> Void
-    func observeAuthLogout(_ callback: @escaping @Sendable () -> Void) -> () -> Void
+    /// `callback` gets the logout's cause (Device.GetAuthLogoutCause), read
+    /// as the SDK fires the listener.
+    func observeAuthLogout(_ callback: @escaping @Sendable (_ cause: String) -> Void) -> () -> Void
 }
 
 extension SdkDeviceRemote: DeviceAuthCallbackSource {
@@ -159,8 +161,12 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
         return { subscription?.close() }
     }
 
-    func observeAuthLogout(_ callback: @escaping @Sendable () -> Void) -> () -> Void {
-        let subscription = add(AuthLogoutListener(c: callback))
+    func observeAuthLogout(_ callback: @escaping @Sendable (_ cause: String) -> Void) -> () -> Void {
+        // the device sets the cause before its listeners run and a new sign-in
+        // clears it, so it is read here, on the SDK's thread, before any hop
+        let subscription = add(AuthLogoutListener(c: { [weak self] in
+            callback(self?.getAuthLogoutCause() ?? "")
+        }))
         return { subscription?.close() }
     }
 }
@@ -280,6 +286,12 @@ class DeviceManager: ObservableObject {
     }
     private var applicationIsActive = false
     private var isLoggingOut = false
+
+    /// Why the server signed this app out, when the device's logout gave a
+    /// cause that has a notice: the sign-in screen shows it once, until the
+    /// user dismisses it. A new login clears it.
+    @Published private(set) var signedOutNotice: SignedOutNotice? = nil
+
     private var deviceAuthCallbackOwner: DeviceAuthCallbackOwner?
     private let authCallbackDispatch: DeviceAuthCallbackDispatch
     private let authCallbackEffects: DeviceAuthCallbackEffects
@@ -1564,10 +1576,12 @@ extension DeviceManager {
                 self.authCallbackEffects.persistRefresh(jwt, instanceId)
             }
         }
-        closeDeviceAuthLogoutListener = source.observeAuthLogout { [weak self] in
+        closeDeviceAuthLogoutListener = source.observeAuthLogout { [weak self] cause in
             dispatch { [weak self] in
                 guard let self, self.deviceAuthCallbackOwner === owner else { return }
                 self.retireDeviceAuthCallbacks()
+                // the sign-in screen says why, when the server said so
+                self.signedOutNotice = SignedOutNotice(authLogoutCause: cause)
                 self.authCallbackEffects.logout(self)
             }
         }
@@ -1578,6 +1592,13 @@ extension DeviceManager {
     func acceptNetworkLogin(_ commitAdmin: () throws -> Void) rethrows {
         try commitAdmin()
         retireDeviceAuthCallbacks()
+        // a notice belongs to the signed-out stretch this login ends
+        signedOutNotice = nil
+    }
+
+    /// The sign-in screen showed the notice and the user dismissed it.
+    func dismissSignedOutNotice() {
+        signedOutNotice = nil
     }
 
     func retireDeviceAuthCallbacks() {

@@ -2,10 +2,11 @@
 //  SessionsPresentation.swift
 //  URnetwork
 //
-//  What Account > Sessions says (server/session/REVOKE-UI-FINAL.md §3, §4),
+//  What Account > Sessions says (server/session/REVOKE-UI-FINAL.md §3-§5),
 //  as plain values: each row's three lines, its device logo and country
 //  color, the times (Last used is relative up to 7 days, then a date) with the
-//  full date and time a screen reader speaks instead, and the confirmations.
+//  full date and time a screen reader speaks instead, the confirmations, and
+//  the failed sign-out of the other sessions and sign-in-required text.
 //  Pure, so the labels, logos, colors and times are tested without a view.
 //  Every string is from the string catalog; server metadata is shown as text.
 //
@@ -283,6 +284,25 @@ extension SessionsSnapshot {
     /// The rows, in the controller's order.
     func rows(now: Date, format: SessionTimeFormat) -> [SessionRowPresentation] {
         sessions.map { SessionRowPresentation($0, snapshot: self, now: now, format: format) }
+    }
+
+    /// The line under Sign out all other sessions once that sign-out failed;
+    /// nil otherwise. The button stays enabled for another try.
+    var signOutOthersFailedMessage: String? {
+        guard signOutOthersFailed else {
+            return nil
+        }
+        return String(localized: "Couldn't sign out the other sessions. Try again.")
+    }
+
+    /// The sign-in-required state (§5): the generic wording, or that another
+    /// device signed this session out when the controller reports that
+    /// trusted cause.
+    var signInRequiredMessage: String {
+        if error?.sessionRevoked == true {
+            return String(localized: "This session was signed out from another device.")
+        }
+        return String(localized: "Sign in again to manage sessions.")
     }
 }
 

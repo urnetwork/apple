@@ -115,6 +115,15 @@ struct SessionsView: View {
                         }
                     }
                 }
+            case .signInRequired:
+                // no Try again: only a new sign-in, through the app's own
+                // sign-in flow, helps
+                stateRow {
+                    Text(verbatim: snapshot.signInRequiredMessage)
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .multilineTextAlignment(.center)
+                }
             case .unsupported:
                 stateRow {
                     Text("Sessions aren't available yet.")
@@ -139,7 +148,10 @@ struct SessionsView: View {
                 }
                 if snapshot.showsSignOutOthers {
                     Section {
-                        signOutOthersButton(signingOut: snapshot.signingOutOthers)
+                        signOutOthersButton(
+                            signingOut: snapshot.signingOutOthers,
+                            failedMessage: snapshot.signOutOthersFailedMessage
+                        )
                     }
                 }
                 notes(snapshot)
@@ -199,26 +211,36 @@ struct SessionsView: View {
         }
     }
 
-    private func signOutOthersButton(signingOut: Bool) -> some View {
-        Button(action: {
-            store.requestSignOutOthers()
-        }) {
-            HStack(spacing: 8) {
-                if signingOut {
-                    ProgressView()
-                        .controlSize(.small)
-                    Text("Signing out…")
-                } else {
-                    Text("Sign out all other sessions")
+    /// The bulk sign-out, with the failure under it after one; the button
+    /// stays enabled, so another try asks again and goes to the controller.
+    private func signOutOthersButton(signingOut: Bool, failedMessage: String?) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button(action: {
+                store.requestSignOutOthers()
+            }) {
+                HStack(spacing: 8) {
+                    if signingOut {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Signing out…")
+                    } else {
+                        Text("Sign out all other sessions")
+                    }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
+                .font(themeManager.currentTheme.bodyFont)
+                .foregroundColor(signingOut ? themeManager.currentTheme.textMutedColor : themeManager.currentTheme.dangerColor)
+                .contentShape(Rectangle())
             }
-            .font(themeManager.currentTheme.bodyFont)
-            .foregroundColor(signingOut ? themeManager.currentTheme.textMutedColor : themeManager.currentTheme.dangerColor)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .disabled(signingOut)
+
+            if let failedMessage {
+                Text(verbatim: failedMessage)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.dangerColor)
+            }
         }
-        .buttonStyle(.plain)
-        .disabled(signingOut)
     }
 
     private func sessionRow(_ row: SessionRowPresentation) -> some View {

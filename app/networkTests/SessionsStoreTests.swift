@@ -639,4 +639,45 @@ struct SessionsStoreTests {
         #expect(store.confirmation == nil)
         #expect(events.log == ["revoke others"])
     }
+
+    // the bulk sign-out failed: it says so under the button, which another
+    // try asks again for and hands to the controller (it reuses the
+    // operation), and the line goes while that try runs
+    @Test func aFailedSignOutOfTheOtherSessionsSaysSoAndCanBeTriedAgain() throws {
+        let (store, controller, hops, events) = try showing()
+        var failed = Self.twoSessions
+        failed.bulkAction = SessionActionItem(error: SessionErrorItem(retryable: true))
+        controller.publish(failed)
+        hops.run()
+        #expect(store.snapshot.showsSignOutOthers)
+        #expect(store.snapshot.signOutOthersFailedMessage == "Couldn't sign out the other sessions. Try again.")
+        controller.onRevoke = { _ in
+            controller.snapshot.bulkAction = SessionActionItem(loading: true)
+        }
+        events.log = []
+
+        store.requestSignOutOthers()
+        let confirmation = try #require(store.confirmation)
+        #expect(confirmation == .signOutOthers)
+        store.confirm(confirmation)
+        #expect(events.log == ["revoke others"])
+        #expect(store.snapshot.signingOutOthers)
+        #expect(store.snapshot.signOutOthersFailedMessage == nil)
+    }
+
+    // the controller's sign-in-required error replaces the list with the
+    // sign-in state, not the load-failed one
+    @Test func aRejectedSignInShowsTheSignInState() throws {
+        let (store, controller, hops, _) = try showing()
+        controller.publish(Self.twoSessions)
+        hops.run()
+        #expect(store.snapshot.content == .list)
+
+        var rejected = SessionsSnapshot()
+        rejected.error = SessionErrorItem(signInRequired: true)
+        controller.publish(rejected)
+        hops.run()
+        #expect(store.snapshot.content == .signInRequired)
+        #expect(store.snapshot.signInRequiredMessage == "Sign in again to manage sessions.")
+    }
 }

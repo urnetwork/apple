@@ -18,7 +18,7 @@ private let selectedRingGap: Double = 4
 private let selectedRingStroke: Double = 1.5
 private let selectedRingRadius = dotRadius + selectedRingGap + selectedRingStroke / 2
 // the web globe's neutral blue for a provider whose country is unknown
-private let unknownCountryColor = Color(hex: "0099FF")
+private let unknownCountryColorHex = "0099FF"
 // The selected provider's dot is its own country color darkened toward black.
 // Same factor on every platform (see PROVIDERLOCATIONS.md), so the selection
 // reads the same everywhere.
@@ -496,10 +496,19 @@ private struct GlobeCanvas: View, Animatable {
  * neutral blue.
  */
 func providerDotColor(_ row: ProviderLocationRow) -> Color {
-    if row.countryCode.isEmpty {
-        return unknownCountryColor
+    return Color(hex: countryDotColorHex(row.countryCode))
+}
+
+/**
+ * The hex of a country's dot color: the SDK's color for the ISO code, or the
+ * neutral blue when the code is empty. Provider dots and the Sessions screen's
+ * country circles share it.
+ */
+func countryDotColorHex(_ countryCode: String) -> String {
+    if countryCode.isEmpty {
+        return unknownCountryColorHex
     }
-    return Color(hex: SdkGetColorHex(row.countryCode.lowercased()))
+    return SdkGetColorHex(countryCode.lowercased())
 }
 
 private extension Color {

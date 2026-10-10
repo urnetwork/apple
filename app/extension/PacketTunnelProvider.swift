@@ -596,6 +596,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         let appVersionString: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "unknown"
         let buildNumber: String = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "0"
+        let deviceAppVersion = "\(appVersionString)-\(buildNumber)"
+
+        // The tunnel's api calls and connect auth are uses of the signed-in
+        // session too, so they report the device type and version the app
+        // reports (AppClientInfo in the app target); Account > Sessions shows
+        // them with the session's last use. Set before a device is built on
+        // the space.
+        #if os(macOS)
+        let clientInfoDeviceType = "macos"
+        #else
+        let clientInfoDeviceType = "ios"
+        #endif
+        networkSpace.getApi()?.setClientInfo(SdkNewClientInfo(clientInfoDeviceType, deviceAppVersion))
 
         // Conditional reset returns the exact keys it preserved under its
         // auth/storage lock. A failed ordinary read cannot become fresh keys.
@@ -746,7 +759,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         selectedClientJwt,
                         "ios-network-extension",
                         deviceModel() ?? "ios-unknown",
-                        "\(appVersionString)-\(buildNumber)",
+                        deviceAppVersion,
                         instanceId,
                         // rpc is started explicitly below with the per-session server pem
                         false,

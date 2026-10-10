@@ -118,6 +118,14 @@ struct AccountNavStackView: View {
                     .background(themeManager.currentTheme.backgroundColor)
                     .navigationTitle("Profile")
                     
+                case .sessions:
+
+                    // the account's signed-in sessions, built on the account
+                    // api (the controller needs no device)
+                    SessionsView(api: api)
+                        .navigationTitle("Sessions")
+                        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
                 case .settings:
                     SettingsView(
                         api: urApiService,

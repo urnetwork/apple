@@ -4,9 +4,10 @@
 //
 //  The Earnings screen's door to the SDK: the account's epoch history, the
 //  Bittensor wallet attached to this device's provider client, the gas key,
-//  the settlement-vault claims and the Top 200 head status. Claims are direct
-//  between the SDK on this device and the vault contract; nothing here goes
-//  through a URnetwork API at claim time.
+//  the settlement-vault claims, the settlement v2 accounts and their claim,
+//  and the Top 200 head status. Claims are direct between the SDK on this
+//  device and the vault contracts; nothing here goes through a URnetwork API
+//  at claim time.
 //
 
 import Foundation
@@ -57,6 +58,15 @@ protocol EarningsClient: AnyObject {
     /// read the coordinator's policy
     func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?)
     func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void)
+
+    // settlement v2
+    /// vault2 and the explorer link from the chain settings; v2 claims are
+    /// not configured while vault2 is unset (before activation)
+    func ledgerChain() -> SnLedgerChainInfo
+    /// the coldkey's v2 accounts, one per pool; throws when the ledger cannot
+    /// be read (ledger_unavailable), which is never zero
+    func ledgerAccounts() async throws -> [SnLedgerAccountInfo]
+    func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void)
 
     // points history and head spot
     func accountEpochs() async throws -> [AccountEpochInfo]
@@ -358,6 +368,71 @@ final class EarningsSdkClient: EarningsClient {
         device.snClaim(list, callback: SnClaimCallbackBridge(onEvent))
     }
 
+    // MARK: settlement v2
+
+    func ledgerChain() -> SnLedgerChainInfo {
+        guard let settings = device?.getSnChainSettings() else {
+            return .unconfigured
+        }
+        return SnLedgerChainInfo(vault2Address: settings.vault2Address, explorerTxUrl: settings.explorerTxUrl)
+    }
+
+    func ledgerAccounts() async throws -> [SnLedgerAccountInfo] {
+        let device = try requireDevice()
+        let result: SdkSnLedgerAccountsResult = try await withCheckedThrowingContinuation { continuation in
+            let callback = SnLedgerAccountsCallback { result, err in
+                if let err {
+                    continuation.resume(throwing: err)
+                    return
+                }
+                guard let result else {
+                    continuation.resume(throwing: EarningsClientError.emptyResult)
+                    return
+                }
+                continuation.resume(returning: result)
+            }
+            device.snLedgerAccounts(callback)
+        }
+        return try Self.ledgerAccounts(from: result)
+    }
+
+    /// The accounts of an SDK ledger read. Its error (ledger_unavailable
+    /// above all) throws, and so does a read with no list: the balances are
+    /// unavailable then, never zero.
+    static func ledgerAccounts(from result: SdkSnLedgerAccountsResult) throws -> [SnLedgerAccountInfo] {
+        if let error = Self.error(result.error) {
+            throw error
+        }
+        guard let list = result.accounts else {
+            throw EarningsClientError.emptyResult
+        }
+        var accounts: [SnLedgerAccountInfo] = []
+        for i in 0..<list.len() {
+            guard let account = list.get(i) else { continue }
+            accounts.append(SnLedgerAccountInfo(
+                vault: account.vault,
+                noId: account.noId,
+                index: account.index,
+                finalizedRao: account.finalizedRao,
+                claimableRao: account.claimableRao,
+                paidRao: account.paidRao,
+                pending: account.pending,
+                pendingRao: account.pendingRao
+            ))
+        }
+        return accounts
+    }
+
+    func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {
+        guard let device else {
+            // no account is known here; the failure names none
+            onEvent(.failed(noId: 0, index: 0, message: "local_state_unavailable"))
+            onEvent(.done)
+            return
+        }
+        device.snLedgerClaim(SnLedgerClaimCallbackBridge(onEvent))
+    }
+
     // MARK: points history and head spot
 
     func accountEpochs() async throws -> [AccountEpochInfo] {
@@ -482,6 +557,12 @@ private class SnHeadCallback: SdkCallback<SdkSnHeadResult, SdkSnHeadCallbackProt
     }
 }
 
+private class SnLedgerAccountsCallback: SdkCallback<SdkSnLedgerAccountsResult, SdkSnLedgerAccountsCallbackProtocol>, SdkSnLedgerAccountsCallbackProtocol {
+    func result(_ result: SdkSnLedgerAccountsResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 /// The SDK reports each epoch's claim as it is sent and confirmed.
 private final class SnClaimCallbackBridge: NSObject, SdkSnClaimCallbackProtocol {
 
@@ -501,6 +582,32 @@ private final class SnClaimCallbackBridge: NSObject, SdkSnClaimCallbackProtocol 
 
     func failed(_ epoch: Int64, message: String?) {
         onEvent(.failed(epoch: epoch, message: message ?? "claim_failed"))
+    }
+
+    func done() {
+        onEvent(.done)
+    }
+}
+
+/// The SDK reports each v2 account's claim as it is sent and confirmed.
+final class SnLedgerClaimCallbackBridge: NSObject, SdkSnLedgerClaimCallbackProtocol {
+
+    private let onEvent: (SnLedgerClaimEvent) -> Void
+
+    init(_ onEvent: @escaping (SnLedgerClaimEvent) -> Void) {
+        self.onEvent = onEvent
+    }
+
+    func sent(_ noId: Int64, index: Int64, txHash: String?) {
+        onEvent(.sent(noId: noId, index: index, txHash: txHash ?? ""))
+    }
+
+    func confirmed(_ noId: Int64, index: Int64, txHash: String?, amountRao: Int64) {
+        onEvent(.confirmed(noId: noId, index: index, txHash: txHash ?? "", amountRao: amountRao))
+    }
+
+    func failed(_ noId: Int64, index: Int64, message: String?) {
+        onEvent(.failed(noId: noId, index: index, message: message ?? "claim_failed"))
     }
 
     func done() {
@@ -530,6 +637,8 @@ final class EarningsPreviewClient: EarningsClient {
     var claimRows: [SnEpochClaimInfo]
     var scheduleInfo: SnEpochScheduleInfo?
     var gasTao: Double
+    var ledgerRows: [SnLedgerAccountInfo]
+    var ledgerChainInfo: SnLedgerChainInfo
 
     init(
         wallet: SnWalletInfo? = nil,
@@ -537,7 +646,9 @@ final class EarningsPreviewClient: EarningsClient {
         epochs: [AccountEpochInfo] = [],
         claims: [SnEpochClaimInfo] = [],
         schedule: SnEpochScheduleInfo? = nil,
-        gasTao: Double = 0
+        gasTao: Double = 0,
+        ledger: [SnLedgerAccountInfo] = [],
+        ledgerChain: SnLedgerChainInfo = .unconfigured
     ) {
         self.wallet = wallet
         self.headInfo = head
@@ -545,6 +656,8 @@ final class EarningsPreviewClient: EarningsClient {
         self.claimRows = claims
         self.scheduleInfo = schedule
         self.gasTao = gasTao
+        self.ledgerRows = ledger
+        self.ledgerChainInfo = ledgerChain
     }
 
     func validateSs58(_ address: String) -> Bool { SnAlpha.looksLikeSs58(address) }
@@ -580,6 +693,15 @@ final class EarningsPreviewClient: EarningsClient {
         for epoch in epochs {
             onEvent(.sent(epoch: epoch, txHash: "0xabc"))
             onEvent(.confirmed(epoch: epoch, txHash: "0xabc", amountRao: claimRows.first { $0.epoch == epoch }?.amountRao ?? 0))
+        }
+        onEvent(.done)
+    }
+    func ledgerChain() -> SnLedgerChainInfo { ledgerChainInfo }
+    func ledgerAccounts() async throws -> [SnLedgerAccountInfo] { ledgerRows }
+    func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {
+        for account in ledgerRows where account.claimableRao > 0 {
+            onEvent(.sent(noId: account.noId, index: account.index, txHash: "0xabc"))
+            onEvent(.confirmed(noId: account.noId, index: account.index, txHash: "0xabc", amountRao: account.claimableRao))
         }
         onEvent(.done)
     }

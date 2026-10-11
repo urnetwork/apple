@@ -9,7 +9,7 @@
 //  not), and the v2 claim's progress: Sent with the explorer link, Confirmed
 //  with the vault's amount, failures in the v1 claim's words, needs_gas
 //  showing the gas top-up, already_claimed as success, and the accounts read
-//  again after Done.
+//  again after Done. The new strings are translated in every locale.
 //
 
 import Foundation
@@ -488,6 +488,61 @@ struct SnLedgerTests {
         #expect(Self.configured.explorerUrl(txHash: "") == nil)
         #expect(Self.configured.claimConfigured)
         #expect(!SnLedgerChainInfo.unconfigured.claimConfigured)
+    }
+
+    // MARK: localization
+
+    /// the strings the v2 tile and dialog add
+    private static let newStrings = [
+        "Settlement v2",
+        "Claimable",
+        "Earned",
+        "Paid",
+        "Pending: +%@, awaiting finalization",
+        "Unavailable",
+        "Pool %lld",
+    ]
+
+    // …/apple/app/networkTests/SnLedgerTests.swift -> …/apple/app
+    private static let appRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+
+    private static func catalogStrings() throws -> [String: Any] {
+        let data = try Data(contentsOf: appRoot.appendingPathComponent("network/Shared/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        return try #require(catalog?["strings"] as? [String: Any])
+    }
+
+    // §11: the new strings, and "Transaction" the explorer link reuses, are
+    // translated in every locale the catalog ships, with their placeholders
+    @Test func theV2StringsAreTranslatedInEveryLocale() throws {
+        let strings = try Self.catalogStrings()
+        var locales = Set<String>()
+        for case let entry as [String: Any] in strings.values {
+            if let localizations = entry["localizations"] as? [String: Any] {
+                locales.formUnion(localizations.keys)
+            }
+        }
+        #expect(locales.contains("zh-Hans"))
+
+        for key in Self.newStrings + ["Transaction"] {
+            let entry = try #require(strings[key] as? [String: Any], "the catalog has no \(key)")
+            #expect(entry["extractionState"] as? String != "stale", "\(key) is stale")
+            let localizations = try #require(entry["localizations"] as? [String: Any])
+            var missing: [String] = []
+            for locale in locales.sorted() {
+                let unit = (localizations[locale] as? [String: Any])?["stringUnit"] as? [String: Any]
+                guard let value = unit?["value"] as? String, !value.isEmpty else {
+                    missing.append(locale)
+                    continue
+                }
+                for placeholder in ["%@", "%lld"] where key.contains(placeholder) {
+                    #expect(value.contains(placeholder), "\(key) in \(locale) lost \(placeholder)")
+                }
+            }
+            #expect(missing.isEmpty, "\(key) not translated: \(missing)")
+        }
     }
 }
 

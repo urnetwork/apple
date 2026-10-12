@@ -429,8 +429,12 @@ struct VlessSettingsStoreTests {
         return directory
     }
 
+    /// A single-label host runs no extender network client, so the space dials
+    /// nothing: under a dotted host it would resolve its derived api host
+    /// through the public DoH servers, and with VLESS saved reach the fixture's
+    /// server.
     private func spaceKey() throws -> SdkNetworkSpaceKey {
-        try #require(SdkNewNetworkSpaceKey("vless.example", "main"))
+        try #require(SdkNewNetworkSpaceKey("vless", "main"))
     }
 
     /// A space under its own manager in a private directory, as the login
@@ -569,10 +573,12 @@ struct VlessSettingsStoreTests {
                 values.bundled = false
                 values.linkHostName = "vless.example"
                 values.migrationHostName = ""
-                values.apiUrl = "https://api.vless.example"
-                values.platformUrl = "wss://connect.vless.example"
+                // loopback urls: an api host keys an extender network whose
+                // client dials as soon as the space is rebuilt
+                values.apiUrl = "http://127.0.0.1:1"
+                values.platformUrl = "ws://127.0.0.1:1"
             }))
-            #expect(updated.getApiUrl() == "https://api.vless.example")
+            #expect(updated.getApiUrl() == "http://127.0.0.1:1")
             let stored = VlessSettingsValues(try #require(updated.getVlessSettings()))
             #expect(stored == VlessFixtures.reality)
         }

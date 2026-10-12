@@ -282,8 +282,11 @@ struct ControlDohSettingsStoreTests {
         return directory
     }
 
+    /// A single-label host runs no extender network client, so the space dials
+    /// nothing. Under a dotted host it would resolve its derived api host
+    /// through the public DoH servers as soon as it is built.
     private func spaceKey() throws -> SdkNetworkSpaceKey {
-        try #require(SdkNewNetworkSpaceKey("controldoh.example", "main"))
+        try #require(SdkNewNetworkSpaceKey("controldoh", "main"))
     }
 
     /// A space under its own manager in a private directory, as the login

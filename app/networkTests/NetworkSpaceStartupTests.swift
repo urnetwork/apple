@@ -30,9 +30,15 @@ final class NetworkSpaceStartupTests: XCTestCase {
 
     private var directory: URL!
     private var openManagers: [SdkNetworkSpaceManager] = []
+    private var extenderNetworkClientWasEnabled = false
 
     override func setUpWithError() throws {
         try super.setUpWithError()
+        // The spaces here are keyed by dotted hosts (bringyour.com, ur.network,
+        // custom.example), whose extender network client would resolve and dial
+        // the public DoH servers and the api host as soon as a space is built.
+        // These cases never use the api, so with the client off nothing dials.
+        extenderNetworkClientWasEnabled = SdkSetExtenderNetworkClientEnabled(false)
         directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("NetworkSpaceStartupTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(
@@ -45,6 +51,7 @@ final class NetworkSpaceStartupTests: XCTestCase {
         openManagers.forEach { $0.close() }
         openManagers.removeAll()
         try? FileManager.default.removeItem(at: directory)
+        _ = SdkSetExtenderNetworkClientEnabled(extenderNetworkClientWasEnabled)
         try super.tearDownWithError()
     }
 

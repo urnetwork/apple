@@ -825,8 +825,9 @@ class DeviceManager: ObservableObject {
         self.authCallbackEffects = authCallbackEffects
         self.extenderProvideCallbackDispatch = extenderProvideCallbackDispatch
 
-        // This constructor-only opt-out permits memory tests. NetworkApp never
-        // supplies it: both production and hardwareNoVPN retain normal startup.
+        // This constructor-only opt-out permits memory tests. NetworkApp
+        // supplies it only when it hosts unit tests: both production and
+        // hardwareNoVPN retain normal startup.
         guard automaticallyInitialize else { return }
         let initializationScheduled = AppStartupInitializationGate.performIfAllowed(
             mode: startupMode

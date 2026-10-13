@@ -119,7 +119,13 @@ struct NetworkApp: App {
 
         let startupMode = HardwareNoVPNLaunchContract.current
         self.startupMode = startupMode
-        let deviceManager = DeviceManager(startupMode: startupMode)
+        // Hosted unit tests run inside this process (XCTest sets
+        // XCTestConfigurationFilePath) and build their own spaces, so the app
+        // builds none: the bundled space would dial the network before any
+        // test runs. UI tests launch the app as a process of its own, without
+        // the variable, and keep the normal startup.
+        let hostsUnitTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        let deviceManager = DeviceManager(startupMode: startupMode, automaticallyInitialize: !hostsUnitTests)
         _deviceManager = StateObject(wrappedValue: deviceManager)
         appDelegate.deviceManager = deviceManager
 

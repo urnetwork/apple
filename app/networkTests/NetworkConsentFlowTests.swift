@@ -272,12 +272,13 @@ struct NetworkConsentFlowTests {
         return (client, recorder, flow)
     }
 
-    /// a bridge hand-back as the page builds it: URLSearchParams form
-    /// encoding, so the "+", "&" and "=" of a value arrive escaped
-    private static func returnUrl(_ items: [String: String]) -> URL {
+    /// a bridge hand-back as the page builds it, its parameters in order:
+    /// URLSearchParams form encoding, so the "+", "&" and "=" of a value
+    /// arrive escaped
+    private static func returnUrl(_ items: KeyValuePairs<String, String>) -> URL {
         let unreserved = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
         var components = URLComponents(string: BittensorWallet.redirectLink)!
-        components.percentEncodedQuery = items.sorted { $0.key < $1.key }
+        components.percentEncodedQuery = items
             .map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: unreserved) ?? "")" }
             .joined(separator: "&")
         return components.url!
@@ -613,11 +614,12 @@ struct NetworkConsentFlowTests {
         #expect(submitted.coldkeySs58 == alice)
     }
 
-    // CS-9 (CONSENT.md §10): through the real SDK session, the bridge page
-    // gets the server's message, byte for byte, in the URL fragment and never
-    // in the query. The hand-back carries the bytes' SHA-256: one for other
-    // bytes completes nothing and leaves the session waiting, and the one for
-    // these bytes goes back as issued.
+    // CS-9 (CONSENT.md §10.1): through the real SDK session, the bridge page
+    // gets the server's message, byte for byte, only in the URL fragment, and
+    // a fresh state. The success hand-back carries the address, the
+    // signature, the purpose, the state unchanged and the bytes' SHA-256, and
+    // no message. One for other bytes completes nothing and leaves the
+    // session waiting; the one for these bytes goes back as issued.
     @Test func theRealSessionCarriesTheServersMessageToTheWallet() async throws {
         let client = FakeConsentClient()
         let recorder = WalletRecorder()
@@ -642,23 +644,23 @@ struct NetworkConsentFlowTests {
         let opened = try #require(recorder.opened.first)
         let components = try #require(URLComponents(url: opened, resolvingAgainstBaseURL: false))
         let query = Self.formValues(components.percentEncodedQuery)
-        let fragment = Self.formValues(components.percentEncodedFragment)
         #expect(query["message"] == nil)
-        let encoded = try #require(fragment["message"])
-        let sent = try #require(Self.base64UrlDecoded(encoded))
-        #expect(Array(sent) == Array(consentMessage(for: alice).utf8))
-        #expect((query["purpose"] ?? fragment["purpose"]) == SdkBittensorWalletPurposeConsent)
-        #expect((query["wallet"] ?? fragment["wallet"]) == SdkBittensorWalletTalisman)
+        #expect(components.percentEncodedFragment == "message=" + Self.base64Url(consentMessage(for: alice)))
+        #expect(query["purpose"] == SdkBittensorWalletPurposeConsent)
+        #expect(query["wallet"] == SdkBittensorWalletTalisman)
+        #expect(query["address"] == alice)
+        let state = try #require(query["state"])
+        #expect(state.range(of: "^[A-Z2-7]{26}$", options: .regularExpression) != nil)
 
-        // the page echoes what it was handed (the purpose, the wallet and any
-        // state) with the signature and the SHA-256 of the bytes it signed
         func handBack(signed message: String) -> URL {
-            var items = query.merging(fragment) { first, _ in first }
-            items["message"] = nil
-            items["address"] = alice
-            items["signature"] = consentSignature
-            items["message_sha256"] = Self.sha256Hex(message)
-            return Self.returnUrl(items)
+            Self.returnUrl([
+                "address": alice,
+                "signature": consentSignature,
+                "purpose": SdkBittensorWalletPurposeConsent,
+                "state": state,
+                "message_sha256": Self.sha256Hex(message),
+                "wallet": SdkBittensorWalletTalisman,
+            ])
         }
         await connector.handleBridgeReturn(handBack(signed: consentMessage(for: bob)))
         #expect(client.submissions.isEmpty)
@@ -724,12 +726,12 @@ struct NetworkConsentFlowTests {
         return values
     }
 
-    /// the bytes of a base64url value, with or without its padding
-    private static func base64UrlDecoded(_ value: String) -> Data? {
-        var base64 = value.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
-        base64 = base64.trimmingCharacters(in: CharacterSet(charactersIn: "="))
-        base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
-        return Data(base64Encoded: base64)
+    /// RFC 4648 §5 base64url, unpadded, of a message's exact bytes
+    private static func base64Url(_ message: String) -> String {
+        Data(message.utf8).base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 
     /// the lowercase hex SHA-256 of a message's exact bytes

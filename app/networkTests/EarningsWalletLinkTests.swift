@@ -32,4 +32,16 @@ struct EarningsWalletLinkTests {
         #expect(EarningsWalletLink.route(Self.signIn, solanaSheetUp: true, bittensorSheetUp: true) == nil)
         #expect(EarningsWalletLink.route(Self.widget, solanaSheetUp: true, bittensorSheetUp: true) == nil)
     }
+
+    // CS-7: the payout consent signs through the same bridge link, so its
+    // hand-back reaches the consent sheet while that is up, and only then
+    @Test func aBittensorLinkReachesTheConsentSheetWhileItIsUp() {
+        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: true) == .consent)
+        #expect(EarningsWalletLink.route(Self.bittensorError, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: true) == .consent)
+        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: true, consentSheetUp: false) == .bittensor)
+        // a Solana callback is never the consent's
+        #expect(EarningsWalletLink.route(Self.phantom, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: true) == nil)
+        // the consent sheet was dismissed
+        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: false) == nil)
+    }
 }

@@ -145,7 +145,8 @@ struct AccountNavStackView: View {
                         networkReliabilityWindow: networkReliabilityWindow,
                         fetchNetworkReliability: fetchNetworkReliability,
                         viewModel: earningsViewModel,
-                        usdcViewModel: usdcWalletsViewModel
+                        usdcViewModel: usdcWalletsViewModel,
+                        consentClient: NetworkConsentSdkClient(api: api)
                     )
                     .navigationTitle("Earnings")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())

@@ -55582,7 +55582,7 @@
       }
     },
     "Could not open the browser. Please try again." : {
-      "comment" : "macOS error when adding a sign-in method could not open the browser for the provider's sign-in page.",
+      "comment" : "Error when the app could not open the browser for a sign-in page (macOS: adding a sign-in method; Windows: the browser sign-in).",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -160093,7 +160093,7 @@
       }
     },
     "Sign-in timed out. Please try again." : {
-      "comment" : "Error when a browser sign-in (Google or Apple through the browser) took too long and expired.",
+      "comment" : "Error when a browser sign-in (Google or Apple through the browser, or a sign-in approved on the web page) took too long and expired.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

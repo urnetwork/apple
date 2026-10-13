@@ -17,8 +17,6 @@ struct ClaimAlphaSheet: View {
     @ObservedObject var viewModel: EarningsViewModel
     let dismiss: () -> Void
 
-    @State private var copiedMirror = false
-
     private var claimableCount: Int {
         viewModel.claimableClaims.count
     }
@@ -52,7 +50,13 @@ struct ClaimAlphaSheet: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
 
-                gasCard
+                ClaimGasCard(
+                    gasKey: viewModel.gasKey,
+                    gasTao: viewModel.gasTao,
+                    needsGas: viewModel.needsGas,
+                    gasNeededTao: viewModel.gasNeededTao,
+                    shortSs58: viewModel.client.shortSs58
+                )
 
                 if !viewModel.claims.isEmpty {
                     VStack(spacing: 0) {
@@ -100,56 +104,6 @@ struct ClaimAlphaSheet: View {
         .background(themeManager.currentTheme.backgroundColor)
     }
 
-    private var gasCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            UrLabel(text: "Gas key")
-            if let gasKey = viewModel.gasKey {
-                HStack {
-                    Text(verbatim: viewModel.client.shortSs58(gasKey.mirrorSs58))
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                    Button(action: {
-                        EarningsClipboard.copy(gasKey.mirrorSs58)
-                        copiedMirror = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                            copiedMirror = false
-                        }
-                    }) {
-                        Image(systemName: copiedMirror ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
-                            .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                    if let gasTao = viewModel.gasTao {
-                        Text(verbatim: SnAlpha.formatTao(gasTao))
-                            .font(themeManager.currentTheme.bodyFont)
-                            .foregroundColor(viewModel.needsGas ? Color.urAmber : themeManager.currentTheme.textColor)
-                    } else {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
-                }
-                if viewModel.needsGas {
-                    Text("Add TAO for gas")
-                        .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(.urAmber)
-                    Text("Send about \(String(format: "%.4f", viewModel.gasNeededTao)) TAO to \(gasKey.mirrorSs58) to cover gas.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                }
-            } else {
-                Text("The chain RPC is unreachable. Try again.")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(themeManager.currentTheme.tintedBackgroundBase)
-        .cornerRadius(12)
-    }
-
     private func claimRow(_ claim: SnEpochClaimInfo) -> some View {
         HStack {
             Text("Epoch \(claim.epoch)")
@@ -191,6 +145,72 @@ struct ClaimAlphaSheet: View {
             }
             return Text(verbatim: message)
         }
+    }
+}
+
+/// The gas key that pays claim gas, in both claim dialogs: its ss58 mirror
+/// with copy and its TAO balance, and while it is short the top-up (send
+/// about the needed TAO to the mirror).
+struct ClaimGasCard: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let gasKey: SnGasKeyInfo?
+    let gasTao: Double?
+    let needsGas: Bool
+    let gasNeededTao: Double
+    let shortSs58: (String) -> String
+
+    @State private var copiedMirror = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            UrLabel(text: "Gas key")
+            if let gasKey {
+                HStack {
+                    Text(verbatim: shortSs58(gasKey.mirrorSs58))
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Button(action: {
+                        EarningsClipboard.copy(gasKey.mirrorSs58)
+                        copiedMirror = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                            copiedMirror = false
+                        }
+                    }) {
+                        Image(systemName: copiedMirror ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 13))
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
+                    if let gasTao {
+                        Text(verbatim: SnAlpha.formatTao(gasTao))
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(needsGas ? Color.urAmber : themeManager.currentTheme.textColor)
+                    } else {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                }
+                if needsGas {
+                    Text("Add TAO for gas")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(.urAmber)
+                    Text("Send about \(String(format: "%.4f", gasNeededTao)) TAO to \(gasKey.mirrorSs58) to cover gas.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+            } else {
+                Text("The chain RPC is unreachable. Try again.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
     }
 }
 

@@ -4,8 +4,8 @@
 //
 //  The tiles of the Earnings screen: the Top 200 head
 //  spot, the Bittensor wallet block with its wallet options, the unclaimed
-//  alpha tile, the SN payout line of the points card and the epoch history
-//  rows.
+//  alpha tile, the settlement v2 tile, the SN payout line of the points card
+//  and the epoch history rows.
 //
 
 import SwiftUI
@@ -333,6 +333,88 @@ struct UnclaimedAlphaTile: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+}
+
+/// Settlement v2, beside the v1 unclaimed tile: the coldkey's balance in
+/// each operator pool's STSettlementVault2, which never expires. Claimable
+/// is the headline, then what was earned (the finalized cumulative) and
+/// paid, and what a committed root adds while it awaits finalization. A
+/// ledger that cannot be read says "Unavailable", never 0. Claim opens the
+/// v2 claim dialog once v2 claims are configured.
+struct SnLedgerTile: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let presentation: SnLedgerTilePresentation
+    let claim: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            UrLabel(text: "Settlement v2")
+            switch presentation.balances {
+            case .unavailable:
+                Text("Unavailable")
+                    .font(themeManager.currentTheme.titleCondensedFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            case .accounts(let accounts):
+                ForEach(accounts) { account in
+                    accountBalances(account)
+                }
+            }
+            if presentation.showsClaim {
+                Spacer().frame(height: 8)
+                UrButton(text: "Claim", action: claim, enabled: presentation.claimEnabled)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
+    }
+
+    @ViewBuilder
+    private func accountBalances(_ account: SnLedgerAccountInfo) -> some View {
+        if presentation.showsPools {
+            Text("Pool \(account.noId)")
+                .font(themeManager.currentTheme.bodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .padding(.top, 8)
+        }
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(verbatim: SnAlpha.formatAmount(rao: account.claimableRao))
+                .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
+                .foregroundColor(themeManager.currentTheme.textColor)
+            Text(verbatim: SnAlpha.symbol)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            Spacer()
+        }
+        Text("Claimable")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+        Spacer().frame(height: 8)
+        HStack {
+            column("Earned", account.finalizedRao)
+            Spacer()
+            column("Paid", account.paidRao)
+            Spacer()
+        }
+        if let pendingRao = account.pendingIncreaseRao {
+            Text("Pending: +\(SnAlpha.format(rao: pendingRao)), awaiting finalization")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .padding(.top, 4)
+        }
+    }
+
+    private func column(_ label: LocalizedStringKey, _ rao: Int64) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            UrLabel(text: label)
+            Text(verbatim: SnAlpha.formatAmount(rao: rao))
+                .font(themeManager.currentTheme.titleCondensedFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+        }
     }
 }
 

@@ -6,9 +6,10 @@
 //  always the headline: the total, the breakdown and the per-epoch history.
 //  Connecting a Bittensor coldkey adds the subnet layer: the history rows gain
 //  SN25α, the unclaimed tile appears and claims go straight from this device
-//  to the settlement vault. Alpha is not retroactive. USDC payouts continue
-//  to a Solana wallet until the migration to Bittensor is complete; the
-//  wallet options next to the Bittensor call connect it.
+//  to the settlement vault. The settlement v2 balances show in a tile of
+//  their own beside it, with their own claim. Alpha is not retroactive. USDC
+//  payouts continue to a Solana wallet until the migration to Bittensor is
+//  complete; the wallet options next to the Bittensor call connect it.
 //
 
 import SwiftUI
@@ -34,6 +35,7 @@ struct EarningsView: View {
     @State private var presentConnectSheet = false
     @State private var presentSolanaSheet = false
     @State private var presentClaimSheet = false
+    @State private var presentLedgerClaimSheet = false
 
     init(
         navigate: @escaping (AccountNavigationPath) -> Void,
@@ -142,6 +144,17 @@ struct EarningsView: View {
                     )
                 }
 
+                // settlement v2, separate from the v1 claims above
+                if viewModel.hasWallet, let ledgerTile = viewModel.ledgerTile {
+                    SnLedgerTile(
+                        presentation: ledgerTile,
+                        claim: {
+                            viewModel.resetLedgerClaimProgress()
+                            presentLedgerClaimSheet = true
+                        }
+                    )
+                }
+
                 historySection
 
                 providerCard
@@ -246,6 +259,19 @@ struct EarningsView: View {
             ClaimAlphaSheet(
                 viewModel: viewModel,
                 dismiss: { presentClaimSheet = false }
+            )
+            .environmentObject(themeManager)
+            #if os(iOS)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            #elseif os(macOS)
+            .frame(minWidth: 480, minHeight: 560)
+            #endif
+        }
+        .sheet(isPresented: $presentLedgerClaimSheet) {
+            ClaimLedgerSheet(
+                viewModel: viewModel,
+                dismiss: { presentLedgerClaimSheet = false }
             )
             .environmentObject(themeManager)
             #if os(iOS)

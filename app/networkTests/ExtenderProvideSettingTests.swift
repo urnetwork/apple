@@ -31,21 +31,25 @@ private final class ExtenderProvideHeldDispatcher: @unchecked Sendable {
     }
 }
 
-// The device side of the seam: what the device reports, the setting it holds,
-// every read of that setting and every write that reaches it. Retaining the
-// callback after close models a status the sdk admitted before the listener
-// was removed.
+// The device side of the seam: what the device reports, the settings it holds
+// (the provider extender and the lag.dev measurements), every read of them and
+// every write that reaches them. Retaining the callback after close models a
+// status the sdk admitted before the listener was removed.
 private final class ExtenderProvideTestingSource: ExtenderProvideSource {
     private(set) var status: ExtenderProvideStatusModel
     private(set) var setting: Bool
     private(set) var writes: [Bool] = []
     private(set) var closes = 0
     private(set) var settingReads = 0
+    private(set) var measurements: Bool
+    private(set) var measurementsWrites: [Bool] = []
+    private(set) var measurementsReads = 0
     private var callback: (@Sendable (ExtenderProvideStatusModel) -> Void)?
 
-    init(status: ExtenderProvideStatusModel, setting: Bool) {
+    init(status: ExtenderProvideStatusModel, setting: Bool, measurements: Bool = true) {
         self.status = status
         self.setting = setting
+        self.measurements = measurements
     }
 
     func readExtenderProvideStatus() -> ExtenderProvideStatusModel { status }
@@ -60,6 +64,16 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
         setting = provideExtender
     }
 
+    func readMeasurementsEnabled() -> Bool {
+        measurementsReads += 1
+        return measurements
+    }
+
+    func writeMeasurementsEnabled(_ measurementsEnabled: Bool) {
+        measurementsWrites.append(measurementsEnabled)
+        measurements = measurementsEnabled
+    }
+
     func observeExtenderProvideStatus(
         _ callback: @escaping @Sendable (ExtenderProvideStatusModel) -> Void
     ) -> () -> Void {
@@ -68,9 +82,12 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
     }
 
     // the device changes and the listener fires, as the sdk pushes it
-    func push(_ status: ExtenderProvideStatusModel, setting: Bool) {
+    func push(_ status: ExtenderProvideStatusModel, setting: Bool, measurements: Bool? = nil) {
         self.status = status
         self.setting = setting
+        if let measurements {
+            self.measurements = measurements
+        }
         callback?(status)
     }
 }
@@ -222,5 +239,61 @@ struct ExtenderProvideSettingTests {
         #expect(!manager.extenderProvideDisplay.visible)
         manager.provideExtender = false
         #expect(source.writes.isEmpty)
+    }
+
+    // lag.dev/PLAN.md C4: the speed tests switch goes through the device at
+    // once, as the Extender switch does, and its seed read is not written back
+    @Test func theSpeedTestsToggleWritesTheSettingThroughTheDevice() {
+        let source = ExtenderProvideTestingSource(status: Self.active, setting: true, measurements: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.measurementsEnabled)
+        #expect(source.measurementsReads == 1)
+        #expect(source.measurementsWrites.isEmpty)
+
+        manager.measurementsEnabled = false
+
+        #expect(source.measurementsWrites == [false])
+        // the Extender setting is untouched
+        #expect(source.writes.isEmpty)
+    }
+
+    @Test func theSpeedTestsSettingIsNeitherReadNorWrittenWhileTheRoleIsUnsupported() {
+        let source = ExtenderProvideTestingSource(status: .unsupported, setting: true, measurements: false)
+        manager.setupExtenderProvide(source: source)
+        #expect(source.measurementsReads == 0)
+        #expect(manager.measurementsEnabled)
+
+        manager.measurementsEnabled = false
+        manager.measurementsEnabled = true
+
+        #expect(source.measurementsWrites.isEmpty)
+        #expect(source.measurementsReads == 0)
+    }
+
+    // another writer, such as connectctl on the same device, turns it off: the
+    // switch follows the setting read beside the next status, and nothing is
+    // written back
+    @Test func aPushedStatusMovesTheSpeedTestsSwitchWithoutWritingIt() {
+        let source = ExtenderProvideTestingSource(status: Self.active, setting: true, measurements: true)
+        manager.setupExtenderProvide(source: source)
+
+        source.push(Self.active, setting: true, measurements: false)
+        #expect(dispatcher.deliver() == 1)
+
+        #expect(!manager.measurementsEnabled)
+        #expect(source.measurementsWrites.isEmpty)
+    }
+
+    @Test func theResetTurnsTheSpeedTestsSwitchBackOnWithoutWriting() {
+        let source = ExtenderProvideTestingSource(status: Self.active, setting: true, measurements: false)
+        manager.setupExtenderProvide(source: source)
+        #expect(!manager.measurementsEnabled)
+
+        manager.resetExtenderProvide()
+
+        #expect(manager.measurementsEnabled)
+        #expect(source.measurementsWrites.isEmpty)
+        manager.measurementsEnabled = false
+        #expect(source.measurementsWrites.isEmpty)
     }
 }

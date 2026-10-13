@@ -98918,6 +98918,173 @@
         }
       }
     },
+    "lag.dev speed tests" : {
+      "comment" : "Title of the switch under the Extender setting that lets people on lag.dev run latency and speed tests to this device. lag.dev is a website name and stays as written.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختبارات السرعة على lag.dev"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testy rychlosti lag.dev"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geschwindigkeitstests von lag.dev"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δοκιμές ταχύτητας lag.dev"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev speed tests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pruebas de velocidad de lag.dev"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pruebas de velocidad de lag.dev"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pruebas de velocidad de lag.dev"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tests de débit lag.dev"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדיקות מהירות של lag.dev"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev स्पीड टेस्ट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tes kecepatan lag.dev"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test di velocità di lag.dev"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev のスピードテスト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev 속도 테스트"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snelheidstests van lag.dev"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testy szybkości lag.dev"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testes de velocidade do lag.dev"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testes de velocidade do lag.dev"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testes de velocidade do lag.dev"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тесты скорости lag.dev"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hastighetstester från lag.dev"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การทดสอบความเร็วของ lag.dev"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тести швидкості lag.dev"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kiểm tra tốc độ lag.dev"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev 速度测试"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev 速度測試"
+          }
+        }
+      }
+    },
     "Last checked %@" : {
       "comment" : "macOS Settings > Software update: when updates were last checked. {when} is a relative date, for example \"5 minutes ago\" or \"yesterday\".",
       "localizations" : {
@@ -100763,6 +100930,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "留空則從網絡網域衍生。"
+          }
+        }
+      }
+    },
+    "Let people testing their connection on lag.dev measure latency, download and upload to this device. Tests use some of your bandwidth while they run." : {
+      "comment" : "Secondary text under the lag.dev speed tests switch: what turning it on allows, and its cost. lag.dev is a website name and stays as written.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسمح للأشخاص الذين يختبرون اتصالهم على lag.dev بقياس زمن الاستجابة والتنزيل والرفع إلى هذا الجهاز. تستخدم الاختبارات جزءًا من عرض النطاق الترددي لديك أثناء تشغيلها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umožněte lidem, kteří na lag.dev testují své připojení, měřit latenci, stahování a nahrávání k tomuto zařízení. Testy během běhu využívají část vaší šířky pásma."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lass Menschen, die auf lag.dev ihre Verbindung testen, Latenz, Download und Upload zu diesem Gerät messen. Während die Tests laufen, nutzen sie einen Teil deiner Bandbreite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επιτρέψτε σε όσους ελέγχουν τη σύνδεσή τους στο lag.dev να μετρούν την καθυστέρηση, τη λήψη και την αποστολή προς αυτή τη συσκευή. Οι δοκιμές χρησιμοποιούν μέρος του εύρους ζώνης σας όσο εκτελούνται."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let people testing their connection on lag.dev measure latency, download and upload to this device. Tests use some of your bandwidth while they run."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite que quienes prueban su conexión en lag.dev midan la latencia, la descarga y la subida hacia este dispositivo. Las pruebas usan parte de tu ancho de banda mientras se ejecutan."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite que quienes prueban su conexión en lag.dev midan la latencia, la descarga y la carga hacia este dispositivo. Las pruebas usan parte de tu ancho de banda mientras se ejecutan."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite que quienes prueban su conexión en lag.dev midan la latencia, la descarga y la subida hacia este dispositivo. Las pruebas usan parte de tu ancho de banda mientras se ejecutan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisez les personnes qui testent leur connexion sur lag.dev à mesurer la latence, le téléchargement et l'envoi vers cet appareil. Les tests utilisent une partie de votre bande passante pendant leur exécution."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפשרו לאנשים שבודקים את החיבור שלהם ב-lag.dev למדוד השהיה, הורדה והעלאה למכשיר הזה. הבדיקות משתמשות בחלק מרוחב הפס שלכם בזמן שהן פועלות."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev पर अपने कनेक्शन की जाँच करने वाले लोगों को इस डिवाइस तक लेटेंसी, डाउनलोड और अपलोड मापने दें। चलते समय टेस्ट आपकी बैंडविड्थ का कुछ हिस्सा इस्तेमाल करते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Izinkan orang yang menguji koneksi mereka di lag.dev mengukur latensi, unduhan, dan unggahan ke perangkat ini. Selama berjalan, tes menggunakan sebagian bandwidth Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consenti a chi prova la propria connessione su lag.dev di misurare latenza, download e upload verso questo dispositivo. Durante l'esecuzione, i test usano parte della tua larghezza di banda."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev で接続をテストしている人が、このデバイスまでのレイテンシ、ダウンロード、アップロードを測定できるようにします。テストの実行中は帯域幅の一部を使用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lag.dev에서 연결을 테스트하는 사람들이 이 기기까지의 지연 시간, 다운로드, 업로드를 측정할 수 있도록 합니다. 테스트가 실행되는 동안 대역폭의 일부를 사용합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laat mensen die op lag.dev hun verbinding testen de latentie, download en upload naar dit apparaat meten. Tijdens het testen wordt een deel van je bandbreedte gebruikt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozwól osobom testującym swoje połączenie na lag.dev mierzyć opóźnienie, pobieranie i wysyłanie do tego urządzenia. Podczas działania testy wykorzystują część Twojej przepustowości."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permita que quem testa a própria conexão no lag.dev meça a latência, o download e o upload até este dispositivo. Enquanto rodam, os testes usam parte da sua largura de banda."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permita que quem testa a própria conexão no lag.dev meça a latência, o download e o upload até este dispositivo. Enquanto rodam, os testes usam parte da sua largura de banda."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permita que quem testa a ligação no lag.dev meça a latência, a transferência e o envio até este dispositivo. Enquanto decorrem, os testes usam parte da sua largura de banda."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите людям, проверяющим своё соединение на lag.dev, измерять задержку, скорость загрузки и выгрузки до этого устройства. Во время работы тесты используют часть вашей пропускной способности."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Låt personer som testar sin anslutning på lag.dev mäta latens, nedladdning och uppladdning till den här enheten. Testerna använder en del av din bandbredd medan de pågår."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อนุญาตให้ผู้ที่ทดสอบการเชื่อมต่อบน lag.dev วัดความหน่วง การดาวน์โหลด และการอัปโหลดมายังอุปกรณ์นี้ การทดสอบจะใช้แบนด์วิดท์ส่วนหนึ่งของคุณขณะทำงาน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дозвольте людям, які перевіряють своє з'єднання на lag.dev, вимірювати затримку, швидкість завантаження й вивантаження до цього пристрою. Під час роботи тести використовують частину вашої пропускної здатності."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cho phép những người đang kiểm tra kết nối trên lag.dev đo độ trễ, tốc độ tải xuống và tải lên tới thiết bị này. Trong khi chạy, các bài kiểm tra sẽ dùng một phần băng thông của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许在 lag.dev 上测试连接的人测量到此设备的延迟、下载和上传。测试运行时会占用你的部分带宽。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許在 lag.dev 上測試連線的人測量到此裝置的延遲、下載和上傳。測試運行時會佔用你的部分頻寬。"
           }
         }
       }

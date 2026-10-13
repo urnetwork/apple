@@ -420,6 +420,9 @@ struct SettingsForm_macOS: View {
                             Divider()
                             Spacer().frame(height: 16)
                             ExtenderProvideRow(kind: .setting)
+                            // the lag.dev speed tests switch rides on the role
+                            Spacer().frame(height: 12)
+                            ExtenderMeasurementsRow()
                         }
                         
                         Spacer().frame(height: 16)

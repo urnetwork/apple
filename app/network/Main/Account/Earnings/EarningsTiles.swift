@@ -421,13 +421,16 @@ struct SnLedgerTile: View {
 /// The network payout consent, beside the settlement v2 tile: the coldkey
 /// every provider client of the network is paid to, or that there is none,
 /// so earnings are not paid. Sign with wallet and Change wallet open the
-/// consent sheet; a consent, the first or a new one, takes effect from the
-/// next epoch. A status that could not be read is not "no consent".
+/// consent sheet, and only a session with the network credential is offered
+/// them: any other is told only the owner can. A consent, the first or a new
+/// one, takes effect from the next epoch. A status that could not be read is
+/// not "no consent".
 struct NetworkConsentCard: View {
 
     @EnvironmentObject var themeManager: ThemeManager
 
     let status: NetworkConsentFlow.Status
+    let hasNetworkCredential: Bool
     let shortAddress: (String) -> String
     let sign: () -> Void
     let retry: () -> Void
@@ -445,18 +448,26 @@ struct NetworkConsentCard: View {
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer().frame(height: 4)
-                UrButton(text: "Sign with wallet", action: sign)
+                if hasNetworkCredential {
+                    Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer().frame(height: 4)
+                    UrButton(text: "Sign with wallet", action: sign)
+                } else {
+                    ownerOnly
+                }
             case .active(let coldkeySs58):
                 Text("Earnings are paid to \(shortAddress(coldkeySs58))")
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
-                Spacer().frame(height: 4)
-                UrButton(text: "Change wallet", action: sign, style: .secondary)
+                if hasNetworkCredential {
+                    Spacer().frame(height: 4)
+                    UrButton(text: "Change wallet", action: sign, style: .secondary)
+                } else {
+                    ownerOnly
+                }
                 Text("A new wallet takes effect from the next epoch.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
@@ -467,6 +478,14 @@ struct NetworkConsentCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+
+    /// a session without the network credential cannot sign
+    private var ownerOnly: some View {
+        Text("Only the network owner can choose the payout wallet.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

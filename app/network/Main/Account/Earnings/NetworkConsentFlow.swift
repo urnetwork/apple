@@ -92,6 +92,9 @@ final class NetworkConsentFlow: ObservableObject {
     }
 
     @Published private(set) var status: Status = .loading
+    /// the session holds the network credential: Sign with wallet and
+    /// Change wallet are offered only then
+    @Published private(set) var hasNetworkCredential = false
     @Published private(set) var stage: Stage = .chooser
     @Published var address: String = ""
     @Published private(set) var addressError: String?
@@ -99,7 +102,6 @@ final class NetworkConsentFlow: ObservableObject {
 
     let connector: BittensorWalletConnector
     private let client: NetworkConsentClient
-    private let now: () -> Int64
     /// the challenge with the wallet, while it signs
     private var challenge: SdkSnNetworkConsentChallengeResult?
     /// counts the challenge requests: a reset or a newer request makes an
@@ -116,7 +118,6 @@ final class NetworkConsentFlow: ObservableObject {
         now: @escaping () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }
     ) {
         self.client = client
-        self.now = now
         self.connector = connector ?? BittensorWalletConnector(
             platform: platform,
             // the consent's challenge comes from SnNetworkConsentChallenge;
@@ -152,9 +153,11 @@ final class NetworkConsentFlow: ObservableObject {
         }
     }
 
-    /// Reads the network's consent. The latest read decides: a failed one is
-    /// unavailable even after a good one.
+    /// Reads the network's consent, and whether this session may sign one.
+    /// The latest read decides: a failed one is unavailable even after a good
+    /// one.
     func refreshStatus() async {
+        hasNetworkCredential = await client.hasNetworkCredential()
         do {
             let consent = try await client.status()
             status = consent.active ? .active(coldkeySs58: consent.coldkeySs58) : .noConsent
@@ -216,12 +219,7 @@ final class NetworkConsentFlow: ObservableObject {
         guard request == requests else {
             return
         }
-        // the SDK session refuses an expired challenge too; this says so in
-        // the consent's words
-        guard now() / 1000 < challenge.expiresAt else {
-            stage = .failed(.expired)
-            return
-        }
+        // the session counts the expiry from here, whatever the device clock
         self.challenge = challenge
         stage = .signing
         connector.signNetworkConsent(walletId: walletId, challenge: challenge)

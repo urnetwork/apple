@@ -165,6 +165,7 @@ struct EarningsView: View {
                 // this device: without one, no provider of the network is paid
                 NetworkConsentCard(
                     status: consentFlow.status,
+                    hasNetworkCredential: consentFlow.hasNetworkCredential,
                     shortAddress: viewModel.client.shortSs58,
                     sign: {
                         consentFlow.reset()
@@ -191,6 +192,10 @@ struct EarningsView: View {
         .task {
             if !viewModel.loadedOnce {
                 await refresh()
+            } else {
+                // the view model outlives this visit, the consent flow does
+                // not: a new visit reads the consent again
+                await consentFlow.refreshStatus()
             }
         }
         .onAppear {

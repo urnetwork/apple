@@ -11,11 +11,15 @@ import (
 
 // The network payout consent (VERSION2-FINAL §11.1) is Swift that cannot be
 // compiled here, so these tests read its sources (CONSENT.md §6). They check
-// three things. The eleven sn_consent_* strings are spelled exactly as the
-// localization store pins them, and the catalog translates each one. Each
-// state of the consent card shows its own strings. And the app sends back
-// only the server-issued message. The Swift unit tests
-// (NetworkConsentFlowTests) run the same behaviour in CI.
+// these things:
+//   - the eleven sn_consent_* strings are spelled exactly as the localization
+//     store pins them, and the catalog translates each one;
+//   - each state of the consent card shows its own strings, and only a
+//     session with the network credential is offered signing;
+//   - every visit to Earnings reads the consent;
+//   - the app sends back only the server-issued message, and a manual
+//     session takes no bridge hand-back.
+// The Swift unit tests (NetworkConsentFlowTests) run the same behaviour in CI.
 
 // The store's Apple source for each key: the xcstrings key, which is the
 // literal a SwiftUI Text or String(localized:) looks up. {coldkey} is a Swift
@@ -76,6 +80,33 @@ func consentDeclaration(t *testing.T, source string, indent string, declaration 
 		t.Fatalf("%q does not close", declaration)
 	}
 	return source[start : start+end]
+}
+
+// The text from the first "{" at or after start to its matching "}". The
+// literals in these sources hold no braces.
+func consentBlock(t *testing.T, source string, start int) string {
+	t.Helper()
+	if start < 0 {
+		t.Fatal("no such block")
+	}
+	open := strings.Index(source[start:], "{")
+	if open < 0 {
+		t.Fatalf("no block after %q", source[start:min(len(source), start+40)])
+	}
+	depth := 0
+	for i := start + open; i < len(source); i++ {
+		switch source[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return source[start+open : i+1]
+			}
+		}
+	}
+	t.Fatal("unbalanced block")
+	return ""
 }
 
 // the Swift literal of a key
@@ -230,5 +261,88 @@ func TestNetworkConsentSignsOnlyTheServerMessage(t *testing.T) {
 	}
 	if submits != 1 {
 		t.Errorf("the app submits a consent from %d places, want 1", submits)
+	}
+}
+
+// CS-7 (consent review M1): every visit to Earnings reads the consent. The
+// view model outlives a visit and loads once, but each visit owns a new
+// consent flow, which starts loading: a read gated on the view model's first
+// load left the card a spinner, without Sign with wallet, from the second
+// visit on.
+func TestNetworkConsentStatusLoadsOnEveryEarningsVisit(t *testing.T) {
+	view := consentRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
+	if !strings.Contains(view, "@StateObject private var consentFlow: NetworkConsentFlow") {
+		t.Fatal("premise changed: the consent flow is no longer the visit's own")
+	}
+	task := consentBlock(t, view, strings.Index(view, "        .task {"))
+	gated := consentBlock(t, task, strings.Index(task, "if !viewModel.loadedOnce"))
+	if !strings.Contains(strings.Replace(task, gated, "", 1), "consentFlow.refreshStatus()") {
+		t.Errorf("a visit after the first never reads the consent:\n%s", task)
+	}
+	refresh := consentBlock(t, view, strings.Index(view, "    private func refresh() async {"))
+	if !strings.Contains(refresh, "consentFlow.refreshStatus()") {
+		t.Error("pull to refresh does not read the consent")
+	}
+}
+
+// CS-6 (consent review L1): only a session with the network credential is
+// offered Sign with wallet or Change wallet; any other, which could only
+// reach network_owner_only, is told that only the owner can choose
+func TestNetworkConsentSignIsOfferedOnlyWithTheNetworkCredential(t *testing.T) {
+	card := consentDeclaration(t, consentRead(t, consentSourceFiles[0]), "", "struct NetworkConsentCard: View")
+	for _, action := range []string{
+		`UrButton(text: "Sign with wallet", action: sign)`,
+		`UrButton(text: "Change wallet", action: sign, style: .secondary)`,
+	} {
+		at := strings.Index(card, action)
+		if at < 0 {
+			t.Fatalf("the card has no %s", action)
+		}
+		offer := strings.LastIndex(card[:at], "if hasNetworkCredential {")
+		if offer < 0 {
+			t.Errorf("%s is offered without the network credential", action)
+			continue
+		}
+		then := consentBlock(t, card, offer)
+		if !strings.Contains(then, action) {
+			t.Errorf("%s is offered without the network credential", action)
+			continue
+		}
+		// what the card shows in its place without the credential
+		otherwise := strings.TrimSpace(card[offer+strings.Index(card[offer:], then)+len(then):])
+		if !strings.HasPrefix(otherwise, "else {") || !strings.Contains(consentBlock(t, otherwise, 0), "ownerOnly") {
+			t.Errorf("without the network credential, %s gives way to no owner-only line", action)
+		}
+	}
+	owner := consentBlock(t, card, strings.Index(card, "private var ownerOnly: some View"))
+	if !strings.Contains(owner, consentLiteral(t, "sn_consent_owner_only")) {
+		t.Error("the card's owner-only line is not sn_consent_owner_only")
+	}
+
+	flow := consentRead(t, consentSourceFiles[1])
+	refresh := consentBlock(t, flow, strings.Index(flow, "    func refreshStatus() async {"))
+	if !strings.Contains(refresh, "hasNetworkCredential = await client.hasNetworkCredential()") {
+		t.Error("the flow does not read the network credential with the status")
+	}
+	if !strings.Contains(consentRead(t, "app/network/Main/Account/Earnings/NetworkConsentClient.swift"), "api?.hasNetworkCredential() ?? false") {
+		t.Error("the SDK client does not ask the api for the network credential")
+	}
+	if !strings.Contains(consentRead(t, "app/network/Main/Account/Earnings/EarningsView.swift"), "hasNetworkCredential: consentFlow.hasNetworkCredential,") {
+		t.Error("the Earnings view does not hand the credential to the card")
+	}
+}
+
+// CS-9 (consent review L2): a manual session never opened the bridge, so a
+// hand-back on the app's redirect link came from another app or page, which
+// may hold the shown message: the connector hands it to no manual session
+func TestNetworkConsentManualSessionTakesNoBridgeReturn(t *testing.T) {
+	connector := consentRead(t, "app/network/Shared/Bittensor/BittensorWalletConnector.swift")
+	handle := consentBlock(t, connector, strings.Index(connector, "    func handleBridgeReturn(_ url: URL) async {"))
+	call := strings.Index(handle, "switch session.handleBridgeReturn(")
+	if call < 0 {
+		t.Fatal("premise changed: the connector no longer hands returns to the session")
+	}
+	if !strings.Contains(handle[:call], "session.transport == SdkBittensorWalletTransportBrowserBridge") {
+		t.Errorf("the connector hands a bridge return to a session that never opened the bridge:\n%s", handle[:call])
 	}
 }

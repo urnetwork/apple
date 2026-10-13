@@ -481,9 +481,10 @@ final class BittensorWalletConnector: ObservableObject {
     }
 
     /// A bridge hand-back. One for another flow (purpose), a stray or a late
-    /// one is ignored.
+    /// one is ignored, and so is any for a manual session: it never opened
+    /// the bridge, so the link came from another app or page.
     func handleBridgeReturn(_ url: URL) async {
-        guard let session, session.isReturn(url.absoluteString) else {
+        guard let session, session.transport == SdkBittensorWalletTransportBrowserBridge, session.isReturn(url.absoluteString) else {
             return
         }
         switch session.handleBridgeReturn(url.absoluteString, nowMillis: now()) {

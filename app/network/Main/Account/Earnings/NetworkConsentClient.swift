@@ -23,6 +23,9 @@ struct NetworkConsentStatusInfo: Equatable {
 }
 
 protocol NetworkConsentClient: AnyObject {
+    /// the session holds the network credential, which the challenge and the
+    /// submission need: without it only the network owner can sign
+    func hasNetworkCredential() async -> Bool
     func status() async throws -> NetworkConsentStatusInfo
     /// the challenge for the coldkey: the exact message to sign, its range
     /// and its expiry
@@ -65,6 +68,10 @@ final class NetworkConsentSdkClient: NetworkConsentClient {
             return .message(setError.code)
         }
         return .message("\(setError.code): \(setError.message)")
+    }
+
+    func hasNetworkCredential() async -> Bool {
+        api?.hasNetworkCredential() ?? false
     }
 
     func status() async throws -> NetworkConsentStatusInfo {
@@ -160,6 +167,7 @@ final class NetworkConsentPreviewClient: NetworkConsentClient {
         self.consent = consent
     }
 
+    func hasNetworkCredential() async -> Bool { true }
     func status() async throws -> NetworkConsentStatusInfo { consent }
     func challenge(coldkeySs58: String) async throws -> SdkSnNetworkConsentChallengeResult {
         let result = SdkSnNetworkConsentChallengeResult()

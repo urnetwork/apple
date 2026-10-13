@@ -407,6 +407,25 @@ struct BittensorWalletConnectorTests {
         #expect(connector.stage == .idle)
     }
 
+    // a manual session never opened the bridge, so a hand-back on the
+    // redirect link came from another app or page holding the shown message:
+    // it is not the session's proof, and the pasted signature still is
+    @Test func aManualSessionTakesNoBridgeReturn() async {
+        let recorder = Recorder()
+        let connector = Self.connector(platform: SdkBittensorWalletPlatformIos, recorder: recorder)
+        await connector.choose(walletId: "taocom", purpose: SdkBittensorWalletPurposeLogin)
+        #expect(connector.stage == .manualSignature(walletId: "taocom", message: Self.message))
+
+        await connector.handleBridgeReturn(Self.returnUrl(["address": Self.alice, "signature": Self.signature, "message": Self.message, "purpose": "login", "wallet": "taocom"]))
+        #expect(recorder.proofs.isEmpty)
+        #expect(connector.stage == .manualSignature(walletId: "taocom", message: Self.message))
+
+        connector.manualAddress = Self.alice
+        connector.manualSignature = Self.signature
+        await connector.submitManual()
+        #expect(recorder.proofs == [BittensorWalletProofInfo(walletId: "taocom", purpose: "login", address: Self.alice, message: Self.message, signature: Self.signature)])
+    }
+
     // MARK: Earnings flow
 
     final class FakeClient: EarningsClient {

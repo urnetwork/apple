@@ -14,6 +14,7 @@
 //  session where its checks matter, with a fixed clock and no network.
 //
 
+import CryptoKit
 import Foundation
 import Testing
 import URnetworkSdk
@@ -65,6 +66,7 @@ private struct Submission: Equatable {
 @MainActor
 private final class FakeConsentClient: NetworkConsentClient {
 
+    var networkCredential = true
     var consent = NetworkConsentStatusInfo(active: false, coldkeySs58: "", fromEpoch: 0, throughEpoch: 0)
     var statusError: Error?
     var challengeError: Error?
@@ -75,6 +77,10 @@ private final class FakeConsentClient: NetworkConsentClient {
     private(set) var challengeRequests: [String] = []
     private(set) var issued: [SdkSnNetworkConsentChallengeResult] = []
     private(set) var submissions: [Submission] = []
+
+    func hasNetworkCredential() async -> Bool {
+        networkCredential
+    }
 
     func status() async throws -> NetworkConsentStatusInfo {
         if let statusError {
@@ -109,9 +115,10 @@ private final class FakeConsentClient: NetworkConsentClient {
 }
 
 /// The scripted wallet behind the shared connector. It takes a consent
-/// challenge the way the SDK session does (verbatim, bound to its coldkey,
-/// refused once expired). It answers the bridge or the manual form with a
-/// signature over the message it holds, or over `signedMessage`.
+/// challenge the way the SDK session does: verbatim, bound to its coldkey,
+/// and refused 300 s after receipt (CONSENT.md §10). It answers the bridge or
+/// the manual form with a signature over the message it holds, or over
+/// `signedMessage`.
 private final class ScriptedConsentSession: BittensorWalletSessioning {
 
     let walletId: String
@@ -124,6 +131,8 @@ private final class ScriptedConsentSession: BittensorWalletSessioning {
     var signedMessage: String?
     /// the wallet's answer instead of a signature
     var refusal: BittensorWalletOutcome?
+    /// the bridge hand-backs the connector passed on
+    private(set) var bridgeReturns = 0
     private var coldkeySs58 = ""
     private var expiresAtMillis: Int64 = 0
     private var open = true
@@ -147,7 +156,8 @@ private final class ScriptedConsentSession: BittensorWalletSessioning {
         challenges.append(result)
         message = result.message
         coldkeySs58 = result.coldkeySs58
-        expiresAtMillis = result.expiresAt * 1000
+        // the statement's lifetime, counted from receipt
+        expiresAtMillis = nowMillis + 300 * 1000
     }
 
     func setWalletConnectProjectId(_ projectId: String) {}
@@ -161,7 +171,8 @@ private final class ScriptedConsentSession: BittensorWalletSessioning {
     }
 
     func handleBridgeReturn(_ uri: String, nowMillis: Int64) -> BittensorWalletOutcome {
-        answer(address: coldkeySs58, signature: consentSignature, nowMillis: nowMillis)
+        bridgeReturns += 1
+        return answer(address: coldkeySs58, signature: consentSignature, nowMillis: nowMillis)
     }
 
     func handleSignature(address: String, signature: String, nowMillis: Int64) -> BittensorWalletOutcome {
@@ -485,9 +496,9 @@ struct NetworkConsentFlowTests {
         #expect(flow.status == .loading)
     }
 
-    // CS-6: a challenge already expired when it arrives (the device clock
-    // runs 300 s ahead) never reaches the wallet
-    @Test func aChallengeExpiredOnArrivalIsNotSigned() async {
+    // CS-6 (CONSENT.md §10): the expiry counts from receipt, so a device
+    // clock 300 s ahead of the server's still signs
+    @Test func aDeviceClockAheadOfTheServersStillSigns() async {
         let client = FakeConsentClient()
         let recorder = WalletRecorder()
         recorder.nowMillis = consentNowMillis + 300 * 1000
@@ -495,10 +506,11 @@ struct NetworkConsentFlowTests {
         flow.chooseWallet(SdkBittensorWalletTalisman)
         flow.address = alice
         await flow.submitAddress()
+        #expect(flow.stage == .signing)
 
-        #expect(flow.stage == .failed(.expired))
-        #expect(recorder.sessions.isEmpty)
-        #expect(recorder.opened.isEmpty)
+        await flow.connector.handleBridgeReturn(consentReturn)
+        #expect(client.submissions.count == 1)
+        #expect(flow.status == .active(coldkeySs58: alice))
     }
 
     // CS-6: a signature that does not verify for the coldkey
@@ -601,10 +613,11 @@ struct NetworkConsentFlowTests {
         #expect(submitted.coldkeySs58 == alice)
     }
 
-    // CS-9: through the real SDK session, the bridge page gets exactly the
-    // server's message, for the coldkey it names, under the consent purpose;
-    // a return over other text is refused, and the right one goes back as
-    // issued
+    // CS-9 (CONSENT.md §10): through the real SDK session, the bridge page
+    // gets the server's message, byte for byte, in the URL fragment and never
+    // in the query. The hand-back carries the bytes' SHA-256: one for other
+    // bytes completes nothing and leaves the session waiting, and the one for
+    // these bytes goes back as issued.
     @Test func theRealSessionCarriesTheServersMessageToTheWallet() async throws {
         let client = FakeConsentClient()
         let recorder = WalletRecorder()
@@ -628,24 +641,99 @@ struct NetworkConsentFlowTests {
 
         let opened = try #require(recorder.opened.first)
         let components = try #require(URLComponents(url: opened, resolvingAgainstBaseURL: false))
-        // the page reads the query with URLSearchParams: form encoding, "+" is a space
-        let query = Dictionary(uniqueKeysWithValues: (components.percentEncodedQueryItems ?? []).map {
-            ($0.name, ($0.value ?? "").replacingOccurrences(of: "+", with: " ").removingPercentEncoding ?? "")
-        })
-        #expect(query["message"] == consentMessage(for: alice))
-        #expect(query["purpose"] == SdkBittensorWalletPurposeConsent)
-        #expect(query["address"] == alice)
-        #expect(query["wallet"] == SdkBittensorWalletTalisman)
+        let query = Self.formValues(components.percentEncodedQuery)
+        let fragment = Self.formValues(components.percentEncodedFragment)
+        #expect(query["message"] == nil)
+        let encoded = try #require(fragment["message"])
+        let sent = try #require(Self.base64UrlDecoded(encoded))
+        #expect(Array(sent) == Array(consentMessage(for: alice).utf8))
+        #expect((query["purpose"] ?? fragment["purpose"]) == SdkBittensorWalletPurposeConsent)
+        #expect((query["wallet"] ?? fragment["wallet"]) == SdkBittensorWalletTalisman)
 
-        let other = Self.returnUrl(["address": alice, "signature": consentSignature, "message": consentMessage(for: bob), "purpose": "consent", "wallet": "talisman"])
-        await connector.handleBridgeReturn(other)
-        #expect(connector.stage == .failed(String(localized: "The wallet signed a different request. Start again.")))
+        // the page echoes what it was handed (the purpose, the wallet and any
+        // state) with the signature and the SHA-256 of the bytes it signed
+        func handBack(signed message: String) -> URL {
+            var items = query.merging(fragment) { first, _ in first }
+            items["message"] = nil
+            items["address"] = alice
+            items["signature"] = consentSignature
+            items["message_sha256"] = Self.sha256Hex(message)
+            return Self.returnUrl(items)
+        }
+        await connector.handleBridgeReturn(handBack(signed: consentMessage(for: bob)))
         #expect(client.submissions.isEmpty)
+        #expect(flow.stage == .signing)
 
-        await flow.submitAddress()
-        let good = Self.returnUrl(["address": alice, "signature": consentSignature, "message": consentMessage(for: alice), "purpose": "consent", "wallet": "talisman"])
-        await connector.handleBridgeReturn(good)
+        await connector.handleBridgeReturn(handBack(signed: consentMessage(for: alice)))
         #expect(client.submissions == [Submission(coldkeySs58: alice, message: consentMessage(for: alice), signature: consentSignature)])
         #expect(flow.status == .active(coldkeySs58: alice))
+    }
+
+    // MARK: who may sign, and where a hand-back goes
+
+    // CS-6 (consent review L1): a session without the network credential is
+    // never offered Sign with wallet or Change wallet; it reads the status,
+    // and the card says only the owner can choose
+    @Test func onlyASessionWithTheNetworkCredentialIsOfferedSigning() async {
+        let client = FakeConsentClient()
+        client.networkCredential = false
+        client.consent = NetworkConsentStatusInfo(active: true, coldkeySs58: alice, fromEpoch: currentEpoch + 1, throughEpoch: currentEpoch + 1 + 65535)
+        let flow = Self.flow(platform: SdkBittensorWalletPlatformMacos, client: client, recorder: WalletRecorder())
+        #expect(!flow.hasNetworkCredential)
+
+        await flow.refreshStatus()
+        #expect(!flow.hasNetworkCredential)
+        #expect(flow.status == .active(coldkeySs58: alice))
+
+        // read on every refresh: a session that gains it is offered signing
+        client.networkCredential = true
+        await flow.refreshStatus()
+        #expect(flow.hasNetworkCredential)
+    }
+
+    // CS-9 (consent review L2): a manual session never opened the bridge, so
+    // a hand-back on the redirect link came from another app or page: it
+    // never reaches the session, and the pasted signature still signs
+    @Test func aManualSessionTakesNoBridgeReturn() async throws {
+        let (client, recorder, flow) = await Self.signing(walletId: SdkBittensorWalletTaoCom, platform: SdkBittensorWalletPlatformIos)
+        let session = try #require(recorder.sessions.last)
+        #expect(session.transport == SdkBittensorWalletTransportManual)
+
+        await flow.connector.handleBridgeReturn(consentReturn)
+        #expect(session.bridgeReturns == 0)
+        #expect(flow.connector.stage == .manualSignature(walletId: SdkBittensorWalletTaoCom, message: consentMessage(for: alice)))
+        #expect(client.submissions.isEmpty)
+
+        flow.connector.manualSignature = consentSignature
+        await flow.connector.submitManual()
+        #expect(client.submissions == [Submission(coldkeySs58: alice, message: consentMessage(for: alice), signature: consentSignature)])
+    }
+
+    // MARK: the bridge's encodings
+
+    /// the values of a form-encoded query or fragment
+    private static func formValues(_ encoded: String?) -> [String: String] {
+        func decode(_ text: Substring) -> String {
+            String(text).replacingOccurrences(of: "+", with: " ").removingPercentEncoding ?? ""
+        }
+        var values: [String: String] = [:]
+        for pair in (encoded ?? "").split(separator: "&") {
+            let parts = pair.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            values[decode(parts[0])] = parts.count > 1 ? decode(parts[1]) : ""
+        }
+        return values
+    }
+
+    /// the bytes of a base64url value, with or without its padding
+    private static func base64UrlDecoded(_ value: String) -> Data? {
+        var base64 = value.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        base64 = base64.trimmingCharacters(in: CharacterSet(charactersIn: "="))
+        base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
+        return Data(base64Encoded: base64)
+    }
+
+    /// the lowercase hex SHA-256 of a message's exact bytes
+    private static func sha256Hex(_ message: String) -> String {
+        SHA256.hash(data: Data(message.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 }

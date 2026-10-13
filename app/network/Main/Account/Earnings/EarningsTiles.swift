@@ -4,8 +4,8 @@
 //
 //  The tiles of the Earnings screen: the Top 200 head
 //  spot, the Bittensor wallet block with its wallet options, the unclaimed
-//  alpha tile, the settlement v2 tile, the SN payout line of the points card
-//  and the epoch history rows.
+//  alpha tile, the settlement v2 tile, the network payout consent card, the
+//  SN payout line of the points card and the epoch history rows.
 //
 
 import SwiftUI
@@ -415,6 +415,58 @@ struct SnLedgerTile: View {
                 .font(themeManager.currentTheme.titleCondensedFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
         }
+    }
+}
+
+/// The network payout consent, beside the settlement v2 tile: the coldkey
+/// every provider client of the network is paid to, or that there is none,
+/// so earnings are not paid. Sign with wallet and Change wallet open the
+/// consent sheet; a consent, the first or a new one, takes effect from the
+/// next epoch. A status that could not be read is not "no consent".
+struct NetworkConsentCard: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let status: NetworkConsentFlow.Status
+    let shortAddress: (String) -> String
+    let sign: () -> Void
+    let retry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            UrLabel(text: "Payout consent")
+            switch status {
+            case .loading:
+                ProgressView()
+            case .unavailable:
+                SectionLoadFailedView(retry: retry)
+            case .noConsent:
+                Text("No payout wallet yet. Earnings aren't paid until you sign.")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer().frame(height: 4)
+                UrButton(text: "Sign with wallet", action: sign)
+            case .active(let coldkeySs58):
+                Text("Earnings are paid to \(shortAddress(coldkeySs58))")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                Spacer().frame(height: 4)
+                UrButton(text: "Change wallet", action: sign, style: .secondary)
+                Text("A new wallet takes effect from the next epoch.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
     }
 }
 

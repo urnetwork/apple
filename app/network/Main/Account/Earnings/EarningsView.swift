@@ -7,7 +7,9 @@
 //  Connecting a Bittensor coldkey adds the subnet layer: the history rows gain
 //  SN25α, the unclaimed tile appears and claims go straight from this device
 //  to the settlement vault. The settlement v2 balances show in a tile of
-//  their own beside it, with their own claim. Alpha is not retroactive. USDC
+//  their own beside it, with their own claim, and the network payout consent
+//  beside them: the coldkey one signature by the network's owner pays every
+//  provider of the network to. Alpha is not retroactive. USDC
 //  payouts continue to a Solana wallet until the migration to Bittensor is
 //  complete; the wallet options next to the Bittensor call connect it.
 //
@@ -32,10 +34,12 @@ struct EarningsView: View {
 
     @StateObject private var connectFlow: ConnectBittensorWalletFlow
     @StateObject private var solanaFlow: ConnectSolanaWalletFlow
+    @StateObject private var consentFlow: NetworkConsentFlow
     @State private var presentConnectSheet = false
     @State private var presentSolanaSheet = false
     @State private var presentClaimSheet = false
     @State private var presentLedgerClaimSheet = false
+    @State private var presentConsentSheet = false
 
     init(
         navigate: @escaping (AccountNavigationPath) -> Void,
@@ -43,7 +47,8 @@ struct EarningsView: View {
         networkReliabilityWindow: SdkReliabilityWindow?,
         fetchNetworkReliability: @escaping () async -> Void,
         viewModel: EarningsViewModel,
-        usdcViewModel: UsdcWalletsViewModel
+        usdcViewModel: UsdcWalletsViewModel,
+        consentClient: NetworkConsentClient
     ) {
         self.navigate = navigate
         self.accountPointsStore = accountPointsStore
@@ -58,6 +63,7 @@ struct EarningsView: View {
                 try await viewModel.connectWallet(coldkeySs58: address, signature: signature, message: message)
             }
         ))
+        _consentFlow = StateObject(wrappedValue: NetworkConsentFlow(client: consentClient))
     }
 
     var body: some View {
@@ -155,6 +161,22 @@ struct EarningsView: View {
                     )
                 }
 
+                // the network's payout consent, with or without a coldkey on
+                // this device: without one, no provider of the network is paid
+                NetworkConsentCard(
+                    status: consentFlow.status,
+                    shortAddress: viewModel.client.shortSs58,
+                    sign: {
+                        consentFlow.reset()
+                        presentConsentSheet = true
+                    },
+                    retry: {
+                        Task {
+                            await consentFlow.refreshStatus()
+                        }
+                    }
+                )
+
                 historySection
 
                 providerCard
@@ -175,6 +197,10 @@ struct EarningsView: View {
             connectFlow.onConnected = { _ in
                 presentConnectSheet = false
                 snackbarManager.showSnackbar(message: String(localized: "Connected"))
+            }
+            // the card shows the new consent
+            consentFlow.onSigned = {
+                presentConsentSheet = false
             }
             solanaFlow.openWallet = { app in
                 switch app {
@@ -279,6 +305,24 @@ struct EarningsView: View {
             .presentationDragIndicator(.visible)
             #elseif os(macOS)
             .frame(minWidth: 480, minHeight: 560)
+            #endif
+        }
+        .sheet(isPresented: $presentConsentSheet, onDismiss: {
+            consentFlow.reset()
+        }) {
+            NetworkConsentSheet(
+                flow: consentFlow,
+                connector: consentFlow.connector,
+                dismiss: { presentConsentSheet = false }
+            )
+            .environmentObject(themeManager)
+            // a signed consent on its way to the server is not abandoned
+            .interactiveDismissDisabled(consentFlow.stage == .submitting)
+            #if os(iOS)
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            #elseif os(macOS)
+            .frame(minWidth: 460, minHeight: 320)
             #endif
         }
         #if os(macOS)
@@ -404,17 +448,18 @@ struct EarningsView: View {
         async let points: Void = accountPointsStore.fetchAccountPoints()
         async let reliability: Void = fetchNetworkReliability()
         async let usdc: Void = usdcViewModel.refresh()
-        (_, _, _, _) = await (earnings, points, reliability, usdc)
+        async let consent: Void = consentFlow.refreshStatus()
+        (_, _, _, _, _) = await (earnings, points, reliability, usdc, consent)
     }
 
     /// The wallets come back as deep links. Phantom and Solflare (or the ur.io
     /// bridge driving their extensions) return the Solana public key through
     /// urnetwork://phantom-connect or urnetwork://solflare-connect; the ur.io
     /// wallet bridge returns the coldkey and its signature over the connect
-    /// challenge. A link reaches only the flow it belongs to, and only while
-    /// that flow's sheet is up.
+    /// challenge, or over the payout consent. A link reaches only the flow it
+    /// belongs to, and only while that flow's sheet is up.
     private func handleDeepLink(_ url: URL) {
-        switch EarningsWalletLink.route(url, solanaSheetUp: presentSolanaSheet, bittensorSheetUp: presentConnectSheet) {
+        switch EarningsWalletLink.route(url, solanaSheetUp: presentSolanaSheet, bittensorSheetUp: presentConnectSheet, consentSheetUp: presentConsentSheet) {
         case .solana:
             connectWalletProviderViewModel.handleDeepLink(
                 url,
@@ -431,7 +476,9 @@ struct EarningsView: View {
                 }
             )
         case .bittensor:
-            handleBittensorDeepLink(url)
+            handleBittensorDeepLink(url, connector: connectFlow.connector)
+        case .consent:
+            handleBittensorDeepLink(url, connector: consentFlow.connector)
         case nil:
             return
         }
@@ -439,9 +486,9 @@ struct EarningsView: View {
 
     /// The bridge hand-back goes to the SDK session, which ignores a return
     /// for another flow (purpose) or another challenge.
-    private func handleBittensorDeepLink(_ url: URL) {
+    private func handleBittensorDeepLink(_ url: URL, connector: BittensorWalletConnector) {
         Task {
-            await connectFlow.connector.handleBridgeReturn(url)
+            await connector.handleBridgeReturn(url)
         }
     }
 
@@ -466,17 +513,21 @@ struct EarningsView: View {
 
 /// Which connect sheet a wallet deep link belongs to: Phantom and Solflare
 /// (or the ur.io bridge driving their extensions) return to the Solana sheet,
-/// the ur.io Bittensor bridge to the Bittensor sheet. A link whose sheet is not
-/// up belongs to neither.
+/// the ur.io Bittensor bridge to the Bittensor sheet or the payout consent
+/// sheet, whichever is up. A link whose sheet is not up belongs to none.
 enum EarningsWalletLink: Equatable {
     case solana
     case bittensor
+    case consent
 
-    static func route(_ url: URL, solanaSheetUp: Bool, bittensorSheetUp: Bool) -> EarningsWalletLink? {
+    static func route(_ url: URL, solanaSheetUp: Bool, bittensorSheetUp: Bool, consentSheetUp: Bool = false) -> EarningsWalletLink? {
         switch url.host ?? "" {
         case "phantom-connect", "solflare-connect":
             return solanaSheetUp ? .solana : nil
         case "bittensor-sign-message":
+            if consentSheetUp {
+                return .consent
+            }
             return bittensorSheetUp ? .bittensor : nil
         default:
             return nil
@@ -502,7 +553,8 @@ enum EarningsWalletLink: Equatable {
         viewModel: EarningsViewModel(client: client),
         usdcViewModel: UsdcWalletsViewModel(
             client: UsdcWalletsPreviewClient(startLinked: true, pendingUsdNanoCents: 3_870_000_000)
-        )
+        ),
+        consentClient: NetworkConsentPreviewClient()
     )
     .environmentObject(themeManager)
     .environmentObject(ConnectWalletProviderViewModel())

@@ -19,6 +19,9 @@
 //  this app's WalletConnect project id (Info.plist URWalletConnectProjectId)
 //  and returns on the same redirect link.
 //
+//  The network payout consent signs the same way, over the server's own
+//  message instead of a sign-in challenge (signNetworkConsent).
+//
 
 import Foundation
 import URnetworkSdk
@@ -57,6 +60,9 @@ protocol BittensorWalletSessioning: AnyObject {
     var message: String { get }
     func challengeArgs(expectedAddress: String) -> SdkAuthWalletChallengeArgs?
     func setChallenge(_ result: SdkAuthWalletChallengeResult, nowMillis: Int64) throws
+    /// a consent session's challenge (SnNetworkConsentChallenge): its message
+    /// verbatim, bound to its coldkey, until it expires
+    func setNetworkConsentChallenge(_ result: SdkSnNetworkConsentChallengeResult, nowMillis: Int64) throws
     func setWalletConnectProjectId(_ projectId: String)
     func bridgeUrl() throws -> String
     func isReturn(_ uri: String) -> Bool
@@ -237,6 +243,10 @@ final class SdkBittensorWalletSessionAdapter: BittensorWalletSessioning {
         try session.setChallenge(result, nowMillis: nowMillis)
     }
 
+    func setNetworkConsentChallenge(_ result: SdkSnNetworkConsentChallengeResult, nowMillis: Int64) throws {
+        try session.setNetworkConsentChallenge(result, nowMillis: nowMillis)
+    }
+
     func setWalletConnectProjectId(_ projectId: String) {
         session.setWalletConnectProjectId(projectId)
     }
@@ -314,6 +324,10 @@ final class BittensorWalletConnector: ObservableObject {
 
     /// awaited, so a caller (and a test) sees the whole hand-off finish
     var onProof: (BittensorWalletProofInfo) async -> Void = { _ in }
+    /// the session refused the wallet's answer with this code
+    /// (BittensorWalletError*), after the stage shows the refusal: a flow
+    /// with words of its own for a refusal reads it here
+    var onRefusal: (String) -> Void = { _ in }
 
     /// the platform column of the SDK's transport table (the refusal words
     /// read it too)
@@ -359,24 +373,8 @@ final class BittensorWalletConnector: ObservableObject {
     /// Starts a proof with the chosen wallet. A non-empty expectedAddress
     /// binds the challenge to it and pre-fills (and locks) the manual form.
     func choose(walletId: String, purpose: String, expectedAddress: String = "") async {
-        cancelSession()
-        lastWalletId = walletId
-        manualError = nil
-        manualSignature = ""
-        manualAddress = expectedAddress
-        addressLocked = !expectedAddress.isEmpty
-        stage = .requestingChallenge(walletId: walletId)
-
-        let session: BittensorWalletSessioning
-        do {
-            session = try makeSession(walletId, platform, purpose, redirectLink)
-        } catch {
-            stage = .failed(BittensorWallet.errorText(code: "", walletMessage: ""))
+        guard let session = openSession(walletId: walletId, purpose: purpose, expectedAddress: expectedAddress) else {
             return
-        }
-        self.session = session
-        if walletId == SdkBittensorWalletWalletConnect {
-            session.setWalletConnectProjectId(walletConnectProjectId)
         }
         do {
             guard let args = session.challengeArgs(expectedAddress: expectedAddress) else {
@@ -395,7 +393,54 @@ final class BittensorWalletConnector: ObservableObject {
             stage = .failed(BittensorWallet.errorText(code: "", walletMessage: ""))
             return
         }
+        handOff(session, walletId: walletId)
+    }
 
+    /// Signs a network payout consent with the chosen wallet. The session
+    /// takes the server-issued challenge (SnNetworkConsentChallenge) as it
+    /// is, bound to its coldkey: the wallet signs exactly its message, and
+    /// the proof carries that message unchanged.
+    func signNetworkConsent(walletId: String, challenge: SdkSnNetworkConsentChallengeResult) {
+        guard let session = openSession(walletId: walletId, purpose: SdkBittensorWalletPurposeConsent, expectedAddress: challenge.coldkeySs58) else {
+            return
+        }
+        do {
+            try session.setNetworkConsentChallenge(challenge, nowMillis: now())
+        } catch {
+            stage = .failed(BittensorWallet.errorText(code: "", walletMessage: ""))
+            return
+        }
+        handOff(session, walletId: walletId)
+    }
+
+    /// A new session for the chosen wallet; nil, with the failure shown,
+    /// when the SDK has none for it.
+    private func openSession(walletId: String, purpose: String, expectedAddress: String) -> BittensorWalletSessioning? {
+        cancelSession()
+        lastWalletId = walletId
+        manualError = nil
+        manualSignature = ""
+        manualAddress = expectedAddress
+        addressLocked = !expectedAddress.isEmpty
+        stage = .requestingChallenge(walletId: walletId)
+
+        let session: BittensorWalletSessioning
+        do {
+            session = try makeSession(walletId, platform, purpose, redirectLink)
+        } catch {
+            stage = .failed(BittensorWallet.errorText(code: "", walletMessage: ""))
+            return nil
+        }
+        self.session = session
+        if walletId == SdkBittensorWalletWalletConnect {
+            session.setWalletConnectProjectId(walletConnectProjectId)
+        }
+        return session
+    }
+
+    /// The session has its challenge: the bridge page in the browser, or the
+    /// manual form.
+    private func handOff(_ session: BittensorWalletSessioning, walletId: String) {
         if session.transport == SdkBittensorWalletTransportBrowserBridge {
             guard let bridgeUrl = try? session.bridgeUrl(), let url = URL(string: bridgeUrl), openUrl(url) else {
                 stage = .failed(BittensorWallet.errorText(code: "", walletMessage: ""))
@@ -422,6 +467,7 @@ final class BittensorWalletConnector: ObservableObject {
             } else {
                 manualError = BittensorWallet.errorText(code: code, walletMessage: walletMessage)
             }
+            onRefusal(code)
         case .ignored:
             break
         }
@@ -450,6 +496,7 @@ final class BittensorWalletConnector: ObservableObject {
                 bridgeCode: bridgeCode,
                 walletId: session.walletId
             ))
+            onRefusal(code)
         case .ignored:
             break
         }

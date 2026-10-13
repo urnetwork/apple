@@ -42161,7 +42161,7 @@
       }
     },
     "Claimable" : {
-      "comment" : "Settlement v2 tile and claim dialog: label of the amount a claim would pay now.",
+      "comment" : "Settlement v2 tile: label of the SN25α the user can claim now.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42196,31 +42196,31 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reclamable"
+            "value" : "Por reclamar"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reclamable"
+            "value" : "Por reclamar"
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reclamable"
+            "value" : "Por reclamar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réclamable"
+            "value" : "À réclamer"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ניתן למימוש"
+            "value" : "זמין למימוש"
           }
         },
         "hi" : {
@@ -42268,25 +42268,25 @@
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reivindicável"
+            "value" : "Disponível para reivindicar"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resgatável"
+            "value" : "Disponível para resgate"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reivindicável"
+            "value" : "Disponível para reivindicar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Доступно к получению"
+            "value" : "Можно получить"
           }
         },
         "sv" : {
@@ -42304,7 +42304,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Доступно до отримання"
+            "value" : "Можна отримати"
           }
         },
         "vi" : {
@@ -68950,7 +68950,7 @@
       }
     },
     "Earned" : {
-      "comment" : "Settlement v2 tile: column label, everything finalized for the coldkey (claimable plus paid).",
+      "comment" : "Settlement v2 tile: label of the SN25α earned so far (finalized: paid plus claimable).",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -68961,7 +68961,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyděláno"
+            "value" : "Získáno"
           }
         },
         "de" : {
@@ -68973,7 +68973,7 @@
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Κερδισμένα"
+            "value" : "Κέρδη"
           }
         },
         "en" : {
@@ -69033,7 +69033,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "獲得済み"
+            "value" : "獲得額"
           }
         },
         "ko" : {
@@ -69051,7 +69051,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zarobione"
+            "value" : "Zarobiono"
           }
         },
         "pt" : {
@@ -119833,12 +119833,12 @@
       "shouldTranslate" : false
     },
     "Paid" : {
-      "comment" : "Settlement v2 tile: column label, what was already claimed to the coldkey.",
+      "comment" : "Settlement v2 tile: label of the SN25α already paid to the user's coldkey.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "المدفوع"
+            "value" : "مدفوع"
           }
         },
         "cs" : {
@@ -119856,7 +119856,7 @@
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Πληρωμένα"
+            "value" : "Πληρώθηκε"
           }
         },
         "en" : {
@@ -119898,13 +119898,13 @@
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "भुगतान किया गया"
+            "value" : "भुगतान हो चुका"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dibayarkan"
+            "value" : "Dibayar"
           }
         },
         "it" : {
@@ -119934,7 +119934,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wypłacone"
+            "value" : "Wypłacono"
           }
         },
         "pt" : {
@@ -124848,12 +124848,12 @@
       }
     },
     "Pending: +%@, awaiting finalization" : {
-      "comment" : "Settlement v2 tile: what a committed ledger root that is not finalized yet adds to the balance. %@ is an amount such as 0.5000 SN25α.",
+      "comment" : "Settlement v2 tile: earnings committed but not final yet. {} is an SN25α amount, e.g. \"0.7500 SN25α\".",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "معلّق: +%@، بانتظار الاعتماد النهائي"
+            "value" : "معلّق: +%@، بانتظار الاعتماد"
           }
         },
         "cs" : {
@@ -124901,13 +124901,13 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En attente : +%@, en cours de finalisation"
+            "value" : "En attente : +%@, finalisation en cours"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ממתין: +%@, עד לאישור סופי"
+            "value" : "בהמתנה: +%@, עד לאישור סופי"
           }
         },
         "hi" : {
@@ -124931,7 +124931,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留中: +%@、確定待ち"
+            "value" : "保留中: +%@（確定待ち）"
           }
         },
         "ko" : {
@@ -124949,13 +124949,13 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oczekujące: +%@, czeka na sfinalizowanie"
+            "value" : "Oczekujące: +%@, czeka na finalizację"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pendente: +%@, aguardando finalização"
+            "value" : "Pendente: +%@, a aguardar finalização"
           }
         },
         "pt-BR" : {
@@ -124973,7 +124973,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В ожидании: +%@, ожидает утверждения"
+            "value" : "В ожидании: +%@, ждёт утверждения"
           }
         },
         "sv" : {
@@ -124985,7 +124985,7 @@
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "รอดำเนินการ: +%@ รอการสรุปผล"
+            "value" : "รอดำเนินการ: +%@ รอการสรุป"
           }
         },
         "uk" : {
@@ -127693,18 +127693,18 @@
       }
     },
     "Pool %lld" : {
-      "comment" : "Settlement v2 tile and claim dialog: the operator pool a balance or claim line belongs to; %lld is the pool's network-operator id.",
+      "comment" : "Settlement v2 tile and claim dialog: names an operator pool. {} is its number.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "المجموعة %lld"
+            "value" : "المجمّع %lld"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fond %lld"
+            "value" : "Pool %lld"
           }
         },
         "de" : {
@@ -127716,7 +127716,7 @@
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ομάδα %lld"
+            "value" : "Pool %lld"
           }
         },
         "en" : {
@@ -127728,25 +127728,25 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo %lld"
+            "value" : "Pool %lld"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo %lld"
+            "value" : "Pool %lld"
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo %lld"
+            "value" : "Pool %lld"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Groupe %lld"
+            "value" : "Pool %lld"
           }
         },
         "he" : {
@@ -127770,7 +127770,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gruppo %lld"
+            "value" : "Pool %lld"
           }
         },
         "ja" : {
@@ -127800,19 +127800,19 @@
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo %lld"
+            "value" : "Pool %lld"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo %lld"
+            "value" : "Pool %lld"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo %lld"
+            "value" : "Pool %lld"
           }
         },
         "ru" : {
@@ -127830,7 +127830,7 @@
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "กลุ่ม %lld"
+            "value" : "พูล %lld"
           }
         },
         "uk" : {
@@ -127842,7 +127842,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nhóm %lld"
+            "value" : "Pool %lld"
           }
         },
         "zh-Hans" : {
@@ -155080,7 +155080,7 @@
       }
     },
     "Settlement v2" : {
-      "comment" : "Label of the settlement v2 tile and claim dialog on the Earnings screen: the coldkey's balance in the operator pool's settlement v2 vault, beside the v1 unclaimed tile. Keep \"v2\".",
+      "comment" : "Title of the settlement v2 tile, and the caption of its claim dialog's total. Keep \"v2\".",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -155103,7 +155103,7 @@
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εκκαθάριση v2"
+            "value" : "Διακανονισμός v2"
           }
         },
         "en" : {
@@ -155145,7 +155145,7 @@
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "निपटान v2"
+            "value" : "सेटलमेंट v2"
           }
         },
         "id" : {
@@ -155157,7 +155157,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Regolamento v2"
+            "value" : "Liquidazione v2"
           }
         },
         "ja" : {
@@ -191859,7 +191859,7 @@
       }
     },
     "Unavailable" : {
-      "comment" : "Settlement v2 tile and claim dialog: shown in place of the balances when the operator's ledger cannot be read. Never shown as 0.",
+      "comment" : "Settlement v2 tile: shown instead of the balances when they cannot be read, never a zero.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -191870,7 +191870,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Není k dispozici"
+            "value" : "Nedostupné"
           }
         },
         "de" : {
@@ -191942,7 +191942,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "利用できません"
+            "value" : "利用不可"
           }
         },
         "ko" : {
@@ -191990,7 +191990,7 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inte tillgängligt"
+            "value" : "Inte tillgänglig"
           }
         },
         "th" : {
@@ -192020,7 +192020,7 @@
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法使用"
+            "value" : "不可用"
           }
         }
       }

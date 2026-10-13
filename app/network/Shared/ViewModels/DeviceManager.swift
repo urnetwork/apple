@@ -172,12 +172,15 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
 }
 
 // Only the provider extender status and setting cross this seam (EXTENDER.md
-// N2, N7). The normal source is the SDK remote; tests keep the registered
-// callback and record the writes without starting RPC.
+// N2, N7), with the lag.dev measurements setting that rides on the role
+// (lag.dev/PLAN.md C4). The normal source is the SDK remote; tests keep the
+// registered callback and record the writes without starting RPC.
 protocol ExtenderProvideSource: AnyObject {
     func readExtenderProvideStatus() -> ExtenderProvideStatusModel
     func readProvideExtender() -> Bool
     func writeProvideExtender(_ provideExtender: Bool)
+    func readMeasurementsEnabled() -> Bool
+    func writeMeasurementsEnabled(_ measurementsEnabled: Bool)
     func observeExtenderProvideStatus(
         _ callback: @escaping @Sendable (ExtenderProvideStatusModel) -> Void
     ) -> () -> Void
@@ -194,6 +197,14 @@ extension SdkDeviceRemote: ExtenderProvideSource {
 
     func writeProvideExtender(_ provideExtender: Bool) {
         setProvideExtender(provideExtender)
+    }
+
+    func readMeasurementsEnabled() -> Bool {
+        getMeasurementsEnabled()
+    }
+
+    func writeMeasurementsEnabled(_ measurementsEnabled: Bool) {
+        setMeasurementsEnabled(measurementsEnabled)
     }
 
     func observeExtenderProvideStatus(
@@ -413,6 +424,20 @@ class DeviceManager: ObservableObject {
                 isLoadingFromDevice: isLoadingFromDevice
             ) else { return }
             handleProvideExtenderUpdate(provideExtender)
+        }
+    }
+
+    /// The lag.dev measurements setting (lag.dev/PLAN.md C4, decision 18), the
+    /// speed tests switch under the Extender row: whether the role serves the
+    /// measurement API. Read and written as the provider extender setting is,
+    /// through the device, which stores it and applies it at once, and only
+    /// while the role is supported. On before any read, as the sdk's default.
+    @Published var measurementsEnabled: Bool = true {
+        didSet {
+            guard DeviceSettingWritePolicy.shouldPropagate(
+                isLoadingFromDevice: isLoadingFromDevice
+            ) else { return }
+            handleMeasurementsEnabledUpdate(measurementsEnabled)
         }
     }
 
@@ -687,6 +712,15 @@ class DeviceManager: ObservableObject {
         source.writeProvideExtender(provideExtender)
     }
 
+    private func handleMeasurementsEnabledUpdate(_ measurementsEnabled: Bool) {
+        // the switch shows beside the Extender row, so only while the device
+        // reports the role supported; a setting it cannot take is never written
+        guard extenderProvideStatus.supported, let source = extenderProvideSource else {
+            return
+        }
+        source.writeMeasurementsEnabled(measurementsEnabled)
+    }
+
     /// One status from the source (N7), with the setting read beside it only
     /// while the status reports the role supported: a hidden row reads no
     /// setting, and the switch keeps its value meanwhile.
@@ -696,7 +730,8 @@ class DeviceManager: ObservableObject {
     ) {
         applyExtenderProvideStatus(
             status,
-            provideExtender: status.supported ? source.readProvideExtender() : nil
+            provideExtender: status.supported ? source.readProvideExtender() : nil,
+            measurementsEnabled: status.supported ? source.readMeasurementsEnabled() : nil
         )
     }
 
@@ -705,7 +740,8 @@ class DeviceManager: ObservableObject {
     /// under the echo guard so the read is not written back.
     private func applyExtenderProvideStatus(
         _ status: ExtenderProvideStatusModel,
-        provideExtender: Bool?
+        provideExtender: Bool?,
+        measurementsEnabled: Bool?
     ) {
         if extenderProvideGuess != nil {
             extenderProvideGuess = nil
@@ -716,6 +752,11 @@ class DeviceManager: ObservableObject {
         if let provideExtender, self.provideExtender != provideExtender {
             withDeviceStateLoad {
                 self.provideExtender = provideExtender
+            }
+        }
+        if let measurementsEnabled, self.measurementsEnabled != measurementsEnabled {
+            withDeviceStateLoad {
+                self.measurementsEnabled = measurementsEnabled
             }
         }
     }
@@ -1633,7 +1674,7 @@ extension DeviceManager {
         closeExtenderProvideStatusListener?()
         closeExtenderProvideStatusListener = nil
         extenderProvideSource = nil
-        applyExtenderProvideStatus(.unsupported, provideExtender: true)
+        applyExtenderProvideStatus(.unsupported, provideExtender: true, measurementsEnabled: true)
     }
 
     private func cleanupDeviceAuthListeners() {

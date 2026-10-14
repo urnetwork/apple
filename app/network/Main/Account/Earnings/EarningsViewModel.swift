@@ -65,9 +65,12 @@ final class EarningsViewModel: ObservableObject {
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
 
-    /// a rough per-claim gas reserve in TAO; the SDK reports the real
-    /// shortfall as a failed claim
-    static let gasTaoPerClaim = 0.005
+    /// the per-claim gas reserve in TAO, which the top-up asks for and Claim
+    /// waits for: the SDK sends a v1 claim only when the gas key holds its
+    /// gas limit (the estimate plus a quarter, and at least 2,700,000, below
+    /// which the vault defers the payment) times 1.1 × the gas price, about
+    /// 0.0149 TAO at 5 gwei
+    static let gasTaoPerClaim = 0.02
 
     /// the same for a v2 claim: the SDK sends it only when the gas key holds
     /// its gas limit (the estimate plus a quarter, about 3.14M on runtime

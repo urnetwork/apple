@@ -33992,6 +33992,173 @@
         }
       }
     },
+    "Binding to sign" : {
+      "comment" : "Top 200 sign screen: label of the field where the binding JSON from the ur.io Top 200 page is pasted.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الربط المطلوب توقيعه"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazba k podpisu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu signierende Bindung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύνδεση προς υπογραφή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Binding to sign"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vinculación para firmar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vinculación para firmar"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vinculación para firmar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liaison à signer"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור לחתימה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हस्ताक्षर के लिए बाइंडिंग"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengikatan untuk ditandatangani"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collegamento da firmare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "署名するバインディング"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서명할 바인딩"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te ondertekenen koppeling"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powiązanie do podpisania"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vinculação a assinar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vinculação a assinar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Associação a assinar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Привязка для подписи"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bindning att signera"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การผูกที่จะลงนาม"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прив'язка для підпису"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết cần ký"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待签署的绑定"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待簽署的綁定"
+          }
+        }
+      }
+    },
     "Bittensor" : {
       "comment" : "Used in Main/Account/Wallet/WalletView.swift.",
       "shouldTranslate" : false
@@ -38652,6 +38819,173 @@
         }
       }
     },
+    "Chain %lld · subnet %lld" : {
+      "comment" : "Top 200 sign screen: the binding's EVM chain id and Bittensor subnet (netuid).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "السلسلة %1$lld · الشبكة الفرعية %2$lld"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Řetězec %1$lld · podsíť %2$lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chain %1$lld · Subnetz %2$lld"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αλυσίδα %1$lld · υποδίκτυο %2$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chain %1$lld · subnet %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadena %1$lld · subred %2$lld"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadena %1$lld · subred %2$lld"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadena %1$lld · subred %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaîne %1$lld · sous-réseau %2$lld"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שרשרת %1$lld · תת-רשת %2$lld"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चेन %1$lld · सबनेट %2$lld"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chain %1$lld · subnet %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Catena %1$lld · subnet %2$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "チェーン %1$lld · サブネット %2$lld"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "체인 %1$lld · 서브넷 %2$lld"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chain %1$lld · subnet %2$lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Łańcuch %1$lld · podsieć %2$lld"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadeia %1$lld · sub-rede %2$lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadeia %1$lld · sub-rede %2$lld"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadeia %1$lld · sub-rede %2$lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сеть %1$lld · подсеть %2$lld"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kedja %1$lld · subnät %2$lld"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชน %1$lld · ซับเน็ต %2$lld"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мережа %1$lld · підмережа %2$lld"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chuỗi %1$lld · mạng con %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链 %1$lld · 子网 %2$lld"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鏈 %1$lld · 子網 %2$lld"
+          }
+        }
+      }
+    },
     "Change" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -39650,6 +39984,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢查我的 IP"
+          }
+        }
+      }
+    },
+    "Check that the fleet ID, hotkey and epochs match the Top 200 page before you sign." : {
+      "comment" : "Top 200 sign screen: shown above the parsed binding's values before the Sign button.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تأكّد من أن معرّف الأسطول والمفتاح الساخن والحِقَب تطابق صفحة أفضل 200 قبل التوقيع."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Před podpisem zkontrolujte, že ID flotily, hotkey a epochy odpovídají stránce Top 200."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prüfe vor dem Signieren, dass Flotten-ID, Hotkey und Epochen mit der Top-200-Seite übereinstimmen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πριν υπογράψετε, ελέγξτε ότι το ID στόλου, το hotkey και οι εποχές ταιριάζουν με τη σελίδα Top 200."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the fleet ID, hotkey and epochs match the Top 200 page before you sign."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes de firmar, comprueba que el ID de flota, la hotkey y las épocas coinciden con la página Top 200."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes de firmar, comprueba que el ID de flota, la hotkey y las épocas coinciden con la página Top 200."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes de firmar, comprueba que el ID de flota, la hotkey y las épocas coinciden con la página Top 200."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avant de signer, vérifiez que l’ID de flotte, la hotkey et les époques correspondent à la page Top 200."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לפני החתימה, ודאו שמזהה הצי, ה-hotkey והתקופות תואמים לדף Top 200."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हस्ताक्षर करने से पहले जाँच लें कि फ़्लीट ID, हॉटकी और एपॉक टॉप 200 पेज से मेल खाते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sebelum menandatangani, pastikan ID armada, hotkey, dan epoch cocok dengan halaman Top 200."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prima di firmare, controlla che ID della flotta, hotkey ed epoche corrispondano alla pagina Top 200."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "署名する前に、フリートID、ホットキー、エポックがトップ 200 ページと一致していることを確認してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서명하기 전에 플릿 ID, 핫키, 에포크가 Top 200 페이지와 일치하는지 확인하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controleer voor het ondertekenen of de vloot-ID, hotkey en epochs overeenkomen met de Top 200-pagina."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przed podpisaniem sprawdź, czy ID floty, hotkey i epoki zgadzają się ze stroną Top 200."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes de assinar, confira se o ID da frota, a hotkey e as épocas correspondem à página Top 200."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes de assinar, confira se o ID da frota, a hotkey e as épocas correspondem à página Top 200."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes de assinar, confirme que o ID da frota, a hotkey e as épocas correspondem à página Top 200."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перед подписью убедитесь, что ID парка, hotkey и эпохи совпадают со страницей Топ-200."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontrollera innan du signerar att flott-ID, hotkey och epoker stämmer med Topp 200-sidan."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ก่อนลงนาม ตรวจสอบว่า ID ฟลีต ฮอตคีย์ และ epoch ตรงกับหน้า Top 200"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перед підписом переконайтеся, що ID парку, hotkey та епохи збігаються зі сторінкою Топ-200."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trước khi ký, hãy kiểm tra ID đội máy, hotkey và các epoch khớp với trang Top 200."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "签名前，请确认设备群 ID、hotkey 和纪元与前 200 名页面一致。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簽署前，請確認裝置群 ID、hotkey 和紀元與前 200 名頁面一致。"
           }
         }
       }
@@ -43993,6 +44494,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "客戶端 ID 已複製到剪貼簿"
+          }
+        }
+      }
+    },
+    "Client key" : {
+      "comment" : "Top 200 sign screen: label of this device's Ed25519 client public key (0x hex).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مفتاح العميل"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klientský klíč"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Client-Schlüssel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κλειδί πελάτη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Client key"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave de cliente"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave de cliente"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave de cliente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé client"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מפתח לקוח"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "क्लाइंट कुंजी"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci klien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiave client"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クライアントキー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클라이언트 키"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clientsleutel"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klucz klienta"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave de cliente"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave de cliente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave de cliente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клиентский ключ"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klientnyckel"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คีย์ไคลเอ็นต์"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клієнтський ключ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khóa máy khách"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户端密钥"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客戶端金鑰"
           }
         }
       }
@@ -55075,6 +55743,340 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製連結"
+          }
+        }
+      }
+    },
+    "Copy member entry" : {
+      "comment" : "Top 200 sign screen: button that copies this device's fleet manifest member entry {\"client_id\":\"0x…\",\"client_key\":\"0x…\"}.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انسخ إدخال العضو"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovat položku člena"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitgliedseintrag kopieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αντιγραφή καταχώρισης μέλους"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy member entry"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar entrada de miembro"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar entrada de miembro"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar entrada de miembro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copier l’entrée de membre"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העתקת רשומת החבר"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सदस्य प्रविष्टि कॉपी करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salin entri anggota"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia voce di membro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メンバーエントリをコピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "멤버 항목 복사"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ledenvermelding kopiëren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiuj wpis członka"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar entrada de membro"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar entrada de membro"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar entrada de membro"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать запись участника"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiera medlemspost"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คัดลอกรายการสมาชิก"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопіювати запис учасника"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép mục thành viên"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制成员条目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製成員項目"
+          }
+        }
+      }
+    },
+    "Copy payload" : {
+      "comment" : "Top 200 sign screen: button that copies the signed {binding, client_signature} payload.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انسخ الحمولة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovat data"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten kopieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αντιγραφή δεδομένων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy payload"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar datos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar datos"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copier les données"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העתקת הנתונים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डेटा कॉपी करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salin data"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia i dati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データをコピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 복사"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gegevens kopiëren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiuj dane"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar dados"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar dados"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar dados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать данные"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiera data"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คัดลอกข้อมูล"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопіювати дані"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép dữ liệu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制数据"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製資料"
           }
         }
       }
@@ -83013,6 +84015,173 @@
         }
       }
     },
+    "Fleet ID" : {
+      "comment" : "Top 200 sign screen: label of the binding's fleet_id (0x hex).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "معرّف الأسطول"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID flotily"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flotten-ID"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID στόλου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fleet ID"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de flota"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de flota"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de flota"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de flotte"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מזהה הצי"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़्लीट ID"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID armada"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID della flotta"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フリートID"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "플릿 ID"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vloot-ID"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID floty"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID da frota"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID da frota"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID da frota"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID парка"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flott-ID"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID ฟลีต"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID парку"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID đội máy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设备群 ID"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "裝置群 ID"
+          }
+        }
+      }
+    },
     "Flow" : {
       "comment" : "VLESS settings: the flow picker label (none or Vision). A VLESS protocol term.",
       "localizations" : {
@@ -88519,6 +89688,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "偵測器捕獲的主機休眠次數，每次都代表在剛恢復的手機上暫緩而非執行一批判定"
+          }
+        }
+      }
+    },
+    "Hotkey" : {
+      "comment" : "Top 200 sign screen: label of the binding's hotkey (0x hex public key). Hotkey is the Bittensor term.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المفتاح الساخن (hotkey)"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हॉटकी"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホットキー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "핫키"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ฮอตคีย์"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotkey"
           }
         }
       }
@@ -122167,6 +123503,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密碼重設連結已發送至 %@。"
+          }
+        }
+      }
+    },
+    "Paste" : {
+      "comment" : "Top 200 sign screen: button that pastes the binding from the clipboard.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لصق"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložit"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einfügen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επικόλληση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegar"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coller"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבקה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पेस्ट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incolla"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼り付け"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "붙여넣기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wklej"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставить"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klistra in"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "วาง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставити"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dán"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上"
           }
         }
       }
@@ -159087,6 +160590,173 @@
         }
       }
     },
+    "Sign fleet binding" : {
+      "comment" : "Top 200: the button that opens the screen where this device signs its fleet binding, and that screen's title. The ur.io Top 200 page names it in its steps (Earnings › Top 200 › Sign fleet binding).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توقيع ربط الأسطول"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podepsat vazbu flotily"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flottenbindung signieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπογραφή σύνδεσης στόλου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign fleet binding"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar vinculación de flota"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar vinculación de flota"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar vinculación de flota"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signer la liaison de flotte"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חתימה על קישור הצי"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़्लीट बाइंडिंग पर हस्ताक्षर करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanda tangani pengikatan armada"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firma il collegamento della flotta"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フリートバインディングに署名"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "플릿 바인딩 서명"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlootkoppeling ondertekenen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podpisz powiązanie floty"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar vinculação da frota"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar vinculação da frota"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar associação da frota"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подписать привязку парка"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signera flottbindning"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลงนามการผูกฟลีต"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підписати прив'язку парку"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ký liên kết đội máy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "签署设备群绑定"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簽署裝置群綁定"
+          }
+        }
+      }
+    },
     "Sign in" : {
       "comment" : "Used in Authenticate/LoginInitial/LoginInitialView.swift.",
       "localizations" : {
@@ -162095,6 +163765,173 @@
         }
       }
     },
+    "Sign with this device" : {
+      "comment" : "Top 200 sign screen: the button that signs the reviewed binding with this device's client key (local only).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقّع بهذا الجهاز"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podepsat tímto zařízením"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit diesem Gerät signieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπογραφή με αυτή τη συσκευή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign with this device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar con este dispositivo"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar con este dispositivo"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar con este dispositivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signer avec cet appareil"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חתימה עם המכשיר הזה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस डिवाइस से हस्ताक्षर करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanda tangani dengan perangkat ini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firma con questo dispositivo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスで署名"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기로 서명"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ondertekenen met dit apparaat"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podpisz tym urządzeniem"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar com este dispositivo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar com este dispositivo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar com este dispositivo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подписать этим устройством"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signera med den här enheten"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลงนามด้วยอุปกรณ์นี้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підписати цим пристроєм"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ký bằng thiết bị này"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用这台设备签名"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用這部裝置簽署"
+          }
+        }
+      }
+    },
     "Sign with wallet" : {
       "comment" : "Payout consent section, beside the settlement v2 tile and claim: the button shown while no consent is active. It connects the Bittensor wallet, which then signs the consent message the server issued.",
       "localizations" : {
@@ -163595,6 +165432,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "登入於 %@"
+          }
+        }
+      }
+    },
+    "Signed. Copy the payload and paste it on the Top 200 page under Device signature." : {
+      "comment" : "Top 200 sign screen: shown with the signed {binding, client_signature} payload. 'Device signature' is the ur.io page's field label (site_app_top200_device_signature).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم التوقيع. انسخ الحمولة والصقها في صفحة أفضل 200 تحت توقيع الجهاز."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podepsáno. Zkopírujte data a vložte je na stránce Top 200 do pole Podpis zařízení."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signiert. Kopiere die Daten und füge sie auf der Top-200-Seite unter Gerätesignatur ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπογράφηκε. Αντιγράψτε τα δεδομένα και επικολλήστε τα στη σελίδα Top 200, στο πεδίο Υπογραφή συσκευής."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed. Copy the payload and paste it on the Top 200 page under Device signature."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmada. Copia los datos y pégalos en la página Top 200, en Firma del dispositivo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmada. Copia los datos y pégalos en la página Top 200, en Firma del dispositivo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmada. Copia los datos y pégalos en la página Top 200, en Firma del dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signée. Copiez les données et collez-les sur la page Top 200, sous Signature de l’appareil."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נחתם. העתיקו את הנתונים והדביקו אותם בדף Top 200 תחת חתימת המכשיר."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हस्ताक्षरित। डेटा कॉपी करें और टॉप 200 पेज पर डिवाइस हस्ताक्षर के अंतर्गत पेस्ट करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditandatangani. Salin datanya dan tempelkan di halaman Top 200 pada Tanda tangan perangkat."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmato. Copia i dati e incollali nella pagina Top 200, in Firma del dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "署名しました。データをコピーし、トップ 200 ページの「デバイスの署名」に貼り付けてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서명했습니다. 데이터를 복사해 Top 200 페이지의 기기 서명에 붙여 넣으세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ondertekend. Kopieer de gegevens en plak ze op de Top 200-pagina onder Apparaathandtekening."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podpisano. Skopiuj dane i wklej je na stronie Top 200 w polu Podpis urządzenia."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinada. Copie os dados e cole-os na página Top 200, em Assinatura do dispositivo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinada. Copie os dados e cole-os na página Top 200, em Assinatura do dispositivo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinada. Copie os dados e cole-os na página Top 200, em Assinatura do dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подписано. Скопируйте данные и вставьте их на странице Топ-200 в поле «Подпись устройства»."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signerad. Kopiera datan och klistra in den på Topp 200-sidan under Enhetssignatur."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลงนามแล้ว คัดลอกข้อมูลแล้ววางในหน้า Top 200 ที่ช่องลายเซ็นของอุปกรณ์"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підписано. Скопіюйте дані та вставте їх на сторінці Топ-200 у поле «Підпис пристрою»."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã ký. Sao chép dữ liệu và dán vào trang Top 200 ở mục Chữ ký thiết bị."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已签名。复制数据，并粘贴到前 200 名页面的“设备签名”中。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已簽署。複製資料，並貼到前 200 名頁面的「裝置簽名」中。"
           }
         }
       }
@@ -174343,6 +176347,173 @@
         }
       }
     },
+    "The binding could not be signed: %@" : {
+      "comment" : "Top 200 sign screen: SignSnFleetBinding returned an error; {detail} is the SDK's error text.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر توقيع الربط: %@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazbu se nepodařilo podepsat: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bindung konnte nicht signiert werden: %@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν ήταν δυνατή η υπογραφή της σύνδεσης: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The binding could not be signed: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo firmar la vinculación: %@"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo firmar la vinculación: %@"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo firmar la vinculación: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de signer la liaison : %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא ניתן היה לחתום על הקישור: %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाइंडिंग पर हस्ताक्षर नहीं हो सके: %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengikatan tidak dapat ditandatangani: %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile firmare il collegamento: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バインディングに署名できませんでした: %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "바인딩에 서명하지 못했습니다: %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De koppeling kon niet worden ondertekend: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się podpisać powiązania: %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível assinar a vinculação: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível assinar a vinculação: %@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível assinar a associação: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось подписать привязку: %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bindningen kunde inte signeras: %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่สามารถลงนามการผูกได้: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося підписати прив'язку: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể ký liên kết: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法签署绑定：%@"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法簽署綁定：%@"
+          }
+        }
+      }
+    },
     "The chain RPC is unreachable. Try again." : {
       "comment" : "Error when the subnet RPC cannot be reached.",
       "localizations" : {
@@ -182069,6 +184240,173 @@
         }
       }
     },
+    "This binding is for another device. A device signs only the binding with its own client ID and client key." : {
+      "comment" : "Top 200 sign screen: the binding's client_id or client_key is not this device's; the app refuses to sign it.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا الربط لجهاز آخر. لا يوقّع الجهاز إلا الربط الذي يحمل معرّف العميل ومفتاح العميل الخاصين به."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tato vazba patří jinému zařízení. Zařízení podepisuje jen vazbu s vlastním ID klienta a klientským klíčem."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Bindung gehört zu einem anderen Gerät. Ein Gerät signiert nur die Bindung mit seiner eigenen Client-ID und seinem eigenen Client-Schlüssel."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η σύνδεση αφορά άλλη συσκευή. Μια συσκευή υπογράφει μόνο τη σύνδεση με το δικό της ID πελάτη και κλειδί πελάτη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This binding is for another device. A device signs only the binding with its own client ID and client key."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta vinculación es de otro dispositivo. Un dispositivo solo firma la vinculación con su propio ID de cliente y su propia clave de cliente."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta vinculación es de otro dispositivo. Un dispositivo solo firma la vinculación con su propio ID de cliente y su propia clave de cliente."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta vinculación es de otro dispositivo. Un dispositivo solo firma la vinculación con su propio ID de cliente y su propia clave de cliente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette liaison concerne un autre appareil. Un appareil ne signe que la liaison portant son propre ID client et sa propre clé client."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקישור הזה שייך למכשיר אחר. מכשיר חותם רק על הקישור עם מזהה הלקוח ומפתח הלקוח שלו."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह बाइंडिंग किसी दूसरे डिवाइस की है। डिवाइस केवल अपनी क्लाइंट ID और क्लाइंट कुंजी वाली बाइंडिंग पर हस्ताक्षर करता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengikatan ini untuk perangkat lain. Perangkat hanya menandatangani pengikatan dengan ID klien dan kunci kliennya sendiri."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo collegamento è per un altro dispositivo. Un dispositivo firma solo il collegamento con il proprio ID client e la propria chiave client."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このバインディングは別のデバイス用です。デバイスが署名するのは、自身のクライアントIDとクライアントキーを含むバインディングだけです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 바인딩은 다른 기기용입니다. 기기는 자신의 클라이언트 ID와 클라이언트 키가 담긴 바인딩에만 서명합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze koppeling is voor een ander apparaat. Een apparaat ondertekent alleen de koppeling met zijn eigen client-ID en clientsleutel."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To powiązanie dotyczy innego urządzenia. Urządzenie podpisuje tylko powiązanie z własnym ID klienta i kluczem klienta."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta vinculação é de outro dispositivo. Um dispositivo só assina a vinculação com o próprio ID do cliente e a própria chave de cliente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta vinculação é de outro dispositivo. Um dispositivo só assina a vinculação com o próprio ID do cliente e a própria chave de cliente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta associação é de outro dispositivo. Um dispositivo só assina a associação com o seu próprio ID do cliente e a sua própria chave de cliente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта привязка для другого устройства. Устройство подписывает только привязку со своим ID клиента и клиентским ключом."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här bindningen gäller en annan enhet. En enhet signerar bara bindningen med sitt eget klient-ID och sin egen klientnyckel."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การผูกนี้เป็นของอุปกรณ์อื่น อุปกรณ์จะลงนามเฉพาะการผูกที่มี ID ไคลเอ็นต์และคีย์ไคลเอ็นต์ของตัวเองเท่านั้น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ця прив'язка для іншого пристрою. Пристрій підписує лише прив'язку зі своїм ID клієнта та клієнтським ключем."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết này dành cho thiết bị khác. Thiết bị chỉ ký liên kết có ID máy khách và khóa máy khách của chính nó."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此绑定属于另一台设备。设备只会签署包含其自身客户端 ID 和客户端密钥的绑定。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此綁定屬於另一部裝置。裝置只會簽署包含其自身客戶端 ID 和客戶端金鑰的綁定。"
+          }
+        }
+      }
+    },
     "This code also sets bootstrap DNS-over-HTTPS servers. They will see URnetwork's server lookups: %@" : {
       "comment" : "Extender import: shown before the user takes the settings of a share code that also sets bootstrap DNS-over-HTTPS servers. The argument is the list of server URLs, comma separated.",
       "localizations" : {
@@ -183238,6 +185576,173 @@
         }
       }
     },
+    "This device" : {
+      "comment" : "Top 200 sign screen: label of the section showing this device's client ID and client key.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا الجهاز"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto zařízení"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Gerät"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η συσκευή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet appareil"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המכשיר הזה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह डिवाइस"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perangkat ini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo dispositivo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit apparaat"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To urządzenie"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это устройство"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här enheten"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุปกรณ์นี้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей пристрій"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiết bị này"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这台设备"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這部裝置"
+          }
+        }
+      }
+    },
     "This device is connecting from more than one address, or its location is unknown. Clients are offered only devices with one address and a known location." : {
       "comment" : "Provider status reason (location_invalid): the device was seen at more than one IP address, or its location is unknown.",
       "localizations" : {
@@ -184073,6 +186578,173 @@
         }
       }
     },
+    "This device's client key is not available right now. Start URnetwork on this device, then try again." : {
+      "comment" : "Top 200 sign screen: GetSnClientKey returned nothing (no client key, or the desktop/extension service that holds it is not running).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مفتاح العميل لهذا الجهاز غير متاح الآن. شغّل URnetwork على هذا الجهاز، ثم حاول مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klientský klíč tohoto zařízení teď není k dispozici. Spusťte na tomto zařízení URnetwork a zkuste to znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Client-Schlüssel dieses Geräts ist gerade nicht verfügbar. Starte URnetwork auf diesem Gerät und versuche es dann erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το κλειδί πελάτη αυτής της συσκευής δεν είναι διαθέσιμο αυτή τη στιγμή. Εκκινήστε το URnetwork σε αυτή τη συσκευή και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device's client key is not available right now. Start URnetwork on this device, then try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave de cliente de este dispositivo no está disponible ahora. Inicia URnetwork en este dispositivo y vuelve a intentarlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave de cliente de este dispositivo no está disponible ahora. Inicia URnetwork en este dispositivo y vuelve a intentarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave de cliente de este dispositivo no está disponible ahora. Inicia URnetwork en este dispositivo y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé client de cet appareil n’est pas disponible pour le moment. Démarrez URnetwork sur cet appareil, puis réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מפתח הלקוח של המכשיר הזה אינו זמין כרגע. הפעילו את URnetwork במכשיר הזה ונסו שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस डिवाइस की क्लाइंट कुंजी अभी उपलब्ध नहीं है। इस डिवाइस पर URnetwork शुरू करें, फिर दोबारा कोशिश करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci klien perangkat ini sedang tidak tersedia. Jalankan URnetwork di perangkat ini, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La chiave client di questo dispositivo non è disponibile al momento. Avvia URnetwork su questo dispositivo e riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスのクライアントキーは現在利用できません。このデバイスで URnetwork を起動してから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금은 이 기기의 클라이언트 키를 사용할 수 없습니다. 이 기기에서 URnetwork를 실행한 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De clientsleutel van dit apparaat is nu niet beschikbaar. Start URnetwork op dit apparaat en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klucz klienta tego urządzenia jest teraz niedostępny. Uruchom URnetwork na tym urządzeniu i spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de cliente deste dispositivo não está disponível agora. Inicie o URnetwork neste dispositivo e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de cliente deste dispositivo não está disponível agora. Inicie o URnetwork neste dispositivo e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de cliente deste dispositivo não está disponível neste momento. Inicie o URnetwork neste dispositivo e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клиентский ключ этого устройства сейчас недоступен. Запустите URnetwork на этом устройстве и повторите попытку."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhetens klientnyckel är inte tillgänglig just nu. Starta URnetwork på den här enheten och försök igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คีย์ไคลเอ็นต์ของอุปกรณ์นี้ยังใช้ไม่ได้ในขณะนี้ เปิด URnetwork บนอุปกรณ์นี้ แล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клієнтський ключ цього пристрою зараз недоступний. Запустіть URnetwork на цьому пристрої та спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khóa máy khách của thiết bị này hiện không khả dụng. Hãy khởi động URnetwork trên thiết bị này rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这台设备的客户端密钥暂时不可用。请在这台设备上启动 URnetwork，然后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這部裝置的客戶端金鑰暫時無法使用。請在這部裝置上啟動 URnetwork，然後再試一次。"
+          }
+        }
+      }
+    },
     "This epoch ends %@. Claim your share from %@ until %@." : {
       "comment" : "Earnings card, after sn_payout_schedule: when the current epoch ends, when its share can be claimed and when an unclaimed share expires. The three values are local date-times the app fills from the chain's epoch schedule (the coordinator's policy: the claim-open offset and the claim TTL), never fixed durations.",
       "localizations" : {
@@ -184236,6 +186908,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本週期於 %1$@ 結束。請在 %2$@ 至 %3$@ 之間領取你的份額。"
+          }
+        }
+      }
+    },
+    "This is not a fleet binding. Copy the whole binding from the Top 200 page." : {
+      "comment" : "Top 200 sign screen: the pasted text is not a fleet binding JSON (or the app link's binding did not decode).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا ليس ربط أسطول. انسخ الربط كاملًا من صفحة أفضل 200."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto není vazba flotily. Zkopírujte celou vazbu ze stránky Top 200."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das ist keine Flottenbindung. Kopiere die ganze Bindung von der Top-200-Seite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή δεν είναι σύνδεση στόλου. Αντιγράψτε ολόκληρη τη σύνδεση από τη σελίδα Top 200."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not a fleet binding. Copy the whole binding from the Top 200 page."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto no es una vinculación de flota. Copia la vinculación completa de la página Top 200."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto no es una vinculación de flota. Copia la vinculación completa de la página Top 200."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto no es una vinculación de flota. Copia la vinculación completa de la página Top 200."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce n’est pas une liaison de flotte. Copiez la liaison entière depuis la page Top 200."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "זה אינו קישור צי. העתיקו את הקישור המלא מדף Top 200."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह फ़्लीट बाइंडिंग नहीं है। टॉप 200 पेज से पूरी बाइंडिंग कॉपी करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ini bukan pengikatan armada. Salin seluruh pengikatan dari halaman Top 200."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo non è un collegamento della flotta. Copia l’intero collegamento dalla pagina Top 200."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これはフリートバインディングではありません。トップ 200 ページからバインディング全体をコピーしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "플릿 바인딩이 아닙니다. Top 200 페이지에서 바인딩 전체를 복사하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit is geen vlootkoppeling. Kopieer de hele koppeling van de Top 200-pagina."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To nie jest powiązanie floty. Skopiuj całe powiązanie ze strony Top 200."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto não é uma vinculação de frota. Copie a vinculação inteira da página Top 200."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto não é uma vinculação de frota. Copie a vinculação inteira da página Top 200."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto não é uma associação de frota. Copie a associação completa da página Top 200."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это не привязка парка. Скопируйте привязку целиком со страницы Топ-200."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det här är ingen flottbindning. Kopiera hela bindningen från Topp 200-sidan."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "นี่ไม่ใช่การผูกฟลีต คัดลอกการผูกทั้งหมดจากหน้า Top 200"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Це не прив'язка парку. Скопіюйте прив'язку повністю зі сторінки Топ-200."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đây không phải là liên kết đội máy. Hãy sao chép toàn bộ liên kết từ trang Top 200."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这不是设备群绑定。请从前 200 名页面复制完整的绑定。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這不是裝置群綁定。請從前 200 名頁面複製完整的綁定。"
           }
         }
       }
@@ -203266,6 +206105,173 @@
         }
       }
     },
+    "Valid from epoch %lld to %lld" : {
+      "comment" : "Top 200 sign screen: the binding's validity window (valid_from_epoch, valid_to_epoch), both inclusive.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صالح من الحقبة %1$lld إلى %2$lld"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platí od epochy %1$lld do %2$lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gültig von Epoche %1$lld bis %2$lld"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ισχύει από την εποχή %1$lld έως %2$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valid from epoch %1$lld to %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válida de la época %1$lld a la %2$lld"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válida de la época %1$lld a la %2$lld"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válida de la época %1$lld a la %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valide de l’époque %1$lld à %2$lld"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בתוקף מתקופה %1$lld עד %2$lld"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एपॉक %1$lld से %2$lld तक मान्य"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berlaku dari epoch %1$lld hingga %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valido dall’epoca %1$lld alla %2$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エポック %1$lld から %2$lld まで有効"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에포크 %1$lld부터 %2$lld까지 유효"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geldig van epoch %1$lld tot en met %2$lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ważne od epoki %1$lld do %2$lld"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válida da época %1$lld à %2$lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válida da época %1$lld à %2$lld"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válida da época %1$lld à %2$lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Действует с эпохи %1$lld по %2$lld"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giltig från epok %1$lld till %2$lld"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ใช้ได้ตั้งแต่ epoch %1$lld ถึง %2$lld"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Діє з епохи %1$lld по %2$lld"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiệu lực từ epoch %1$lld đến %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有效期：纪元 %1$lld 至 %2$lld"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有效期：紀元 %1$lld 至 %2$lld"
+          }
+        }
+      }
+    },
     "Verdicts held" : {
       "comment" : "Developer tools screen (reliability surface): verdicts held control label.",
       "localizations" : {
@@ -216205,6 +219211,340 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的電郵"
+          }
+        }
+      }
+    },
+    "Your fleet manifest lists this device by its client ID and client key. Copy its member entry and send it to your fleet operator." : {
+      "comment" : "Top 200 sign screen: why the operator needs this device's member entry (client ID and client key) for the fleet manifest.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُدرج بيان أسطولك هذا الجهاز بمعرّف العميل ومفتاح العميل الخاصين به. انسخ إدخال العضو الخاص به وأرسله إلى مشغّل أسطولك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manifest vaší flotily uvádí toto zařízení podle jeho ID klienta a klientského klíče. Zkopírujte jeho položku člena a pošlete ji provozovateli flotily."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Flotten-Manifest führt dieses Gerät mit seiner Client-ID und seinem Client-Schlüssel. Kopiere seinen Mitgliedseintrag und schicke ihn an den Betreiber deiner Flotte."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το μανιφέστο του στόλου σας καταγράφει αυτή τη συσκευή με το ID πελάτη και το κλειδί πελάτη της. Αντιγράψτε την καταχώριση μέλους της και στείλτε την στον διαχειριστή του στόλου σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your fleet manifest lists this device by its client ID and client key. Copy its member entry and send it to your fleet operator."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El manifiesto de tu flota identifica este dispositivo por su ID de cliente y su clave de cliente. Copia su entrada de miembro y envíasela al operador de tu flota."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El manifiesto de tu flota identifica este dispositivo por su ID de cliente y su clave de cliente. Copia su entrada de miembro y envíasela al operador de tu flota."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El manifiesto de tu flota identifica este dispositivo por su ID de cliente y su clave de cliente. Copia su entrada de miembro y envíasela al operador de tu flota."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le manifeste de votre flotte identifie cet appareil par son ID client et sa clé client. Copiez son entrée de membre et envoyez-la à l’opérateur de votre flotte."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מניפסט הצי שלכם מזהה את המכשיר הזה לפי מזהה הלקוח ומפתח הלקוח שלו. העתיקו את רשומת החבר שלו ושלחו אותה למפעיל הצי שלכם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका फ़्लीट मैनिफ़ेस्ट इस डिवाइस को उसकी क्लाइंट ID और क्लाइंट कुंजी से सूचीबद्ध करता है। इसकी सदस्य प्रविष्टि कॉपी करें और अपने फ़्लीट के संचालक को भेजें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manifes armada Anda mencantumkan perangkat ini dengan ID klien dan kunci kliennya. Salin entri anggotanya dan kirimkan ke operator armada Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il manifesto della tua flotta elenca questo dispositivo con il suo ID client e la sua chiave client. Copia la sua voce di membro e inviala all’operatore della tua flotta."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フリートマニフェストには、このデバイスがクライアントIDとクライアントキーで記載されます。メンバーエントリをコピーして、フリートの運営者に送ってください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "플릿 매니페스트는 이 기기를 클라이언트 ID와 클라이언트 키로 등록합니다. 멤버 항목을 복사해 플릿 운영자에게 보내세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vlootmanifest vermeldt dit apparaat met zijn client-ID en clientsleutel. Kopieer de ledenvermelding en stuur die naar de beheerder van je vloot."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manifest twojej floty wymienia to urządzenie po jego ID klienta i kluczu klienta. Skopiuj jego wpis członka i wyślij go operatorowi floty."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O manifesto da sua frota identifica este dispositivo pelo ID do cliente e pela chave de cliente. Copie a entrada de membro dele e envie-a ao operador da sua frota."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O manifesto da sua frota identifica este dispositivo pelo ID do cliente e pela chave de cliente. Copie a entrada de membro dele e envie-a ao operador da sua frota."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O manifesto da sua frota identifica este dispositivo pelo ID do cliente e pela chave de cliente. Copie a respetiva entrada de membro e envie-a ao operador da sua frota."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Манифест вашего парка указывает это устройство по его ID клиента и клиентскому ключу. Скопируйте запись участника и отправьте её оператору парка."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt flottmanifest anger enheten med dess klient-ID och klientnyckel. Kopiera dess medlemspost och skicka den till din flottas operatör."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แมนิเฟสต์ของฟลีตระบุอุปกรณ์นี้ด้วย ID ไคลเอ็นต์และคีย์ไคลเอ็นต์ คัดลอกรายการสมาชิกของอุปกรณ์แล้วส่งให้ผู้ดูแลฟลีตของคุณ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Маніфест вашого парку вказує цей пристрій за його ID клієнта та клієнтським ключем. Скопіюйте запис учасника й надішліть його оператору парку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản kê khai đội máy liệt kê thiết bị này theo ID máy khách và khóa máy khách của nó. Sao chép mục thành viên của thiết bị và gửi cho người vận hành đội máy của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的设备群清单通过客户端 ID 和客户端密钥列出这台设备。复制它的成员条目并发送给您的设备群运营者。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的裝置群清單以客戶端 ID 和客戶端金鑰列出這部裝置。複製它的成員項目並傳送給你的裝置群營運者。"
+          }
+        }
+      }
+    },
+    "Your fleet operator builds this device's binding on the Top 200 page at ur.io. Paste it here to sign it with this device's client key. Nothing is sent: you copy the signed payload back to the page yourself." : {
+      "comment" : "Top 200 sign screen: intro. The binding is built on the ur.io Top 200 page; the app signs it locally and sends nothing.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُعِدّ مشغّل أسطولك ربط هذا الجهاز في صفحة أفضل 200 على ur.io. الصقه هنا لتوقيعه بمفتاح العميل لهذا الجهاز. لا يُرسَل أي شيء: أنت من ينسخ الحمولة الموقّعة إلى الصفحة."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provozovatel vaší flotily připraví vazbu tohoto zařízení na stránce Top 200 na ur.io. Vložte ji sem a podepište ji klientským klíčem tohoto zařízení. Nic se neodesílá: podepsaná data zkopírujete zpět na stránku sami."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Betreiber deiner Flotte erstellt die Bindung dieses Geräts auf der Top-200-Seite auf ur.io. Füge sie hier ein, um sie mit dem Client-Schlüssel dieses Geräts zu signieren. Es wird nichts gesendet: Du kopierst die signierten Daten selbst zurück auf die Seite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο διαχειριστής του στόλου σας δημιουργεί τη σύνδεση αυτής της συσκευής στη σελίδα Top 200 στο ur.io. Επικολλήστε την εδώ για να την υπογράψετε με το κλειδί πελάτη αυτής της συσκευής. Δεν αποστέλλεται τίποτα: αντιγράφετε εσείς τα υπογεγραμμένα δεδομένα πίσω στη σελίδα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your fleet operator builds this device's binding on the Top 200 page at ur.io. Paste it here to sign it with this device's client key. Nothing is sent: you copy the signed payload back to the page yourself."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El operador de tu flota prepara la vinculación de este dispositivo en la página Top 200 de ur.io. Pégala aquí para firmarla con la clave de cliente de este dispositivo. No se envía nada: tú copias de vuelta a la página los datos firmados."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El operador de tu flota prepara la vinculación de este dispositivo en la página Top 200 de ur.io. Pégala aquí para firmarla con la clave de cliente de este dispositivo. No se envía nada: tú copias de vuelta a la página los datos firmados."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El operador de tu flota prepara la vinculación de este dispositivo en la página Top 200 de ur.io. Pégala aquí para firmarla con la clave de cliente de este dispositivo. No se envía nada: tú copias de vuelta a la página los datos firmados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’opérateur de votre flotte prépare la liaison de cet appareil sur la page Top 200 de ur.io. Collez-la ici pour la signer avec la clé client de cet appareil. Rien n’est envoyé : vous recopiez vous-même les données signées sur la page."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מפעיל הצי שלכם בונה את הקישור של המכשיר הזה בדף Top 200 באתר ur.io. הדביקו אותו כאן כדי לחתום עליו במפתח הלקוח של המכשיר הזה. שום דבר לא נשלח: אתם מעתיקים בעצמכם את הנתונים החתומים בחזרה לדף."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके फ़्लीट का संचालक ur.io पर टॉप 200 पेज पर इस डिवाइस की बाइंडिंग बनाता है। इसे इस डिवाइस की क्लाइंट कुंजी से हस्ताक्षरित करने के लिए यहाँ पेस्ट करें। कुछ भी भेजा नहीं जाता: हस्ताक्षरित डेटा आप स्वयं पेज पर वापस कॉपी करते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operator armada Anda menyiapkan pengikatan perangkat ini di halaman Top 200 di ur.io. Tempelkan di sini untuk menandatanganinya dengan kunci klien perangkat ini. Tidak ada yang dikirim: Anda sendiri yang menyalin data bertanda tangan kembali ke halaman."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’operatore della tua flotta prepara il collegamento di questo dispositivo nella pagina Top 200 su ur.io. Incollalo qui per firmarlo con la chiave client di questo dispositivo. Non viene inviato nulla: sei tu a copiare i dati firmati di nuovo sulla pagina."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フリートの運営者が ur.io のトップ 200 ページでこのデバイスのバインディングを作成します。ここに貼り付けると、このデバイスのクライアントキーで署名できます。何も送信されません。署名済みのデータはご自身でページにコピーして戻します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "플릿 운영자가 ur.io의 Top 200 페이지에서 이 기기의 바인딩을 만듭니다. 여기에 붙여 넣으면 이 기기의 클라이언트 키로 서명합니다. 아무것도 전송되지 않으며, 서명된 데이터는 직접 페이지에 다시 복사합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De beheerder van je vloot maakt de koppeling van dit apparaat op de Top 200-pagina op ur.io. Plak hem hier om hem te ondertekenen met de clientsleutel van dit apparaat. Er wordt niets verzonden: je kopieert de ondertekende gegevens zelf terug naar de pagina."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operator twojej floty przygotowuje powiązanie tego urządzenia na stronie Top 200 w ur.io. Wklej je tutaj, aby podpisać je kluczem klienta tego urządzenia. Nic nie jest wysyłane: podpisane dane sam kopiujesz z powrotem na stronę."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O operador da sua frota prepara a vinculação deste dispositivo na página Top 200 em ur.io. Cole-a aqui para assiná-la com a chave de cliente deste dispositivo. Nada é enviado: você mesmo copia os dados assinados de volta para a página."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O operador da sua frota prepara a vinculação deste dispositivo na página Top 200 em ur.io. Cole-a aqui para assiná-la com a chave de cliente deste dispositivo. Nada é enviado: você mesmo copia os dados assinados de volta para a página."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O operador da sua frota prepara a associação deste dispositivo na página Top 200 em ur.io. Cole-a aqui para a assinar com a chave de cliente deste dispositivo. Nada é enviado: é o próprio utilizador que copia os dados assinados de volta para a página."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оператор вашего парка готовит привязку этого устройства на странице Топ-200 на ur.io. Вставьте её сюда, чтобы подписать клиентским ключом этого устройства. Ничего не отправляется: подписанные данные вы сами копируете обратно на страницу."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din flottas operatör skapar enhetens bindning på Topp 200-sidan på ur.io. Klistra in den här för att signera den med enhetens klientnyckel. Inget skickas: du kopierar själv tillbaka den signerade datan till sidan."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ผู้ดูแลฟลีตของคุณสร้างการผูกของอุปกรณ์นี้ในหน้า Top 200 บน ur.io วางที่นี่เพื่อลงนามด้วยคีย์ไคลเอ็นต์ของอุปกรณ์นี้ ไม่มีการส่งข้อมูลใดๆ คุณคัดลอกข้อมูลที่ลงนามแล้วกลับไปยังหน้าเว็บด้วยตัวเอง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оператор вашого парку готує прив'язку цього пристрою на сторінці Топ-200 на ur.io. Вставте її сюди, щоб підписати клієнтським ключем цього пристрою. Нічого не надсилається: підписані дані ви самі копіюєте назад на сторінку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Người vận hành đội máy của bạn tạo liên kết cho thiết bị này trên trang Top 200 tại ur.io. Dán vào đây để ký bằng khóa máy khách của thiết bị này. Không có gì được gửi đi: bạn tự sao chép dữ liệu đã ký trở lại trang."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的设备群运营者会在 ur.io 的前 200 名页面上为这台设备生成绑定。将其粘贴到此处，即可用这台设备的客户端密钥签名。不会发送任何内容：签名后的数据由您自己复制回该页面。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的裝置群營運者會在 ur.io 的前 200 名頁面為這部裝置產生綁定。將其貼到此處，即可用這部裝置的客戶端金鑰簽署。不會傳送任何內容：簽署後的資料由你自己複製回該頁面。"
           }
         }
       }

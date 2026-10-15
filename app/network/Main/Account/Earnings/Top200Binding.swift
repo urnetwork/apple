@@ -8,9 +8,11 @@
 //  key on the Sign fleet binding screen (Earnings › Top 200).
 //
 //  Everything here is pure (Foundation only), so the checks run, and are
-//  tested, before any sdk call: the sdk checks the binding's client_id but not
-//  its client_key, so the key check is the app's. Nothing here logs the
-//  binding or the payload, and nothing is sent anywhere.
+//  tested, before any sdk call. They are the first line: the sdk (main
+//  61e89201) also refuses, in the process that holds the key, a binding for
+//  another device's client_id or client_key and ambiguous JSON (a duplicated
+//  or case-folded key). Nothing here logs the binding or the payload, and
+//  nothing is sent anywhere.
 //
 
 import Foundation
@@ -219,8 +221,15 @@ enum Top200Bindings {
         return String(bytes: data, encoding: .utf8)
     }
 
+    /// The hotkey as the review shows it: the full 0x value, all 64 hex
+    /// digits, never shortened, so it can be compared digit for digit with
+    /// the hotkey the operator registered.
+    static func reviewHotkey(_ binding: Top200Binding) -> String {
+        return binding.hotkey
+    }
+
     /// A long hex value for display: the first 10 and last 6 characters
-    /// (`0x79b5562e…049664`).
+    /// (`0x79b5562e…049664`). Not for the review's hotkey (see reviewHotkey).
     static func shortHex(_ value: String) -> String {
         if value.count <= 16 {
             return value
@@ -311,7 +320,10 @@ struct Top200SignDestination: Hashable {
         // the raw parameter: percent escapes are not base64url and are refused,
         // not decoded
         let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedQueryItems ?? []
-        let parameter = queryItems.first(where: { $0.name == "binding" })?.value
+        // a repeated binding parameter is ambiguous and refused, as on the
+        // other platforms, rather than taking the first or the last
+        let parameters = queryItems.filter { $0.name == "binding" }
+        let parameter = parameters.count == 1 ? parameters[0].value : nil
         bindingText = Top200Bindings.decodeLinkBinding(parameter)
     }
 

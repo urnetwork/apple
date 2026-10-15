@@ -192,6 +192,15 @@ struct Top200BindingTests {
         #expect(Top200Bindings.memberEntry(deviceClientId: nil, deviceClientKey: Self.clientKey) == nil)
     }
 
+    @Test func theReviewShowsTheFullHotkey() throws {
+        let binding = try #require(Top200Bindings.parse(Self.binding))
+        let hotkey = Top200Bindings.reviewHotkey(binding)
+        #expect(hotkey == "0x0a1c77edb48519069bbb154bf088c7f17678839de458e0679370ae989af3f55c")
+        // all 64 hex digits, no ellipsis
+        #expect(hotkey.count == 66)
+        #expect(!hotkey.contains("…"))
+    }
+
     @Test func longHexShortensForDisplay() {
         #expect(Top200Bindings.shortHex(Self.clientKey) == "0x79b5562e…049664")
         #expect(Top200Bindings.shortHex("0x1234") == "0x1234")
@@ -235,6 +244,14 @@ struct Top200BindingTests {
         #expect(Top200SignDestination(url: URL(string: "urnetwork://top200/sign?binding=eyJh%49joxfQ")!)
             == Top200SignDestination(bindingText: nil))
         #expect(Top200SignDestination(url: URL(string: "urnetwork://top200/sign?binding=eyJhIjoxfQ")!)
+            == Top200SignDestination(bindingText: #"{"a":1}"#))
+        // a repeated binding parameter is ambiguous: refused, not first or last
+        #expect(Top200SignDestination(url: URL(string: "urnetwork://top200/sign?binding=eyJhIjoxfQ&binding=eyJhIjoyfQ")!)
+            == Top200SignDestination(bindingText: nil))
+        #expect(Top200SignDestination(url: URL(string: "urnetwork://top200/sign?binding=" + Self.base64Url(Self.binding) + "&binding=" + Self.base64Url(Self.binding))!)
+            == Top200SignDestination(bindingText: nil))
+        // another parameter beside a single binding is not a repeat
+        #expect(Top200SignDestination(url: URL(string: "urnetwork://top200/sign?x=1&binding=eyJhIjoxfQ")!)
             == Top200SignDestination(bindingText: #"{"a":1}"#))
         // other links are not this one
         #expect(Top200SignDestination(url: URL(string: "urnetwork://top200/claim?binding=eyJhIjoxfQ")!) == nil)

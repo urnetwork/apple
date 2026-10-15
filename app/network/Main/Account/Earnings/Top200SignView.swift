@@ -172,7 +172,7 @@ struct Top200SignView: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
             reviewRow(label: "Fleet ID", value: Top200Bindings.shortHex(binding.fleetId))
-            reviewRow(label: "Hotkey", value: Top200Bindings.shortHex(binding.hotkey))
+            fullReviewRow(label: "Hotkey", value: Top200Bindings.reviewHotkey(binding))
             Text("Chain \(binding.chainId) · subnet \(binding.netuid)")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
@@ -240,6 +240,22 @@ struct Top200SignView: View {
             Text(verbatim: value)
                 .font(.system(.body, design: .monospaced))
                 .foregroundColor(themeManager.currentTheme.textColor)
+        }
+    }
+
+    /// A value too long for one line beside its label (the full hotkey):
+    /// the label above, the value wrapping below it, selectable.
+    private func fullReviewRow(label: LocalizedStringKey, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            Text(verbatim: value)
+                .font(.system(.footnote, design: .monospaced))
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

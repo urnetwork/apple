@@ -91,7 +91,8 @@ struct AccountNavStackView: View {
             )
             .navigationTitle("Account")
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
-            // an onboarding email's widgets link lands on Account > Widgets
+            // an onboarding email's widgets link lands on Account > Widgets, a
+            // Top 200 sign link on Account > Sign fleet binding
             .onReceive(deepLinkRouter.$pendingAccountPath) { path in
                 guard path != nil, let path = deepLinkRouter.consumeAccountPath() else { return }
                 viewModel.navigate(path)
@@ -149,6 +150,14 @@ struct AccountNavStackView: View {
                         consentClient: NetworkConsentSdkClient(api: api)
                     )
                     .navigationTitle("Earnings")
+                    .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
+                case .top200Sign(let link):
+                    Top200SignView(
+                        device: Top200SdkSignDevice(device: device),
+                        link: link
+                    )
+                    .navigationTitle("Sign fleet binding")
                     .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
 
                 case .referrals:

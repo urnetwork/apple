@@ -85,4 +85,15 @@ enum EarningsClipboard {
         NSPasteboard.general.setString(text, forType: .string)
         #endif
     }
+
+    /// The clipboard's text, or nil.
+    static func paste() -> String? {
+        #if canImport(UIKit)
+        return UIPasteboard.general.string
+        #elseif canImport(AppKit)
+        return NSPasteboard.general.string(forType: .string)
+        #else
+        return nil
+        #endif
+    }
 }

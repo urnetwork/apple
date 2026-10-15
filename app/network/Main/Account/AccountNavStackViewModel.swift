@@ -13,6 +13,8 @@ enum AccountNavigationPath: Hashable {
     case sessions
     case settings
     case earnings
+    /// Earnings › Top 200 › Sign fleet binding, with the app link that opened it, if any
+    case top200Sign(Top200SignDestination?)
     case referrals
     case widgets
     case extenders

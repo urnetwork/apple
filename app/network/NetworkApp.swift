@@ -348,6 +348,12 @@ struct NetworkApp: App {
                     } else if let destination = OnboardingDestination(url: url) {
                         // an onboarding email's link, after the ur.io landing page
                         deepLinkRouter.open(destination)
+                    } else if let link = Top200SignDestination(url: url) {
+                        // the ur.io Top 200 page's "Open in the app": only
+                        // fills the sign screen's field. Dropped while signed out
+                        if deviceManager.device != nil {
+                            deepLinkRouter.open(link)
+                        }
                     } else {
                         GIDSignIn.sharedInstance.handle(url)
                     }
@@ -429,6 +435,12 @@ struct NetworkApp: App {
                     } else if let destination = OnboardingDestination(url: url) {
                         // an onboarding email's link, after the ur.io landing page
                         deepLinkRouter.open(destination)
+                    } else if let link = Top200SignDestination(url: url) {
+                        // the ur.io Top 200 page's "Open in the app": only
+                        // fills the sign screen's field. Dropped while signed out
+                        if deviceManager.device != nil {
+                            deepLinkRouter.open(link)
+                        }
                     } else if let link = BillingDeepLink(url: url) {
                         // a Stripe checkout handing control back from the
                         // browser (direct-download build): the split view

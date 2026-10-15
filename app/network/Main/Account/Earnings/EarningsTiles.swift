@@ -17,13 +17,17 @@ import AppKit
 
 /// The head-miner spot. Eligible and not yet bound: the gold call to claim
 /// the spot on ur.io. Bound: the UID and rank, with the eviction warning
-/// when the score sits close to the floor.
+/// when the score sits close to the floor. Both carry Sign fleet binding,
+/// where this device signs the binding the fleet operator builds on ur.io
+/// (bindings renew per epoch window and new devices join the fleet).
 struct Top200Tile: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.openURL) private var openURL
 
     let head: SnHeadInfo
+    /// opens Sign fleet binding
+    let sign: () -> Void
 
     static let top200Url = "https://ur.io/app/account/top200"
 
@@ -67,6 +71,16 @@ struct Top200Tile: View {
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
+            Button(action: sign) {
+                Text("Sign fleet binding")
+                    .font(themeManager.currentTheme.bodyFont.weight(.semibold))
+                    .foregroundColor(introProGoldLight)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .overlay(Capsule().stroke(introProGoldLight, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("earnings.top200.sign")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -97,6 +111,14 @@ struct Top200Tile: View {
                         .foregroundColor(.urAmber)
                 }
             }
+            Spacer().frame(height: 4)
+            UrButton(
+                text: "Sign fleet binding",
+                action: sign,
+                style: .secondary,
+                isFullWidth: false,
+                accessibilityIdentifier: "earnings.top200.sign"
+            )
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

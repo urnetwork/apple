@@ -31,6 +31,9 @@ final class DeepLinkRouter: ObservableObject {
     /// from the api's callback, until the login screen or the add sign-in
     /// method sheet checks it against the attempt it started.
     @Published private(set) var pendingBrowserSso: BrowserSso.Return? = nil
+    /// A Top 200 sign link (urnetwork://top200/sign?binding=...) from the
+    /// ur.io page, until the tab view opens Account > Sign fleet binding.
+    @Published private(set) var pendingTop200Sign: Top200SignDestination? = nil
 
     func open(_ destination: WidgetDestination) {
         pending = destination
@@ -46,6 +49,10 @@ final class DeepLinkRouter: ObservableObject {
 
     func open(_ ssoReturn: BrowserSso.Return) {
         pendingBrowserSso = ssoReturn
+    }
+
+    func open(_ link: Top200SignDestination) {
+        pendingTop200Sign = link
     }
 
     func pushAccount(_ path: AccountNavigationPath) {
@@ -74,6 +81,12 @@ final class DeepLinkRouter: ObservableObject {
         guard let ssoReturn = pendingBrowserSso else { return nil }
         pendingBrowserSso = nil
         return ssoReturn
+    }
+
+    func consumeTop200Sign() -> Top200SignDestination? {
+        guard let link = pendingTop200Sign else { return nil }
+        pendingTop200Sign = nil
+        return link
     }
 
     func consumeAccountPath() -> AccountNavigationPath? {

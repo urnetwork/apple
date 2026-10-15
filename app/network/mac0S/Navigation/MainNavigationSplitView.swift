@@ -285,6 +285,13 @@ struct MainNavigationSplitView: View {
                 deepLinkRouter.prefillFeedback(FeedbackPrefill(rating: rating, reason: reason, token: token))
             }
         }
+        // the ur.io Top 200 page's app link: Account > Sign fleet binding with
+        // the binding filled in (never signed)
+        .onReceive(deepLinkRouter.$pendingTop200Sign) { link in
+            guard link != nil, let link = deepLinkRouter.consumeTop200Sign() else { return }
+            selectedTab = .account
+            deepLinkRouter.pushAccount(.top200Sign(link))
+        }
         // a Stripe checkout handing control back from the browser (the
         // direct-download build's hosted fallback): the server only believes
         // the Stripe webhook, so a confirmed return starts the confirmation poll

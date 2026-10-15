@@ -214,6 +214,13 @@ struct MainTabView: View {
             guard destination != nil, let destination = deepLinkRouter.consumeOnboarding() else { return }
             routeOnboarding(destination)
         }
+        // the ur.io Top 200 page's app link: Account > Sign fleet binding with
+        // the binding filled in (never signed)
+        .onReceive(deepLinkRouter.$pendingTop200Sign) { link in
+            guard link != nil, let link = deepLinkRouter.consumeTop200Sign() else { return }
+            selectedTab = 1
+            deepLinkRouter.pushAccount(.top200Sign(link))
+        }
         .sheet(isPresented: $presentOnboardingOffer) {
             // a legacy guest adds a sign-in method to this network first
             GuestPurchaseGate(urApiService: urApiService) {

@@ -97,7 +97,9 @@ struct EarningsView: View {
                 )
 
                 if let head = viewModel.head, viewModel.showsTop200Tile {
-                    Top200Tile(head: head)
+                    Top200Tile(head: head, sign: {
+                        navigate(.top200Sign(nil))
+                    })
                 }
 
                 BittensorWalletCard(

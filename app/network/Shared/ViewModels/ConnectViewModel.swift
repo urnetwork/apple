@@ -275,22 +275,7 @@ class ConnectViewModel: ObservableObject {
             self.selectedProvider = device.getDefaultLocation()
         }
 
-        /**
-         * Add tunnel listener
-         */
-        self.tunnelListenerSub = self.device?.add(TunnelChangeListener { [weak self] tunnelStarted in
-            guard let self = self else {
-                return
-            }
-
-            DispatchQueue.main.async {
-                if self.tunnelConnected != tunnelStarted {
-                    self.tunnelConnected = tunnelStarted
-                }
-            }
-        })
-
-        self.refreshTunnelStatus()
+        self.addTunnelListener()
 
         self.contractListenerSub = device.add(makeContractStatusListener())
         // the listener only reports changes: a balance that was already
@@ -389,6 +374,9 @@ class ConnectViewModel: ObservableObject {
         }
 
         followsDeviceLocation = true
+        // the tunnel too, event-driven: hidden, the menu bar still reads
+        // Connected only with the tunnel up
+        addTunnelListener()
         let location = device.getConnectLocation()
         // the presented controller's last status is about this location
         backgroundConnectLocationKey = location.map { Self.connectLocationKey($0) }
@@ -401,9 +389,12 @@ class ConnectViewModel: ObservableObject {
     }
 
     /// While the location stays the same, its last status stands: the
-    /// controller's CONNECTED, CONNECTING or CONNECT_FAILED from before the
-    /// window hid, or the location's own. A new location is a destination
-    /// set (from the location alone), none is disconnected.
+    /// controller's CONNECTED or CONNECT_FAILED from before the window hid,
+    /// or the location's own. A connect still in progress when the window
+    /// hid (CONNECTING, or the controller's DESTINATION_SET) has nothing
+    /// left to report its end, so it is the location's from then on, which
+    /// the menu bar reads as connected once the tunnel is up. A new location
+    /// is a destination set from the location alone, none is disconnected.
     private func updateBackgroundConnectionState(_ location: SdkConnectLocation?) {
         // the device fires this on every location-state event; publish only
         // what changed so the tray/view is not re-rendered for a no-op
@@ -416,6 +407,9 @@ class ConnectViewModel: ObservableObject {
         if !sameLocation || reportedConnectionStatus == nil || reportedConnectionStatus == .disconnected {
             reportedConnectionStatus = location == nil ? .disconnected : .destinationSet
             reportedConnectionStatusFromLocation = location != nil
+        } else if reportedConnectionStatus == .connecting || reportedConnectionStatus == .destinationSet {
+            reportedConnectionStatus = .destinationSet
+            reportedConnectionStatusFromLocation = true
         }
         publishConnectionStatus()
     }
@@ -425,6 +419,20 @@ class ConnectViewModel: ObservableObject {
         location.connectLocationId?.string() ?? ""
     }
     
+    /// Whether the tunnel is started, presented or suspended: the device
+    /// reports it (and reports false when its link to the extension drops).
+    private func addTunnelListener() {
+        tunnelListenerSub = device?.add(TunnelChangeListener { [weak self] tunnelStarted in
+            DispatchQueue.main.async {
+                guard let self, self.tunnelConnected != tunnelStarted else {
+                    return
+                }
+                self.tunnelConnected = tunnelStarted
+            }
+        })
+        refreshTunnelStatus()
+    }
+
     func refreshTunnelStatus() {
         let tunnelConnected = self.device?.getTunnelStarted() ?? false
         if self.tunnelConnected != tunnelConnected {

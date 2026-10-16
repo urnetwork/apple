@@ -88,12 +88,14 @@ enum ConnectViewModelUpdate: Equatable {
  * The one exception is a destination set from the device's location alone
  * (`fromLocation`, ConnectViewModel.connectionStatusFromLocation): with the
  * window hidden nothing reports how far the connection got, so a set
- * location reads as connected, as it always did.
+ * location reads as connected once the tunnel is up, and as connecting
+ * until then (a tunnel that never starts: the vpn permission or the system
+ * extension not approved, the profile removed).
  *
  * CONNECTED with the tunnel stopped (`tunnelConnected` false) says what the
- * main window says there, "VPN tunnel disconnected". A connection from the
- * location alone is not checked: the tunnel listener is closed while the
- * window is hidden, so its last value says nothing about a new connection.
+ * main window says there, "VPN tunnel disconnected". The view model keeps
+ * the tunnel's listener while the window is hidden, so both cases follow
+ * the tunnel then too.
  */
 enum MenuBarConnectionState: Equatable {
     case connected
@@ -107,7 +109,7 @@ enum MenuBarConnectionState: Equatable {
         case .connected:
             self = tunnelConnected ? .connected : .tunnelDisconnected
         case .destinationSet where fromLocation:
-            self = .connected
+            self = tunnelConnected ? .connected : .connecting
         case .connecting, .destinationSet:
             self = .connecting
         case .connectFailed:

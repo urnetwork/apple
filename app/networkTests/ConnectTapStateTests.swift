@@ -607,10 +607,22 @@ struct ConnectTapStateTests {
         private let stateLock = NSLock()
         private var location: SdkConnectLocation?
         private var locationListener: SdkConnectLocationChangeListenerProtocol?
+        private var tunnelStarted: Bool
+        private var tunnelListener: SdkTunnelChangeListenerProtocol?
 
-        init(location: SdkConnectLocation?) {
+        init(location: SdkConnectLocation?, tunnelStarted: Bool = false) {
             self.location = location
+            self.tunnelStarted = tunnelStarted
             super.init(ref: NSObject())
+        }
+
+        /// The tunnel started or stopped and the device reports it.
+        func reportTunnel(_ started: Bool) {
+            let listener = stateLock.withLock {
+                tunnelStarted = started
+                return tunnelListener
+            }
+            listener?.tunnelChanged(started)
         }
 
         /// The device's location changed and the sdk reports it.
@@ -635,7 +647,7 @@ struct ConnectTapStateTests {
         }
 
         override func getTunnelStarted() -> Bool {
-            false
+            stateLock.withLock { tunnelStarted }
         }
 
         override func getContractStatus() -> SdkContractStatus? {
@@ -650,7 +662,10 @@ struct ConnectTapStateTests {
         }
 
         override func add(_ listener: SdkTunnelChangeListenerProtocol?) -> SdkSubProtocol? {
-            FakeSub {}
+            stateLock.withLock { tunnelListener = listener }
+            return FakeSub { [weak self] in
+                self?.stateLock.withLock { self?.tunnelListener = nil }
+            }
         }
 
         override func add(_ listener: SdkContractStatusChangeListenerProtocol?) -> SdkSubProtocol? {
@@ -783,7 +798,11 @@ struct ConnectTapStateTests {
     #if os(macOS)
     /// The menu bar's row and icon for `model`, as NetworkApp shows them.
     private static func menuBar(_ model: ConnectViewModel) -> MenuBarConnectionState {
-        MenuBarConnectionState(model.connectionStatus, fromLocation: model.connectionStatusFromLocation)
+        MenuBarConnectionState(
+            model.connectionStatus,
+            fromLocation: model.connectionStatusFromLocation,
+            tunnelConnected: model.tunnelConnected
+        )
     }
 
     /// A location with an id: two of them are the same location when their
@@ -798,27 +817,53 @@ struct ConnectTapStateTests {
 
     /// Hiding the window (Cmd-Q, close, minimize, occlusion, a hidden
     /// launch) keeps what the window last showed while the location is the
-    /// same: connected stays ✓ Connected, as it did before the menu bar
-    /// learned to say Connecting, and connecting, failed and disconnected
-    /// stay what they were.
+    /// same and the tunnel up: connected stays ✓ Connected, as it did before
+    /// the menu bar learned to say Connecting, and failed and disconnected
+    /// stay what they were. A connect still in progress has nothing left to
+    /// report its end, so it reads as the location's: connected with the
+    /// tunnel up, not "Connecting…" for as long as the window stays hidden.
     @Test func suspendedMenuBarKeepsWhatTheWindowLastShowed() {
-        let cases: [(status: ConnectionStatus, located: Bool, menuBar: MenuBarConnectionState)] = [
-            (status: .connected, located: true, menuBar: .connected),
-            (status: .connecting, located: true, menuBar: .connecting),
-            (status: .destinationSet, located: true, menuBar: .connecting),
-            (status: .connectFailed, located: true, menuBar: .failed),
-            (status: .disconnected, located: false, menuBar: .disconnected),
+        let cases: [(status: ConnectionStatus, located: Bool, shown: MenuBarConnectionState, hidden: MenuBarConnectionState)] = [
+            (status: .connected, located: true, shown: .connected, hidden: .connected),
+            (status: .connecting, located: true, shown: .connecting, hidden: .connected),
+            (status: .destinationSet, located: true, shown: .connecting, hidden: .connected),
+            (status: .connectFailed, located: true, shown: .failed, hidden: .failed),
+            (status: .disconnected, located: false, shown: .disconnected, hidden: .disconnected),
         ]
         for c in cases {
             let commands = HeldCommands(status: c.status)
             let model = Self.model(commands)
-            let device = FakeDevice(location: c.located ? Self.location(bestAvailable: false) : nil)
-            #expect(Self.menuBar(model) == c.menuBar, "\(c.status) shown")
+            model.tunnelConnected = true
+            let device = FakeDevice(location: c.located ? Self.location(bestAvailable: false) : nil, tunnelStarted: true)
+            #expect(Self.menuBar(model) == c.shown, "\(c.status) shown")
             model.suspend(api: nil, device: device)
             model.readConnectionStatus = { nil }
-            #expect(model.connectionStatus == c.status, "\(c.status) hidden")
-            #expect(Self.menuBar(model) == c.menuBar, "\(c.status) hidden")
+            #expect(Self.menuBar(model) == c.hidden, "\(c.status) hidden")
         }
+    }
+
+    /// The tunnel stops while the window is hidden (its listener stays
+    /// open): a kept CONNECTED says what the main window says there, and a
+    /// connection from the location alone reads as connecting.
+    @Test func suspendedMenuBarFollowsTheTunnel() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        #expect(Self.menuBar(model) == .connected)
+
+        device.reportTunnel(false)
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .tunnelDisconnected)
+
+        // another location, still no tunnel
+        device.reportLocation(Self.location(bestAvailable: true))
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .connecting)
+        device.reportTunnel(true)
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .connected)
     }
 
     /// While hidden, the same location reported again changes nothing. A
@@ -828,7 +873,7 @@ struct ConnectTapStateTests {
     @Test func suspendedMenuBarFollowsTheLocationOnceItChanges() async {
         let commands = HeldCommands(status: .connected)
         let model = Self.model(commands)
-        let device = FakeDevice(location: Self.location(bestAvailable: false))
+        let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
         model.suspend(api: nil, device: device)
         model.readConnectionStatus = { nil }
         #expect(Self.menuBar(model) == .connected)
@@ -850,8 +895,10 @@ struct ConnectTapStateTests {
     }
 
     /// The menu bar's Connect with the window hidden: connecting while the
-    /// command is held, connected once it has returned. Shown again, the
-    /// window's controller says how far it got.
+    /// command is held and until the tunnel starts, connected then. A tunnel
+    /// that never starts (the vpn permission or the system extension not
+    /// approved) stays connecting. Shown again, the window's controller says
+    /// how far it got.
     @Test func suspendedMenuBarConnectReadsAsConnectedOnceItReturns() async {
         let commands = HeldCommands()
         let model = Self.model(commands)
@@ -866,8 +913,11 @@ struct ConnectTapStateTests {
         #expect(Self.menuBar(model) == .connecting)
         commands.release()
         await model.connectCommandsSettled()
-        #expect(Self.menuBar(model) == .connected)
+        #expect(Self.menuBar(model) == .connecting)
         device.reportLocation(Self.location(bestAvailable: true))
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .connecting)
+        device.reportTunnel(true)
         await Self.mainQueueDrained()
         #expect(Self.menuBar(model) == .connected)
 

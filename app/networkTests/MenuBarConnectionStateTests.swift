@@ -91,8 +91,8 @@ struct MenuBarConnectionStateTests {
 
     /// Connected with the tunnel stopped says what the main window says
     /// there, and the icon shows not connected. A connection from the
-    /// location alone, while the window is hidden, is not checked: the
-    /// tunnel listener is closed then.
+    /// location alone, while the window is hidden, is connecting until the
+    /// tunnel is up.
     @Test func aStoppedTunnelSaysWhatTheMainWindowSays() {
         let state = MenuBarConnectionState(.connected, tunnelConnected: false)
         #expect(state == .tunnelDisconnected)
@@ -107,7 +107,8 @@ struct MenuBarConnectionStateTests {
         )
         #expect(state.label == mainWindow.statusMsg)
         #expect(state.iconName(providing: false) == "MenuBarNoProvideNoConnect")
-        #expect(MenuBarConnectionState(.destinationSet, fromLocation: true, tunnelConnected: false) == .connected)
+        #expect(MenuBarConnectionState(.destinationSet, fromLocation: true, tunnelConnected: false) == .connecting)
+        #expect(MenuBarConnectionState(.destinationSet, fromLocation: true, tunnelConnected: true) == .connected)
         #expect(MenuBarConnectionState(.connected, tunnelConnected: true) == .connected)
     }
 

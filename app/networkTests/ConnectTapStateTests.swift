@@ -261,21 +261,166 @@ struct ConnectTapStateTests {
         #expect(record.statuses == [.connected, .destinationSet, .connected])
     }
 
-    /// Quitting disconnects first: the wait returns once the disconnect is
-    /// through the sdk, so the process never exits before it.
-    @Test func quitWaitsForTheDisconnectToReachTheSdk() async {
+    // MARK: quitting
+
+    #if os(macOS)
+    /// The quit's device close and its answer to terminate. The close is
+    /// held until `finishClosing`, and the caps fire only from `fireCap`.
+    @MainActor
+    final class HeldQuit {
+        private(set) var settleCount = 0
+        private(set) var closeCount = 0
+        private(set) var replyCount = 0
+        // what had reached the sdk when the device closed
+        private(set) var performedAtClose: [ConnectCommand]?
+        private var closed: (@MainActor () -> Void)?
+        private var settleWaiter: CheckedContinuation<Void, Never>?
+        private var closeWaiter: CheckedContinuation<Void, Never>?
+        private var caps: [(delay: TimeInterval, work: @MainActor () -> Void)] = []
+
+        /// The quit as the app delegate makes it, on `model` and `commands`.
+        func sequence(_ model: ConnectViewModel, _ commands: HeldCommands) -> QuitSequence {
+            QuitSequence(
+                settleCommands: {
+                    self.settleCount += 1
+                    self.settleWaiter?.resume()
+                    self.settleWaiter = nil
+                    await model.connectCommandsSettled()
+                },
+                close: { closed in
+                    self.closeCount += 1
+                    self.performedAtClose = commands.performed
+                    self.closed = closed
+                    self.closeWaiter?.resume()
+                    self.closeWaiter = nil
+                },
+                reply: {
+                    self.replyCount += 1
+                },
+                schedule: { delay, work in
+                    self.caps.append((delay: delay, work: work))
+                }
+            )
+        }
+
+        /// Returns once the quit waits for the queued commands.
+        func waitUntilSettling() async {
+            if 0 < settleCount {
+                return
+            }
+            await withCheckedContinuation { settleWaiter = $0 }
+        }
+
+        /// Returns once the quit closes the device.
+        func waitUntilClosing() async {
+            if 0 < closeCount {
+                return
+            }
+            await withCheckedContinuation { closeWaiter = $0 }
+        }
+
+        /// The device has closed.
+        func finishClosing() {
+            closed?()
+            closed = nil
+        }
+
+        /// Runs the work scheduled `delay` after the quit.
+        func fireCap(_ delay: TimeInterval) {
+            for cap in caps where cap.delay == delay {
+                cap.work()
+            }
+        }
+
+        var capDelays: [TimeInterval] {
+            caps.map { $0.delay }.sorted()
+        }
+    }
+
+    /// Disconnect, then a Dock quit, a logout or the menu's Quit: the device
+    /// closes and the app answers terminate only once the disconnect is
+    /// through the sdk. Answered first, the disconnect was lost and the next
+    /// launch reconnected.
+    @Test func quitWaitsForTheQueuedDisconnectBeforeClosing() async {
         let commands = HeldCommands(status: .connected)
         let model = Self.model(commands)
+        let quit = HeldQuit()
 
         model.disconnect()
         await commands.waitUntilReached()
-        #expect(commands.performed.isEmpty)
-        DispatchQueue.global().async {
-            commands.release()
+        quit.sequence(model, commands).start()
+        if quit.closeCount == 0 {
+            await quit.waitUntilSettling()
         }
-        model.waitForConnectCommands()
-        #expect(commands.performed == [.disconnect])
+        // the disconnect is inside the sdk: the device stays open, no answer
+        #expect(quit.closeCount == 0)
+        #expect(quit.replyCount == 0)
+        #expect(quit.capDelays == [QuitSequence.commandsCap, QuitSequence.cap])
+
+        commands.release()
+        await quit.waitUntilClosing()
+        #expect(quit.performedAtClose == [.disconnect])
+        #expect(quit.replyCount == 0)
+        quit.finishClosing()
+        #expect(quit.replyCount == 1)
+
+        // the caps change nothing afterwards
+        quit.fireCap(QuitSequence.commandsCap)
+        quit.fireCap(QuitSequence.cap)
+        #expect(quit.closeCount == 1)
+        #expect(quit.replyCount == 1)
     }
+
+    /// A command the extension does not answer holds the quit for at most
+    /// the caps: the device closes at the first, the app answers at the
+    /// second, and the command returning afterwards changes nothing.
+    @Test func quitClosesAndAnswersAtItsCapsWhileACommandIsHeld() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let quit = HeldQuit()
+
+        model.disconnect()
+        await commands.waitUntilReached()
+        quit.sequence(model, commands).start()
+        if quit.closeCount == 0 {
+            await quit.waitUntilSettling()
+        }
+        #expect(quit.closeCount == 0)
+        // never longer than the quit has always taken
+        #expect(QuitSequence.commandsCap < QuitSequence.cap)
+        #expect(QuitSequence.cap <= 10)
+
+        quit.fireCap(QuitSequence.commandsCap)
+        #expect(quit.closeCount == 1)
+        #expect(quit.performedAtClose == [])
+        #expect(quit.replyCount == 0)
+        // the close does not finish either
+        quit.fireCap(QuitSequence.cap)
+        #expect(quit.replyCount == 1)
+
+        commands.release()
+        await model.connectCommandsSettled()
+        quit.finishClosing()
+        #expect(commands.performed == [.disconnect])
+        #expect(quit.closeCount == 1)
+        #expect(quit.replyCount == 1)
+    }
+
+    /// Nothing queued: the quit closes the device at once and answers when
+    /// it has closed, as before.
+    @Test func quitWithNothingQueuedClosesAtOnce() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let quit = HeldQuit()
+
+        quit.sequence(model, commands).start()
+        await quit.waitUntilClosing()
+        #expect(quit.replyCount == 0)
+        quit.finishClosing()
+        #expect(quit.replyCount == 1)
+        #expect(commands.performed.isEmpty)
+    }
+    #endif
 
     // MARK: the start gate
 

@@ -96,7 +96,7 @@ struct NetworkApp: App {
     
     @StateObject var deviceManager: DeviceManager
 
-    @StateObject var connectViewModel = ConnectViewModel()
+    @StateObject var connectViewModel: ConnectViewModel
 
     @StateObject var throughputStore = ThroughputStore()
     @StateObject var blockActionsStore = BlockActionsStore()
@@ -127,7 +127,13 @@ struct NetworkApp: App {
         let hostsUnitTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         let deviceManager = DeviceManager(startupMode: startupMode, automaticallyInitialize: !hostsUnitTests)
         _deviceManager = StateObject(wrappedValue: deviceManager)
+        let connectViewModel = ConnectViewModel()
+        _connectViewModel = StateObject(wrappedValue: connectViewModel)
         appDelegate.deviceManager = deviceManager
+        #if os(macOS)
+        // every quit waits for its queued commands (QuitSequence)
+        appDelegate.connectViewModel = connectViewModel
+        #endif
 
         /**
          * Start the StoreKit transaction listener at PROCESS launch, per
@@ -569,12 +575,7 @@ struct NetworkApp: App {
             #if os(macOS)
             CommandGroup(replacing: .appTermination) {
                 Button("Quit URnetwork") {
-                    connectViewModel.disconnect()
-                    // the disconnect runs off the main actor: it must reach
-                    // the sdk before the process exits
-                    connectViewModel.waitForConnectCommands()
-
-                    NSApplication.shared.terminate(nil)
+                    quitDisconnecting()
                 }
             }
             #endif
@@ -646,12 +647,7 @@ struct NetworkApp: App {
             })
             
             Button("Quit URnetwork", action: {
-                connectViewModel.disconnect()
-                // the disconnect reaches the sdk before the process exits
-                connectViewModel.waitForConnectCommands()
-
-                NSApplication.shared.terminate(nil)
-                
+                quitDisconnecting()
             })
             
             
@@ -717,6 +713,15 @@ struct NetworkApp: App {
         #else
         return nil
         #endif
+    }
+
+    /// The app menu's and the menu bar's Quit: disconnects, then quits. The
+    /// quit waits for the disconnect to reach the sdk, as every quit waits
+    /// for its queued commands (QuitSequence), without blocking the main
+    /// actor.
+    private func quitDisconnecting() {
+        connectViewModel.disconnect()
+        NSApplication.shared.terminate(nil)
     }
 
     private func hideWindow() {

@@ -588,7 +588,8 @@ class ConnectViewModel: ObservableObject {
 
     /// Returns once every command made so far has run and its status was
     /// applied. Sign out and the macOS purchase flow wait on it, as they did
-    /// on the disconnect itself when it ran on the main actor.
+    /// on the disconnect itself when it ran on the main actor, and so does
+    /// every macOS quit, for at most its cap (QuitSequence).
     func connectCommandsSettled() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             connectCommandQueue.async {
@@ -597,13 +598,6 @@ class ConnectViewModel: ObservableObject {
                 }
             }
         }
-    }
-
-    /// Blocks until every command made so far has run: only for quitting,
-    /// where the disconnect must reach the sdk before the process exits and
-    /// nothing renders after. Commands never wait on the main actor.
-    func waitForConnectCommands() {
-        connectCommandQueue.sync {}
     }
 
     /// What the user asked for so far: the newest command not yet finished,

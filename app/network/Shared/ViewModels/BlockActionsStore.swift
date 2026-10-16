@@ -179,13 +179,22 @@ class BlockActionsStore: ObservableObject {
     private var exitAttributionLastFetch: Date?
 
     // bumped on every setup/reset so a refresh that started against an old
-    // device (or before a reset) can never publish over newer state
+    // device (or before a reset) can never publish over newer state, and a
+    // report from a retired listener changes nothing
     private var generation = 0
+
+    // the device's subs and the controller close here, off the main actor
+    // (DeviceStores)
+    private let deviceWorkQueue: DispatchQueue
 
     private static let exitAttributionInterval: TimeInterval = 5.0
 
     private var exitAttributionActive: Bool {
         exitAttributionVisible && !exitAttributionSuspended
+    }
+
+    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+        self.deviceWorkQueue = deviceWorkQueue
     }
 
     deinit {
@@ -205,22 +214,32 @@ class BlockActionsStore: ObservableObject {
         }
         self.blockActionViewController = blockActionViewController
 
+        let generation = self.generation
         self.blockActionsSub = blockActionViewController.add(BlockActionsListener { [weak self] in
             DispatchQueue.main.async {
-                self?.updateBlockActions()
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.updateBlockActions()
                 // new flows race and bind as routing decisions land, so the
                 // attribution join re-pulls with the burst too
-                self?.refreshExitAttribution()
+                self.refreshExitAttribution()
             }
         })
         self.blockActionStatsSub = blockActionViewController.add(BlockActionStatsListener { [weak self] in
             DispatchQueue.main.async {
-                self?.updateBlockStats()
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.updateBlockStats()
             }
         })
         self.overridesSub = device.add(BlockActionOverridesListener { [weak self] in
             DispatchQueue.main.async {
-                self?.updateOverrides()
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.updateOverrides()
             }
         })
         // the override change the extension replays on connect arrives over
@@ -230,8 +249,11 @@ class BlockActionsStore: ObservableObject {
         // extension's list rather than from this process's guess at it
         self.remoteSub = device.add(OverridesRemoteListener { [weak self] remoteConnected in
             DispatchQueue.main.async {
+                guard let self, self.generation == generation else {
+                    return
+                }
                 if remoteConnected {
-                    self?.updateOverrides()
+                    self.updateOverrides()
                 }
             }
         })
@@ -243,6 +265,9 @@ class BlockActionsStore: ObservableObject {
         applyExitAttributionActive()
     }
 
+    /// Makes no call on the device: its subs and the controller's close,
+    /// which removes the controller's listeners from the device, take the
+    /// device's state lock and run on the device work queue (DeviceStores).
     func reset() {
         generation += 1
         stopExitAttributionTimer()
@@ -253,23 +278,26 @@ class BlockActionsStore: ObservableObject {
         exitAttributionWanted = false
         exitAttributionLastFetch = nil
 
+        // the controller's own listeners
         blockActionsSub?.close()
         blockActionsSub = nil
         blockActionStatsSub?.close()
         blockActionStatsSub = nil
-        overridesSub?.close()
-        overridesSub = nil
-        remoteSub?.close()
-        remoteSub = nil
-        if let blockActionViewController {
-            if let device {
-                device.close(blockActionViewController)
-            } else {
-                blockActionViewController.close()
+        let device = self.device
+        let blockActionViewController = self.blockActionViewController
+        closeOnDeviceWorkQueue(deviceWorkQueue, [overridesSub, remoteSub]) {
+            if let blockActionViewController {
+                if let device {
+                    device.close(blockActionViewController)
+                } else {
+                    blockActionViewController.close()
+                }
             }
         }
-        blockActionViewController = nil
-        device = nil
+        overridesSub = nil
+        remoteSub = nil
+        self.blockActionViewController = nil
+        self.device = nil
         // nothing is persisted from here: reset runs on every backgrounding
         // and the mirror is already current by then
         localState = nil

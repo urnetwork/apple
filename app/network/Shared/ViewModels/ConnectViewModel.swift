@@ -201,8 +201,10 @@ class ConnectViewModel: ObservableObject {
     private(set) var startConnectTask: Task<Void, Never>?
 
     // connect and disconnect commands, run off the main actor in the order
-    // they were made (see runConnectCommand)
-    private let connectCommandQueue = DispatchQueue(label: "network.ur.connect-commands", qos: .userInitiated)
+    // they were made (see runConnectCommand), and the device work queued
+    // behind them: the view model's own, and the device stores' closes
+    // (NetworkApp hands it to DeviceStores)
+    let connectCommandQueue = DispatchQueue(label: "network.ur.connect-commands", qos: .userInitiated)
     // runs one command against the sdk, on the command queue; replaced in tests
     var performConnectCommand: (ConnectCommand, SdkConnectViewController?, SdkDeviceRemote?) -> Void = ConnectViewModel.performOnSdk
     // the presented controller's status; replaced in tests
@@ -375,13 +377,7 @@ class ConnectViewModel: ObservableObject {
     /// queued so far. A DeviceRemote sub's close takes the device's state
     /// lock, which a held command keeps through its rpc.
     private func closeOnCommandQueue(_ subs: [SdkSubProtocol?]) {
-        let work = SubsCloseWork(subs: subs.compactMap { $0 })
-        if work.subs.isEmpty {
-            return
-        }
-        connectCommandQueue.async {
-            work.run()
-        }
+        closeOnDeviceWorkQueue(connectCommandQueue, subs)
     }
 
     /// The controller closes on the command queue: its close removes its
@@ -1294,18 +1290,8 @@ private struct ConnectCommandWork: @unchecked Sendable {
 // Handed from the main actor to the command queue, where `run` is called
 // once. Unchecked, as ConnectCommandWork: the sdk's device, controller and
 // subs are gomobile proxies that may be called from any thread, and nothing
-// here changes after the hand off.
-
-/// The device's subs to close.
-private struct SubsCloseWork: @unchecked Sendable {
-    let subs: [SdkSubProtocol]
-
-    func run() {
-        for sub in subs {
-            sub.close()
-        }
-    }
-}
+// here changes after the hand off. The device's subs close through
+// closeOnDeviceWorkQueue (DeviceStores).
 
 /// A presented controller to close, with the device that opened it.
 private struct ConnectViewControllerCloseWork: @unchecked Sendable {

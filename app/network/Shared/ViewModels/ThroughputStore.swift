@@ -285,6 +285,15 @@ class ThroughputStore: ObservableObject {
     private var device: SdkDeviceRemote?
     private var contractViewController: SdkContractViewController?
     private var throughputListenerSub: SdkSubProtocol?
+    // the controller closes here, off the main actor (DeviceStores)
+    private let deviceWorkQueue: DispatchQueue
+    // advanced by every reset: a report from a retired controller changes
+    // nothing, after the next setup too
+    private var generation = 0
+
+    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+        self.deviceWorkQueue = deviceWorkQueue
+    }
 
     func setup(_ device: SdkDeviceRemote) {
         reset()
@@ -296,9 +305,13 @@ class ThroughputStore: ObservableObject {
         self.contractViewController = contractViewController
         self.windowDuration = TimeInterval(contractViewController.getWindowDurationSeconds())
 
+        let generation = self.generation
         self.throughputListenerSub = contractViewController.add(ThroughputListener { [weak self] in
             DispatchQueue.main.async {
-                self?.update()
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.update()
             }
         })
 
@@ -311,14 +324,22 @@ class ThroughputStore: ObservableObject {
         update(hasProviderStats: device.getProviderPacketStats() != nil)
     }
 
+    /// Makes no call on the device: the controller's close removes its
+    /// listeners from the device, under the device's state lock, and runs on
+    /// the device work queue (DeviceStores).
     func reset() {
+        generation += 1
+        // the controller's own listener
         throughputListenerSub?.close()
         throughputListenerSub = nil
         if let contractViewController {
-            if let device {
-                device.close(contractViewController)
-            } else {
-                contractViewController.close()
+            let device = self.device
+            closeOnDeviceWorkQueue(deviceWorkQueue, []) {
+                if let device {
+                    device.close(contractViewController)
+                } else {
+                    contractViewController.close()
+                }
             }
         }
         contractViewController = nil

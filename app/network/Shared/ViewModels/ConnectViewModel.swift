@@ -216,6 +216,16 @@ class ConnectViewModel: ObservableObject {
     // suspended: the location the reported status is about (its id), nil
     // for none
     private var backgroundConnectLocationKey: String? = nil
+    // a sign out started (signOutStarted): no connect is admitted until the
+    // reset that ends it
+    private(set) var signingOut = false
+    // the sign-in the queued commands belong to (ConnectCommandWork)
+    private let commandGeneration = ConnectCommandGeneration()
+    // the provider list's own write of the location it connects, on the
+    // command queue; replaced in tests
+    var saveConnectLocation: (SdkDeviceRemote?, SdkConnectLocation) -> Void = { device, location in
+        try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(location)
+    }
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -304,10 +314,12 @@ class ConnectViewModel: ObservableObject {
 
         // a start still waiting on its balance must not connect the next account
         self.cancelStartConnect()
-        // and a command still queued is not the next account's: it runs and
-        // settles, but neither shows nor counts as a requested connection
-        // to the next account's gate
+        // and a command still queued is not the next account's: it settles,
+        // but neither shows nor counts as a requested connection to the
+        // next account's gate, and a connect is skipped (ConnectCommandWork)
         self.pendingConnectCommandStatus = nil
+        self.commandGeneration.advance()
+        self.signingOut = false
         self.reportedConnectionStatus = nil
         self.reportedConnectionStatusFromLocation = false
         self.backgroundConnectLocationKey = nil
@@ -448,6 +460,11 @@ class ConnectViewModel: ObservableObject {
         onUpgrade: (() -> Void)? = nil,
         proceed: @escaping () -> Void
     ) {
+        // signing out: nothing connects, so the sign out's wait for its
+        // disconnect covers every command
+        if signingOut {
+            return
+        }
         let apply = { [weak self] (decision: ConnectAttemptDecision) in
             switch decision {
             case .connect:
@@ -523,8 +540,9 @@ class ConnectViewModel: ObservableObject {
             }
             self.runBeforeConnect()
             let device = self.device
+            let saveConnectLocation = self.saveConnectLocation
             self.runConnectCommand(.connect(provider)) {
-                try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
+                saveConnectLocation(device, provider)
             }
         }
     }
@@ -589,6 +607,29 @@ class ConnectViewModel: ObservableObject {
     }
 
     /**
+     * A sign out has started: the app's Sign out, before its disconnect, or
+     * any logout the device manager begins (DeviceManager.logoutStarted), a
+     * server-initiated one included. From here no connect is admitted, a
+     * waiting start or balance recovery never connects, and the commands
+     * already queued belong to the signed out account: their connects are
+     * skipped (ConnectCommandWork), their disconnects still run. The reset
+     * that follows, once the device is gone, ends it.
+     */
+    func signOutStarted() {
+        signingOut = true
+        commandGeneration.advance()
+        cancelStartConnect()
+        clearBalanceRecovery()
+    }
+
+    /// The app's Sign out: no connect from here, then the disconnect, which
+    /// the caller waits for (connectCommandsSettled) before logging out.
+    func beginSignOut() {
+        signOutStarted()
+        disconnect()
+    }
+
+    /**
      * Shows `command`'s state at once and runs it on the command queue
      * (`performConnectCommand`, which also records the app's intent), then
      * `then`.
@@ -606,12 +647,19 @@ class ConnectViewModel: ObservableObject {
      * commands from the status, not from the queue.
      */
     private func runConnectCommand(_ command: ConnectCommand, then: (() -> Void)? = nil) {
+        // the balance recovery's retry, or a start admitted before the sign
+        // out began: refused like a tap
+        if signingOut && command != .disconnect {
+            return
+        }
         let work = ConnectCommandWork(
             command: command,
             perform: performConnectCommand,
             viewController: connectViewController,
             device: device,
-            then: then
+            then: then,
+            generation: commandGeneration.current,
+            commandGeneration: commandGeneration
         )
         pendingConnectCommandCount += 1
         pendingConnectCommandStatus = command.startStatus
@@ -1057,16 +1105,50 @@ extension ConnectViewModel {
 /// controller and device are gomobile proxies that may be called from any
 /// thread, nothing here changes after the hand off, and `perform` and `then`
 /// run only on the command queue.
+///
+/// A command belongs to the sign-in it was made in (`generation`). Once a
+/// sign out has started, a connect of the signed out account never reaches
+/// the sdk, and one already inside it skips `then`, its own write of the
+/// location: the network space's local state outlives the sign out, and the
+/// next sign-in would reconnect to what it finds there. A disconnect always
+/// runs.
 private struct ConnectCommandWork: @unchecked Sendable {
     let command: ConnectCommand
     let perform: (ConnectCommand, SdkConnectViewController?, SdkDeviceRemote?) -> Void
     let viewController: SdkConnectViewController?
     let device: SdkDeviceRemote?
     let then: (() -> Void)?
+    let generation: Int
+    let commandGeneration: ConnectCommandGeneration
 
     func run() {
+        if !runs {
+            return
+        }
         perform(command, viewController, device)
+        if !runs {
+            return
+        }
         then?()
+    }
+
+    private var runs: Bool {
+        command == .disconnect || commandGeneration.current == generation
+    }
+}
+
+/// The sign-in the connect commands belong to, read on the command queue.
+/// Safe for concurrent use.
+final class ConnectCommandGeneration: @unchecked Sendable {
+    private let stateLock = NSLock()
+    private var value = 0
+
+    var current: Int {
+        stateLock.withLock { value }
+    }
+
+    func advance() {
+        stateLock.withLock { value += 1 }
     }
 }
 

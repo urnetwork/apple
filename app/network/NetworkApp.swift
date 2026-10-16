@@ -195,6 +195,10 @@ struct NetworkApp: App {
         let connectViewModel = ConnectViewModel()
         _connectViewModel = StateObject(wrappedValue: connectViewModel)
         appDelegate.deviceManager = deviceManager
+        // every logout, the server's included, stops the account connecting
+        deviceManager.logoutStarted = { [weak connectViewModel] in
+            connectViewModel?.signOutStarted()
+        }
         #if os(macOS)
         // every quit waits for its queued commands (QuitSequence)
         appDelegate.connectViewModel = connectViewModel
@@ -632,7 +636,8 @@ struct NetworkApp: App {
                 CommandMenu("Account") {
                     Button("Sign out") {
                         
-                        connectViewModel.disconnect()
+                        // no connect from here, then the disconnect
+                        connectViewModel.beginSignOut()
 
                         Task {
                             // the disconnect reaches the sdk before the sign out

@@ -297,6 +297,10 @@ class DeviceManager: ObservableObject {
     }
     private var applicationIsActive = false
     private var isLoggingOut = false
+    /// Runs as a logout begins, whoever started it (the app's Sign out, the
+    /// account deletion, the server), before anything is torn down: the
+    /// connect view model stops connecting the account (signOutStarted).
+    var logoutStarted: (@MainActor () -> Void)?
 
     /// Why the server signed this app out, when the device's logout gave a
     /// cause that has a notice: the sign-in screen shows it once, until the
@@ -1990,6 +1994,7 @@ extension DeviceManager {
         }
         retireDeviceAuthCallbacks()
         isLoggingOut = true
+        logoutStarted?()
         return true
     }
 

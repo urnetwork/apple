@@ -867,4 +867,104 @@ struct ConnectTapStateTests {
         #expect(commands.performed == [.connectBestAvailable])
         #expect(model.connectionStatus == .disconnected)
     }
+
+    // MARK: signing out
+
+    /// The provider list's writes of the location it connects, as the local
+    /// state would get them. Safe for concurrent use.
+    final class SavedLocations: @unchecked Sendable {
+        private let stateLock = NSLock()
+        private var savedLocations: [SdkConnectLocation] = []
+
+        func save(_ location: SdkConnectLocation) {
+            stateLock.withLock { savedLocations.append(location) }
+        }
+
+        var saved: [SdkConnectLocation] {
+            stateLock.withLock { savedLocations }
+        }
+    }
+
+    /// Connect tapped while the sign out's disconnect is held. Queued behind
+    /// the sign out's wait, it ran beside the logout and saved its location
+    /// in the network space, which outlives the sign out: the next sign-in
+    /// reconnected there, already connected to the gate. Now every connect is
+    /// refused from the moment the sign out starts.
+    @Test func aConnectTappedDuringSignOutNeverReachesTheSdk() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let locations = SavedLocations()
+        model.saveConnectLocation = { _, location in locations.save(location) }
+
+        model.beginSignOut()
+        #expect(model.connectionStatus == .disconnected)
+        await commands.waitUntilReached()
+
+        // the provider list, the connect button, best available, a restore
+        model.connect(SdkConnectLocation())
+        model.connect()
+        model.connectBestAvailable()
+        model.restoreConnect()
+        #expect(model.connectionStatus == .disconnected)
+        #expect(model.startConnectTask == nil)
+        #expect(!model.isPresentedUpgradeSheet)
+
+        // the extra releases let connects admitted by mistake return too, so
+        // the test fails on them rather than waiting for them
+        for _ in 0..<5 {
+            commands.release()
+        }
+        await model.connectCommandsSettled()
+        #expect(commands.performed == [.disconnect])
+        #expect(locations.saved.isEmpty)
+
+        // the reset once the device is gone ends the sign out
+        #expect(model.signingOut)
+        model.reset()
+        #expect(!model.signingOut)
+    }
+
+    /// The server signs the account out while its connect is inside the
+    /// sdk, with another connect and a disconnect queued behind it. The held
+    /// connect returns but skips its write of the location, the queued one
+    /// never reaches the sdk, and the disconnect still runs.
+    @Test func aServerSignOutMidCommandSkipsTheAccountsConnects() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let locations = SavedLocations()
+        model.saveConnectLocation = { _, location in locations.save(location) }
+        let held = SdkConnectLocation()
+        let queued = SdkConnectLocation()
+
+        model.connect(held)
+        await commands.waitUntilReached()
+        model.connect(queued)
+        model.disconnect()
+
+        // the device manager begins the logout, then the device goes away
+        model.signOutStarted()
+        model.reset()
+        model.readConnectionStatus = { nil }
+
+        for _ in 0..<3 {
+            commands.release()
+        }
+        await model.connectCommandsSettled()
+        #expect(commands.performed == [.connect(held), .disconnect])
+        #expect(locations.saved.isEmpty)
+        #expect(model.connectionStatus == nil)
+    }
+
+    /// Every logout, whoever starts it, tells the connect view model first.
+    @Test func everyLogoutStartsTheSignOutOnce() {
+        let manager = DeviceManager(startupMode: .production, automaticallyInitialize: false)
+        var started = 0
+        manager.logoutStarted = {
+            started += 1
+        }
+        #expect(manager.beginLogout())
+        #expect(started == 1)
+        #expect(!manager.beginLogout())
+        #expect(started == 1)
+    }
 }

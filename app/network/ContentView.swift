@@ -76,8 +76,9 @@ struct ContentView: View {
                             logout: {
                                 
                                 Task {
-                                    connectViewModel.disconnect()
-                                    // the disconnect reaches the sdk before the sign out
+                                    // no connect from here; the disconnect
+                                    // reaches the sdk before the sign out
+                                    connectViewModel.beginSignOut()
                                     await connectViewModel.connectCommandsSettled()
                                     // the session's pending product events go out before it ends
                                     ClientEvents.shared.stop()

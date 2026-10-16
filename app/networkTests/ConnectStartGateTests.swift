@@ -28,10 +28,11 @@ struct ConnectStartGateTests {
         )
     }
 
-    /// Runs `body`, waits for a start that is fetching its balance, and
-    /// reports whether a connect or disconnect intent was recorded (the
-    /// in-app command reached the tunnel path), restoring the shared intent
-    /// and the applied mark it may have written.
+    /// Runs `body`, waits for a start that is fetching its balance and for
+    /// the commands it made (they run off the main actor and record the
+    /// intent there), and reports whether a connect or disconnect intent was
+    /// recorded (the in-app command reached the tunnel path), restoring the
+    /// shared intent and the applied mark it may have written.
     private static func recordsIntent(_ model: ConnectViewModel, _ body: () async -> Void) async -> Bool {
         let shared = TunnelIntentStore.defaults
         let savedIntent = shared?.object(forKey: TunnelIntentStore.key)
@@ -44,6 +45,7 @@ struct ConnectStartGateTests {
         UserDefaults.standard.set(marker, forKey: TunnelIntentAdoption.appliedAtKey)
         await body()
         await model.startConnectTask?.value
+        await model.connectCommandsSettled()
         return TunnelIntentAdoption.appliedAt != marker
     }
 

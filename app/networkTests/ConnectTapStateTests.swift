@@ -599,16 +599,26 @@ struct ConnectTapStateTests {
     // MARK: suspend, setup and reset while a command is pending
 
     /// A device with no sdk behind it, for setup and suspend: it reports
-    /// `location`, and `reportLocation` calls its location listener as the
+    /// `location`, and `reportLocation` calls its location listeners as the
     /// sdk's event does, which reaches the app after the command returns.
     /// Every call the view model makes on a device is answered here, so
-    /// nothing reaches the Go side. Safe for concurrent use.
+    /// nothing reaches the Go side.
+    ///
+    /// Each call made on the main thread is recorded (`mainThreadCalls`):
+    /// on the sdk's DeviceRemote every one of them, its getters, listener
+    /// adds, sub closes and controller closes, takes the device's state lock,
+    /// which a held command keeps through its rpc, so made on the main
+    /// thread it would wait there. Safe for concurrent use.
     final class FakeDevice: SdkDeviceRemote, @unchecked Sendable {
         private let stateLock = NSLock()
         private var location: SdkConnectLocation?
-        private var locationListener: SdkConnectLocationChangeListenerProtocol?
+        private var locationListeners: [Int: SdkConnectLocationChangeListenerProtocol] = [:]
         private var tunnelStarted: Bool
-        private var tunnelListener: SdkTunnelChangeListenerProtocol?
+        private var tunnelListeners: [Int: SdkTunnelChangeListenerProtocol] = [:]
+        private var nextListenerId = 0
+        private var mainThreadCallNames: [String] = []
+        private var afterTunnelReadValue: (() -> Void)?
+        private var afterLocationReadValue: (() -> Void)?
 
         init(location: SdkConnectLocation?, tunnelStarted: Bool = false) {
             self.location = location
@@ -618,58 +628,188 @@ struct ConnectTapStateTests {
 
         /// The tunnel started or stopped and the device reports it.
         func reportTunnel(_ started: Bool) {
-            let listener = stateLock.withLock {
+            let listeners = stateLock.withLock {
                 tunnelStarted = started
-                return tunnelListener
+                return Array(tunnelListeners.values)
             }
-            listener?.tunnelChanged(started)
+            for listener in listeners {
+                listener.tunnelChanged(started)
+            }
         }
 
         /// The device's location changed and the sdk reports it.
         func reportLocation(_ location: SdkConnectLocation?) {
-            let listener = stateLock.withLock {
+            let listeners = stateLock.withLock {
                 self.location = location
-                return locationListener
+                return Array(locationListeners.values)
             }
-            listener?.connectLocationChanged(location)
+            for listener in listeners {
+                listener.connectLocationChanged(location)
+            }
+        }
+
+        /// The device's location changed, not reported yet: a command sets it
+        /// before the device's event reaches the app.
+        func setLocationUnreported(_ location: SdkConnectLocation?) {
+            stateLock.withLock { self.location = location }
+        }
+
+        /// The same for the tunnel.
+        func setTunnelUnreported(_ started: Bool) {
+            stateLock.withLock { tunnelStarted = started }
+        }
+
+        /// Runs once, off the main thread, as a read of the tunnel answers:
+        /// the device changes right after it, and its report reaches the
+        /// main thread before the read's answer does.
+        func afterTunnelRead(_ change: @escaping () -> Void) {
+            stateLock.withLock { afterTunnelReadValue = change }
+        }
+
+        /// The same for a read of the location.
+        func afterLocationRead(_ change: @escaping () -> Void) {
+            stateLock.withLock { afterLocationReadValue = change }
         }
 
         var hasLocationListener: Bool {
-            stateLock.withLock { locationListener != nil }
+            stateLock.withLock { !locationListeners.isEmpty }
+        }
+
+        var hasTunnelListener: Bool {
+            stateLock.withLock { !tunnelListeners.isEmpty }
+        }
+
+        var tunnelListenerCount: Int {
+            stateLock.withLock { tunnelListeners.count }
+        }
+
+        /// The calls made on the main thread since the last `forgetMainThreadCalls`.
+        var mainThreadCalls: [String] {
+            stateLock.withLock { mainThreadCallNames }
+        }
+
+        func forgetMainThreadCalls() {
+            stateLock.withLock { mainThreadCallNames = [] }
+        }
+
+        private func record(_ name: String) {
+            if Thread.isMainThread {
+                stateLock.withLock { mainThreadCallNames.append(name) }
+            }
         }
 
         override func getConnectLocation() -> SdkConnectLocation? {
-            stateLock.withLock { location }
+            record("getConnectLocation")
+            let (location, change) = stateLock.withLock {
+                let change = Thread.isMainThread ? nil : afterLocationReadValue
+                if change != nil {
+                    afterLocationReadValue = nil
+                }
+                return (self.location, change)
+            }
+            change?()
+            return location
         }
 
         override func getDefaultLocation() -> SdkConnectLocation? {
-            nil
+            record("getDefaultLocation")
+            return nil
         }
 
         override func getTunnelStarted() -> Bool {
-            stateLock.withLock { tunnelStarted }
+            record("getTunnelStarted")
+            let (tunnelStarted, change) = stateLock.withLock {
+                let change = Thread.isMainThread ? nil : afterTunnelReadValue
+                if change != nil {
+                    afterTunnelReadValue = nil
+                }
+                return (self.tunnelStarted, change)
+            }
+            change?()
+            return tunnelStarted
         }
 
         override func getContractStatus() -> SdkContractStatus? {
-            nil
+            record("getContractStatus")
+            return nil
         }
 
         override func add(_ listener: SdkConnectLocationChangeListenerProtocol?) -> SdkSubProtocol? {
-            stateLock.withLock { locationListener = listener }
+            record("addConnectLocationChangeListener")
+            let id = stateLock.withLock {
+                nextListenerId += 1
+                locationListeners[nextListenerId] = listener
+                return nextListenerId
+            }
             return FakeSub { [weak self] in
-                self?.stateLock.withLock { self?.locationListener = nil }
+                self?.record("closeConnectLocationChangeListener")
+                self?.stateLock.withLock { self?.locationListeners[id] = nil }
             }
         }
 
         override func add(_ listener: SdkTunnelChangeListenerProtocol?) -> SdkSubProtocol? {
-            stateLock.withLock { tunnelListener = listener }
+            record("addTunnelChangeListener")
+            let id = stateLock.withLock {
+                nextListenerId += 1
+                tunnelListeners[nextListenerId] = listener
+                return nextListenerId
+            }
             return FakeSub { [weak self] in
-                self?.stateLock.withLock { self?.tunnelListener = nil }
+                self?.record("closeTunnelChangeListener")
+                self?.stateLock.withLock { self?.tunnelListeners[id] = nil }
             }
         }
 
         override func add(_ listener: SdkContractStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            record("addContractStatusChangeListener")
+            return FakeSub { [weak self] in
+                self?.record("closeContractStatusChangeListener")
+            }
+        }
+
+        override func close(_ vc: SdkConnectViewController?) {
+            record("closeConnectViewController")
+            vc?.close()
+        }
+    }
+
+    /// A presented controller with no sdk behind it: no grid, its listeners
+    /// are its own (closing them waits on nothing), and it counts its closes.
+    /// Safe for concurrent use.
+    final class FakeConnectViewController: SdkConnectViewController, @unchecked Sendable {
+        private let stateLock = NSLock()
+        private var closeCountValue = 0
+
+        override init() {
+            super.init(ref: NSObject())
+        }
+
+        var closeCount: Int {
+            stateLock.withLock { closeCountValue }
+        }
+
+        override func add(_ listener: SdkGridListenerProtocol?) -> SdkSubProtocol? {
             FakeSub {}
+        }
+
+        override func add(_ listener: SdkConnectionStatusListenerProtocol?) -> SdkSubProtocol? {
+            FakeSub {}
+        }
+
+        override func add(_ listener: SdkSelectedLocationListenerProtocol?) -> SdkSubProtocol? {
+            FakeSub {}
+        }
+
+        override func getGrid() -> SdkConnectGrid? {
+            nil
+        }
+
+        override func getConnectionStatus() -> String {
+            ""
+        }
+
+        override func close() {
+            stateLock.withLock { closeCountValue += 1 }
         }
     }
 
@@ -695,6 +835,45 @@ struct ConnectTapStateTests {
         }
     }
 
+    /// Returns once the device work queued on the command queue so far has
+    /// run and applied on the main thread (the suspended view model's
+    /// listeners and reads, the closes), and the closes that applying queued
+    /// in turn (a retired listener's) have run too.
+    private static func deviceWorkSettled(_ model: ConnectViewModel) async {
+        await model.connectCommandsSettled()
+        await model.connectCommandsSettled()
+    }
+
+    /// A location with an id: two of them are the same location when their
+    /// ids are.
+    nonisolated private static func location(bestAvailable: Bool) -> SdkConnectLocation {
+        let id = SdkConnectLocationId()
+        id.bestAvailable = bestAvailable
+        let location = SdkConnectLocation()
+        location.connectLocationId = id
+        return location
+    }
+
+    /// `model`'s commands move `device`'s location as the sdk's do: once a
+    /// command returns, the device's getter answers with what it set (a
+    /// connect its location, a disconnect none), and its listener hears it
+    /// later (`reportLocation`).
+    private static func commandsMoveLocation(_ model: ConnectViewModel, _ commands: HeldCommands, _ device: FakeDevice) {
+        model.performConnectCommand = { command, _, _ in
+            commands.perform(command)
+            switch command {
+            case .connect(let location):
+                device.setLocationUnreported(location)
+            case .connectBestAvailable:
+                device.setLocationUnreported(Self.location(bestAvailable: true))
+            case .rebuild(let fallback):
+                device.setLocationUnreported(fallback ?? Self.location(bestAvailable: true))
+            case .disconnect:
+                device.setLocationUnreported(nil)
+            }
+        }
+    }
+
     /// The macOS menu bar's Disconnect with the window hidden (suspended):
     /// the status follows the device's location, and the sdk reports the
     /// disconnect only after the command returns. The view keeps the tap's
@@ -704,6 +883,7 @@ struct ConnectTapStateTests {
         let commands = HeldCommands(status: .connected)
         let model = Self.model(commands)
         let device = FakeDevice(location: SdkConnectLocation())
+        Self.commandsMoveLocation(model, commands, device)
         let record = Self.record(model)
 
         model.disconnect()
@@ -712,12 +892,12 @@ struct ConnectTapStateTests {
         // device still reports the location, and no controller is presented
         model.suspend(api: nil, device: device)
         model.readConnectionStatus = { nil }
-        #expect(device.hasLocationListener)
         #expect(model.connectionStatus == .disconnected)
 
         commands.release()
-        await model.connectCommandsSettled()
+        await Self.deviceWorkSettled(model)
         #expect(commands.performed == [.disconnect])
+        #expect(device.hasLocationListener)
         #expect(model.connectionStatus == .disconnected)
 
         device.reportLocation(nil)
@@ -751,8 +931,9 @@ struct ConnectTapStateTests {
 
     /// The window shows again while a menu bar connect is held: the new
     /// controller's report from before the connect does not flip the view,
-    /// the device's location listener is closed, and once the connect
-    /// returns the status is read from the controller again.
+    /// the device's location listener closes once the connect returns (its
+    /// close takes the device's state lock) and reports nothing meanwhile,
+    /// and the status is read from the controller again.
     @Test func setupWhileAConnectIsHeldReadsTheControllerOnceItReturns() async {
         let commands = HeldCommands()
         let model = Self.model(commands)
@@ -764,13 +945,17 @@ struct ConnectTapStateTests {
         await commands.waitUntilReached()
         model.readConnectionStatus = { commands.status }
         model.setup(api: nil, device: device, connectViewController: nil)
-        #expect(!device.hasLocationListener)
         #expect(model.connectionStatus == .destinationSet)
+        device.reportLocation(Self.location(bestAvailable: true))
+        await Self.mainQueueDrained()
+        #expect(model.connectionStatus == .destinationSet)
+        #expect(!model.connectionStatusFromLocation)
 
         // the controller already reports connected when the connect returns
         commands.statusAfterCommand = .connected
         commands.release()
-        await model.connectCommandsSettled()
+        await Self.deviceWorkSettled(model)
+        #expect(!device.hasLocationListener)
         #expect(model.connectionStatus == .connected)
     }
 
@@ -783,6 +968,7 @@ struct ConnectTapStateTests {
 
         model.suspend(api: nil, device: device)
         model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
         #expect(model.connectionStatus == .disconnected)
         device.reportLocation(SdkConnectLocation())
         await Self.mainQueueDrained()
@@ -791,6 +977,151 @@ struct ConnectTapStateTests {
         model.readConnectionStatus = { commands.status }
         model.setup(api: nil, device: device, connectViewController: nil)
         #expect(model.connectionStatus == .connected)
+    }
+
+    // MARK: suspend while a command is held
+
+    /// Hiding the window (macOS) or backgrounding the app (iOS) while the
+    /// window's connect is held in the sdk. On the sdk's DeviceRemote every
+    /// call suspend makes on the device waits on its state lock, which the
+    /// held command keeps through its rpc to the extension, up to the 60 s
+    /// rpc timeout: closing the window's tunnel and contract listeners and
+    /// its controller, adding the hidden listeners, reading the tunnel and
+    /// the location. Made on the main actor, they froze it for as long. Now
+    /// none is made there: they run once the command returns, after it, and
+    /// the reads answer with what it left. A report from a window listener
+    /// still closing changes nothing.
+    @Test func suspendWhileACommandIsHeldMakesNoDeviceCallOnTheMainThread() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        model.saveConnectLocation = { _, _ in }
+        let device = FakeDevice(location: nil)
+        Self.commandsMoveLocation(model, commands, device)
+        let viewController = FakeConnectViewController()
+        model.setup(api: nil, device: device, connectViewController: viewController)
+        let location = Self.location(bestAvailable: false)
+
+        model.connect(location)
+        await commands.waitUntilReached()
+        // setup's own calls stay on the main actor: not the hide path
+        device.forgetMainThreadCalls()
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        #expect(device.mainThreadCalls == [])
+        #expect(viewController.closeCount == 0)
+        #expect(model.connectionStatus == .destinationSet)
+
+        // the tunnel comes up with the connect; the window's listener is the
+        // only one so far, and it is closing
+        device.setTunnelUnreported(true)
+        device.reportTunnel(true)
+        await Self.mainQueueDrained()
+        #expect(!model.tunnelConnected)
+
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        #expect(device.mainThreadCalls == [])
+        #expect(viewController.closeCount == 1)
+        #expect(device.hasLocationListener)
+        #expect(device.tunnelListenerCount == 1)
+        #expect(model.tunnelConnected)
+        #expect(model.connectionStatus == .destinationSet)
+        #expect(model.connectionStatusFromLocation)
+    }
+
+    /// The device changes right after a hidden read answers, and its report
+    /// reaches the main actor before the read's answer does: the report is
+    /// newer, and the read's older answer never replaces it. Applied, the
+    /// menu bar kept a tunnel and a location the device no longer had, until
+    /// its next change.
+    @Test func aReportNewerThanTheHiddenReadsWins() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
+        device.afterTunnelRead { device.reportTunnel(false) }
+        device.afterLocationRead { device.reportLocation(nil) }
+
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
+        #expect(!model.tunnelConnected)
+        #expect(model.connectionStatus == .disconnected)
+        #expect(!model.connectionStatusFromLocation)
+    }
+
+    /// The window shows again before the hidden listeners and reads, queued
+    /// behind a held command, have run. They run once the command returns
+    /// and change nothing: the controller is in charge again. A report their
+    /// listener makes before it closes is dropped too.
+    @Test func aSetupBeforeTheHiddenReadsRunDropsThem() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
+
+        model.connect()
+        await commands.waitUntilReached()
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { commands.status }
+        model.setup(api: nil, device: device, connectViewController: nil)
+        // the hidden listener hears the location go right after its read
+        device.afterLocationRead { device.reportLocation(nil) }
+
+        commands.statusAfterCommand = .connected
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        #expect(model.connectionStatus == .connected)
+        #expect(!model.connectionStatusFromLocation)
+        #expect(!device.hasLocationListener)
+        // setup's tunnel listener stays, the hidden one is closed
+        #expect(device.tunnelListenerCount == 1)
+        #expect(model.tunnelConnected)
+    }
+
+    /// Signed out while hidden, before the hidden listeners and reads, queued
+    /// behind a held command, have run: they change nothing on the reset
+    /// view model, and their listeners close.
+    @Test func aResetBeforeTheHiddenReadsRunDropsThem() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
+
+        model.connect()
+        await commands.waitUntilReached()
+        model.suspend(api: nil, device: device)
+        model.reset()
+        model.readConnectionStatus = { nil }
+
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        #expect(model.connectionStatus == nil)
+        #expect(!model.tunnelConnected)
+        #expect(model.selectedProvider == nil)
+        #expect(!device.hasLocationListener)
+        #expect(!device.hasTunnelListener)
+    }
+
+    /// The connect views read the tunnel again as they appear: on the
+    /// command queue, after the commands queued so far, never on the main
+    /// actor, where the getter waited on a held command too.
+    @Test func refreshingTheTunnelMakesNoDeviceCallOnTheMainThread() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        model.setup(api: nil, device: device, connectViewController: nil)
+        await Self.deviceWorkSettled(model)
+        #expect(!model.tunnelConnected)
+
+        model.connect()
+        await commands.waitUntilReached()
+        device.forgetMainThreadCalls()
+        device.setTunnelUnreported(true)
+        model.refreshTunnelStatus()
+        #expect(device.mainThreadCalls == [])
+        #expect(!model.tunnelConnected)
+
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(model.tunnelConnected)
     }
 
     // MARK: the menu bar while suspended
@@ -805,16 +1136,6 @@ struct ConnectTapStateTests {
         )
     }
 
-    /// A location with an id: two of them are the same location when their
-    /// ids are.
-    private static func location(bestAvailable: Bool) -> SdkConnectLocation {
-        let id = SdkConnectLocationId()
-        id.bestAvailable = bestAvailable
-        let location = SdkConnectLocation()
-        location.connectLocationId = id
-        return location
-    }
-
     /// Hiding the window (Cmd-Q, close, minimize, occlusion, a hidden
     /// launch) keeps what the window last showed while the location is the
     /// same and the tunnel up: connected stays ✓ Connected, as it did before
@@ -822,7 +1143,7 @@ struct ConnectTapStateTests {
     /// stay what they were. A connect still in progress has nothing left to
     /// report its end, so it reads as the location's: connected with the
     /// tunnel up, not "Connecting…" for as long as the window stays hidden.
-    @Test func suspendedMenuBarKeepsWhatTheWindowLastShowed() {
+    @Test func suspendedMenuBarKeepsWhatTheWindowLastShowed() async {
         let cases: [(status: ConnectionStatus, located: Bool, shown: MenuBarConnectionState, hidden: MenuBarConnectionState)] = [
             (status: .connected, located: true, shown: .connected, hidden: .connected),
             (status: .connecting, located: true, shown: .connecting, hidden: .connected),
@@ -838,6 +1159,7 @@ struct ConnectTapStateTests {
             #expect(Self.menuBar(model) == c.shown, "\(c.status) shown")
             model.suspend(api: nil, device: device)
             model.readConnectionStatus = { nil }
+            await Self.deviceWorkSettled(model)
             #expect(Self.menuBar(model) == c.hidden, "\(c.status) hidden")
         }
     }
@@ -851,6 +1173,7 @@ struct ConnectTapStateTests {
         let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
         model.suspend(api: nil, device: device)
         model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
         #expect(Self.menuBar(model) == .connected)
 
         device.reportTunnel(false)
@@ -876,6 +1199,7 @@ struct ConnectTapStateTests {
         let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
         model.suspend(api: nil, device: device)
         model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
         #expect(Self.menuBar(model) == .connected)
 
         device.reportLocation(Self.location(bestAvailable: false))
@@ -905,6 +1229,7 @@ struct ConnectTapStateTests {
         let device = FakeDevice(location: nil)
         model.suspend(api: nil, device: device)
         model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
         #expect(Self.menuBar(model) == .disconnected)
 
         model.connect()

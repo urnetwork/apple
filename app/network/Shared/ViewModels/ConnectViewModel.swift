@@ -166,6 +166,13 @@ class ConnectViewModel: ObservableObject {
     private var tunnelListenerSub: SdkSubProtocol?
     private var contractListenerSub: SdkSubProtocol?
     private var connectLocationStateSub: SdkSubProtocol?
+    // the device listeners' generation: closeListeners advances it, so a
+    // report or a read for a retired listener changes nothing
+    private var deviceListenerGeneration = 0
+    // reports applied, per value: a read made before one of them is older
+    // than it and is dropped
+    private var tunnelRevision = 0
+    private var backgroundLocationRevision = 0
     private var contractStatusGeneration = 0
     private var contractStatusRevision = 0
     private var contractStatusRefreshGenerations = Set<Int>()
@@ -214,8 +221,10 @@ class ConnectViewModel: ObservableObject {
     // the reported status is the location's alone, not a controller's
     private var reportedConnectionStatusFromLocation = false
     // suspended: the location the reported status is about (its id), nil
-    // for none
+    // for none, once the first read or report after suspending has said
+    // (backgroundConnectLocationKnown)
     private var backgroundConnectLocationKey: String? = nil
+    private var backgroundConnectLocationKnown = false
     // the device a sign out started for (signOutStarted): no connect is
     // admitted while the view model is on it. The reset after the logout,
     // or a setup or suspend on any other device (the next sign-in), ends it,
@@ -287,6 +296,14 @@ class ConnectViewModel: ObservableObject {
      * Release all presentation-only SDK work while retaining the last device and
      * published snapshot. The packet tunnel/provider owns data-plane continuity;
      * reopening the scene calls `setup` and obtains a fresh controller snapshot.
+     *
+     * Makes no call on the device here: its listeners, controllers and getters
+     * take its state lock, which a held command keeps through its rpc to the
+     * extension, up to the sdk's 60 s rpc timeout, and hiding the window
+     * (macOS) or backgrounding the app (iOS) froze the main actor for as long.
+     * They run on the command queue instead, after the commands queued so far
+     * (closeListeners, closeConnectViewController,
+     * addBackgroundConnectionStateListener).
      */
     func suspend(api: SdkApi?, device: SdkDeviceRemote?) {
         closeListeners()
@@ -315,6 +332,7 @@ class ConnectViewModel: ObservableObject {
         self.reportedConnectionStatus = nil
         self.reportedConnectionStatusFromLocation = false
         self.backgroundConnectLocationKey = nil
+        self.backgroundConnectLocationKnown = false
         self.publishConnectionStatus()
         self.windowCurrentSize = 0
         self.gridPoints = [:]
@@ -334,14 +352,16 @@ class ConnectViewModel: ObservableObject {
         // A queued callback or refresh from a retired presentation/device
         // must not publish status or disconnect its replacement.
         contractStatusGeneration += 1
+        deviceListenerGeneration += 1
         queuedContractStatusRefresh = nil
         followsDeviceLocation = false
+        // the controller's own listeners
         gridListenerSub?.close()
         connectionStatusListenerSub?.close()
         selectedLocationListenerSub?.close()
-        tunnelListenerSub?.close()
-        contractListenerSub?.close()
-        connectLocationStateSub?.close()
+        // the device's take its state lock: closed on the command queue, and
+        // their reports until then change nothing (deviceListenerGeneration)
+        closeOnCommandQueue([tunnelListenerSub, contractListenerSub, connectLocationStateSub])
 
         gridListenerSub = nil
         connectionStatusListenerSub = nil
@@ -351,12 +371,27 @@ class ConnectViewModel: ObservableObject {
         connectLocationStateSub = nil
     }
 
+    /// Closes the device's `subs` on the command queue, after the commands
+    /// queued so far. A DeviceRemote sub's close takes the device's state
+    /// lock, which a held command keeps through its rpc.
+    private func closeOnCommandQueue(_ subs: [SdkSubProtocol?]) {
+        let work = SubsCloseWork(subs: subs.compactMap { $0 })
+        if work.subs.isEmpty {
+            return
+        }
+        connectCommandQueue.async {
+            work.run()
+        }
+    }
+
+    /// The controller closes on the command queue: its close removes its
+    /// listener from the device, under the device's state lock, and the
+    /// commands queued against it run first.
     private func closeConnectViewController() {
         if let connectViewController {
-            if let device {
-                device.close(connectViewController)
-            } else {
-                connectViewController.close()
+            let work = ConnectViewControllerCloseWork(viewController: connectViewController, device: device)
+            connectCommandQueue.async {
+                work.run()
             }
         }
         connectViewController = nil
@@ -367,6 +402,15 @@ class ConnectViewModel: ObservableObject {
      * the device's event-driven location state so tray connect/disconnect
      * commands update their label; all polling and presentation controllers
      * remain closed. On iOS this listener is inert while the app is suspended.
+     *
+     * The listeners are added and the location and the tunnel read on the
+     * command queue, after the commands queued so far, so the reads answer
+     * with what those commands left; the answers apply on the main actor in
+     * that order too. The listener's first report or the read, whichever
+     * applies first, is the location the presented controller's last status
+     * is about. A read is dropped when a report applied after it was made
+     * (the report is newer), and so is everything when a setup, suspend or
+     * reset retired it first; its listeners then close.
      */
     private func addBackgroundConnectionStateListener() {
         guard let device else {
@@ -374,18 +418,45 @@ class ConnectViewModel: ObservableObject {
         }
 
         followsDeviceLocation = true
-        // the tunnel too, event-driven: hidden, the menu bar still reads
-        // Connected only with the tunnel up
-        addTunnelListener()
-        let location = device.getConnectLocation()
-        // the presented controller's last status is about this location
-        backgroundConnectLocationKey = location.map { Self.connectLocationKey($0) }
-        updateBackgroundConnectionState(location)
-        connectLocationStateSub = device.add(ConnectLocationStateListener { [weak self] location in
-            DispatchQueue.main.async {
-                self?.updateBackgroundConnectionState(location)
+        backgroundConnectLocationKnown = false
+        let generation = deviceListenerGeneration
+        let tunnelRevision = self.tunnelRevision
+        let locationRevision = backgroundLocationRevision
+        let work = BackgroundListenWork(
+            device: device,
+            // the tunnel too, event-driven: hidden, the menu bar still reads
+            // Connected only with the tunnel up
+            tunnelListener: makeTunnelListener(generation: generation),
+            locationListener: ConnectLocationStateListener { [weak self] location in
+                DispatchQueue.main.async {
+                    guard let self, self.deviceListenerGeneration == generation else {
+                        return
+                    }
+                    self.backgroundLocationRevision += 1
+                    self.updateBackgroundConnectionState(location)
+                }
             }
-        })
+        )
+        let connectCommandQueue = self.connectCommandQueue
+        connectCommandQueue.async { [weak self] in
+            let listened = work.run()
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation else {
+                    connectCommandQueue.async {
+                        listened.close()
+                    }
+                    return
+                }
+                self.tunnelListenerSub = listened.tunnelSub
+                self.connectLocationStateSub = listened.locationSub
+                if self.tunnelRevision == tunnelRevision {
+                    self.setTunnelConnected(listened.tunnelStarted)
+                }
+                if self.backgroundLocationRevision == locationRevision {
+                    self.updateBackgroundConnectionState(listened.location)
+                }
+            }
+        }
     }
 
     /// While the location stays the same, its last status stands: the
@@ -402,6 +473,12 @@ class ConnectViewModel: ObservableObject {
             selectedProvider = location
         }
         let locationKey = location.map { Self.connectLocationKey($0) }
+        // the first read or report after suspending: the presented
+        // controller's last status is about this location
+        if !backgroundConnectLocationKnown {
+            backgroundConnectLocationKey = locationKey
+            backgroundConnectLocationKnown = true
+        }
         let sameLocation = locationKey != nil && locationKey == backgroundConnectLocationKey
         backgroundConnectLocationKey = locationKey
         if !sameLocation || reportedConnectionStatus == nil || reportedConnectionStatus == .disconnected {
@@ -422,21 +499,48 @@ class ConnectViewModel: ObservableObject {
     /// Whether the tunnel is started, presented or suspended: the device
     /// reports it (and reports false when its link to the extension drops).
     private func addTunnelListener() {
-        tunnelListenerSub = device?.add(TunnelChangeListener { [weak self] tunnelStarted in
-            DispatchQueue.main.async {
-                guard let self, self.tunnelConnected != tunnelStarted else {
-                    return
-                }
-                self.tunnelConnected = tunnelStarted
-            }
-        })
+        tunnelListenerSub = device?.add(makeTunnelListener(generation: deviceListenerGeneration))
         refreshTunnelStatus()
     }
 
+    private func makeTunnelListener(generation: Int) -> TunnelChangeListener {
+        TunnelChangeListener { [weak self] tunnelStarted in
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation else {
+                    return
+                }
+                self.tunnelRevision += 1
+                self.setTunnelConnected(tunnelStarted)
+            }
+        }
+    }
+
+    /// Reads the tunnel again, on the command queue: the getter takes the
+    /// device's state lock and asks the extension. The answer is dropped
+    /// when a report applied after the read was made, or a setup, suspend or
+    /// reset came first.
     func refreshTunnelStatus() {
-        let tunnelConnected = self.device?.getTunnelStarted() ?? false
-        if self.tunnelConnected != tunnelConnected {
-            self.tunnelConnected = tunnelConnected
+        guard let device else {
+            setTunnelConnected(false)
+            return
+        }
+        let generation = deviceListenerGeneration
+        let revision = tunnelRevision
+        let read = TunnelReadWork(device: device)
+        connectCommandQueue.async { [weak self] in
+            let tunnelStarted = read.run()
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation, self.tunnelRevision == revision else {
+                    return
+                }
+                self.setTunnelConnected(tunnelStarted)
+            }
+        }
+    }
+
+    private func setTunnelConnected(_ tunnelStarted: Bool) {
+        if tunnelConnected != tunnelStarted {
+            tunnelConnected = tunnelStarted
         }
     }
     
@@ -1182,6 +1286,81 @@ private struct ConnectCommandWork: @unchecked Sendable {
 
     private var runs: Bool {
         command == .disconnect || commandGeneration.current == generation
+    }
+}
+
+// MARK: device work on the command queue
+//
+// Handed from the main actor to the command queue, where `run` is called
+// once. Unchecked, as ConnectCommandWork: the sdk's device, controller and
+// subs are gomobile proxies that may be called from any thread, and nothing
+// here changes after the hand off.
+
+/// The device's subs to close.
+private struct SubsCloseWork: @unchecked Sendable {
+    let subs: [SdkSubProtocol]
+
+    func run() {
+        for sub in subs {
+            sub.close()
+        }
+    }
+}
+
+/// A presented controller to close, with the device that opened it.
+private struct ConnectViewControllerCloseWork: @unchecked Sendable {
+    let viewController: SdkConnectViewController
+    let device: SdkDeviceRemote?
+
+    func run() {
+        if let device {
+            device.close(viewController)
+        } else {
+            viewController.close()
+        }
+    }
+}
+
+/// The suspended view model's listeners, then its reads. Adding a listener
+/// reports nothing, and the device reports only changes from then on, so a
+/// change before the reads is in them and one after is reported.
+private struct BackgroundListenWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+    let tunnelListener: TunnelChangeListener
+    let locationListener: SdkConnectLocationChangeListenerProtocol
+
+    func run() -> BackgroundListened {
+        let tunnelSub = device.add(tunnelListener)
+        let locationSub = device.add(locationListener)
+        return BackgroundListened(
+            tunnelSub: tunnelSub,
+            locationSub: locationSub,
+            tunnelStarted: device.getTunnelStarted(),
+            location: device.getConnectLocation()
+        )
+    }
+}
+
+/// What BackgroundListenWork added and read, handed back to the main actor.
+private struct BackgroundListened: @unchecked Sendable {
+    let tunnelSub: SdkSubProtocol?
+    let locationSub: SdkSubProtocol?
+    let tunnelStarted: Bool
+    let location: SdkConnectLocation?
+
+    /// Closes the listeners when they were retired before they were set up.
+    func close() {
+        tunnelSub?.close()
+        locationSub?.close()
+    }
+}
+
+/// The device's tunnel, to read.
+private struct TunnelReadWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() -> Bool {
+        device.getTunnelStarted()
     }
 }
 

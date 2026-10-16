@@ -656,15 +656,22 @@ class DeviceManager: ObservableObject {
         #endif
     }
     
+    /// A sign-out's teardown (`device` nil) or a sign-in's new device. The
+    /// device going away closes off the main actor (closeOffMainActor), as
+    /// the quit's does: the sdk's DeviceRemote.Close takes the device's state
+    /// lock, which a connect or disconnect command still in the sdk keeps
+    /// through its rpc to the extension, up to the 60 s rpc timeout, and it
+    /// closes every controller still open on the device, each with an rpc of
+    /// its own.
     func setDevice(device: SdkDeviceRemote?) {
-        
+
         if self.device != device {
-            
+
             cleanupDeviceListeners()
             self.vpnManager?.close()
             self.vpnManager = nil
-            
-            self.device?.close()
+
+            Self.closeOffMainActor(self.device)
             self.device = device
             
             if let device = device {
@@ -950,7 +957,8 @@ class DeviceManager: ObservableObject {
 }
 
 extension DeviceManager {
-    /// Closes `device` on `queue`, never on the caller's thread. The sdk's
+    /// Closes `device` on `queue`, never on the caller's thread: the quit's
+    /// and every sign-out's and sign-in's (setDevice). The sdk's
     /// DeviceRemote.Close takes the device's state lock, which a connect
     /// command inside an rpc to the tunnel extension holds for up to the
     /// 60 s rpc timeout.

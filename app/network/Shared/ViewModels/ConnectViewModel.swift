@@ -102,6 +102,15 @@ class ConnectViewModel: ObservableObject {
      * runConnectCommand and admitConnect).
      */
     @Published private(set) var connectionStatus: ConnectionStatus?
+
+    /**
+     * The status is the device's connect location alone, a destination set
+     * no controller has reported on: suspended (the macOS menu bar with the
+     * window hidden), for a location the window did not see, or after a
+     * command. The macOS menu bar reads it as the connection the user asked
+     * for, as it always has, since nothing reports how far it got.
+     */
+    @Published private(set) var connectionStatusFromLocation = false
     
     /**
      * Connect grid
@@ -202,6 +211,11 @@ class ConnectViewModel: ObservableObject {
     // suspended: the status follows the device's location listener, not a
     // presented controller (addBackgroundConnectionStateListener)
     private var followsDeviceLocation = false
+    // the reported status is the location's alone, not a controller's
+    private var reportedConnectionStatusFromLocation = false
+    // suspended: the location the reported status is about (its id), nil
+    // for none
+    private var backgroundConnectLocationKey: String? = nil
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -295,6 +309,8 @@ class ConnectViewModel: ObservableObject {
         // to the next account's gate
         self.pendingConnectCommandStatus = nil
         self.reportedConnectionStatus = nil
+        self.reportedConnectionStatusFromLocation = false
+        self.backgroundConnectLocationKey = nil
         self.publishConnectionStatus()
         self.windowCurrentSize = 0
         self.gridPoints = [:]
@@ -354,7 +370,10 @@ class ConnectViewModel: ObservableObject {
         }
 
         followsDeviceLocation = true
-        updateBackgroundConnectionState(device.getConnectLocation())
+        let location = device.getConnectLocation()
+        // the presented controller's last status is about this location
+        backgroundConnectLocationKey = location.map { Self.connectLocationKey($0) }
+        updateBackgroundConnectionState(location)
         connectLocationStateSub = device.add(ConnectLocationStateListener { [weak self] location in
             DispatchQueue.main.async {
                 self?.updateBackgroundConnectionState(location)
@@ -362,14 +381,29 @@ class ConnectViewModel: ObservableObject {
         })
     }
 
+    /// While the location stays the same, its last status stands: the
+    /// controller's CONNECTED, CONNECTING or CONNECT_FAILED from before the
+    /// window hid, or the location's own. A new location is a destination
+    /// set (from the location alone), none is disconnected.
     private func updateBackgroundConnectionState(_ location: SdkConnectLocation?) {
         // the device fires this on every location-state event; publish only
         // what changed so the tray/view is not re-rendered for a no-op
         if let location {
             selectedProvider = location
         }
-        reportedConnectionStatus = location == nil ? .disconnected : .destinationSet
+        let locationKey = location.map { Self.connectLocationKey($0) }
+        let sameLocation = locationKey != nil && locationKey == backgroundConnectLocationKey
+        backgroundConnectLocationKey = locationKey
+        if !sameLocation || reportedConnectionStatus == nil || reportedConnectionStatus == .disconnected {
+            reportedConnectionStatus = location == nil ? .disconnected : .destinationSet
+            reportedConnectionStatusFromLocation = location != nil
+        }
         publishConnectionStatus()
+    }
+
+    /// What makes two connect locations the same location: the id.
+    private static func connectLocationKey(_ location: SdkConnectLocation) -> String {
+        location.connectLocationId?.string() ?? ""
     }
     
     func refreshTunnelStatus() {
@@ -608,6 +642,7 @@ class ConnectViewModel: ObservableObject {
         pendingConnectCommandStatus = nil
         if followsDeviceLocation, let finishedStatus {
             reportedConnectionStatus = finishedStatus
+            reportedConnectionStatusFromLocation = finishedStatus != .disconnected
         } else {
             // the sdk has every command now
             updateConnectionStatus()
@@ -640,6 +675,14 @@ class ConnectViewModel: ObservableObject {
     /// on its balance, else the requested status. Only on a change.
     private func publishConnectionStatus() {
         let status: ConnectionStatus? = startConnectTask != nil ? .destinationSet : requestedConnectionStatus
+        // a tap's state is connecting, whatever the location
+        let fromLocation = startConnectTask == nil
+            && pendingConnectCommandStatus == nil
+            && reportedConnectionStatusFromLocation
+            && status == .destinationSet
+        if connectionStatusFromLocation != fromLocation {
+            connectionStatusFromLocation = fromLocation
+        }
         if status == connectionStatus {
             return
         }
@@ -993,11 +1036,14 @@ extension ConnectViewModel {
             print("no status present")
             return
         }
+        // the controller's report replaces one from the location alone, even
+        // when it is the same status
         guard let status = ConnectionStatus(rawValue: statusString),
-              status != reportedConnectionStatus else {
+              status != reportedConnectionStatus || reportedConnectionStatusFromLocation else {
             return
         }
         reportedConnectionStatus = status
+        reportedConnectionStatusFromLocation = false
         publishConnectionStatus()
         evaluateBalanceRecovery()
     }

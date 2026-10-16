@@ -58,6 +58,11 @@ struct PresentationWorkState {
  * destination set, a connect in progress or a start waiting on its balance
  * is not a connection yet. The row says what the main window says
  * (ConnectStatusIndicator), and the icon shows connected only when it is.
+ *
+ * The one exception is a destination set from the device's location alone
+ * (`fromLocation`, ConnectViewModel.connectionStatusFromLocation): with the
+ * window hidden nothing reports how far the connection got, so a set
+ * location reads as connected, as it always did.
  */
 enum MenuBarConnectionState: Equatable {
     case connected
@@ -65,9 +70,11 @@ enum MenuBarConnectionState: Equatable {
     case failed
     case disconnected
 
-    init(_ connectionStatus: ConnectionStatus?) {
+    init(_ connectionStatus: ConnectionStatus?, fromLocation: Bool = false) {
         switch connectionStatus {
         case .connected:
+            self = .connected
+        case .destinationSet where fromLocation:
             self = .connected
         case .connecting, .destinationSet:
             self = .connecting
@@ -326,7 +333,10 @@ struct NetworkApp: App {
     
     #if os(macOS)
     private var menuBarConnection: MenuBarConnectionState {
-        MenuBarConnectionState(connectViewModel.connectionStatus)
+        MenuBarConnectionState(
+            connectViewModel.connectionStatus,
+            fromLocation: connectViewModel.connectionStatusFromLocation
+        )
     }
     #endif
     

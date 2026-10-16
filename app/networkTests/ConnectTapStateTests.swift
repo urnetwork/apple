@@ -714,6 +714,108 @@ struct ConnectTapStateTests {
         #expect(model.connectionStatus == .connected)
     }
 
+    // MARK: the menu bar while suspended
+
+    #if os(macOS)
+    /// The menu bar's row and icon for `model`, as NetworkApp shows them.
+    private static func menuBar(_ model: ConnectViewModel) -> MenuBarConnectionState {
+        MenuBarConnectionState(model.connectionStatus, fromLocation: model.connectionStatusFromLocation)
+    }
+
+    /// A location with an id: two of them are the same location when their
+    /// ids are.
+    private static func location(bestAvailable: Bool) -> SdkConnectLocation {
+        let id = SdkConnectLocationId()
+        id.bestAvailable = bestAvailable
+        let location = SdkConnectLocation()
+        location.connectLocationId = id
+        return location
+    }
+
+    /// Hiding the window (Cmd-Q, close, minimize, occlusion, a hidden
+    /// launch) keeps what the window last showed while the location is the
+    /// same: connected stays ✓ Connected, as it did before the menu bar
+    /// learned to say Connecting, and connecting, failed and disconnected
+    /// stay what they were.
+    @Test func suspendedMenuBarKeepsWhatTheWindowLastShowed() {
+        let cases: [(status: ConnectionStatus, located: Bool, menuBar: MenuBarConnectionState)] = [
+            (status: .connected, located: true, menuBar: .connected),
+            (status: .connecting, located: true, menuBar: .connecting),
+            (status: .destinationSet, located: true, menuBar: .connecting),
+            (status: .connectFailed, located: true, menuBar: .failed),
+            (status: .disconnected, located: false, menuBar: .disconnected),
+        ]
+        for c in cases {
+            let commands = HeldCommands(status: c.status)
+            let model = Self.model(commands)
+            let device = FakeDevice(location: c.located ? Self.location(bestAvailable: false) : nil)
+            #expect(Self.menuBar(model) == c.menuBar, "\(c.status) shown")
+            model.suspend(api: nil, device: device)
+            model.readConnectionStatus = { nil }
+            #expect(model.connectionStatus == c.status, "\(c.status) hidden")
+            #expect(Self.menuBar(model) == c.menuBar, "\(c.status) hidden")
+        }
+    }
+
+    /// While hidden, the same location reported again changes nothing. A
+    /// new location, moved by another surface, has no controller to say how
+    /// far it got and reads as connected, as it always did; no location
+    /// reads as disconnected.
+    @Test func suspendedMenuBarFollowsTheLocationOnceItChanges() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let device = FakeDevice(location: Self.location(bestAvailable: false))
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        #expect(Self.menuBar(model) == .connected)
+
+        device.reportLocation(Self.location(bestAvailable: false))
+        await Self.mainQueueDrained()
+        #expect(model.connectionStatus == .connected)
+        #expect(Self.menuBar(model) == .connected)
+
+        device.reportLocation(Self.location(bestAvailable: true))
+        await Self.mainQueueDrained()
+        #expect(model.connectionStatus == .destinationSet)
+        #expect(model.connectionStatusFromLocation)
+        #expect(Self.menuBar(model) == .connected)
+
+        device.reportLocation(nil)
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .disconnected)
+    }
+
+    /// The menu bar's Connect with the window hidden: connecting while the
+    /// command is held, connected once it has returned. Shown again, the
+    /// window's controller says how far it got.
+    @Test func suspendedMenuBarConnectReadsAsConnectedOnceItReturns() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        #expect(Self.menuBar(model) == .disconnected)
+
+        model.connect()
+        #expect(Self.menuBar(model) == .connecting)
+        await commands.waitUntilReached()
+        #expect(Self.menuBar(model) == .connecting)
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(Self.menuBar(model) == .connected)
+        device.reportLocation(Self.location(bestAvailable: true))
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .connected)
+
+        // the controller reports the same DESTINATION_SET: now it is its own
+        model.readConnectionStatus = { commands.status }
+        model.setup(api: nil, device: device, connectViewController: nil)
+        #expect(model.connectionStatus == .destinationSet)
+        #expect(!model.connectionStatusFromLocation)
+        #expect(Self.menuBar(model) == .connecting)
+    }
+    #endif
+
     /// Signed out (or the device went away) while a connect is held: the
     /// status is cleared at once, not held by the signed out account's tap,
     /// and the connect still runs to the end.

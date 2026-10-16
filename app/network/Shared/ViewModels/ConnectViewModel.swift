@@ -560,16 +560,21 @@ class ConnectViewModel: ObservableObject {
      * status is read again once it has returned.
      */
     private func runConnectCommand(_ command: ConnectCommand, then: (() -> Void)? = nil) {
-        let perform = performConnectCommand
-        let viewController = connectViewController
-        let device = self.device
+        let work = ConnectCommandWork(
+            command: command,
+            perform: performConnectCommand,
+            viewController: connectViewController,
+            device: device,
+            then: then
+        )
         pendingConnectCommandCount += 1
         pendingConnectCommandStatus = command.startStatus
         publishConnectionStatus()
-        connectCommandQueue.async {
-            perform(command, viewController, device)
-            then?()
-            DispatchQueue.main.async { [weak self] in
+        // the command runs whether or not the view model is still there;
+        // only its bookkeeping needs it
+        connectCommandQueue.async { [weak self] in
+            work.run()
+            DispatchQueue.main.async {
                 self?.connectCommandFinished()
             }
         }
@@ -672,9 +677,9 @@ extension ConnectViewModel {
         let read = request.read
         let generation = request.generation
         let revision = request.revision
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let status = read()
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.async {
                 guard let self else { return }
                 self.contractStatusRefreshGenerations.remove(generation)
                 if self.contractStatusGeneration == generation,
@@ -976,6 +981,24 @@ extension ConnectViewModel {
 }
 
 // MARK: connect commands
+
+/// One queued command and what it runs against, handed from the main actor
+/// to the command queue, where `run` is called once. Unchecked: the sdk's
+/// controller and device are gomobile proxies that may be called from any
+/// thread, nothing here changes after the hand off, and `perform` and `then`
+/// run only on the command queue.
+private struct ConnectCommandWork: @unchecked Sendable {
+    let command: ConnectCommand
+    let perform: (ConnectCommand, SdkConnectViewController?, SdkDeviceRemote?) -> Void
+    let viewController: SdkConnectViewController?
+    let device: SdkDeviceRemote?
+    let then: (() -> Void)?
+
+    func run() {
+        perform(command, viewController, device)
+        then?()
+    }
+}
 
 /// One connect or disconnect the view model asks the sdk for.
 enum ConnectCommand: Equatable {

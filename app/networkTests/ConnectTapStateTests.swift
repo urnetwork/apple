@@ -620,6 +620,7 @@ struct ConnectTapStateTests {
         private var tunnelListeners: [Int: SdkTunnelChangeListenerProtocol] = [:]
         private var nextListenerId = 0
         private var mainThreadCallNames: [String] = []
+        private var callNames: [String] = []
         private var afterTunnelReadValue: (() -> Void)?
         private var afterLocationReadValue: (() -> Void)?
 
@@ -695,9 +696,18 @@ struct ConnectTapStateTests {
             stateLock.withLock { mainThreadCallNames = [] }
         }
 
+        /// How many times `name` was called, on any thread.
+        func callCount(_ name: String) -> Int {
+            stateLock.withLock { callNames.filter { $0 == name }.count }
+        }
+
         private func record(_ name: String) {
-            if Thread.isMainThread {
-                stateLock.withLock { mainThreadCallNames.append(name) }
+            let mainThread = Thread.isMainThread
+            stateLock.withLock {
+                callNames.append(name)
+                if mainThread {
+                    mainThreadCallNames.append(name)
+                }
             }
         }
 
@@ -786,6 +796,11 @@ struct ConnectTapStateTests {
             stateLock.withLock { openedControllers }
         }
 
+        /// The controller opened with `name` (its open call), the last one.
+        func controller(_ name: String) -> FakeControllerRecord? {
+            controllers.last { $0.name == name }
+        }
+
         /// The calls made on the main thread on the controllers opened here.
         var controllerMainThreadCalls: [String] {
             controllers.flatMap { $0.calls.mainThreadCalls }
@@ -808,7 +823,7 @@ struct ConnectTapStateTests {
         private func opened<T>(_ name: String, _ controller: T, _ calls: FakeCalls, _ listeners: FakeListeners) -> T {
             record(name)
             stateLock.withLock {
-                openedControllers.append(FakeControllerRecord(calls: calls, listeners: listeners))
+                openedControllers.append(FakeControllerRecord(name: name, calls: calls, listeners: listeners))
             }
             return controller
         }
@@ -1029,8 +1044,9 @@ struct ConnectTapStateTests {
         }
     }
 
-    /// A controller the stores opened on a FakeDevice.
+    /// A controller the stores opened on a FakeDevice, by its open call.
     struct FakeControllerRecord {
+        let name: String
         let calls: FakeCalls
         let listeners: FakeListeners
     }

@@ -414,6 +414,70 @@ struct ConnectTapStateTests {
         #expect(quit.replyCount == 1)
     }
 
+    /// A device whose close is held off the main thread, as the sdk's
+    /// DeviceRemote.Close waits on the state lock a held command keeps
+    /// through its rpc. A close on the main thread cannot be held (the test
+    /// releases it from there), so it returns at once and is counted. Safe
+    /// for concurrent use.
+    final class HeldCloseDevice: SdkDeviceRemote, @unchecked Sendable {
+        private let stateLock = NSLock()
+        private var closeCountValue = 0
+        private var closedOnMainThreadValue = false
+        private let closing = DispatchSemaphore(value: 0)
+        private let releases = DispatchSemaphore(value: 0)
+
+        override init() {
+            super.init(ref: NSObject())
+        }
+
+        override func close() {
+            let mainThread = Thread.isMainThread
+            stateLock.withLock {
+                closeCountValue += 1
+                closedOnMainThreadValue = closedOnMainThreadValue || mainThread
+            }
+            closing.signal()
+            if !mainThread {
+                releases.wait()
+            }
+        }
+
+        /// Returns once a close has begun.
+        func waitUntilClosing() async {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                DispatchQueue.global().async {
+                    self.closing.wait()
+                    continuation.resume()
+                }
+            }
+        }
+
+        func releaseClose() {
+            releases.signal()
+        }
+
+        var closeCount: Int {
+            stateLock.withLock { closeCountValue }
+        }
+
+        var closedOnMainThread: Bool {
+            stateLock.withLock { closedOnMainThreadValue }
+        }
+    }
+
+    /// The quit closes the device off the main actor. Closed on it, the
+    /// close waited on a held command's rpc, up to the 60 s rpc timeout,
+    /// and the quit's 10 s cap, on the main actor too, could not fire.
+    @Test func quitClosesTheDeviceOffTheMainActor() async {
+        let device = HeldCloseDevice()
+        DeviceManager.closeOffMainActor(device)
+        await device.waitUntilClosing()
+        // the close is held, and the main actor (this test) goes on
+        #expect(device.closedOnMainThread == false)
+        #expect(device.closeCount == 1)
+        device.releaseClose()
+    }
+
     /// Nothing queued: the quit closes the device at once and answers when
     /// it has closed, as before.
     @Test func quitWithNothingQueuedClosesAtOnce() async {

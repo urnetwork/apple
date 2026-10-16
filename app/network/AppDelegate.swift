@@ -110,11 +110,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
  * Bounded, because a logout, restart or shutdown waits on the answer. A
  * queued command returns in well under a second while the tunnel extension
  * answers, but one the extension does not answer waits out the sdk's 60 s
- * rpc timeout. The device closes `commandsCap` after the quit whatever the
- * commands do, and the app answers `cap` after the quit at the latest: the
- * bound the quit always had for closeOnQuit, so no quit, and no logout, waits
- * longer than before. A command still held at `commandsCap` is lost, as
- * before. `reply` runs exactly once. Main actor only.
+ * rpc timeout, holding the device's state lock. The device starts closing
+ * `commandsCap` after the quit whatever the commands do, and the app answers
+ * `cap` after the quit at the latest. The cap holds only because nothing on
+ * the main actor waits on that lock: closeOnQuit closes the device off the
+ * main actor. Closed on it, the close waited on the held command and the
+ * quit took up to the rpc timeout instead. A command still held at
+ * `commandsCap` is lost, as before. `reply` runs exactly once. Main actor
+ * only.
  */
 @MainActor
 final class QuitSequence {

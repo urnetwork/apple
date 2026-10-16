@@ -946,6 +946,8 @@ struct ConnectTapStateTests {
         // MARK: what the stores read
 
         private var dnsResolverSettingsValue: SdkDnsResolverSettings?
+        private var transportSettingsValue: SdkTransportSettings?
+        private var providerTransportSettingsValue: SdkTransportSettings?
         private var remoteConnectedValue = false
         private var blockActionOverridesValue: [SdkBlockActionOverride]?
         private var heldReadNames: Set<String> = []
@@ -1030,12 +1032,22 @@ struct ConnectTapStateTests {
 
         override func getTransportSettings() -> SdkTransportSettings? {
             record("getTransportSettings")
-            return nil
+            return stateLock.withLock { transportSettingsValue }
         }
 
         override func getProviderTransportSettings() -> SdkTransportSettings? {
             record("getProviderTransportSettings")
-            return nil
+            return stateLock.withLock { providerTransportSettingsValue }
+        }
+
+        override func setTransportSettings(_ transportSettings: SdkTransportSettings?) {
+            record("setTransportSettings")
+            stateLock.withLock { transportSettingsValue = transportSettings }
+        }
+
+        override func setProviderTransportSettings(_ transportSettings: SdkTransportSettings?) {
+            record("setProviderTransportSettings")
+            stateLock.withLock { providerTransportSettingsValue = transportSettings }
         }
 
         override func getTransportStatus() -> SdkTransportStatus? {

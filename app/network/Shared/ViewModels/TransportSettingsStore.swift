@@ -354,6 +354,13 @@ class TransportSettingsStore: ObservableObject {
     // advanced by every reset: a report from a retired listener, which
     // carries its device's policy, publishes nothing, after the next setup too
     private var generation = 0
+    // per policy: advanced by its edits and by their applied read-backs; a
+    // read-back applies only at its own edit's (see `apply`)
+    private var revisions: [TransportSettingsKind: Int] = [:]
+    // per policy: the edits whose setter and read-back have not landed. The
+    // device's reports of that policy meanwhile are dropped: one from before
+    // the setter carries the policy the edit replaced
+    private var pendingEdits: [TransportSettingsKind: Int] = [:]
 
     init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
         self.deviceWorkQueue = deviceWorkQueue
@@ -368,7 +375,7 @@ class TransportSettingsStore: ObservableObject {
         let generation = self.generation
         self.clientSub = device.add(TransportSettingsListener { [weak self] sdkSettings in
             DispatchQueue.main.async {
-                guard let self, self.generation == generation else {
+                guard let self, self.generation == generation, !self.editPending(.client) else {
                     return
                 }
                 self.publish(sdkSettings, kind: .client)
@@ -376,7 +383,7 @@ class TransportSettingsStore: ObservableObject {
         })
         self.providerSub = device.add(ProviderTransportSettingsListener { [weak self] sdkSettings in
             DispatchQueue.main.async {
-                guard let self, self.generation == generation else {
+                guard let self, self.generation == generation, !self.editPending(.provider) else {
                     return
                 }
                 self.publish(sdkSettings, kind: .provider)
@@ -384,7 +391,7 @@ class TransportSettingsStore: ObservableObject {
         })
         self.clientStatusSub = device.add(TransportStatusListener { [weak self] sdkStatus in
             DispatchQueue.main.async {
-                guard let self, self.generation == generation else {
+                guard let self, self.generation == generation, !self.editPending(.client) else {
                     return
                 }
                 self.publish(sdkStatus, kind: .client)
@@ -392,7 +399,7 @@ class TransportSettingsStore: ObservableObject {
         })
         self.providerStatusSub = device.add(ProviderTransportStatusListener { [weak self] sdkStatus in
             DispatchQueue.main.async {
-                guard let self, self.generation == generation else {
+                guard let self, self.generation == generation, !self.editPending(.provider) else {
                     return
                 }
                 self.publish(sdkStatus, kind: .provider)
@@ -406,6 +413,8 @@ class TransportSettingsStore: ObservableObject {
     /// and close on the device work queue (DeviceStores).
     func reset() {
         generation += 1
+        // the edits still landing belong to the retired generation
+        pendingEdits = [:]
         closeOnDeviceWorkQueue(deviceWorkQueue, [clientSub, providerSub, clientStatusSub, providerStatusSub])
         clientSub = nil
         providerSub = nil
@@ -508,28 +517,93 @@ class TransportSettingsStore: ObservableObject {
 
     /**
      * Applies a policy to the device and mirrors it into the app local state.
-     * The applied policy comes back through the change listener (from the
-     * extension when connected, from the device remote's queue when not).
+     *
+     * The policy shows at once, and the device's setter runs on the device
+     * work queue, after the work queued so far, never on the main actor: it
+     * takes the device's state lock, which a held connect or disconnect
+     * command keeps through its rpc, and an Update tapped then froze the main
+     * actor until the command returned.
+     *
+     * The device confirms it. Right after the setter the policy and its
+     * status are read back on the same queue, and apply unless a newer edit
+     * of the policy was made meanwhile (its own read-back follows); from then
+     * on the change listener delivers the policy in force, as before (from
+     * the extension when connected, from the device remote's queue when not).
+     * Until the read-back lands the listener's reports of the policy are
+     * dropped: one from before the setter carries the policy the edit
+     * replaced, and would show it again.
      */
     func apply(_ sdkSettings: SdkTransportSettings, kind: TransportSettingsKind) {
         guard let device = self.device else {
             return
         }
+        // the store's own copy: the editor's draft stays the editor's
+        let applied = sdkSettings.clone() ?? sdkSettings
+        let revision = (revisions[kind] ?? 0) + 1
+        revisions[kind] = revision
+        pendingEdits[kind, default: 0] += 1
+        publish(applied, kind: kind)
         switch kind {
         case .client:
-            device.setTransportSettings(sdkSettings)
             do {
-                try localState?.setTransportSettings(sdkSettings)
+                try localState?.setTransportSettings(applied)
             } catch {
                 print("[TransportSettingsStore] failed to persist client transport settings: \(error.localizedDescription)")
             }
         case .provider:
-            device.setProviderTransportSettings(sdkSettings)
             do {
-                try localState?.setProviderTransportSettings(sdkSettings)
+                try localState?.setProviderTransportSettings(applied)
             } catch {
                 print("[TransportSettingsStore] failed to persist provider transport settings: \(error.localizedDescription)")
             }
         }
+        let generation = self.generation
+        let work = TransportSettingsEditWork(device: device, settings: applied, kind: kind)
+        readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] readBack in
+            guard let self, self.generation == generation else {
+                return
+            }
+            self.pendingEdits[kind, default: 1] -= 1
+            guard self.revisions[kind] == revision else {
+                return
+            }
+            self.revisions[kind] = revision + 1
+            // the policy first: the status pairs with the policy shown
+            self.publish(readBack.settings, kind: kind)
+            self.publish(readBack.status, kind: kind)
+        }
     }
+
+    /// An edit of `kind`'s policy has not landed yet (`apply`).
+    private func editPending(_ kind: TransportSettingsKind) -> Bool {
+        0 < (pendingEdits[kind] ?? 0)
+    }
+}
+
+/// An edit's setter and its read-back, run on the device work queue.
+/// Unchecked: the device is a gomobile proxy that may be called from any
+/// thread, and the settings are the store's own copy, which nothing changes
+/// after the hand off.
+private struct TransportSettingsEditWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+    let settings: SdkTransportSettings
+    let kind: TransportSettingsKind
+
+    func run() -> TransportSettingsReadBack {
+        switch kind {
+        case .client:
+            device.setTransportSettings(settings)
+            let settings = device.getTransportSettings()
+            return TransportSettingsReadBack(settings: settings, status: device.getTransportStatus())
+        case .provider:
+            device.setProviderTransportSettings(settings)
+            let settings = device.getProviderTransportSettings()
+            return TransportSettingsReadBack(settings: settings, status: device.getProviderTransportStatus())
+        }
+    }
+}
+
+private struct TransportSettingsReadBack {
+    let settings: SdkTransportSettings?
+    let status: SdkTransportStatus?
 }

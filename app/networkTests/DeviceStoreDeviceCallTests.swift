@@ -45,6 +45,14 @@ struct DeviceStoreDeviceCallTests {
             }
         }
 
+        /// Holds the queue again, once its work so far has run.
+        func hold() {
+            if !held {
+                held = true
+                queue.suspend()
+            }
+        }
+
         /// Releases the queue and waits for the work queued so far, and for
         /// what it handed to the main queue.
         func run() async {
@@ -336,6 +344,122 @@ struct DeviceStoreDeviceCallTests {
         await work.settle()
         #expect(store.splitRules.map { $0.hosts } == [["a.example"], ["b.example"]])
         #expect(localState.splitRuleWrites == [["a.example", "b.example"]])
+        store.reset()
+        await work.run()
+    }
+
+    // MARK: the user's edits
+
+    /// Update in the dns editor ran the device's setter, then its read-back,
+    /// on the main actor: with a command held, the main actor froze until it
+    /// returned. Now the edit shows at once and its setter and read-back run
+    /// on the device work queue. Disconnected, the read-back is the edit the
+    /// remote queued, and it is mirrored for the next connect, as before.
+    @Test func aDnsEditMakesNoDeviceCallOnTheMainThread() async {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let before = Self.dns(servers: 1)
+        let edited = Self.dns(servers: 2)
+        device.dnsResolverSettings = before.toSdk()
+        let localState = FakeLocalState()
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: localState)
+        await work.settle()
+        #expect(store.settings == before)
+        // disconnected, a read is not the extension's: nothing is mirrored
+        #expect(localState.dnsSettingsWrites == [])
+
+        work.hold()
+        device.forgetMainThreadCalls()
+        store.apply(edited)
+        #expect(device.mainThreadCalls == [])
+        #expect(store.settings == edited)
+
+        await work.settle()
+        #expect(device.mainThreadCalls == [])
+        #expect(device.callCount("setDnsResolverSettings") == 1)
+        #expect(store.settings == edited)
+        #expect(localState.dnsSettingsWrites == [edited])
+        store.reset()
+        await work.run()
+    }
+
+    /// Saving, editing and removing split rules ran the device's setters on
+    /// the main actor. Now each edit shows at once, its setter runs on the
+    /// device work queue, in order, and the read-back after the last one is
+    /// mirrored.
+    @Test func splitRuleEditsMakeNoDeviceCallOnTheMainThread() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        device.blockActionOverrides = [Self.rule("a.example")]
+        device.remoteConnected = true
+        let localState = FakeLocalState()
+        let store = BlockActionsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: localState)
+        await work.settle()
+        try #require(store.canCreateRule)
+        localState.forgetWrites()
+
+        work.hold()
+        device.forgetMainThreadCalls()
+        store.createRule(hosts: ["b.example"], mode: .excluded)
+        #expect(store.splitRules.map { $0.hosts } == [["a.example"], ["b.example"]])
+        let a = try #require(store.splitRules.first)
+        store.updateRule(id: a.id, hosts: ["c.example"], mode: .included)
+        #expect(store.splitRules.map { $0.hosts } == [["c.example"], ["b.example"]])
+        #expect(store.splitRules.first?.mode == .included)
+        let b = try #require(store.splitRules.last)
+        store.removeRule(id: b.id)
+        #expect(store.splitRules.map { $0.hosts } == [["c.example"]])
+        #expect(device.mainThreadCalls == [])
+
+        await work.settle()
+        #expect(device.mainThreadCalls == [])
+        #expect(device.callCount("addBlockActionOverride") == 1)
+        #expect(device.callCount("setBlockActionOverrides") == 1)
+        #expect(device.callCount("removeBlockActionOverride") == 1)
+        #expect(device.blockActionOverrides?.map { Self.hosts($0) } == ["c.example"])
+        #expect(store.splitRules.map { $0.hosts } == [["c.example"]])
+        #expect(localState.splitRuleWrites.last == ["c.example"])
+        store.reset()
+        await work.run()
+    }
+
+    /// Update in the transport editor ran the device's setter on the main
+    /// actor. Now the policy shows at once, the setter and the read-back run
+    /// on the device work queue, and a report of the policy from before the
+    /// setter, still on its way, does not show the replaced policy again.
+    @Test func aTransportEditMakesNoDeviceCallOnTheMainThread() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let store = TransportSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+
+        work.hold()
+        device.forgetMainThreadCalls()
+        let h1 = try #require(SdkDefaultTransportSettings())
+        h1.mode = TransportType.h1.rawValue
+        store.apply(h1, kind: .client)
+        #expect(device.mainThreadCalls == [])
+        #expect(store.settings(.client)?.singleTransport == .h1)
+
+        // the fake's listeners report the default policies, auto for the
+        // client: from before the setter
+        device.storeListeners.reportAll()
+        await Self.mainQueueDrained()
+        #expect(store.settings(.client)?.singleTransport == .h1)
+        // the provider policy has no edit pending: its report shows
+        #expect(store.settings(.provider) != nil)
+
+        await work.settle()
+        #expect(device.mainThreadCalls == [])
+        #expect(device.callCount("setTransportSettings") == 1)
+        #expect(store.settings(.client)?.singleTransport == .h1)
+        // from here the listener's reports show the policy in force again
+        device.storeListeners.reportAll()
+        await Self.mainQueueDrained()
+        #expect(store.settings(.client)?.isAuto == true)
         store.reset()
         await work.run()
     }

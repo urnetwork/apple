@@ -300,13 +300,41 @@ class DnsSettingsStore: ObservableObject {
         }
     }
 
+    /**
+     * Applies an edit. It shows at once, and the device's setter runs on the
+     * device work queue, after the work queued so far, never on the main
+     * actor: it takes the device's state lock, which a held connect or
+     * disconnect command keeps through its rpc, and an Update tapped then
+     * froze the main actor until the command returned.
+     *
+     * The device confirms the edit: its read-back, queued right after the
+     * setter, applies and is mirrored (`update`), and so do its listener's
+     * reports. A read queued before the edit is dropped (DeviceReads), so
+     * what the edit replaced never shows again.
+     */
     func apply(_ newSettings: DnsSettings) {
         guard let device = self.device else {
             return
         }
-        device.setDnsResolverSettings(newSettings.toSdk())
         reads.edited()
+        settings = newSettings
+        let work = DnsSettingsEditWork(device: device, settings: newSettings.toSdk())
+        deviceWorkQueue.async {
+            work.run()
+        }
         update(afterEdit: true)
+    }
+}
+
+/// An edit's setter, run on the device work queue. Unchecked, as
+/// DnsSettingsReadWork: the settings are the edit's own sdk object, which
+/// nothing changes after the hand off.
+private struct DnsSettingsEditWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+    let settings: SdkDnsResolverSettings
+
+    func run() {
+        device.setDnsResolverSettings(settings)
     }
 }
 

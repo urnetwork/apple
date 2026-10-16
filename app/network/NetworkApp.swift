@@ -570,7 +570,10 @@ struct NetworkApp: App {
             CommandGroup(replacing: .appTermination) {
                 Button("Quit URnetwork") {
                     connectViewModel.disconnect()
-                    
+                    // the disconnect runs off the main actor: it must reach
+                    // the sdk before the process exits
+                    connectViewModel.waitForConnectCommands()
+
                     NSApplication.shared.terminate(nil)
                 }
             }
@@ -582,8 +585,10 @@ struct NetworkApp: App {
                     Button("Sign out") {
                         
                         connectViewModel.disconnect()
-                        
+
                         Task {
+                            // the disconnect reaches the sdk before the sign out
+                            await connectViewModel.connectCommandsSettled()
                             deviceManager.logout()
                         }
                         
@@ -642,7 +647,9 @@ struct NetworkApp: App {
             
             Button("Quit URnetwork", action: {
                 connectViewModel.disconnect()
-                
+                // the disconnect reaches the sdk before the process exits
+                connectViewModel.waitForConnectCommands()
+
                 NSApplication.shared.terminate(nil)
                 
             })

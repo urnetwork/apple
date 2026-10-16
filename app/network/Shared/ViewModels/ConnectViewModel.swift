@@ -96,7 +96,10 @@ private class ConnectLocationStateListener: NSObject, SdkConnectLocationChangeLi
 class ConnectViewModel: ObservableObject {
     
     /**
-     * Connection status
+     * Connection status: what the connect views show. A tap shows its state
+     * at once: a connect or disconnect the sdk has not finished, and a start
+     * waiting on its balance, stand in for the sdk's status (see
+     * runConnectCommand and admitConnect).
      */
     @Published private(set) var connectionStatus: ConnectionStatus?
     
@@ -177,15 +180,24 @@ class ConnectViewModel: ObservableObject {
     lazy var fetchBalance: () async -> WidgetBalanceSnapshot? = { [weak self] in
         await StartConnectBalanceFetch.fetch(api: self?.api)
     }
-    // a start waiting on its balance fetch; a repeated tap does not stack
+    // a start waiting on its balance fetch; a repeated tap does not stack, and
+    // a disconnect or sign out cancels it
     private(set) var startConnectTask: Task<Void, Never>?
 
-    // runs one command against the sdk; replaced in tests
+    // connect and disconnect commands, run off the main actor in the order
+    // they were made (see runConnectCommand)
+    private let connectCommandQueue = DispatchQueue(label: "network.ur.connect-commands", qos: .userInitiated)
+    // runs one command against the sdk, on the command queue; replaced in tests
     var performConnectCommand: (ConnectCommand, SdkConnectViewController?, SdkDeviceRemote?) -> Void = ConnectViewModel.performOnSdk
     // the presented controller's status; replaced in tests
     lazy var readConnectionStatus: () -> String? = { [weak self] in
         self?.connectViewController?.getConnectionStatus()
     }
+    // commands queued and not finished, and the status the newest one shows
+    private var pendingConnectCommandCount = 0
+    private var pendingConnectCommandStatus: ConnectionStatus? = nil
+    // the status the sdk last reported
+    private var reportedConnectionStatus: ConnectionStatus? = nil
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -272,7 +284,10 @@ class ConnectViewModel: ObservableObject {
         self.api = nil
         self.device = nil
 
-        self.connectionStatus = nil
+        // a start still waiting on its balance must not connect the next account
+        self.cancelStartConnect()
+        self.reportedConnectionStatus = nil
+        self.publishConnectionStatus()
         self.windowCurrentSize = 0
         self.gridPoints = [:]
         self.gridWidth = 0
@@ -343,10 +358,8 @@ class ConnectViewModel: ObservableObject {
         if let location {
             selectedProvider = location
         }
-        let status: ConnectionStatus = location == nil ? .disconnected : .destinationSet
-        if connectionStatus != status {
-            connectionStatus = status
-        }
+        reportedConnectionStatus = location == nil ? .disconnected : .destinationSet
+        publishConnectionStatus()
     }
     
     func refreshTunnelStatus() {
@@ -375,6 +388,15 @@ class ConnectViewModel: ObservableObject {
      * refused, it opens the upgrade sheet and calls `onUpgrade`. A connection
      * that is already requested proceeds at once (see
      * InsufficientBalancePolicy). `proceed` runs at most once.
+     *
+     * The fetch can take up to `startConnectBalanceFetchTimeout`, so the tap
+     * shows the connecting state while it runs (owner report 2026-10-16). A
+     * refused start goes back to the status the sdk reports as the upgrade
+     * sheet opens; an admitted one runs its command, which keeps the same
+     * state, so the view never steps back to disconnected in between. Only
+     * the display changes: the decision is the same, and a start waiting on
+     * its balance is not a requested connection to the gate or the recovery
+     * (`requestedConnectionStatus`).
      */
     private func admitConnect(
         _ attempt: ConnectAttempt,
@@ -389,6 +411,8 @@ class ConnectViewModel: ObservableObject {
                 self?.clearBalanceRecovery()
                 proceed()
             case .upgrade:
+                // nothing connects: back to what the sdk reports
+                self?.publishConnectionStatus()
                 // the refused start waits on the balance and is retried by
                 // itself once it is back (BalanceRecovery)
                 if let self {
@@ -413,9 +437,22 @@ class ConnectViewModel: ObservableObject {
         let fetchBalance = self.fetchBalance
         startConnectTask = Task { @MainActor [weak self] in
             let balance = await fetchBalance()
-            self?.startConnectTask = nil
+            // a disconnect or sign out while the balance was fetched cancelled
+            // this start, and a newer start may own the task slot by now
+            guard let self, !Task.isCancelled else {
+                return
+            }
+            self.startConnectTask = nil
             apply(startConnectDecision(attempt, guards: guards, balance: balance))
+            self.publishConnectionStatus()
         }
+        publishConnectionStatus()
+    }
+
+    /// A start still waiting on its balance never connects.
+    private func cancelStartConnect() {
+        startConnectTask?.cancel()
+        startConnectTask = nil
     }
 
     private var startConnectGuards: StartConnectGuards {
@@ -429,7 +466,7 @@ class ConnectViewModel: ObservableObject {
     }
 
     private var currentConnectAttempt: ConnectAttempt {
-        connectAttempt(connectionStatus: connectionStatus)
+        connectAttempt(connectionStatus: requestedConnectionStatus)
     }
 
     /**
@@ -500,27 +537,93 @@ class ConnectViewModel: ObservableObject {
     }
 
     func disconnect() {
-        // the user's disconnect: nothing is reconnected by itself after it
+        // the user's disconnect: nothing is reconnected by itself after it,
+        // and a start still waiting on its balance does not connect
         clearBalanceRecovery()
+        cancelStartConnect()
         runConnectCommand(.disconnect)
     }
 
-    /// Runs `command` against the sdk (`performConnectCommand`, which also
-    /// records the app's intent), then `then`. On the main actor: the call
-    /// returns once the sdk has the command.
+    /**
+     * Shows `command`'s state at once and runs it on the command queue
+     * (`performConnectCommand`, which also records the app's intent), then
+     * `then`.
+     *
+     * With the tunnel up, the sdk's Connect and Disconnect make several
+     * blocking round trips to the extension (the provide mode under Auto, the
+     * location, the default), and the sdk's status reaches the main actor
+     * only after them. Run on the main actor, a tap showed nothing until the
+     * extension answered (owner report 2026-10-16). Commands run in the order
+     * they were made. Until the last one returns, the status it starts with
+     * (the sdk's own first status for the gesture) stands in for the sdk's,
+     * so a report from before it cannot flip the view back, and the sdk's
+     * status is read again once it has returned.
+     */
     private func runConnectCommand(_ command: ConnectCommand, then: (() -> Void)? = nil) {
-        performConnectCommand(command, connectViewController, device)
-        then?()
+        let perform = performConnectCommand
+        let viewController = connectViewController
+        let device = self.device
+        pendingConnectCommandCount += 1
+        pendingConnectCommandStatus = command.startStatus
+        publishConnectionStatus()
+        connectCommandQueue.async {
+            perform(command, viewController, device)
+            then?()
+            DispatchQueue.main.async { [weak self] in
+                self?.connectCommandFinished()
+            }
+        }
     }
 
-    /// Returns once every command made so far has run: they run on the main
-    /// actor, so they all have.
+    private func connectCommandFinished() {
+        pendingConnectCommandCount -= 1
+        if 0 < pendingConnectCommandCount {
+            return
+        }
+        pendingConnectCommandStatus = nil
+        // the sdk has every command now
+        updateConnectionStatus()
+        publishConnectionStatus()
+    }
+
+    /// Returns once every command made so far has run and its status was
+    /// applied. Sign out and the macOS purchase flow wait on it, as they did
+    /// on the disconnect itself when it ran on the main actor.
     func connectCommandsSettled() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            connectCommandQueue.async {
+                DispatchQueue.main.async {
+                    continuation.resume()
+                }
+            }
+        }
     }
 
-    /// Blocks until every command made so far has run: they run on the main
-    /// actor, so they all have.
+    /// Blocks until every command made so far has run: only for quitting,
+    /// where the disconnect must reach the sdk before the process exits and
+    /// nothing renders after. Commands never wait on the main actor.
     func waitForConnectCommands() {
+        connectCommandQueue.sync {}
+    }
+
+    /// What the user asked for so far: the newest command not yet finished,
+    /// else what the sdk reports. A start waiting on its balance is not in
+    /// it: nothing is asked of the sdk until the gate admits it.
+    private var requestedConnectionStatus: ConnectionStatus? {
+        0 < pendingConnectCommandCount ? pendingConnectCommandStatus : reportedConnectionStatus
+    }
+
+    /// Publishes what the connect views show: connecting while a start waits
+    /// on its balance, else the requested status. Only on a change.
+    private func publishConnectionStatus() {
+        let status: ConnectionStatus? = startConnectTask != nil ? .destinationSet : requestedConnectionStatus
+        if status == connectionStatus {
+            return
+        }
+        connectionStatus = status
+        if status == .connected {
+            requestReview?()
+        }
     }
     
     private func addSelectedLocationListener() {
@@ -639,7 +742,7 @@ extension ConnectViewModel {
             // an unknown plan defers the notice like a poll, so a supporter
             // is never told before the plan arrives
             isPolling: insufficientBalancePolling || insufficientBalancePlan == nil,
-            connectionStatus: connectionStatus
+            connectionStatus: requestedConnectionStatus
         )
         evaluateBalanceRecovery()
     }
@@ -680,7 +783,7 @@ extension ConnectViewModel {
                 plan: insufficientBalancePlan ?? Plan.none,
                 isPollingSubscriptionBalance: insufficientBalancePolling
             ),
-            connectRequested: connectAttempt(connectionStatus: connectionStatus) == .alreadyConnected,
+            connectRequested: connectAttempt(connectionStatus: requestedConnectionStatus) == .alreadyConnected,
             balance: loadCachedBalance(),
             now: now()
         )
@@ -692,7 +795,7 @@ extension ConnectViewModel {
         case .start(let location):
             command = location.map { .connect($0) } ?? .connectBestAvailable
         case .rebuild:
-            // the device's location is read with the command
+            // the device's location is read with the command, off the main actor
             command = .rebuild(fallback: selectedProvider)
         }
         print("[connect]balance is back: retrying the blocked connect")
@@ -860,26 +963,20 @@ extension ConnectViewModel {
         connectionStatusListenerSub = connectViewController?.add(listener)
     }
 
-    /// Reads the sdk's status (the listener's hop to the main actor).
+    /// Reads the sdk's status (the listener's hop to the main actor). The
+    /// view shows it unless a tap is still pending (publishConnectionStatus).
     func updateConnectionStatus() {
         guard let statusString = readConnectionStatus() else {
             print("no status present")
             return
         }
-        
-        if let status = ConnectionStatus(rawValue: statusString) {
-            guard status != self.connectionStatus else {
-                return
-            }
-            self.connectionStatus = status
-            evaluateBalanceRecovery()
-            
-            if status == .connected {
-                if let requestReview = self.requestReview {
-                    requestReview()
-                }
-            }
+        guard let status = ConnectionStatus(rawValue: statusString),
+              status != reportedConnectionStatus else {
+            return
         }
+        reportedConnectionStatus = status
+        publishConnectionStatus()
+        evaluateBalanceRecovery()
     }
     
 }
@@ -895,7 +992,8 @@ enum ConnectCommand: Equatable {
     case rebuild(fallback: SdkConnectLocation?)
     case disconnect
 
-    /// The sdk controller's own first status for the command.
+    /// The sdk controller's own first status for the command, which the
+    /// connect views show from the tap until it has run.
     var startStatus: ConnectionStatus {
         self == .disconnect ? .disconnected : .destinationSet
     }
@@ -906,7 +1004,8 @@ extension ConnectViewModel {
     /// menu bar while the window is hidden), on a controller opened for it,
     /// then records the in-app decision: the quick connect surfaces and the
     /// tunnel extension see it through the shared intent. Blocks while the
-    /// sdk talks to the tunnel extension.
+    /// sdk talks to the tunnel extension: it runs on the command queue, never
+    /// on the main actor.
     nonisolated static func performOnSdk(
         _ command: ConnectCommand,
         viewController: SdkConnectViewController?,

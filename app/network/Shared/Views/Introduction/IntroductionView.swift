@@ -142,6 +142,12 @@ struct IntroductionView: View {
         }
 #endif
         Task {
+#if os(macOS)
+            // the disconnect reaches the sdk before the store opens
+            if (initiallyConnected) {
+                await connectViewModel.connectCommandsSettled()
+            }
+#endif
             switch purchase {
             case .redeemOffer(let offer):
                 await subscriptionStore.redeemOffer(offer, onSuccess: {

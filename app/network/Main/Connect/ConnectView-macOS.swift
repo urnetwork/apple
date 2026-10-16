@@ -330,6 +330,10 @@ import URnetworkSdk
                             }
 
                             Task {
+                                // the disconnect reaches the sdk before the store opens
+                                if initiallyConnected {
+                                    await connectViewModel.connectCommandsSettled()
+                                }
                                 // errors render inline via purchaseError
                                 await subscriptionStore.purchase(
                                     plan: plan,

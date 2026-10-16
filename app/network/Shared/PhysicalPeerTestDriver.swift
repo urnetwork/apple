@@ -873,6 +873,8 @@ enum PhysicalPeerTestDriver {
 
             guard let reconnectLocation else { return true }
             connectViewModel.connect(reconnectLocation)
+            // the connect runs off the main actor; the service update reads it
+            await connectViewModel.connectCommandsSettled()
             guard let vpnManager = deviceManager.vpnManager else { return false }
             let updateResult = await vpnManager.updateVpnServiceAndWait()
             if case .failure = updateResult { return false }
@@ -1197,6 +1199,8 @@ enum PhysicalPeerTestDriver {
                 reconnectLocation: reconnectLocation
             )
             connectViewModel.disconnect()
+            // the disconnect runs off the main actor; the service update reads it
+            await connectViewModel.connectCommandsSettled()
             if let vpnManager = deviceManager.vpnManager {
                 let result = await vpnManager.updateVpnServiceAndWait()
                 if case .failure(let error) = result {

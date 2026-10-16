@@ -43,6 +43,7 @@ struct ConnectTapStateTests {
         private var performedCommands: [ConnectCommand] = []
         private var mainThreadCommandCount = 0
         private var sdkStatus: String
+        private var statusAfterCommandValue: ConnectionStatus?
         // one signal per command that reached the sdk, one per release
         private let reached = DispatchSemaphore(value: 0)
         private let releases = DispatchSemaphore(value: 0)
@@ -60,8 +61,15 @@ struct ConnectTapStateTests {
             }
             stateLock.withLock {
                 performedCommands.append(command)
-                sdkStatus = command.startStatus.rawValue
+                sdkStatus = (statusAfterCommandValue ?? command.startStatus).rawValue
             }
+        }
+
+        /// What the controller reports once a command returns, when not the
+        /// command's first status.
+        var statusAfterCommand: ConnectionStatus? {
+            get { stateLock.withLock { statusAfterCommandValue } }
+            set { stateLock.withLock { statusAfterCommandValue = newValue } }
         }
 
         /// Lets one held command return.
@@ -522,5 +530,239 @@ struct ConnectTapStateTests {
         await model.connectCommandsSettled()
         #expect(commands.performed.isEmpty)
         #expect(model.connectionStatus == nil)
+    }
+
+    // MARK: suspend, setup and reset while a command is pending
+
+    /// A device with no sdk behind it, for setup and suspend: it reports
+    /// `location`, and `reportLocation` calls its location listener as the
+    /// sdk's event does, which reaches the app after the command returns.
+    /// Every call the view model makes on a device is answered here, so
+    /// nothing reaches the Go side. Safe for concurrent use.
+    final class FakeDevice: SdkDeviceRemote, @unchecked Sendable {
+        private let stateLock = NSLock()
+        private var location: SdkConnectLocation?
+        private var locationListener: SdkConnectLocationChangeListenerProtocol?
+
+        init(location: SdkConnectLocation?) {
+            self.location = location
+            super.init(ref: NSObject())
+        }
+
+        /// The device's location changed and the sdk reports it.
+        func reportLocation(_ location: SdkConnectLocation?) {
+            let listener = stateLock.withLock {
+                self.location = location
+                return locationListener
+            }
+            listener?.connectLocationChanged(location)
+        }
+
+        var hasLocationListener: Bool {
+            stateLock.withLock { locationListener != nil }
+        }
+
+        override func getConnectLocation() -> SdkConnectLocation? {
+            stateLock.withLock { location }
+        }
+
+        override func getDefaultLocation() -> SdkConnectLocation? {
+            nil
+        }
+
+        override func getTunnelStarted() -> Bool {
+            false
+        }
+
+        override func getContractStatus() -> SdkContractStatus? {
+            nil
+        }
+
+        override func add(_ listener: SdkConnectLocationChangeListenerProtocol?) -> SdkSubProtocol? {
+            stateLock.withLock { locationListener = listener }
+            return FakeSub { [weak self] in
+                self?.stateLock.withLock { self?.locationListener = nil }
+            }
+        }
+
+        override func add(_ listener: SdkTunnelChangeListenerProtocol?) -> SdkSubProtocol? {
+            FakeSub {}
+        }
+
+        override func add(_ listener: SdkContractStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            FakeSub {}
+        }
+    }
+
+    final class FakeSub: NSObject, SdkSubProtocol {
+        private let onClose: () -> Void
+
+        init(_ onClose: @escaping () -> Void) {
+            self.onClose = onClose
+        }
+
+        func close() {
+            onClose()
+        }
+    }
+
+    /// Returns once what was queued on the main queue so far has run: the
+    /// listeners hop there.
+    private static func mainQueueDrained() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.main.async {
+                continuation.resume()
+            }
+        }
+    }
+
+    /// The macOS menu bar's Disconnect with the window hidden (suspended):
+    /// the status follows the device's location, and the sdk reports the
+    /// disconnect only after the command returns. The view keeps the tap's
+    /// state through the return instead of going back to the location read
+    /// before the command.
+    @Test func suspendedDisconnectNeverFlipsBackToTheOldLocation() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let device = FakeDevice(location: SdkConnectLocation())
+        let record = Self.record(model)
+
+        model.disconnect()
+        await commands.waitUntilReached()
+        // the window hides while the extension holds the disconnect: the
+        // device still reports the location, and no controller is presented
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        #expect(device.hasLocationListener)
+        #expect(model.connectionStatus == .disconnected)
+
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(commands.performed == [.disconnect])
+        #expect(model.connectionStatus == .disconnected)
+
+        device.reportLocation(nil)
+        await Self.mainQueueDrained()
+        #expect(model.connectionStatus == .disconnected)
+        #expect(record.statuses == [.connected, .disconnected])
+    }
+
+    /// The same for the menu bar's Connect with the window hidden.
+    @Test func suspendedConnectNeverFlipsBackToDisconnected() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        let record = Self.record(model)
+        #expect(model.connectionStatus == .disconnected)
+
+        model.connect()
+        #expect(model.connectionStatus == .destinationSet)
+        await commands.waitUntilReached()
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(model.connectionStatus == .destinationSet)
+
+        device.reportLocation(SdkConnectLocation())
+        await Self.mainQueueDrained()
+        #expect(model.connectionStatus == .destinationSet)
+        #expect(record.statuses == [.disconnected, .destinationSet])
+    }
+
+    /// The window shows again while a menu bar connect is held: the new
+    /// controller's report from before the connect does not flip the view,
+    /// the device's location listener is closed, and once the connect
+    /// returns the status is read from the controller again.
+    @Test func setupWhileAConnectIsHeldReadsTheControllerOnceItReturns() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+
+        model.connect()
+        await commands.waitUntilReached()
+        model.readConnectionStatus = { commands.status }
+        model.setup(api: nil, device: device, connectViewController: nil)
+        #expect(!device.hasLocationListener)
+        #expect(model.connectionStatus == .destinationSet)
+
+        // the controller already reports connected when the connect returns
+        commands.statusAfterCommand = .connected
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(model.connectionStatus == .connected)
+    }
+
+    /// Suspended and set up again with nothing pending: the reports from
+    /// each source show as before.
+    @Test func suspendAndSetupWithNothingPendingFollowTheirSources() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        #expect(model.connectionStatus == .disconnected)
+        device.reportLocation(SdkConnectLocation())
+        await Self.mainQueueDrained()
+        #expect(model.connectionStatus == .destinationSet)
+
+        model.readConnectionStatus = { commands.status }
+        model.setup(api: nil, device: device, connectViewController: nil)
+        #expect(model.connectionStatus == .connected)
+    }
+
+    /// Signed out (or the device went away) while a connect is held: the
+    /// status is cleared at once, not held by the signed out account's tap,
+    /// and the connect still runs to the end.
+    @Test func resetWhileAConnectIsHeldClearsTheStatus() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+
+        model.connect()
+        await commands.waitUntilReached()
+        #expect(model.connectionStatus == .destinationSet)
+        model.reset()
+        // no controller after a reset
+        model.readConnectionStatus = { nil }
+        #expect(model.connectionStatus == nil)
+
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(commands.performed == [.connectBestAvailable])
+        #expect(model.connectionStatus == nil)
+    }
+
+    /// A connect of the signed out account still held when the next one
+    /// signs in is not that account's connection: its start goes through
+    /// the gate, and out of balance it is refused.
+    @Test func aConnectHeldAcrossSignOutIsNotTheNextAccountsConnection() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+
+        model.connect()
+        await commands.waitUntilReached()
+        model.reset()
+
+        // the next account, out of balance, with its own controller
+        model.loadCachedBalance = { Self.balance(0) }
+        model.readConnectionStatus = { ConnectionStatus.disconnected.rawValue }
+        model.setup(api: nil, device: FakeDevice(location: nil), connectViewController: nil)
+        #expect(model.connectionStatus == .disconnected)
+
+        model.connect()
+        #expect(model.isPresentedUpgradeSheet)
+        #expect(model.connectionStatus == .disconnected)
+
+        // the second release lets a start admitted by mistake return too,
+        // so the test fails on it rather than waiting for it
+        commands.release()
+        commands.release()
+        await model.connectCommandsSettled()
+        // only the signed out account's connect reached the sdk
+        #expect(commands.performed == [.connectBestAvailable])
+        #expect(model.connectionStatus == .disconnected)
     }
 }

@@ -194,10 +194,14 @@ class ConnectViewModel: ObservableObject {
         self?.connectViewController?.getConnectionStatus()
     }
     // commands queued and not finished, and the status the newest one shows
+    // (nil after a reset: the signed out account's commands show nothing)
     private var pendingConnectCommandCount = 0
     private var pendingConnectCommandStatus: ConnectionStatus? = nil
     // the status the sdk last reported
     private var reportedConnectionStatus: ConnectionStatus? = nil
+    // suspended: the status follows the device's location listener, not a
+    // presented controller (addBackgroundConnectionStateListener)
+    private var followsDeviceLocation = false
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -286,6 +290,10 @@ class ConnectViewModel: ObservableObject {
 
         // a start still waiting on its balance must not connect the next account
         self.cancelStartConnect()
+        // and a command still queued is not the next account's: it runs and
+        // settles, but neither shows nor counts as a requested connection
+        // to the next account's gate
+        self.pendingConnectCommandStatus = nil
         self.reportedConnectionStatus = nil
         self.publishConnectionStatus()
         self.windowCurrentSize = 0
@@ -307,6 +315,7 @@ class ConnectViewModel: ObservableObject {
         // must not publish status or disconnect its replacement.
         contractStatusGeneration += 1
         queuedContractStatusRefresh = nil
+        followsDeviceLocation = false
         gridListenerSub?.close()
         connectionStatusListenerSub?.close()
         selectedLocationListenerSub?.close()
@@ -344,6 +353,7 @@ class ConnectViewModel: ObservableObject {
             return
         }
 
+        followsDeviceLocation = true
         updateBackgroundConnectionState(device.getConnectLocation())
         connectLocationStateSub = device.add(ConnectLocationStateListener { [weak self] location in
             DispatchQueue.main.async {
@@ -557,7 +567,9 @@ class ConnectViewModel: ObservableObject {
      * they were made. Until the last one returns, the status it starts with
      * (the sdk's own first status for the gesture) stands in for the sdk's,
      * so a report from before it cannot flip the view back, and the sdk's
-     * status is read again once it has returned.
+     * status is read again once it has returned (see connectCommandFinished
+     * for the suspended state). A reset drops the signed out account's
+     * commands from the status, not from the queue.
      */
     private func runConnectCommand(_ command: ConnectCommand, then: (() -> Void)? = nil) {
         let work = ConnectCommandWork(
@@ -580,14 +592,26 @@ class ConnectViewModel: ObservableObject {
         }
     }
 
+    /// Suspended (the macOS menu bar with the window hidden), the status is
+    /// the device's location, which the last command has just set: set means
+    /// destination set, none means disconnected, the same as the command's
+    /// own first status. The location listener reports it only after the
+    /// command returns (the extension's event is asynchronous), so the
+    /// command's status stands for it. Without it the view went back to the
+    /// location reported before the command until the report came.
     private func connectCommandFinished() {
         pendingConnectCommandCount -= 1
         if 0 < pendingConnectCommandCount {
             return
         }
+        let finishedStatus = pendingConnectCommandStatus
         pendingConnectCommandStatus = nil
-        // the sdk has every command now
-        updateConnectionStatus()
+        if followsDeviceLocation, let finishedStatus {
+            reportedConnectionStatus = finishedStatus
+        } else {
+            // the sdk has every command now
+            updateConnectionStatus()
+        }
         publishConnectionStatus()
     }
 
@@ -609,7 +633,7 @@ class ConnectViewModel: ObservableObject {
     /// else what the sdk reports. A start waiting on its balance is not in
     /// it: nothing is asked of the sdk until the gate admits it.
     private var requestedConnectionStatus: ConnectionStatus? {
-        0 < pendingConnectCommandCount ? pendingConnectCommandStatus : reportedConnectionStatus
+        pendingConnectCommandStatus ?? reportedConnectionStatus
     }
 
     /// Publishes what the connect views show: connecting while a start waits

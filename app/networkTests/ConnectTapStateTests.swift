@@ -620,6 +620,7 @@ struct ConnectTapStateTests {
         private var tunnelListeners: [Int: SdkTunnelChangeListenerProtocol] = [:]
         private var nextListenerId = 0
         private var mainThreadCallNames: [String] = []
+        private var callNames: [String] = []
         private var afterTunnelReadValue: (() -> Void)?
         private var afterLocationReadValue: (() -> Void)?
 
@@ -695,9 +696,18 @@ struct ConnectTapStateTests {
             stateLock.withLock { mainThreadCallNames = [] }
         }
 
+        /// How many times `name` was called, on any thread.
+        func callCount(_ name: String) -> Int {
+            stateLock.withLock { callNames.filter { $0 == name }.count }
+        }
+
         private func record(_ name: String) {
-            if Thread.isMainThread {
-                stateLock.withLock { mainThreadCallNames.append(name) }
+            let mainThread = Thread.isMainThread
+            stateLock.withLock {
+                callNames.append(name)
+                if mainThread {
+                    mainThreadCallNames.append(name)
+                }
             }
         }
 
@@ -775,6 +785,12 @@ struct ConnectTapStateTests {
             vc?.close()
         }
 
+        // the window's controller, as NetworkApp.setupConnectViewModel opens it
+        override func openConnectViewController() -> SdkConnectViewController? {
+            record("openConnectViewController")
+            return FakeConnectViewController()
+        }
+
         // MARK: the device stores' calls
 
         /// The device listeners the stores add, each with what it reports.
@@ -784,6 +800,11 @@ struct ConnectTapStateTests {
         /// The controllers the stores opened on this device, in order.
         var controllers: [FakeControllerRecord] {
             stateLock.withLock { openedControllers }
+        }
+
+        /// The controller opened with `name` (its open call), the last one.
+        func controller(_ name: String) -> FakeControllerRecord? {
+            controllers.last { $0.name == name }
         }
 
         /// The calls made on the main thread on the controllers opened here.
@@ -808,7 +829,7 @@ struct ConnectTapStateTests {
         private func opened<T>(_ name: String, _ controller: T, _ calls: FakeCalls, _ listeners: FakeListeners) -> T {
             record(name)
             stateLock.withLock {
-                openedControllers.append(FakeControllerRecord(calls: calls, listeners: listeners))
+                openedControllers.append(FakeControllerRecord(name: name, calls: calls, listeners: listeners))
             }
             return controller
         }
@@ -853,7 +874,49 @@ struct ConnectTapStateTests {
 
         override func getBlockActionOverrides() -> SdkBlockActionOverrideList? {
             record("getBlockActionOverrides")
-            return nil
+            let overrides = stateLock.withLock { blockActionOverridesValue }
+            heldRead("getBlockActionOverrides")
+            guard let overrides, let list = SdkBlockActionOverrideList() else {
+                return nil
+            }
+            for override in overrides {
+                list.add(override)
+            }
+            return list
+        }
+
+        override func add(_ override: SdkBlockActionOverride?) {
+            record("addBlockActionOverride")
+            guard let override else {
+                return
+            }
+            stateLock.withLock {
+                blockActionOverridesValue = (blockActionOverridesValue ?? []).filter {
+                    $0.overrideId?.idStr != override.overrideId?.idStr
+                } + [override]
+            }
+        }
+
+        override func setBlockActionOverrides(_ overrides: SdkBlockActionOverrideList?) {
+            record("setBlockActionOverrides")
+            var values: [SdkBlockActionOverride] = []
+            if let overrides {
+                for i in 0..<overrides.len() {
+                    if let override = overrides.get(i) {
+                        values.append(override)
+                    }
+                }
+            }
+            stateLock.withLock { blockActionOverridesValue = values }
+        }
+
+        override func removeBlockActionOverride(_ overrideId: SdkId?) {
+            record("removeBlockActionOverride")
+            stateLock.withLock {
+                blockActionOverridesValue = blockActionOverridesValue?.filter {
+                    $0.overrideId?.idStr != overrideId?.idStr
+                }
+            }
         }
 
         // reports the rpc up
@@ -865,7 +928,7 @@ struct ConnectTapStateTests {
 
         override func getConnected() -> Bool {
             record("getConnected")
-            return false
+            return stateLock.withLock { remoteConnectedValue }
         }
 
         override func add(_ listener: SdkDnsResolverSettingsChangeListenerProtocol?) -> SdkSubProtocol? {
@@ -876,7 +939,75 @@ struct ConnectTapStateTests {
 
         override func getDnsResolverSettings() -> SdkDnsResolverSettings? {
             record("getDnsResolverSettings")
-            return nil
+            let settings = stateLock.withLock { dnsResolverSettingsValue }
+            heldRead("getDnsResolverSettings")
+            return settings
+        }
+
+        override func setDnsResolverSettings(_ dnsResolverSettings: SdkDnsResolverSettings?) {
+            record("setDnsResolverSettings")
+            stateLock.withLock { dnsResolverSettingsValue = dnsResolverSettings }
+        }
+
+        // MARK: what the stores read
+
+        private var dnsResolverSettingsValue: SdkDnsResolverSettings?
+        private var transportSettingsValue: SdkTransportSettings?
+        private var providerTransportSettingsValue: SdkTransportSettings?
+        private var remoteConnectedValue = false
+        private var blockActionOverridesValue: [SdkBlockActionOverride]?
+        private var heldReadNames: Set<String> = []
+        private let readHeld = DispatchSemaphore(value: 0)
+        private let readReleases = DispatchSemaphore(value: 0)
+
+        /// The dns resolver settings the device answers, nil for none.
+        var dnsResolverSettings: SdkDnsResolverSettings? {
+            get { stateLock.withLock { dnsResolverSettingsValue } }
+            set { stateLock.withLock { dnsResolverSettingsValue = newValue } }
+        }
+
+        /// Whether its rpc to the extension is up (GetRemoteConnected).
+        var remoteConnected: Bool {
+            get { stateLock.withLock { remoteConnectedValue } }
+            set { stateLock.withLock { remoteConnectedValue = newValue } }
+        }
+
+        /// The split rules the device answers, nil for none.
+        var blockActionOverrides: [SdkBlockActionOverride]? {
+            get { stateLock.withLock { blockActionOverridesValue } }
+            set { stateLock.withLock { blockActionOverridesValue = newValue } }
+        }
+
+        /// The next read of `name` made off the main thread answers what the
+        /// device has as it starts, and returns only once `releaseRead` lets
+        /// it, like an rpc in flight: the device can change meanwhile.
+        func holdNextRead(_ name: String) {
+            stateLock.withLock { _ = heldReadNames.insert(name) }
+        }
+
+        /// Returns once a held read has started.
+        func waitUntilReadHeld() async {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                DispatchQueue.global().async {
+                    self.readHeld.wait()
+                    continuation.resume()
+                }
+            }
+        }
+
+        func releaseRead() {
+            readReleases.signal()
+        }
+
+        private func heldRead(_ name: String) {
+            if Thread.isMainThread {
+                return
+            }
+            let held = stateLock.withLock { heldReadNames.remove(name) != nil }
+            if held {
+                readHeld.signal()
+                readReleases.wait()
+            }
         }
 
         // the transport listeners report a policy and a status; the getters
@@ -907,12 +1038,22 @@ struct ConnectTapStateTests {
 
         override func getTransportSettings() -> SdkTransportSettings? {
             record("getTransportSettings")
-            return nil
+            return stateLock.withLock { transportSettingsValue }
         }
 
         override func getProviderTransportSettings() -> SdkTransportSettings? {
             record("getProviderTransportSettings")
-            return nil
+            return stateLock.withLock { providerTransportSettingsValue }
+        }
+
+        override func setTransportSettings(_ transportSettings: SdkTransportSettings?) {
+            record("setTransportSettings")
+            stateLock.withLock { transportSettingsValue = transportSettings }
+        }
+
+        override func setProviderTransportSettings(_ transportSettings: SdkTransportSettings?) {
+            record("setProviderTransportSettings")
+            stateLock.withLock { providerTransportSettingsValue = transportSettings }
         }
 
         override func getTransportStatus() -> SdkTransportStatus? {
@@ -1029,8 +1170,9 @@ struct ConnectTapStateTests {
         }
     }
 
-    /// A controller the stores opened on a FakeDevice.
+    /// A controller the stores opened on a FakeDevice, by its open call.
     struct FakeControllerRecord {
+        let name: String
         let calls: FakeCalls
         let listeners: FakeListeners
     }
@@ -1671,6 +1813,194 @@ struct ConnectTapStateTests {
         stores.reset()
         await Self.deviceWorkSettled(model)
         #expect(next.storeListeners.count == 0)
+    }
+
+    // MARK: showing the window while a command is held
+
+    /// The window's setup as NetworkApp makes it once the commands have run
+    /// (DeferredWindowSetup): the controller, the view model, the stores.
+    /// Counts the setups, and whether a command was pending at each.
+    @MainActor
+    final class WindowSetupRecord {
+        private(set) var setups = 0
+        private(set) var pendingAtSetup: [Bool] = []
+
+        func setup(_ model: ConnectViewModel, _ commands: HeldCommands, _ device: FakeDevice, _ stores: DeviceStores) {
+            setups += 1
+            pendingAtSetup.append(model.hasPendingConnectCommands)
+            model.readConnectionStatus = { commands.status }
+            model.setup(api: nil, device: device, connectViewController: device.openConnectViewController())
+            stores.setup(device, localState: nil)
+        }
+    }
+
+    /// Showing the window (macOS) or foregrounding the app (iOS) right after
+    /// a menu bar or widget connect: the setup opened the window's controller,
+    /// added its listeners and read the device on the main actor, and with
+    /// the connect held in the sdk each of those waited on the device's state
+    /// lock, which the command keeps through its rpc, up to the 60 s rpc
+    /// timeout. Now the view model stays suspended, showing the tap's state,
+    /// and the setup runs once the command has returned.
+    @Test func showingTheWindowWhileACommandIsHeldDefersTheSetup() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        let stores = DeviceStores(deviceWorkQueue: model.connectCommandQueue)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
+
+        model.connect()
+        await commands.waitUntilReached()
+        device.forgetMainThreadCalls()
+        let windowSetup = DeferredWindowSetup()
+        let record = WindowSetupRecord()
+        // as NetworkApp.updateConnectViewModel applies the window showing
+        let setup = windowSetup.schedule(model, stillWanted: { true }) {
+            record.setup(model, commands, device, stores)
+        }
+        await Self.mainQueueDrained()
+        #expect(record.setups == 0)
+        #expect(device.mainThreadCalls == [])
+        #expect(device.controllers.isEmpty)
+        #expect(model.connectionStatus == .destinationSet)
+
+        commands.release()
+        await setup.value
+        #expect(record.setups == 1)
+        #expect(record.pendingAtSetup == [false])
+        #expect(model.connectViewController != nil)
+        #expect(device.controllers.count == 3)
+        stores.reset()
+        await Self.deviceWorkSettled(model)
+    }
+
+    /// A hide, a reset or another device before the commands have run
+    /// retires the setup (its token): it never runs, and nor does one that
+    /// is no longer wanted when they have.
+    @Test func aRetiredOrUnwantedSetupNeverRuns() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        let stores = DeviceStores(deviceWorkQueue: model.connectCommandQueue)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        let windowSetup = DeferredWindowSetup()
+        let record = WindowSetupRecord()
+
+        model.connect()
+        await commands.waitUntilReached()
+        // shown, then hidden again
+        let hidden = windowSetup.schedule(model, stillWanted: { true }) {
+            record.setup(model, commands, device, stores)
+        }
+        windowSetup.cancel()
+        // shown on a device, then on the next one: only the newest runs
+        let replaced = windowSetup.schedule(model, stillWanted: { true }) {
+            record.setup(model, commands, device, stores)
+        }
+        let next = FakeDevice(location: nil)
+        var nextSetups = 0
+        let newest = windowSetup.schedule(model, stillWanted: { true }) {
+            nextSetups += 1
+        }
+        commands.release()
+        await hidden.value
+        await replaced.value
+        await newest.value
+        #expect(record.setups == 0)
+        #expect(nextSetups == 1)
+        #expect(device.mainThreadCalls.filter { $0 == "openConnectViewController" } == [])
+
+        // no longer wanted once the commands have run: the window went
+        // inactive or the device changed without a new update
+        let unwanted = windowSetup.schedule(model, stillWanted: { false }) {
+            record.setup(model, commands, next, stores)
+        }
+        await unwanted.value
+        #expect(record.setups == 0)
+        #expect(next.mainThreadCalls == [])
+    }
+
+    /// A tap made while the setup waits queues a command the setup would
+    /// wait on again: the setup checks just before it runs and waits for
+    /// that one too. The tap shows its state meanwhile.
+    @Test func aTapDuringTheWaitIsWaitedForBeforeTheSetup() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        let stores = DeviceStores(deviceWorkQueue: model.connectCommandQueue)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
+        let windowSetup = DeferredWindowSetup()
+        let record = WindowSetupRecord()
+
+        model.connect()
+        await commands.waitUntilReached()
+        let setup = windowSetup.schedule(model, stillWanted: { true }) {
+            record.setup(model, commands, device, stores)
+        }
+        // the setup is waiting on the connect
+        await Self.mainQueueDrained()
+        model.disconnect()
+        #expect(model.connectionStatus == .disconnected)
+
+        commands.release()
+        await commands.waitUntilReached()
+        await Self.mainQueueDrained()
+        // the connect has returned, the disconnect is held
+        #expect(record.setups == 0)
+        #expect(model.connectionStatus == .disconnected)
+        #expect(device.mainThreadCalls.filter { $0 == "openConnectViewController" } == [])
+
+        commands.release()
+        await setup.value
+        #expect(record.setups == 1)
+        #expect(record.pendingAtSetup == [false])
+        #expect(commands.performed == [.connectBestAvailable, .disconnect])
+        stores.reset()
+        await Self.deviceWorkSettled(model)
+    }
+
+    /// Taps that keep coming hold the setup back at most `retryLimit` more
+    /// waits; then it runs, as it did before the wait.
+    @Test func theSetupRunsAfterAtMostTheRetryLimit() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        let stores = DeviceStores(deviceWorkQueue: model.connectCommandQueue)
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
+        let windowSetup = DeferredWindowSetup()
+        let record = WindowSetupRecord()
+
+        model.connect()
+        await commands.waitUntilReached()
+        let setup = windowSetup.schedule(model, stillWanted: { true }) {
+            record.setup(model, commands, device, stores)
+        }
+        await Self.mainQueueDrained()
+        for round in 0...DeferredWindowSetup.retryLimit {
+            // a tap during each wait
+            if round % 2 == 0 {
+                model.disconnect()
+            } else {
+                model.connect()
+            }
+            commands.release()
+            await commands.waitUntilReached()
+            await Self.mainQueueDrained()
+            #expect(record.setups == (round < DeferredWindowSetup.retryLimit ? 0 : 1), "round \(round)")
+        }
+        await setup.value
+        #expect(record.pendingAtSetup == [true])
+
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        stores.reset()
+        await Self.deviceWorkSettled(model)
     }
 
     // MARK: the menu bar while suspended

@@ -77,6 +77,63 @@ enum ConnectViewModelUpdate: Equatable {
     }
 }
 
+/**
+ * The window's setup (NetworkApp.updateConnectViewModel's `.setup`), made
+ * once the connect commands queued so far have run.
+ *
+ * Setup opens the window's controller, adds its listeners and reads the
+ * device on the main actor (setupConnectViewModel and the device stores'
+ * setup). On the sdk's DeviceRemote each of these takes the device's state
+ * lock, which a connect or disconnect command keeps through its rpc to the
+ * extension, up to the 60 s rpc timeout: showing the window (macOS) or
+ * foregrounding the app (iOS) right after a tap froze the main actor for as
+ * long. Until the setup, the view model stays suspended on the device, which
+ * makes no device call on the main actor and shows the status, a pending
+ * tap's included.
+ *
+ * Each schedule replaces the one before (its token), and so does `cancel`,
+ * on any later hide, reset or device change. A setup runs only while its
+ * token is current and `stillWanted` holds (the window still active, the
+ * device unchanged). A tap made during the wait queues a command the setup
+ * would wait on again: just before setup the commands are checked again and
+ * waited for, at most `retryLimit` more times, then the setup runs, as it
+ * did before.
+ */
+@MainActor
+final class DeferredWindowSetup {
+    static let retryLimit = 3
+
+    private var token = 0
+
+    /// Retires the setup scheduled last, if it has not run.
+    func cancel() {
+        token += 1
+    }
+
+    /// Runs `setup` once `model`'s queued commands have run (see the type).
+    /// The task ends after the setup, or when the setup was retired.
+    @discardableResult
+    func schedule(
+        _ model: ConnectViewModel,
+        stillWanted: @escaping @MainActor () -> Bool,
+        setup: @escaping @MainActor () -> Void
+    ) -> Task<Void, Never> {
+        token += 1
+        let token = self.token
+        return Task { @MainActor [weak self] in
+            var waits = 0
+            repeat {
+                await model.connectCommandsSettled()
+                waits += 1
+                guard let self, self.token == token, stillWanted() else {
+                    return
+                }
+            } while model.hasPendingConnectCommands && waits <= Self.retryLimit
+            setup()
+        }
+    }
+}
+
 #if os(macOS)
 /**
  * The macOS menu bar's connection row and icon. Only the connected status
@@ -221,6 +278,8 @@ struct NetworkApp: App {
     // the stores below that follow the device, set up and reset with the
     // connect view model (DeviceStores)
     private let deviceStores: DeviceStores
+    // the window's setup, once the queued connect commands have run
+    private let windowSetup = DeferredWindowSetup()
     @StateObject var throughputStore: ThroughputStore
     @StateObject var blockActionsStore: BlockActionsStore
     @StateObject var dnsSettingsStore: DnsSettingsStore
@@ -334,19 +393,42 @@ struct NetworkApp: App {
         )
         switch update {
         case .reset:
+            windowSetup.cancel()
             connectViewModel.reset()
             resetDeviceStores()
         case .suspend:
+            windowSetup.cancel()
             connectViewModel.suspend(api: deviceManager.api, device: device)
             resetDeviceStores()
         case .setup:
             if let device {
-                setupConnectViewModel(device)
-                setupDeviceStores(device)
+                deferSetup(device)
             }
         case .unchanged:
             return
         }
+    }
+
+    /// The window's setup on `device`, once the connect commands queued so
+    /// far have run (DeferredWindowSetup). Meanwhile the view model is
+    /// suspended on the device: it stays so when the window shows again, and
+    /// moves there from a reset or another device, which makes no device call
+    /// on the main actor either.
+    private func deferSetup(_ device: SdkDeviceRemote) {
+        if connectViewModel.device !== device {
+            connectViewModel.suspend(api: deviceManager.api, device: device)
+            resetDeviceStores()
+        }
+        windowSetup.schedule(
+            connectViewModel,
+            stillWanted: {
+                presentationLifecycle.isActive && deviceManager.device === device
+            },
+            setup: {
+                setupConnectViewModel(device)
+                setupDeviceStores(device)
+            }
+        )
     }
 
     private func setupDeviceStores(_ device: SdkDeviceRemote) {

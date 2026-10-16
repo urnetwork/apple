@@ -166,6 +166,8 @@ class DnsSettingsStore: ObservableObject {
     // advanced by every reset: a report from a retired listener changes
     // nothing, and above all mirrors nothing, after the next setup too
     private var generation = 0
+    // the re-reads on the device work queue, and whether one applies
+    private var reads = DeviceReads()
 
     init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
         self.deviceWorkQueue = deviceWorkQueue
@@ -208,6 +210,7 @@ class DnsSettingsStore: ObservableObject {
     /// and close on the device work queue (DeviceStores).
     func reset() {
         generation += 1
+        reads.reset()
         closeOnDeviceWorkQueue(deviceWorkQueue, [settingsSub, remoteSub])
         settingsSub = nil
         remoteSub = nil
@@ -236,16 +239,38 @@ class DnsSettingsStore: ObservableObject {
      * force; disconnected, it is the edit the remote queued, which is what the
      * next connect applies.
      *
-     * `getConnected()` is GetRemoteConnected; swift's importer strips the
-     * redundant "Remote".
+     * The read runs on the device work queue, never on the main actor: the
+     * getters take the device's state lock, which a connect or disconnect
+     * command holds through its rpc, up to the sdk's 60 s rpc timeout, and
+     * every report re-read on the main actor froze it for as long. It applies
+     * on the main actor only while the generation and the revision are the
+     * ones it was queued at (DeviceReads): a read from before an edit, or
+     * from a retired listener, neither shows nor mirrors.
      */
     private func update(afterEdit: Bool = false) {
-        guard let device = self.device else {
+        guard let device = self.device, let read = reads.request(afterEdit: afterEdit) else {
             return
         }
-        if let sdkSettings = device.getDnsResolverSettings() {
+        let generation = self.generation
+        let work = DnsSettingsReadWork(device: device)
+        readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] answer in
+            guard let self, self.generation == generation else {
+                return
+            }
+            let landed = self.reads.landed(read)
+            if landed.applies {
+                self.apply(answer, afterEdit: read.afterEdit)
+            }
+            if landed.again {
+                self.update()
+            }
+        }
+    }
+
+    private func apply(_ answer: DnsSettingsRead, afterEdit: Bool) {
+        if let sdkSettings = answer.settings {
             settings = DnsSettings(sdkSettings)
-            if afterEdit || device.getConnected() {
+            if afterEdit || answer.connected {
                 persist(sdkSettings)
             }
         } else {
@@ -275,11 +300,80 @@ class DnsSettingsStore: ObservableObject {
         }
     }
 
-    func apply(_ newSettings: DnsSettings) {
+    /**
+     * Applies the editor's edit made from `original`, the settings it was
+     * seeded from, only while they are still the store's: compare and set.
+     * The store's settings move under an open editor (a report, another
+     * edit, a reset and the next setup), and an edit made from older ones
+     * would replace the newer settings whole. With no settings at all (nil
+     * until the first read lands, and after a reset) nothing applies: the
+     * editor's form would be the blank one, and applied it replaces the
+     * resolver the extension holds. Refused, the editor seeds again from the
+     * store's settings (SettingsEditorSeed). Returns whether it applied.
+     */
+    @discardableResult
+    func apply(_ newSettings: DnsSettings, original: DnsSettings) -> Bool {
+        guard device != nil, let settings, settings == original else {
+            return false
+        }
+        apply(newSettings)
+        return true
+    }
+
+    /**
+     * Applies an edit. It shows at once, and the device's setter runs on the
+     * device work queue, after the work queued so far, never on the main
+     * actor: it takes the device's state lock, which a held connect or
+     * disconnect command keeps through its rpc, and an Update tapped then
+     * froze the main actor until the command returned.
+     *
+     * The device confirms the edit: its read-back, queued right after the
+     * setter, applies and is mirrored (`update`), and so do its listener's
+     * reports. A read queued before the edit is dropped (DeviceReads), so
+     * what the edit replaced never shows again.
+     */
+    private func apply(_ newSettings: DnsSettings) {
         guard let device = self.device else {
             return
         }
-        device.setDnsResolverSettings(newSettings.toSdk())
+        reads.edited()
+        settings = newSettings
+        let work = DnsSettingsEditWork(device: device, settings: newSettings.toSdk())
+        deviceWorkQueue.async {
+            work.run()
+        }
         update(afterEdit: true)
     }
+}
+
+/// An edit's setter, run on the device work queue. Unchecked, as
+/// DnsSettingsReadWork: the settings are the edit's own sdk object, which
+/// nothing changes after the hand off.
+private struct DnsSettingsEditWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+    let settings: SdkDnsResolverSettings
+
+    func run() {
+        device.setDnsResolverSettings(settings)
+    }
+}
+
+/// The device's dns resolver settings and its rpc, read on the device work
+/// queue. Unchecked: the device is a gomobile proxy that may be called from
+/// any thread, and nothing here changes after the hand off.
+///
+/// `getConnected()` is GetRemoteConnected; swift's importer strips the
+/// redundant "Remote".
+private struct DnsSettingsReadWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() -> DnsSettingsRead {
+        let settings = device.getDnsResolverSettings()
+        return DnsSettingsRead(settings: settings, connected: device.getConnected())
+    }
+}
+
+private struct DnsSettingsRead {
+    let settings: SdkDnsResolverSettings?
+    let connected: Bool
 }

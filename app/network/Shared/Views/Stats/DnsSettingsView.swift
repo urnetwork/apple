@@ -23,6 +23,13 @@ struct RegionalDnsSuggestion: Identifiable {
 /**
  * Editor for the device dns resolver settings.
  * Changes apply together with the Update button.
+ *
+ * The draft starts from the store's settings (`seed`), and while the store
+ * has none (nil until its first read lands, and after a reset) the editor is
+ * disabled and seeds once they arrive: the blank form applied would replace
+ * the resolver the extension holds. Update is a compare and set against the
+ * settings it was seeded from; refused, the editor starts over from the
+ * store's.
  */
 struct DnsSettingsView: View {
 
@@ -31,22 +38,28 @@ struct DnsSettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var draft: DnsSettings
-    private let original: DnsSettings
+    @State private var seed: SettingsEditorSeed<DnsSettings>
     private let connectedCountryCode: String?
     private let connectedCountryName: String?
     private let regionalServers: [RegionalDnsSuggestion]
 
     init(settings: DnsSettings?, connectedCountryCode: String? = nil, connectedCountryName: String? = nil) {
-        let settings = settings ?? DnsSettings()
-        _draft = State(initialValue: settings)
-        self.original = settings
+        _draft = State(initialValue: settings ?? DnsSettings())
+        _seed = State(initialValue: SettingsEditorSeed(settings))
         self.connectedCountryCode = connectedCountryCode?.lowercased()
         self.connectedCountryName = connectedCountryName
         self.regionalServers = Self.loadRegionalServers()
     }
 
+    private var editable: Bool {
+        seed.editable(with: dnsSettingsStore.settings)
+    }
+
     private var isDirty: Bool {
-        draft != original
+        guard let original = seed.original else {
+            return false
+        }
+        return draft != original
     }
 
     /**
@@ -301,21 +314,35 @@ struct DnsSettingsView: View {
             }
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
+            .disabled(!editable)
 
             VStack {
                 UrButton(
                     text: "Update",
                     action: {
-                        dnsSettingsStore.apply(draft)
-                        dismiss()
+                        guard let original = seed.original else {
+                            return
+                        }
+                        if dnsSettingsStore.apply(draft, original: original) {
+                            dismiss()
+                        } else if let settings = dnsSettingsStore.settings {
+                            // the store's settings moved since the seed
+                            seed.reseed(settings)
+                            draft = settings
+                        }
                     },
-                    enabled: isDirty
+                    enabled: editable && isDirty
                 )
             }
             .padding()
 
         }
         .background(themeManager.currentTheme.backgroundColor)
+        .onChange(of: dnsSettingsStore.settings) { settings in
+            if let seeded = seed.storeChanged(settings) {
+                draft = seeded
+            }
+        }
     }
 
     /**

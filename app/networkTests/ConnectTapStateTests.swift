@@ -868,7 +868,49 @@ struct ConnectTapStateTests {
 
         override func getBlockActionOverrides() -> SdkBlockActionOverrideList? {
             record("getBlockActionOverrides")
-            return nil
+            let overrides = stateLock.withLock { blockActionOverridesValue }
+            heldRead("getBlockActionOverrides")
+            guard let overrides, let list = SdkBlockActionOverrideList() else {
+                return nil
+            }
+            for override in overrides {
+                list.add(override)
+            }
+            return list
+        }
+
+        override func add(_ override: SdkBlockActionOverride?) {
+            record("addBlockActionOverride")
+            guard let override else {
+                return
+            }
+            stateLock.withLock {
+                blockActionOverridesValue = (blockActionOverridesValue ?? []).filter {
+                    $0.overrideId?.idStr != override.overrideId?.idStr
+                } + [override]
+            }
+        }
+
+        override func setBlockActionOverrides(_ overrides: SdkBlockActionOverrideList?) {
+            record("setBlockActionOverrides")
+            var values: [SdkBlockActionOverride] = []
+            if let overrides {
+                for i in 0..<overrides.len() {
+                    if let override = overrides.get(i) {
+                        values.append(override)
+                    }
+                }
+            }
+            stateLock.withLock { blockActionOverridesValue = values }
+        }
+
+        override func removeBlockActionOverride(_ overrideId: SdkId?) {
+            record("removeBlockActionOverride")
+            stateLock.withLock {
+                blockActionOverridesValue = blockActionOverridesValue?.filter {
+                    $0.overrideId?.idStr != overrideId?.idStr
+                }
+            }
         }
 
         // reports the rpc up
@@ -880,7 +922,7 @@ struct ConnectTapStateTests {
 
         override func getConnected() -> Bool {
             record("getConnected")
-            return false
+            return stateLock.withLock { remoteConnectedValue }
         }
 
         override func add(_ listener: SdkDnsResolverSettingsChangeListenerProtocol?) -> SdkSubProtocol? {
@@ -891,7 +933,73 @@ struct ConnectTapStateTests {
 
         override func getDnsResolverSettings() -> SdkDnsResolverSettings? {
             record("getDnsResolverSettings")
-            return nil
+            let settings = stateLock.withLock { dnsResolverSettingsValue }
+            heldRead("getDnsResolverSettings")
+            return settings
+        }
+
+        override func setDnsResolverSettings(_ dnsResolverSettings: SdkDnsResolverSettings?) {
+            record("setDnsResolverSettings")
+            stateLock.withLock { dnsResolverSettingsValue = dnsResolverSettings }
+        }
+
+        // MARK: what the stores read
+
+        private var dnsResolverSettingsValue: SdkDnsResolverSettings?
+        private var remoteConnectedValue = false
+        private var blockActionOverridesValue: [SdkBlockActionOverride]?
+        private var heldReadNames: Set<String> = []
+        private let readHeld = DispatchSemaphore(value: 0)
+        private let readReleases = DispatchSemaphore(value: 0)
+
+        /// The dns resolver settings the device answers, nil for none.
+        var dnsResolverSettings: SdkDnsResolverSettings? {
+            get { stateLock.withLock { dnsResolverSettingsValue } }
+            set { stateLock.withLock { dnsResolverSettingsValue = newValue } }
+        }
+
+        /// Whether its rpc to the extension is up (GetRemoteConnected).
+        var remoteConnected: Bool {
+            get { stateLock.withLock { remoteConnectedValue } }
+            set { stateLock.withLock { remoteConnectedValue = newValue } }
+        }
+
+        /// The split rules the device answers, nil for none.
+        var blockActionOverrides: [SdkBlockActionOverride]? {
+            get { stateLock.withLock { blockActionOverridesValue } }
+            set { stateLock.withLock { blockActionOverridesValue = newValue } }
+        }
+
+        /// The next read of `name` made off the main thread answers what the
+        /// device has as it starts, and returns only once `releaseRead` lets
+        /// it, like an rpc in flight: the device can change meanwhile.
+        func holdNextRead(_ name: String) {
+            stateLock.withLock { _ = heldReadNames.insert(name) }
+        }
+
+        /// Returns once a held read has started.
+        func waitUntilReadHeld() async {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                DispatchQueue.global().async {
+                    self.readHeld.wait()
+                    continuation.resume()
+                }
+            }
+        }
+
+        func releaseRead() {
+            readReleases.signal()
+        }
+
+        private func heldRead(_ name: String) {
+            if Thread.isMainThread {
+                return
+            }
+            let held = stateLock.withLock { heldReadNames.remove(name) != nil }
+            if held {
+                readHeld.signal()
+                readReleases.wait()
+            }
         }
 
         // the transport listeners report a policy and a status; the getters

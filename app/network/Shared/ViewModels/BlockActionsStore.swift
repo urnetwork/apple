@@ -182,6 +182,8 @@ class BlockActionsStore: ObservableObject {
     // device (or before a reset) can never publish over newer state, and a
     // report from a retired listener changes nothing
     private var generation = 0
+    // the rules' re-reads on the device work queue, and whether one applies
+    private var overrideReads = DeviceReads()
 
     // the device's subs and the controller close here, off the main actor
     // (DeviceStores)
@@ -270,6 +272,7 @@ class BlockActionsStore: ObservableObject {
     /// device's state lock and run on the device work queue (DeviceStores).
     func reset() {
         generation += 1
+        overrideReads.reset()
         stopExitAttributionTimer()
         // the flag belongs to the generation that is ending: an rpc still in
         // flight can no longer publish, so leaving it set would wedge every
@@ -538,17 +541,39 @@ class BlockActionsStore: ObservableObject {
      * that would replace the app's only durable copy with a list it never
      * read -- which the next connect would apply to the extension as a wipe.
      *
-     * `getConnected()` is GetRemoteConnected; swift's importer strips the
-     * redundant "Remote".
+     * The read runs on the device work queue, never on the main actor: the
+     * getters take the device's state lock, which a connect or disconnect
+     * command holds through its rpc, up to the sdk's 60 s rpc timeout, and
+     * every report re-read on the main actor froze it for as long. It applies
+     * on the main actor only while the generation and the revision are the
+     * ones it was queued at (DeviceReads): a read from before an edit, or
+     * from a retired listener, neither shows nor mirrors.
      */
     private func updateOverrides(afterEdit: Bool = false) {
-        guard let device = self.device else {
+        guard let device = self.device, let read = overrideReads.request(afterEdit: afterEdit) else {
             return
         }
+        let generation = self.generation
+        let work = BlockActionOverridesReadWork(device: device)
+        readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] answer in
+            guard let self, self.generation == generation else {
+                return
+            }
+            let landed = self.overrideReads.landed(read)
+            if landed.applies {
+                self.applyOverrides(answer, afterEdit: read.afterEdit)
+            }
+            if landed.again {
+                self.updateOverrides()
+            }
+        }
+    }
+
+    private func applyOverrides(_ answer: BlockActionOverridesRead, afterEdit: Bool) {
         var overrides: [SdkBlockActionOverride] = []
         var items: [SplitRuleItem] = []
         var appItems: [SplitTunnelAppRule] = []
-        if let list = device.getBlockActionOverrides() {
+        if let list = answer.overrides {
             for i in 0..<list.len() {
                 guard let override = list.get(i), let overrideId = override.overrideId else {
                     continue
@@ -585,7 +610,7 @@ class BlockActionsStore: ObservableObject {
         if appItems != appRules {
             appRules = appItems
         }
-        if afterEdit || device.getConnected() {
+        if afterEdit || answer.connected {
             persistOverrides()
             let excludedApps = SplitTunnelAppRules.excludedApps(appItems)
             if excludedApps != authoritativeExcludedApps {
@@ -599,7 +624,7 @@ class BlockActionsStore: ObservableObject {
         // real for this device's life. The local state is optional -- a build
         // with no app group has none -- and that degrades correctly, to
         // "connected only", which is the safe half of the test.
-        if !canCreateRule, device.getConnected() || localState?.getBlockActionOverrides() != nil {
+        if !canCreateRule, answer.connected || localState?.getBlockActionOverrides() != nil {
             canCreateRule = true
         }
     }
@@ -666,6 +691,7 @@ class BlockActionsStore: ObservableObject {
         override.hosts = arrayToStringList(hosts)
         override.routeOverride = mode.toSdkRouteOverride()
         device.add(override)
+        overrideReads.edited()
         updateOverrides(afterEdit: true)
     }
 
@@ -690,6 +716,7 @@ class BlockActionsStore: ObservableObject {
             list?.add(sdkOverride)
         }
         device.setBlockActionOverrides(list)
+        overrideReads.edited()
         updateOverrides(afterEdit: true)
     }
 
@@ -701,6 +728,7 @@ class BlockActionsStore: ObservableObject {
             return
         }
         device.removeBlockActionOverride(override.overrideId)
+        overrideReads.edited()
         updateOverrides(afterEdit: true)
     }
 
@@ -722,6 +750,7 @@ class BlockActionsStore: ObservableObject {
         override.appIds = arrayToStringList([identifier])
         override.routeOverride = SplitRuleMode.excluded.toSdkRouteOverride()
         device.add(override)
+        overrideReads.edited()
         updateOverrides(afterEdit: true)
     }
 
@@ -776,4 +805,24 @@ class BlockActionsStore: ObservableObject {
         }
         return stringListToArray(SdkCollapseHostNamesList(arrayToStringList(hosts)))
     }
+}
+
+/// The device's split rules and its rpc, read on the device work queue.
+/// Unchecked: the device is a gomobile proxy that may be called from any
+/// thread, and nothing here changes after the hand off.
+///
+/// `getConnected()` is GetRemoteConnected; swift's importer strips the
+/// redundant "Remote".
+private struct BlockActionOverridesReadWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() -> BlockActionOverridesRead {
+        let overrides = device.getBlockActionOverrides()
+        return BlockActionOverridesRead(overrides: overrides, connected: device.getConnected())
+    }
+}
+
+private struct BlockActionOverridesRead {
+    let overrides: SdkBlockActionOverrideList?
+    let connected: Bool
 }

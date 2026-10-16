@@ -132,6 +132,8 @@ struct IntroductionView: View {
         }
         let subscriptionStore = self.subscriptionStore
         let initiallyConnected = deviceManager.device?.getConnected() ?? false
+        // the restore after the store is for this device only
+        let purchaseDevice = connectViewModel.device
 #if os(macOS)
         // purchase fails in mac app store if vpn is connected;
         // iOS App Store traffic does not ride the tunnel, so only
@@ -160,7 +162,7 @@ struct IntroductionView: View {
             }
 #if os(macOS)
             if (initiallyConnected) {
-                connectViewModel.restoreConnect()
+                connectViewModel.restoreConnect(onDevice: purchaseDevice)
             }
 #endif
         }

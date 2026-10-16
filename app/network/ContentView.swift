@@ -76,12 +76,17 @@ struct ContentView: View {
                             logout: {
                                 
                                 Task {
-                                    connectViewModel.disconnect()
-                                    // the disconnect reaches the sdk before the sign out
-                                    await connectViewModel.connectCommandsSettled()
-                                    // the session's pending product events go out before it ends
-                                    ClientEvents.shared.stop()
-                                    deviceManager.logout()
+                                    // no connect from here; the disconnect
+                                    // reaches the sdk before the sign out,
+                                    // of this account only
+                                    await connectViewModel.signOut(
+                                        currentDevice: { deviceManager.device },
+                                        logout: {
+                                            // the session's pending product events go out before it ends
+                                            ClientEvents.shared.stop()
+                                            deviceManager.logout()
+                                        }
+                                    )
                                 }
                                 
                             },

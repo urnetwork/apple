@@ -297,6 +297,12 @@ class DeviceManager: ObservableObject {
     }
     private var applicationIsActive = false
     private var isLoggingOut = false
+    /// Runs as a logout of a device begins, whoever started it (the app's
+    /// Sign out, the account deletion, the server), before anything is torn
+    /// down: the connect view model stops connecting that device
+    /// (signOutStarted). A logout with no device has nothing to stop, and
+    /// no device change would end the sign out.
+    var logoutStarted: (@MainActor (SdkDeviceRemote) -> Void)?
 
     /// Why the server signed this app out, when the device's logout gave a
     /// cause that has a notice: the sign-in screen shows it once, until the
@@ -926,9 +932,13 @@ class DeviceManager: ObservableObject {
     }
     
     
+    /// The quit's teardown: the device closes, the vpn profiles go, and
+    /// `completion` reports the profiles. The device closes off the main
+    /// actor (closeOffMainActor), so the quit's answer and its cap, which
+    /// run there, never wait on it (QuitSequence).
     func closeOnQuit(completion: @escaping (Error?) -> Void) {
         retireDeviceAuthCallbacks()
-        self.device?.close()
+        Self.closeOffMainActor(self.device)
         
         if let vpnManager = self.vpnManager {
             vpnManager.stopVpnTunnelOnQuit(completion: completion)
@@ -937,6 +947,35 @@ class DeviceManager: ObservableObject {
         }
     }
     
+}
+
+extension DeviceManager {
+    /// Closes `device` on `queue`, never on the caller's thread. The sdk's
+    /// DeviceRemote.Close takes the device's state lock, which a connect
+    /// command inside an rpc to the tunnel extension holds for up to the
+    /// 60 s rpc timeout.
+    nonisolated static func closeOffMainActor(
+        _ device: SdkDeviceRemote?,
+        queue: DispatchQueue = .global(qos: .userInitiated)
+    ) {
+        guard let device else {
+            return
+        }
+        let close = DeviceCloseWork(device: device)
+        queue.async {
+            close.run()
+        }
+    }
+}
+
+/// A device to close, handed to another queue. Unchecked: the device is a
+/// gomobile proxy that may be called from any thread.
+private struct DeviceCloseWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() {
+        device.close()
+    }
 }
 
 private class NetworkSpaceUpdateCallback: NSObject, URnetworkSdk.SdkNetworkSpaceUpdateProtocol {
@@ -1990,6 +2029,9 @@ extension DeviceManager {
         }
         retireDeviceAuthCallbacks()
         isLoggingOut = true
+        if let device {
+            logoutStarted?(device)
+        }
         return true
     }
 

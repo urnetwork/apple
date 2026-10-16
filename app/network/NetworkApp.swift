@@ -51,6 +51,126 @@ struct PresentationWorkState {
     }
 }
 
+/**
+ * What the connect view model does on a device change or a presentation
+ * transition. No device (signed out, or the device went away) is a reset,
+ * whatever the window state: suspended instead, the signed out account's
+ * pending status, waiting start, balance recovery and notice outlived it
+ * until the next resume, and the start could still connect. With a device,
+ * a hidden presentation suspends, and a shown one sets up unless it already
+ * presents that device.
+ */
+enum ConnectViewModelUpdate: Equatable {
+    case reset
+    case suspend
+    case setup
+    case unchanged
+
+    static func next(hasDevice: Bool, presentationActive: Bool, presentsDevice: Bool) -> ConnectViewModelUpdate {
+        guard hasDevice else {
+            return .reset
+        }
+        guard presentationActive else {
+            return .suspend
+        }
+        return presentsDevice ? .unchanged : .setup
+    }
+}
+
+#if os(macOS)
+/**
+ * The macOS menu bar's connection row and icon. Only the connected status
+ * reads as connected: the sdk's CONNECT_FAILED can last indefinitely, and a
+ * destination set, a connect in progress or a start waiting on its balance
+ * is not a connection yet. The row says what the main window says
+ * (ConnectStatusIndicator), and the icon shows connected only when it is.
+ *
+ * The one exception is a destination set from the device's location alone
+ * (`fromLocation`, ConnectViewModel.connectionStatusFromLocation): with the
+ * window hidden nothing reports how far the connection got, so a set
+ * location reads as connected once the tunnel is up, and as connecting
+ * until then (a tunnel that never starts: the vpn permission or the system
+ * extension not approved, the profile removed).
+ *
+ * CONNECTED with the tunnel stopped (`tunnelConnected` false) says what the
+ * main window says there, "VPN tunnel disconnected". The view model keeps
+ * the tunnel's listener while the window is hidden, so both cases follow
+ * the tunnel then too.
+ */
+enum MenuBarConnectionState: Equatable {
+    case connected
+    case tunnelDisconnected
+    case connecting
+    case failed
+    case disconnected
+
+    init(_ connectionStatus: ConnectionStatus?, fromLocation: Bool = false, tunnelConnected: Bool = true) {
+        switch connectionStatus {
+        case .connected:
+            self = tunnelConnected ? .connected : .tunnelDisconnected
+        case .destinationSet where fromLocation:
+            self = tunnelConnected ? .connected : .connecting
+        case .connecting, .destinationSet:
+            self = .connecting
+        case .connectFailed:
+            self = .failed
+        case .disconnected, .none:
+            self = .disconnected
+        }
+    }
+
+    /// The SF Symbol before the label.
+    var symbol: String {
+        switch self {
+        case .connected: return "checkmark"
+        case .tunnelDisconnected: return "exclamationmark.triangle"
+        case .connecting: return "ellipsis"
+        case .failed: return "exclamationmark.triangle"
+        case .disconnected: return "xmark"
+        }
+    }
+
+    /// Read as a checklist, like the row below it: "✓ Connected", "✗ Connected".
+    var label: String {
+        switch self {
+        case .connected, .disconnected: return String(localized: "Connected")
+        case .tunnelDisconnected: return String(localized: "VPN tunnel disconnected 😓")
+        case .connecting: return String(localized: "Connecting…")
+        case .failed: return String(localized: "Couldn't connect")
+        }
+    }
+
+    /// The menu bar icon, with or without public providing.
+    func iconName(providing: Bool) -> String {
+        switch (self == .connected, providing) {
+        case (true, true): return "MenuBarProvideConnect"
+        case (true, false): return "MenuBarNoProvideConnect"
+        case (false, true): return "MenuBarProvideNoConnect"
+        case (false, false): return "MenuBarNoProvideNoConnect"
+        }
+    }
+}
+
+/// The menu bar's action: Connect when disconnected, Disconnect for any
+/// connection asked for, and none with no status (signed out, or before the
+/// first status), where Disconnect had nothing to end.
+enum MenuBarConnectAction: Equatable {
+    case connect
+    case disconnect
+
+    init?(_ connectionStatus: ConnectionStatus?) {
+        switch connectionStatus {
+        case .none:
+            return nil
+        case .disconnected:
+            self = .connect
+        case .connecting, .destinationSet, .connected, .connectFailed:
+            self = .disconnect
+        }
+    }
+}
+#endif
+
 private struct PresentationActiveEnvironmentKey: EnvironmentKey {
     static let defaultValue = false
 }
@@ -96,7 +216,7 @@ struct NetworkApp: App {
     
     @StateObject var deviceManager: DeviceManager
 
-    @StateObject var connectViewModel = ConnectViewModel()
+    @StateObject var connectViewModel: ConnectViewModel
 
     @StateObject var throughputStore = ThroughputStore()
     @StateObject var blockActionsStore = BlockActionsStore()
@@ -127,7 +247,17 @@ struct NetworkApp: App {
         let hostsUnitTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         let deviceManager = DeviceManager(startupMode: startupMode, automaticallyInitialize: !hostsUnitTests)
         _deviceManager = StateObject(wrappedValue: deviceManager)
+        let connectViewModel = ConnectViewModel()
+        _connectViewModel = StateObject(wrappedValue: connectViewModel)
         appDelegate.deviceManager = deviceManager
+        // every logout, the server's included, stops the account connecting
+        deviceManager.logoutStarted = { [weak connectViewModel] device in
+            connectViewModel?.signOutStarted(device: device)
+        }
+        #if os(macOS)
+        // every quit waits for its queued commands (QuitSequence)
+        appDelegate.connectViewModel = connectViewModel
+        #endif
 
         /**
          * Start the StoreKit transaction listener at PROCESS launch, per
@@ -180,21 +310,27 @@ struct NetworkApp: App {
     }
 
     func updateConnectViewModel(_ device: SdkDeviceRemote?) {
-        guard presentationLifecycle.isActive else {
-            connectViewModel.suspend(api: deviceManager.api, device: device)
-            resetDeviceStores()
-            return
-        }
-
-        if let device = device {
-            if connectViewModel.device == device && connectViewModel.connectViewController != nil {
-                return
-            }
-            setupConnectViewModel(device)
-            setupDeviceStores(device)
-        } else {
+        let update = ConnectViewModelUpdate.next(
+            hasDevice: device != nil,
+            presentationActive: presentationLifecycle.isActive,
+            presentsDevice: device != nil
+                && connectViewModel.device == device
+                && connectViewModel.connectViewController != nil
+        )
+        switch update {
+        case .reset:
             connectViewModel.reset()
             resetDeviceStores()
+        case .suspend:
+            connectViewModel.suspend(api: deviceManager.api, device: device)
+            resetDeviceStores()
+        case .setup:
+            if let device {
+                setupConnectViewModel(device)
+                setupDeviceStores(device)
+            }
+        case .unchanged:
+            return
         }
     }
 
@@ -255,17 +391,20 @@ struct NetworkApp: App {
             updateConnectViewModel(deviceManager.device)
         case .suspend:
             deviceManager.applicationDidBecomeInactive()
-            connectViewModel.suspend(api: deviceManager.api, device: deviceManager.device)
-            resetDeviceStores()
+            // inactive now: suspends, or resets with no device
+            updateConnectViewModel(deviceManager.device)
         }
     }
     
-    private var connectEnabled: Bool {
-        guard let connectionStatus = connectViewModel.connectionStatus else {
-            return false
-        }
-        return connectionStatus != .disconnected
+    #if os(macOS)
+    private var menuBarConnection: MenuBarConnectionState {
+        MenuBarConnectionState(
+            connectViewModel.connectionStatus,
+            fromLocation: connectViewModel.connectionStatusFromLocation,
+            tunnelConnected: connectViewModel.tunnelConnected
+        )
     }
+    #endif
     
     private var provideEnabled: Bool {
         // reflect PUBLIC providing only: Network provide (same-network peers) is
@@ -276,31 +415,11 @@ struct NetworkApp: App {
         return deviceManager.providingPublicly
     }
 
+    #if os(macOS)
     private var menuBarImage: String {
-        
-        if self.connectEnabled {
-            
-            // connect and provide enabled
-            if self.provideEnabled {
-                return "MenuBarProvideConnect"
-            }
-            
-            // connected and provide disabled
-            return "MenuBarNoProvideConnect"
-            
-        } else {
-            
-            // disconnected with provide enabled
-            if self.provideEnabled {
-                return "MenuBarProvideNoConnect"
-            }
-            
-            // disconnected and provide disabled
-            return "MenuBarNoProvideNoConnect"
-            
-        }
-        
+        menuBarConnection.iconName(providing: provideEnabled)
     }
+    #endif
     
     
     var body: some Scene {
@@ -569,12 +688,7 @@ struct NetworkApp: App {
             #if os(macOS)
             CommandGroup(replacing: .appTermination) {
                 Button("Quit URnetwork") {
-                    connectViewModel.disconnect()
-                    // the disconnect runs off the main actor: it must reach
-                    // the sdk before the process exits
-                    connectViewModel.waitForConnectCommands()
-
-                    NSApplication.shared.terminate(nil)
+                    quitDisconnecting()
                 }
             }
             #endif
@@ -584,12 +698,13 @@ struct NetworkApp: App {
                 CommandMenu("Account") {
                     Button("Sign out") {
                         
-                        connectViewModel.disconnect()
-
                         Task {
-                            // the disconnect reaches the sdk before the sign out
-                            await connectViewModel.connectCommandsSettled()
-                            deviceManager.logout()
+                            // no connect from here; the disconnect reaches
+                            // the sdk before the sign out, of this account only
+                            await connectViewModel.signOut(
+                                currentDevice: { deviceManager.device },
+                                logout: { deviceManager.logout() }
+                            )
                         }
                         
                     }
@@ -611,8 +726,8 @@ struct NetworkApp: App {
 
             Button(action: {}) {
                 HStack {
-                    Image(systemName: self.connectEnabled ? "checkmark" : "xmark")
-                    Text("Connected")
+                    Image(systemName: menuBarConnection.symbol)
+                    Text(menuBarConnection.label)
                 }
             }
             .buttonStyle(.plain)
@@ -629,16 +744,19 @@ struct NetworkApp: App {
             
             Divider()
             
-            if connectViewModel.connectionStatus == .disconnected {
+            switch MenuBarConnectAction(connectViewModel.connectionStatus) {
+            case .connect:
                 Button("Connect", action: {
                     // out of balance the start is refused for the upgrade
                     // sheet, which lives in the main window
                     connectViewModel.connect(onUpgrade: { showWindow() })
                 })
-            } else {
+            case .disconnect:
                 Button("Disconnect", action: {
                     connectViewModel.disconnect()
                 })
+            case nil:
+                EmptyView()
             }
             
             Button("Show", action: {
@@ -646,12 +764,7 @@ struct NetworkApp: App {
             })
             
             Button("Quit URnetwork", action: {
-                connectViewModel.disconnect()
-                // the disconnect reaches the sdk before the process exits
-                connectViewModel.waitForConnectCommands()
-
-                NSApplication.shared.terminate(nil)
-                
+                quitDisconnecting()
             })
             
             
@@ -717,6 +830,15 @@ struct NetworkApp: App {
         #else
         return nil
         #endif
+    }
+
+    /// The app menu's and the menu bar's Quit: disconnects, then quits. The
+    /// quit waits for the disconnect to reach the sdk, as every quit waits
+    /// for its queued commands (QuitSequence), without blocking the main
+    /// actor.
+    private func quitDisconnecting() {
+        connectViewModel.disconnect()
+        NSApplication.shared.terminate(nil)
     }
 
     private func hideWindow() {

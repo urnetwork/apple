@@ -102,6 +102,15 @@ class ConnectViewModel: ObservableObject {
      * runConnectCommand and admitConnect).
      */
     @Published private(set) var connectionStatus: ConnectionStatus?
+
+    /**
+     * The status is the device's connect location alone, a destination set
+     * no controller has reported on: suspended (the macOS menu bar with the
+     * window hidden), for a location the window did not see, or after a
+     * command. The macOS menu bar reads it as the connection the user asked
+     * for, as it always has, since nothing reports how far it got.
+     */
+    @Published private(set) var connectionStatusFromLocation = false
     
     /**
      * Connect grid
@@ -194,10 +203,34 @@ class ConnectViewModel: ObservableObject {
         self?.connectViewController?.getConnectionStatus()
     }
     // commands queued and not finished, and the status the newest one shows
+    // (nil after a reset: the signed out account's commands show nothing)
     private var pendingConnectCommandCount = 0
     private var pendingConnectCommandStatus: ConnectionStatus? = nil
     // the status the sdk last reported
     private var reportedConnectionStatus: ConnectionStatus? = nil
+    // suspended: the status follows the device's location listener, not a
+    // presented controller (addBackgroundConnectionStateListener)
+    private var followsDeviceLocation = false
+    // the reported status is the location's alone, not a controller's
+    private var reportedConnectionStatusFromLocation = false
+    // suspended: the location the reported status is about (its id), nil
+    // for none
+    private var backgroundConnectLocationKey: String? = nil
+    // the device a sign out started for (signOutStarted): no connect is
+    // admitted while the view model is on it. The reset after the logout,
+    // or a setup or suspend on any other device (the next sign-in), ends it,
+    // so a sign out that never reaches a reset cannot block the next account
+    private var signOutDevice: SdkDeviceRemote? = nil
+    var signingOut: Bool {
+        signOutDevice != nil
+    }
+    // the sign-in the queued commands belong to (ConnectCommandWork)
+    private let commandGeneration = ConnectCommandGeneration()
+    // the provider list's own write of the location it connects, on the
+    // command queue; replaced in tests
+    var saveConnectLocation: (SdkDeviceRemote?, SdkConnectLocation) -> Void = { device, location in
+        try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(location)
+    }
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -222,6 +255,7 @@ class ConnectViewModel: ObservableObject {
     func setup(api: SdkApi?, device: SdkDeviceRemote, connectViewController: SdkConnectViewController?) {
         closeListeners()
         closeConnectViewController()
+        endSignOut(unlessOn: device)
 
         self.api = api
         self.device = device
@@ -241,22 +275,7 @@ class ConnectViewModel: ObservableObject {
             self.selectedProvider = device.getDefaultLocation()
         }
 
-        /**
-         * Add tunnel listener
-         */
-        self.tunnelListenerSub = self.device?.add(TunnelChangeListener { [weak self] tunnelStarted in
-            guard let self = self else {
-                return
-            }
-
-            DispatchQueue.main.async {
-                if self.tunnelConnected != tunnelStarted {
-                    self.tunnelConnected = tunnelStarted
-                }
-            }
-        })
-
-        self.refreshTunnelStatus()
+        self.addTunnelListener()
 
         self.contractListenerSub = device.add(makeContractStatusListener())
         // the listener only reports changes: a balance that was already
@@ -272,6 +291,7 @@ class ConnectViewModel: ObservableObject {
     func suspend(api: SdkApi?, device: SdkDeviceRemote?) {
         closeListeners()
         closeConnectViewController()
+        endSignOut(unlessOn: device)
         self.api = api
         self.device = device
         addBackgroundConnectionStateListener()
@@ -286,7 +306,15 @@ class ConnectViewModel: ObservableObject {
 
         // a start still waiting on its balance must not connect the next account
         self.cancelStartConnect()
+        // and a command still queued is not the next account's: it settles,
+        // but neither shows nor counts as a requested connection to the
+        // next account's gate, and a connect is skipped (ConnectCommandWork)
+        self.pendingConnectCommandStatus = nil
+        self.commandGeneration.advance()
+        self.signOutDevice = nil
         self.reportedConnectionStatus = nil
+        self.reportedConnectionStatusFromLocation = false
+        self.backgroundConnectLocationKey = nil
         self.publishConnectionStatus()
         self.windowCurrentSize = 0
         self.gridPoints = [:]
@@ -307,6 +335,7 @@ class ConnectViewModel: ObservableObject {
         // must not publish status or disconnect its replacement.
         contractStatusGeneration += 1
         queuedContractStatusRefresh = nil
+        followsDeviceLocation = false
         gridListenerSub?.close()
         connectionStatusListenerSub?.close()
         selectedLocationListenerSub?.close()
@@ -344,7 +373,14 @@ class ConnectViewModel: ObservableObject {
             return
         }
 
-        updateBackgroundConnectionState(device.getConnectLocation())
+        followsDeviceLocation = true
+        // the tunnel too, event-driven: hidden, the menu bar still reads
+        // Connected only with the tunnel up
+        addTunnelListener()
+        let location = device.getConnectLocation()
+        // the presented controller's last status is about this location
+        backgroundConnectLocationKey = location.map { Self.connectLocationKey($0) }
+        updateBackgroundConnectionState(location)
         connectLocationStateSub = device.add(ConnectLocationStateListener { [weak self] location in
             DispatchQueue.main.async {
                 self?.updateBackgroundConnectionState(location)
@@ -352,16 +388,51 @@ class ConnectViewModel: ObservableObject {
         })
     }
 
+    /// While the location stays the same, its last status stands: the
+    /// controller's CONNECTED or CONNECT_FAILED from before the window hid,
+    /// or the location's own. A connect still in progress when the window
+    /// hid (CONNECTING, or the controller's DESTINATION_SET) has nothing
+    /// left to report its end, so it is the location's from then on, which
+    /// the menu bar reads as connected once the tunnel is up. A new location
+    /// is a destination set from the location alone, none is disconnected.
     private func updateBackgroundConnectionState(_ location: SdkConnectLocation?) {
         // the device fires this on every location-state event; publish only
         // what changed so the tray/view is not re-rendered for a no-op
         if let location {
             selectedProvider = location
         }
-        reportedConnectionStatus = location == nil ? .disconnected : .destinationSet
+        let locationKey = location.map { Self.connectLocationKey($0) }
+        let sameLocation = locationKey != nil && locationKey == backgroundConnectLocationKey
+        backgroundConnectLocationKey = locationKey
+        if !sameLocation || reportedConnectionStatus == nil || reportedConnectionStatus == .disconnected {
+            reportedConnectionStatus = location == nil ? .disconnected : .destinationSet
+            reportedConnectionStatusFromLocation = location != nil
+        } else if reportedConnectionStatus == .connecting || reportedConnectionStatus == .destinationSet {
+            reportedConnectionStatus = .destinationSet
+            reportedConnectionStatusFromLocation = true
+        }
         publishConnectionStatus()
     }
+
+    /// What makes two connect locations the same location: the id.
+    private static func connectLocationKey(_ location: SdkConnectLocation) -> String {
+        location.connectLocationId?.string() ?? ""
+    }
     
+    /// Whether the tunnel is started, presented or suspended: the device
+    /// reports it (and reports false when its link to the extension drops).
+    private func addTunnelListener() {
+        tunnelListenerSub = device?.add(TunnelChangeListener { [weak self] tunnelStarted in
+            DispatchQueue.main.async {
+                guard let self, self.tunnelConnected != tunnelStarted else {
+                    return
+                }
+                self.tunnelConnected = tunnelStarted
+            }
+        })
+        refreshTunnelStatus()
+    }
+
     func refreshTunnelStatus() {
         let tunnelConnected = self.device?.getTunnelStarted() ?? false
         if self.tunnelConnected != tunnelConnected {
@@ -404,6 +475,11 @@ class ConnectViewModel: ObservableObject {
         onUpgrade: (() -> Void)? = nil,
         proceed: @escaping () -> Void
     ) {
+        // signing out: nothing connects, so the sign out's wait for its
+        // disconnect covers every command
+        if signingOut {
+            return
+        }
         let apply = { [weak self] (decision: ConnectAttemptDecision) in
             switch decision {
             case .connect:
@@ -479,8 +555,9 @@ class ConnectViewModel: ObservableObject {
             }
             self.runBeforeConnect()
             let device = self.device
+            let saveConnectLocation = self.saveConnectLocation
             self.runConnectCommand(.connect(provider)) {
-                try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
+                saveConnectLocation(device, provider)
             }
         }
     }
@@ -508,9 +585,15 @@ class ConnectViewModel: ObservableObject {
     /**
      * Reconnects a connection the app itself dropped (the macOS purchase flow
      * disconnects around the store): the user never left it, so it is not a
-     * start.
+     * start. Only on `device`, the view model's device when the connection
+     * was dropped: an account that changed meanwhile (signed out, and maybe
+     * in again, while the store was open) never asked for it, and connecting
+     * it here would skip its gate.
      */
-    func restoreConnect() {
+    func restoreConnect(onDevice device: SdkDeviceRemote?) {
+        guard self.device === device else {
+            return
+        }
         admitConnect(.alreadyConnected, target: selectedProvider) { [weak self] in
             self?.connectSelected()
         }
@@ -545,6 +628,56 @@ class ConnectViewModel: ObservableObject {
     }
 
     /**
+     * A sign out has started for `device`: the app's Sign out, before its
+     * disconnect, or any logout the device manager begins with a device
+     * (DeviceManager.logoutStarted), a server-initiated one included. From
+     * here no connect is admitted on that device, a waiting start or balance
+     * recovery never connects, and the commands already queued belong to the
+     * signed out account: their connects are skipped (ConnectCommandWork),
+     * their disconnects still run. The reset that follows, once the device
+     * is gone, ends it, as does the view model moving to another device.
+     */
+    func signOutStarted(device: SdkDeviceRemote?) {
+        signOutDevice = device
+        commandGeneration.advance()
+        cancelStartConnect()
+        clearBalanceRecovery()
+    }
+
+    private func endSignOut(unlessOn device: SdkDeviceRemote?) {
+        if signOutDevice !== device {
+            signOutDevice = nil
+        }
+    }
+
+    /// No connect from here, then the disconnect, which the caller waits for
+    /// (connectCommandsSettled) before logging out.
+    func beginSignOut() {
+        signOutStarted(device: device)
+        disconnect()
+    }
+
+    /**
+     * The app's Sign out (the account view's and the Account menu's): the
+     * sign out starts, and once its disconnect has reached the sdk, `logout`
+     * runs, but only while `currentDevice` (the device manager's) is still
+     * the device signed out. A second Sign out, made while the first one's
+     * logout ran, returns after it, maybe after the next account signed in,
+     * and must not sign that account out.
+     */
+    func signOut(currentDevice: @escaping () -> SdkDeviceRemote?, logout: @escaping () -> Void) async {
+        guard let signedOutDevice = currentDevice() else {
+            return
+        }
+        beginSignOut()
+        await connectCommandsSettled()
+        guard currentDevice() === signedOutDevice else {
+            return
+        }
+        logout()
+    }
+
+    /**
      * Shows `command`'s state at once and runs it on the command queue
      * (`performConnectCommand`, which also records the app's intent), then
      * `then`.
@@ -557,38 +690,66 @@ class ConnectViewModel: ObservableObject {
      * they were made. Until the last one returns, the status it starts with
      * (the sdk's own first status for the gesture) stands in for the sdk's,
      * so a report from before it cannot flip the view back, and the sdk's
-     * status is read again once it has returned.
+     * status is read again once it has returned (see connectCommandFinished
+     * for the suspended state). A reset drops the signed out account's
+     * commands from the status, not from the queue.
      */
     private func runConnectCommand(_ command: ConnectCommand, then: (() -> Void)? = nil) {
-        let perform = performConnectCommand
-        let viewController = connectViewController
-        let device = self.device
+        // the balance recovery's retry, or a start admitted before the sign
+        // out began: refused like a tap
+        if signingOut && command != .disconnect {
+            return
+        }
+        let work = ConnectCommandWork(
+            command: command,
+            perform: performConnectCommand,
+            viewController: connectViewController,
+            device: device,
+            then: then,
+            generation: commandGeneration.current,
+            commandGeneration: commandGeneration
+        )
         pendingConnectCommandCount += 1
         pendingConnectCommandStatus = command.startStatus
         publishConnectionStatus()
-        connectCommandQueue.async {
-            perform(command, viewController, device)
-            then?()
-            DispatchQueue.main.async { [weak self] in
+        // the command runs whether or not the view model is still there;
+        // only its bookkeeping needs it
+        connectCommandQueue.async { [weak self] in
+            work.run()
+            DispatchQueue.main.async {
                 self?.connectCommandFinished()
             }
         }
     }
 
+    /// Suspended (the macOS menu bar with the window hidden), the status is
+    /// the device's location, which the last command has just set: set means
+    /// destination set, none means disconnected, the same as the command's
+    /// own first status. The location listener reports it only after the
+    /// command returns (the extension's event is asynchronous), so the
+    /// command's status stands for it. Without it the view went back to the
+    /// location reported before the command until the report came.
     private func connectCommandFinished() {
         pendingConnectCommandCount -= 1
         if 0 < pendingConnectCommandCount {
             return
         }
+        let finishedStatus = pendingConnectCommandStatus
         pendingConnectCommandStatus = nil
-        // the sdk has every command now
-        updateConnectionStatus()
+        if followsDeviceLocation, let finishedStatus {
+            reportedConnectionStatus = finishedStatus
+            reportedConnectionStatusFromLocation = finishedStatus != .disconnected
+        } else {
+            // the sdk has every command now
+            updateConnectionStatus()
+        }
         publishConnectionStatus()
     }
 
     /// Returns once every command made so far has run and its status was
     /// applied. Sign out and the macOS purchase flow wait on it, as they did
-    /// on the disconnect itself when it ran on the main actor.
+    /// on the disconnect itself when it ran on the main actor, and so does
+    /// every macOS quit, for at most its cap (QuitSequence).
     func connectCommandsSettled() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             connectCommandQueue.async {
@@ -599,24 +760,25 @@ class ConnectViewModel: ObservableObject {
         }
     }
 
-    /// Blocks until every command made so far has run: only for quitting,
-    /// where the disconnect must reach the sdk before the process exits and
-    /// nothing renders after. Commands never wait on the main actor.
-    func waitForConnectCommands() {
-        connectCommandQueue.sync {}
-    }
-
     /// What the user asked for so far: the newest command not yet finished,
     /// else what the sdk reports. A start waiting on its balance is not in
     /// it: nothing is asked of the sdk until the gate admits it.
     private var requestedConnectionStatus: ConnectionStatus? {
-        0 < pendingConnectCommandCount ? pendingConnectCommandStatus : reportedConnectionStatus
+        pendingConnectCommandStatus ?? reportedConnectionStatus
     }
 
     /// Publishes what the connect views show: connecting while a start waits
     /// on its balance, else the requested status. Only on a change.
     private func publishConnectionStatus() {
         let status: ConnectionStatus? = startConnectTask != nil ? .destinationSet : requestedConnectionStatus
+        // a tap's state is connecting, whatever the location
+        let fromLocation = startConnectTask == nil
+            && pendingConnectCommandStatus == nil
+            && reportedConnectionStatusFromLocation
+            && status == .destinationSet
+        if connectionStatusFromLocation != fromLocation {
+            connectionStatusFromLocation = fromLocation
+        }
         if status == connectionStatus {
             return
         }
@@ -678,9 +840,9 @@ extension ConnectViewModel {
         let read = request.read
         let generation = request.generation
         let revision = request.revision
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let status = read()
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.async {
                 guard let self else { return }
                 self.contractStatusRefreshGenerations.remove(generation)
                 if self.contractStatusGeneration == generation,
@@ -970,11 +1132,14 @@ extension ConnectViewModel {
             print("no status present")
             return
         }
+        // the controller's report replaces one from the location alone, even
+        // when it is the same status
         guard let status = ConnectionStatus(rawValue: statusString),
-              status != reportedConnectionStatus else {
+              status != reportedConnectionStatus || reportedConnectionStatusFromLocation else {
             return
         }
         reportedConnectionStatus = status
+        reportedConnectionStatusFromLocation = false
         publishConnectionStatus()
         evaluateBalanceRecovery()
     }
@@ -982,6 +1147,58 @@ extension ConnectViewModel {
 }
 
 // MARK: connect commands
+
+/// One queued command and what it runs against, handed from the main actor
+/// to the command queue, where `run` is called once. Unchecked: the sdk's
+/// controller and device are gomobile proxies that may be called from any
+/// thread, nothing here changes after the hand off, and `perform` and `then`
+/// run only on the command queue.
+///
+/// A command belongs to the sign-in it was made in (`generation`). Once a
+/// sign out has started, a connect of the signed out account never reaches
+/// the sdk, and one already inside it skips `then`, its own write of the
+/// location: the network space's local state outlives the sign out, and the
+/// next sign-in would reconnect to what it finds there. A disconnect always
+/// runs.
+private struct ConnectCommandWork: @unchecked Sendable {
+    let command: ConnectCommand
+    let perform: (ConnectCommand, SdkConnectViewController?, SdkDeviceRemote?) -> Void
+    let viewController: SdkConnectViewController?
+    let device: SdkDeviceRemote?
+    let then: (() -> Void)?
+    let generation: Int
+    let commandGeneration: ConnectCommandGeneration
+
+    func run() {
+        if !runs {
+            return
+        }
+        perform(command, viewController, device)
+        if !runs {
+            return
+        }
+        then?()
+    }
+
+    private var runs: Bool {
+        command == .disconnect || commandGeneration.current == generation
+    }
+}
+
+/// The sign-in the connect commands belong to, read on the command queue.
+/// Safe for concurrent use.
+final class ConnectCommandGeneration: @unchecked Sendable {
+    private let stateLock = NSLock()
+    private var value = 0
+
+    var current: Int {
+        stateLock.withLock { value }
+    }
+
+    func advance() {
+        stateLock.withLock { value += 1 }
+    }
+}
 
 /// One connect or disconnect the view model asks the sdk for.
 enum ConnectCommand: Equatable {

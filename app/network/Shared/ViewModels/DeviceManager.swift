@@ -297,10 +297,12 @@ class DeviceManager: ObservableObject {
     }
     private var applicationIsActive = false
     private var isLoggingOut = false
-    /// Runs as a logout begins, whoever started it (the app's Sign out, the
-    /// account deletion, the server), before anything is torn down: the
-    /// connect view model stops connecting the account (signOutStarted).
-    var logoutStarted: (@MainActor () -> Void)?
+    /// Runs as a logout of a device begins, whoever started it (the app's
+    /// Sign out, the account deletion, the server), before anything is torn
+    /// down: the connect view model stops connecting that device
+    /// (signOutStarted). A logout with no device has nothing to stop, and
+    /// no device change would end the sign out.
+    var logoutStarted: (@MainActor (SdkDeviceRemote) -> Void)?
 
     /// Why the server signed this app out, when the device's logout gave a
     /// cause that has a notice: the sign-in screen shows it once, until the
@@ -2027,7 +2029,9 @@ extension DeviceManager {
         }
         retireDeviceAuthCallbacks()
         isLoggingOut = true
-        logoutStarted?()
+        if let device {
+            logoutStarted?(device)
+        }
         return true
     }
 

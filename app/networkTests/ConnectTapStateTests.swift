@@ -1013,6 +1013,7 @@ struct ConnectTapStateTests {
     @Test func aConnectTappedDuringSignOutNeverReachesTheSdk() async {
         let commands = HeldCommands(status: .connected)
         let model = Self.model(commands)
+        model.setup(api: nil, device: FakeDevice(location: nil), connectViewController: nil)
         let locations = SavedLocations()
         model.saveConnectLocation = { _, location in locations.save(location) }
 
@@ -1055,6 +1056,8 @@ struct ConnectTapStateTests {
         model.saveConnectLocation = { _, location in locations.save(location) }
         let held = SdkConnectLocation()
         let queued = SdkConnectLocation()
+        let device = FakeDevice(location: nil)
+        model.setup(api: nil, device: device, connectViewController: nil)
 
         model.connect(held)
         await commands.waitUntilReached()
@@ -1062,7 +1065,7 @@ struct ConnectTapStateTests {
         model.disconnect()
 
         // the device manager begins the logout, then the device goes away
-        model.signOutStarted()
+        model.signOutStarted(device: device)
         model.reset()
         model.readConnectionStatus = { nil }
 
@@ -1075,16 +1078,90 @@ struct ConnectTapStateTests {
         #expect(model.connectionStatus == nil)
     }
 
-    /// Every logout, whoever starts it, tells the connect view model first.
-    @Test func everyLogoutStartsTheSignOutOnce() {
+    /// A logout with no device (a second one, or the account deletion's
+    /// after a server sign out) starts no sign out: no device change would
+    /// ever end it, and the next account's connects were dropped.
+    @Test func aLogoutWithNoDeviceStartsNoSignOut() {
         let manager = DeviceManager(startupMode: .production, automaticallyInitialize: false)
         var started = 0
-        manager.logoutStarted = {
+        manager.logoutStarted = { _ in
             started += 1
         }
+        #expect(manager.device == nil)
         #expect(manager.beginLogout())
-        #expect(started == 1)
-        #expect(!manager.beginLogout())
-        #expect(started == 1)
+        #expect(started == 0)
+    }
+
+    /// A sign out that never reached a reset (its logout found no device to
+    /// clear): the next sign-in's setup ends it, and that account connects.
+    @Test func theNextAccountConnectsAfterASignOutThatNeverReset() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        model.setup(api: nil, device: FakeDevice(location: nil), connectViewController: nil)
+        model.beginSignOut()
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(model.signingOut)
+
+        // the next account, with no reset in between
+        model.readConnectionStatus = { ConnectionStatus.disconnected.rawValue }
+        model.setup(api: nil, device: FakeDevice(location: nil), connectViewController: nil)
+        #expect(!model.signingOut)
+        model.connect()
+        #expect(model.connectionStatus == .destinationSet)
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(commands.performed == [.disconnect, .connectBestAvailable])
+
+        // and suspending on another device ends one the same way
+        model.signOutStarted(device: model.device)
+        model.suspend(api: nil, device: FakeDevice(location: nil))
+        #expect(!model.signingOut)
+    }
+
+    /// Sign out twice while the first one's disconnect is held: the first
+    /// signs the account out, and the next account signs in before the
+    /// second one's wait returns. The second does not sign that account out.
+    @Test func aStaleSecondSignOutDoesNotSignOutTheNextAccount() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let first = FakeDevice(location: nil)
+        model.setup(api: nil, device: first, connectViewController: nil)
+        var current: SdkDeviceRemote? = first
+        var logouts = 0
+        let logout = {
+            logouts += 1
+            current = nil
+        }
+
+        let firstSignOut = Task { await model.signOut(currentDevice: { current }, logout: logout) }
+        await commands.waitUntilReached()
+        // the second click reads the device before the first one finishes
+        var secondClicked: CheckedContinuation<Void, Never>?
+        let secondSignOut = Task {
+            await model.signOut(
+                currentDevice: {
+                    secondClicked?.resume()
+                    secondClicked = nil
+                    return current
+                },
+                logout: logout
+            )
+        }
+        await withCheckedContinuation { secondClicked = $0 }
+
+        commands.release()
+        await firstSignOut.value
+        #expect(logouts == 1)
+        // the device went away, and the next account signed in
+        model.reset()
+        let next = FakeDevice(location: nil)
+        current = next
+        model.setup(api: nil, device: next, connectViewController: nil)
+
+        commands.release()
+        await secondSignOut.value
+        #expect(logouts == 1)
+        #expect(current === next)
     }
 }

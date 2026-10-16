@@ -216,9 +216,14 @@ class ConnectViewModel: ObservableObject {
     // suspended: the location the reported status is about (its id), nil
     // for none
     private var backgroundConnectLocationKey: String? = nil
-    // a sign out started (signOutStarted): no connect is admitted until the
-    // reset that ends it
-    private(set) var signingOut = false
+    // the device a sign out started for (signOutStarted): no connect is
+    // admitted while the view model is on it. The reset after the logout,
+    // or a setup or suspend on any other device (the next sign-in), ends it,
+    // so a sign out that never reaches a reset cannot block the next account
+    private var signOutDevice: SdkDeviceRemote? = nil
+    var signingOut: Bool {
+        signOutDevice != nil
+    }
     // the sign-in the queued commands belong to (ConnectCommandWork)
     private let commandGeneration = ConnectCommandGeneration()
     // the provider list's own write of the location it connects, on the
@@ -250,6 +255,7 @@ class ConnectViewModel: ObservableObject {
     func setup(api: SdkApi?, device: SdkDeviceRemote, connectViewController: SdkConnectViewController?) {
         closeListeners()
         closeConnectViewController()
+        endSignOut(unlessOn: device)
 
         self.api = api
         self.device = device
@@ -300,6 +306,7 @@ class ConnectViewModel: ObservableObject {
     func suspend(api: SdkApi?, device: SdkDeviceRemote?) {
         closeListeners()
         closeConnectViewController()
+        endSignOut(unlessOn: device)
         self.api = api
         self.device = device
         addBackgroundConnectionStateListener()
@@ -319,7 +326,7 @@ class ConnectViewModel: ObservableObject {
         // next account's gate, and a connect is skipped (ConnectCommandWork)
         self.pendingConnectCommandStatus = nil
         self.commandGeneration.advance()
-        self.signingOut = false
+        self.signOutDevice = nil
         self.reportedConnectionStatus = nil
         self.reportedConnectionStatusFromLocation = false
         self.backgroundConnectLocationKey = nil
@@ -607,26 +614,53 @@ class ConnectViewModel: ObservableObject {
     }
 
     /**
-     * A sign out has started: the app's Sign out, before its disconnect, or
-     * any logout the device manager begins (DeviceManager.logoutStarted), a
-     * server-initiated one included. From here no connect is admitted, a
-     * waiting start or balance recovery never connects, and the commands
-     * already queued belong to the signed out account: their connects are
-     * skipped (ConnectCommandWork), their disconnects still run. The reset
-     * that follows, once the device is gone, ends it.
+     * A sign out has started for `device`: the app's Sign out, before its
+     * disconnect, or any logout the device manager begins with a device
+     * (DeviceManager.logoutStarted), a server-initiated one included. From
+     * here no connect is admitted on that device, a waiting start or balance
+     * recovery never connects, and the commands already queued belong to the
+     * signed out account: their connects are skipped (ConnectCommandWork),
+     * their disconnects still run. The reset that follows, once the device
+     * is gone, ends it, as does the view model moving to another device.
      */
-    func signOutStarted() {
-        signingOut = true
+    func signOutStarted(device: SdkDeviceRemote?) {
+        signOutDevice = device
         commandGeneration.advance()
         cancelStartConnect()
         clearBalanceRecovery()
     }
 
-    /// The app's Sign out: no connect from here, then the disconnect, which
-    /// the caller waits for (connectCommandsSettled) before logging out.
+    private func endSignOut(unlessOn device: SdkDeviceRemote?) {
+        if signOutDevice !== device {
+            signOutDevice = nil
+        }
+    }
+
+    /// No connect from here, then the disconnect, which the caller waits for
+    /// (connectCommandsSettled) before logging out.
     func beginSignOut() {
-        signOutStarted()
+        signOutStarted(device: device)
         disconnect()
+    }
+
+    /**
+     * The app's Sign out (the account view's and the Account menu's): the
+     * sign out starts, and once its disconnect has reached the sdk, `logout`
+     * runs, but only while `currentDevice` (the device manager's) is still
+     * the device signed out. A second Sign out, made while the first one's
+     * logout ran, returns after it, maybe after the next account signed in,
+     * and must not sign that account out.
+     */
+    func signOut(currentDevice: @escaping () -> SdkDeviceRemote?, logout: @escaping () -> Void) async {
+        guard let signedOutDevice = currentDevice() else {
+            return
+        }
+        beginSignOut()
+        await connectCommandsSettled()
+        guard currentDevice() === signedOutDevice else {
+            return
+        }
+        logout()
     }
 
     /**

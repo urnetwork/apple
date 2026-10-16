@@ -215,6 +215,11 @@ class ConnectViewModel: ObservableObject {
     // (nil after a reset: the signed out account's commands show nothing)
     private var pendingConnectCommandCount = 0
     private var pendingConnectCommandStatus: ConnectionStatus? = nil
+    /// A command was queued and has not finished: the window's setup waits
+    /// for it (DeferredWindowSetup).
+    var hasPendingConnectCommands: Bool {
+        0 < pendingConnectCommandCount
+    }
     // the status the sdk last reported
     private var reportedConnectionStatus: ConnectionStatus? = nil
     // suspended: the status follows the device's location listener, not a

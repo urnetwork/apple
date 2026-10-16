@@ -30,10 +30,12 @@ import URnetworkSdk
  * A report makes no device call on the main actor either. The dns and split
  * rule stores re-read the device on every report: the reads run on the
  * device work queue (DeviceReads, readOnDeviceWorkQueue) and apply on the
- * main actor. The peer store's raw log reads there too.
+ * main actor. The peer store's raw log reads there too, and the editors'
+ * setters run there.
  *
  * Setup still opens the controllers, adds the listeners and reads the device
- * on the main actor.
+ * on the main actor, but only once the connect commands queued so far have
+ * run (DeferredWindowSetup), so no command holds the lock then.
  */
 @MainActor
 struct DeviceStores {
@@ -81,6 +83,52 @@ struct DeviceStores {
         networkPeersStore.reset()
         reliabilityStore.reset()
         providerStatusStore.reset()
+    }
+}
+
+/**
+ * What a settings editor (dns, transport) edits from: the store's settings
+ * it was seeded with (`original`), nil while the store had none. Main actor
+ * only, like the editor's state.
+ *
+ * The editor is disabled while it has no original or the store has no
+ * settings (`editable`): its draft would start from the blank form or the
+ * defaults, not the device's settings, and an edit applied from there
+ * replaces the device's settings whole on the next connect (the extension's
+ * resolver, its transport policy). The store's settings are nil until the
+ * setup's first read lands, and after every reset (the window hidden, the
+ * app backgrounded), while a sheet can still be open; the draft stays the
+ * user's meanwhile. The editor seeds from the first settings the store
+ * publishes, and again after the store refused an apply (compare and set:
+ * the store's settings moved since the seed).
+ */
+struct SettingsEditorSeed<Settings: Equatable>: Equatable {
+    private(set) var original: Settings?
+
+    init(_ settings: Settings?) {
+        original = settings
+    }
+
+    /// Whether the editor can edit and apply, with the store's `settings`.
+    func editable(with settings: Settings?) -> Bool {
+        original != nil && settings != nil
+    }
+
+    /// The store published `settings`: the first ones seed the editor and are
+    /// returned, for its draft. Later ones leave the user's draft alone; an
+    /// apply from it is refused if they moved.
+    mutating func storeChanged(_ settings: Settings?) -> Settings? {
+        guard original == nil, let settings else {
+            return nil
+        }
+        original = settings
+        return settings
+    }
+
+    /// The store refused the apply: the editor starts over from `settings`,
+    /// the store's now.
+    mutating func reseed(_ settings: Settings) {
+        original = settings
     }
 }
 

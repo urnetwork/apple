@@ -516,6 +516,26 @@ class TransportSettingsStore: ObservableObject {
     }
 
     /**
+     * Applies the editor's policy made from `original`, the policy it was
+     * seeded from, only while it is still the store's `kind` policy: compare
+     * and set. The policy moves under an open editor (a report, another edit,
+     * a reset and the next setup), and an edit made from an older one would
+     * replace the newer policy whole. With no policy at all (nil until the
+     * setup's read, and after a reset) nothing applies: the editor's draft
+     * would be the defaults, not the device's policy. Refused, the editor
+     * seeds again from the store's policy (SettingsEditorSeed). Returns
+     * whether it applied.
+     */
+    @discardableResult
+    func apply(_ sdkSettings: SdkTransportSettings, original: TransportSettings, kind: TransportSettingsKind) -> Bool {
+        guard device != nil, let settings = settings(kind), settings == original else {
+            return false
+        }
+        apply(sdkSettings, kind: kind)
+        return true
+    }
+
+    /**
      * Applies a policy to the device and mirrors it into the app local state.
      *
      * The policy shows at once, and the device's setter runs on the device
@@ -533,7 +553,7 @@ class TransportSettingsStore: ObservableObject {
      * dropped: one from before the setter carries the policy the edit
      * replaced, and would show it again.
      */
-    func apply(_ sdkSettings: SdkTransportSettings, kind: TransportSettingsKind) {
+    private func apply(_ sdkSettings: SdkTransportSettings, kind: TransportSettingsKind) {
         guard let device = self.device else {
             return
         }

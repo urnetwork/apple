@@ -255,7 +255,7 @@ struct DeviceStoreDeviceCallTests {
         try #require(device.mainThreadCalls == [])
         await device.waitUntilReadHeld()
 
-        store.apply(edited)
+        #expect(store.apply(edited, original: before))
         device.releaseRead()
         await work.settle()
         #expect(store.settings == edited)
@@ -371,7 +371,7 @@ struct DeviceStoreDeviceCallTests {
 
         work.hold()
         device.forgetMainThreadCalls()
-        store.apply(edited)
+        #expect(store.apply(edited, original: before))
         #expect(device.mainThreadCalls == [])
         #expect(store.settings == edited)
 
@@ -434,13 +434,16 @@ struct DeviceStoreDeviceCallTests {
         let device = FakeDevice(location: nil)
         let store = TransportSettingsStore(deviceWorkQueue: work.queue)
         store.setup(device, localState: nil)
+        // the listeners report the device's policies
+        device.storeListeners.reportAll()
         await work.settle()
+        let original = try #require(store.settings(.client))
 
         work.hold()
         device.forgetMainThreadCalls()
         let h1 = try #require(SdkDefaultTransportSettings())
         h1.mode = TransportType.h1.rawValue
-        store.apply(h1, kind: .client)
+        #expect(store.apply(h1, original: original, kind: .client))
         #expect(device.mainThreadCalls == [])
         #expect(store.settings(.client)?.singleTransport == .h1)
 
@@ -462,5 +465,118 @@ struct DeviceStoreDeviceCallTests {
         #expect(store.settings(.client)?.isAuto == true)
         store.reset()
         await work.run()
+    }
+
+    // MARK: the editors' compare and set
+
+    /// The dns editor opened while the store had no settings (the setup's
+    /// read not landed yet, or a reset with the sheet open) started from the
+    /// blank form, and its Update replaced the extension's resolver with it.
+    /// An apply now compares the settings the editor was seeded from with the
+    /// store's, and with none there is nothing to apply from.
+    @Test func aDnsEditFromTheBlankFormIsRefused() async {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let settings = Self.dns(servers: 1)
+        device.dnsResolverSettings = settings.toSdk()
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        #expect(store.settings == nil)
+
+        var draft = DnsSettings()
+        draft.enableLocalDns = true
+        #expect(!store.apply(draft, original: DnsSettings()))
+        await work.settle()
+        #expect(device.callCount("setDnsResolverSettings") == 0)
+        #expect(store.settings == settings)
+        store.reset()
+        await work.run()
+    }
+
+    /// An editor opened before another edit (or a report) moved the store's
+    /// settings would replace them whole with its older draft. Refused, it
+    /// seeds again; the edit made from the current settings applies.
+    @Test func aDnsEditFromSettingsThatMovedIsRefused() async {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let before = Self.dns(servers: 1)
+        device.dnsResolverSettings = before.toSdk()
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+
+        #expect(store.apply(Self.dns(servers: 2), original: before))
+        #expect(!store.apply(Self.dns(servers: 3), original: before))
+        await work.settle()
+        #expect(device.callCount("setDnsResolverSettings") == 1)
+        #expect(store.settings == Self.dns(servers: 2))
+        #expect(store.apply(Self.dns(servers: 3), original: Self.dns(servers: 2)))
+        await work.settle()
+        #expect(store.settings == Self.dns(servers: 3))
+        store.reset()
+        await work.run()
+    }
+
+    /// The same for the transport editors: with no policy the editor's draft
+    /// is the defaults, and an editor opened before the policy moved holds
+    /// the older one.
+    @Test func aTransportEditFromAMissingOrMovedPolicyIsRefused() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let store = TransportSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+        #expect(store.settings(.client) == nil)
+        let h1 = try #require(SdkDefaultTransportSettings())
+        h1.mode = TransportType.h1.rawValue
+        #expect(!store.apply(h1, original: TransportSettingsKind.client.defaultSettings, kind: .client))
+
+        device.storeListeners.reportAll()
+        await work.settle()
+        let original = try #require(store.settings(.client))
+        #expect(store.apply(h1, original: original, kind: .client))
+        let h3 = try #require(SdkDefaultTransportSettings())
+        h3.mode = TransportType.h3.rawValue
+        #expect(!store.apply(h3, original: original, kind: .client))
+        await work.settle()
+        #expect(device.callCount("setTransportSettings") == 1)
+        #expect(store.settings(.client)?.singleTransport == .h1)
+        store.reset()
+        await work.run()
+    }
+
+    /// An editor seeded with no settings is disabled, and seeds from the
+    /// first settings the store publishes. Later ones leave the user's draft
+    /// alone (an apply from it is refused if they moved), and a refused apply
+    /// seeds again from the store's settings. While the store has none (a
+    /// reset with the sheet open) a seeded editor is disabled too.
+    @Test func anEditorWithoutSettingsIsDisabledUntilTheyArrive() {
+        var seed = SettingsEditorSeed<DnsSettings>(nil)
+        #expect(!seed.editable(with: nil))
+        #expect(seed.storeChanged(nil) == nil)
+        #expect(!seed.editable(with: nil))
+
+        let first = Self.dns(servers: 1)
+        #expect(seed.storeChanged(first) == first)
+        #expect(seed.editable(with: first))
+        #expect(seed.original == first)
+        #expect(seed.storeChanged(Self.dns(servers: 2)) == nil)
+        #expect(seed.original == first)
+
+        // the stores reset under the open editor
+        #expect(!seed.editable(with: nil))
+        #expect(seed.storeChanged(nil) == nil)
+        #expect(seed.original == first)
+
+        seed.reseed(Self.dns(servers: 2))
+        #expect(seed.original == Self.dns(servers: 2))
+        #expect(seed.editable(with: Self.dns(servers: 2)))
+
+        // an editor opened on the store's settings is editable at once
+        let opened = SettingsEditorSeed<DnsSettings>(first)
+        #expect(opened.editable(with: first))
+        #expect(opened.original == first)
+        // and one opened on none, never from the blank form
+        #expect(!SettingsEditorSeed<DnsSettings>(nil).editable(with: first))
     }
 }

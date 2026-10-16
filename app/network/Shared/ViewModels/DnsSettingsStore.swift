@@ -301,6 +301,26 @@ class DnsSettingsStore: ObservableObject {
     }
 
     /**
+     * Applies the editor's edit made from `original`, the settings it was
+     * seeded from, only while they are still the store's: compare and set.
+     * The store's settings move under an open editor (a report, another
+     * edit, a reset and the next setup), and an edit made from older ones
+     * would replace the newer settings whole. With no settings at all (nil
+     * until the first read lands, and after a reset) nothing applies: the
+     * editor's form would be the blank one, and applied it replaces the
+     * resolver the extension holds. Refused, the editor seeds again from the
+     * store's settings (SettingsEditorSeed). Returns whether it applied.
+     */
+    @discardableResult
+    func apply(_ newSettings: DnsSettings, original: DnsSettings) -> Bool {
+        guard device != nil, let settings, settings == original else {
+            return false
+        }
+        apply(newSettings)
+        return true
+    }
+
+    /**
      * Applies an edit. It shows at once, and the device's setter runs on the
      * device work queue, after the work queued so far, never on the main
      * actor: it takes the device's state lock, which a held connect or
@@ -312,7 +332,7 @@ class DnsSettingsStore: ObservableObject {
      * reports. A read queued before the edit is dropped (DeviceReads), so
      * what the edit replaced never shows again.
      */
-    func apply(_ newSettings: DnsSettings) {
+    private func apply(_ newSettings: DnsSettings) {
         guard let device = self.device else {
             return
         }

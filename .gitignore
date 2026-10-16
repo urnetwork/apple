@@ -65,6 +65,8 @@ fastlane/test_output
 
 app/build
 app/build.xcarchive
+# Direct-download archive produced by the release's URnetworkDirect scheme.
+/app/build-direct.xcarchive/
 
 app/URnetworkSdk/build
 

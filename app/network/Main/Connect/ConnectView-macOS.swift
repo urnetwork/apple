@@ -324,6 +324,8 @@ import URnetworkSdk
                             // default route), so disconnect around the purchase;
                             // see the A6 note on AppStoreSubscriptionManager.purchase
                             let initiallyConnected = deviceManager.device?.getConnected() ?? false
+                            // the restore after the store is for this device only
+                            let purchaseDevice = connectViewModel.device
 
                             if initiallyConnected {
                                 connectViewModel.disconnect()
@@ -343,7 +345,7 @@ import URnetworkSdk
                                 )
 
                                 if initiallyConnected {
-                                    connectViewModel.restoreConnect()
+                                    connectViewModel.restoreConnect(onDevice: purchaseDevice)
                                 }
 
                             }

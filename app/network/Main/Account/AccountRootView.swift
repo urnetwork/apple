@@ -602,6 +602,8 @@ struct AccountRootView: View {
                 purchasePlan: { plan in
 
                     let initiallyConnected = deviceManager.device?.getConnected() ?? false
+                    // the restore after the store is for this device only
+                    let purchaseDevice = connectViewModel.device
 
                     // purchase fails in the Mac App Store if the vpn is
                     // connected; iOS App Store traffic does not ride the
@@ -631,7 +633,7 @@ struct AccountRootView: View {
 
                         #if os(macOS)
                         if (initiallyConnected) {
-                            connectViewModel.restoreConnect()
+                            connectViewModel.restoreConnect(onDevice: purchaseDevice)
                         }
                         #endif
 

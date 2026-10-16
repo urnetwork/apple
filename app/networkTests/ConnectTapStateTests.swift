@@ -1025,7 +1025,7 @@ struct ConnectTapStateTests {
         model.connect(SdkConnectLocation())
         model.connect()
         model.connectBestAvailable()
-        model.restoreConnect()
+        model.restoreConnect(onDevice: model.device)
         #expect(model.connectionStatus == .disconnected)
         #expect(model.startConnectTask == nil)
         #expect(!model.isPresentedUpgradeSheet)
@@ -1076,6 +1076,36 @@ struct ConnectTapStateTests {
         #expect(commands.performed == [.connect(held), .disconnect])
         #expect(locations.saved.isEmpty)
         #expect(model.connectionStatus == nil)
+    }
+
+    /// The macOS purchase flow restores the connection it dropped for the
+    /// store only on the device it dropped it on. An account that changed
+    /// while the store was open never asked for it, and the restore, which
+    /// is not a start, connected it past its gate.
+    @Test func theRestoreAfterAPurchaseIsOnlyForTheSameDevice() async {
+        let commands = HeldCommands(status: .connected)
+        let model = Self.model(commands)
+        let purchaseDevice = FakeDevice(location: nil)
+        model.setup(api: nil, device: purchaseDevice, connectViewController: nil)
+
+        // signed out and in while the store was open
+        model.reset()
+        model.readConnectionStatus = { ConnectionStatus.disconnected.rawValue }
+        model.setup(api: nil, device: FakeDevice(location: nil), connectViewController: nil)
+        model.restoreConnect(onDevice: purchaseDevice)
+        #expect(model.connectionStatus == .disconnected)
+        // lets a restore made by mistake return, so the test fails on it
+        // rather than waiting for it
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(commands.performed.isEmpty)
+
+        // on the same device the restore connects
+        model.restoreConnect(onDevice: model.device)
+        #expect(model.connectionStatus == .destinationSet)
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(commands.performed == [.connectBestAvailable])
     }
 
     /// A logout with no device (a second one, or the account deletion's

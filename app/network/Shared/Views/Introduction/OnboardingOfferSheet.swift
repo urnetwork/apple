@@ -55,6 +55,8 @@ struct OnboardingOfferSheet: View {
         let subscriptionStore = self.subscriptionStore
         let purchase = OnboardingPurchase.forSelection(.yearly, offer: presentation.offer)
         let initiallyConnected = deviceManager.device?.getConnected() ?? false
+        // the restore after the store is for this device only
+        let purchaseDevice = connectViewModel.device
         #if os(macOS)
         if initiallyConnected {
             connectViewModel.disconnect()
@@ -75,7 +77,7 @@ struct OnboardingOfferSheet: View {
             }
             #if os(macOS)
             if initiallyConnected {
-                connectViewModel.restoreConnect()
+                connectViewModel.restoreConnect(onDevice: purchaseDevice)
             }
             #endif
         }

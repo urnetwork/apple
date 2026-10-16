@@ -177,7 +177,7 @@ struct ConnectStartGateTests {
         insufficient.insufficientBalance = true
         model.makeContractStatusListener().contractStatusChanged(insufficient)
         await Self.drainMain()
-        #expect(await Self.recordsIntent(model) { model.restoreConnect() })
+        #expect(await Self.recordsIntent(model) { model.restoreConnect(onDevice: model.device) })
         #expect(!model.isPresentedUpgradeSheet)
         #expect(fetches.count == 0)
     }

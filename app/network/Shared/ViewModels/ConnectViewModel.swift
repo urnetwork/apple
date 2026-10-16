@@ -577,9 +577,15 @@ class ConnectViewModel: ObservableObject {
     /**
      * Reconnects a connection the app itself dropped (the macOS purchase flow
      * disconnects around the store): the user never left it, so it is not a
-     * start.
+     * start. Only on `device`, the view model's device when the connection
+     * was dropped: an account that changed meanwhile (signed out, and maybe
+     * in again, while the store was open) never asked for it, and connecting
+     * it here would skip its gate.
      */
-    func restoreConnect() {
+    func restoreConnect(onDevice device: SdkDeviceRemote?) {
+        guard self.device === device else {
+            return
+        }
         admitConnect(.alreadyConnected, target: selectedProvider) { [weak self] in
             self?.connectSelected()
         }

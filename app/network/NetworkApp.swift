@@ -51,6 +51,64 @@ struct PresentationWorkState {
     }
 }
 
+#if os(macOS)
+/**
+ * The macOS menu bar's connection row and icon. Only the connected status
+ * reads as connected: the sdk's CONNECT_FAILED can last indefinitely, and a
+ * destination set, a connect in progress or a start waiting on its balance
+ * is not a connection yet. The row says what the main window says
+ * (ConnectStatusIndicator), and the icon shows connected only when it is.
+ */
+enum MenuBarConnectionState: Equatable {
+    case connected
+    case connecting
+    case failed
+    case disconnected
+
+    init(_ connectionStatus: ConnectionStatus?) {
+        switch connectionStatus {
+        case .connected:
+            self = .connected
+        case .connecting, .destinationSet:
+            self = .connecting
+        case .connectFailed:
+            self = .failed
+        case .disconnected, .none:
+            self = .disconnected
+        }
+    }
+
+    /// The SF Symbol before the label.
+    var symbol: String {
+        switch self {
+        case .connected: return "checkmark"
+        case .connecting: return "ellipsis"
+        case .failed: return "exclamationmark.triangle"
+        case .disconnected: return "xmark"
+        }
+    }
+
+    /// Read as a checklist, like the row below it: "✓ Connected", "✗ Connected".
+    var label: String {
+        switch self {
+        case .connected, .disconnected: return String(localized: "Connected")
+        case .connecting: return String(localized: "Connecting…")
+        case .failed: return String(localized: "Couldn't connect")
+        }
+    }
+
+    /// The menu bar icon, with or without public providing.
+    func iconName(providing: Bool) -> String {
+        switch (self == .connected, providing) {
+        case (true, true): return "MenuBarProvideConnect"
+        case (true, false): return "MenuBarNoProvideConnect"
+        case (false, true): return "MenuBarProvideNoConnect"
+        case (false, false): return "MenuBarNoProvideNoConnect"
+        }
+    }
+}
+#endif
+
 private struct PresentationActiveEnvironmentKey: EnvironmentKey {
     static let defaultValue = false
 }
@@ -266,12 +324,11 @@ struct NetworkApp: App {
         }
     }
     
-    private var connectEnabled: Bool {
-        guard let connectionStatus = connectViewModel.connectionStatus else {
-            return false
-        }
-        return connectionStatus != .disconnected
+    #if os(macOS)
+    private var menuBarConnection: MenuBarConnectionState {
+        MenuBarConnectionState(connectViewModel.connectionStatus)
     }
+    #endif
     
     private var provideEnabled: Bool {
         // reflect PUBLIC providing only: Network provide (same-network peers) is
@@ -282,31 +339,11 @@ struct NetworkApp: App {
         return deviceManager.providingPublicly
     }
 
+    #if os(macOS)
     private var menuBarImage: String {
-        
-        if self.connectEnabled {
-            
-            // connect and provide enabled
-            if self.provideEnabled {
-                return "MenuBarProvideConnect"
-            }
-            
-            // connected and provide disabled
-            return "MenuBarNoProvideConnect"
-            
-        } else {
-            
-            // disconnected with provide enabled
-            if self.provideEnabled {
-                return "MenuBarProvideNoConnect"
-            }
-            
-            // disconnected and provide disabled
-            return "MenuBarNoProvideNoConnect"
-            
-        }
-        
+        menuBarConnection.iconName(providing: provideEnabled)
     }
+    #endif
     
     
     var body: some Scene {
@@ -612,8 +649,8 @@ struct NetworkApp: App {
 
             Button(action: {}) {
                 HStack {
-                    Image(systemName: self.connectEnabled ? "checkmark" : "xmark")
-                    Text("Connected")
+                    Image(systemName: menuBarConnection.symbol)
+                    Text(menuBarConnection.label)
                 }
             }
             .buttonStyle(.plain)

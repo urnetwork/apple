@@ -51,6 +51,32 @@ struct PresentationWorkState {
     }
 }
 
+/**
+ * What the connect view model does on a device change or a presentation
+ * transition. No device (signed out, or the device went away) is a reset,
+ * whatever the window state: suspended instead, the signed out account's
+ * pending status, waiting start, balance recovery and notice outlived it
+ * until the next resume, and the start could still connect. With a device,
+ * a hidden presentation suspends, and a shown one sets up unless it already
+ * presents that device.
+ */
+enum ConnectViewModelUpdate: Equatable {
+    case reset
+    case suspend
+    case setup
+    case unchanged
+
+    static func next(hasDevice: Bool, presentationActive: Bool, presentsDevice: Bool) -> ConnectViewModelUpdate {
+        guard hasDevice else {
+            return .reset
+        }
+        guard presentationActive else {
+            return .suspend
+        }
+        return presentsDevice ? .unchanged : .setup
+    }
+}
+
 #if os(macOS)
 /**
  * The macOS menu bar's connection row and icon. Only the connected status
@@ -255,21 +281,27 @@ struct NetworkApp: App {
     }
 
     func updateConnectViewModel(_ device: SdkDeviceRemote?) {
-        guard presentationLifecycle.isActive else {
-            connectViewModel.suspend(api: deviceManager.api, device: device)
-            resetDeviceStores()
-            return
-        }
-
-        if let device = device {
-            if connectViewModel.device == device && connectViewModel.connectViewController != nil {
-                return
-            }
-            setupConnectViewModel(device)
-            setupDeviceStores(device)
-        } else {
+        let update = ConnectViewModelUpdate.next(
+            hasDevice: device != nil,
+            presentationActive: presentationLifecycle.isActive,
+            presentsDevice: device != nil
+                && connectViewModel.device == device
+                && connectViewModel.connectViewController != nil
+        )
+        switch update {
+        case .reset:
             connectViewModel.reset()
             resetDeviceStores()
+        case .suspend:
+            connectViewModel.suspend(api: deviceManager.api, device: device)
+            resetDeviceStores()
+        case .setup:
+            if let device {
+                setupConnectViewModel(device)
+                setupDeviceStores(device)
+            }
+        case .unchanged:
+            return
         }
     }
 
@@ -330,8 +362,8 @@ struct NetworkApp: App {
             updateConnectViewModel(deviceManager.device)
         case .suspend:
             deviceManager.applicationDidBecomeInactive()
-            connectViewModel.suspend(api: deviceManager.api, device: deviceManager.device)
-            resetDeviceStores()
+            // inactive now: suspends, or resets with no device
+            updateConnectViewModel(deviceManager.device)
         }
     }
     

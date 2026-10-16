@@ -868,6 +868,62 @@ struct ConnectTapStateTests {
         #expect(model.connectionStatus == .disconnected)
     }
 
+    // MARK: the device going away
+
+    /// No device is a reset, whatever the window state; with a device, a
+    /// hidden presentation suspends and a shown one sets up once.
+    @Test func noDeviceResetsWhateverTheWindowState() {
+        for presentationActive in [false, true] {
+            for presentsDevice in [false, true] {
+                #expect(ConnectViewModelUpdate.next(
+                    hasDevice: false,
+                    presentationActive: presentationActive,
+                    presentsDevice: presentsDevice
+                ) == .reset, "active \(presentationActive)")
+            }
+        }
+        #expect(ConnectViewModelUpdate.next(hasDevice: true, presentationActive: false, presentsDevice: false) == .suspend)
+        #expect(ConnectViewModelUpdate.next(hasDevice: true, presentationActive: false, presentsDevice: true) == .suspend)
+        #expect(ConnectViewModelUpdate.next(hasDevice: true, presentationActive: true, presentsDevice: false) == .setup)
+        #expect(ConnectViewModelUpdate.next(hasDevice: true, presentationActive: true, presentsDevice: true) == .unchanged)
+    }
+
+    /// The device goes away (a sign out, the server's or the account
+    /// deletion's) with the window hidden while a start waits on its
+    /// balance: the view model is reset as NetworkApp applies the update,
+    /// and the balance arriving afterwards connects nothing.
+    @Test func theDeviceGoingAwayWhileHiddenResetsTheViewModel() async {
+        let commands = HeldCommands()
+        let fetch = HeldFetch()
+        let model = Self.model(commands, cached: Self.balance(Self.gib, age: 30 * 60), fetch: fetch)
+        model.suspend(api: nil, device: FakeDevice(location: nil))
+        model.readConnectionStatus = { nil }
+
+        model.connect()
+        await fetch.waitUntilStarted()
+        #expect(model.connectionStatus == .destinationSet)
+        let start = model.startConnectTask
+
+        // as NetworkApp.updateConnectViewModel applies it
+        switch ConnectViewModelUpdate.next(hasDevice: false, presentationActive: false, presentsDevice: false) {
+        case .reset:
+            model.reset()
+        case .suspend, .setup, .unchanged:
+            model.suspend(api: nil, device: nil)
+        }
+        #expect(model.connectionStatus == nil)
+        #expect(model.startConnectTask == nil)
+
+        fetch.complete(Self.balance(Self.gib))
+        await start?.value
+        // lets a start that connects by mistake return, so the test fails on
+        // it rather than waiting for it
+        commands.release()
+        await model.connectCommandsSettled()
+        #expect(commands.performed.isEmpty)
+        #expect(model.connectionStatus == nil)
+    }
+
     // MARK: signing out
 
     /// The provider list's writes of the location it connects, as the local

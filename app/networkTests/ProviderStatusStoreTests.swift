@@ -87,6 +87,32 @@ struct ProviderStatusStoreTests {
         }
     }
 
+    /// The device work queue the store's typed close runs on (it goes
+    /// through the device, see DeviceStores), held until `run` lets the
+    /// closes queued so far run: nothing else touches the fakes meanwhile.
+    private final class HeldDeviceWork {
+        let queue = DispatchQueue(label: "network.ur.test.provider-status-device-work")
+        private var held = true
+
+        init() {
+            queue.suspend()
+        }
+
+        /// Lets the queued closes run, and waits for them. Run once at least:
+        /// a queue released while held crashes.
+        func run() async {
+            if held {
+                held = false
+                queue.resume()
+            }
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                queue.async {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
     /// Waits for the main queue to run what is queued on it so far, which
     /// includes a listener's hop to the main queue.
     private func drainMainQueue() async {
@@ -144,47 +170,82 @@ struct ProviderStatusStoreTests {
         #expect(events.log == ["open", "listen", "start", "stop"])
     }
 
-    // the typed close, after the listener is dropped and polling stops
-    @Test func resetDropsTheListenerThenStopsAndCloses() {
+    // the typed close, after the listener is dropped and polling stops: those
+    // two at once, the close on the device work queue
+    @Test func resetDropsTheListenerThenStopsAndCloses() async {
         let events = Events()
         let owner = FakeOwner(events)
-        let store = ProviderStatusStore()
+        let deviceWork = HeldDeviceWork()
+        let store = ProviderStatusStore(deviceWorkQueue: deviceWork.queue)
         store.setup(owner: owner)
         store.setVisible(true)
         events.log = []
         store.reset()
+        #expect(events.log == ["unlisten", "stop"])
+        await deviceWork.run()
         #expect(events.log == ["unlisten", "stop", "close"])
         #expect(owner.closed.count == 1)
         #expect(owner.closed.first === owner.opened.first)
         // closed once
         store.reset()
+        await deviceWork.run()
         #expect(owner.closed.count == 1)
     }
 
-    @Test func aHiddenChartIsStillClosedOnReset() {
+    @Test func aHiddenChartIsStillClosedOnReset() async {
         let events = Events()
         let owner = FakeOwner(events)
-        let store = ProviderStatusStore()
+        let deviceWork = HeldDeviceWork()
+        let store = ProviderStatusStore(deviceWorkQueue: deviceWork.queue)
         store.setup(owner: owner)
         store.setVisible(true)
         store.setVisible(false)
         store.reset()
+        await deviceWork.run()
         #expect(owner.closed.count == 1)
     }
 
     // a new device (or a resumed presentation) while the chart shows opens a
-    // fresh controller and closes the old one
-    @Test func aNewDeviceWhileShownOpensAFreshController() {
+    // fresh controller and closes the old one, on the device work queue
+    @Test func aNewDeviceWhileShownOpensAFreshController() async {
         let events = Events()
         let first = FakeOwner(events)
         let second = FakeOwner(events)
-        let store = ProviderStatusStore()
+        let deviceWork = HeldDeviceWork()
+        let store = ProviderStatusStore(deviceWorkQueue: deviceWork.queue)
         store.setup(owner: first)
         store.setVisible(true)
         store.setup(owner: second)
-        #expect(first.closed.count == 1)
+        #expect(first.closed.isEmpty)
         #expect(second.opened.count == 1)
-        #expect(events.log == ["open", "listen", "start", "unlisten", "stop", "close", "open", "listen", "start"])
+        await deviceWork.run()
+        #expect(first.closed.count == 1)
+        #expect(events.log == ["open", "listen", "start", "unlisten", "stop", "open", "listen", "start", "close"])
+    }
+
+    // a poll reported as the chart's device goes reads nothing, from the
+    // retired controller or the next device's
+    @Test func aReportFromARetiredControllerChangesNothing() async throws {
+        let events = Events()
+        let first = FakeOwner(events)
+        let second = FakeOwner(events)
+        let deviceWork = HeldDeviceWork()
+        let store = ProviderStatusStore(deviceWorkQueue: deviceWork.queue)
+        store.setup(owner: first)
+        store.setVisible(true)
+        let retired = try #require(first.opened.first)
+        var loaded = ProviderStatusSnapshot()
+        loaded.isLoaded = true
+        retired.snapshot = loaded
+        // on its way to the main queue as the device goes
+        let listener = try #require(retired.listener)
+        listener()
+        store.setup(owner: second)
+        let next = try #require(second.opened.first)
+        next.snapshot = loaded
+        await drainMainQueue()
+        #expect(store.snapshot == ProviderStatusSnapshot())
+        await deviceWork.run()
     }
 
     @Test func noDeviceOpensNothing() {

@@ -218,14 +218,17 @@ struct NetworkApp: App {
 
     @StateObject var connectViewModel: ConnectViewModel
 
-    @StateObject var throughputStore = ThroughputStore()
-    @StateObject var blockActionsStore = BlockActionsStore()
-    @StateObject var dnsSettingsStore = DnsSettingsStore()
-    @StateObject var transportSettingsStore = TransportSettingsStore()
-    @StateObject var networkPeersStore = NetworkPeersStore()
-    @StateObject var reliabilityStore = ReliabilityStore()
+    // the stores below that follow the device, set up and reset with the
+    // connect view model (DeviceStores)
+    private let deviceStores: DeviceStores
+    @StateObject var throughputStore: ThroughputStore
+    @StateObject var blockActionsStore: BlockActionsStore
+    @StateObject var dnsSettingsStore: DnsSettingsStore
+    @StateObject var transportSettingsStore: TransportSettingsStore
+    @StateObject var networkPeersStore: NetworkPeersStore
+    @StateObject var reliabilityStore: ReliabilityStore
     // this device's provider status from the server, for the provider statistics
-    @StateObject var providerStatusStore = ProviderStatusStore()
+    @StateObject var providerStatusStore: ProviderStatusStore
     // what providing does on battery, and the power state (P077)
     @StateObject var providePowerStore = ProvidePowerStore()
     // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
@@ -249,6 +252,18 @@ struct NetworkApp: App {
         _deviceManager = StateObject(wrappedValue: deviceManager)
         let connectViewModel = ConnectViewModel()
         _connectViewModel = StateObject(wrappedValue: connectViewModel)
+        // the device stores close their device subs and controllers on the
+        // connect view model's command queue, after its commands, never on
+        // the main actor (DeviceStores)
+        let deviceStores = DeviceStores(deviceWorkQueue: connectViewModel.connectCommandQueue)
+        self.deviceStores = deviceStores
+        _throughputStore = StateObject(wrappedValue: deviceStores.throughputStore)
+        _blockActionsStore = StateObject(wrappedValue: deviceStores.blockActionsStore)
+        _dnsSettingsStore = StateObject(wrappedValue: deviceStores.dnsSettingsStore)
+        _transportSettingsStore = StateObject(wrappedValue: deviceStores.transportSettingsStore)
+        _networkPeersStore = StateObject(wrappedValue: deviceStores.networkPeersStore)
+        _reliabilityStore = StateObject(wrappedValue: deviceStores.reliabilityStore)
+        _providerStatusStore = StateObject(wrappedValue: deviceStores.providerStatusStore)
         appDelegate.deviceManager = deviceManager
         // every logout, the server's included, stops the account connecting
         deviceManager.logoutStarted = { [weak connectViewModel] device in
@@ -335,27 +350,13 @@ struct NetworkApp: App {
     }
 
     private func setupDeviceStores(_ device: SdkDeviceRemote) {
-        let localState = deviceManager.asyncLocalState?.getLocalState()
-        throughputStore.setup(device)
-        // the app local state mirrors the split rule, dns and transport
-        // settings edits so they survive an app relaunch while the tunnel is
-        // down (see the stores)
-        blockActionsStore.setup(device, localState: localState)
-        dnsSettingsStore.setup(device, localState: localState)
-        transportSettingsStore.setup(device, localState: localState)
-        networkPeersStore.setup(device)
-        reliabilityStore.setup(device)
-        providerStatusStore.setup(device)
+        deviceStores.setup(device, localState: deviceManager.asyncLocalState?.getLocalState())
     }
 
+    /// Makes no call on the device on the main actor (DeviceStores), right
+    /// after the suspend, which makes none either.
     private func resetDeviceStores() {
-        throughputStore.reset()
-        blockActionsStore.reset()
-        dnsSettingsStore.reset()
-        transportSettingsStore.reset()
-        networkPeersStore.reset()
-        reliabilityStore.reset()
-        providerStatusStore.reset()
+        deviceStores.reset()
     }
 
     // Cold launch already gets a fresh JWT (the SDK's token manager refreshes

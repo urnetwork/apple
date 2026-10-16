@@ -113,6 +113,12 @@ class NetworkPeersStore: ObservableObject {
     private var peerViewController: SdkPeerViewController?
     private var peersSub: SdkSubProtocol?
     private var remoteSub: SdkSubProtocol?
+    // the device's sub and the controller close here, off the main actor
+    // (DeviceStores)
+    private let deviceWorkQueue: DispatchQueue
+    // advanced by every reset: a report from a retired listener changes
+    // nothing, after the next setup too
+    private var generation = 0
     #if DEBUG
     // debug-only observation timer: logs the raw peer state so a silent
     // no-push session is visible in the console. Log-only — the published
@@ -120,27 +126,38 @@ class NetworkPeersStore: ObservableObject {
     private var debugLogTimer: Timer?
     #endif
 
+    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+        self.deviceWorkQueue = deviceWorkQueue
+    }
+
     func setup(_ device: SdkDeviceRemote) {
         reset()
 
         self.device = device
+        let generation = self.generation
         // the SDK peer view controller already filters to connected + provide-enabled peers
         let vc = device.openPeerViewController()
         self.peerViewController = vc
         self.peersSub = vc?.add(PeersListener { [weak self] in
             DispatchQueue.main.async {
-                self?.update()
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.update()
             }
         })
         self.remoteSub = device.add(RemotePresenceListener { [weak self] remoteConnected in
             DispatchQueue.main.async {
-                if self?.peersAvailable != remoteConnected {
-                    self?.peersAvailable = remoteConnected
+                guard let self, self.generation == generation else {
+                    return
+                }
+                if self.peersAvailable != remoteConnected {
+                    self.peersAvailable = remoteConnected
                 }
                 if remoteConnected {
                     // the reconnect listener-sync pushes fresh peers; refresh
                     // defensively so a just-enabled line never shows a stale zero
-                    self?.update()
+                    self.update()
                 }
             }
         })
@@ -156,21 +173,29 @@ class NetworkPeersStore: ObservableObject {
         #endif
     }
 
+    /// Makes no call on the device: its sub and the controller's close,
+    /// which removes the controller's listener from the device, take the
+    /// device's state lock and run on the device work queue (DeviceStores).
     func reset() {
+        generation += 1
+        // the controller's own listener
         peersSub?.close()
         peersSub = nil
-        remoteSub?.close()
-        remoteSub = nil
         peersAvailable = false
-        if let peerViewController {
-            if let device {
-                device.close(peerViewController)
-            } else {
-                peerViewController.close()
+        let device = self.device
+        let peerViewController = self.peerViewController
+        closeOnDeviceWorkQueue(deviceWorkQueue, [remoteSub]) {
+            if let peerViewController {
+                if let device {
+                    device.close(peerViewController)
+                } else {
+                    peerViewController.close()
+                }
             }
         }
-        peerViewController = nil
-        device = nil
+        remoteSub = nil
+        self.peerViewController = nil
+        self.device = nil
         connectedProvidePeers = []
         connectedCount = 0
         #if DEBUG

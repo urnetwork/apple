@@ -349,6 +349,15 @@ class TransportSettingsStore: ObservableObject {
     private var providerSub: SdkSubProtocol?
     private var clientStatusSub: SdkSubProtocol?
     private var providerStatusSub: SdkSubProtocol?
+    // the device's subs close here, off the main actor (DeviceStores)
+    private let deviceWorkQueue: DispatchQueue
+    // advanced by every reset: a report from a retired listener, which
+    // carries its device's policy, publishes nothing, after the next setup too
+    private var generation = 0
+
+    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+        self.deviceWorkQueue = deviceWorkQueue
+    }
 
     func setup(_ device: SdkDeviceRemote, localState: SdkLocalState?) {
         reset()
@@ -356,38 +365,51 @@ class TransportSettingsStore: ObservableObject {
         self.device = device
         self.localState = localState
 
+        let generation = self.generation
         self.clientSub = device.add(TransportSettingsListener { [weak self] sdkSettings in
             DispatchQueue.main.async {
-                self?.publish(sdkSettings, kind: .client)
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.publish(sdkSettings, kind: .client)
             }
         })
         self.providerSub = device.add(ProviderTransportSettingsListener { [weak self] sdkSettings in
             DispatchQueue.main.async {
-                self?.publish(sdkSettings, kind: .provider)
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.publish(sdkSettings, kind: .provider)
             }
         })
         self.clientStatusSub = device.add(TransportStatusListener { [weak self] sdkStatus in
             DispatchQueue.main.async {
-                self?.publish(sdkStatus, kind: .client)
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.publish(sdkStatus, kind: .client)
             }
         })
         self.providerStatusSub = device.add(ProviderTransportStatusListener { [weak self] sdkStatus in
             DispatchQueue.main.async {
-                self?.publish(sdkStatus, kind: .provider)
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.publish(sdkStatus, kind: .provider)
             }
         })
 
         refresh()
     }
 
+    /// Makes no call on the device: its subs take the device's state lock
+    /// and close on the device work queue (DeviceStores).
     func reset() {
-        clientSub?.close()
+        generation += 1
+        closeOnDeviceWorkQueue(deviceWorkQueue, [clientSub, providerSub, clientStatusSub, providerStatusSub])
         clientSub = nil
-        providerSub?.close()
         providerSub = nil
-        clientStatusSub?.close()
         clientStatusSub = nil
-        providerStatusSub?.close()
         providerStatusSub = nil
         device = nil
         localState = nil

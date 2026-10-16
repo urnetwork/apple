@@ -161,15 +161,28 @@ class DnsSettingsStore: ObservableObject {
     private var localState: SdkLocalState?
     private var settingsSub: SdkSubProtocol?
     private var remoteSub: SdkSubProtocol?
+    // the device's subs close here, off the main actor (DeviceStores)
+    private let deviceWorkQueue: DispatchQueue
+    // advanced by every reset: a report from a retired listener changes
+    // nothing, and above all mirrors nothing, after the next setup too
+    private var generation = 0
+
+    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+        self.deviceWorkQueue = deviceWorkQueue
+    }
 
     func setup(_ device: SdkDeviceRemote, localState: SdkLocalState?) {
         reset()
 
         self.device = device
         self.localState = localState
+        let generation = self.generation
         self.settingsSub = device.add(DnsResolverSettingsListener { [weak self] in
             DispatchQueue.main.async {
-                self?.update()
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.update()
             }
         })
         // the settings the extension replays on connect arrive over the
@@ -179,8 +192,11 @@ class DnsSettingsStore: ObservableObject {
         // rather than from this process's guess at it
         self.remoteSub = device.add(DnsSettingsRemoteListener { [weak self] remoteConnected in
             DispatchQueue.main.async {
+                guard let self, self.generation == generation else {
+                    return
+                }
                 if remoteConnected {
-                    self?.update()
+                    self.update()
                 }
             }
         })
@@ -188,10 +204,12 @@ class DnsSettingsStore: ObservableObject {
         update()
     }
 
+    /// Makes no call on the device: its subs take the device's state lock
+    /// and close on the device work queue (DeviceStores).
     func reset() {
-        settingsSub?.close()
+        generation += 1
+        closeOnDeviceWorkQueue(deviceWorkQueue, [settingsSub, remoteSub])
         settingsSub = nil
-        remoteSub?.close()
         remoteSub = nil
         device = nil
         // nothing is persisted from here: reset runs on every backgrounding

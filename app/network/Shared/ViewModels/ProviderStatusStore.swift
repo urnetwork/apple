@@ -79,9 +79,19 @@ class ProviderStatusStore: ObservableObject {
     private var owner: ProviderStatusControllerOwner?
     private var controller: ProviderStatusControlling?
     private var statusSub: SdkSubProtocol?
+    // the typed close goes through the device and runs here, off the main
+    // actor (DeviceStores)
+    private let deviceWorkQueue: DispatchQueue
+    // advanced by every reset: a report from a retired controller changes
+    // nothing, after the next setup too
+    private var generation = 0
 
     // true while the provider statistics show the demand chart
     private var visible = false
+
+    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+        self.deviceWorkQueue = deviceWorkQueue
+    }
 
     /// Reads the status through `device`.
     func setup(_ device: SdkDeviceRemote) {
@@ -101,6 +111,7 @@ class ProviderStatusStore: ObservableObject {
 
     /// Closes the controller and drops the device and its snapshot.
     func reset() {
+        generation += 1
         closeController()
         owner = nil
         snapshot = ProviderStatusSnapshot()
@@ -126,9 +137,13 @@ class ProviderStatusStore: ObservableObject {
     private func startController() {
         if controller == nil, let owner, let controller = owner.openProviderStatusController() {
             self.controller = controller
+            let generation = self.generation
             statusSub = controller.addStatusListener { [weak self] in
                 DispatchQueue.main.async {
-                    self?.update()
+                    guard let self, self.generation == generation else {
+                        return
+                    }
+                    self.update()
                 }
             }
         }
@@ -136,14 +151,19 @@ class ProviderStatusStore: ObservableObject {
         update()
     }
 
-    /// Stops following the controller, then stops and closes it.
+    /// Stops following the controller, then stops and closes it. The typed
+    /// close goes through the device and runs on the device work queue
+    /// (DeviceStores); the listener and the stop are the controller's own.
     private func closeController() {
         // the listener goes first, so nothing reads a closed controller
         statusSub?.close()
         statusSub = nil
         if let controller {
             controller.stop()
-            owner?.closeProviderStatusController(controller)
+            let owner = self.owner
+            closeOnDeviceWorkQueue(deviceWorkQueue, []) {
+                owner?.closeProviderStatusController(controller)
+            }
         }
         controller = nil
     }

@@ -601,8 +601,11 @@ struct ConnectTapStateTests {
     /// A device with no sdk behind it, for setup and suspend: it reports
     /// `location`, and `reportLocation` calls its location listeners as the
     /// sdk's event does, which reaches the app after the command returns.
-    /// Every call the view model makes on a device is answered here, so
-    /// nothing reaches the Go side.
+    /// Every call the view model and the device stores (DeviceStores) make
+    /// on a device is answered here, so nothing reaches the Go side; the
+    /// stores' controllers are fakes too, and their listeners and the
+    /// device's report on demand (`storeListeners`,
+    /// `reportControllerListeners`).
     ///
     /// Each call made on the main thread is recorded (`mainThreadCalls`):
     /// on the sdk's DeviceRemote every one of them, its getters, listener
@@ -770,6 +773,427 @@ struct ConnectTapStateTests {
         override func close(_ vc: SdkConnectViewController?) {
             record("closeConnectViewController")
             vc?.close()
+        }
+
+        // MARK: the device stores' calls
+
+        /// The device listeners the stores add, each with what it reports.
+        let storeListeners = FakeListeners()
+        private var openedControllers: [FakeControllerRecord] = []
+
+        /// The controllers the stores opened on this device, in order.
+        var controllers: [FakeControllerRecord] {
+            stateLock.withLock { openedControllers }
+        }
+
+        /// The calls made on the main thread on the controllers opened here.
+        var controllerMainThreadCalls: [String] {
+            controllers.flatMap { $0.calls.mainThreadCalls }
+        }
+
+        func forgetControllerMainThreadCalls() {
+            for controller in controllers {
+                controller.calls.forget()
+            }
+        }
+
+        /// The listeners of every controller opened here report, as the
+        /// sdk's controllers do after a change.
+        func reportControllerListeners() {
+            for controller in controllers {
+                controller.listeners.reportAll()
+            }
+        }
+
+        private func opened<T>(_ name: String, _ controller: T, _ calls: FakeCalls, _ listeners: FakeListeners) -> T {
+            record(name)
+            stateLock.withLock {
+                openedControllers.append(FakeControllerRecord(calls: calls, listeners: listeners))
+            }
+            return controller
+        }
+
+        private func addStoreListener(_ name: String, _ report: @escaping () -> Void) -> SdkSubProtocol? {
+            record("add\(name)")
+            return storeListeners.add(report) { [weak self] in
+                self?.record("close\(name)")
+            }
+        }
+
+        override func openContractViewController() -> SdkContractViewController? {
+            let vc = FakeContractViewController()
+            return opened("openContractViewController", vc, vc.calls, vc.listeners)
+        }
+
+        override func close(_ vc: SdkContractViewController?) {
+            record("closeContractViewController")
+            vc?.close()
+        }
+
+        override func getProviderPacketStats() -> SdkPacketStats? {
+            record("getProviderPacketStats")
+            return nil
+        }
+
+        override func openBlockActionViewController() -> SdkBlockActionViewController? {
+            let vc = FakeBlockActionViewController()
+            return opened("openBlockActionViewController", vc, vc.calls, vc.listeners)
+        }
+
+        override func close(_ vc: SdkBlockActionViewController?) {
+            record("closeBlockActionViewController")
+            vc?.close()
+        }
+
+        override func add(_ listener: SdkBlockActionOverridesChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("BlockActionOverridesChangeListener") {
+                listener?.blockActionOverridesChanged(nil)
+            }
+        }
+
+        override func getBlockActionOverrides() -> SdkBlockActionOverrideList? {
+            record("getBlockActionOverrides")
+            return nil
+        }
+
+        // reports the rpc up
+        override func add(_ listener: SdkRemoteChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("RemoteChangeListener") {
+                listener?.remoteChanged(true)
+            }
+        }
+
+        override func getConnected() -> Bool {
+            record("getConnected")
+            return false
+        }
+
+        override func add(_ listener: SdkDnsResolverSettingsChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("DnsResolverSettingsChangeListener") {
+                listener?.dnsResolverSettingsChanged(nil)
+            }
+        }
+
+        override func getDnsResolverSettings() -> SdkDnsResolverSettings? {
+            record("getDnsResolverSettings")
+            return nil
+        }
+
+        // the transport listeners report a policy and a status; the getters
+        // answer none
+        override func add(_ listener: SdkTransportSettingsChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("TransportSettingsChangeListener") {
+                listener?.transportSettingsChanged(SdkDefaultTransportSettings())
+            }
+        }
+
+        override func add(_ listener: SdkProviderTransportSettingsChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("ProviderTransportSettingsChangeListener") {
+                listener?.providerTransportSettingsChanged(SdkDefaultProviderTransportSettings())
+            }
+        }
+
+        override func add(_ listener: SdkTransportStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("TransportStatusChangeListener") {
+                listener?.transportStatusChanged(SdkTransportStatus())
+            }
+        }
+
+        override func add(_ listener: SdkProviderTransportStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("ProviderTransportStatusChangeListener") {
+                listener?.providerTransportStatusChanged(SdkTransportStatus())
+            }
+        }
+
+        override func getTransportSettings() -> SdkTransportSettings? {
+            record("getTransportSettings")
+            return nil
+        }
+
+        override func getProviderTransportSettings() -> SdkTransportSettings? {
+            record("getProviderTransportSettings")
+            return nil
+        }
+
+        override func getTransportStatus() -> SdkTransportStatus? {
+            record("getTransportStatus")
+            return nil
+        }
+
+        override func getProviderTransportStatus() -> SdkTransportStatus? {
+            record("getProviderTransportStatus")
+            return nil
+        }
+
+        override func openPeerViewController() -> SdkPeerViewController? {
+            let vc = FakePeerViewController()
+            return opened("openPeerViewController", vc, vc.calls, vc.listeners)
+        }
+
+        override func close(_ vc: SdkPeerViewController?) {
+            record("closePeerViewController")
+            vc?.close()
+        }
+
+        override func getNetworkPeers() -> SdkNetworkPeers? {
+            record("getNetworkPeers")
+            return nil
+        }
+
+        override func openProviderStatusViewController() -> SdkProviderStatusViewController? {
+            let vc = FakeProviderStatusViewController()
+            return opened("openProviderStatusViewController", vc, vc.calls, vc.listeners)
+        }
+
+        override func close(_ vc: SdkProviderStatusViewController?) {
+            record("closeProviderStatusViewController")
+            vc?.close()
+        }
+
+        // the reliability store reads on its own queue
+        override func getReliabilitySettings() -> SdkReliabilitySettings? {
+            record("getReliabilitySettings")
+            return nil
+        }
+
+        override func getReliabilityMetrics() -> SdkReliabilityMetrics? {
+            record("getReliabilityMetrics")
+            return nil
+        }
+
+        override func getExits() -> SdkExitList? {
+            record("getExits")
+            return nil
+        }
+    }
+
+    /// Listeners a fake keeps, each with what it reports when the fake
+    /// reports a change (`reportAll`). Safe for concurrent use.
+    final class FakeListeners: @unchecked Sendable {
+        private let stateLock = NSLock()
+        private var nextId = 0
+        private var reports: [Int: () -> Void] = [:]
+
+        func add(_ report: @escaping () -> Void, onClose: @escaping () -> Void = {}) -> SdkSubProtocol {
+            let id = stateLock.withLock {
+                nextId += 1
+                reports[nextId] = report
+                return nextId
+            }
+            return FakeSub { [weak self] in
+                onClose()
+                self?.stateLock.withLock { self?.reports[id] = nil }
+            }
+        }
+
+        /// The listeners still open.
+        var count: Int {
+            stateLock.withLock { reports.count }
+        }
+
+        func reportAll() {
+            let reports = stateLock.withLock { Array(self.reports.values) }
+            for report in reports {
+                report()
+            }
+        }
+    }
+
+    /// The calls a fake controller answered on the main thread, and its
+    /// closes. Safe for concurrent use.
+    final class FakeCalls: @unchecked Sendable {
+        private let stateLock = NSLock()
+        private var mainThreadCallNames: [String] = []
+        private var closeCountValue = 0
+
+        func record(_ name: String) {
+            if Thread.isMainThread {
+                stateLock.withLock { mainThreadCallNames.append(name) }
+            }
+        }
+
+        func recordClose() {
+            stateLock.withLock { closeCountValue += 1 }
+        }
+
+        var mainThreadCalls: [String] {
+            stateLock.withLock { mainThreadCallNames }
+        }
+
+        var closeCount: Int {
+            stateLock.withLock { closeCountValue }
+        }
+
+        func forget() {
+            stateLock.withLock { mainThreadCallNames = [] }
+        }
+    }
+
+    /// A controller the stores opened on a FakeDevice.
+    struct FakeControllerRecord {
+        let calls: FakeCalls
+        let listeners: FakeListeners
+    }
+
+    /// The throughput store's controller with no sdk behind it: no points,
+    /// and its listeners are its own. Safe for concurrent use.
+    final class FakeContractViewController: SdkContractViewController, @unchecked Sendable {
+        let calls = FakeCalls()
+        let listeners = FakeListeners()
+
+        override init() {
+            super.init(ref: NSObject())
+        }
+
+        override func add(_ listener: SdkThroughputListenerProtocol?) -> SdkSubProtocol? {
+            listeners.add { listener?.throughputChanged() }
+        }
+
+        override func getWindowDurationSeconds() -> Int {
+            calls.record("getWindowDurationSeconds")
+            return 60
+        }
+
+        override func getThroughputPoints() -> SdkThroughputPointList? {
+            calls.record("getThroughputPoints")
+            return nil
+        }
+
+        override func getProviderThroughputPoints() -> SdkThroughputPointList? {
+            calls.record("getProviderThroughputPoints")
+            return nil
+        }
+
+        override func getExtenderThroughputPoints() -> SdkThroughputPointList? {
+            calls.record("getExtenderThroughputPoints")
+            return nil
+        }
+
+        override func getTransportDistribution() -> SdkTransportDistribution? {
+            calls.record("getTransportDistribution")
+            return nil
+        }
+
+        override func getProviderTransportDistribution() -> SdkTransportDistribution? {
+            calls.record("getProviderTransportDistribution")
+            return nil
+        }
+
+        override func getProviderPacketStats() -> SdkPacketStats? {
+            calls.record("getProviderPacketStats")
+            return nil
+        }
+
+        override func close() {
+            calls.recordClose()
+        }
+    }
+
+    /// The split rule store's controller with no sdk behind it. Safe for
+    /// concurrent use.
+    final class FakeBlockActionViewController: SdkBlockActionViewController, @unchecked Sendable {
+        let calls = FakeCalls()
+        let listeners = FakeListeners()
+
+        override init() {
+            super.init(ref: NSObject())
+        }
+
+        override func add(_ listener: SdkBlockActionsListenerProtocol?) -> SdkSubProtocol? {
+            listeners.add { listener?.blockActionsChanged() }
+        }
+
+        override func add(_ listener: SdkBlockActionStatsListenerProtocol?) -> SdkSubProtocol? {
+            listeners.add { listener?.blockActionStatsChanged() }
+        }
+
+        override func getBlockActions() -> SdkBlockActionList? {
+            calls.record("getBlockActions")
+            return nil
+        }
+
+        override func getBlockStats() -> SdkBlockStats? {
+            calls.record("getBlockStats")
+            return nil
+        }
+
+        override func close() {
+            calls.recordClose()
+        }
+    }
+
+    /// The peer store's controller with no sdk behind it. Safe for
+    /// concurrent use.
+    final class FakePeerViewController: SdkPeerViewController, @unchecked Sendable {
+        let calls = FakeCalls()
+        let listeners = FakeListeners()
+
+        override init() {
+            super.init(ref: NSObject())
+        }
+
+        override func add(_ listener: SdkPeersListenerProtocol?) -> SdkSubProtocol? {
+            listeners.add { listener?.peersChanged(nil) }
+        }
+
+        override func start() {
+            calls.record("start")
+        }
+
+        override func getPeers() -> SdkNetworkPeerList? {
+            calls.record("getPeers")
+            return nil
+        }
+
+        override func getConnectedCount() -> Int {
+            calls.record("getConnectedCount")
+            return 0
+        }
+
+        override func close() {
+            calls.recordClose()
+        }
+    }
+
+    /// The provider status store's controller with no sdk behind it. Safe
+    /// for concurrent use.
+    final class FakeProviderStatusViewController: SdkProviderStatusViewController, @unchecked Sendable {
+        let calls = FakeCalls()
+        let listeners = FakeListeners()
+
+        override init() {
+            super.init(ref: NSObject())
+        }
+
+        override func add(_ listener: SdkProviderStatusListenerProtocol?) -> SdkSubProtocol? {
+            listeners.add { listener?.providerStatusChanged() }
+        }
+
+        override func start() {
+            calls.record("start")
+        }
+
+        override func stop() {
+            calls.record("stop")
+        }
+
+        override func getProviderStatus() -> SdkProviderStatus? {
+            calls.record("getProviderStatus")
+            return nil
+        }
+
+        override func getIsLoaded() -> Bool {
+            calls.record("getIsLoaded")
+            return false
+        }
+
+        override func getLastFetchError() -> String {
+            calls.record("getLastFetchError")
+            return ""
+        }
+
+        override func close() {
+            calls.recordClose()
         }
     }
 
@@ -1122,6 +1546,131 @@ struct ConnectTapStateTests {
         commands.release()
         await model.connectCommandsSettled()
         #expect(model.tunnelConnected)
+    }
+
+    // MARK: the device stores while a command is held
+
+    /// The window's device stores on `device`, as NetworkApp sets them up:
+    /// closing on `model`'s command queue, with the provider statistics
+    /// showing (the provider status controller opens only then).
+    private static func deviceStores(_ model: ConnectViewModel, on device: FakeDevice) -> DeviceStores {
+        let stores = DeviceStores(deviceWorkQueue: model.connectCommandQueue)
+        stores.providerStatusStore.setVisible(true)
+        stores.setup(device, localState: nil)
+        return stores
+    }
+
+    /// Hiding the window (macOS) or backgrounding the app (iOS) with every
+    /// device store set up, while the window's connect is held in the sdk.
+    /// NetworkApp resets the stores right after it suspends the view model,
+    /// and the reset closed the stores' device listeners (dns, transport,
+    /// split rules, the remote's) and their controllers (throughput, split
+    /// rules, peers, provider status) on the main actor. On the sdk's
+    /// DeviceRemote each waits on the device's state lock, which the held
+    /// command keeps through its rpc, up to the 60 s rpc timeout, and the
+    /// main actor froze for as long. Now none is made there: they close once
+    /// the command returns, after it.
+    @Test func hidingWithEveryDeviceStoreSetUpMakesNoDeviceCallOnTheMainThread() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        model.setup(api: nil, device: device, connectViewController: FakeConnectViewController())
+        let stores = Self.deviceStores(model, on: device)
+        await Self.deviceWorkSettled(model)
+        // dns 2, transport 4, split rules 2, peers 1
+        #expect(device.storeListeners.count == 9)
+        #expect(device.controllers.count == 4)
+
+        model.connect()
+        await commands.waitUntilReached()
+        // setup's own calls stay on the main actor: not the hide path
+        device.forgetMainThreadCalls()
+        // as NetworkApp.updateConnectViewModel applies the hide
+        model.suspend(api: nil, device: device)
+        stores.reset()
+        model.readConnectionStatus = { nil }
+        #expect(device.mainThreadCalls == [])
+        #expect(device.storeListeners.count == 9)
+        #expect(device.controllers.map { $0.calls.closeCount } == [0, 0, 0, 0])
+
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        #expect(device.mainThreadCalls == [])
+        #expect(device.storeListeners.count == 0)
+        #expect(device.controllers.map { $0.calls.closeCount } == [1, 1, 1, 1])
+    }
+
+    /// A store's listeners report until they close, and a report already on
+    /// its way to the main actor lands after the reset. With the closes
+    /// behind a held command that lasts as long as the command. Applied, the
+    /// hidden stores showed the device's transport policy and status, and its
+    /// peers as available, again. From its reset on, a store drops them.
+    @Test func reportsAfterTheDeviceStoresResetChangeNothing() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let device = FakeDevice(location: nil)
+        let stores = Self.deviceStores(model, on: device)
+        await Self.deviceWorkSettled(model)
+
+        model.connect()
+        await commands.waitUntilReached()
+        // reports on their way to the main actor as the window hides
+        device.storeListeners.reportAll()
+        device.reportControllerListeners()
+        stores.reset()
+        // and the listeners still closing report again
+        device.storeListeners.reportAll()
+        device.forgetMainThreadCalls()
+        await Self.mainQueueDrained()
+        #expect(stores.transportSettingsStore.settings(.client) == nil)
+        #expect(stores.transportSettingsStore.settings(.provider) == nil)
+        #expect(stores.transportSettingsStore.status(.client) == nil)
+        #expect(stores.transportSettingsStore.status(.provider) == nil)
+        #expect(!stores.networkPeersStore.peersAvailable)
+        #expect(device.mainThreadCalls == [])
+
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        #expect(device.storeListeners.count == 0)
+    }
+
+    /// The same reports landing after the next setup, on the next device (a
+    /// sign-in, or the window shown again), before the previous device's
+    /// listeners have closed. Applied, they showed the previous device's
+    /// transport policy and peer presence on the next device's stores, and
+    /// read the next device and its controllers on the main actor.
+    @Test func reportsFromThePreviousDeviceChangeNothingAfterTheNextSetup() async {
+        let commands = HeldCommands()
+        let model = Self.model(commands)
+        let previous = FakeDevice(location: nil)
+        let stores = Self.deviceStores(model, on: previous)
+        await Self.deviceWorkSettled(model)
+
+        model.connect()
+        await commands.waitUntilReached()
+        previous.storeListeners.reportAll()
+        previous.reportControllerListeners()
+        stores.reset()
+        let next = FakeDevice(location: nil)
+        stores.setup(next, localState: nil)
+        // the setup's own calls
+        next.forgetMainThreadCalls()
+        next.forgetControllerMainThreadCalls()
+        // the previous device's listeners, still closing, report again
+        previous.storeListeners.reportAll()
+        await Self.mainQueueDrained()
+        #expect(stores.transportSettingsStore.settings(.client) == nil)
+        #expect(stores.transportSettingsStore.status(.client) == nil)
+        #expect(!stores.networkPeersStore.peersAvailable)
+        #expect(next.mainThreadCalls == [])
+        #expect(next.controllerMainThreadCalls == [])
+
+        commands.release()
+        await Self.deviceWorkSettled(model)
+        #expect(previous.storeListeners.count == 0)
+        stores.reset()
+        await Self.deviceWorkSettled(model)
+        #expect(next.storeListeners.count == 0)
     }
 
     // MARK: the menu bar while suspended

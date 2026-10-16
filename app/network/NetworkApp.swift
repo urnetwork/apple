@@ -89,17 +89,23 @@ enum ConnectViewModelUpdate: Equatable {
  * (`fromLocation`, ConnectViewModel.connectionStatusFromLocation): with the
  * window hidden nothing reports how far the connection got, so a set
  * location reads as connected, as it always did.
+ *
+ * CONNECTED with the tunnel stopped (`tunnelConnected` false) says what the
+ * main window says there, "VPN tunnel disconnected". A connection from the
+ * location alone is not checked: the tunnel listener is closed while the
+ * window is hidden, so its last value says nothing about a new connection.
  */
 enum MenuBarConnectionState: Equatable {
     case connected
+    case tunnelDisconnected
     case connecting
     case failed
     case disconnected
 
-    init(_ connectionStatus: ConnectionStatus?, fromLocation: Bool = false) {
+    init(_ connectionStatus: ConnectionStatus?, fromLocation: Bool = false, tunnelConnected: Bool = true) {
         switch connectionStatus {
         case .connected:
-            self = .connected
+            self = tunnelConnected ? .connected : .tunnelDisconnected
         case .destinationSet where fromLocation:
             self = .connected
         case .connecting, .destinationSet:
@@ -115,6 +121,7 @@ enum MenuBarConnectionState: Equatable {
     var symbol: String {
         switch self {
         case .connected: return "checkmark"
+        case .tunnelDisconnected: return "exclamationmark.triangle"
         case .connecting: return "ellipsis"
         case .failed: return "exclamationmark.triangle"
         case .disconnected: return "xmark"
@@ -125,6 +132,7 @@ enum MenuBarConnectionState: Equatable {
     var label: String {
         switch self {
         case .connected, .disconnected: return String(localized: "Connected")
+        case .tunnelDisconnected: return String(localized: "VPN tunnel disconnected 😓")
         case .connecting: return String(localized: "Connecting…")
         case .failed: return String(localized: "Couldn't connect")
         }
@@ -137,6 +145,25 @@ enum MenuBarConnectionState: Equatable {
         case (true, false): return "MenuBarNoProvideConnect"
         case (false, true): return "MenuBarProvideNoConnect"
         case (false, false): return "MenuBarNoProvideNoConnect"
+        }
+    }
+}
+
+/// The menu bar's action: Connect when disconnected, Disconnect for any
+/// connection asked for, and none with no status (signed out, or before the
+/// first status), where Disconnect had nothing to end.
+enum MenuBarConnectAction: Equatable {
+    case connect
+    case disconnect
+
+    init?(_ connectionStatus: ConnectionStatus?) {
+        switch connectionStatus {
+        case .none:
+            return nil
+        case .disconnected:
+            self = .connect
+        case .connecting, .destinationSet, .connected, .connectFailed:
+            self = .disconnect
         }
     }
 }
@@ -371,7 +398,8 @@ struct NetworkApp: App {
     private var menuBarConnection: MenuBarConnectionState {
         MenuBarConnectionState(
             connectViewModel.connectionStatus,
-            fromLocation: connectViewModel.connectionStatusFromLocation
+            fromLocation: connectViewModel.connectionStatusFromLocation,
+            tunnelConnected: connectViewModel.tunnelConnected
         )
     }
     #endif
@@ -714,16 +742,19 @@ struct NetworkApp: App {
             
             Divider()
             
-            if connectViewModel.connectionStatus == .disconnected {
+            switch MenuBarConnectAction(connectViewModel.connectionStatus) {
+            case .connect:
                 Button("Connect", action: {
                     // out of balance the start is refused for the upgrade
                     // sheet, which lives in the main window
                     connectViewModel.connect(onUpgrade: { showWindow() })
                 })
-            } else {
+            case .disconnect:
                 Button("Disconnect", action: {
                     connectViewModel.disconnect()
                 })
+            case nil:
+                EmptyView()
             }
             
             Button("Show", action: {

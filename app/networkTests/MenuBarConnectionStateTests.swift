@@ -88,5 +88,37 @@ struct MenuBarConnectionStateTests {
             #expect(icon == c.icon, "\(String(describing: c.status)), providing \(c.providing)")
         }
     }
+
+    /// Connected with the tunnel stopped says what the main window says
+    /// there, and the icon shows not connected. A connection from the
+    /// location alone, while the window is hidden, is not checked: the
+    /// tunnel listener is closed then.
+    @Test func aStoppedTunnelSaysWhatTheMainWindowSays() {
+        let state = MenuBarConnectionState(.connected, tunnelConnected: false)
+        #expect(state == .tunnelDisconnected)
+        #expect(state.symbol == "exclamationmark.triangle")
+        let mainWindow = ConnectStatusIndicator(
+            connectionStatus: .connected,
+            displayReconnectTunnel: true,
+            contractStatus: nil,
+            windowCurrentSize: 0,
+            isPollingSubscriptionBalance: false,
+            currentPlan: .none
+        )
+        #expect(state.label == mainWindow.statusMsg)
+        #expect(state.iconName(providing: false) == "MenuBarNoProvideNoConnect")
+        #expect(MenuBarConnectionState(.destinationSet, fromLocation: true, tunnelConnected: false) == .connected)
+        #expect(MenuBarConnectionState(.connected, tunnelConnected: true) == .connected)
+    }
+
+    /// Connect when disconnected, Disconnect for any connection asked for,
+    /// and nothing with no status, where Disconnect had nothing to end.
+    @Test func theActionNeedsAStatus() {
+        #expect(MenuBarConnectAction(nil) == nil)
+        #expect(MenuBarConnectAction(.disconnected) == .connect)
+        for status in [ConnectionStatus.connecting, .destinationSet, .connected, .connectFailed] {
+            #expect(MenuBarConnectAction(status) == .disconnect, "\(status)")
+        }
+    }
 }
 #endif

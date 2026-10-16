@@ -119,6 +119,36 @@ struct CatalogLookupTests {
             #expect(keys.contains(literal), "\(literal) (\(reason)) is no longer looked up: drop it from notLookedUp")
         }
     }
+
+    @Test func connectingMenuStatusKeepsEveryCatalogLanguage() throws {
+        // A catalog-only row vanished when the canonical store regenerated
+        // the app resources. Check the real menu lookup and every language,
+        // not just the English fallback that hid the missing translation.
+        let source = try String(contentsOf: Self.appRoot.appendingPathComponent("network/NetworkApp.swift"), encoding: .utf8)
+        let lookups = CatalogLiteralScanner.lookups(file: "NetworkApp.swift", source: source)
+        #expect(lookups.contains { $0.function == "String" && $0.key == "Connecting…" })
+        let strings = try Self.catalogStrings()
+        let entry = try #require(strings["Connecting…"] as? [String: Any])
+        #expect(entry["extractionState"] as? String != "stale")
+        let translations = try #require(entry["localizations"] as? [String: Any])
+        var locales = Set<String>()
+        for case let row as [String: Any] in strings.values {
+            if let localizations = row["localizations"] as? [String: Any] {
+                locales.formUnion(localizations.keys)
+            }
+        }
+        #expect(locales.count == 27)
+        for locale in locales.sorted() {
+            let translation = try #require(translations[locale] as? [String: Any], "missing \(locale)")
+            let unit = try #require(translation["stringUnit"] as? [String: Any])
+            let value = try #require(unit["value"] as? String)
+            #expect(unit["state"] as? String == "translated")
+            #expect(!value.isEmpty)
+            if locale != "en" {
+                #expect(value != "Connecting…", "\(locale) fell back to English")
+            }
+        }
+    }
 }
 
 /// One literal a source hands to SwiftUI as a LocalizedStringKey: the

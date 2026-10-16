@@ -27,14 +27,20 @@ struct DeviceStoreDeviceCallTests {
     typealias FakeDevice = ConnectTapStateTests.FakeDevice
 
     /// A device work queue held until `release`, as a held command holds the
-    /// command queue. Release it once at least: a queue released while held
-    /// crashes.
+    /// command queue. A test that ends early (a failed requirement) releases
+    /// it at deinit: a queue released while held crashes the test process.
     final class HeldDeviceWork {
         let queue = DispatchQueue(label: "network.ur.test.device-store-work")
         private var held = true
 
         init() {
             queue.suspend()
+        }
+
+        deinit {
+            if held {
+                queue.resume()
+            }
         }
 
         /// Lets the queued work run, and what is queued later.

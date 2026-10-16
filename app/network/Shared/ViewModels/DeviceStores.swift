@@ -35,7 +35,8 @@ import URnetworkSdk
  *
  * Setup still opens the controllers, adds the listeners and reads the device
  * on the main actor, but only once the connect commands queued so far have
- * run (DeferredWindowSetup), so no command holds the lock then.
+ * run (DeferredWindowSetup), so no command holds the lock then, unless taps
+ * kept queuing commands through every wait it allows.
  */
 @MainActor
 struct DeviceStores {

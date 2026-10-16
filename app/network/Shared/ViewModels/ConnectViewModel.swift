@@ -179,6 +179,13 @@ class ConnectViewModel: ObservableObject {
     }
     // a start waiting on its balance fetch; a repeated tap does not stack
     private(set) var startConnectTask: Task<Void, Never>?
+
+    // runs one command against the sdk; replaced in tests
+    var performConnectCommand: (ConnectCommand, SdkConnectViewController?, SdkDeviceRemote?) -> Void = ConnectViewModel.performOnSdk
+    // the presented controller's status; replaced in tests
+    lazy var readConnectionStatus: () -> String? = { [weak self] in
+        self?.connectViewController?.getConnectionStatus()
+    }
     private lazy var insufficientBalanceReaction = InsufficientBalanceContractReaction(
         disconnect: { [weak self] in self?.disconnect() },
         notice: { action in InsufficientBalanceNotice.apply(action) }
@@ -434,11 +441,10 @@ class ConnectViewModel: ObservableObject {
                 return
             }
             self.runBeforeConnect()
-            self.withCommandViewController { viewController in
-                viewController.connect(provider)
+            let device = self.device
+            self.runConnectCommand(.connect(provider)) {
+                try? device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
             }
-            try? self.device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()?.setConnectLocation(provider)
-            TunnelIntentAdoption.recordAppIntent(connect: true, device: self.device)
         }
     }
 
@@ -476,10 +482,7 @@ class ConnectViewModel: ObservableObject {
     private func connectSelected() {
         runBeforeConnect()
         if let selectedProvider = self.selectedProvider {
-            withCommandViewController { viewController in
-                viewController.connect(selectedProvider)
-            }
-            TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
+            runConnectCommand(.connect(selectedProvider))
         } else {
             startBestAvailable()
         }
@@ -493,35 +496,31 @@ class ConnectViewModel: ObservableObject {
 
     private func startBestAvailable() {
         runBeforeConnect()
-        withCommandViewController { viewController in
-            viewController.connectBestAvailable()
-        }
-        TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
+        runConnectCommand(.connectBestAvailable)
     }
 
     func disconnect() {
         // the user's disconnect: nothing is reconnected by itself after it
         clearBalanceRecovery()
-        withCommandViewController { viewController in
-            viewController.disconnect()
-        }
-        // the in-app decision: the quick connect surfaces and the tunnel
-        // extension see it through the shared intent
-        TunnelIntentAdoption.recordAppIntent(connect: false, device: device)
+        runConnectCommand(.disconnect)
     }
 
-    private func withCommandViewController(_ command: (SdkConnectViewController) -> Void) {
-        if let connectViewController {
-            command(connectViewController)
-            return
-        }
-        guard let device, let viewController = device.openConnectViewController() else {
-            return
-        }
-        defer {
-            device.close(viewController)
-        }
-        command(viewController)
+    /// Runs `command` against the sdk (`performConnectCommand`, which also
+    /// records the app's intent), then `then`. On the main actor: the call
+    /// returns once the sdk has the command.
+    private func runConnectCommand(_ command: ConnectCommand, then: (() -> Void)? = nil) {
+        performConnectCommand(command, connectViewController, device)
+        then?()
+    }
+
+    /// Returns once every command made so far has run: they run on the main
+    /// actor, so they all have.
+    func connectCommandsSettled() async {
+    }
+
+    /// Blocks until every command made so far has run: they run on the main
+    /// actor, so they all have.
+    func waitForConnectCommands() {
     }
     
     private func addSelectedLocationListener() {
@@ -686,25 +685,19 @@ extension ConnectViewModel {
             now: now()
         )
         publishBalanceRecoveryState()
-        let target: SdkConnectLocation?
+        let command: ConnectCommand
         switch step {
         case .noRetry:
             return
         case .start(let location):
-            target = location
+            command = location.map { .connect($0) } ?? .connectBestAvailable
         case .rebuild:
-            target = device?.getConnectLocation() ?? selectedProvider
+            // the device's location is read with the command
+            command = .rebuild(fallback: selectedProvider)
         }
         print("[connect]balance is back: retrying the blocked connect")
         runBeforeConnect()
-        if let target {
-            withCommandViewController { viewController in
-                viewController.connect(target)
-            }
-            TunnelIntentAdoption.recordAppIntent(connect: true, device: device)
-        } else {
-            startBestAvailable()
-        }
+        runConnectCommand(command)
         balanceRecoveryRetryCount += 1
     }
 
@@ -867,8 +860,9 @@ extension ConnectViewModel {
         connectionStatusListenerSub = connectViewController?.add(listener)
     }
 
-    private func updateConnectionStatus() {
-        guard let statusString = self.connectViewController?.getConnectionStatus() else {
+    /// Reads the sdk's status (the listener's hop to the main actor).
+    func updateConnectionStatus() {
+        guard let statusString = readConnectionStatus() else {
             print("no status present")
             return
         }
@@ -888,6 +882,67 @@ extension ConnectViewModel {
         }
     }
     
+}
+
+// MARK: connect commands
+
+/// One connect or disconnect the view model asks the sdk for.
+enum ConnectCommand: Equatable {
+    case connect(SdkConnectLocation)
+    case connectBestAvailable
+    /// The held connection again: to the device's location, else `fallback`,
+    /// else the best available provider (the balance recovery's rebuild).
+    case rebuild(fallback: SdkConnectLocation?)
+    case disconnect
+
+    /// The sdk controller's own first status for the command.
+    var startStatus: ConnectionStatus {
+        self == .disconnect ? .disconnected : .destinationSet
+    }
+}
+
+extension ConnectViewModel {
+    /// Runs `command` on the presented controller or, without one (the macOS
+    /// menu bar while the window is hidden), on a controller opened for it,
+    /// then records the in-app decision: the quick connect surfaces and the
+    /// tunnel extension see it through the shared intent. Blocks while the
+    /// sdk talks to the tunnel extension.
+    nonisolated static func performOnSdk(
+        _ command: ConnectCommand,
+        viewController: SdkConnectViewController?,
+        device: SdkDeviceRemote?
+    ) {
+        defer {
+            TunnelIntentAdoption.recordAppIntent(connect: command != .disconnect, device: device)
+        }
+        let run = { (viewController: SdkConnectViewController) in
+            switch command {
+            case .connect(let location):
+                viewController.connect(location)
+            case .connectBestAvailable:
+                viewController.connectBestAvailable()
+            case .rebuild(let fallback):
+                if let location = device?.getConnectLocation() ?? fallback {
+                    viewController.connect(location)
+                } else {
+                    viewController.connectBestAvailable()
+                }
+            case .disconnect:
+                viewController.disconnect()
+            }
+        }
+        if let viewController {
+            run(viewController)
+            return
+        }
+        guard let device, let viewController = device.openConnectViewController() else {
+            return
+        }
+        defer {
+            device.close(viewController)
+        }
+        run(viewController)
+    }
 }
 
 // MARK: start connect balance

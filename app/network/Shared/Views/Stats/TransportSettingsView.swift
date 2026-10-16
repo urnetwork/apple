@@ -15,6 +15,12 @@ import URnetworkSdk
  * enabled carrier takes its default priority; the last enabled carrier can't
  * be disabled), with a render snapshot re-taken after every edit, so the
  * editing rules live in one place for every platform.
+ *
+ * The draft starts from the store's policy (`seed`), and while the store has
+ * none (nil until the setup's read, and after a reset) the editor is
+ * disabled and seeds once it arrives: the defaults applied would replace the
+ * device's policy. Update is a compare and set against the policy it was
+ * seeded from; refused, the editor starts over from the store's.
  */
 struct TransportSettingsView: View {
 
@@ -27,19 +33,32 @@ struct TransportSettingsView: View {
     // the sdk draft policy and its render snapshot
     @State private var sdkDraft: SdkTransportSettings
     @State private var draft: TransportSettings
-    private let sdkOriginal: SdkTransportSettings
+    @State private var seed: SettingsEditorSeed<TransportSettings>
 
     init(kind: TransportSettingsKind, settings: TransportSettings?) {
         self.kind = kind
         let original = (settings ?? kind.defaultSettings).sdk
-        self.sdkOriginal = original
         let sdkDraft = original.clone() ?? original
         _sdkDraft = State(initialValue: sdkDraft)
         _draft = State(initialValue: TransportSettings(sdkDraft))
+        _seed = State(initialValue: SettingsEditorSeed(settings))
+    }
+
+    private var editable: Bool {
+        seed.editable(with: transportSettingsStore.settings(kind))
     }
 
     private var isDirty: Bool {
-        !sdkDraft.equals(sdkOriginal)
+        guard let original = seed.original else {
+            return false
+        }
+        return !sdkDraft.equals(original.sdk)
+    }
+
+    /// Starts the draft over from `settings`.
+    private func startDraft(_ settings: TransportSettings) {
+        sdkDraft = settings.sdk.clone() ?? settings.sdk
+        draft = TransportSettings(sdkDraft)
     }
 
     private var isDefault: Bool {
@@ -176,21 +195,35 @@ struct TransportSettingsView: View {
             }
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
+            .disabled(!editable)
 
             VStack {
                 UrButton(
                     text: "Update",
                     action: {
-                        transportSettingsStore.apply(sdkDraft, kind: kind)
-                        dismiss()
+                        guard let original = seed.original else {
+                            return
+                        }
+                        if transportSettingsStore.apply(sdkDraft, original: original, kind: kind) {
+                            dismiss()
+                        } else if let settings = transportSettingsStore.settings(kind) {
+                            // the store's policy moved since the seed
+                            seed.reseed(settings)
+                            startDraft(settings)
+                        }
                     },
-                    enabled: isDirty
+                    enabled: editable && isDirty
                 )
             }
             .padding()
 
         }
         .background(themeManager.currentTheme.backgroundColor)
+        .onChange(of: transportSettingsStore.settings(kind)) { settings in
+            if let seeded = seed.storeChanged(settings) {
+                startDraft(seeded)
+            }
+        }
     }
 
     /**

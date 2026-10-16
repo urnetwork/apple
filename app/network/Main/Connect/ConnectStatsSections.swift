@@ -60,9 +60,9 @@ struct ConnectStatsSections: View {
                  * under the remote plot. Tap to open the transport settings.
                  * The child tap wins over the card's tap.
                  */
-                TransportDistributionBar(
+                TransportSettingsEntry(
                     distribution: throughputStore.clientTransportDistribution,
-                    action: { openSheet(.transportSettings) }
+                    open: { openSheet(.transportSettings) }
                 )
 
                 Spacer().frame(height: 12)
@@ -126,9 +126,15 @@ struct ConnectStatsSections: View {
             }
 
             /**
-             * Custom dns summary. Tap to open the dns settings.
+             * Custom dns summary. Tap to open the dns settings, once the
+             * store has them: the editor never starts from the blank form
+             * (SettingsEditorSeed).
              */
-            statsCard(action: { openSheet(.dnsSettings) }) {
+            statsCard(action: {
+                if dnsSettingsStore.settings != nil {
+                    openSheet(.dnsSettings)
+                }
+            }) {
 
                 cardHeader("Custom DNS")
 
@@ -318,6 +324,30 @@ private struct DnsRecommendationPill: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, 8)
         }
+    }
+}
+
+/**
+ * The client transport bar, which opens the transport settings editor once
+ * the store has the device's policy: the editor never starts from the
+ * defaults (SettingsEditorSeed). Its own view so its transportSettingsStore
+ * subscription does not re-render the charts.
+ */
+private struct TransportSettingsEntry: View {
+    @EnvironmentObject var transportSettingsStore: TransportSettingsStore
+
+    let distribution: TransportDistribution
+    let open: () -> Void
+
+    var body: some View {
+        TransportDistributionBar(
+            distribution: distribution,
+            action: {
+                if transportSettingsStore.clientSettings != nil {
+                    open()
+                }
+            }
+        )
     }
 }
 

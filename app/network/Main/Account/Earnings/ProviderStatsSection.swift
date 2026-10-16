@@ -116,11 +116,17 @@ struct ProviderStatsSection: View {
                 /**
                  * The relayed traffic of the window by the transport this
                  * device used to carry it, under the provider plot. Tap to
-                 * open the provider transport settings.
+                 * open the provider transport settings, once the store has
+                 * the device's policy: the editor never starts from the
+                 * defaults (SettingsEditorSeed).
                  */
                 TransportDistributionBar(
                     distribution: throughputStore.providerTransportDistribution,
-                    action: { presentTransportSettings = true }
+                    action: {
+                        if transportSettingsStore.providerSettings != nil {
+                            presentTransportSettings = true
+                        }
+                    }
                 )
 
                 Spacer().frame(height: 12)

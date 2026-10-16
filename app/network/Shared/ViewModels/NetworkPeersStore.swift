@@ -124,6 +124,9 @@ class NetworkPeersStore: ObservableObject {
     // no-push session is visible in the console. Log-only — the published
     // list stays purely listener-driven.
     private var debugLogTimer: Timer?
+    // a raw read is queued on the device work queue and has not logged yet:
+    // the reports meanwhile queue no more
+    private var rawPeersLogQueued = false
     #endif
 
     init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
@@ -201,9 +204,12 @@ class NetworkPeersStore: ObservableObject {
         #if DEBUG
         debugLogTimer?.invalidate()
         debugLogTimer = nil
+        rawPeersLogQueued = false
         #endif
     }
 
+    /// Reads the controller, whose getters take only its own lock, and logs
+    /// the device's raw peers (debug builds, off the main actor).
     private func update() {
         guard let vc = self.peerViewController else {
             return
@@ -235,18 +241,56 @@ class NetworkPeersStore: ObservableObject {
         }
     }
 
-    // debug: dump the RAW device peer state next to the filtered set, to
-    // discriminate "no peer frames reach this device" (raw nil/empty) from
-    // "peers arrive but are filtered" (raw connected without provide) from
-    // "peer marked disconnected" (disconnectedCount > 0)
+    /**
+     * Debug builds only: dumps the RAW device peer state next to the filtered
+     * set, to discriminate "no peer frames reach this device" (raw nil/empty)
+     * from "peers arrive but are filtered" (raw connected without provide)
+     * from "peer marked disconnected" (disconnectedCount > 0).
+     *
+     * The raw read is the device's GetNetworkPeers, an rpc to the extension
+     * under the device's state lock, which a connect or disconnect command
+     * holds through its own rpc, up to the sdk's 60 s rpc timeout. Made on the
+     * main actor on every peers report, in release builds too, it froze the
+     * main actor for as long. It runs on the device work queue instead, and
+     * nothing waits for it: one is queued at a time, and the reports
+     * meanwhile log nothing more.
+     */
     private func logRawPeers(filteredCount: Int) {
+        #if DEBUG
         guard let device = self.device else {
             print("[peers] update: no device")
             return
         }
-        guard let raw = device.getNetworkPeers() else {
-            print("[peers] raw=nil (no provider or rpc unavailable) filtered=\(filteredCount)")
+        if rawPeersLogQueued {
             return
+        }
+        rawPeersLogQueued = true
+        let generation = self.generation
+        let read = NetworkPeersReadWork(device: device)
+        deviceWorkQueue.async { [weak self] in
+            let line = read.run(filteredCount: filteredCount)
+            print(line)
+            DispatchQueue.main.async {
+                guard let self, self.generation == generation else {
+                    return
+                }
+                self.rawPeersLogQueued = false
+            }
+        }
+        #endif
+    }
+}
+
+#if DEBUG
+/// The device's raw peers, read on the device work queue for the debug log.
+/// Unchecked: the device is a gomobile proxy that may be called from any
+/// thread, and nothing here changes after the hand off.
+private struct NetworkPeersReadWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run(filteredCount: Int) -> String {
+        guard let raw = device.getNetworkPeers() else {
+            return "[peers] raw=nil (no provider or rpc unavailable) filtered=\(filteredCount)"
         }
         var entries: [String] = []
         if let connected = raw.connected {
@@ -256,6 +300,7 @@ class NetworkPeersStore: ObservableObject {
                 entries.append("\(id):\(peer.deviceName.isEmpty ? peer.deviceSpec : peer.deviceName):provide=\(peer.provideEnabled)")
             }
         }
-        print("[peers] raw connected=\(entries.count) [\(entries.joined(separator: ", "))] disconnected=\(raw.disconnectedCount) filtered=\(filteredCount)")
+        return "[peers] raw connected=\(entries.count) [\(entries.joined(separator: ", "))] disconnected=\(raw.disconnectedCount) filtered=\(filteredCount)"
     }
 }
+#endif

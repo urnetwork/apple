@@ -182,6 +182,8 @@ class BlockActionsStore: ObservableObject {
     // device (or before a reset) can never publish over newer state, and a
     // report from a retired listener changes nothing
     private var generation = 0
+    // the rules' re-reads on the device work queue, and whether one applies
+    private var overrideReads = DeviceReads()
 
     // the device's subs and the controller close here, off the main actor
     // (DeviceStores)
@@ -270,6 +272,7 @@ class BlockActionsStore: ObservableObject {
     /// device's state lock and run on the device work queue (DeviceStores).
     func reset() {
         generation += 1
+        overrideReads.reset()
         stopExitAttributionTimer()
         // the flag belongs to the generation that is ending: an rpc still in
         // flight can no longer publish, so leaving it set would wedge every
@@ -538,56 +541,47 @@ class BlockActionsStore: ObservableObject {
      * that would replace the app's only durable copy with a list it never
      * read -- which the next connect would apply to the extension as a wipe.
      *
-     * `getConnected()` is GetRemoteConnected; swift's importer strips the
-     * redundant "Remote".
+     * The read runs on the device work queue, never on the main actor: the
+     * getters take the device's state lock, which a connect or disconnect
+     * command holds through its rpc, up to the sdk's 60 s rpc timeout, and
+     * every report re-read on the main actor froze it for as long. It applies
+     * on the main actor only while the generation and the revision are the
+     * ones it was queued at (DeviceReads): a read from before an edit, or
+     * from a retired listener, neither shows nor mirrors.
      */
     private func updateOverrides(afterEdit: Bool = false) {
-        guard let device = self.device else {
+        guard let device = self.device, let read = overrideReads.request(afterEdit: afterEdit) else {
             return
         }
-        var overrides: [SdkBlockActionOverride] = []
-        var items: [SplitRuleItem] = []
-        var appItems: [SplitTunnelAppRule] = []
-        if let list = device.getBlockActionOverrides() {
-            for i in 0..<list.len() {
-                guard let override = list.get(i), let overrideId = override.overrideId else {
-                    continue
-                }
-                overrides.append(override)
-                if let appRule = Self.appRule(override) {
-                    // an app rule has no hosts; it is not a site rule
-                    appItems.append(appRule)
-                    continue
-                }
-                let ruleHosts = stringListToArray(override.hosts)
-                let ruleHostNames = ruleHosts.filter { !isIpAddressValue($0) }
-                let ruleIps = ruleHosts.filter { isIpAddressValue($0) }
-                items.append(
-                    SplitRuleItem(
-                        id: overrideId.idStr,
-                        hosts: ruleHosts,
-                        hostBaseNames: collapseHosts(ruleHostNames),
-                        ipValues: ruleIps,
-                        // excluded when the route override is local, pinned
-                        // when it carries a pin, else included
-                        mode: SplitRuleMode.of(
-                            local: override.routeOverride?.local ?? false,
-                            pin: override.routeOverride?.pin ?? false
-                        )
-                    )
-                )
+        let generation = self.generation
+        let work = BlockActionOverridesReadWork(device: device)
+        readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] answer in
+            guard let self, self.generation == generation else {
+                return
+            }
+            let landed = self.overrideReads.landed(read)
+            if landed.applies {
+                self.applyOverrides(answer, afterEdit: read.afterEdit)
+            }
+            if landed.again {
+                self.updateOverrides()
             }
         }
-        sdkOverrides = overrides
-        if items != splitRules {
-            splitRules = items
+    }
+
+    private func applyOverrides(_ answer: BlockActionOverridesRead, afterEdit: Bool) {
+        var overrides: [SdkBlockActionOverride] = []
+        if let list = answer.overrides {
+            for i in 0..<list.len() {
+                if let override = list.get(i) {
+                    overrides.append(override)
+                }
+            }
         }
-        if appItems != appRules {
-            appRules = appItems
-        }
-        if afterEdit || device.getConnected() {
+        publishOverrides(overrides)
+        if afterEdit || answer.connected {
             persistOverrides()
-            let excludedApps = SplitTunnelAppRules.excludedApps(appItems)
+            let excludedApps = SplitTunnelAppRules.excludedApps(appRules)
             if excludedApps != authoritativeExcludedApps {
                 authoritativeExcludedApps = excludedApps
             }
@@ -599,8 +593,51 @@ class BlockActionsStore: ObservableObject {
         // real for this device's life. The local state is optional -- a build
         // with no app group has none -- and that degrades correctly, to
         // "connected only", which is the safe half of the test.
-        if !canCreateRule, device.getConnected() || localState?.getBlockActionOverrides() != nil {
+        if !canCreateRule, answer.connected || localState?.getBlockActionOverrides() != nil {
             canCreateRule = true
+        }
+    }
+
+    /// Shows `overrides`, the whole list (an override with no id is not a
+    /// rule): read from the device, or an edit's list until its read-back.
+    private func publishOverrides(_ overrides: [SdkBlockActionOverride]) {
+        var rules: [SdkBlockActionOverride] = []
+        var items: [SplitRuleItem] = []
+        var appItems: [SplitTunnelAppRule] = []
+        for override in overrides {
+            guard let overrideId = override.overrideId else {
+                continue
+            }
+            rules.append(override)
+            if let appRule = Self.appRule(override) {
+                // an app rule has no hosts; it is not a site rule
+                appItems.append(appRule)
+                continue
+            }
+            let ruleHosts = stringListToArray(override.hosts)
+            let ruleHostNames = ruleHosts.filter { !isIpAddressValue($0) }
+            let ruleIps = ruleHosts.filter { isIpAddressValue($0) }
+            items.append(
+                SplitRuleItem(
+                    id: overrideId.idStr,
+                    hosts: ruleHosts,
+                    hostBaseNames: collapseHosts(ruleHostNames),
+                    ipValues: ruleIps,
+                    // excluded when the route override is local, pinned
+                    // when it carries a pin, else included
+                    mode: SplitRuleMode.of(
+                        local: override.routeOverride?.local ?? false,
+                        pin: override.routeOverride?.pin ?? false
+                    )
+                )
+            )
+        }
+        sdkOverrides = rules
+        if items != splitRules {
+            splitRules = items
+        }
+        if appItems != appRules {
+            appRules = appItems
         }
     }
 
@@ -665,8 +702,7 @@ class BlockActionsStore: ObservableObject {
         override.overrideId = SdkNewId()
         override.hosts = arrayToStringList(hosts)
         override.routeOverride = mode.toSdkRouteOverride()
-        device.add(override)
-        updateOverrides(afterEdit: true)
+        edit(sdkOverrides + [override], BlockActionOverridesEditWork(device: device, edit: .add(override)))
     }
 
     /**
@@ -683,14 +719,20 @@ class BlockActionsStore: ObservableObject {
             removeRule(id: id)
             return
         }
-        override.hosts = arrayToStringList(hosts)
-        override.routeOverride = mode.toSdkRouteOverride()
+        // a new object, not the shown one changed in place: the setter reads
+        // the list off the main actor
+        let edited = SdkBlockActionOverride()
+        edited.overrideId = override.overrideId
+        edited.hosts = arrayToStringList(hosts)
+        edited.appIds = override.appIds
+        edited.blockOverride = override.blockOverride
+        edited.routeOverride = mode.toSdkRouteOverride()
+        let overrides = sdkOverrides.map { $0 === override ? edited : $0 }
         let list = SdkBlockActionOverrideList()
-        for sdkOverride in sdkOverrides {
+        for sdkOverride in overrides {
             list?.add(sdkOverride)
         }
-        device.setBlockActionOverrides(list)
-        updateOverrides(afterEdit: true)
+        edit(overrides, BlockActionOverridesEditWork(device: device, edit: .set(list)))
     }
 
     func removeRule(id: String) {
@@ -700,7 +742,31 @@ class BlockActionsStore: ObservableObject {
         guard let override = sdkOverrides.first(where: { $0.overrideId?.idStr == id }) else {
             return
         }
-        device.removeBlockActionOverride(override.overrideId)
+        edit(
+            sdkOverrides.filter { $0 !== override },
+            BlockActionOverridesEditWork(device: device, edit: .remove(override.overrideId))
+        )
+    }
+
+    /**
+     * Applies an edit: `overrides`, the whole list with the edit, shows at
+     * once, and `work`, the device's setter, runs on the device work queue,
+     * after the work queued so far, never on the main actor. The setters take
+     * the device's state lock, which a held connect or disconnect command
+     * keeps through its rpc, and a rule saved or removed then froze the main
+     * actor until the command returned.
+     *
+     * The device confirms the edit: its read-back, queued right after the
+     * setter, applies and is mirrored (`updateOverrides`), and so do its
+     * listener's reports. A read queued before the edit is dropped
+     * (DeviceReads), so the list the edit replaced never shows again.
+     */
+    private func edit(_ overrides: [SdkBlockActionOverride], _ work: BlockActionOverridesEditWork) {
+        overrideReads.edited()
+        publishOverrides(overrides)
+        deviceWorkQueue.async {
+            work.run()
+        }
         updateOverrides(afterEdit: true)
     }
 
@@ -721,8 +787,7 @@ class BlockActionsStore: ObservableObject {
         override.overrideId = SdkNewId()
         override.appIds = arrayToStringList([identifier])
         override.routeOverride = SplitRuleMode.excluded.toSdkRouteOverride()
-        device.add(override)
-        updateOverrides(afterEdit: true)
+        edit(sdkOverrides + [override], BlockActionOverridesEditWork(device: device, edit: .add(override)))
     }
 
     /**
@@ -775,5 +840,50 @@ class BlockActionsStore: ObservableObject {
             return []
         }
         return stringListToArray(SdkCollapseHostNamesList(arrayToStringList(hosts)))
+    }
+}
+
+/// The device's split rules and its rpc, read on the device work queue.
+/// Unchecked: the device is a gomobile proxy that may be called from any
+/// thread, and nothing here changes after the hand off.
+///
+/// `getConnected()` is GetRemoteConnected; swift's importer strips the
+/// redundant "Remote".
+private struct BlockActionOverridesReadWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() -> BlockActionOverridesRead {
+        let overrides = device.getBlockActionOverrides()
+        return BlockActionOverridesRead(overrides: overrides, connected: device.getConnected())
+    }
+}
+
+private struct BlockActionOverridesRead {
+    let overrides: SdkBlockActionOverrideList?
+    let connected: Bool
+}
+
+/// An edit's setter, run on the device work queue. Unchecked, as
+/// BlockActionOverridesReadWork: the edit's sdk objects are its own or the
+/// shown list's, which nothing changes after the hand off.
+private struct BlockActionOverridesEditWork: @unchecked Sendable {
+    enum Edit {
+        case add(SdkBlockActionOverride)
+        case set(SdkBlockActionOverrideList?)
+        case remove(SdkId?)
+    }
+
+    let device: SdkDeviceRemote
+    let edit: Edit
+
+    func run() {
+        switch edit {
+        case .add(let override):
+            device.add(override)
+        case .set(let overrides):
+            device.setBlockActionOverrides(overrides)
+        case .remove(let overrideId):
+            device.removeBlockActionOverride(overrideId)
+        }
     }
 }

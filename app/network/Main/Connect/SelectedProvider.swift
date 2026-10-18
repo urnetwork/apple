@@ -14,6 +14,8 @@ struct SelectedProvider: View {
     @EnvironmentObject var networkPeersStore: NetworkPeersStore
 
     let selectedProvider: SdkConnectLocation?
+    // the selected location's current provider count (selectedProviderCount)
+    let providerCount: Int
     let openSelectProvider: () -> Void
 
     /**
@@ -50,12 +52,12 @@ struct SelectedProvider: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
 
-                    if selectedProvider.providerCount > 0 {
+                    if providerCount > 0 {
 
                         HStack(spacing: 0) {
 
                             // real plural rules live in Localizable.xcstrings ("%d providers")
-                            Text("\(selectedProvider.providerCount) providers")
+                            Text("\(providerCount) providers")
                                 .font(themeManager.currentTheme.secondaryBodyFont)
                                 .foregroundColor(themeManager.currentTheme.textMutedColor)
 
@@ -106,6 +108,7 @@ struct SelectedProvider: View {
 #Preview {
     SelectedProvider(
         selectedProvider: nil,
+        providerCount: 0,
         openSelectProvider: {}
     )
     .environmentObject(NetworkPeersStore())

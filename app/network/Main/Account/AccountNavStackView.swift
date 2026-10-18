@@ -105,7 +105,7 @@ struct AccountNavStackView: View {
                         api: api,
                         back: viewModel.back,
                         networkName: networkName,
-                        userAuth: networkUserViewModel.networkUser?.userAuth,
+                        userAuth: networkUserViewModel.networkUser.flatMap(passwordResetUserAuth),
                         needsNameClaim: {
                             guard let networkUser = networkUserViewModel.networkUser else { return false }
                             let hasIdentityMethod = authTypesContains(networkUser.authTypes, "email")

@@ -49,9 +49,24 @@ public final class ProviderListStore: ObservableObject {
     )?
     
     private var urApiService: UrApiServiceProtocol
+
+    // while the home screen shows, fetch the locations again so the selected
+    // location's provider count follows the network
+    private let refreshSchedule: RefreshTimerScheduler
+    private lazy var refreshTicker = LocationsRefreshTicker(
+        schedule: refreshSchedule,
+        isFetching: { [unowned self] in self.providersLoading },
+        refresh: { [unowned self] in
+            Task { _ = await self.filterLocations(self.searchQuery) }
+        }
+    )
     
-    init(urApiService: UrApiServiceProtocol) {
+    init(
+        urApiService: UrApiServiceProtocol,
+        refreshSchedule: @escaping RefreshTimerScheduler = scheduleFoundationRefreshTimer
+    ) {
         self.urApiService = urApiService
+        self.refreshSchedule = refreshSchedule
         
         $searchQuery
             // Each visible picker owns its first fetch. @Published's initial
@@ -170,6 +185,10 @@ public final class ProviderListStore: ObservableObject {
         return await task.value
     }
     
+    func setHomeVisible(_ visible: Bool) {
+        refreshTicker.setVisible(visible)
+    }
+
     private func performSearch(_ query: String) {
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         if query != self.lastQuery {

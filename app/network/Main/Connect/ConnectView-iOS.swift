@@ -117,6 +117,27 @@ struct ConnectView_iOS: View {
         UITextField.appearance().clearButtonMode = .whileEditing
     }
     
+    /// The selected location's count from the last provider list fetch, not the
+    /// copy taken when it was selected.
+    private var liveSelectedProviderCount: Int {
+        let selected = connectViewModel.selectedProvider
+        let fetched = [
+            providerListStore.providerCountries,
+            providerListStore.providerRegions,
+            providerListStore.providerCities,
+            providerListStore.providerDevices,
+            providerListStore.providerBestSearchMatches,
+        ].joined().compactMap { location -> (String, Int)? in
+            guard let id = location.connectLocationId?.string() else { return nil }
+            return (id, Int(location.providerCount))
+        }
+        return selectedProviderCount(
+            selectedId: selected?.connectLocationId?.string(),
+            selectedCount: Int(selected?.providerCount ?? 0),
+            fetched: fetched
+        )
+    }
+
     var body: some View {
         
         GeometryReader { geometry in
@@ -245,6 +266,7 @@ struct ConnectView_iOS: View {
                                 disconnect: connectViewModel.disconnect,
                                 connectionStatus: connectViewModel.connectionStatus,
                                 selectedProvider: connectViewModel.selectedProvider,
+                                selectedProviderCount: liveSelectedProviderCount,
                                 setIsPresented: { present in
                                     providerListSheetViewModel.isPresented = present
                                 },

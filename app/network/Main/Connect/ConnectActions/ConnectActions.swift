@@ -50,6 +50,7 @@ struct ConnectActions: View {
     let disconnect: () -> Void
     let connectionStatus: ConnectionStatus?
     let selectedProvider: SdkConnectLocation?
+    let selectedProviderCount: Int
     let setIsPresented: (Bool) -> Void
     let displayReconnectTunnel: Bool
     let reconnectTunnel: (() -> Void)?
@@ -161,6 +162,7 @@ struct ConnectActions: View {
                      
                         SelectedProvider(
                             selectedProvider: selectedProvider,
+                            providerCount: selectedProviderCount,
                             openSelectProvider: {setIsPresented(true)}
                         )
                     

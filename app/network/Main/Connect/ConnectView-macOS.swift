@@ -266,6 +266,8 @@ import URnetworkSdk
             .onAppear {
                 updateInsufficientBalanceGuards()
             }
+            // refresh the provider counts while the home screen shows
+            .modifier(HomeLocationsRefresh(providerListStore: providerListStore))
             .onChange(of: isPro) { _ in
                 updateInsufficientBalanceGuards()
             }

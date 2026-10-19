@@ -466,6 +466,8 @@ struct ConnectView_iOS: View {
         .onAppear {
             presentWidgetDestination()
         }
+        // refresh the provider counts while the home screen shows
+        .modifier(HomeLocationsRefresh(providerListStore: providerListStore))
         // referrals: the Account section's screen, unchanged, in a sheet
         .sheet(isPresented: $isPresentedReferrals) {
             ReferralsSheet(

@@ -45,6 +45,36 @@ func parseAuthMethods(_ networkUser: SdkNetworkUser) -> [String] {
     return methods
 }
 
+/// The address Change password mails a reset link to, or nil when the account
+/// has no password sign-in. The server's reset only rewrites an email or phone
+/// password sign-in, while `userAuth` is the identity the account was created
+/// with: a Google or Apple account has one but no password (the reset
+/// "succeeded" and changed nothing), and an account that added an email and
+/// password later has none.
+func passwordResetUserAuth(userAuth: String?, authType: String, authTypes: [String]) -> String? {
+    guard let userAuth, !userAuth.isEmpty else { return nil }
+    let listed = authTypes.filter { !$0.isEmpty }
+    // an old server sends no list, only the single auth type
+    let hasPasswordSignIn = listed.isEmpty
+        ? authType == "password"
+        : listed.contains("email") || listed.contains("phone")
+    return hasPasswordSignIn ? userAuth : nil
+}
+
+func passwordResetUserAuth(_ networkUser: SdkNetworkUser) -> String? {
+    var authTypes: [String] = []
+    if let list = networkUser.authTypes {
+        for i in 0..<list.len() {
+            authTypes.append(list.get(i))
+        }
+    }
+    return passwordResetUserAuth(
+        userAuth: networkUser.userAuth,
+        authType: networkUser.authType,
+        authTypes: authTypes
+    )
+}
+
 func methodDisplayName(_ method: String) -> String {
     switch method {
     case "email": return "Email"

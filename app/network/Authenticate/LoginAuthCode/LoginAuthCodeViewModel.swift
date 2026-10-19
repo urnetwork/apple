@@ -27,8 +27,9 @@ extension LoginAuthCodeView {
             self.urApiService = urApiService
         }
 
-        func authCodeLogin() async -> Result<SdkAuthCodeLoginResult, Error> {
+        func authCodeLogin(request: NetworkLoginRequest? = nil) async -> Result<SdkAuthCodeLoginResult, Error> {
 
+            if let request, !request.isCurrent { return .failure(CancellationError()) }
             if self.isLoading {
                 return .failure(LoginError.inProgress)
             }
@@ -40,6 +41,7 @@ extension LoginAuthCodeView {
                 self.isLoading = true
 
                 let result = try await urApiService.authCodeLogin(args)
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
 
                 self.isLoading = false
                 self.loginFailed = false
@@ -47,6 +49,7 @@ extension LoginAuthCodeView {
                 return .success(result)
 
             } catch {
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 self.isLoading = false
                 self.loginFailed = true
                 return .failure(error)

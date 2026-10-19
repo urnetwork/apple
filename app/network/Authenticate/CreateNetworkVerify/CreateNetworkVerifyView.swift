@@ -13,6 +13,7 @@ import URnetworkSdk
 struct CreateNetworkVerifyView: View {
     
     
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -22,7 +23,7 @@ struct CreateNetworkVerifyView: View {
     @FocusState private var isKeyboardShowing: Bool
     
     var backToRoot: () -> Void
-    var handleSuccess: (_ jwt: String) async -> Void
+    var handleSuccess: NetworkLoginCredentialHandler
     
     var isEmail: Bool = true
     
@@ -34,7 +35,7 @@ struct CreateNetworkVerifyView: View {
         sendNotice: VerifySendNotice,
         api: SdkApi,
         backToRoot: @escaping () -> Void,
-        handleSuccess: @escaping (_ jwt: String) async -> Void
+        handleSuccess: @escaping NetworkLoginCredentialHandler
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api, userAuth: userAuth, sendNotice: sendNotice))
         self.backToRoot = backToRoot
@@ -97,10 +98,7 @@ struct CreateNetworkVerifyView: View {
                                 
                                 if viewModel.otp.count == viewModel.codeCount && !viewModel.isSubmitting && !viewModel.isSendingOtp {
                                     
-                                    Task {
-                                        let result = await viewModel.submit()
-                                        await self.handleOptSubmitResult(result)
-                                    }
+                                    submitVerification()
                                 }
                                 
                             }
@@ -126,10 +124,7 @@ struct CreateNetworkVerifyView: View {
                                 
                                 if viewModel.otp.count == viewModel.codeCount && !viewModel.isSubmitting && !viewModel.isSendingOtp {
                                     
-                                    Task {
-                                        let result = await viewModel.submit()
-                                        await self.handleOptSubmitResult(result)
-                                    }
+                                    submitVerification()
                                 }
                                 
                             }
@@ -242,7 +237,17 @@ struct CreateNetworkVerifyView: View {
         
     }
     
-    private func handleOptSubmitResult(_ result: Result<String, Error>) async {
+    private func submitVerification() {
+        guard let request = loginContext?.begin() else { return }
+        Task {
+            guard request.isCurrent else { return }
+            let result = await viewModel.submit(request: request)
+            guard request.isCurrent else { return }
+            await handleOptSubmitResult(result, request: request)
+        }
+    }
+
+    private func handleOptSubmitResult(_ result: Result<String, Error>, request: NetworkLoginRequest) async {
         
         switch result {
             
@@ -254,7 +259,7 @@ struct CreateNetworkVerifyView: View {
             hideKeyboard()
             #endif
             
-            await handleSuccess(jwt)
+            await handleSuccess(jwt, request)
             // TODO: clear viewmodel loading state
             break
          
@@ -310,7 +315,7 @@ struct CreateNetworkVerifyView: View {
             sendNotice: .sent,
             api: SdkApi(),
             backToRoot: {},
-            handleSuccess: {_ in }
+            handleSuccess: {_, _ in }
         )
     }
     .environmentObject(ThemeManager.shared)

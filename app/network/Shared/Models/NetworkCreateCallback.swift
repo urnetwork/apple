@@ -8,7 +8,7 @@
 import Foundation
 import URnetworkSdk
 
-class NetworkCreateCallback: SdkCallback<SdkNetworkCreateResult, SdkNetworkCreateCallbackProtocol>, SdkNetworkCreateCallbackProtocol {
+class NetworkCreateCallback: OneShotSdkCallback<SdkNetworkCreateResult, SdkNetworkCreateCallbackProtocol>, SdkNetworkCreateCallbackProtocol {
     func result(_ result: SdkNetworkCreateResult?, err: Error?) {
         handleResult(result, err: err)
     }

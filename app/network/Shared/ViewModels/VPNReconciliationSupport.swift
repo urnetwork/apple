@@ -12,6 +12,27 @@ import Foundation
 let VPNPreferencesOperationTimeout: TimeInterval = 30
 let MaximumVPNProfilesToRemove = 32
 
+/// Removal must not hide an unresolved provider logout (including a deadline).
+/// Both callbacks are admitted once on the main actor, as in VPNManager.
+@MainActor
+func performVPNLogoutCleanup(
+    notifyProviders: (@escaping (Error?) -> Void) -> Void,
+    removeProfiles: @escaping (@escaping (Error?) -> Void) -> Void,
+    completion: @escaping (Error?) -> Void
+) {
+    var providersCompleted = false
+    var removalCompleted = false
+    notifyProviders { providerError in
+        guard !providersCompleted else { return }
+        providersCompleted = true
+        removeProfiles { removalError in
+            guard !removalCompleted else { return }
+            removalCompleted = true
+            completion(providerError ?? removalError)
+        }
+    }
+}
+
 struct VPNDesiredState {
     var provideEnabled = false
     var connectEnabled = false

@@ -21,4 +21,5 @@ struct NetworkLogin: Equatable, Sendable {
     }
 }
 
-typealias NetworkLoginHandler = (_ login: NetworkLogin) async -> Void
+typealias NetworkLoginHandler = @MainActor (_ login: NetworkLogin, _ request: NetworkLoginRequest) async -> Void
+typealias NetworkLoginCredentialHandler = @MainActor (_ jwt: String, _ request: NetworkLoginRequest) async -> Void

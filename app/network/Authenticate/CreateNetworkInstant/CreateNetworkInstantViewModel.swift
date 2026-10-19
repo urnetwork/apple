@@ -54,8 +54,9 @@ extension CreateNetworkInstantView {
             formIsValid = termsAgreed && !isCreatingAccount
         }
 
-        func createInstantAccount() async -> (jwt: String, seedphrase: String)? {
+        func createInstantAccount(request: NetworkLoginRequest? = nil) async -> (jwt: String, seedphrase: String)? {
 
+            if let request, !request.isCurrent { return nil }
             if isCreatingAccount {
                 return nil
             }
@@ -69,7 +70,7 @@ extension CreateNetworkInstantView {
             errorMessage = nil
 
             defer {
-                isCreatingAccount = false
+                if request?.isCurrent != false { isCreatingAccount = false }
             }
 
             do {
@@ -77,8 +78,10 @@ extension CreateNetworkInstantView {
                     referralCode: referralEntry.createCode,
                     productUpdatesOptOut: !productUpdates
                 )
+                guard request?.isCurrent != false else { return nil }
                 return result
             } catch {
+                guard request?.isCurrent != false else { return nil }
                 errorMessage = "There was an error creating your account. Please try again."
                 return nil
             }

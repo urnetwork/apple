@@ -231,13 +231,15 @@ extension CreateNetworkView {
             userAuth: String?,
             authJwt: String?,
             authType: String?,
-            walletAuth: SdkWalletAuthArgs?
+            walletAuth: SdkWalletAuthArgs?,
+            request: NetworkLoginRequest? = nil
         ) async -> LoginNetworkResult {
             
             if !formIsValid {
                 return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Create network form is invalid"]))
             }
             
+            if let request, !request.isCurrent { return .failure(CancellationError()) }
             if isCreatingNetwork {
                 return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Network creation already in progress"]))
             }
@@ -278,10 +280,12 @@ extension CreateNetworkView {
                 }
                 
                 let result = try await urApiService.createNetwork(args)
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 self.isCreatingNetwork = false
                 return result
 
             } catch {
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 self.isCreatingNetwork = false
                 
                 return .failure(error)

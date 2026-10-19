@@ -10,10 +10,12 @@ private struct InstantAccountResult: Identifiable {
     let id = UUID()
     let jwt: String
     let seedphrase: String
+    let request: NetworkLoginRequest
 }
 
 struct CreateNetworkInstantView: View {
 
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
 
     @StateObject private var viewModel: ViewModel
@@ -85,10 +87,13 @@ struct CreateNetworkInstantView: View {
                 UrButton(
                     text: "Create Account",
                     action: {
+                        guard let request = loginContext?.begin() else { return }
                         Task {
-                            let result = await viewModel.createInstantAccount()
+                            guard request.isCurrent else { return }
+                            let result = await viewModel.createInstantAccount(request: request)
+                            guard request.isCurrent else { return }
                             if let (jwt, seedphrase) = result {
-                                accountResult = InstantAccountResult(jwt: jwt, seedphrase: seedphrase)
+                                accountResult = InstantAccountResult(jwt: jwt, seedphrase: seedphrase, request: request)
                             }
                         }
                     },
@@ -148,13 +153,14 @@ struct CreateNetworkInstantView: View {
     }
 
     private func complete(_ result: InstantAccountResult) {
+        guard result.request.isCurrent else { return }
         guard let login = completionGate.takeCreatedLogin(jwt: result.jwt) else {
             print("[CreateNetworkInstantView] duplicate seedphrase confirmation suppressed")
             return
         }
         accountResult = nil
         Task {
-            await handleSuccess(login)
+            await handleSuccess(login, result.request)
         }
     }
 

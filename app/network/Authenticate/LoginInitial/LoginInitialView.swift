@@ -8,11 +8,11 @@
 import SwiftUI
 import URnetworkSdk
 import AuthenticationServices
-import GoogleSignInSwift
 import GoogleSignIn
 
 struct LoginInitialView: View {
     
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
@@ -24,19 +24,23 @@ struct LoginInitialView: View {
     #endif
     @StateObject private var viewModel: ViewModel
     @State private var initialIsLandscape: Bool = false
+    @State private var browserRequest: NetworkLoginRequest?
+    @State private var solanaRequest: NetworkLoginRequest?
+    @State private var solanaAttempt: NetworkLoginWalletAttempt?
+    @State private var bittensorRequest: NetworkLoginRequest?
     // the Solana tile without a wallet app to hand off to (iOS only)
     @State private var presentNoSolanaWalletAlert: Bool = false
     
     let navigate: (LoginInitialNavigationPath) -> Void
     let cancel: (() -> Void)?
-    let handleSuccess: (_ jwt: String) async -> Void
+    let handleSuccess: NetworkLoginCredentialHandler
     let urApiService: UrApiServiceProtocol
     
     init(
         urApiService: UrApiServiceProtocol,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
         cancel: (() -> Void)? = nil,
-        handleSuccess: @escaping (_ jwt: String) async -> Void
+        handleSuccess: @escaping NetworkLoginCredentialHandler
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(urApiService: urApiService))
         self.navigate = navigate
@@ -69,7 +73,8 @@ struct LoginInitialView: View {
                         LoginInitialFormView(
                             userAuth: $viewModel.userAuth,
                             handleUserAuth: handleUserAuth,
-                            handleAppleLoginResult: handleAppleLoginResult,
+                            beginAppleLogin: beginAppleLogin,
+                            handleAppleLoginResult: completeAppleLogin,
                             handleGoogleSignInButton: handleGoogleSignInButton,
                             handleBrowserSignIn: handleBrowserSignIn,
                             isValidUserAuth: viewModel.isValidUserAuth,
@@ -109,7 +114,8 @@ struct LoginInitialView: View {
                         LoginInitialFormView(
                             userAuth: $viewModel.userAuth,
                             handleUserAuth: handleUserAuth,
-                            handleAppleLoginResult: handleAppleLoginResult,
+                            beginAppleLogin: beginAppleLogin,
+                            handleAppleLoginResult: completeAppleLogin,
                             handleGoogleSignInButton: handleGoogleSignInButton,
                             handleBrowserSignIn: handleBrowserSignIn,
                             isValidUserAuth: viewModel.isValidUserAuth,
@@ -157,7 +163,15 @@ struct LoginInitialView: View {
                     signButtonLabelText: "Sign in",
                     message: viewModel.solanaChallengeMessage ?? "",
                     dismiss: {
-                        viewModel.setPresentSigninWithSolanaSheet(false)
+                        if let request = solanaRequest { viewModel.finishSolanaAttempt(request: request) }
+                        solanaAttempt = nil
+                    },
+                    beginSigning: {
+                        guard let request = solanaRequest, request.isCurrent,
+                              let message = viewModel.solanaChallengeMessage else { return nil }
+                        let attempt = NetworkLoginWalletAttempt(request: request, message: message)
+                        solanaAttempt = attempt
+                        return attempt.id
                     }
                 )
                 .environmentObject(themeManager)
@@ -178,10 +192,13 @@ struct LoginInitialView: View {
                 BittensorWalletSignView(
                     connector: viewModel.bittensorConnector,
                     onChoose: { walletId in
+                        guard let request = bittensorRequest, request.isCurrent else { return }
                         Task {
+                            guard request.isCurrent else { return }
                             await viewModel.bittensorConnector.choose(
                                 walletId: walletId,
-                                purpose: SdkBittensorWalletPurposeLogin
+                                purpose: SdkBittensorWalletPurposeLogin,
+                                isCurrent: { request.isCurrent }
                             )
                         }
                     },
@@ -223,9 +240,6 @@ struct LoginInitialView: View {
             }
         }
         .onAppear {
-            viewModel.bittensorConnector.onProof = { proof in
-                await handleBittensorProof(proof)
-            }
             // Cache initial orientation
             #if os(iOS)
             let orientation = UIDevice.current.orientation
@@ -245,46 +259,40 @@ struct LoginInitialView: View {
         #endif
         .onOpenURL { url in
             // a Bittensor bridge hand-back goes to the SDK session
-            if viewModel.bittensorConnector.isBridgeReturn(url) {
-                Task {
-                    await viewModel.bittensorConnector.handleBridgeReturn(url)
-                }
+            if let delivery = viewModel.bittensorConnector.captureBridgeReturn(url) {
+                Task { await delivery() }
                 return
             }
-            connectWalletProviderViewModel
-                .handleDeepLink(
-                    url,
-                    onSignature: { signature in
-
-                        guard let pk = connectWalletProviderViewModel.connectedPublicKey else {
-                            viewModel.setIsSigningMessage(false)
+            let attempt = solanaAttempt
+            let isSignatureReturn = ["phantom-sign-message", "solflare-sign-message"].contains(url.host ?? "")
+            if isSignatureReturn && attempt?.owns(url) != true { return }
+            connectWalletProviderViewModel.handleDeepLink(
+                url,
+                onSignature: { signature in
+                    guard let attempt else { return }
+                    let key = connectWalletProviderViewModel.connectedPublicKey ?? ""
+                    if !attempt.receive(url, signature: signature, publicKey: key, handle: handleSolanaWalletResult) {
+                        attempt.fail(url) {
+                            viewModel.finishSolanaAttempt(request: attempt.request)
                             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
-                            return
                         }
-
-                        Task {
-                            await handleSolanaWalletResult(
-                                message: viewModel.solanaChallengeMessage ?? "",
-                                signature: signature,
-                                publicKey: pk
-                            )
-                        }
-
-                    },
-                    onError: { _ in
-                        viewModel.setIsSigningMessage(false)
+                    }
+                },
+                onError: { _ in
+                    guard let attempt else { return }
+                    attempt.fail(url) {
+                        viewModel.finishSolanaAttempt(request: attempt.request)
                         viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
                     }
-                )
+                }
+            )
         }
         #if os(macOS) && DIRECT_DOWNLOAD
         // the api's oauth callback handing a Google or Apple browser sign-in
         // back: only the attempt this screen started is accepted
         .onReceive(deepLinkRouter.$pendingBrowserSso) { ssoReturn in
             guard ssoReturn != nil, let ssoReturn = deepLinkRouter.consumeBrowserSso() else { return }
-            Task {
-                await handleBrowserSsoReturn(ssoReturn)
-            }
+            handleBrowserSsoReturn(ssoReturn)
         }
         #endif
         
@@ -302,15 +310,22 @@ struct LoginInitialView: View {
             return
         }
         #endif
+        guard let request = loginContext?.begin() else { return }
+        solanaRequest = request
+        solanaAttempt = nil
+        viewModel.setIsSigningMessage(false)
         Task {
-            let ok = await viewModel.prepareSolanaChallenge()
+            guard request.isCurrent else { return }
+            let ok = await viewModel.prepareSolanaChallenge(request: request)
+            guard request.isCurrent else { return }
             if ok {
                 viewModel.setPresentSigninWithSolanaSheet(true)
             }
         }
     }
 
-    private func handleSolanaWalletResult(message: String, signature: String, publicKey: String) async {
+    private func handleSolanaWalletResult(message: String, signature: String, publicKey: String, request: NetworkLoginRequest) async {
+        guard request.isCurrent else { return }
         print("handleSolanaWalletResult")
 
         if viewModel.isSigningForCreateNetwork {
@@ -334,15 +349,16 @@ struct LoginInitialView: View {
         }
 
         defer {
-            viewModel.endLoginAction(.solana)
+            if request.isCurrent { viewModel.endLoginAction(.solana) }
         }
 
         let createArgsResult = viewModel.createSolanaAuthLoginArgs(message: message, signature: signature, publicKey: publicKey)
         switch createArgsResult {
         case .success(let args):
 
-            let result = await viewModel.authLogin(args: args)
-            await self.handleAuthLoginResult(result)
+            let result = await viewModel.authLogin(args: args, request: request)
+            await self.handleAuthLoginResult(result, request: request)
+            guard request.isCurrent else { return }
             viewModel.presentSigninWithSolanaSheet = false
             viewModel.setIsSigningMessage(false)
 
@@ -353,21 +369,22 @@ struct LoginInitialView: View {
         }
     }
     
-    private func handleAppleLoginResult(_ result: Result<ASAuthorization, any Error>) async {
-        
-        guard viewModel.beginLoginAction(.apple) else {
-            return
-        }
-        
+    private func beginAppleLogin() -> NetworkLoginRequest? {
+        guard !viewModel.isLoginActionInFlight, let request = loginContext?.begin(),
+              viewModel.beginLoginAction(.apple) else { return nil }
+        return request
+    }
+
+    private func completeAppleLogin(_ result: Result<ASAuthorization, any Error>, request: NetworkLoginRequest) async {
         defer {
-            viewModel.endLoginAction(.apple)
+            if request.isCurrent { viewModel.endLoginAction(.apple) }
         }
 
         let createArgsResult = viewModel.createAppleAuthLoginArgs(result)
         switch createArgsResult {
         case .success(let args):
-            let result = await viewModel.authLogin(args: args)
-            await self.handleAuthLoginResult(result)
+            let result = await viewModel.authLogin(args: args, request: request)
+            await self.handleAuthLoginResult(result, request: request)
         
         case .failure(let error):
             print("error create args result: \(error.localizedDescription)")
@@ -378,7 +395,7 @@ struct LoginInitialView: View {
     
     
     private func handleUserAuth() async {
-        
+        guard !viewModel.isLoginActionInFlight, let request = loginContext?.begin() else { return }
         let createArgsResult = viewModel.getStarted()
         switch createArgsResult {
         case .success(let args):
@@ -388,11 +405,11 @@ struct LoginInitialView: View {
             }
             
             defer {
-                viewModel.endLoginAction(.userAuth)
+                if request.isCurrent { viewModel.endLoginAction(.userAuth) }
             }
             
-            let result = await viewModel.authLogin(args: args)
-            await self.handleAuthLoginResult(result)
+            let result = await viewModel.authLogin(args: args, request: request)
+            await self.handleAuthLoginResult(result, request: request)
         
         case .failure(let error):
             print("error create args result: \(error.localizedDescription)")
@@ -402,13 +419,13 @@ struct LoginInitialView: View {
     }
     
     private func handleGoogleSignInButton() async {
-        
+        guard !viewModel.isLoginActionInFlight, let request = loginContext?.begin() else { return }
         guard viewModel.beginLoginAction(.google) else {
             return
         }
         
         defer {
-            viewModel.endLoginAction(.google)
+            if request.isCurrent { viewModel.endLoginAction(.google) }
         }
         
         do {
@@ -432,11 +449,12 @@ struct LoginInitialView: View {
             let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingWindow)
             #endif
             
+            guard request.isCurrent else { return }
             let createArgsResult = viewModel.createGoogleAuthLoginArgs(signInResult)
             switch createArgsResult {
             case .success(let args):
-                let result = await viewModel.authLogin(args: args)
-                await self.handleAuthLoginResult(result)
+                let result = await viewModel.authLogin(args: args, request: request)
+                await self.handleAuthLoginResult(result, request: request)
             
             case .failure(let error):
                 print("error create args result: \(error.localizedDescription)")
@@ -444,6 +462,7 @@ struct LoginInitialView: View {
             }
             
          } catch {
+             guard request.isCurrent else { return }
              print("Error signing in: \(error.localizedDescription)")
              viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
          }
@@ -458,10 +477,13 @@ struct LoginInitialView: View {
     private func handleBrowserSignIn(_ provider: BrowserSsoProvider) {
         #if os(macOS) && DIRECT_DOWNLOAD
         let action = provider.loginAction
+        guard !viewModel.isLoginActionInFlight, let request = loginContext?.begin() else { return }
+        browserRequest = request
         guard viewModel.beginLoginAction(action) else {
             return
         }
-        let url = viewModel.startBrowserSso(provider, apiUrl: deviceManager.activeApiUrl, onTimeout: {
+        let url = viewModel.startBrowserSso(provider, apiUrl: request.networkSpace.getApiUrl(), onTimeout: {
+            guard request.isCurrent else { return }
             viewModel.setLoginErrorMessage(BrowserSso.Failure.expired.userMessage)
             viewModel.endLoginAction(action)
         })
@@ -475,18 +497,29 @@ struct LoginInitialView: View {
         #endif
     }
 
-    private func handleBrowserSsoReturn(_ ssoReturn: BrowserSso.Return) async {
+    private func handleBrowserSsoReturn(_ ssoReturn: BrowserSso.Return) {
         #if os(macOS) && DIRECT_DOWNLOAD
-        switch viewModel.createBrowserSsoAuthLoginArgs(ssoReturn) {
+        guard let request = browserRequest, request.isCurrent else { return }
+        // Consume state/nonce and bind the request at ingress, before Task.
+        let result = viewModel.createBrowserSsoAuthLoginArgs(ssoReturn)
+        NetworkLoginCallback(request: request).receive(result) { result, request in
+            await completeBrowserSsoReturn(result, request: request)
+        }
+        #endif
+    }
+
+    private func completeBrowserSsoReturn(_ result: Result<SdkAuthLoginArgs, BrowserSso.Failure>, request: NetworkLoginRequest) async {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        switch result {
         case .success(let args):
             defer {
-                viewModel.endBrowserSsoLoginAction()
+                if request.isCurrent { viewModel.endBrowserSsoLoginAction() }
             }
-            let result = await viewModel.authLogin(args: args)
-            await self.handleAuthLoginResult(result)
+            let result = await viewModel.authLogin(args: args, request: request)
+            await self.handleAuthLoginResult(result, request: request)
 
         case .failure(let failure):
-            print("browser sign-in: rejected \(ssoReturn.provider.rawValue) return: \(failure)")
+            print("browser sign-in: rejected return: \(failure)")
             // a stray or replayed return must not fail the attempt in flight
             if failure.isStray {
                 return
@@ -499,12 +532,13 @@ struct LoginInitialView: View {
 
     /// `failureMessage` replaces the generic line for a failure that has its
     /// own words (bittensorSignInFailureText).
-    private func handleAuthLoginResult(_ authLoginResult: AuthLoginResult, failureMessage: String? = nil) async {
+    private func handleAuthLoginResult(_ authLoginResult: AuthLoginResult, request: NetworkLoginRequest, failureMessage: String? = nil) async {
+        guard request.isCurrent else { return }
         
         switch authLoginResult {
             
         case .login(let authJwt):
-            await handleSuccess(authJwt)
+            await handleSuccess(authJwt, request)
             break
             
         case .promptPassword(let loginResult):
@@ -530,12 +564,15 @@ struct LoginInitialView: View {
                     await viewModel.bittensorConnector.choose(
                         walletId: viewModel.bittensorConnector.lastWalletId ?? SdkBittensorWalletTalisman,
                         purpose: SdkBittensorWalletPurposeCreate,
-                        expectedAddress: authLoginArgs.walletAuth?.publicKey ?? ""
+                        expectedAddress: authLoginArgs.walletAuth?.publicKey ?? "",
+                        isCurrent: { request.isCurrent }
                     )
                 } else {
                     let ok = await viewModel.prepareSolanaChallenge(
-                        walletAddress: authLoginArgs.walletAuth?.publicKey
+                        walletAddress: authLoginArgs.walletAuth?.publicKey,
+                        request: request
                     )
+                    guard request.isCurrent else { return }
                     if ok {
                         viewModel.setPresentSigninWithSolanaSheet(true)
                     } else {
@@ -578,6 +615,11 @@ struct LoginInitialView: View {
     }
     
     private func handleBittensorSignIn() {
+        guard let request = loginContext?.begin() else { return }
+        bittensorRequest = request
+        viewModel.bittensorConnector.onProof = { proof in
+            await handleBittensorProof(proof, request: request)
+        }
         viewModel.isSigningForCreateNetwork = false
         viewModel.bittensorConnector.presentChooser()
     }
@@ -589,7 +631,8 @@ struct LoginInitialView: View {
 
     /// A proof the SDK session accepted: sign in, or (purpose create) the
     /// second signature that creates the network.
-    private func handleBittensorProof(_ proof: BittensorWalletProofInfo) async {
+    private func handleBittensorProof(_ proof: BittensorWalletProofInfo, request: NetworkLoginRequest) async {
+        guard request.isCurrent else { return }
         let args = viewModel.createBittensorAuthLoginArgs(proof)
 
         if proof.purpose == SdkBittensorWalletPurposeCreate {
@@ -605,13 +648,14 @@ struct LoginInitialView: View {
         }
 
         defer {
-            viewModel.endLoginAction(.bittensor)
+            if request.isCurrent { viewModel.endLoginAction(.bittensor) }
         }
 
-        let result = await viewModel.authLogin(args: args)
+        let result = await viewModel.authLogin(args: args, request: request)
         // a pasted signature from another account than the entered address
         await self.handleAuthLoginResult(
             result,
+            request: request,
             failureMessage: bittensorSignInFailureText(result, walletId: proof.walletId)
         )
     }
@@ -625,7 +669,8 @@ private struct LoginInitialFormView: View {
     
     @Binding var userAuth: String
     let handleUserAuth: () async -> Void
-    let handleAppleLoginResult: (_ result: Result<ASAuthorization, any Error>) async -> Void
+    let beginAppleLogin: () -> NetworkLoginRequest?
+    let handleAppleLoginResult: @MainActor (Result<ASAuthorization, Error>, NetworkLoginRequest) async -> Void
     let handleGoogleSignInButton: () async -> Void
     let handleBrowserSignIn: (BrowserSsoProvider) -> Void
     let isValidUserAuth: Bool
@@ -652,6 +697,7 @@ private struct LoginInitialFormView: View {
         VStack {
             
             LoginFullButtons(
+                beginAppleLogin: beginAppleLogin,
                 handleAppleLoginResult: handleAppleLoginResult,
                 handleGoogleSignInButton: handleGoogleSignInButton,
                 handleBrowserSignIn: handleBrowserSignIn,
@@ -854,7 +900,8 @@ private struct LoginFullButtons: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     
-    let handleAppleLoginResult: (Result<ASAuthorization, Error>) async -> Void
+    let beginAppleLogin: () -> NetworkLoginRequest?
+    let handleAppleLoginResult: @MainActor (Result<ASAuthorization, Error>, NetworkLoginRequest) async -> Void
     let handleGoogleSignInButton: () async -> Void
     let handleBrowserSignIn: (BrowserSsoProvider) -> Void
     let presentCreateInstant: () -> Void
@@ -868,13 +915,7 @@ private struct LoginFullButtons: View {
             // hidden in a build without the applesignin entitlement (the
             // direct-download build: its Developer ID profile lacks it)
             if Config.isAppleSignInConfigured {
-                SignInWithAppleButton(.signIn) { request in
-                    request.requestedScopes = [.email]
-                } onCompletion: { result in
-                    Task {
-                        await handleAppleLoginResult(result)
-                    }
-                }
+                NetworkLoginAppleButton(begin: beginAppleLogin, complete: handleAppleLoginResult)
                 .frame(maxWidth: .infinity)
                 .frame(height: LoginStackMetrics.pillHeight)
                 .signInWithAppleButtonStyle(.white)

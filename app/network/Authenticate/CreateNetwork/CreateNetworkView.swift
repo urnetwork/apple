@@ -19,8 +19,9 @@ struct CreateNetworkView: View {
     var userAuth: String?
     var authJwt: String?
     
-    var handleSuccess: (_ jwt: String) async -> Void
+    var handleSuccess: NetworkLoginCredentialHandler
     
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -33,7 +34,7 @@ struct CreateNetworkView: View {
         authLoginArgs: SdkAuthLoginArgs,
         bittensorWalletId: String? = nil,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
-        handleSuccess: @escaping (_ jwt: String) async -> Void,
+        handleSuccess: @escaping NetworkLoginCredentialHandler,
         api: SdkApi,
         urApiService: UrApiServiceProtocol
     ) {
@@ -195,15 +196,18 @@ struct CreateNetworkView: View {
                             hideKeyboard()
                             #endif
                             
+                            guard let request = loginContext?.begin() else { return }
                             Task {
+                                guard request.isCurrent else { return }
                                 let result = await viewModel.createNetwork(
                                     userAuth: userAuth,
                                     authJwt: authLoginArgs.authJwt,
                                     authType: authLoginArgs.authJwtType,
-                                    walletAuth: authLoginArgs.walletAuth
+                                    walletAuth: authLoginArgs.walletAuth,
+                                    request: request
                                 )
-                                
-                                await handleResult(result)
+                                guard request.isCurrent else { return }
+                                await handleResult(result, request: request)
                             }
                             
                         },
@@ -225,13 +229,12 @@ struct CreateNetworkView: View {
         }
     }
     
-    private func handleResult(_ result: LoginNetworkResult) async {
+    private func handleResult(_ result: LoginNetworkResult, request: NetworkLoginRequest) async {
         print("CreateNetworkView handleResult")
         switch result {
             
         case .successWithJwt(let jwt):
-            print("success with jwt: \(jwt)")
-            await handleSuccess(jwt)
+            await handleSuccess(jwt, request)
             break
         case .successWithVerificationRequired(let sendNotice):
             if let userAuth = userAuth {

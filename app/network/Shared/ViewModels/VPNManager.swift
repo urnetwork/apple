@@ -2596,17 +2596,17 @@ class VPNManager: ObservableObject {
         // the widgets must not keep showing the signed-out account's
         // location, providers and balance
         WidgetSnapshotStore.clear()
-        sendLogoutMessageToTunnelProviders {
-            removeAllVpnProfiles { error in
-                // with no configuration left, the quick connect control shows
-                // "Not signed in" and the widgets their empty state
-                WidgetRefresh.reloadAll()
-                completion(error)
-            }
+        performVPNLogoutCleanup(
+            notifyProviders: sendLogoutMessageToTunnelProviders,
+            removeProfiles: removeAllVpnProfiles
+        ) { error in
+            // Preserve an unresolved provider operation even if removal succeeds.
+            WidgetRefresh.reloadAll()
+            completion(error)
         }
     }
 
-    private static func sendLogoutMessageToTunnelProviders(completion: @escaping () -> Void) {
+    private static func sendLogoutMessageToTunnelProviders(completion: @escaping (Error?) -> Void) {
         performVPNOperation(operation: "logout.loadAllFromPreferences") { resolve in
             VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
@@ -2617,20 +2617,18 @@ class VPNManager: ObservableObject {
             }
         } completion: { (result: Result<[NETunnelProviderManager], Error>) in
             DispatchQueue.main.async {
-                guard case .success(let managers) = result, !managers.isEmpty else {
-                    completion()
+                guard case .success(let managers) = result else {
+                    if case .failure(let error) = result { completion(error) }
+                    return
+                }
+                guard !managers.isEmpty else {
+                    completion(nil)
                     return
                 }
 
                 let group = DispatchGroup()
                 var sentMessage = false
-                var didComplete = false
-
-                let finish = {
-                    guard !didComplete else { return }
-                    didComplete = true
-                    completion()
-                }
+                var providerError: Error?
 
                 for manager in managers {
                     guard let session = manager.connection as? NETunnelProviderSession else {
@@ -2651,24 +2649,22 @@ class VPNManager: ObservableObject {
                             resolve(.failure(error))
                         }
                     } completion: { (result: Result<Data?, Error>) in
-                        if case .failure(let error) = result {
-                            print("[VPNManager][logout] failed to send provider logout message: \(error.localizedDescription)")
+                        DispatchQueue.main.async {
+                            if case .failure(let error) = result, providerError == nil {
+                                providerError = error
+                            }
+                            group.leave()
                         }
-                        group.leave()
                     }
                 }
 
                 guard sentMessage else {
-                    finish()
+                    completion(nil)
                     return
                 }
 
                 group.notify(queue: .main) {
-                    finish()
-                }
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    finish()
+                    completion(providerError)
                 }
             }
         }

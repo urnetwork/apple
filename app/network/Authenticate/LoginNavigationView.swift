@@ -19,25 +19,19 @@ struct LoginNavigationView: View {
     var cancel: (() -> Void)? = nil
     var handleSuccess: NetworkLoginHandler
 
-    // Built from a live closure over `deviceManager.api` (an @EnvironmentObject,
-    // not available yet at init time) rather than the `api` snapshot passed
-    // in, so that switching the active network space (Settings > Change
-    // Network API) while this view is on screen is picked up immediately by
-    // every subsequent API call - including wallet-auth challenge/login,
-    // which previously kept hitting the network active when the login flow
-    // was first presented until the app was restarted.
-    private var urApiService: UrApiServiceProtocol {
-        UrApiService(apiProvider: { [weak deviceManager] in
-            deviceManager?.api ?? api
-        })
-    }
-    
-    init(api: SdkApi, cancel: (() -> Void)? = nil, handleSuccess: @escaping NetworkLoginHandler) {
+    let loginOrigin: NetworkLoginOrigin
+
+    // A view hierarchy owns one API. Origin identity recreates it on every
+    // accepted space/session change; retained old work still uses its old API.
+    private var urApiService: UrApiServiceProtocol { UrApiService(api: api) }
+
+    init(api: SdkApi, loginOrigin: NetworkLoginOrigin, cancel: (() -> Void)? = nil, handleSuccess: @escaping NetworkLoginHandler) {
         self.api = api
+        self.loginOrigin = loginOrigin
         self.cancel = cancel
         self.handleSuccess = handleSuccess
     }
-    
+
     var body: some View {
         NavigationStack(
             path: $viewModel.navigationPath
@@ -46,11 +40,11 @@ struct LoginNavigationView: View {
                 urApiService: urApiService,
                 navigate: viewModel.navigate,
                 cancel: cancel,
-                handleSuccess: { jwt in
-                    await handleSuccess(.existing(jwt))
+                handleSuccess: { jwt, request in
+                    await handleSuccess(.existing(jwt), request)
                 }
             )
-            .id(deviceManager.activeHostName)
+            .id(loginOrigin.id)
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationDestination(for: LoginInitialNavigationPath.self) { path in
                 switch path {
@@ -58,8 +52,8 @@ struct LoginNavigationView: View {
                         LoginPasswordView(
                             userAuth: userAuth,
                             navigate: viewModel.navigate,
-                            handleSuccess: { jwt in
-                                await handleSuccess(.existing(jwt))
+                            handleSuccess: { jwt, request in
+                                await handleSuccess(.existing(jwt), request)
                             },
                             api: api
                         )
@@ -69,8 +63,8 @@ struct LoginNavigationView: View {
                             authLoginArgs: authLoginArgs,
                             bittensorWalletId: bittensorWalletId,
                             navigate: viewModel.navigate,
-                            handleSuccess: { jwt in
-                                await handleSuccess(.created(jwt))
+                            handleSuccess: { jwt, request in
+                                await handleSuccess(.created(jwt), request)
                             },
                             api: api,
                             urApiService: urApiService
@@ -82,8 +76,8 @@ struct LoginNavigationView: View {
                             sendNotice: sendNotice,
                             api: api,
                             backToRoot: viewModel.backToRoot,
-                            handleSuccess: { jwt in
-                                await handleSuccess(.created(jwt))
+                            handleSuccess: { jwt, request in
+                                await handleSuccess(.created(jwt), request)
                             }
                         )
                         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
@@ -97,8 +91,8 @@ struct LoginNavigationView: View {
                 case .seedphrase:
                     LoginSeedphraseView(
                         urApiService: urApiService,
-                        handleSuccess: { jwt in
-                            await handleSuccess(.existing(jwt))
+                        handleSuccess: { jwt, request in
+                            await handleSuccess(.existing(jwt), request)
                         },
                         back: viewModel.back
                     )
@@ -106,8 +100,8 @@ struct LoginNavigationView: View {
                 case .authCode:
                     LoginAuthCodeView(
                         urApiService: urApiService,
-                        handleSuccess: { jwt in
-                            await handleSuccess(.existing(jwt))
+                        handleSuccess: { jwt, request in
+                            await handleSuccess(.existing(jwt), request)
                         },
                         back: viewModel.back
                     )
@@ -122,6 +116,7 @@ struct LoginNavigationView: View {
                 }
             }
         }
+        .environment(\.networkLoginContext, NetworkLoginContext(manager: deviceManager, origin: loginOrigin))
         // why the server signed this app out, when it said (SignedOutNotice):
         // shown once, dismissing it clears it
         .alert(
@@ -146,6 +141,7 @@ struct LoginNavigationView: View {
 #Preview {
     LoginNavigationView(
         api: SdkApi(),
-        handleSuccess: { _ in }
+        loginOrigin: NetworkLoginOrigin(),
+        handleSuccess: { _, _ in }
     )
 }

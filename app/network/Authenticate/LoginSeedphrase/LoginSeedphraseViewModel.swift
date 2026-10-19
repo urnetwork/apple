@@ -66,8 +66,9 @@ extension LoginSeedphraseView {
             return false
         }
 
-        func login() async -> AuthLoginResult {
+        func login(request: NetworkLoginRequest? = nil) async -> AuthLoginResult {
 
+            if let request, !request.isCurrent { return .failure(CancellationError()) }
             if isLoggingIn {
                 return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Login already in progress"]))
             }
@@ -82,13 +83,15 @@ extension LoginSeedphraseView {
             errorMessage = nil
 
             defer {
-                isLoggingIn = false
+                if request?.isCurrent != false { isLoggingIn = false }
             }
 
             do {
                 let result = try await urApiService.loginWithSeedphrase(seedphrase: normalizedSeedphrase)
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 return result
             } catch {
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 return .failure(error)
             }
 

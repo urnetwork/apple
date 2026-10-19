@@ -13,16 +13,17 @@ import URnetworkSdk
  */
 struct LoginAuthCodeView: View {
 
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
 
     @StateObject private var viewModel: ViewModel
 
-    let handleSuccess: (_ jwt: String) async -> Void
+    let handleSuccess: NetworkLoginCredentialHandler
     let back: () -> Void
 
     init(
         urApiService: UrApiServiceProtocol,
-        handleSuccess: @escaping (_ jwt: String) async -> Void,
+        handleSuccess: @escaping NetworkLoginCredentialHandler,
         back: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(urApiService: urApiService))
@@ -95,17 +96,20 @@ struct LoginAuthCodeView: View {
 
     private func submit() {
         guard !viewModel.isLoading, !viewModel.authCode.isEmpty else { return }
+        guard let request = loginContext?.begin() else { return }
         Task {
-            let result = await viewModel.authCodeLogin()
-            await handleResult(result)
+            guard request.isCurrent else { return }
+            let result = await viewModel.authCodeLogin(request: request)
+            guard request.isCurrent else { return }
+            await handleResult(result, request: request)
         }
     }
 
     @MainActor
-    private func handleResult(_ result: Result<SdkAuthCodeLoginResult, Error>) async {
+    private func handleResult(_ result: Result<SdkAuthCodeLoginResult, Error>, request: NetworkLoginRequest) async {
         switch result {
         case .success(let authCodeLoginResult):
-            await handleSuccess(authCodeLoginResult.jwt)
+            await handleSuccess(authCodeLoginResult.jwt, request)
         case .failure:
             // the view model flags the field; nothing else to show
             break
@@ -117,7 +121,7 @@ struct LoginAuthCodeView: View {
 #Preview {
     LoginAuthCodeView(
         urApiService: MockUrApiService(),
-        handleSuccess: { _ in },
+        handleSuccess: { _, _ in },
         back: {}
     )
     .environmentObject(ThemeManager.shared)

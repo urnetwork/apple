@@ -9,7 +9,7 @@ import Foundation
 import URnetworkSdk
 import SwiftUI
 
-private class AuthLoginPasswordCallback: SdkCallback<SdkAuthLoginWithPasswordResult, SdkAuthLoginWithPasswordCallbackProtocol>, SdkAuthLoginWithPasswordCallbackProtocol {
+private class AuthLoginPasswordCallback: OneShotSdkCallback<SdkAuthLoginWithPasswordResult, SdkAuthLoginWithPasswordCallbackProtocol>, SdkAuthLoginWithPasswordCallbackProtocol {
     func result(_ result: SdkAuthLoginWithPasswordResult?, err: Error?) {
         handleResult(result, err: err)
     }
@@ -49,8 +49,13 @@ extension LoginPasswordView {
             self.errorMessage = message
         }
         
-        func loginWithPassword(userAuth: String) async -> LoginNetworkResult {
+        func loginWithPassword(
+            userAuth: String,
+            request: NetworkLoginRequest? = nil,
+            send: ((SdkApi, SdkAuthLoginWithPasswordArgs, SdkAuthLoginWithPasswordCallbackProtocol) -> Void)? = nil
+        ) async -> LoginNetworkResult {
             
+            if let request, !request.isCurrent { return .failure(CancellationError()) }
             if !isValid {
                 return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "Form invalid"]))
             }
@@ -115,9 +120,10 @@ extension LoginPasswordView {
                     args.password = self.password
                     args.verifyOtpNumeric = true
                     
-                    if let api = api {
+                    if let api = request?.api ?? api {
                         
-                        api.authLogin(withPassword: args, callback: callback)
+                        if let send { send(api, args, callback) }
+                        else { api.authLogin(withPassword: args, callback: callback) }
                         
                     } else {
                         continuation.resume(throwing: NSError(domain: domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "API not instantiated"]))
@@ -125,9 +131,11 @@ extension LoginPasswordView {
                     
                 }
                 
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 setIsLoggingIn(false)
                 return result
             } catch {
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 setIsLoggingIn(false)
                 return .failure(error)
             }

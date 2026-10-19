@@ -10,19 +10,20 @@ import URnetworkSdk
 
 struct LoginPasswordView: View {
     
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var viewModel: ViewModel
     
     var userAuth: String
     var navigate: (LoginInitialNavigationPath) -> Void
-    var handleSuccess: (_ jwt: String) async -> Void
+    var handleSuccess: NetworkLoginCredentialHandler
     
     let snackbarErrorMessage = "There was an error authenticating. Please try again."
     
     init(
         userAuth: String,
         navigate: @escaping (LoginInitialNavigationPath) -> Void,
-        handleSuccess: @escaping (_ jwt: String) async -> Void,
+        handleSuccess: @escaping NetworkLoginCredentialHandler,
         api: SdkApi?
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(api: api))
@@ -58,9 +59,7 @@ struct LoginPasswordView: View {
                         submitLabel: .continue,
                         onSubmit: {
                             if viewModel.isValid && !isLoginInProgress {
-                                Task {
-                                    await submitPasswordLogin()
-                                }
+                                submitPasswordLogin()
                             }
                         },
                         isSecure: true,
@@ -78,9 +77,7 @@ struct LoginPasswordView: View {
                             #endif
                             
                             if viewModel.isValid && !isLoginInProgress {
-                                Task {
-                                    await submitPasswordLogin()
-                                }
+                                submitPasswordLogin()
                             }
                         },
                         enabled: !isLoginInProgress && viewModel.isValid,
@@ -123,22 +120,26 @@ struct LoginPasswordView: View {
         viewModel.isLoggingIn
     }
     
-    private func submitPasswordLogin() async {
+    private func submitPasswordLogin() {
         if isLoginInProgress || !viewModel.isValid {
             return
         }
         
+        guard let request = loginContext?.begin() else { return }
         viewModel.setErrorMessage(nil)
-        
-        let result = await viewModel.loginWithPassword(userAuth: self.userAuth)
-        await handleLoginResult(result)
+        Task {
+            guard request.isCurrent else { return }
+            let result = await viewModel.loginWithPassword(userAuth: self.userAuth, request: request)
+            guard request.isCurrent else { return }
+            await handleLoginResult(result, request: request)
+        }
     }
     
-    private func handleLoginResult(_ result: LoginNetworkResult) async {
+    private func handleLoginResult(_ result: LoginNetworkResult, request: NetworkLoginRequest) async {
         switch result {
             
         case .successWithJwt(let jwt):
-            await handleSuccess(jwt)
+            await handleSuccess(jwt, request)
             break
             
         case .successWithVerificationRequired(let sendNotice):

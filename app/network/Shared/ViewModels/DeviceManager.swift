@@ -258,6 +258,62 @@ private final class StoredAuthenticationStartupOwner {
     var completed = false
 }
 
+/// One accepted registration retains its resources across the API suspension.
+@MainActor
+private final class NetworkClientAuthenticationOwner {
+    let networkSpace: SdkNetworkSpace
+    let localState: SdkLocalState
+    let api: SdkApi
+
+    init(networkSpace: SdkNetworkSpace, localState: SdkLocalState, api: SdkApi) {
+        self.networkSpace = networkSpace
+        self.localState = localState
+        self.api = api
+    }
+}
+
+/// Global profile cleanup excludes new auth until its original local cleanup joins.
+@MainActor
+private final class DeviceLogoutOwner {
+    let networkSpace: SdkNetworkSpace?
+    let api: SdkApi?
+    let localState: SdkAsyncLocalState?
+    let device: SdkDeviceRemote?
+    let vpnManager: VPNManager?
+    var profilesCompleted = false
+    var profilesSucceeded = false
+    var localStateCompleted = false
+
+    init(manager: DeviceManager) {
+        networkSpace = manager.networkSpace
+        api = manager.api
+        localState = manager.asyncLocalState
+        device = manager.device
+        vpnManager = manager.vpnManager
+    }
+}
+
+/// Only external cleanup is replaceable; owner admission and finalization stay live.
+struct DeviceLogoutEffects {
+    let clearTunnelCredential: @MainActor () -> Void
+    let removeProfiles: @MainActor (VPNManager?, @escaping (Error?) -> Void) -> Void
+    let clearLocalState: @MainActor (SdkAsyncLocalState, SdkCommitCallbackProtocol) -> Void
+
+    static var live: DeviceLogoutEffects {
+        DeviceLogoutEffects(
+            clearTunnelCredential: { SharedTunnelJwtStore.clear() },
+            removeProfiles: { manager, completion in
+                if let manager {
+                    manager.stopVpnTunnelOnLogout(completion: completion)
+                } else {
+                    VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles(completion: completion)
+                }
+            },
+            clearLocalState: { state, callback in state.logout(callback) }
+        )
+    }
+}
+
 @MainActor
 class DeviceManager: ObservableObject {
     
@@ -270,6 +326,8 @@ class DeviceManager: ObservableObject {
         didSet {
             retireDeviceAuthCallbacks()
             retireStoredAuthenticationStartup()
+            networkClientAuthenticationOwner = nil
+            retireNetworkLoginRequests()
 //            setApi(networkSpace?.getApi())
             // updateParsedJwt()
             // each space owns its own api: report this app's device type and
@@ -311,6 +369,12 @@ class DeviceManager: ObservableObject {
     }
     private var applicationIsActive = false
     private var isLoggingOut = false
+    private var networkClientAuthenticationOwner: NetworkClientAuthenticationOwner?
+    @Published private(set) var networkLoginOrigin = NetworkLoginOrigin()
+    private var pendingNetworkLoginRequest: NetworkLoginRequest?
+    private var acceptedNetworkLoginRequest: NetworkLoginRequest?
+    private var logoutOwner: DeviceLogoutOwner?
+    private let logoutEffects: DeviceLogoutEffects
     /// Runs as a logout of a device begins, whoever started it (the app's
     /// Sign out, the account deletion, the server), before anything is torn
     /// down: the connect view model stops connecting that device
@@ -680,6 +744,10 @@ class DeviceManager: ObservableObject {
     /// closes every controller still open on the device, each with an rpc of
     /// its own.
     func setDevice(device: SdkDeviceRemote?) {
+        guard device == nil || !isLoggingOut else {
+            Self.closeOffMainActor(device)
+            return
+        }
 
         if self.device != device {
 
@@ -847,12 +915,14 @@ class DeviceManager: ObservableObject {
         authCallbackEffects: DeviceAuthCallbackEffects = .live,
         extenderProvideCallbackDispatch: @escaping DeviceAuthCallbackDispatch = { work in
             DispatchQueue.main.async { work() }
-        }
+        },
+        logoutEffects: DeviceLogoutEffects = .live
     ) {
         self.startupMode = startupMode
         self.authCallbackDispatch = authCallbackDispatch
         self.authCallbackEffects = authCallbackEffects
         self.extenderProvideCallbackDispatch = extenderProvideCallbackDispatch
+        self.logoutEffects = logoutEffects
 
         // This constructor-only opt-out permits memory tests. NetworkApp
         // supplies it only when it hosts unit tests: both production and
@@ -961,6 +1031,8 @@ class DeviceManager: ObservableObject {
     /// actor (closeOffMainActor), so the quit's answer and its cap, which
     /// run there, never wait on it (QuitSequence).
     func closeOnQuit(completion: @escaping (Error?) -> Void) {
+        retireNetworkLoginRequests()
+        networkClientAuthenticationOwner = nil
         retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
         Self.closeOffMainActor(self.device)
@@ -975,6 +1047,40 @@ class DeviceManager: ObservableObject {
 }
 
 extension DeviceManager {
+    /// Producer admission happens before auth/network/browser work starts.
+    func beginNetworkLoginRequest(origin: NetworkLoginOrigin) -> NetworkLoginRequest? {
+        guard !isLoggingOut, networkLoginOrigin === origin, let networkSpace, let api else { return nil }
+        let request = NetworkLoginRequest(origin: origin, networkSpace: networkSpace, api: api, manager: self)
+        pendingNetworkLoginRequest = request
+        return request
+    }
+
+    func isCurrentNetworkLoginRequest(_ request: NetworkLoginRequest) -> Bool {
+        guard !isLoggingOut, networkSpace === request.networkSpace else { return false }
+        if request.accepted { return acceptedNetworkLoginRequest === request }
+        return networkLoginOrigin === request.origin && pendingNetworkLoginRequest === request
+    }
+
+    private func retireNetworkLoginRequests() {
+        pendingNetworkLoginRequest = nil
+        acceptedNetworkLoginRequest = nil
+        networkLoginOrigin = NetworkLoginOrigin()
+    }
+
+    /// Consume the exact outer request once before any admin install or UI effect.
+    func authenticateNetworkClient(
+        _ login: NetworkLogin,
+        request: NetworkLoginRequest,
+        requestClient: ((SdkApi, SdkAuthNetworkClientArgs, SdkAuthNetworkClientCallbackProtocol) -> Void)? = nil,
+        initializeDevice: ((String, String) -> Bool)? = nil,
+        accepted: (() -> Void)? = nil
+    ) async -> Result<Void, Error> {
+        guard isCurrentNetworkLoginRequest(request), !request.registrationStarted else {
+            return .failure(CancellationError())
+        }
+        request.registrationStarted = true
+        return await authenticateNetworkClient(login.jwt, newNetwork: login.newNetwork, requestClient: requestClient, initializeDevice: initializeDevice, outerRequest: request, accepted: accepted)
+    }
     /// Closes `device` on `queue`, never on the caller's thread: the quit's
     /// and every sign-out's and sign-in's (setDevice). The sdk's
     /// DeviceRemote.Close takes the device's state lock, which a connect
@@ -1125,6 +1231,7 @@ extension DeviceManager {
         },
         prepare: @escaping @MainActor (DeviceManager) -> Void = { $0.initializeNetworkSpace() }
     ) {
+        guard !isLoggingOut else { return }
         let owner = StoredAuthenticationStartupOwner()
         storedAuthenticationStartupOwner = owner
         storedAuthenticationStartupState = .loading
@@ -1143,6 +1250,7 @@ extension DeviceManager {
         loadActiveInstanceId: ((@escaping (String?) -> Void) -> Void)? = nil,
         initializeDevice: ((String, String) -> Bool)? = nil
     ) {
+        guard !isLoggingOut else { return }
         let owner = StoredAuthenticationStartupOwner()
         storedAuthenticationStartupOwner = owner
         storedAuthenticationStartupState = .loading
@@ -1367,6 +1475,7 @@ extension DeviceManager {
         clientJwt: String,
         deviceSpec: String
     ) -> Bool {
+        guard !isLoggingOut else { return false }
         guard let networkSpace = networkSpace else {
             markInitializedWithoutDevice()
             return false
@@ -1720,12 +1829,17 @@ extension DeviceManager {
 
     // An accepted explicit login owns auth before its replacement remote is
     // ready. A pending request or failed write must leave serving auth alone.
-    func acceptNetworkLogin(_ commitAdmin: () throws -> Void) rethrows {
+    @discardableResult
+    func acceptNetworkLogin(_ commitAdmin: () throws -> Void) rethrows -> Bool {
+        guard !isLoggingOut else { return false }
         try commitAdmin()
+        retireNetworkLoginRequests()
+        networkClientAuthenticationOwner = nil
         retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
         // a notice belongs to the signed-out stretch this login ends
         signedOutNotice = nil
+        return true
     }
 
     /// The sign-in screen showed the notice and the user dismissed it.
@@ -1878,53 +1992,18 @@ private class FetchNetworkClientsCallback: SdkCallback<
 }
 
 private class AuthNetworkClientCallback: SdkCallback<SdkAuthNetworkClientResult, SdkAuthNetworkClientCallbackProtocol>, SdkAuthNetworkClientCallbackProtocol {
+    // Native deliveries are admitted once on the same queue that resumes the task.
+    private var completed = false
+
     func result(_ result: SdkAuthNetworkClientResult?, err: Error?) {
         
         DispatchQueue.main.async {
+            guard !self.completed else { return }
+            self.completed = true
             self.handleResult(result, err: err)
         }
     }
 }
-
-private class SetJWTLocalStateCallback: NSObject, SdkCommitCallbackProtocol {
-    
-    let continuation: CheckedContinuation<Void, Error>
-    let clientJwt: String
-    let deviceSpecs: String
-    let initDevice: (_ clientJwt: String, _ deviceSpecs: String) -> Bool
-    
-    init(
-        continuation: CheckedContinuation<Void, Error>,
-        clientJwt: String,
-        deviceSpecs: String,
-        initDevice: @escaping (_ clientJwt: String, _ deviceSpecs: String) -> Bool
-    ) {
-        self.continuation = continuation
-        
-        self.initDevice = initDevice
-        
-        self.clientJwt = clientJwt
-        self.deviceSpecs = deviceSpecs
-    }
-    
-    func complete(_ success: Bool) {
-        DispatchQueue.main.async {
-            
-            if success {
-                if self.initDevice(self.clientJwt, self.deviceSpecs) {
-                    self.continuation.resume(returning: ())
-                } else {
-                    self.continuation.resume(throwing: NSError(domain: "SetJWTLocalStateCallback", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to initialize device"]))
-                }
-                
-            } else {
-                self.continuation.resume(throwing: NSError(domain: "SetJWTLocalStateCallback", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to set client JWT"]))
-            }
-        }
-        
-    }
-}
-
 
 // MARK: login/logout
 @MainActor
@@ -1936,90 +2015,80 @@ extension DeviceManager {
      * signing in: the SDK reads a missing flag as "may prompt", so the flag is
      * written explicitly on every login, before the device reads it.
      */
-    func authenticateNetworkClient(_ jwt: String, newNetwork: Bool = false) async -> Result<Void, Error> {
-        guard let asyncLocalState = asyncLocalState,
-              let localState = asyncLocalState.getLocalState() else {
-            return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "login: local state is nil"]))
+    func authenticateNetworkClient(
+        _ jwt: String,
+        newNetwork: Bool = false,
+        requestClient: ((SdkApi, SdkAuthNetworkClientArgs, SdkAuthNetworkClientCallbackProtocol) -> Void)? = nil,
+        initializeDevice: ((String, String) -> Bool)? = nil,
+        outerRequest: NetworkLoginRequest? = nil,
+        accepted: (() -> Void)? = nil
+    ) async -> Result<Void, Error> {
+        guard !isLoggingOut else { return .failure(CancellationError()) }
+        if let outerRequest, !isCurrentNetworkLoginRequest(outerRequest) { return .failure(CancellationError()) }
+        guard let networkSpace, let localState = asyncLocalState?.getLocalState(), let api else {
+            return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "login: state is unavailable"]))
         }
 
+        let owner = NetworkClientAuthenticationOwner(networkSpace: networkSpace, localState: localState, api: api)
         do {
-            try acceptNetworkLogin {
-                try localState.setByJwt(jwt)
+            guard try acceptNetworkLogin({ try localState.setByJwt(jwt) }) else {
+                return .failure(CancellationError())
+            }
+            networkClientAuthenticationOwner = owner
+            if let outerRequest {
+                outerRequest.accepted = true
+                acceptedNetworkLoginRequest = outerRequest
             }
             try localState.setCanPromptIntroFunnel(newNetwork)
         } catch {
             return .failure(error)
         }
-        
-        guard let api = api else {
-            await rollbackFailedNetworkClientAuthentication()
-            return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "login: api is nil"]))
-        }
-        
         api.setByJwt(jwt)
-        
-        // NOTE: the following was in authClientAndFinish in Android
-        // not sure if we need to keep these as separate functions
-        
+        accepted?()
+
         do {
-            
             let deviceSpecs = getDeviceSpecs()
-            
-            let result: Void = try await withCheckedThrowingContinuation { continuation in
-                
+            let clientJwt: String = try await withCheckedThrowingContinuation { continuation in
                 let authArgs = SdkAuthNetworkClientArgs()
                 authArgs.deviceDescription = deviceDescription
                 authArgs.deviceSpec = deviceSpecs
                 Self.applyClientContext(to: authArgs)
-                
-                let callback = AuthNetworkClientCallback { [weak self] result, error in
-                    guard let self = self else { return }
-                    
-                    
-                    if let error = error {
+                let callback = AuthNetworkClientCallback { result, error in
+                    if let error {
                         continuation.resume(throwing: error)
-                        return
+                    } else if let resultError = result?.error {
+                        continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                    } else if let clientJwt = result?.byClientJwt, !clientJwt.isEmpty {
+                        continuation.resume(returning: clientJwt)
+                    } else {
+                        continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Auth network client returned no client JWT"]))
                     }
-                    
-                    guard let result = result else {
-                        continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "No result found in AuthNetworkClientCallback"]))
-                        return
-                    }
-                    
-                    if let resultError = result.error {
-                        continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
-                        
-                        return
-                    }
-                    
-                    let clientJwt = result.byClientJwt
-                    guard !clientJwt.isEmpty else {
-                        continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "Auth network client returned empty client JWT"]))
-                        return
-                    }
-
-                    let callback = SetJWTLocalStateCallback(
-                        continuation: continuation,
-                        clientJwt: clientJwt,
-                        deviceSpecs: deviceSpecs,
-                        initDevice: self.initDevice(clientJwt:deviceSpec:)
-                    )
-                    
-                    asyncLocalState.setByClientJwt(clientJwt, callback: callback)
-                    
                 }
-                
-                api.authNetworkClient(authArgs, callback: callback)
-                
+                if let requestClient {
+                    requestClient(api, authArgs, callback)
+                } else {
+                    api.authNetworkClient(authArgs, callback: callback)
+                }
             }
-            
-            return .success(result)
-            
+
+            guard ownsNetworkClientAuthentication(owner) else { throw CancellationError() }
+            // Commit and construct on this admitted actor turn. An async storage
+            // write would outlive its admission and could overwrite a later login.
+            try owner.localState.setByClientJwt(clientJwt)
+            guard initializeDevice?(clientJwt, deviceSpecs)
+                    ?? initDevice(clientJwt: clientJwt, deviceSpec: deviceSpecs) else {
+                throw NSError(domain: domain, code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to initialize device"])
+            }
+            networkClientAuthenticationOwner = nil
+            return .success(())
         } catch {
-            await rollbackFailedNetworkClientAuthentication()
+            rollbackFailedNetworkClientAuthentication(owner)
             return .failure(error)
         }
-        
+    }
+
+    private func ownsNetworkClientAuthentication(_ owner: NetworkClientAuthenticationOwner) -> Bool {
+        !isLoggingOut && networkClientAuthenticationOwner === owner && networkSpace === owner.networkSpace
     }
 
     /**
@@ -2032,33 +2101,20 @@ extension DeviceManager {
         device?.setCanPromptIntroFunnel(false)
     }
 
-    private func rollbackFailedNetworkClientAuthentication() async {
-        api?.setByJwt(nil)
-
-        guard let asyncLocalState = asyncLocalState else {
-            return
-        }
-
-        await withCheckedContinuation { continuation in
-            let callback = SdkCommitCallback { success in
-                if !success {
-                    print("[authenticateNetworkClient] failed to roll back BY-JWT")
-                }
-
-                let clientJwtCallback = SdkCommitCallback { success in
-                    if !success {
-                        print("[authenticateNetworkClient] failed to roll back client JWT")
-                    }
-                    continuation.resume()
-                }
-
-                asyncLocalState.setByClientJwt(nil, callback: clientJwtCallback)
-            }
-
-            asyncLocalState.setByJwt(nil, callback: callback)
+    private func rollbackFailedNetworkClientAuthentication(_ owner: NetworkClientAuthenticationOwner) {
+        guard ownsNetworkClientAuthentication(owner) else { return }
+        networkClientAuthenticationOwner = nil
+        owner.api.setByJwt(nil)
+        do {
+            // Keep both writes on the admitted main-actor turn; no queued rollback
+            // may run after a replacement's synchronous admin install.
+            try owner.localState.setByJwt(nil)
+            try owner.localState.setByClientJwt(nil)
+        } catch {
+            print("[authenticateNetworkClient] failed to roll back authentication")
         }
     }
-    
+
     class SdkCommitCallback: NSObject, SdkCommitCallbackProtocol {
         let completionHandler: (Bool) -> Void
         
@@ -2072,85 +2128,66 @@ extension DeviceManager {
         }
     }
     
-    // Admission is synchronous. Ownership of already-started asynchronous
-    // profile/logout completion remains a separate boundary.
+    // Admission captures the original resources before observers can change space.
     func beginLogout() -> Bool {
-        guard !isLoggingOut else {
-            return false
-        }
+        guard !isLoggingOut else { return false }
+        let owner = DeviceLogoutOwner(manager: self)
+        logoutOwner = owner
+        isLoggingOut = true
+        networkClientAuthenticationOwner = nil
+        retireNetworkLoginRequests()
         retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
-        isLoggingOut = true
-        if let device {
-            logoutStarted?(device)
-        }
+        if let device = owner.device { logoutStarted?(device) }
         return true
     }
 
     func logout() {
-        guard beginLogout() else { return }
-        // The credential the api attaches to its calls goes at once: the next
-        // sign-in's calls would otherwise carry the signed-out network's
-        // (each network starts fresh, owner decision 2026-10-05).
-        api?.setByJwt(nil)
-        if startupMode.allowsVPNProfileSystemAccess {
-            SharedTunnelJwtStore.clear()
-        }
-
-        let finishLocalStateLogout = {
-            guard let asyncLocalState = self.asyncLocalState else {
-                print("[logout] asyncLocalState is nil")
-                self.isLoggingOut = false
-                self.clearDevice()
-                return
-            }
-
-            let callback = SdkCommitCallback { success in
-                DispatchQueue.main.async {
-                    self.isLoggingOut = false
-                    if !success {
-                        print("[logout] asyncLocalState logout failed")
-                    }
-                    self.clearDevice()
-                }
-            }
-
-            asyncLocalState.logout(callback)
-        }
-
+        guard beginLogout(), let owner = logoutOwner else { return }
+        owner.api?.setByJwt(nil)
         guard startupMode.allowsVPNProfileSystemAccess else {
-            finishLocalStateLogout()
+            completeLogoutProfiles(owner, error: nil)
             return
         }
-
-        guard let vpnManager = vpnManager else {
-            VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles { error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("[logout] failed to clear VPN profiles: \(error.localizedDescription)")
-                    }
-                    finishLocalStateLogout()
-                }
-            }
-            return
-        }
-
-        vpnManager.stopVpnTunnelOnLogout { error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("[logout] failed to stop VPN tunnel: \(error.localizedDescription)")
-                }
-
-                vpnManager.close()
-                if self.vpnManager === vpnManager {
-                    self.vpnManager = nil
-                }
-
-                finishLocalStateLogout()
-            }
+        logoutEffects.clearTunnelCredential()
+        let dispatch = authCallbackDispatch
+        logoutEffects.removeProfiles(owner.vpnManager) { error in
+            dispatch { self.completeLogoutProfiles(owner, error: error) }
         }
     }
-    
+
+    private func completeLogoutProfiles(_ owner: DeviceLogoutOwner, error: Error?) {
+        guard logoutOwner === owner, !owner.profilesCompleted else { return }
+        owner.profilesCompleted = true
+        owner.profilesSucceeded = error == nil
+        if error != nil {
+            // A deadline is not a join of OS work. Retain the admission fence
+            // after failure, even while clearing the signed-out local account.
+            print("[logout] profile cleanup unresolved; login remains blocked")
+        }
+        owner.vpnManager?.close()
+        if vpnManager === owner.vpnManager { vpnManager = nil }
+        guard let localState = owner.localState else {
+            completeLogoutLocalState(owner, success: true)
+            return
+        }
+        let dispatch = authCallbackDispatch
+        let callback = SdkCommitCallback { success in
+            dispatch { self.completeLogoutLocalState(owner, success: success) }
+        }
+        logoutEffects.clearLocalState(localState, callback)
+    }
+
+    private func completeLogoutLocalState(_ owner: DeviceLogoutOwner, success: Bool) {
+        guard logoutOwner === owner, !owner.localStateCompleted else { return }
+        owner.localStateCompleted = true
+        if !success { print("[logout] asyncLocalState logout failed") }
+        if networkSpace === owner.networkSpace, device === owner.device { clearDevice() }
+        guard owner.profilesSucceeded else { return }
+        logoutOwner = nil
+        isLoggingOut = false
+    }
+
     // concise, human-readable spec shown in the peers list:
     // "<os> <retail model>", e.g. "18.5 iPhone 16 Pro Max",
     // "15.5 MacBook Pro (16-inch, Nov 2023)". `UIDevice.model` is just

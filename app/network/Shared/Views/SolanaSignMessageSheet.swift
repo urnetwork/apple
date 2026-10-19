@@ -19,6 +19,7 @@ struct SolanaSignMessageSheet: View {
     var signButtonLabelText: LocalizedStringKey
     var message: String
     var dismiss: () -> Void
+    var beginSigning: (() -> String?)? = nil
     
     var body: some View {
         VStack {
@@ -148,6 +149,8 @@ struct SolanaSignMessageSheet: View {
                                 return
                             }
 
+                            let attemptId = beginSigning?()
+                            if beginSigning != nil && attemptId == nil { return }
                             setIsSigningMessage(true)
 
                             let didStartSigning: Bool
@@ -155,6 +158,7 @@ struct SolanaSignMessageSheet: View {
                             case .phantom:
                                 didStartSigning = connectWalletProviderViewModel.signMessagePhantom(
                                     message: message,
+                                    attemptId: attemptId,
                                     onOpenFailed: {
                                         setIsSigningMessage(false)
                                     }
@@ -162,6 +166,7 @@ struct SolanaSignMessageSheet: View {
                             case .solflare:
                                 didStartSigning = connectWalletProviderViewModel.signMessageSolflare(
                                     message: message,
+                                    attemptId: attemptId,
                                     onOpenFailed: {
                                         setIsSigningMessage(false)
                                     }

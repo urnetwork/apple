@@ -93,6 +93,13 @@ extension LoginInitialView {
             isSigningMessage = isSigning
         }
 
+        func finishSolanaAttempt(request: NetworkLoginRequest) {
+            guard request.isCurrent else { return }
+            isSigningMessage = false
+            presentSigninWithSolanaSheet = false
+            isSigningForCreateNetwork = false
+        }
+
         @Published private(set) var solanaChallengeMessage: String?
 
         @Published var isSigningForCreateNetwork: Bool = false
@@ -101,7 +108,8 @@ extension LoginInitialView {
         /// message template for the wallet to sign. Must be called again for
         /// every sign attempt — the server invalidates a challenge the moment
         /// it is checked, whether the check succeeds or fails.
-        func prepareSolanaChallenge(walletAddress: String? = nil) async -> Bool {
+        func prepareSolanaChallenge(walletAddress: String? = nil, request: NetworkLoginRequest? = nil) async -> Bool {
+            guard request?.isCurrent != false else { return false }
             let args = SdkAuthWalletChallengeArgs()
             args.blockchain = "solana"
             if let walletAddress, !walletAddress.isEmpty {
@@ -110,6 +118,7 @@ extension LoginInitialView {
 
             do {
                 let result = try await urApiService.authWalletChallenge(args)
+                guard request?.isCurrent != false else { return false }
                 guard !result.messageTemplate.isEmpty else {
                     solanaChallengeMessage = nil
                     setLoginErrorMessage("There was an error connecting to the network")
@@ -118,6 +127,7 @@ extension LoginInitialView {
                 solanaChallengeMessage = result.messageTemplate
                 return true
             } catch {
+                guard request?.isCurrent != false else { return false }
                 solanaChallengeMessage = nil
                 setLoginErrorMessage("There was an error connecting to the network")
                 return false
@@ -149,13 +159,16 @@ extension LoginInitialView {
             }
         }
         
-        func authLogin(args: SdkAuthLoginArgs) async -> AuthLoginResult {
+        func authLogin(args: SdkAuthLoginArgs, request: NetworkLoginRequest? = nil) async -> AuthLoginResult {
                         
+            guard request?.isCurrent != false else { return .failure(CancellationError()) }
             do {
                 let result = try await urApiService.authLogin(args)
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 return result
                 
             } catch {
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 return .failure(error)
             }
             

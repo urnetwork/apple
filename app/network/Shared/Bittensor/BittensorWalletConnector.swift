@@ -372,7 +372,8 @@ final class BittensorWalletConnector: ObservableObject {
 
     /// Starts a proof with the chosen wallet. A non-empty expectedAddress
     /// binds the challenge to it and pre-fills (and locks) the manual form.
-    func choose(walletId: String, purpose: String, expectedAddress: String = "") async {
+    func choose(walletId: String, purpose: String, expectedAddress: String = "", isCurrent: @escaping () -> Bool = { true }) async {
+        guard isCurrent() else { return }
         guard let session = openSession(walletId: walletId, purpose: purpose, expectedAddress: expectedAddress) else {
             return
         }
@@ -382,12 +383,12 @@ final class BittensorWalletConnector: ObservableObject {
             }
             let result = try await fetchChallenge(args)
             // abandoned while the challenge was in flight
-            guard self.session === session else {
+            guard self.session === session, isCurrent() else {
                 return
             }
             try session.setChallenge(result, nowMillis: now())
         } catch {
-            guard self.session === session else {
+            guard self.session === session, isCurrent() else {
                 return
             }
             stage = .failed(BittensorWallet.errorText(code: "", walletMessage: ""))
@@ -455,10 +456,23 @@ final class BittensorWalletConnector: ObservableObject {
     /// The manual form's Continue. A refusal stays on the form with the
     /// reason, except an expired challenge, which needs a new one.
     func submitManual() async {
+        await captureManualSubmission()?()
+    }
+
+    func captureManualSubmission() -> (@MainActor () async -> Void)? {
         guard let session, case .manualSignature = stage else {
-            return
+            return nil
         }
-        switch session.handleSignature(address: manualAddress, signature: manualSignature, nowMillis: now()) {
+        let address = manualAddress
+        let signature = manualSignature
+        return { [weak self] in
+            guard let self, self.session === session else { return }
+            await self.submitManual(session: session, address: address, signature: signature)
+        }
+    }
+
+    private func submitManual(session: BittensorWalletSessioning, address: String, signature: String) async {
+        switch session.handleSignature(address: address, signature: signature, nowMillis: now()) {
         case .proof(let proof):
             await finish(proof)
         case .failed(let code, let walletMessage, _):
@@ -484,9 +498,22 @@ final class BittensorWalletConnector: ObservableObject {
     /// one is ignored, and so is any for a manual session: it never opened
     /// the bridge, so the link came from another app or page.
     func handleBridgeReturn(_ url: URL) async {
+        await captureBridgeReturn(url)?()
+    }
+
+    /// Capture at URL ingress. A queued return cannot use a replacement
+    /// session (or its new onProof handler) when its Task eventually runs.
+    func captureBridgeReturn(_ url: URL) -> (@MainActor () async -> Void)? {
         guard let session, session.transport == SdkBittensorWalletTransportBrowserBridge, session.isReturn(url.absoluteString) else {
-            return
+            return nil
         }
+        return { [weak self] in
+            guard let self, self.session === session else { return }
+            await self.handleBridgeReturn(url, session: session)
+        }
+    }
+
+    private func handleBridgeReturn(_ url: URL, session: BittensorWalletSessioning) async {
         switch session.handleBridgeReturn(url.absoluteString, nowMillis: now()) {
         case .proof(let proof):
             await finish(proof)

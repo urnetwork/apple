@@ -147,8 +147,8 @@ struct BittensorWalletSignView: View {
         UrButton(
             text: "Continue",
             action: {
-                Task {
-                    await connector.submitManual()
+                if let submit = connector.captureManualSubmission() {
+                    Task { await submit() }
                 }
             },
             enabled: !connector.manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

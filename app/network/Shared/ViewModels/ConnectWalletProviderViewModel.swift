@@ -127,8 +127,8 @@ class ConnectWalletProviderViewModel: ObservableObject {
     }
     
     @discardableResult
-    func signMessagePhantom(message: String, onOpenFailed: (() -> Void)? = nil) -> Bool {
-        let queryStringResult = buildSignMessageQueryString(message: message, redirectLink: phantomSignMessageRedirectLink)
+    func signMessagePhantom(message: String, attemptId: String? = nil, onOpenFailed: (() -> Void)? = nil) -> Bool {
+        let queryStringResult = buildSignMessageQueryString(message: message, redirectLink: NetworkLoginWalletAttempt.redirectLink(phantomSignMessageRedirectLink, attemptId: attemptId))
         
         guard case .success(let queryString) = queryStringResult else {
             print("Failed to build query string: \(queryStringResult)")
@@ -151,8 +151,8 @@ class ConnectWalletProviderViewModel: ObservableObject {
     }
     
     @discardableResult
-    func signMessageSolflare(message: String, onOpenFailed: (() -> Void)? = nil) -> Bool {
-        let queryStringResult = buildSignMessageQueryString(message: message, redirectLink: solflareSignMessageRedirectLink)
+    func signMessageSolflare(message: String, attemptId: String? = nil, onOpenFailed: (() -> Void)? = nil) -> Bool {
+        let queryStringResult = buildSignMessageQueryString(message: message, redirectLink: NetworkLoginWalletAttempt.redirectLink(solflareSignMessageRedirectLink, attemptId: attemptId))
         
         guard case .success(let queryString) = queryStringResult else {
             print("Failed to build query string: \(queryStringResult)")

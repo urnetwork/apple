@@ -11,7 +11,7 @@ import SwiftUI
 import Combine
 
 // for verifying the OTP
-private class AuthVerifyCallback: SdkCallback<SdkAuthVerifyResult, SdkAuthVerifyCallbackProtocol>, SdkAuthVerifyCallbackProtocol {
+private class AuthVerifyCallback: OneShotSdkCallback<SdkAuthVerifyResult, SdkAuthVerifyCallbackProtocol>, SdkAuthVerifyCallbackProtocol {
     func result(_ result: SdkAuthVerifyResult?, err: Error?) {
         handleResult(result, err: err)
     }
@@ -19,7 +19,7 @@ private class AuthVerifyCallback: SdkCallback<SdkAuthVerifyResult, SdkAuthVerify
 
 
 // For resending the OTP
-private class AuthVerifySendCallback: SdkCallback<SdkAuthVerifySendResult, SdkAuthVerifySendCallbackProtocol>, SdkAuthVerifySendCallbackProtocol {
+private class AuthVerifySendCallback: OneShotSdkCallback<SdkAuthVerifySendResult, SdkAuthVerifySendCallbackProtocol>, SdkAuthVerifySendCallbackProtocol {
     func result(_ result: SdkAuthVerifySendResult?, err: Error?) {
         handleResult(result, err: err)
     }
@@ -172,8 +172,12 @@ extension CreateNetworkVerifyView {
             cancellables.removeAll()
         }
         
-        func submit() async -> Result<String, Error> {
+        func submit(
+            request: NetworkLoginRequest? = nil,
+            send: ((SdkApi, SdkAuthVerifyArgs, SdkAuthVerifyCallbackProtocol) -> Void)? = nil
+        ) async -> Result<String, Error> {
       
+            if let request, !request.isCurrent { return .failure(CancellationError()) }
             if isSubmitting {
                 return .failure(NSError(domain: domain, code: 0, userInfo: [NSLocalizedDescriptionKey: "OTP is already being sent"]))
             }
@@ -218,7 +222,7 @@ extension CreateNetworkVerifyView {
                         
                     }
                     
-                    guard let self = self, let api = self.api else {
+                    guard let self = self, let api = request?.api ?? self.api else {
                         continuation.resume(throwing: CancellationError())
                         return
                     }
@@ -227,15 +231,18 @@ extension CreateNetworkVerifyView {
                     args.verifyCode = self.otp
                     args.userAuth = self.userAuth
 
-                    api.authVerify(args, callback: callback)
+                    if let send { send(api, args, callback) }
+                    else { api.authVerify(args, callback: callback) }
 
                 }
 
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 self.isSubmitting = false
 
                 return .success(result)
 
             } catch {
+                guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 self.isSubmitting = false
                 
                 return .failure(error)

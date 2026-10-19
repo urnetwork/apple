@@ -1445,13 +1445,13 @@ private class FindLocationsCallback: SdkCallback<SdkFindLocationsResult, SdkFind
     }
 }
 
-private class AuthLoginCallback: SdkCallback<SdkAuthLoginResult, SdkAuthLoginCallbackProtocol>, SdkAuthLoginCallbackProtocol {
+private class AuthLoginCallback: OneShotSdkCallback<SdkAuthLoginResult, SdkAuthLoginCallbackProtocol>, SdkAuthLoginCallbackProtocol {
     func result(_ result: SdkAuthLoginResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }
 
-private class AuthWalletChallengeCallback: SdkCallback<SdkAuthWalletChallengeResult, SdkAuthWalletChallengeCallbackProtocol>, SdkAuthWalletChallengeCallbackProtocol {
+private class AuthWalletChallengeCallback: OneShotSdkCallback<SdkAuthWalletChallengeResult, SdkAuthWalletChallengeCallbackProtocol>, SdkAuthWalletChallengeCallbackProtocol {
     func result(_ result: SdkAuthWalletChallengeResult?, err: Error?) {
         handleResult(result, err: err)
     }
@@ -1559,7 +1559,7 @@ private class GetNetworkRedeemedBalanceCodesCallback: SdkCallback<SdkGetNetworkR
     }
 }
 
-private class AuthCodeLoginCallback: SdkCallback<SdkAuthCodeLoginResult, SdkAuthCodeLoginCallbackProtocol>, SdkAuthCodeLoginCallbackProtocol {
+private class AuthCodeLoginCallback: OneShotSdkCallback<SdkAuthCodeLoginResult, SdkAuthCodeLoginCallbackProtocol>, SdkAuthCodeLoginCallbackProtocol {
     func result(_ result: SdkAuthCodeLoginResult?, err: Error?) {
         handleResult(result, err: err)
     }
@@ -1778,13 +1778,13 @@ private class AddAuthCallback: SdkCallback<SdkAddAuthResult, SdkAddAuthCallbackP
     }
 }
 
-private class AuthVerifySendCallback: SdkCallback<SdkAuthVerifySendResult, SdkAuthVerifySendCallbackProtocol>, SdkAuthVerifySendCallbackProtocol {
+private class AuthVerifySendCallback: OneShotSdkCallback<SdkAuthVerifySendResult, SdkAuthVerifySendCallbackProtocol>, SdkAuthVerifySendCallbackProtocol {
     func result(_ result: SdkAuthVerifySendResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }
 
-private class AuthVerifyCallback: SdkCallback<SdkAuthVerifyResult, SdkAuthVerifyCallbackProtocol>, SdkAuthVerifyCallbackProtocol {
+private class AuthVerifyCallback: OneShotSdkCallback<SdkAuthVerifyResult, SdkAuthVerifyCallbackProtocol>, SdkAuthVerifyCallbackProtocol {
     func result(_ result: SdkAuthVerifyResult?, err: Error?) {
         handleResult(result, err: err)
     }

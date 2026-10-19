@@ -8,16 +8,17 @@ import URnetworkSdk
 
 struct LoginSeedphraseView: View {
 
+    @Environment(\.networkLoginContext) private var loginContext
     @EnvironmentObject var themeManager: ThemeManager
 
     @StateObject private var viewModel: ViewModel
 
-    let handleSuccess: (_ jwt: String) async -> Void
+    let handleSuccess: NetworkLoginCredentialHandler
     let back: () -> Void
 
     init(
         urApiService: UrApiServiceProtocol,
-        handleSuccess: @escaping (_ jwt: String) async -> Void,
+        handleSuccess: @escaping NetworkLoginCredentialHandler,
         back: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: ViewModel(urApiService: urApiService))
@@ -62,9 +63,12 @@ struct LoginSeedphraseView: View {
                 UrButton(
                     text: "Sign In",
                     action: {
+                        guard let request = loginContext?.begin() else { return }
                         Task {
-                            let result = await viewModel.login()
-                            await handleResult(result)
+                            guard request.isCurrent else { return }
+                            let result = await viewModel.login(request: request)
+                            guard request.isCurrent else { return }
+                            await handleResult(result, request: request)
                         }
                     },
                     enabled: viewModel.isSeedphraseValid && !viewModel.isLoggingIn,
@@ -114,10 +118,10 @@ struct LoginSeedphraseView: View {
         #endif
     }
 
-    private func handleResult(_ result: AuthLoginResult) async {
+    private func handleResult(_ result: AuthLoginResult, request: NetworkLoginRequest) async {
         switch result {
         case .login(let jwt):
-            await handleSuccess(jwt)
+            await handleSuccess(jwt, request)
         case .failure(let error):
             viewModel.errorMessage = error.localizedDescription
         default:

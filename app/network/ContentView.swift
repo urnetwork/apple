@@ -71,9 +71,10 @@ struct ContentView: View {
                 case .authenticate:
                     LoginNavigationView(
                         api: api,
+                        loginOrigin: deviceManager.networkLoginOrigin,
                         handleSuccess: handleSuccessWithJwt
                     )
-                    .id(deviceManager.activeHostName)
+                    .id(deviceManager.networkLoginOrigin.id)
                     .opacity(opacity)
 
                 case .main:
@@ -230,24 +231,15 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
     }
     
-    private func handleSuccessWithJwt(_ login: NetworkLogin) async {
-        print("[ContentView] authenticating \(login.newNetwork ? "created" : "existing") network login")
-        self.welcomeAnimationComplete = false
-        self.introductionComplete = !login.newNetwork
-     
-        let result = await deviceManager.authenticateNetworkClient(
-            login.jwt,
-            newNetwork: login.newNetwork
-        )
-        
-        if case .failure(let error) = result {
-            print("[ContentView] handleSuccessWithJwt: \(error.localizedDescription)")
-            
+    private func handleSuccessWithJwt(_ login: NetworkLogin, request: NetworkLoginRequest) async {
+        let result = await deviceManager.authenticateNetworkClient(login, request: request, accepted: {
+            self.welcomeAnimationComplete = false
+            self.introductionComplete = !login.newNetwork
+        })
+        guard request.isCurrent else { return }
+        if case .failure(let error) = result, !(error is CancellationError) {
             snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
-            
-            return
         }
-        
     }
     
 }

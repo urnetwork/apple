@@ -103,8 +103,17 @@ private struct DeviceAuthTestingFixture {
             authCallbackEffects: DeviceAuthCallbackEffects(
                 persistRefresh: { effects.persist($0, instanceId: $1) },
                 logout: { manager in
-                    if manager.beginLogout() { effects.clear() }
+                    manager.logout()
+                    // These listener controls model completed memory cleanup.
+                    // Completion ownership is held separately by its own tests.
+                    dispatcher.deliverBatch()
+                    effects.clear()
                 }
+            ),
+            logoutEffects: DeviceLogoutEffects(
+                clearTunnelCredential: {},
+                removeProfiles: { _, completion in completion(nil) },
+                clearLocalState: { _, callback in callback.complete(true) }
             )
         )
     }

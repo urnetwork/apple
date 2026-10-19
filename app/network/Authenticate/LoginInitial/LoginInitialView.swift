@@ -767,6 +767,16 @@ private struct LoginInitialFormView: View {
                 Spacer()
             }
             
+            Spacer()
+                .frame(height: 8)
+
+            // optional: where the user connects from (ingress DNS), and the
+            // can't-reach prompt
+            HStack {
+                ConnectionRegionLoginControl(enabled: !isLoginActionInFlight)
+                Spacer()
+            }
+
         }
         .frame(maxWidth: 400)
         .sheet(isPresented: $presentNetworkServerSheet) {

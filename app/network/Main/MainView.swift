@@ -114,6 +114,9 @@ struct MainView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.currentTheme.backgroundColor)
+        // an api call that could not reach URnetwork offers the connection
+        // region picker; it never changes the region by itself
+        .overlay(CantReachUrnetworkOverlay())
         // The celebration draws in its own clear overlay rather than wrapping
         // this view. The pixelation is a RASTER-LAYER filter: SwiftUI has to
         // render the filtered content into an offscreen layer, and content

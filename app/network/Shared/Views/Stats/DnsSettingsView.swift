@@ -152,6 +152,16 @@ struct DnsSettingsView: View {
 
             Form {
 
+                // ingress: how the app reaches URnetwork; separate from the
+                // traffic (egress) settings below
+                ConnectionRegionSettingsSection()
+
+                Section {
+                    EmptyView()
+                } header: {
+                    Text("Traffic DNS")
+                }
+
                 if let recommendation = recommendation {
                     if draft == recommendation {
                         // already on the regional recommendation

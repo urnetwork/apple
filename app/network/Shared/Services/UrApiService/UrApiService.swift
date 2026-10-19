@@ -72,7 +72,7 @@ extension UrApiService {
             
             let callback = GetLeaderboardCallback { result, err in
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -133,7 +133,7 @@ extension UrApiService {
             let callback = SetLeaderboardVisibilityCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -172,7 +172,7 @@ extension UrApiService {
             let callback = GetNetworkRankingCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -211,7 +211,7 @@ extension UrApiService {
             let callback = SendFeedbackCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -250,7 +250,7 @@ extension UrApiService {
             let callback = FindLocationsCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -282,7 +282,7 @@ extension UrApiService {
             let callback = FindLocationsCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -315,7 +315,7 @@ extension UrApiService {
                 
                 if let error {
 
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: reportUrnetworkReachability(error))
                     
                     return
                 }
@@ -451,7 +451,7 @@ extension UrApiService {
             let callback = NetworkCreateCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -533,7 +533,7 @@ extension UrApiService {
             let callback = NetworkCreateCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -618,7 +618,7 @@ extension UrApiService {
             let callback = GenerateSeedphraseCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -647,7 +647,7 @@ extension UrApiService {
             let callback = RegenerateSeedphraseCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -682,7 +682,7 @@ extension UrApiService {
             let callback = AddAuthCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -725,7 +725,7 @@ extension UrApiService {
             let callback = AuthVerifyCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -753,7 +753,7 @@ extension UrApiService {
             let callback = RemoveAuthCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -789,7 +789,7 @@ extension UrApiService {
             let callback = ChangeNetworkNameCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -819,7 +819,7 @@ extension UrApiService {
             let callback = ClaimNetworkNameCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -857,7 +857,7 @@ extension UrApiService {
             let callback = AuthCodeCreateCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -891,7 +891,7 @@ extension UrApiService {
             let callback = AuthCodeLoginCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -927,7 +927,7 @@ extension UrApiService {
             let callback = AuthWalletChallengeCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -962,7 +962,7 @@ extension UrApiService {
             let callback = ValidateReferralCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -998,7 +998,7 @@ extension UrApiService {
             let callback = GetSubscriptionBalanceCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1025,7 +1025,7 @@ extension UrApiService {
         return try await withCheckedThrowingContinuation { continuation in
             let callback = OnboardingOfferIssueCallback { result, err in
                 if let err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 guard let result else {
@@ -1056,7 +1056,7 @@ extension UrApiService {
         return try await withCheckedThrowingContinuation { continuation in
             let callback = OnboardingFeedbackTokenCallback { result, err in
                 if let err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 guard let result else {
@@ -1078,7 +1078,7 @@ extension UrApiService {
             let callback = RedeemBalanceCodeCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1106,7 +1106,7 @@ extension UrApiService {
             let callback = GetNetworkRedeemedBalanceCodesCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1142,7 +1142,7 @@ extension UrApiService {
             let callback = BlockLocationCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1172,7 +1172,7 @@ extension UrApiService {
             let callback = UnblockLocationCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1202,7 +1202,7 @@ extension UrApiService {
             let callback = GetNetworkBlockedLocationsCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1234,7 +1234,7 @@ extension UrApiService {
             let callback = NetworkDeleteCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1262,7 +1262,7 @@ extension UrApiService {
             let callback = GetNetworkReferralCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -1288,7 +1288,7 @@ extension UrApiService {
             let callback = UpdateReferralNetworkCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -1316,7 +1316,7 @@ extension UrApiService {
             let callback = UnlinkReferralNetworkCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -1347,7 +1347,7 @@ extension UrApiService {
             let callback = GetNetworkReliabilityCallback { result, err in
                 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
                 
@@ -1379,7 +1379,7 @@ extension UrApiService {
             let callback = ValidateAddressCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -1688,7 +1688,7 @@ extension UrApiService {
             let callback = GetNetworkClientsCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 
@@ -1716,7 +1716,7 @@ extension UrApiService {
             let callback = DeviceSetNameCallback { result, err in
 
                 if let err = err {
-                    continuation.resume(throwing: err)
+                    continuation.resume(throwing: reportUrnetworkReachability(err))
                     return
                 }
 

@@ -49,7 +49,20 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             
-            if let api = deviceManager.api {
+            if deviceManager.storedAuthenticationStartupState == .retryableFailure {
+                VStack(spacing: 16) {
+                    Text("Couldn't restore your session")
+                        .font(.headline)
+                    Text("Try again to continue.")
+                        .multilineTextAlignment(.center)
+                    Button("Try Again") {
+                        deviceManager.retryStoredAuthenticationStartup()
+                    }
+                }
+                .padding()
+            } else if deviceManager.storedAuthenticationStartupState == .loading {
+                ProgressView("Loading...")
+            } else if let api = deviceManager.api {
                 
                 switch viewModel.contentViewPath {
                     
@@ -176,6 +189,9 @@ struct ContentView: View {
             }
             
         }
+        .onReceive(deviceManager.$storedAuthenticationStartupState) { _ in
+            updatePath()
+        }
         .onReceive(connectViewModel.$connectionStatus) { status in
             // once per network: the first successful connection
             if status == .connected, let networkId = deviceManager.parsedJwt?.networkId?.idStr {
@@ -202,7 +218,10 @@ struct ContentView: View {
         }
 
         let workItem = DispatchWorkItem {
-            viewModel.updatePath(deviceManager.device)
+            viewModel.updatePath(
+                deviceManager.device,
+                startupState: deviceManager.storedAuthenticationStartupState
+            )
             withAnimation {
                 opacity = 1.0
             }

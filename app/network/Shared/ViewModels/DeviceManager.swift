@@ -245,6 +245,19 @@ private final class DeviceAuthCallbackOwner: Sendable {}
 // One registration of the provider extender status listener, as above.
 private final class ExtenderProvideCallbackOwner: Sendable {}
 
+/// Storage or device preparation can be retried without ending the saved session.
+enum StoredAuthenticationStartupState {
+    case loading
+    case retryableFailure
+    case settled
+}
+
+/// One startup attempt owns its bootstrap completion, even for equal credentials.
+@MainActor
+private final class StoredAuthenticationStartupOwner {
+    var completed = false
+}
+
 @MainActor
 class DeviceManager: ObservableObject {
     
@@ -256,6 +269,7 @@ class DeviceManager: ObservableObject {
     @Published private(set) var networkSpace: SdkNetworkSpace? {
         didSet {
             retireDeviceAuthCallbacks()
+            retireStoredAuthenticationStartup()
 //            setApi(networkSpace?.getApi())
             // updateParsedJwt()
             // each space owns its own api: report this app's device type and
@@ -313,6 +327,8 @@ class DeviceManager: ObservableObject {
     private let authCallbackDispatch: DeviceAuthCallbackDispatch
     private let authCallbackEffects: DeviceAuthCallbackEffects
     private let extenderProvideCallbackDispatch: DeviceAuthCallbackDispatch
+    private var storedAuthenticationStartupOwner: StoredAuthenticationStartupOwner?
+    @Published private(set) var storedAuthenticationStartupState: StoredAuthenticationStartupState = .loading
 
     func applicationDidBecomeActive() {
         applicationIsActive = true
@@ -823,7 +839,7 @@ class DeviceManager: ObservableObject {
         startupMode: AppStartupMode = HardwareNoVPNLaunchContract.current,
         automaticallyInitialize: Bool = true,
         scheduleStartupInitialization: @MainActor (DeviceManager) -> Void = { manager in
-            Task { await manager.initializeNetworkSpace() }
+            manager.scheduleNetworkSpaceInitialization()
         },
         authCallbackDispatch: @escaping DeviceAuthCallbackDispatch = { work in
             DispatchQueue.main.async { work() }
@@ -852,6 +868,7 @@ class DeviceManager: ObservableObject {
             // Test-only startup owns a dedicated UI and must not leave
             // background handlers waiting for production initialization.
             self.deviceInitialized = true
+            self.storedAuthenticationStartupState = .settled
         }
     }
     
@@ -944,6 +961,7 @@ class DeviceManager: ObservableObject {
     /// actor (closeOffMainActor), so the quit's answer and its cap, which
     /// run there, never wait on it (QuitSequence).
     func closeOnQuit(completion: @escaping (Error?) -> Void) {
+        retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
         Self.closeOffMainActor(self.device)
         
@@ -997,27 +1015,6 @@ private class NetworkSpaceUpdateCallback: NSObject, URnetworkSdk.SdkNetworkSpace
         if let values {
             c(values)
         }
-    }
-}
-
-private class GetJwtInitDeviceCallback: NSObject, SdkGetByClientJwtCallbackProtocol {
-    
-    weak var globalStore: DeviceManager?
-    var deviceSpecs: String
-    
-    var onResult: (_ result: String?, _ ok: Bool) -> Void
-    
-    init(networkStore: DeviceManager?, deviceSpecs: String, onResult: @escaping (_ result: String?, _ ok: Bool) -> Void) {
-        self.globalStore = networkStore
-        self.deviceSpecs = deviceSpecs
-        self.onResult = onResult
-    }
-    
-    func result(_ result: String?, ok: Bool) {
-        DispatchQueue.main.async {
-            self.onResult(result, ok)
-        }
-
     }
 }
 
@@ -1087,52 +1084,110 @@ extension DeviceManager {
         self.provideEnabled = false
         self.providePaused = false
         self.currentProvideMode = SdkProvideModeNone
-        self.deviceInitialized = true
+        // A failed constructor during startup has not settled authentication.
+        // Never emit even an intermediate completion to initialization waiters.
+        self.deviceInitialized = storedAuthenticationStartupState == .settled
         self.updateParsedJwt()
     }
 
-    private func clearAuthStateAndMarkInitialized() {
-        self.api?.setByJwt(nil)
+    /// A new login, logout or space owns authentication before any old callback.
+    private func retireStoredAuthenticationStartup() {
+        storedAuthenticationStartupOwner = nil
+        storedAuthenticationStartupState = .settled
+    }
 
-        guard let asyncLocalState = self.asyncLocalState else {
-            self.removeVpnProfilesAndMarkInitializedWithoutDevice()
+    private func failStoredAuthenticationStartup() {
+        storedAuthenticationStartupOwner = nil
+        storedAuthenticationStartupState = .retryableFailure
+        deviceInitialized = false
+    }
+
+    /// Retry the selected store, preparing the space again only if it was unavailable.
+    func retryStoredAuthenticationStartup(
+        dispatchPreparation: (@escaping @MainActor () -> Void) -> Void = { work in
+            Task { @MainActor in work() }
+        },
+        prepareNetworkSpace: @escaping @MainActor (DeviceManager) -> Void = { $0.initializeNetworkSpace() }
+    ) {
+        guard storedAuthenticationStartupState == .retryableFailure else { return }
+        storedAuthenticationStartupState = .loading
+        if networkSpace == nil {
+            scheduleNetworkSpaceInitialization(dispatch: dispatchPreparation, prepare: prepareNetworkSpace)
+        } else {
+            initializeStoredAuthentication()
+        }
+    }
+
+    /// Own preparation before enqueueing it; a logout also retires work not yet started.
+    func scheduleNetworkSpaceInitialization(
+        dispatch: (@escaping @MainActor () -> Void) -> Void = { work in
+            Task { @MainActor in work() }
+        },
+        prepare: @escaping @MainActor (DeviceManager) -> Void = { $0.initializeNetworkSpace() }
+    ) {
+        let owner = StoredAuthenticationStartupOwner()
+        storedAuthenticationStartupOwner = owner
+        storedAuthenticationStartupState = .loading
+        deviceInitialized = false
+        dispatch { [weak self] in
+            guard let self, self.storedAuthenticationStartupOwner === owner,
+                  !owner.completed else { return }
+            owner.completed = true
+            prepare(self)
+        }
+    }
+
+    /// A checked empty store permits sign-in; unavailable storage preserves the session.
+    /// Only bootstrap and construction are replaceable so tests can avoid native profiles/RPC.
+    func initializeStoredAuthentication(
+        loadActiveInstanceId: ((@escaping (String?) -> Void) -> Void)? = nil,
+        initializeDevice: ((String, String) -> Bool)? = nil
+    ) {
+        let owner = StoredAuthenticationStartupOwner()
+        storedAuthenticationStartupOwner = owner
+        storedAuthenticationStartupState = .loading
+        deviceInitialized = false
+        guard let networkSpace, let localState = asyncLocalState?.getLocalState() else {
+            failStoredAuthenticationStartup()
             return
         }
 
-        let callback = SdkCommitCallback { success in
-            DispatchQueue.main.async {
-                if !success {
-                    print("[\(self.domain)] failed to clear local auth state during initialization")
-                }
-                self.removeVpnProfilesAndMarkInitializedWithoutDevice()
-            }
+        let clientJwt: String
+        let authEmpty: Bool
+        do {
+            let snapshot = try localState.getAuthStateSnapshot()
+            clientJwt = snapshot.getByClientJwt()
+            authEmpty = snapshot.getEmpty()
+        } catch {
+            failStoredAuthenticationStartup()
+            return
         }
-
-        asyncLocalState.logout(callback)
-    }
-
-    private func removeVpnProfilesAndMarkInitializedWithoutDevice() {
-        guard startupMode.allowsVPNProfileSystemAccess else {
+        if authEmpty {
+            retireStoredAuthenticationStartup()
             markInitializedWithoutDevice()
             return
         }
-        VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles { error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("[\(self.domain)] failed to remove VPN profiles during auth cleanup: \(error.localizedDescription)")
-                }
-                self.markInitializedWithoutDevice()
-            }
+        guard !clientJwt.isEmpty else {
+            failStoredAuthenticationStartup()
+            return
         }
+
+        initDeviceFromStoredAuthentication(
+            clientJwt: clientJwt,
+            deviceSpec: getDeviceSpecs(),
+            owner: owner,
+            networkSpace: networkSpace,
+            loadActiveInstanceId: loadActiveInstanceId,
+            initializeDevice: initializeDevice
+        )
     }
     
-    func initializeNetworkSpace() async {
+    private func initializeNetworkSpace() {
         
         let documentsPath = FileManager.default.urls(for: .documentDirectory,
                                                    in: .userDomainMask)[0]
         let storagePath = documentsPath.path()
         
-        let deviceSpecs = self.getDeviceSpecs()
         // The app process keeps its own extender directory for api dials but
         // opens the shared `.extenders` store read-only, so only the tunnel
         // extension ever writes it (EXTENDER.md K5). Set before the manager is
@@ -1146,32 +1201,7 @@ extension DeviceManager {
         // `NetworkSpaceStartup`). No space object is held before this returns.
         setActiveNetworkSpace(networkSpaceManager.flatMap(NetworkSpaceStartup.prepareBundledNetworkSpace))
         
-        let getJwtCallback = GetJwtInitDeviceCallback(
-            networkStore: self,
-            deviceSpecs: deviceSpecs,
-            onResult: { result, ok in
-                if ok {
-                    guard let result, !result.isEmpty else {
-                        print("[\(self.domain)] stored client JWT is missing or empty")
-                        self.clearAuthStateAndMarkInitialized()
-                        return
-                    }
-
-                    self.initDeviceFromStoredAuthentication(
-                        clientJwt: result,
-                        deviceSpec: deviceSpecs
-                    )
-                } else {
-                    self.markInitializedWithoutDevice()
-                }
-            }
-        )
-        guard let asyncLocalState = self.asyncLocalState else {
-            self.markInitializedWithoutDevice()
-            return
-        }
-
-        asyncLocalState.getByClientJwt(getJwtCallback)
+        initializeStoredAuthentication()
         
     }
     
@@ -1255,10 +1285,16 @@ extension DeviceManager {
 extension DeviceManager {
     private func initDeviceFromStoredAuthentication(
         clientJwt: String,
-        deviceSpec: String
+        deviceSpec: String,
+        owner: StoredAuthenticationStartupOwner,
+        networkSpace: SdkNetworkSpace,
+        loadActiveInstanceId: ((@escaping (String?) -> Void) -> Void)?,
+        initializeDevice: ((String, String) -> Bool)?
     ) {
         let finishInitialization = { [weak self] (activeInstanceId: String?) in
-            guard let self else { return }
+            guard let self, self.storedAuthenticationStartupOwner === owner,
+                  self.networkSpace === networkSpace, !owner.completed else { return }
+            owner.completed = true
 
             if let activeInstanceId {
                 var parseError: NSError?
@@ -1277,9 +1313,19 @@ extension DeviceManager {
                 }
             }
 
-            if !self.initDevice(clientJwt: clientJwt, deviceSpec: deviceSpec) {
-                self.clearAuthStateAndMarkInitialized()
+            let initialized = initializeDevice?(clientJwt, deviceSpec)
+                ?? self.initDevice(clientJwt: clientJwt, deviceSpec: deviceSpec)
+            guard self.storedAuthenticationStartupOwner === owner else { return }
+            if initialized {
+                self.retireStoredAuthenticationStartup()
+            } else {
+                self.failStoredAuthenticationStartup()
             }
+        }
+
+        if let loadActiveInstanceId {
+            loadActiveInstanceId(finishInitialization)
+            return
         }
 
         // Hardware UI acceptance exercises normal API/authentication startup,
@@ -1289,10 +1335,6 @@ extension DeviceManager {
             return
         }
 
-        guard let networkSpace else {
-            finishInitialization(nil)
-            return
-        }
         var networkSpaceError: NSError?
         let networkSpaceJson = networkSpace.toJson(&networkSpaceError)
         guard networkSpaceError == nil, !networkSpaceJson.isEmpty else {
@@ -1680,6 +1722,7 @@ extension DeviceManager {
     // ready. A pending request or failed write must leave serving auth alone.
     func acceptNetworkLogin(_ commitAdmin: () throws -> Void) rethrows {
         try commitAdmin()
+        retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
         // a notice belongs to the signed-out stretch this login ends
         signedOutNotice = nil
@@ -2035,6 +2078,7 @@ extension DeviceManager {
         guard !isLoggingOut else {
             return false
         }
+        retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
         isLoggingOut = true
         if let device {

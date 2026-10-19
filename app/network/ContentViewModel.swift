@@ -20,9 +20,13 @@ extension ContentView {
         
         @Published private(set) var contentViewPath: ContentViewPath = .uninitialized
         
-        func updatePath(_ device: SdkDeviceRemote?) {
-            
-            if device != nil {
+        func updatePath(
+            _ device: SdkDeviceRemote?,
+            startupState: StoredAuthenticationStartupState = .settled
+        ) {
+            if startupState != .settled {
+                contentViewPath = .uninitialized
+            } else if device != nil {
                 contentViewPath = .main
             } else {
                 contentViewPath = .authenticate

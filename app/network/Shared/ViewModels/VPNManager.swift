@@ -28,13 +28,7 @@ import AppKit
 //    case none
 //}
 
-let TunnelCheckTimeout: TimeInterval = 10
 private let TunnelLogoutProviderMessage = Data("logout".utf8)
-private let VPNStateBurstCoalesceDelay: TimeInterval = 0.020
-private let TunnelHealthPollInterval: TimeInterval = 0.250
-private let VPNBootstrapLookupTimeout: TimeInterval = 2
-private let VPNAppPathHealthAuditDelay: TimeInterval = 1
-private let VPNBackgroundHealthLease: TimeInterval = 25
 
 private final class VPNAppPathTransitionDetector: @unchecked Sendable {
     private let lock = NSLock()
@@ -196,7 +190,12 @@ class VPNManager: ObservableObject {
     private var rpcConnectTimeoutWork: DispatchWorkItem?
     private var currentRpcSession: RpcSession?
     private var currentRpcSessionState: RpcSessionPersistenceState?
-    private let rpcConnectTimeout: TimeInterval = 15
+    // every delay, timeout and bound; defaults in VPNManagerSettings
+    private let settings: VPNManagerSettings
+    // when the current unhealthy-but-recovering episode was first seen, and
+    // in which tunnel instance, so recoveryPatience bounds the whole episode
+    // across health waits but never carries into another instance
+    private var tunnelRecoveringSince: (tunnelInstance: Int, since: Date)?
 
 //    private var tunnelStarted: Bool = false
     private var tunnelInstance: Int = 0
@@ -207,9 +206,10 @@ class VPNManager: ObservableObject {
     private let queue = DispatchQueue(label: "network.ur.app.pathMonitor")
     
     
-    init(device: SdkDeviceRemote) {
+    init(device: SdkDeviceRemote, settings: VPNManagerSettings = VPNManagerSettings()) {
         print("[VPNManager]init")
         self.device = device
+        self.settings = settings
         self.desiredState = VPNDesiredState(
             provideEnabled: device.getProvideEnabled(),
             connectEnabled: device.getConnectEnabled(),
@@ -222,6 +222,7 @@ class VPNManager: ObservableObject {
         // health audit. The small transition detector also makes the callback
         // safe if Network ever invokes it on a replacement queue.
         let appPathTransitionDetector = VPNAppPathTransitionDetector()
+        let appPathAuditDelay = settings.appPathAuditDelay
         self.monitor.pathUpdateHandler = { [weak self] path in
             let isSatisfied = path.status == .satisfied
             let interfaces = path.availableInterfaces
@@ -242,7 +243,7 @@ class VPNManager: ObservableObject {
             guard pathMateriallyChanged else { return }
             DispatchQueue.main.async {
                 self?.scheduleLiveHealthAudit(
-                    after: VPNAppPathHealthAuditDelay,
+                    after: appPathAuditDelay,
                     reason: "app-network-path"
                 )
             }
@@ -331,7 +332,7 @@ class VPNManager: ObservableObject {
         backgroundHealthLeaseGeneration &+= 1
         let leaseGeneration = backgroundHealthLeaseGeneration
         backgroundHealthLeaseUntil = Date().addingTimeInterval(
-            VPNBackgroundHealthLease
+            settings.backgroundHealthLease
         )
         task.expirationHandler = { [weak self] in
             finisher.finish(success: false)
@@ -411,6 +412,7 @@ class VPNManager: ObservableObject {
         backgroundHealthLeaseGeneration &+= 1
         backgroundHealthLeaseUntil = nil
         cancelLiveHealthAudit()
+        tunnelRecoveringSince = nil
         self.monitor.cancel()
         self.monitor.pathUpdateHandler = nil
         self.setIdleTimerDisabled(false)
@@ -649,7 +651,7 @@ class VPNManager: ObservableObject {
         pendingShouldRun = shouldRun
         pendingForce = pendingForce || force
         scheduleVpnReconcile(
-            delay: coalesceBurst ? VPNStateBurstCoalesceDelay : 0
+            delay: coalesceBurst ? settings.stateBurstCoalesceDelay : 0
         )
     }
 
@@ -819,6 +821,8 @@ class VPNManager: ObservableObject {
         let sdkTunnelStarted: Bool
         let requiresProvider: Bool
         let providerCount: Int
+        var windowTargetSize = 0
+        var windowFailed = false
 
         func satisfies(expectedStarted: Bool) -> Bool {
             vpnTunnelHealthIsSatisfied(
@@ -831,8 +835,19 @@ class VPNManager: ObservableObject {
             )
         }
 
+        var recoveryInProgress: Bool {
+            vpnTunnelRecoveryInProgress(
+                connectionState: connectionState,
+                rpcConnected: rpcConnected,
+                sdkTunnelStarted: sdkTunnelStarted,
+                requiresProvider: requiresProvider,
+                windowTargetSize: windowTargetSize,
+                windowFailed: windowFailed
+            )
+        }
+
         var description: String {
-            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount)"
+            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount) target=\(windowTargetSize) failed=\(windowFailed)"
         }
     }
 
@@ -872,18 +887,15 @@ class VPNManager: ObservableObject {
 
         let sdkTunnelStarted = device.getTunnelStarted()
         let requiresProvider = device.getConnectLocation() != nil
-        let providerCount: Int
-        if requiresProvider {
-            providerCount = Int(device.getWindowStatus()?.providerStateAdded ?? 0)
-        } else {
-            providerCount = 0
-        }
+        let windowStatus = requiresProvider ? device.getWindowStatus() : nil
         return TunnelHealthSnapshot(
             connectionState: connectionState,
             rpcConnected: true,
             sdkTunnelStarted: sdkTunnelStarted,
             requiresProvider: requiresProvider,
-            providerCount: providerCount
+            providerCount: Int(windowStatus?.providerStateAdded ?? 0),
+            windowTargetSize: Int(windowStatus?.targetSize ?? 0),
+            windowFailed: windowStatus?.failed ?? false
         )
     }
 
@@ -1008,7 +1020,8 @@ class VPNManager: ObservableObject {
                 shouldRun: shouldRun,
                 reconcileInFlight: reconcileInFlight,
                 connectionState: state,
-                isHealthy: snapshot.satisfies(expectedStarted: shouldRun)
+                isHealthy: snapshot.satisfies(expectedStarted: shouldRun),
+                settings: settings
               ) else {
             return
         }
@@ -1064,7 +1077,10 @@ class VPNManager: ObservableObject {
         operation: String,
         completion: @escaping (Result<[NETunnelProviderManager], Error>) -> Void
     ) {
-        performVPNOperation(operation: operation) { resolve in
+        performVPNOperation(
+            operation: operation,
+            timeout: settings.preferencesOperationTimeout
+        ) { resolve in
             VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
@@ -1088,6 +1104,7 @@ class VPNManager: ObservableObject {
     ) {
         performVPNOperation(
             operation: operation,
+            timeout: settings.preferencesOperationTimeout,
             lateCompletion: { result in
                 if case .failure(let error) = result {
                     lateCompletion?(error)
@@ -1167,7 +1184,10 @@ class VPNManager: ObservableObject {
         operation: String,
         completion: @escaping (Error?) -> Void
     ) {
-        performVPNOperation(operation: operation) { resolve in
+        performVPNOperation(
+            operation: operation,
+            timeout: settings.preferencesOperationTimeout
+        ) { resolve in
             VPNProfileSystem.loadFromPreferences(manager) { error in
                 if let error {
                     resolve(.failure(error))
@@ -1189,7 +1209,10 @@ class VPNManager: ObservableObject {
         operation: String,
         completion: @escaping (Error?) -> Void
     ) {
-        performVPNOperation(operation: operation) { resolve in
+        performVPNOperation(
+            operation: operation,
+            timeout: settings.preferencesOperationTimeout
+        ) { resolve in
             VPNProfileSystem.removeFromPreferences(manager) { error in
                 if let error {
                     resolve(.failure(error))
@@ -1234,7 +1257,7 @@ class VPNManager: ObservableObject {
                 device: device,
                 shouldRun: shouldRun,
                 tunnelInstance: tunnelInstance,
-                deadline: Date().addingTimeInterval(TunnelCheckTimeout),
+                deadline: Date().addingTimeInterval(self.settings.tunnelCheckTimeout),
                 completion: completion
             )
             return
@@ -1246,8 +1269,8 @@ class VPNManager: ObservableObject {
         // silently succeed.
         completion?(nil)
         let healthTimeout = inspectRpcSyncError
-            ? VPNTransitionalHealthAuditDelay
-            : TunnelCheckTimeout
+            ? settings.transitionalAuditDelay
+            : settings.tunnelCheckTimeout
         waitForRecoverableTunnelHealth(
             expectedStarted: expectedStarted,
             operation: operation,
@@ -1283,7 +1306,12 @@ class VPNManager: ObservableObject {
         // while the containing app is inactive. Foreground activation starts a
         // fresh live-state reconcile, avoiding an expired sleep-era deadline
         // from immediately restarting a healthy provider before RPC reconnects.
-        guard healthChecksMayRun || reconcileInFlight else { return }
+        // That reconcile also starts a fresh recovery episode: what was
+        // observed before the app went inactive says nothing about now.
+        guard healthChecksMayRun || reconcileInFlight else {
+            tunnelRecoveringSince = nil
+            return
+        }
 
         let syncError = inspectRpcSyncError ? device.getSyncError() : ""
         if expectedStarted, !syncError.isEmpty {
@@ -1301,20 +1329,38 @@ class VPNManager: ObservableObject {
             expectedStarted: expectedStarted
         )
         if snapshot.satisfies(expectedStarted: expectedStarted) {
+            tunnelRecoveringSince = nil
             return
         }
-        if Date() >= deadline {
-            print("[VPNManager][\(operation)] unhealthy after grace: \(snapshot.description)")
-            requestVpnRecovery(
-                action: recoveryAction,
-                shouldRun: shouldRun,
-                index: index
-            )
-            return
+        let now = Date()
+        if tunnelRecoveringSince?.tunnelInstance != tunnelInstance {
+            tunnelRecoveringSince = nil
+        }
+        // A tunnel that is recovering by itself (the extension answers and its
+        // window is forming without having given up) is not restarted at the
+        // grace deadline: a restart redoes that work from nothing and drops
+        // every app's traffic meanwhile. recoveryPatience bounds the episode.
+        if expectedStarted, snapshot.recoveryInProgress, tunnelRecoveringSince == nil {
+            tunnelRecoveringSince = (tunnelInstance, now)
+            print("[VPNManager][\(operation)] tunnel recovering on its own: \(snapshot.description)")
+        }
+        if now >= deadline {
+            let recovering = expectedStarted && snapshot.recoveryInProgress &&
+                (tunnelRecoveringSince.map { now.timeIntervalSince($0.since) < settings.recoveryPatience } ?? false)
+            if !recovering {
+                tunnelRecoveringSince = nil
+                print("[VPNManager][\(operation)] unhealthy after grace: \(snapshot.description)")
+                requestVpnRecovery(
+                    action: recoveryAction,
+                    shouldRun: shouldRun,
+                    index: index
+                )
+                return
+            }
         }
 
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + TunnelHealthPollInterval
+            deadline: .now() + self.settings.healthPollInterval
         ) { [weak self] in
             self?.waitForRecoverableTunnelHealth(
                 expectedStarted: expectedStarted,
@@ -1380,8 +1426,9 @@ class VPNManager: ObservableObject {
         // reconnect. A launched BGAppRefreshTask owns a short lease and may
         // continue the same bounded validation while the app is inactive.
         if expectedStarted, !healthChecksMayRun {
+            let tunnelCheckTimeout = settings.tunnelCheckTimeout
             DispatchQueue.main.asyncAfter(
-                deadline: .now() + TunnelHealthPollInterval
+                deadline: .now() + self.settings.healthPollInterval
             ) { [weak self] in
                 self?.waitForTerminalTunnelHealth(
                     expectedStarted: expectedStarted,
@@ -1390,7 +1437,7 @@ class VPNManager: ObservableObject {
                     device: device,
                     shouldRun: shouldRun,
                     tunnelInstance: tunnelInstance,
-                    deadline: Date().addingTimeInterval(TunnelCheckTimeout),
+                    deadline: Date().addingTimeInterval(tunnelCheckTimeout),
                     completion: completion
                 )
             }
@@ -1405,7 +1452,7 @@ class VPNManager: ObservableObject {
             effectiveDeadline = max(
                 deadline,
                 applicationBecameActiveAt.addingTimeInterval(
-                    TunnelCheckTimeout
+                    self.settings.tunnelCheckTimeout
                 )
             )
         } else {
@@ -1437,7 +1484,7 @@ class VPNManager: ObservableObject {
             return
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + TunnelHealthPollInterval) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + self.settings.healthPollInterval) { [weak self] in
             self?.waitForTerminalTunnelHealth(
                 expectedStarted: expectedStarted,
                 operation: operation,
@@ -1504,7 +1551,7 @@ class VPNManager: ObservableObject {
             self.waitForTunnelManagerToStop(
                 tunnelManager,
                 tunnelInstance: tunnelInstance,
-                deadline: Date().addingTimeInterval(TunnelCheckTimeout),
+                deadline: Date().addingTimeInterval(self.settings.tunnelCheckTimeout),
                 completion: completion
             )
         }
@@ -1568,7 +1615,7 @@ class VPNManager: ObservableObject {
         }
 
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + TunnelHealthPollInterval
+            deadline: .now() + self.settings.healthPollInterval
         ) { [weak self] in
             self?.waitForTunnelManagerToStop(
                 tunnelManager,
@@ -1610,11 +1657,12 @@ class VPNManager: ObservableObject {
     static func loadActiveTunnelBootstrapInstanceId(
         networkSpaceJson: String,
         rpcSession: RpcSession,
+        settings: VPNManagerSettings = VPNManagerSettings(),
         completion: @escaping (String?) -> Void
     ) {
         performVPNOperation(
             operation: "bootstrap.loadAllFromPreferences",
-            timeout: VPNBootstrapLookupTimeout
+            timeout: settings.bootstrapLookupTimeout
         ) { resolve in
             VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
@@ -1710,7 +1758,8 @@ class VPNManager: ObservableObject {
 
     private static func updateTunnelProfileJwt(
         instanceId: String,
-        attempt: Int = 0
+        attempt: Int = 0,
+        settings: VPNManagerSettings = VPNManagerSettings()
     ) {
         guard let byJwt = SharedTunnelJwtStore.load(
             expectedInstanceId: instanceId
@@ -1720,7 +1769,7 @@ class VPNManager: ObservableObject {
         }
         performVPNOperation(
             operation: "jwtRefresh.loadAllFromPreferences",
-            timeout: VPNBootstrapLookupTimeout
+            timeout: settings.bootstrapLookupTimeout
         ) { resolve in
             VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
@@ -1756,7 +1805,7 @@ class VPNManager: ObservableObject {
                 manager.protocolConfiguration = tunnelProtocol
                 performVPNOperation(
                     operation: "jwtRefresh.saveToPreferences",
-                    timeout: TunnelCheckTimeout
+                    timeout: settings.tunnelCheckTimeout
                 ) { resolve in
                     VPNProfileSystem.saveToPreferences(manager) { error in
                         if let error {
@@ -1774,10 +1823,11 @@ class VPNManager: ObservableObject {
                     // and converge the profile again if ordering changed.
                     if SharedTunnelJwtStore.load(
                         expectedInstanceId: instanceId
-                    ) != byJwt, attempt < 3 {
+                    ) != byJwt, attempt < settings.profileJwtConvergeAttempts {
                         updateTunnelProfileJwt(
                             instanceId: instanceId,
-                            attempt: attempt + 1
+                            attempt: attempt + 1,
+                            settings: settings
                         )
                     }
                 }
@@ -1914,7 +1964,7 @@ class VPNManager: ObservableObject {
                     // RPC is necessary but not sufficient: give the provider
                     // window a moment to become ready, then verify all layers.
                     self.scheduleLiveHealthAudit(
-                        after: VPNAppPathHealthAuditDelay,
+                        after: self.settings.rpcConnectedAuditDelay,
                         reason: "rpc-connected-backend-check"
                     )
                 } else {
@@ -1922,7 +1972,7 @@ class VPNManager: ObservableObject {
                     // timeout below. A separate bounded audit is therefore
                     // required when a previously live RPC transport disappears.
                     self.scheduleLiveHealthAudit(
-                        after: VPNConnectedBackendHealthAuditDelay,
+                        after: self.settings.connectedBackendAuditDelay,
                         reason: "rpc-disconnected"
                     )
                 }
@@ -1962,7 +2012,7 @@ class VPNManager: ObservableObject {
             self.requestVpnServiceUpdate(force: true, coalesceBurst: false)
         }
         self.rpcConnectTimeoutWork = timeoutWork
-        DispatchQueue.main.asyncAfter(deadline: .now() + self.rpcConnectTimeout, execute: timeoutWork)
+        DispatchQueue.main.asyncAfter(deadline: .now() + self.settings.rpcConnectTimeout, execute: timeoutWork)
     }
 
     private func clearVpnError() {
@@ -2554,7 +2604,7 @@ class VPNManager: ObservableObject {
             error: makeVPNManagerError("VPN update cancelled while quitting", code: 13)
         )
         self.tunnelInstance += 1
-        VPNManager.removeAllVpnProfiles(completion: completion)
+        VPNManager.removeAllVpnProfiles(settings: settings, completion: completion)
     }
 
     func stopVpnTunnelOnLogout(completion: @escaping (Error?) -> Void) {
@@ -2562,7 +2612,10 @@ class VPNManager: ObservableObject {
             error: makeVPNManagerError("VPN update cancelled while logging out", code: 14)
         )
         self.tunnelInstance += 1
-        VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles(completion: completion)
+        VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles(
+            settings: settings,
+            completion: completion
+        )
     }
 
     private func cancelCurrentVpnReconcile(error: Error) {
@@ -2586,19 +2639,25 @@ class VPNManager: ObservableObject {
         }
     }
 
-    static func removeAllVpnProfiles(completion: @escaping (Error?) -> Void) {
-        removeAllVpnProfilesWithIndex(index: 0, completion: completion)
+    static func removeAllVpnProfiles(
+        settings: VPNManagerSettings = VPNManagerSettings(),
+        completion: @escaping (Error?) -> Void
+    ) {
+        removeAllVpnProfilesWithIndex(index: 0, settings: settings, completion: completion)
     }
 
-    static func clearTunnelLocalStateAndRemoveAllVpnProfiles(completion: @escaping (Error?) -> Void) {
+    static func clearTunnelLocalStateAndRemoveAllVpnProfiles(
+        settings: VPNManagerSettings = VPNManagerSettings(),
+        completion: @escaping (Error?) -> Void
+    ) {
         // forget the rpc transport material so the next login regenerates it
         RpcSessionStore.clear()
         // the widgets must not keep showing the signed-out account's
         // location, providers and balance
         WidgetSnapshotStore.clear()
         performVPNLogoutCleanup(
-            notifyProviders: sendLogoutMessageToTunnelProviders,
-            removeProfiles: removeAllVpnProfiles
+            notifyProviders: { sendLogoutMessageToTunnelProviders(settings: settings, completion: $0) },
+            removeProfiles: { removeAllVpnProfiles(settings: settings, completion: $0) }
         ) { error in
             // Preserve an unresolved provider operation even if removal succeeds.
             WidgetRefresh.reloadAll()
@@ -2606,8 +2665,14 @@ class VPNManager: ObservableObject {
         }
     }
 
-    private static func sendLogoutMessageToTunnelProviders(completion: @escaping (Error?) -> Void) {
-        performVPNOperation(operation: "logout.loadAllFromPreferences") { resolve in
+    private static func sendLogoutMessageToTunnelProviders(
+        settings: VPNManagerSettings,
+        completion: @escaping (Error?) -> Void
+    ) {
+        performVPNOperation(
+            operation: "logout.loadAllFromPreferences",
+            timeout: settings.preferencesOperationTimeout
+        ) { resolve in
             VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
@@ -2639,7 +2704,7 @@ class VPNManager: ObservableObject {
                     sentMessage = true
                     performVPNOperation(
                         operation: "logout.sendProviderMessage",
-                        timeout: 2
+                        timeout: settings.providerLogoutMessageTimeout
                     ) { resolve in
                         do {
                             try session.sendProviderMessage(TunnelLogoutProviderMessage) { response in
@@ -2670,18 +2735,25 @@ class VPNManager: ObservableObject {
         }
     }
 
-    private static func removeAllVpnProfilesWithIndex(index: Int, completion: @escaping (Error?) -> Void) {
-        guard vpnProfileRemovalMayContinue(attempt: index) else {
+    private static func removeAllVpnProfilesWithIndex(
+        index: Int,
+        settings: VPNManagerSettings,
+        completion: @escaping (Error?) -> Void
+    ) {
+        guard vpnProfileRemovalMayContinue(attempt: index, limit: settings.maximumProfilesToRemove) else {
             completion(
                 makeVPNManagerError(
-                    "Stopped after \(MaximumVPNProfilesToRemove) VPN profile removals without reaching an empty preference set",
+                    "Stopped after \(settings.maximumProfilesToRemove) VPN profile removals without reaching an empty preference set",
                     code: 15
                 )
             )
             return
         }
 
-        performVPNOperation(operation: "removeAll.loadAllFromPreferences") { resolve in
+        performVPNOperation(
+            operation: "removeAll.loadAllFromPreferences",
+            timeout: settings.preferencesOperationTimeout
+        ) { resolve in
             VPNProfileSystem.loadAllFromPreferences { managers, error in
                 if let error {
                     resolve(.failure(error))
@@ -2708,7 +2780,10 @@ class VPNManager: ObservableObject {
                 }
 
                 let tunnelManager = managers[0]
-                performVPNOperation(operation: "removeAll.removeFromPreferences") { resolve in
+                performVPNOperation(
+                    operation: "removeAll.removeFromPreferences",
+                    timeout: settings.preferencesOperationTimeout
+                ) { resolve in
                     VPNProfileSystem.removeFromPreferences(tunnelManager) { error in
                         if let error {
                             resolve(.failure(error))
@@ -2722,7 +2797,11 @@ class VPNManager: ObservableObject {
                             completion(error)
                             return
                         }
-                        VPNManager.removeAllVpnProfilesWithIndex(index: index + 1, completion: completion)
+                        VPNManager.removeAllVpnProfilesWithIndex(
+                            index: index + 1,
+                            settings: settings,
+                            completion: completion
+                        )
                     }
                 }
             }

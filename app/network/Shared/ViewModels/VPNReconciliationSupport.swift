@@ -9,9 +9,6 @@
 
 import Foundation
 
-let VPNPreferencesOperationTimeout: TimeInterval = 30
-let MaximumVPNProfilesToRemove = 32
-
 /// Removal must not hide an unresolved provider logout (including a deadline).
 /// Both callbacks are admitted once on the main actor, as in VPNManager.
 @MainActor
@@ -68,10 +65,67 @@ enum VPNTunnelConnectionState: Equatable {
     case disconnecting
 }
 
-let VPNDisconnectedHealthAuditDelay: TimeInterval = 0
-let VPNDisconnectingHealthAuditDelay: TimeInterval = 1
-let VPNConnectedBackendHealthAuditDelay: TimeInterval = 3
-let VPNTransitionalHealthAuditDelay: TimeInterval = 5
+/// The containing app's VPN timing and bounds: health audits, recovery,
+/// preference operations and profile cleanup. Each default lives here;
+/// VPNManager owns one instance and passes it to the helpers below, so a test
+/// or caller can run with its own values.
+struct VPNManagerSettings: Equatable {
+    // Every value is in seconds unless it says otherwise.
+
+    /// A desired tunnel found disconnected is repaired after this; 0 repairs
+    /// it in the same turn.
+    var disconnectedAuditDelay: TimeInterval = 0
+    /// A desired tunnel found disconnecting is checked again after this, once
+    /// the stop it is in has had time to finish.
+    var disconnectingAuditDelay: TimeInterval = 1
+    /// A connected tunnel whose RPC or provider window is not ready yet.
+    var connectedBackendAuditDelay: TimeInterval = 3
+    /// Connecting or reasserting tunnels get this long to settle.
+    var transitionalAuditDelay: TimeInterval = 5
+    /// An app-visible network path change is audited after this.
+    var appPathAuditDelay: TimeInterval = 1
+    /// Once the RPC connects, the provider window gets this long before every
+    /// layer is verified.
+    var rpcConnectedAuditDelay: TimeInterval = 1
+    /// The health window after a start, and after adopting a running tunnel
+    /// whose RPC sync has not been checked (transitionalAuditDelay).
+    var tunnelCheckTimeout: TimeInterval = 10
+    /// How often a health wait reads the tunnel again. Short, because a wait
+    /// ends on the first healthy read. Must be positive: 0 would poll on every
+    /// main-queue turn.
+    var healthPollInterval: TimeInterval = 0.250
+    /// How long the app keeps waiting on a tunnel that is recovering on its
+    /// own (`vpnTunnelRecoveryInProgress`) before restarting it anyway. A
+    /// window that never formed latches `failed` after its own silent rebuild
+    /// (two 45 s outcome deadlines); one that lost its exits mid-session never
+    /// latches, so this bound still restarts an extension that answers but
+    /// stopped recovering. 0 restarts at the grace deadline.
+    var recoveryPatience: TimeInterval = 120
+    /// Listener bursts within this coalesce into one reconcile; 0 reconciles
+    /// every event.
+    var stateBurstCoalesceDelay: TimeInterval = 0.020
+    /// Cold-launch bootstrap and JWT refresh give up on the profile lookup
+    /// after this, so a slow preferences daemon cannot hold launch.
+    var bootstrapLookupTimeout: TimeInterval = 2
+    /// A background refresh task may keep validating the tunnel's health for
+    /// this long, inside the system's refresh budget.
+    var backgroundHealthLease: TimeInterval = 25
+    /// A new RPC session that has not connected by this is dropped and the
+    /// tunnel reconciled again.
+    var rpcConnectTimeout: TimeInterval = 15
+    /// A preferences load, save or remove that has not called back by this is
+    /// reported as timed out (performVPNOperation).
+    var preferencesOperationTimeout: TimeInterval = 30
+    /// Logout waits this long on each tunnel provider's reply, so an
+    /// unresponsive extension cannot hold the sign-out.
+    var providerLogoutMessageTimeout: TimeInterval = 2
+    /// Removing every profile stops after this many removals (a count) even
+    /// when the preference set never reads empty.
+    var maximumProfilesToRemove = 32
+    /// A profile JWT save that finished after a newer rotation re-converges
+    /// the profile at most this many more times (a count); 0 never retries.
+    var profileJwtConvergeAttempts = 3
+}
 
 /// NetworkExtension status is the process-level source of truth, while the RPC
 /// and SDK values prove that the containing app can actually reach a started,
@@ -96,6 +150,30 @@ func vpnTunnelHealthIsSatisfied(
     return !requiresProvider || providerCount > 0
 }
 
+/// Whether a started tunnel that is not healthy yet is still recovering by
+/// itself: the extension answers, its SDK tunnel runs, and its window is
+/// forming without having given up. A restart then only repeats that work --
+/// sign-in and window formation from nothing -- and drops every app's traffic
+/// while the tunnel comes back, so it is never faster than waiting. The window
+/// reports `failed` when forming stops working, which hands the decision back
+/// to a restart.
+func vpnTunnelRecoveryInProgress(
+    connectionState: VPNTunnelConnectionState,
+    rpcConnected: Bool,
+    sdkTunnelStarted: Bool,
+    requiresProvider: Bool,
+    windowTargetSize: Int,
+    windowFailed: Bool
+) -> Bool {
+    switch connectionState {
+    case .connected, .reasserting:
+        return rpcConnected && sdkTunnelStarted && requiresProvider &&
+            windowTargetSize > 0 && !windowFailed
+    case .invalid, .disconnected, .connecting, .disconnecting:
+        return false
+    }
+}
+
 /// Returns when a live status change deserves a health audit. Transitional
 /// states get time to settle; a fully disconnected desired tunnel is repaired
 /// immediately. A deliberate stop is also enforced if an active profile
@@ -104,7 +182,8 @@ func vpnTunnelHealthAuditDelay(
     shouldRun: Bool,
     reconcileInFlight: Bool,
     connectionState: VPNTunnelConnectionState,
-    isHealthy: Bool
+    isHealthy: Bool,
+    settings: VPNManagerSettings
 ) -> TimeInterval? {
     guard !reconcileInFlight else {
         return nil
@@ -112,20 +191,20 @@ func vpnTunnelHealthAuditDelay(
     if !shouldRun {
         return vpnTunnelConnectionIsStopped(connectionState)
             ? nil
-            : VPNDisconnectedHealthAuditDelay
+            : settings.disconnectedAuditDelay
     }
     guard !isHealthy else {
         return nil
     }
     switch connectionState {
     case .invalid, .disconnected:
-        return VPNDisconnectedHealthAuditDelay
+        return settings.disconnectedAuditDelay
     case .disconnecting:
-        return VPNDisconnectingHealthAuditDelay
+        return settings.disconnectingAuditDelay
     case .connected:
-        return VPNConnectedBackendHealthAuditDelay
+        return settings.connectedBackendAuditDelay
     case .connecting, .reasserting:
-        return VPNTransitionalHealthAuditDelay
+        return settings.transitionalAuditDelay
     }
 }
 
@@ -328,8 +407,8 @@ func vpnTunnelNeedsStopBeforeConfiguration(
     return !vpnTunnelConnectionIsStopped(connectionState)
 }
 
-func vpnProfileRemovalMayContinue(attempt: Int) -> Bool {
-    attempt < MaximumVPNProfilesToRemove
+func vpnProfileRemovalMayContinue(attempt: Int, limit: Int) -> Bool {
+    attempt < limit
 }
 
 struct VPNOperationTimeoutError: LocalizedError {
@@ -378,7 +457,7 @@ final class VPNOperationDeadline<Value>: @unchecked Sendable {
 
     init(
         operation: String,
-        timeout: TimeInterval = VPNPreferencesOperationTimeout,
+        timeout: TimeInterval,
         callbackQueue: DispatchQueue = .main,
         lateCompletion: ((Result<Value, Error>) -> Void)? = nil,
         completion: @escaping (Result<Value, Error>) -> Void
@@ -460,7 +539,7 @@ final class VPNOperationDeadline<Value>: @unchecked Sendable {
 @discardableResult
 func performVPNOperation<Value>(
     operation: String,
-    timeout: TimeInterval = VPNPreferencesOperationTimeout,
+    timeout: TimeInterval,
     callbackQueue: DispatchQueue = .main,
     lateCompletion: ((Result<Value, Error>) -> Void)? = nil,
     start: (@escaping (Result<Value, Error>) -> Void) -> Void,

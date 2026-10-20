@@ -58,8 +58,10 @@ struct VPNReconciliationSupportTests {
     }
 
     @Test func profileRemovalHasAFiniteAttemptBudget() {
-        #expect(vpnProfileRemovalMayContinue(attempt: MaximumVPNProfilesToRemove - 1))
-        #expect(!vpnProfileRemovalMayContinue(attempt: MaximumVPNProfilesToRemove))
+        let limit = VPNManagerSettings().maximumProfilesToRemove
+        #expect(vpnProfileRemovalMayContinue(attempt: limit - 1, limit: limit))
+        #expect(!vpnProfileRemovalMayContinue(attempt: limit, limit: limit))
+        #expect(!vpnProfileRemovalMayContinue(attempt: 2, limit: 2))
     }
 
     @Test func activeExistingProfileStopsBeforeConfigurationReplacement() {
@@ -296,42 +298,115 @@ struct VPNReconciliationSupportTests {
     }
 
     @Test func statusAuditTimingRepairsDisconnectsAndGracesTransitions() {
+        let settings = VPNManagerSettings()
         #expect(vpnTunnelHealthAuditDelay(
             shouldRun: true,
             reconcileInFlight: false,
             connectionState: .disconnected,
-            isHealthy: false
+            isHealthy: false,
+            settings: settings
         ) == 0)
         #expect(vpnTunnelHealthAuditDelay(
             shouldRun: true,
             reconcileInFlight: false,
             connectionState: .reasserting,
-            isHealthy: false
-        ) == VPNTransitionalHealthAuditDelay)
+            isHealthy: false,
+            settings: settings
+        ) == settings.transitionalAuditDelay)
         #expect(vpnTunnelHealthAuditDelay(
             shouldRun: true,
             reconcileInFlight: false,
             connectionState: .connected,
-            isHealthy: true
+            isHealthy: true,
+            settings: settings
         ) == nil)
         #expect(vpnTunnelHealthAuditDelay(
             shouldRun: true,
             reconcileInFlight: true,
             connectionState: .disconnected,
-            isHealthy: false
+            isHealthy: false,
+            settings: settings
         ) == nil)
         #expect(vpnTunnelHealthAuditDelay(
             shouldRun: false,
             reconcileInFlight: false,
             connectionState: .connected,
-            isHealthy: false
-        ) == VPNDisconnectedHealthAuditDelay)
+            isHealthy: false,
+            settings: settings
+        ) == settings.disconnectedAuditDelay)
         #expect(vpnTunnelHealthAuditDelay(
             shouldRun: false,
             reconcileInFlight: false,
             connectionState: .disconnected,
-            isHealthy: true
+            isHealthy: true,
+            settings: settings
         ) == nil)
+    }
+
+    @Test func statusAuditTimingComesFromTheSettings() {
+        var settings = VPNManagerSettings()
+        settings.transitionalAuditDelay = 42
+        settings.connectedBackendAuditDelay = 7
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: true,
+            reconcileInFlight: false,
+            connectionState: .reasserting,
+            isHealthy: false,
+            settings: settings
+        ) == 42)
+        #expect(vpnTunnelHealthAuditDelay(
+            shouldRun: true,
+            reconcileInFlight: false,
+            connectionState: .connected,
+            isHealthy: false,
+            settings: settings
+        ) == 7)
+    }
+
+    @Test func aFormingWindowIsRecoveringOnItsOwn() {
+        #expect(vpnTunnelRecoveryInProgress(
+            connectionState: .reasserting, rpcConnected: true, sdkTunnelStarted: true,
+            requiresProvider: true, windowTargetSize: 4, windowFailed: false
+        ))
+        #expect(vpnTunnelRecoveryInProgress(
+            connectionState: .connected, rpcConnected: true, sdkTunnelStarted: true,
+            requiresProvider: true, windowTargetSize: 4, windowFailed: false
+        ))
+    }
+
+    @Test func onlyAnAnsweringStartedFormingWindowDefersARestart() {
+        // the window gave up
+        #expect(!vpnTunnelRecoveryInProgress(
+            connectionState: .reasserting, rpcConnected: true, sdkTunnelStarted: true,
+            requiresProvider: true, windowTargetSize: 4, windowFailed: true
+        ))
+        // the extension does not answer
+        #expect(!vpnTunnelRecoveryInProgress(
+            connectionState: .reasserting, rpcConnected: false, sdkTunnelStarted: true,
+            requiresProvider: true, windowTargetSize: 4, windowFailed: false
+        ))
+        // its SDK tunnel is not running
+        #expect(!vpnTunnelRecoveryInProgress(
+            connectionState: .reasserting, rpcConnected: true, sdkTunnelStarted: false,
+            requiresProvider: true, windowTargetSize: 4, windowFailed: false
+        ))
+        // no window wants exits
+        #expect(!vpnTunnelRecoveryInProgress(
+            connectionState: .reasserting, rpcConnected: true, sdkTunnelStarted: true,
+            requiresProvider: true, windowTargetSize: 0, windowFailed: false
+        ))
+        // a local-only tunnel has no window to wait for
+        #expect(!vpnTunnelRecoveryInProgress(
+            connectionState: .reasserting, rpcConnected: true, sdkTunnelStarted: true,
+            requiresProvider: false, windowTargetSize: 4, windowFailed: false
+        ))
+        // the profile is not running at all
+        for state in [VPNTunnelConnectionState.invalid, .disconnected, .connecting, .disconnecting] {
+            #expect(!vpnTunnelRecoveryInProgress(
+                connectionState: state, rpcConnected: true, sdkTunnelStarted: true,
+                requiresProvider: true, windowTargetSize: 4, windowFailed: false
+            ))
+        }
     }
 
     @Test func mismatchedTunnelConfigurationIsNotAdopted() {

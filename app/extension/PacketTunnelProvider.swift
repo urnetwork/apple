@@ -332,13 +332,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     // Main-queue-only recovery state. Path and lifecycle signals are coalesced
     // here so wake + NWPath cannot tear down the same reconnect attempt twice.
     private var transportRecoveryWork: DispatchWorkItem?
-    private var recoveryNeedsTransportChange = false
     private var recoveryWorkGeneration: UInt64 = 0
     private var wakeHealthWork: DispatchWorkItem?
     private var lastTransportRecoveryAt: Date?
-    private let transportRecoveryDebounce: TimeInterval = 0.350
-    private let minimumTransportRecoveryInterval: TimeInterval = 2
-    private let wakeHealthGrace: TimeInterval = 5
+    // A path change kicks the SDK transports directly (kickTransports), spaced
+    // but never dropped; a kick still pending when the system puts the
+    // provider to sleep is owed, and wake runs it first.
+    private var transportKickWork: DispatchWorkItem?
+    private var transportKickOwed = false
+    private let transportKickQueue = DispatchQueue(label: "network.ur.extension.transport-kick", qos: .userInitiated)
+    // every path and recovery delay; defaults in TunnelRecoveryTiming
+    private let timing = TunnelRecoveryTiming()
     private let logoutProviderMessage = "logout"
     // the app asks for this immediately before it reads this process's log
     // files for a diagnostic export
@@ -529,7 +533,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }, enqueue: { work in
             DispatchQueue.main.async(execute: work)
         }, cancelRecovery: { [weak self] in
-            self?.cancelPendingTransportRecovery()
+            self?.cancelPendingTransportRecovery(owingKick: false)
         }) {
         case .alreadyRunning:
             finishTunnelStartup(
@@ -1049,7 +1053,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     consumerPresent: device.getConnectEnabled(), providerCount: providerCount
                 )
                 let dnsOwned = device.getTunnelDnsInterceptorActive()
-                guard let ticket = state.readiness.begin(.init(readiness: next, dnsOwned: dnsOwned)) else { return }
+                let level = TunnelReadinessOwner.State(readiness: next, dnsOwned: dnsOwned)
+                guard let ticket = state.readiness.begin(level) else {
+                    // the level is already applied, but a failed recovery may
+                    // have raised `reasserting` since; only an applied level
+                    // ever lowered it, so re-assert the level's own value
+                    if state.readiness.isApplied(level), self.reasserting != (next == .establishing) {
+                        self.reasserting = next == .establishing
+                    }
+                    return
+                }
                 guard self.providerSessions.update(providerTicket, { $0.connected = next == .connected }) else { return }
                 self.reasserting = true
                 self.recordRecoveryStage("readiness", next.rawValue)
@@ -1062,7 +1075,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         return
                     case .failed(let retry):
                         self.recordRecoveryStage("settings", "failed")
-                        if retry { self.scheduleTransportRecovery(reason: "settings-retry", changeTransport: false) }
+                        if retry { self.scheduleSettingsRetry() }
                     case .applied:
                         self.reasserting = next == .establishing
                         self.recordRecoveryStage("settings", "applied")
@@ -1092,7 +1105,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     return { work.cancel() }
                 },
                 now: { ProcessInfo.processInfo.systemUptime },
-                minimumInterval: self.minimumTransportRecoveryInterval,
+                minimumInterval: self.timing.minimumPathRecoveryInterval,
                 isCurrent: currentRecovery,
                 perform: { ticket, reasons in
                     self.completeDestinationRecovery(
@@ -1105,7 +1118,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 enqueue: { action in recoveryQueue.async { action() } },
                 scheduleDeadline: { expire in
                     let deadline = DispatchWorkItem(block: expire)
-                    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 15, execute: deadline)
+                    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + self.timing.authObservationDeadline, execute: deadline)
                     return { deadline.cancel() }
                 },
                 isCurrent: currentRecovery,
@@ -1277,13 +1290,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             let pathMonitor = NWPathMonitor.init(prohibitedInterfaceTypes: [.loopback, .other])
             let pathMonitorQueue = DispatchQueue(label: "network.ur.extension.pathMonitor")
             // Signature of the physical path (the tunnel's utun is .other, excluded
-            // above). Compare only interfaces the path actually uses, not every
-            // available interface in preference order. Commit a satisfied signature
-            // only after it is stable so Wi-Fi/cellular transition bursts produce one
-            // transport recovery at most. Mutable state is pathMonitorQueue-confined.
-            var stablePathSignature: String? = nil
-            var pathSignatureGeneration: UInt64 = 0
-            var physicalPathWasUnavailable = false
+            // above): the interfaces the path actually uses, not every available
+            // interface in preference order, their gateways and their own addresses.
+            // Commit a satisfied signature only after it is stable so Wi-Fi/cellular
+            // transition bursts produce one transport recovery at most; a gateway
+            // reported late refines the path instead of recovering it again
+            // (TunnelPhysicalPathTransition). Mutable state is pathMonitorQueue-confined.
+            var pathTransition = TunnelPhysicalPathTransition(lateGatewayGrace: self.timing.lateGatewayGrace)
+            // the newest observation of the path that is settling: a repeated
+            // update refreshes these without restarting its settle timer
+            var pendingQuality: TunnelNetworkQuality?
+            var pendingDiagnostic: TunnelPathDiagnostic?
             var lastPathConstrained: Bool = false
             var qualityTracker = TunnelNetworkQualityTracker()
             // the settled path, for the uploaded logs: a line each time it
@@ -1312,47 +1329,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     || lastPathConstrained
                 device.setPerformanceDegraded(degraded)
             }
-            var handlePathUpdate: ((Network.NWPath) -> Void)!
-            handlePathUpdate = { (path: Network.NWPath) in
-                guard self.providerSessions.isCurrent(providerTicket) else { return }
-                updatePath(path)
-                lastPathConstrained = path.isConstrained
-                updatePerformanceDegraded()
-                if !path.usesInterfaceType(.wifi) {
-                    wifiSignalLevel = nil
-                }
-                pathSignatureGeneration &+= 1
-                let generation = pathSignatureGeneration
-                guard path.status == .satisfied else {
-                    // A Wi-Fi sleep/rejoin can return with the same interface and
-                    // gateway. Remember the unavailable edge so signature equality
-                    // cannot hide the fact that existing sockets crossed a dead path.
-                    if stablePathSignature != nil {
-                        physicalPathWasUnavailable = true
-                    }
-                    // an unusable path (and why) is logged once it settles,
-                    // as a usable one is below
-                    let diagnostic = TunnelPathDiagnostic(path: path, cellularTypes: [])
-                    pathMonitorQueue.asyncAfter(
-                        deadline: .now() + self.transportRecoveryDebounce
-                    ) {
-                        guard self.providerSessions.isCurrent(providerTicket) else { return }
-                        guard generation == pathSignatureGeneration else { return }
-                        writePathLine(diagnostic)
-                    }
-                    return
-                }
-
-                let interfaces = path.availableInterfaces
-                    .filter { path.usesInterfaceType($0.type) }
-                    .map { "\($0.name):\($0.type)" }
-                    .sorted()
-                    .joined(separator: ",")
-                let gateways = path.gateways
-                    .map { "\($0)" }
-                    .sorted()
-                    .joined(separator: ",")
-                let pathSignature = "interfaces=\(interfaces)|gateways=\(gateways)"
+            let pathSignature = { (path: Network.NWPath) -> TunnelPhysicalPathSignature in
+                let interfaces = path.availableInterfaces.filter { path.usesInterfaceType($0.type) }
+                return TunnelPhysicalPathSignature(
+                    interfaces: interfaces.map { "\($0.name):\($0.type)" }.sorted(),
+                    gateways: path.gateways.map { "\($0)" }.sorted(),
+                    addresses: tunnelInterfaceAddressIdentities(interfaceNames: Set(interfaces.map(\.name)))
+                )
+            }
+            let pathQuality = { (path: Network.NWPath) -> (TunnelNetworkQuality, TunnelPathDiagnostic) in
 #if os(iOS)
                 let cellularTypes = tunnelActiveCellularTypes(
                     usesCellular: path.usesInterfaceType(.cellular),
@@ -1371,41 +1356,108 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     cellularTypes: cellularTypes,
                     wifiSignalLevel: wifiSignalLevel
                 )
-                let diagnostic = TunnelPathDiagnostic(path: path, cellularTypes: cellularTypes)
-
-                pathMonitorQueue.asyncAfter(
-                    deadline: .now() + self.transportRecoveryDebounce
-                ) {
-                    guard self.providerSessions.isCurrent(providerTicket) else { return }
-                    guard generation == pathSignatureGeneration else { return }
-                    writePathLine(diagnostic)
-                    let hardPathChange = stablePathSignature.map {
-                        $0 != pathSignature || physicalPathWasUnavailable
-                    } ?? false
-                    if hardPathChange {
-                        let reason = physicalPathWasUnavailable
-                            ? "physical-path-restored"
-                            : "physical-path-change"
-                        self.logger.info(
-                            "[PacketTunnelProvider][\(self.lifecycleId)] stable physical path transition=\(reason); scheduling transport recovery"
-                        )
-                        self.requestTransportRecovery(reason: reason)
-                    } else if qualityTracker.observe(
-                        pathSignature: pathSignature,
-                        quality: quality
-                    ) {
-                        self.logger.info(
-                            "[PacketTunnelProvider][\(self.lifecycleId)] physical network quality changed; remeasuring transfer pacing"
-                        )
-                        device.networkQualityChanged()
-                    }
-                    if hardPathChange {
-                        _ = qualityTracker.observe(pathSignature: pathSignature, quality: quality)
-                    }
-                    stablePathSignature = pathSignature
-                    physicalPathWasUnavailable = false
+                return (quality, TunnelPathDiagnostic(path: path, cellularTypes: cellularTypes))
+            }
+            // a quality change on the settled path takes the lighter estimator signal
+            let observeQuality = { (signature: TunnelPhysicalPathSignature, quality: TunnelNetworkQuality) in
+                if qualityTracker.observe(pathSignature: signature.identity, quality: quality) {
+                    self.logger.info(
+                        "[PacketTunnelProvider][\(self.lifecycleId)] physical network quality changed; remeasuring transfer pacing"
+                    )
+                    device.networkQualityChanged()
                 }
             }
+            var handlePathUpdate: ((Network.NWPath) -> Void)!
+            handlePathUpdate = { (path: Network.NWPath) in
+                guard self.providerSessions.isCurrent(providerTicket) else { return }
+                updatePath(path)
+                lastPathConstrained = path.isConstrained
+                updatePerformanceDegraded()
+                if !path.usesInterfaceType(.wifi) {
+                    wifiSignalLevel = nil
+                }
+                guard path.status == .satisfied else {
+                    // A Wi-Fi sleep/rejoin can return with the same interface and
+                    // gateway, and a tunnel can start with no network at all.
+                    // Remember the unavailable edge so signature equality cannot
+                    // hide the fact that existing sockets crossed a dead path.
+                    let generation = pathTransition.observeUnavailable()
+                    // an unusable path (and why) is logged once it settles,
+                    // as a usable one is below
+                    let diagnostic = TunnelPathDiagnostic(path: path, cellularTypes: [])
+                    pathMonitorQueue.asyncAfter(
+                        deadline: .now() + self.timing.pathSettleDelay
+                    ) {
+                        guard self.providerSessions.isCurrent(providerTicket) else { return }
+                        guard pathTransition.isCurrent(generation) else { return }
+                        writePathLine(diagnostic)
+                    }
+                    return
+                }
+
+                let signature = pathSignature(path)
+                let (quality, diagnostic) = pathQuality(path)
+                pendingQuality = quality
+                pendingDiagnostic = diagnostic
+                // this exact path already settling keeps its timer, which
+                // reads the newest observation above
+                guard let generation = pathTransition.observeUsable(signature: signature) else { return }
+                pathMonitorQueue.asyncAfter(
+                    deadline: .now() + self.timing.pathSettleDelay
+                ) {
+                    guard self.providerSessions.isCurrent(providerTicket) else { return }
+                    guard let outcome = pathTransition.settle(
+                              generation,
+                              signature: signature,
+                              at: ProcessInfo.processInfo.systemUptime
+                          ),
+                          let quality = pendingQuality,
+                          let diagnostic = pendingDiagnostic else { return }
+                    writePathLine(diagnostic)
+                    let cause = pathTransition.lastCause?.rawValue ?? "none"
+                    switch outcome {
+                    case .changed(let restored):
+                        let reason = restored ? "physical-path-restored" : "physical-path-change"
+                        self.logger.info(
+                            "[PacketTunnelProvider][\(self.lifecycleId)] stable physical path transition=\(reason) cause=\(cause); scheduling transport recovery"
+                        )
+                        self.requestTransportRecovery(reason: reason)
+                        // a new path's quality is only its baseline
+                        _ = qualityTracker.observe(pathSignature: signature.identity, quality: quality)
+                    case .refined:
+                        self.logger.info(
+                            "[PacketTunnelProvider][\(self.lifecycleId)] stable physical path refined cause=\(cause); no transport recovery"
+                        )
+                        observeQuality(signature, quality)
+                    case .baseline, .unchanged:
+                        observeQuality(signature, quality)
+                    }
+                }
+            }
+#if os(iOS)
+            // Radio-type and Wi-Fi-bar changes are quality, not path: they
+            // re-measure on the settled path and never restart the settle timer
+            // of a pending hard change. A path the monitor has not reported yet
+            // still goes through the path update.
+            let handleQualityUpdate = { (path: Network.NWPath) in
+                guard self.providerSessions.isCurrent(providerTicket),
+                      path.status == .satisfied else { return }
+                let signature = pathSignature(path)
+                let (quality, diagnostic) = pathQuality(path)
+                if pathTransition.pendingSignature == signature {
+                    pendingQuality = quality
+                    pendingDiagnostic = diagnostic
+                    return
+                }
+                guard pathTransition.pendingSignature == nil,
+                      pathTransition.stableSignature == signature else {
+                    handlePathUpdate(path)
+                    return
+                }
+                writePathLine(diagnostic)
+                observeQuality(signature, quality)
+            }
+#endif
             pathMonitor.pathUpdateHandler = { path in
                 handlePathUpdate(path)
             }
@@ -1415,8 +1467,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // successful value is a baseline and later bar crossings remeasure.
 #if os(iOS)
             let wifiQualityTimer = DispatchSource.makeTimerSource(queue: pathMonitorQueue)
+            let wifiQualitySampleInterval = self.timing.wifiQualitySampleInterval
             wifiQualityTimer.schedule(
-                deadline: .now(), repeating: .seconds(5), leeway: .seconds(1)
+                deadline: .now(),
+                repeating: wifiQualitySampleInterval > 0
+                    ? .milliseconds(Int(wifiQualitySampleInterval * 1000))
+                    : .never,
+                leeway: .milliseconds(Int(self.timing.wifiQualitySampleLeeway * 1000))
             )
             wifiQualityTimer.setEventHandler {
                 guard self.providerSessions.isCurrent(providerTicket) else { return }
@@ -1424,21 +1481,21 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 guard path.status == .satisfied, path.usesInterfaceType(.wifi),
                       !wifiQualityFetchInFlight else { return }
                 wifiQualityFetchInFlight = true
-                let fetchGeneration = pathSignatureGeneration
+                let fetchGeneration = pathTransition.generation
                 NEHotspotNetwork.fetchCurrent { network in
                     pathMonitorQueue.async {
                         wifiQualityFetchInFlight = false
                         guard self.providerSessions.isCurrent(providerTicket) else { return }
                         // A result requested on an older path is not evidence
                         // about the current Wi-Fi association.
-                        guard fetchGeneration == pathSignatureGeneration else { return }
+                        guard pathTransition.isCurrent(fetchGeneration) else { return }
                         let currentPath = pathMonitor.currentPath
                         guard currentPath.status == .satisfied,
                               currentPath.usesInterfaceType(.wifi) else { return }
                         let nextLevel = tunnelWifiSignalLevel(network?.signalStrength)
                         guard nextLevel != wifiSignalLevel else { return }
                         wifiSignalLevel = nextLevel
-                        handlePathUpdate(currentPath)
+                        handleQualityUpdate(currentPath)
                     }
                 }
             }
@@ -1446,9 +1503,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 #endif
             // NEProvider.defaultPath is the VPN-aware default-path signal; it can lead the
             // physical monitor on transitions, so a change prompts a re-check of the
-            // physical path signature (the signature dedups the double notification)
+            // physical path signature now, and again once the monitor has had time to
+            // catch up. A path already settling keeps its timer (the signature dedups
+            // the extra notifications).
             let defaultPathObservation = self.observe(\.defaultPath) { _, _ in
                 pathMonitorQueue.async {
+                    handlePathUpdate(pathMonitor.currentPath)
+                }
+                pathMonitorQueue.asyncAfter(deadline: .now() + self.timing.defaultPathRecheckDelay) {
                     handlePathUpdate(pathMonitor.currentPath)
                 }
             }
@@ -1485,7 +1547,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 object: nil,
                 queue: nil
             ) { _ in
-                pathMonitorQueue.async { handlePathUpdate(pathMonitor.currentPath) }
+                pathMonitorQueue.async { handleQualityUpdate(pathMonitor.currentPath) }
             }
 #endif
             pathMonitorQueue.async { updatePerformanceDegraded() }
@@ -1671,7 +1733,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             },
             scheduleDeadline: { expired in
                 let work = DispatchWorkItem(block: expired)
-                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 15, execute: work)
+                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + self.timing.authObservationDeadline, execute: work)
                 return { work.cancel() }
             },
             isCurrent: {
@@ -2047,6 +2109,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     // Called only by the serial recovery worker. Network operations remain
     // outside the main/lifecycle queues and all native locks. The original
     // destination must still own effects after an admitted SDK call returns.
+    // A path reason arrives here after kickTransports has already kicked the
+    // transports; what remains for it is the destination and readiness.
     private func completeDestinationRecovery(
         device: SdkDeviceLocal, providerTicket: TunnelProviderSessionOwner<ProviderSession>.Ticket,
         ticket: RecoverySession.DestinationTicket, reasons: TunnelDestinationRecoveryReason,
@@ -2054,20 +2118,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     ) {
         guard isCurrent() else { return }
         let recoveryStartedAt = Date()
-        if reasons.contains(.path) {
-            device.networkChanged()
-        }
-        guard isCurrent() else { return }
         if !reasons.intersection([.wake, .wakeGrace]).isEmpty {
             _ = device.probeAllExits()
         }
         DispatchQueue.main.async {
             guard isCurrent() else { return }
-            if reasons.contains(.path) {
-                self.lastTransportRecoveryAt = recoveryStartedAt
-                self.memoryMonitor?.sample(event: "transport-recovery")
-                self.recordRecoveryStage("path-recovery", "completed")
-            }
             self.recoverySession.snapshot(ticket: ticket.session)?.reconcileReadiness?()
             if reasons.contains(.wake) {
                 self.scheduleWakeHealthCheck(
@@ -2106,21 +2161,60 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func requestTransportRecovery(reason: String) {
         DispatchQueue.main.async { [weak self] in
-            self?.scheduleTransportRecovery(reason: reason)
+            self?.kickTransports(reason: reason)
         }
     }
 
-    private func scheduleTransportRecovery(reason: String, changeTransport: Bool = true) {
+    // A path change kicks the transports here, directly: the SDK documents the
+    // kick as cheap and safe on every update, so it must not wait on -- or be
+    // dropped by -- the intent/auth/destination reconciliation, which runs
+    // right after it. The path queue has already settled the path, so the only
+    // pacing is the spacing between kicks: one inside
+    // timing.minimumKickInterval is postponed to its end, never dropped.
+    private func kickTransports(reason: String) {
         guard let provider = providerSessions.snapshot(), !provider.value.device.getDone() else { return }
         let device = provider.value.device
-        // A settings retry can share the existing debounce but cannot erase a
-        // real pending path recovery or reset otherwise healthy transports.
-        recoveryNeedsTransportChange = recoveryNeedsTransportChange || changeTransport
+        let wait = lastTransportRecoveryAt.map {
+            max(0, timing.minimumKickInterval - Date().timeIntervalSince($0))
+        } ?? 0
+        transportKickWork?.cancel()
+        let work = DispatchWorkItem { [weak self, weak device] in
+            guard let self,
+                  let device,
+                  self.providerSessions.snapshot(ticket: provider.ticket)?.value.device === device,
+                  !device.getDone() else {
+                return
+            }
+            self.transportKickWork = nil
+            self.transportKickOwed = false
+            self.lastTransportRecoveryAt = Date()
+            self.memoryMonitor?.sample(event: "transport-recovery")
+            self.recordRecoveryStage("path-recovery", "started")
+            self.logger.info(
+                "[PacketTunnelProvider][\(self.lifecycleId)] transport kick reason=\(reason, privacy: .public)"
+            )
+            self.transportKickQueue.async {
+                device.networkChanged()
+                DispatchQueue.main.async {
+                    guard self.providerSessions.snapshot(ticket: provider.ticket)?.value.device === device,
+                          !device.getDone() else { return }
+                    self.recordRecoveryStage("path-recovery", "completed")
+                    // a missing intended consumer is rebuilt on the new path
+                    guard let state = self.recoverySession.snapshot(),
+                          let recovery = self.providerSessions.snapshot(ticket: provider.ticket)?.value.destinationRecovery else { return }
+                    recovery.request(state.destinationTicket, reason: .path)
+                }
+            }
+        }
+        transportKickWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + wait, execute: work)
+    }
 
-        // Burst coalescing precedes observation. The final-effects owner uses
-        // a monotonic clock for the sole two-second reset admission check.
-        let delay = transportRecoveryDebounce
-
+    // A failed settings apply gets one retry through this debounce. It never
+    // resets otherwise healthy transports; path changes use kickTransports.
+    private func scheduleSettingsRetry() {
+        guard let provider = providerSessions.snapshot(), !provider.value.device.getDone() else { return }
+        let device = provider.value.device
         transportRecoveryWork?.cancel()
         recoveryWorkGeneration &+= 1
         let generation = recoveryWorkGeneration
@@ -2133,15 +2227,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 return
             }
             self.transportRecoveryWork = nil
-            let changeTransport = self.recoveryNeedsTransportChange
-            self.recoveryNeedsTransportChange = false
-            self.recordRecoveryStage(changeTransport ? "path-recovery" : "settings", changeTransport ? "started" : "retry")
-            if changeTransport {
-                guard let state = self.recoverySession.snapshot(),
-                      let recovery = self.providerSessions.snapshot(ticket: provider.ticket)?.value.destinationRecovery else { return }
-                recovery.request(state.destinationTicket, reason: .path)
-                return
-            }
+            self.recordRecoveryStage("settings", "retry")
             do {
                 try performTunnelRecovery(
                     changeTransport: false,
@@ -2156,14 +2242,20 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         }
         transportRecoveryWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + timing.settingsRetryDelay, execute: work)
     }
 
-    private func cancelPendingTransportRecovery() {
+    // owingKick: sleep keeps a pending kick as owed, so the path change that
+    // landed just before sleep is not lost -- its signature is already
+    // settled, so wake's path re-check alone would find nothing to recover.
+    // Stop owes nothing.
+    private func cancelPendingTransportRecovery(owingKick: Bool) {
         transportRecoveryWork?.cancel()
         transportRecoveryWork = nil
         recoveryWorkGeneration &+= 1
-        recoveryNeedsTransportChange = false
+        transportKickOwed = owingKick && (transportKickOwed || transportKickWork != nil)
+        transportKickWork?.cancel()
+        transportKickWork = nil
         wakeHealthWork?.cancel()
         wakeHealthWork = nil
     }
@@ -2173,6 +2265,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
               let recovery = provider.value.destinationRecovery,
               !provider.value.device.getDone(), let state = recoverySession.snapshot() else { return }
         recordRecoveryStage("wake", "started")
+        if transportKickOwed {
+            kickTransports(reason: "owed-across-sleep")
+        }
         provider.value.networkStateRefresh?()
         recovery.request(state.destinationTicket, reason: .wake)
     }
@@ -2221,12 +2316,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 )
             case .recoverTransport:
                 self.recordRecoveryStage("wake", "empty-window")
-                self.scheduleTransportRecovery(reason: "wake-unhealthy")
+                self.kickTransports(reason: "wake-unhealthy")
             }
         }
         wakeHealthWork = work
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + wakeHealthGrace,
+            deadline: .now() + timing.wakeHealthGrace,
             execute: work
         )
     }
@@ -2257,7 +2352,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 self.recordRecoveryStage("stop", reasonClass, snapshot: retiringState)
                 self.memoryMonitor?.sample(event: "tunnel-stopping")
                 DispatchQueue.main.async { [weak self] in
-                    self?.cancelPendingTransportRecovery()
+                    self?.cancelPendingTransportRecovery(owingKick: false)
                 }
 
                 self.recordSharedIntentForStop(reason: reason, owner: retiringState?.owner)
@@ -2347,7 +2442,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         logger.info("[PacketTunnelProvider][\(self.lifecycleId)] sleep")
         memoryMonitor?.sample(event: "sleep")
         DispatchQueue.main.async { [weak self] in
-            self?.cancelPendingTransportRecovery()
+            self?.cancelPendingTransportRecovery(owingKick: true)
         }
         // Keep the SDK device and its transports intact. Its scheduler-pause
         // detector rebases liveness clocks when execution resumes.

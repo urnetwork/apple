@@ -239,6 +239,18 @@ final class TunnelRecoveryTests: XCTestCase {
         XCTAssertNil(owner.begin(state))
     }
 
+    func testOnlyAnAppliedLevelWithNothingInFlightCanReassert() throws {
+        let owner = TunnelReadinessOwner()
+        let state = TunnelReadinessOwner.State(readiness: .connected, dnsOwned: true)
+        XCTAssertFalse(owner.isApplied(state))
+        let ticket = try XCTUnwrap(owner.begin(state))
+        XCTAssertFalse(owner.isApplied(state))
+        XCTAssertEqual(owner.complete(ticket, succeeded: true), .applied)
+        XCTAssertNil(owner.begin(state))
+        XCTAssertTrue(owner.isApplied(state))
+        XCTAssertFalse(owner.isApplied(.init(readiness: .establishing, dnsOwned: true)))
+    }
+
     func testSettingsOnlyRetryDoesNotRestoreOrResetHealthyConsumer() throws {
         var effects: [String] = []
         XCTAssertTrue(try performTunnelRecovery(
@@ -310,6 +322,189 @@ final class TunnelRecoveryTests: XCTestCase {
         _ = tracker.observe(pathSignature: "wifi-a", quality: wifi)
 
         XCTAssertFalse(tracker.observe(pathSignature: "cell-a", quality: cellular))
+    }
+
+    private let wifiA = TunnelPhysicalPathSignature(
+        interfaces: ["en0:wifi"], gateways: ["192.168.1.1"], addresses: ["192.168.1.20"]
+    )
+    // another network on the same interface, behind the same gateway address
+    private let wifiB = TunnelPhysicalPathSignature(
+        interfaces: ["en0:wifi"], gateways: ["192.168.1.1"], addresses: ["192.168.1.57"]
+    )
+    private let cellA = TunnelPhysicalPathSignature(
+        interfaces: ["pdp_ip0:cellular"], gateways: [], addresses: ["10.20.30.40"]
+    )
+
+    @discardableResult
+    private func settle(
+        _ transition: inout TunnelPhysicalPathTransition,
+        _ signature: TunnelPhysicalPathSignature,
+        at: TimeInterval
+    ) -> TunnelPhysicalPathTransition.Outcome? {
+        guard let generation = transition.observeUsable(signature: signature) else { return nil }
+        return transition.settle(generation, signature: signature, at: at)
+    }
+
+    func testFirstUsablePathIsOnlyABaseline() throws {
+        var transition = TunnelPhysicalPathTransition()
+        let generation = try XCTUnwrap(transition.observeUsable(signature: wifiA))
+        XCTAssertEqual(transition.settle(generation, signature: wifiA, at: 0), .baseline)
+    }
+
+    func testPathChangeSettlesIntoOneRecovery() throws {
+        var transition = TunnelPhysicalPathTransition()
+        settle(&transition, wifiA, at: 0)
+        let changed = try XCTUnwrap(transition.observeUsable(signature: cellA))
+        XCTAssertEqual(transition.settle(changed, signature: cellA, at: 1), .changed(restored: false))
+        XCTAssertEqual(transition.lastCause, .interfaces)
+        let again = try XCTUnwrap(transition.observeUsable(signature: cellA))
+        XCTAssertEqual(transition.settle(again, signature: cellA, at: 2), .unchanged)
+    }
+
+    func testFirstUsablePathAfterStartingOfflineRecovers() throws {
+        var transition = TunnelPhysicalPathTransition()
+        _ = transition.observeUnavailable()
+        let generation = try XCTUnwrap(transition.observeUsable(signature: cellA))
+        XCTAssertEqual(transition.settle(generation, signature: cellA, at: 0), .changed(restored: true))
+    }
+
+    func testSamePathAfterAnUnavailableEdgeRecovers() throws {
+        var transition = TunnelPhysicalPathTransition()
+        settle(&transition, wifiA, at: 0)
+        _ = transition.observeUnavailable()
+        let generation = try XCTUnwrap(transition.observeUsable(signature: wifiA))
+        XCTAssertEqual(transition.settle(generation, signature: wifiA, at: 1), .changed(restored: true))
+    }
+
+    func testRepeatedUpdateKeepsTheRunningSettleTimer() throws {
+        var transition = TunnelPhysicalPathTransition()
+        let generation = try XCTUnwrap(transition.observeUsable(signature: wifiA))
+        XCTAssertNil(transition.observeUsable(signature: wifiA))
+        XCTAssertTrue(transition.isCurrent(generation))
+        XCTAssertEqual(transition.settle(generation, signature: wifiA, at: 0), .baseline)
+    }
+
+    func testSupersededSettleIsIgnored() throws {
+        var transition = TunnelPhysicalPathTransition()
+        settle(&transition, wifiA, at: 0)
+        let stale = try XCTUnwrap(transition.observeUsable(signature: cellA))
+        let current = try XCTUnwrap(transition.observeUsable(signature: wifiB))
+        XCTAssertNil(transition.settle(stale, signature: cellA, at: 1))
+        XCTAssertEqual(transition.settle(current, signature: wifiB, at: 1), .changed(restored: false))
+    }
+
+    // A6: an attach that reports its gateway after its interface refines the
+    // path it just recovered instead of kicking the re-dialed connections again.
+    func testLateGatewayInsideTheGraceRefinesThePath() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        settle(&transition, wifiA, at: 0)
+        XCTAssertEqual(settle(&transition, cellA, at: 10), .changed(restored: false))
+        var withGateway = cellA
+        withGateway.gateways = ["10.20.30.1"]
+        XCTAssertEqual(settle(&transition, withGateway, at: 12), .refined)
+        XCTAssertEqual(transition.lastCause, .lateGateway)
+    }
+
+    func testLateGatewayAfterTheFirstPathRefinesIt() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        var bare = wifiA
+        bare.gateways = []
+        XCTAssertEqual(settle(&transition, bare, at: 0), .baseline)
+        XCTAssertEqual(settle(&transition, wifiA, at: 2), .refined)
+    }
+
+    func testGatewayChangeAfterTheGraceRecovers() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        settle(&transition, wifiA, at: 0)
+        var otherRouter = wifiA
+        otherRouter.gateways = ["192.168.1.254"]
+        XCTAssertEqual(settle(&transition, otherRouter, at: 60), .changed(restored: false))
+        XCTAssertEqual(transition.lastCause, .gateway)
+    }
+
+    func testZeroGraceRecoversEveryGatewayChange() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 0)
+        settle(&transition, wifiA, at: 0)
+        var otherRouter = wifiA
+        otherRouter.gateways = ["192.168.1.254"]
+        XCTAssertEqual(settle(&transition, otherRouter, at: 0.5), .changed(restored: false))
+    }
+
+    // A6: Wi-Fi A to B on the same interface behind the same gateway address,
+    // with no unusable path in between, used to be no change at all.
+    func testSameInterfaceAndGatewayWithANewAddressRecovers() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        settle(&transition, wifiA, at: 0)
+        XCTAssertEqual(settle(&transition, wifiB, at: 60), .changed(restored: false))
+        XCTAssertEqual(transition.lastCause, .address)
+    }
+
+    func testAnAddressGoneWithALateGatewayStillRecovers() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        settle(&transition, wifiA, at: 0)
+        var moved = wifiB
+        moved.gateways = ["192.168.7.1"]
+        XCTAssertEqual(settle(&transition, moved, at: 1), .changed(restored: false))
+        XCTAssertEqual(transition.lastCause, .address)
+    }
+
+    func testAnAddressAddedInAFamilyInUseRefinesThePath() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        var dualStack = wifiA
+        dualStack.addresses = ["192.168.1.20", "2001:db8:1:2::/64"]
+        settle(&transition, dualStack, at: 0)
+        var secondPrefix = dualStack
+        secondPrefix.addresses = (dualStack.addresses + ["2001:db8:9:9::/64"]).sorted()
+        XCTAssertEqual(settle(&transition, secondPrefix, at: 60), .refined)
+        XCTAssertEqual(transition.lastCause, .addressAdded)
+    }
+
+    // an IPv6 address arriving after the IPv4 one lets a v6 transport that
+    // failed its dial and is backing off dial now
+    func testANewAddressFamilyRecovers() {
+        var transition = TunnelPhysicalPathTransition(lateGatewayGrace: 5)
+        settle(&transition, wifiA, at: 0)
+        var dualStack = wifiA
+        dualStack.addresses = ["192.168.1.20", "2001:db8:1:2::/64"]
+        dualStack.gateways = ["192.168.1.1", "fe80::1"]
+        XCTAssertEqual(settle(&transition, dualStack, at: 1), .changed(restored: false))
+        XCTAssertEqual(transition.lastCause, .family)
+    }
+
+    func testAddressIdentityKeepsIpv4AndTheIpv6Prefix() {
+        XCTAssertEqual(tunnelAddressIdentity(family: AF_INET, bytes: [192, 168, 1, 20]), "192.168.1.20")
+        XCTAssertNil(tunnelAddressIdentity(family: AF_INET, bytes: [127, 0, 0, 1]))
+        let global: [UInt8] = [0x20, 0x01, 0x0d, 0xb8, 0x00, 0x01, 0x00, 0x02,
+                               0xaa, 0xaa, 0xbb, 0xbb, 0xcc, 0xcc, 0xdd, 0xdd]
+        XCTAssertEqual(tunnelAddressIdentity(family: AF_INET6, bytes: global), "2001:db8:1:2::/64")
+        // a privacy address rotating inside its prefix is the same network
+        var rotated = global
+        rotated[15] = 0x01
+        XCTAssertEqual(tunnelAddressIdentity(family: AF_INET6, bytes: rotated), "2001:db8:1:2::/64")
+        let linkLocal: [UInt8] = [0xfe, 0x80] + Array(repeating: 0, count: 13) + [1]
+        XCTAssertNil(tunnelAddressIdentity(family: AF_INET6, bytes: linkLocal))
+        let loopback: [UInt8] = Array(repeating: 0, count: 15) + [1]
+        XCTAssertNil(tunnelAddressIdentity(family: AF_INET6, bytes: loopback))
+    }
+
+    func testInterfaceAddressIdentitiesReadsOnlyTheNamedInterfaces() {
+        XCTAssertEqual(tunnelInterfaceAddressIdentities(interfaceNames: []), [])
+        XCTAssertEqual(tunnelInterfaceAddressIdentities(interfaceNames: ["no-such-interface9"]), [])
+        // loopback's own addresses identify no network; a host may add aliases
+        let loopback = tunnelInterfaceAddressIdentities(interfaceNames: ["lo0"])
+        XCTAssertFalse(loopback.contains { $0.hasPrefix("127.") || $0.hasPrefix("fe80:") || $0 == "0:0:0:0::/64" })
+        XCTAssertEqual(loopback, Array(Set(loopback)).sorted())
+    }
+
+    func testUnavailableEdgeAbandonsThePendingSettle() throws {
+        var transition = TunnelPhysicalPathTransition()
+        settle(&transition, wifiA, at: 0)
+        let pending = try XCTUnwrap(transition.observeUsable(signature: cellA))
+        _ = transition.observeUnavailable()
+        XCTAssertNil(transition.settle(pending, signature: cellA, at: 1))
+        // the same path returning is not deduplicated against the abandoned settle
+        let returned = try XCTUnwrap(transition.observeUsable(signature: cellA))
+        XCTAssertEqual(transition.settle(returned, signature: cellA, at: 2), .changed(restored: true))
     }
 
     func testWifiSignalUsesStableFiveLevelBuckets() {
@@ -526,6 +721,29 @@ final class TunnelRecoveryTests: XCTestCase {
 
     func testAppUpdateStopHasDistinctSecretFreeClassification() {
         XCTAssertEqual(tunnelStopReasonClass(.appUpdate), "app-update")
+    }
+
+    func testRecoveryTimingDefaultsSettleInsideOneKickSpacing() {
+        let timing = TunnelRecoveryTiming()
+        // A transition burst settles, and the defaultPath re-check lands,
+        // inside one kick spacing, so neither postpones the kick that a
+        // settled change earns.
+        XCTAssertLessThan(timing.pathSettleDelay, timing.minimumKickInterval)
+        XCTAssertLessThan(timing.defaultPathRecheckDelay, timing.minimumKickInterval)
+        // The kick owed across a sleep spends its spacing before the wake
+        // grace judges the window, so a wake-unhealthy kick is not postponed.
+        XCTAssertGreaterThan(timing.wakeHealthGrace, timing.minimumKickInterval)
+        XCTAssertGreaterThan(timing.wifiQualitySampleInterval, timing.wifiQualitySampleLeeway)
+        // the late half of a change settles after it, so the grace must
+        // outlast the settle delay to absorb it
+        XCTAssertGreaterThan(timing.lateGatewayGrace, timing.pathSettleDelay)
+    }
+
+    // The switch timeline in NETWORKSWITCH.md is built on these two.
+    func testRecoveryTimingDefaultsMatchTheSwitchTimeline() {
+        let timing = TunnelRecoveryTiming()
+        XCTAssertEqual(timing.pathSettleDelay, 0.350)
+        XCTAssertEqual(timing.minimumKickInterval, 2)
     }
 
     private enum FixtureError: Error { case read, write }

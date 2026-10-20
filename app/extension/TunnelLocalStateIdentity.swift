@@ -553,6 +553,15 @@ final class TunnelReadinessOwner {
         return .failed(retry: retry)
     }
 
+    // Whether this level is the applied one with no transition in flight:
+    // begin() returns nil for it, and the caller may still re-assert its
+    // presentation (a failed recovery must not leave `reasserting` behind).
+    func isApplied(_ state: State) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return pending == nil && applied == state
+    }
+
     func invalidate() {
         lock.lock()
         defer { lock.unlock() }
@@ -890,6 +899,203 @@ struct TunnelNetworkQualityTracker {
     }
 }
 
+// What identifies the physical path a socket rides: the interfaces the path
+// uses ("name:type"), their gateways, and their own local addresses
+// (tunnelAddressIdentity). Each list is sorted, so equal paths compare equal.
+struct TunnelPhysicalPathSignature: Equatable {
+    var interfaces: [String] = []
+    var gateways: [String] = []
+    var addresses: [String] = []
+
+    // A key for the quality tracker. Carries addresses, so it is never logged.
+    var identity: String {
+        "interfaces=\(interfaces.joined(separator: ","))|gateways=\(gateways.joined(separator: ","))|addresses=\(addresses.joined(separator: ","))"
+    }
+}
+
+// One local address as path identity: IPv4 exactly, IPv6 by its /64, so a
+// privacy address rotating inside its prefix is the same network. nil for
+// loopback and IPv6 link-local, which identify no network.
+func tunnelAddressIdentity(family: Int32, bytes: [UInt8]) -> String? {
+    switch family {
+    case AF_INET:
+        guard bytes.count == 4, bytes[0] != 127 else { return nil }
+        return bytes.map { String($0) }.joined(separator: ".")
+    case AF_INET6:
+        guard bytes.count == 16 else { return nil }
+        // fe80::/10
+        if bytes[0] == 0xfe && bytes[1] & 0xc0 == 0x80 { return nil }
+        // :: and ::1
+        if bytes[0..<15].allSatisfy({ $0 == 0 }) && bytes[15] <= 1 { return nil }
+        let groups = stride(from: 0, to: 8, by: 2).map {
+            String((UInt16(bytes[$0]) << 8) | UInt16(bytes[$0 + 1]), radix: 16)
+        }
+        return groups.joined(separator: ":") + "::/64"
+    default:
+        return nil
+    }
+}
+
+// The local address identities of the named interfaces, sorted.
+func tunnelInterfaceAddressIdentities(interfaceNames: Set<String>) -> [String] {
+    var head: UnsafeMutablePointer<ifaddrs>?
+    guard getifaddrs(&head) == 0, let first = head else { return [] }
+    defer { freeifaddrs(head) }
+    var identities = Set<String>()
+    for entry in sequence(first: first, next: { $0.pointee.ifa_next }) {
+        guard let address = entry.pointee.ifa_addr,
+              interfaceNames.contains(String(cString: entry.pointee.ifa_name)) else { continue }
+        let family = Int32(address.pointee.sa_family)
+        let bytes: [UInt8]
+        switch family {
+        case AF_INET:
+            bytes = address.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
+                withUnsafeBytes(of: $0.pointee.sin_addr) { Array($0) }
+            }
+        case AF_INET6:
+            bytes = address.withMemoryRebound(to: sockaddr_in6.self, capacity: 1) {
+                withUnsafeBytes(of: $0.pointee.sin6_addr) { Array($0) }
+            }
+        default:
+            continue
+        }
+        if let identity = tunnelAddressIdentity(family: family, bytes: bytes) {
+            identities.insert(identity)
+        }
+    }
+    return identities.sorted()
+}
+
+// The hard half of the physical path monitor: which path is settled, whether
+// the path went unusable since, and which settle timer still owns the latest
+// update. Pure so its transitions are unit tested; the extension keeps it on
+// the path monitor's queue. Quality-only signals (radio type, Wi-Fi bars)
+// never touch it, so they cannot postpone a hard change.
+struct TunnelPhysicalPathTransition {
+    enum Outcome: Equatable {
+        // the first usable path: nothing on it to recover
+        case baseline
+        case unchanged
+        // the same network, reported in more detail: its gateways late
+        // (inside lateGatewayGrace of the path appearing or changing), or an
+        // address added in a family already in use. Nothing to recover.
+        case refined
+        // restored: the path was unusable in between
+        case changed(restored: Bool)
+    }
+
+    // Why the last settle changed or refined the path, for its log line.
+    enum Cause: String {
+        case unavailable
+        case interfaces
+        // an address in use is gone: the sockets bound to it are dead
+        case address
+        // an address family that was not there before can be dialed now
+        case family
+        case gateway
+        case lateGateway = "late-gateway"
+        case addressAdded = "address-added"
+    }
+
+    private(set) var stableSignature: TunnelPhysicalPathSignature?
+    private(set) var pendingSignature: TunnelPhysicalPathSignature?
+    private(set) var generation: UInt64 = 0
+    private(set) var lastCause: Cause?
+    private var unavailable = false
+    // when the path last appeared or changed (systemUptime)
+    private var lastChangeAt: TimeInterval?
+    let lateGatewayGrace: TimeInterval
+
+    init(lateGatewayGrace: TimeInterval = TunnelRecoveryTiming().lateGatewayGrace) {
+        self.lateGatewayGrace = lateGatewayGrace
+    }
+
+    // An unusable path strands every socket on the old one -- including the
+    // failing dials of a tunnel that started with no network at all -- so the
+    // next usable path recovers even when its signature is the same.
+    mutating func observeUnavailable() -> UInt64 {
+        unavailable = true
+        pendingSignature = nil
+        generation &+= 1
+        return generation
+    }
+
+    // A usable path. Returns the generation its settle timer must own, or nil
+    // when this exact path is already settling: a repeated update (a
+    // defaultPath re-check, a property-only change) keeps the running timer.
+    mutating func observeUsable(signature: TunnelPhysicalPathSignature) -> UInt64? {
+        guard pendingSignature != signature else { return nil }
+        pendingSignature = signature
+        generation &+= 1
+        return generation
+    }
+
+    func isCurrent(_ generation: UInt64) -> Bool {
+        generation == self.generation
+    }
+
+    // The settle timer for `generation` fired at `at` (systemUptime); nil when
+    // a later update owns it.
+    mutating func settle(
+        _ generation: UInt64,
+        signature: TunnelPhysicalPathSignature,
+        at: TimeInterval
+    ) -> Outcome? {
+        guard isCurrent(generation), pendingSignature == signature else { return nil }
+        let outcome: Outcome
+        let cause: Cause?
+        if unavailable {
+            (outcome, cause) = (.changed(restored: true), .unavailable)
+        } else if let stableSignature {
+            (outcome, cause) = classify(from: stableSignature, to: signature, at: at)
+        } else {
+            (outcome, cause) = (.baseline, nil)
+        }
+        switch outcome {
+        case .baseline, .changed:
+            lastChangeAt = at
+        case .unchanged, .refined:
+            break
+        }
+        lastCause = cause
+        pendingSignature = nil
+        stableSignature = signature
+        unavailable = false
+        return outcome
+    }
+
+    private func classify(
+        from old: TunnelPhysicalPathSignature,
+        to new: TunnelPhysicalPathSignature,
+        at: TimeInterval
+    ) -> (Outcome, Cause?) {
+        guard old != new else { return (.unchanged, nil) }
+        if old.interfaces != new.interfaces {
+            return (.changed(restored: false), .interfaces)
+        }
+        let oldAddresses = Set(old.addresses)
+        let newAddresses = Set(new.addresses)
+        // Wi-Fi A to B on the same interface, often behind the same gateway
+        // address: only the address moves
+        if !oldAddresses.isSubset(of: newAddresses) {
+            return (.changed(restored: false), .address)
+        }
+        // a transport pinned to a family that had no address failed its dial
+        // and is backing off; the kick lets it dial now
+        let family = { (identity: String) in identity.contains(":") ? 6 : 4 }
+        if !Set(newAddresses.map(family)).isSubset(of: Set(oldAddresses.map(family))) {
+            return (.changed(restored: false), .family)
+        }
+        if old.gateways != new.gateways {
+            if let lastChangeAt, at - lastChangeAt < lateGatewayGrace {
+                return (.refined, .lateGateway)
+            }
+            return (.changed(restored: false), .gateway)
+        }
+        return (.refined, .addressAdded)
+    }
+}
+
 // Shared debounce work distinguishes a settings-only nudge from an actual
 // path recovery. Cancellation/supersession is admitted before every effect.
 @discardableResult
@@ -1171,6 +1377,41 @@ func restoreTunnelDestination<Location>(
     try apply(plan)
     report("consumer", plan.location == nil ? "local" : "accepted")
     return plan
+}
+
+// The packet tunnel's path and recovery timing, in seconds. Each default lives
+// here; the provider owns one instance, so a test or caller can run with its
+// own values.
+struct TunnelRecoveryTiming: Equatable {
+    // A physical path must hold this long before it is evaluated, so a
+    // Wi-Fi/cellular transition burst settles into one decision. 0 evaluates
+    // every update.
+    var pathSettleDelay: TimeInterval = 0.350
+    // The shortest time between two transport kicks. A kick inside it is
+    // postponed to its end, never dropped; 0 kicks every settled change.
+    var minimumKickInterval: TimeInterval = 2
+    // The shortest time between two path-driven destination recoveries (the
+    // auth and destination re-check after a kick); 0 admits every one.
+    var minimumPathRecoveryInterval: TimeInterval = 2
+    // NEProvider.defaultPath can lead the path monitor; its change re-checks
+    // the monitor's path again after this.
+    var defaultPathRecheckDelay: TimeInterval = 0.5
+    // After a wake the window gets this long before an empty one is recovered.
+    var wakeHealthGrace: TimeInterval = 5
+    // A gateway-only change on the same interfaces and addresses this soon
+    // after the path appeared or changed is the late half of that change (an
+    // attach can report its gateway seconds after its interface), so it does
+    // not kick again. 0 kicks on every gateway change.
+    var lateGatewayGrace: TimeInterval = 5
+    // A failed settings apply retries once after this.
+    var settingsRetryDelay: TimeInterval = 0.350
+    // How long startup and destination recovery wait on auth before
+    // reporting the wait; the work itself is never abandoned.
+    var authObservationDeadline: TimeInterval = 15
+    // The Wi-Fi signal sampler's cadence and leeway (iOS). A low cadence:
+    // only a bar crossing matters. 0 samples once, at start.
+    var wifiQualitySampleInterval: TimeInterval = 5
+    var wifiQualitySampleLeeway: TimeInterval = 1
 }
 
 enum TunnelReadiness: String {

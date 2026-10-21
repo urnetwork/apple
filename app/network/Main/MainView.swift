@@ -23,6 +23,11 @@ struct MainView: View {
     @StateObject private var subscriptionManager: AppStoreSubscriptionManager
     /// The direct-download build's Stripe billing (idle on the App Store build; see BillingDistribution).
     @StateObject private var stripeSubscriptionStore: StripeSubscriptionStore
+    #if DIRECT_DOWNLOAD
+    /// The direct-download build's crypto invoice (Card · USDC · Zcash ·
+    /// Monero; see CryptoInvoiceStore). The App Store builds have none.
+    @StateObject private var cryptoInvoiceStore: CryptoInvoiceStore
+    #endif
     @StateObject private var providerListStore: ProviderListStore
     /// The Pro celebration launcher, shared by the purchase flows and the account's Pro label.
     @StateObject private var proCelebration = ProCelebrationState()
@@ -70,6 +75,11 @@ struct MainView: View {
         self.isPro = isPro
         _subscriptionManager = StateObject(wrappedValue: AppStoreSubscriptionManager(networkId: networkId))
         _stripeSubscriptionStore = StateObject(wrappedValue: StripeSubscriptionStore(api: api))
+        #if DIRECT_DOWNLOAD
+        // on the device: the invoice is saved in its network space's local
+        // state, which a sign-out clears, and the controller closes with it
+        _cryptoInvoiceStore = StateObject(wrappedValue: CryptoInvoiceStore(device: device))
+        #endif
         _providerListStore = StateObject(wrappedValue: ProviderListStore(urApiService: urApiService))
     }
     
@@ -138,9 +148,18 @@ struct MainView: View {
         .environmentObject(subscriptionBalanceViewModel)
         .environmentObject(subscriptionManager)
         .environmentObject(stripeSubscriptionStore)
+        #if DIRECT_DOWNLOAD
+        .environmentObject(cryptoInvoiceStore)
+        #endif
         .environmentObject(proCelebration)
         .onAppear {
             subscriptionBalanceViewModel.setActive(presentationActive)
+            #if DIRECT_DOWNLOAD
+            // the invoice polls only while it shows and the app is active
+            cryptoInvoiceStore.setAppActive(presentationActive)
+            // launch: a saved invoice that isn't paid gets the account row
+            cryptoInvoiceStore.resume()
+            #endif
 
             /**
              * Catch-up for transactions that arrived BEFORE this view existed:
@@ -159,9 +178,15 @@ struct MainView: View {
         }
         .onChange(of: presentationActive) { active in
             subscriptionBalanceViewModel.setActive(active)
+            #if DIRECT_DOWNLOAD
+            cryptoInvoiceStore.setAppActive(active)
+            #endif
         }
         .onDisappear {
             subscriptionBalanceViewModel.setActive(false)
+            #if DIRECT_DOWNLOAD
+            cryptoInvoiceStore.setAppActive(false)
+            #endif
         }
         .onChange(of: subscriptionManager.transactionUpdateSequence) { _ in
             /**
@@ -195,6 +220,20 @@ struct MainView: View {
              */
             subscriptionBalanceViewModel.serverRefusedGuestPurchase()
         }
+        #if DIRECT_DOWNLOAD
+        .onChange(of: cryptoInvoiceStore.guestSignInRequiredSequence) { _ in
+            // the same refusal for a crypto invoice
+            subscriptionBalanceViewModel.serverRefusedGuestPurchase()
+        }
+        .onChange(of: cryptoInvoiceStore.paidSequence) { _ in
+            /**
+             * A crypto invoice was paid (credited): what a card purchase's
+             * success does, the confirmation poll, which reads the balance
+             * and refreshes the jwt to Pro.
+             */
+            subscriptionBalanceViewModel.startPolling()
+        }
+        #endif
         #if !DIRECT_DOWNLOAD
         .onChange(of: transactionMonitor.wrongNetworkSequence) { _ in
             /**

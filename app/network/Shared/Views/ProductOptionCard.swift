@@ -27,6 +27,9 @@ struct ProductOptionCard: View {
     var pill: String = String(localized: "Best value")
     /// The line under the trial line on the offer card: the static deadline.
     var deadline: String? = nil
+    /// False greys the card out and ignores taps (the direct-download build's
+    /// monthly plan while a coin is the payment method: "Monthly is card only").
+    var isEnabled: Bool = true
 
     private var accent: Color {
         bestValue ? introProGold : .accent
@@ -126,10 +129,14 @@ struct ProductOptionCard: View {
                     .offset(y: -16)
             }
         }
+        .opacity(isEnabled ? 1 : 0.4)
         .contentShape(Rectangle())
         .onTapGesture {
-            select()
+            if isEnabled {
+                select()
+            }
         }
+        .disabled(!isEnabled)
     }
 }
 

@@ -114,6 +114,26 @@ class SubscriptionBalanceViewModel: ObservableObject {
         return Locale.current.localizedString(forRegionCode: storefrontCountry)
     }
 
+    /**
+     * The crypto payments the balance carries (crypto-pay CONTRACT §2.2), for
+     * the direct-download build's method row and account screen; the App
+     * Store builds show none of them. Per plan a coin can buy (yearly,
+     * yearly_onboarding): the SDK's PaymentMethods over `crypto_assets`, Card
+     * first. Card alone (or nothing yet) shows no method row.
+     */
+    @Published private(set) var cryptoPaymentMethods: [String: [String]] = [:]
+    /// The network's latest one-time crypto credit whose grace has not ended.
+    @Published private(set) var cryptoTerm: CryptoTerm?
+    /// The current subscription's store family (ClassifySubscriptionStore):
+    /// "crypto" for a one-time crypto year, which does not renew.
+    @Published private(set) var currentSubscriptionStoreClass: String = ""
+
+    /// The method row's methods for the plan a coin buys on a surface: the
+    /// welcome offer while one is active, else yearly.
+    func cryptoPaymentMethods(offerActive: Bool) -> [String] {
+        cryptoPaymentMethods[PaymentMethodRules.coinPlan(offerActive: offerActive)] ?? []
+    }
+
 
     init(
         urApiService: UrApiServiceProtocol,
@@ -218,6 +238,18 @@ class SubscriptionBalanceViewModel: ObservableObject {
             if variants != experimentVariants { experimentVariants = variants }
             if ids != experimentIds { experimentIds = ids }
         }
+        applyCryptoPayments(result)
+    }
+
+    /// Reads the crypto payment methods, the crypto term and the current
+    /// store's family off a balance result (an older server sends none).
+    func applyCryptoPayments(_ result: SdkSubscriptionBalanceResult) {
+        let methods = CryptoPaymentSdk.methodsByPlan(result.cryptoAssets)
+        if methods != cryptoPaymentMethods { cryptoPaymentMethods = methods }
+        let term = CryptoPaymentSdk.term(result.cryptoTerm)
+        if term != cryptoTerm { cryptoTerm = term }
+        let storeClass = CryptoPaymentSdk.storeClass(result.currentSubscription?.store ?? "")
+        if storeClass != currentSubscriptionStoreClass { currentSubscriptionStoreClass = storeClass }
     }
 
     private func applyOffer(_ offer: SdkOnboardingOffer?) {

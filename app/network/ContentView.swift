@@ -55,7 +55,7 @@ struct ContentView: View {
                         .font(.headline)
                     Text("Try again to continue.")
                         .multilineTextAlignment(.center)
-                    Button("Try Again") {
+                    Button("Try again") {
                         deviceManager.retryStoredAuthenticationStartup()
                     }
                 }

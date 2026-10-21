@@ -176,9 +176,19 @@ struct PlanPresentation: Equatable {
 
     /// The lines under the yearly title, in order.
     var yearlyLines: [String] {
+        yearlyLines(oneTime: false)
+    }
+
+    /// The lines under the yearly title. `oneTime`: the year is bought once
+    /// (a coin on the direct-download build, crypto-pay CONTRACT §6.1), with
+    /// no trial and no renewal, so the renewal line ("then $39.99/year") and
+    /// the trial line are left out; the title keeps the price paid.
+    func yearlyLines(oneTime: Bool) -> [String] {
         var lines: [String] = []
         if hasOffer {
-            lines.append(String(format: String(localized: "then %@/year"), yearly.display))
+            if !oneTime {
+                lines.append(String(format: String(localized: "then %@/year"), yearly.display))
+            }
         } else if let equivalent, equivalent.showEquivalent, !tier.isRegional {
             lines.append(String(
                 format: String(localized: "≈ %@/month · billed once a year"),
@@ -187,7 +197,7 @@ struct PlanPresentation: Equatable {
         } else if tier.isRegional, let storefrontCountryName {
             lines.append(String(format: String(localized: "Billed once a year · price for %@"), storefrontCountryName))
         }
-        if let trialDays {
+        if let trialDays, !oneTime {
             lines.append(String(format: String(localized: "Includes %lld day free trial"), trialDays))
         }
         return lines

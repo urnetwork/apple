@@ -22,6 +22,9 @@ struct MainNavigationSplitView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var stripeSubscriptionStore: StripeSubscriptionStore
+    #if DIRECT_DOWNLOAD
+    @EnvironmentObject var cryptoInvoiceStore: CryptoInvoiceStore
+    #endif
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var snackbarManager: UrSnackbarManager
@@ -236,6 +239,9 @@ struct MainNavigationSplitView: View {
             .environmentObject(deviceManager)
             .environmentObject(subscriptionManager)
             .environmentObject(stripeSubscriptionStore)
+            #if DIRECT_DOWNLOAD
+            .environmentObject(cryptoInvoiceStore)
+            #endif
             .environmentObject(subscriptionBalanceViewModel)
             .environmentObject(connectViewModel)
             .frame(minWidth: 600, minHeight: 700)
@@ -311,6 +317,9 @@ struct MainNavigationSplitView: View {
             .environmentObject(deviceManager)
             .environmentObject(subscriptionManager)
             .environmentObject(stripeSubscriptionStore)
+            #if DIRECT_DOWNLOAD
+            .environmentObject(cryptoInvoiceStore)
+            #endif
             .environmentObject(subscriptionBalanceViewModel)
             .environmentObject(connectViewModel)
             .frame(minWidth: 560, minHeight: 700)

@@ -21,6 +21,11 @@ struct AccountRootView: View {
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @EnvironmentObject var subscriptionManager: AppStoreSubscriptionManager
     @EnvironmentObject var stripeSubscriptionStore: StripeSubscriptionStore
+    #if DIRECT_DOWNLOAD
+    /// The direct-download build's crypto invoice: its in-progress row here,
+    /// and the upgrade sheet's method row and invoice.
+    @EnvironmentObject var cryptoInvoiceStore: CryptoInvoiceStore
+    #endif
 
     /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
     /// direct download (see BillingDistribution).
@@ -174,7 +179,8 @@ struct AccountRootView: View {
                         if let manageAction = manageSubscriptionAction(
                             platform: .current,
                             hasAppStoreSubscription: subscriptionManager.hasAppStoreSubscription,
-                            isPro: isPro
+                            isPro: isPro,
+                            storeClass: subscriptionBalanceViewModel.currentSubscriptionStoreClass
                         ) {
                             HStack {
                                 Spacer()
@@ -217,6 +223,10 @@ struct AccountRootView: View {
                                 }
                             }
                         }
+
+                        #if DIRECT_DOWNLOAD
+                        cryptoPlanLines
+                        #endif
 
                         Spacer().frame(height: 8)
                      
@@ -531,7 +541,20 @@ struct AccountRootView: View {
             Task {
                 await subscriptionBalanceViewModel.fetchSubscriptionBalance()
             }
+            #if DIRECT_DOWNLOAD
+            // a saved crypto invoice that isn't paid gets its row
+            cryptoInvoiceStore.resume()
+            #endif
         }
+        #if DIRECT_DOWNLOAD
+        .onChange(of: cryptoInvoiceStore.paidSequence) { _ in
+            // paid while only the row showed it: the upgrade sheet shows the
+            // success a card purchase shows
+            if cryptoInvoiceStore.paidWhere == .accountRow && !viewModel.isPresentedUpgradeSheet {
+                viewModel.isPresentedUpgradeSheet = true
+            }
+        }
+        #endif
         // "About your data", from the usage bar's info button
         .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
         .sheet(isPresented: $viewModel.isPresentedRedeemBalanceCodeSheet) {
@@ -724,6 +747,37 @@ struct AccountRootView: View {
         
     }
     
+    #if DIRECT_DOWNLOAD
+    /**
+     * The plan card's crypto lines (crypto-pay CONTRACT §6.2): a one-time
+     * crypto year does not renew; once its paid term ended, the notice to
+     * renew within the grace; and a saved invoice that isn't paid, as a row
+     * that opens it in the upgrade sheet.
+     */
+    @ViewBuilder
+    private var cryptoPlanLines: some View {
+        if isPro && subscriptionStoreIsCrypto(subscriptionBalanceViewModel.currentSubscriptionStoreClass) {
+            Text("Does not renew. Pay again when it ends.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
+        if let term = subscriptionBalanceViewModel.cryptoTerm {
+            CryptoTermNotice(term: term, renew: {
+                viewModel.isPresentedUpgradeSheet = true
+            })
+        }
+
+        if cryptoInvoiceStore.hasInvoiceInProgress {
+            CryptoPaymentInProgressRow(store: cryptoInvoiceStore, open: {
+                cryptoInvoiceStore.presentInvoice()
+                viewModel.isPresentedUpgradeSheet = true
+            })
+        }
+    }
+    #endif
+
     /**
      * "Create an account" for a legacy guest: add a sign-in method to the
      * current network, then re-sign the jwt so guest mode clears. This used to

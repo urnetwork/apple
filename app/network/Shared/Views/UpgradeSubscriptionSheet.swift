@@ -100,8 +100,51 @@ struct UpgradeSubscriptionSheet: View {
     @EnvironmentObject var proCelebration: ProCelebrationState
     @State private var celebratedPurchase: Bool = false
 
+    #if DIRECT_DOWNLOAD
+    /// The direct-download build's crypto invoice (the method row's coins).
+    @EnvironmentObject var cryptoInvoiceStore: CryptoInvoiceStore
+    #endif
+
+    /// The store's purchase, or (the direct-download build) a crypto invoice, went through.
+    private var succeeded: Bool {
+        #if DIRECT_DOWNLOAD
+        return purchaseSuccess || cryptoInvoiceStore.purchaseSucceeded
+        #else
+        return purchaseSuccess
+        #endif
+    }
+
+    /// The method row (the direct-download build): Card, and the coins the
+    /// server lists for the plan a coin buys here.
+    private var methodRow: PaymentMethodRowState {
+        #if DIRECT_DOWNLOAD
+        return cryptoInvoiceStore.methodRow(
+            listed: subscriptionBalanceViewModel.cryptoPaymentMethods(offerActive: presentation.offer != nil)
+        )
+        #else
+        return .card
+        #endif
+    }
+
+    /// The failed attempt's words: the store's, else a refused crypto start's.
+    private var failureMessage: String? {
+        #if DIRECT_DOWNLOAD
+        return purchaseError ?? cryptoInvoiceStore.refusal.map(CryptoPayCopy.refusal)
+        #else
+        return purchaseError
+        #endif
+    }
+
+    /// Closes the sheet; the purchase state describes one attempt.
+    private func close() {
+        #if DIRECT_DOWNLOAD
+        cryptoInvoiceStore.resetPurchaseState()
+        #endif
+        dismiss()
+    }
+
     private func celebrateIfConfirmed() {
-        if purchaseSuccess && purchaseConfirmed && !celebratedPurchase {
+        if succeeded && purchaseConfirmed && !celebratedPurchase {
             celebratedPurchase = true
             proCelebration.launch()
         }
@@ -111,7 +154,7 @@ struct UpgradeSubscriptionSheet: View {
 
         ZStack {
 
-            if (purchaseSuccess) {
+            if (succeeded) {
 
                 PurchaseSuccessView(
                     phase: purchaseConfirmed
@@ -121,11 +164,21 @@ struct UpgradeSubscriptionSheet: View {
                     isRestoring: isRestoringPurchases,
                     restoreMessage: restoreMessage,
                     confirmingTitle: purchaseConfirmingTitle,
-                    confirmingMessage: purchaseConfirmingMessage,
-                    dismiss: dismiss
+                    confirmingMessage: confirmingMessage,
+                    dismiss: close
                 )
                 .transition(.opacity)
                 .frame(maxWidth: .infinity)
+
+            } else if showsCryptoInvoice {
+
+                #if DIRECT_DOWNLOAD
+                // the crypto invoice swaps in over the plans like the checkout
+                // page; closing it keeps it (the account screen reopens it)
+                CryptoInvoiceView(store: cryptoInvoiceStore)
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
+                #endif
 
             } else if let checkout {
 
@@ -189,7 +242,7 @@ struct UpgradeSubscriptionSheet: View {
                                 HStack {
                                     Spacer()
                                     Button(action: {
-                                        dismiss()
+                                        close()
                                     }) {
                                         Image(systemName: "xmark")
                                             .foregroundColor(themeManager.currentTheme.textMutedColor)
@@ -249,7 +302,7 @@ struct UpgradeSubscriptionSheet: View {
                                  * on Apple's side even when the attempt here
                                  * reported an error.
                                  */
-                                if let purchaseError {
+                                if let purchaseError = failureMessage {
 
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text(purchaseError)
@@ -307,6 +360,15 @@ struct UpgradeSubscriptionSheet: View {
                                     presentation: presentation,
                                     selectedPaymentOption: $selectedPaymentOption,
                                     purchase: {
+                                        #if DIRECT_DOWNLOAD
+                                        // a coin: the invoice, never the store (and the
+                                        // VPN stays up: the wallet pays outside the app)
+                                        let method = methodRow.selected
+                                        if method.isCoin {
+                                            payWithCoin(method)
+                                            return
+                                        }
+                                        #endif
                                         // the active welcome offer on the yearly plan goes
                                         // through the App Store offer code; everything else
                                         // is a plain purchase
@@ -336,6 +398,12 @@ struct UpgradeSubscriptionSheet: View {
                                                 plan: option == .monthly ? SdkPlanMonthly : SdkPlanYearly
                                             )
                                         }
+                                    },
+                                    methodRow: methodRow,
+                                    chooseMethod: { method in
+                                        #if DIRECT_DOWNLOAD
+                                        cryptoInvoiceStore.choose(method)
+                                        #endif
                                     }
                                 )
 
@@ -367,7 +435,7 @@ struct UpgradeSubscriptionSheet: View {
 
         }
         .frame(maxWidth: .infinity)
-        .animation(.easeIn(duration: 0.25), value: purchaseSuccess)
+        .animation(.easeIn(duration: 0.25), value: succeeded)
         // the celebration draws over the sheet, which sits above the app root
         .proCelebrationLayer()
         .onChange(of: purchaseConfirmed) { _ in
@@ -385,9 +453,61 @@ struct UpgradeSubscriptionSheet: View {
             // that failed at app init -- retry when it opens
             retryFetchProducts()
             celebrateIfConfirmed()
+            #if DIRECT_DOWNLOAD
+            // a crypto invoice in progress shows before the plans: paying
+            // again by another way would pay twice
+            if cryptoInvoiceStore.resume() {
+                cryptoInvoiceStore.presentInvoice()
+            }
+            #endif
         }
+        #if DIRECT_DOWNLOAD
+        .onChange(of: cryptoInvoiceStore.purchaseSucceeded) { _ in
+            celebrateIfConfirmed()
+        }
+        .onDisappear {
+            // closed by the system (Escape): the next opening starts clean
+            cryptoInvoiceStore.resetPurchaseState()
+        }
+        #endif
 
     }
+
+    /// The success view's line while the server confirms: the store's, or for
+    /// a paid crypto invoice the confirmation every non-store purchase shows.
+    private var confirmingMessage: String? {
+        #if DIRECT_DOWNLOAD
+        if !purchaseSuccess && cryptoInvoiceStore.purchaseSucceeded {
+            return CryptoPayCopy.confirmingMessage
+        }
+        #endif
+        return purchaseConfirmingMessage
+    }
+
+    /// The crypto invoice shows over the plans (the direct-download build).
+    private var showsCryptoInvoice: Bool {
+        #if DIRECT_DOWNLOAD
+        return cryptoInvoiceStore.isPresented
+        #else
+        return false
+        #endif
+    }
+
+    #if DIRECT_DOWNLOAD
+    /// A coin's plan: yearly, or the welcome offer's year while the sheet
+    /// shows the offer (the card keeps its own coupon handling).
+    private func payWithCoin(_ method: PaymentMethod) {
+        let offerActive = presentation.offer != nil
+        if offerActive {
+            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: method.eventStore)
+        }
+        cryptoInvoiceStore.startInvoice(
+            method,
+            plan: PaymentMethodRules.coinPlan(offerActive: offerActive),
+            storefrontCountry: subscriptionBalanceViewModel.storefrontCountry
+        )
+    }
+    #endif
 }
 
 //#Preview {

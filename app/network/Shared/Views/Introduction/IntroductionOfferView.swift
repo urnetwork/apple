@@ -36,6 +36,55 @@ struct IntroductionOfferView: View {
     var surface: String = SdkOfferSurfaceFinalScreen
     var experimentId: String = ""
     var experimentVariant: String = ""
+    /// The method row above the button (the direct-download build, crypto-pay
+    /// CONTRACT §6.1); Card alone shows none.
+    var methodRow: PaymentMethodRowState = .card
+    /// A pick on the method row.
+    var chooseMethod: (PaymentMethod) -> Void = { _ in }
+    /// Pays for the offer's year with the selected coin (the welcome offer's
+    /// plan, yearly_onboarding).
+    var payWithCoin: (PaymentMethod) -> Void = { _ in }
+
+    /// The button: the offer's call to action for Card, "Pay with {method}" for a coin.
+    private var ctaTitle: String {
+        #if DIRECT_DOWNLOAD
+        if methodRow.selected.isCoin {
+            return CryptoPayCopy.payButton(methodRow.selected)
+        }
+        #endif
+        return presentation.ctaTitle(for: .yearly)
+    }
+
+    /// The offer card's lines: no renewal or trial line while a coin is the
+    /// method (crypto-pay CONTRACT §6.1); the price stays the first year's.
+    private var offerCardLines: [String] {
+        #if DIRECT_DOWNLOAD
+        if methodRow.selected.isCoin {
+            return presentation.yearlyLines(oneTime: true)
+        }
+        #endif
+        return presentation.yearlyLines
+    }
+
+    /// The offer card keeps its Card height on the direct-download build, so
+    /// it does not jump when a coin hides lines.
+    private var offerCardReservedLineCount: Int {
+        #if DIRECT_DOWNLOAD
+        return presentation.yearlyLines.count
+        #else
+        return 0
+        #endif
+    }
+
+    /// The line under the button: the offer's terms for Card, a coin's fine print.
+    private var termsLine: String? {
+        #if DIRECT_DOWNLOAD
+        if methodRow.selected.isCoin {
+            return CryptoPayCopy.finePrintYearly
+        }
+        #endif
+        return presentation.termsLine(for: .yearly)
+    }
 
     @State private var shownAt: Date? = nil
 
@@ -51,6 +100,12 @@ struct IntroductionOfferView: View {
 
     /// The trial timeline; empty when no trial may be promised (see planFreeTrialDays).
     private var timeline: [(label: String, text: String)] {
+        #if DIRECT_DOWNLOAD
+        // a coin buys the year once: no trial (crypto-pay CONTRACT §6.1)
+        if methodRow.selected.isCoin {
+            return []
+        }
+        #endif
         guard let days = presentation.trialDays else {
             return []
         }
@@ -111,9 +166,10 @@ struct IntroductionOfferView: View {
 
                     ProductOptionCard(
                         title: presentation.yearlyTitle,
-                        lines: presentation.yearlyLines,
+                        lines: offerCardLines,
                         select: { ClientEvents.shared.offerCardTapped(plan: SdkPlanYearly) },
                         isSelected: true,
+                        reservedLineCount: offerCardReservedLineCount,
                         bestValue: true,
                         pill: presentation.yearlyPill,
                         deadline: presentation.availableUntilLine()
@@ -150,10 +206,29 @@ struct IntroductionOfferView: View {
 
                     Spacer(minLength: 24)
 
+                    #if DIRECT_DOWNLOAD
+                    if methodRow.isShown {
+                        PaymentMethodRowView(row: methodRow, choose: chooseMethod)
+
+                        Spacer().frame(height: 12)
+                    }
+                    #endif
+
                     UrButton(
-                        text: LocalizedStringKey(presentation.ctaTitle(for: .yearly)),
+                        text: LocalizedStringKey(ctaTitle),
                         action: {
+                            #if DIRECT_DOWNLOAD
+                            // the events name the method's store: stripe for
+                            // Card, the coin's market otherwise
+                            let method = methodRow.selected
+                            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: method.eventStore)
+                            if method.isCoin {
+                                payWithCoin(method)
+                                return
+                            }
+                            #else
                             ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+                            #endif
                             startTrial()
                         },
                         enabled: !isPurchasing,
@@ -161,7 +236,7 @@ struct IntroductionOfferView: View {
                         accessibilityIdentifier: "acceptance.introduction.offer.start"
                     )
 
-                    if let terms = presentation.termsLine(for: .yearly) {
+                    if let terms = termsLine {
                         Spacer().frame(height: 10)
                         Text(terms)
                             .font(themeManager.currentTheme.secondaryBodyFont)

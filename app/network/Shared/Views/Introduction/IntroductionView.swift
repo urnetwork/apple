@@ -73,6 +73,10 @@ struct IntroductionView: View {
     /// The Pro celebration: launched once when the server confirms the onboarding purchase.
     @EnvironmentObject var proCelebration: ProCelebrationState
     @State private var celebratedPurchase: Bool = false
+    #if DIRECT_DOWNLOAD
+    /// The direct-download build's crypto invoice (the method row's coins).
+    @EnvironmentObject var cryptoInvoiceStore: CryptoInvoiceStore
+    #endif
 
     /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
     /// direct download (see BillingDistribution). The plans, the purchase and
@@ -82,11 +86,92 @@ struct IntroductionView: View {
     }
 
     private func celebrateIfConfirmed() {
-        if subscriptionStore.purchaseSuccess && deviceManager.isPro && !celebratedPurchase {
+        if succeeded && deviceManager.isPro && !celebratedPurchase {
             celebratedPurchase = true
             proCelebration.launch()
         }
     }
+
+    /// The store's purchase, or (the direct-download build) a crypto invoice, went through.
+    private var succeeded: Bool {
+        #if DIRECT_DOWNLOAD
+        return subscriptionStore.purchaseSuccess || cryptoInvoiceStore.purchaseSucceeded
+        #else
+        return subscriptionStore.purchaseSuccess
+        #endif
+    }
+
+    /// The success view's line while the server confirms.
+    private var confirmingMessage: String? {
+        #if DIRECT_DOWNLOAD
+        if !subscriptionStore.purchaseSuccess && cryptoInvoiceStore.purchaseSucceeded {
+            return CryptoPayCopy.confirmingMessage
+        }
+        #endif
+        return subscriptionStore.purchaseConfirmingMessage
+    }
+
+    /// The crypto invoice shows over the flow (the direct-download build).
+    private var showsCryptoInvoice: Bool {
+        #if DIRECT_DOWNLOAD
+        return cryptoInvoiceStore.isPresented
+        #else
+        return false
+        #endif
+    }
+
+    /// The method row (the direct-download build): Card, and the coins the
+    /// server lists for the plan a coin buys here.
+    private var methodRow: PaymentMethodRowState {
+        #if DIRECT_DOWNLOAD
+        return cryptoInvoiceStore.methodRow(
+            listed: subscriptionBalanceViewModel.cryptoPaymentMethods(offerActive: presentation.offer != nil)
+        )
+        #else
+        return .card
+        #endif
+    }
+
+    /// The failed attempt's words: the store's, else a refused crypto start's.
+    private var failureMessage: String? {
+        #if DIRECT_DOWNLOAD
+        return subscriptionStore.purchaseError ?? cryptoInvoiceStore.refusal.map(CryptoPayCopy.refusal)
+        #else
+        return subscriptionStore.purchaseError
+        #endif
+    }
+
+    private func chooseMethod(_ method: PaymentMethod) {
+        #if DIRECT_DOWNLOAD
+        cryptoInvoiceStore.choose(method)
+        #endif
+    }
+
+    #if DIRECT_DOWNLOAD
+    /// Pays with a coin: the invoice over the flow, never the store, and the
+    /// VPN stays up (the wallet pays outside the app). The welcome offer's
+    /// year while the offer shows; `offerCtaRecorded` when the offer page
+    /// already recorded the tap.
+    private func payWithCoin(_ method: PaymentMethod, offerCtaRecorded: Bool) {
+        let isGuest = GuestAccount.isGuest(
+            guestModeClaim: deviceManager.parsedJwt?.guestMode,
+            serverGuest: subscriptionBalanceViewModel.isGuest
+        )
+        if GuestAccount.purchaseEntry(isGuest: isGuest) == .addSignInMethod {
+            openGuestConversion()
+            return
+        }
+        let offerActive = presentation.offer != nil
+        if offerActive && !offerCtaRecorded {
+            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: method.eventStore)
+        }
+        cryptoInvoiceStore.startInvoice(
+            method,
+            plan: PaymentMethodRules.coinPlan(offerActive: offerActive),
+            storefrontCountry: subscriptionBalanceViewModel.storefrontCountry
+        )
+    }
+    #endif
     
     let close: () -> Void
     let totalReferrals: Int
@@ -261,7 +346,7 @@ struct IntroductionView: View {
 
         ZStack {
 
-            if (subscriptionStore.purchaseSuccess) {
+            if (succeeded) {
 
                 // the store's success is not entitlement: the copy stays
                 // processing-shaped until the confirmation poll flips isPro,
@@ -274,12 +359,22 @@ struct IntroductionView: View {
                     isRestoring: subscriptionStore.isRestoringPurchases,
                     restoreMessage: subscriptionStore.restoreResultMessage,
                     confirmingTitle: subscriptionStore.purchaseConfirmingTitle,
-                    confirmingMessage: subscriptionStore.purchaseConfirmingMessage,
+                    confirmingMessage: confirmingMessage,
                     dismiss: close
                 )
                     .transition(.opacity)
                     .frame(maxWidth: .infinity)
                     .ignoresSafeArea()
+
+            } else if showsCryptoInvoice {
+
+                #if DIRECT_DOWNLOAD
+                // the crypto invoice swaps in over the flow, like the checkout
+                // page; closing it keeps it (the account screen reopens it)
+                CryptoInvoiceView(store: cryptoInvoiceStore)
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
+                #endif
 
             } else if let checkout = subscriptionStore.checkoutView {
 
@@ -387,9 +482,16 @@ struct IntroductionView: View {
                                     start(.forSelection(.yearly, offer: presentation.offer))
                                 },
                                 isPurchasing: subscriptionStore.isPurchasing,
-                                purchaseError: subscriptionStore.purchaseError,
+                                purchaseError: failureMessage,
                                 experimentId: subscriptionBalanceViewModel.offerExperimentId,
-                                experimentVariant: subscriptionBalanceViewModel.offerExperimentVariant
+                                experimentVariant: subscriptionBalanceViewModel.offerExperimentVariant,
+                                methodRow: methodRow,
+                                chooseMethod: chooseMethod,
+                                payWithCoin: { method in
+                                    #if DIRECT_DOWNLOAD
+                                    payWithCoin(method, offerCtaRecorded: true)
+                                    #endif
+                                }
                             )
                             .onAppear {
                                 // the page restates the offer issued on page 1; a user who
@@ -439,7 +541,7 @@ struct IntroductionView: View {
             // the balance can land after page 1 appeared
             Task { await subscriptionBalanceViewModel.issueOnboardingOffer(surface: SdkOfferSurfaceIntroStep) }
         }
-        .animation(.easeIn(duration: 0.25), value: subscriptionStore.purchaseSuccess)
+        .animation(.easeIn(duration: 0.25), value: succeeded)
         .animation(.easeIn(duration: 0.25), value: balanceCodeRedeemed)
         // Over the onboarding cover, which sits above the app root. Same clear
         // overlay as the root: the body below carries a NavigationStack, which
@@ -466,6 +568,28 @@ struct IntroductionView: View {
             // not know was one (StripeSubscriptionStore.refuseForGuest)
             openGuestConversion()
         }
+        #if DIRECT_DOWNLOAD
+        .onChange(of: cryptoInvoiceStore.guestSignInRequiredSequence) { _ in
+            // the same refusal for a crypto invoice
+            openGuestConversion()
+        }
+        .onChange(of: cryptoInvoiceStore.purchaseSucceeded) { success in
+            if !success {
+                celebratedPurchase = false
+            }
+            celebrateIfConfirmed()
+        }
+        .onAppear {
+            // a crypto invoice in progress shows before the plans
+            if cryptoInvoiceStore.resume() {
+                cryptoInvoiceStore.presentInvoice()
+            }
+        }
+        .onDisappear {
+            // the success state describes one purchase
+            cryptoInvoiceStore.resetPurchaseState()
+        }
+        #endif
         
     }
 
@@ -523,13 +647,25 @@ struct IntroductionView: View {
                                 selectedPaymentOption: $selectedPaymentOption,
                                 purchase: {
 
+                                #if DIRECT_DOWNLOAD
+                                // a coin: the invoice, never the store
+                                if methodRow.selected.isCoin {
+                                    payWithCoin(methodRow.selected, offerCtaRecorded: false)
+                                    return
+                                }
+                                #endif
                                 // the active welcome offer on the yearly plan goes through
                                 // the store's offer path (the App Store offer code, step 5;
                                 // the Stripe coupon); the rest is a plain purchase. A plan
                                 // whose product has not arrived is the store's to report.
                                 let purchase = OnboardingPurchase.forSelection(selectedPaymentOption, offer: presentation.offer)
                                 if case .redeemOffer = purchase {
+                                    #if DIRECT_DOWNLOAD
+                                    // the events name the method's store: stripe for Card
+                                    ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: PaymentMethod.card.eventStore)
+                                    #else
                                     ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+                                    #endif
                                 }
                                 start(purchase)
 
@@ -540,14 +676,16 @@ struct IntroductionView: View {
                                         plan: option == .monthly ? SdkPlanMonthly : SdkPlanYearly
                                     )
                                 }
-                            })
+                            },
+                            methodRow: methodRow,
+                            chooseMethod: chooseMethod)
 
                             /**
                              * A failed attempt renders its reason
                              * inline (finding A5), with the manual
                              * resync beside it (finding A3).
                              */
-                            if let purchaseError = subscriptionStore.purchaseError {
+                            if let purchaseError = failureMessage {
 
                                 Spacer().frame(height: 12)
 

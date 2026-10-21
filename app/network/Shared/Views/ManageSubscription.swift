@@ -77,15 +77,18 @@ func manageSubscriptionOnWebURL(authCode: String) -> URL? {
 /// when there is nothing to manage. On the App Store builds: this Apple ID's
 /// App Store subscription through Apple, else a Pro plan billed elsewhere on
 /// ur.io. On the direct-download build: the network's Pro plan in the Stripe
-/// portal (StoreKit is never consulted).
+/// portal (StoreKit is never consulted), except a one-time crypto year
+/// (`storeClass` "crypto", ClassifySubscriptionStore), which never renews and
+/// has nothing to manage.
 func manageSubscriptionAction(
     platform: ManageSubscriptionPlatform,
     distribution: BillingDistribution = .current,
     hasAppStoreSubscription: Bool,
-    isPro: Bool = false
+    isPro: Bool = false,
+    storeClass: String = ""
 ) -> ManageSubscriptionAction? {
     if distribution == .direct {
-        return isPro ? .stripePortal : nil
+        return isPro && !subscriptionStoreIsCrypto(storeClass) ? .stripePortal : nil
     }
     guard hasAppStoreSubscription else {
         return isPro ? .manageOnWeb : nil

@@ -53,6 +53,11 @@ func storeYearlyTrialDays(for yearly: Product?) async -> Int? {
 /// follow the selection: the trial starts on yearly, monthly just subscribes. The layout is
 /// the same before, during and after the store answers (see PlanPresentation); a tap on a plan
 /// whose product is missing is the caller's to report.
+///
+/// The direct-download build adds the method row (Card · USDC · Zcash · Monero, crypto-pay
+/// CONTRACT §6.1) directly above the button when the server lists a coin: a coin greys monthly
+/// out ("Monthly is card only") and moves the selection to yearly, and the button and its fine
+/// print follow the method. The caller's `purchase` reads the method to pay with it.
 struct SubscriptionPlanPicker: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -64,19 +69,75 @@ struct SubscriptionPlanPicker: View {
     let purchase: () -> Void
     /// A plan card was tapped (the offer surfaces record it).
     var onCardTapped: (PaymentOption) -> Void = { _ in }
+    /// The method row (the direct-download build); Card alone shows none.
+    var methodRow: PaymentMethodRowState = .card
+    /// A pick on the method row.
+    var chooseMethod: (PaymentMethod) -> Void = { _ in }
+
+    /// The yearly card's lines: no renewal or trial line while a coin is the
+    /// method (crypto-pay CONTRACT §6.1); the coin's fine print says it.
+    private var yearlyLines: [String] {
+        #if DIRECT_DOWNLOAD
+        if methodRow.selected.isCoin {
+            return presentation.yearlyLines(oneTime: true)
+        }
+        #endif
+        return presentation.yearlyLines
+    }
+
+    /// The height the yearly card reserves: the monthly card's lines, and on
+    /// the direct-download build its own card lines too, so the card does not
+    /// jump when a coin hides some.
+    private var yearlyReservedLineCount: Int {
+        #if DIRECT_DOWNLOAD
+        return max(presentation.monthlyLines.count, presentation.yearlyLines.count)
+        #else
+        return presentation.monthlyLines.count
+        #endif
+    }
+
+    /// The monthly card's lines: "Monthly is card only" while a coin is the method.
+    private var monthlyLines: [String] {
+        #if DIRECT_DOWNLOAD
+        if !methodRow.allowsMonthly {
+            return [CryptoPayCopy.monthlyCardOnly]
+        }
+        #endif
+        return presentation.monthlyLines
+    }
+
+    /// The button: the plan's call to action for Card, "Pay with {method}" for a coin.
+    private var ctaTitle: String {
+        #if DIRECT_DOWNLOAD
+        if methodRow.selected.isCoin {
+            return CryptoPayCopy.payButton(methodRow.selected)
+        }
+        #endif
+        return presentation.ctaTitle(for: selectedPaymentOption)
+    }
+
+    /// The line under the button: the plan's terms for Card, a coin's fine print.
+    private var termsLine: String? {
+        #if DIRECT_DOWNLOAD
+        if methodRow.selected.isCoin {
+            return CryptoPayCopy.finePrintYearly
+        }
+        #endif
+        return presentation.termsLine(for: selectedPaymentOption)
+    }
 
     var body: some View {
         VStack(alignment: .leading) {
 
             ProductOptionCard(
                 title: presentation.yearlyTitle,
-                lines: presentation.yearlyLines,
+                lines: yearlyLines,
                 select: {
                     selectedPaymentOption = .yearly
                     onCardTapped(.yearly)
                 },
                 isSelected: selectedPaymentOption == .yearly,
-                reservedLineCount: presentation.monthlyLines.count,
+                reservedLineCount: yearlyReservedLineCount,
                 bestValue: true,
                 pill: presentation.yearlyPill,
                 deadline: presentation.availableUntilLine()
@@ -86,24 +147,33 @@ struct SubscriptionPlanPicker: View {
 
             ProductOptionCard(
                 title: presentation.monthlyTitle,
-                lines: presentation.monthlyLines,
+                lines: monthlyLines,
                 select: {
                     selectedPaymentOption = .monthly
                     onCardTapped(.monthly)
                 },
                 isSelected: selectedPaymentOption == .monthly,
                 // equal height with the yearly card, which carries more lines
-                reservedLineCount: presentation.yearlyLines.count
+                reservedLineCount: presentation.yearlyLines.count,
+                isEnabled: methodRow.allowsMonthly
             )
 
             Spacer().frame(height: 18)
 
+            #if DIRECT_DOWNLOAD
+            if methodRow.isShown {
+                PaymentMethodRowView(row: methodRow, choose: chooseMethod)
+
+                Spacer().frame(height: 12)
+            }
+            #endif
+
             UrButton(
-                text: LocalizedStringKey(presentation.ctaTitle(for: selectedPaymentOption)),
+                text: LocalizedStringKey(ctaTitle),
                 action: purchase
             )
 
-            if let terms = presentation.termsLine(for: selectedPaymentOption) {
+            if let terms = termsLine {
                 Spacer().frame(height: 10)
 
                 // the billed amount and the renewal, under the button, every time
@@ -112,5 +182,23 @@ struct SubscriptionPlanPicker: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
         }
+        #if DIRECT_DOWNLOAD
+        // a coin sells no monthly: the selection moves to yearly
+        .onAppear {
+            moveOffMonthlyIfNeeded(allowsMonthly: methodRow.allowsMonthly)
+        }
+        .onChange(of: methodRow.allowsMonthly) { allowsMonthly in
+            moveOffMonthlyIfNeeded(allowsMonthly: allowsMonthly)
+        }
+        #endif
     }
+
+    #if DIRECT_DOWNLOAD
+    private func moveOffMonthlyIfNeeded(allowsMonthly: Bool) {
+        let plan = PaymentMethodRules.plan(selectedPaymentOption, allowsMonthly: allowsMonthly)
+        if plan != selectedPaymentOption {
+            selectedPaymentOption = plan
+        }
+    }
+    #endif
 }

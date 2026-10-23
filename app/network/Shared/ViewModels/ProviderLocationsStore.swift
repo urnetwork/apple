@@ -144,6 +144,12 @@ class ProviderLocationsStore: ObservableObject {
     // the disabled-discovery treatment instead while this is false.
     @Published private(set) var providersAvailable: Bool = false
 
+    // Whether "Stay on this exit" can pin the row's extender too (EXTENDER.md
+    // K10): the extension's device keeps the pin, which an older build would
+    // drop. Read again on every reconnect, since the extension can be a
+    // different build by then.
+    @Published private(set) var supportsExtenderPin: Bool = false
+
     private var device: SdkDeviceRemote?
     private var locationsSub: SdkSubProtocol?
     private var remoteSub: SdkSubProtocol?
@@ -176,12 +182,14 @@ class ProviderLocationsStore: ObservableObject {
                     // refresh defensively so a just-enabled view never shows a
                     // stale empty list
                     self?.update()
+                    self?.updateSupportsExtenderPin()
                 }
             }
         })
         // GetRemoteConnected — swift's importer strips the redundant "Remote"
         self.providersAvailable = device.getConnected()
         update()
+        updateSupportsExtenderPin()
     }
 
     func reset() {
@@ -205,6 +213,7 @@ class ProviderLocationsStore: ObservableObject {
         rows = []
         selectedClientId = nil
         providersAvailable = false
+        supportsExtenderPin = false
     }
 
     func select(_ clientId: String?) {
@@ -219,6 +228,13 @@ class ProviderLocationsStore: ObservableObject {
      */
     func step(_ steps: Int) {
         viewController?.stepSelection(Int32(clamping: steps))
+    }
+
+    private func updateSupportsExtenderPin() {
+        let supports = device?.getSupportsExtenderPin() ?? false
+        if supportsExtenderPin != supports {
+            supportsExtenderPin = supports
+        }
     }
 
     // The view controller keeps the selection pointed at a connected provider —

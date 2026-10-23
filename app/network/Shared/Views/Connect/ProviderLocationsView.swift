@@ -22,7 +22,8 @@ import URnetworkSdk
  * PROVIDERLOCATIONS.md, "Apple"), so the Android toggle has no counterpart.
  *
  * The selected row offers "Stay on this exit" (see `stayOnExitState`), which
- * reconnects to that one provider by its client id.
+ * reconnects to that one provider by its client id, and through its extender
+ * alone when one carries the connection (EXTENDER.md K10).
  */
 struct ProviderLocationsView: View {
 
@@ -54,6 +55,10 @@ struct ProviderLocationsView: View {
         connectViewModel.selectedProvider?.connectLocationId?.clientId?.idStr
     }
 
+    private var stayingExtenderIp: String? {
+        stayOnExitPinnedExtenderIp(connectViewModel.selectedProvider)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
@@ -81,7 +86,15 @@ struct ProviderLocationsView: View {
 
                     VStack {
                         Spacer()
-                        Text("No providers connected")
+                        Group {
+                            if let stayingExtenderIp {
+                                // a stay pinned to an extender waits for the
+                                // exit through that address alone (K10)
+                                Text("Waiting for this exit through extender \(stayOnExitExtenderAddress(stayingExtenderIp)).")
+                            } else {
+                                Text("No providers connected")
+                            }
+                        }
                             .font(themeManager.currentTheme.bodyFont)
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                             .multilineTextAlignment(.center)
@@ -107,15 +120,13 @@ struct ProviderLocationsView: View {
                                     stayState: stayOnExitState(
                                         row,
                                         selectedClientId: store.selectedClientId,
-                                        stayingClientId: stayingClientId
+                                        stayingClientId: stayingClientId,
+                                        stayingExtenderIp: stayingExtenderIp,
+                                        pinsExtender: store.supportsExtenderPin
                                     ),
                                     // the context menu offers it on any provider
                                     // the connection does not already stay on
-                                    onStay: stayOnExitState(
-                                        row,
-                                        selectedClientId: row.id,
-                                        stayingClientId: stayingClientId
-                                    ) == .offer ? { stayOnExit(row) } : nil
+                                    onStay: stayAction(row)
                                 )
                                 .listRowBackground(themeManager.currentTheme.backgroundColor)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -167,9 +178,24 @@ struct ProviderLocationsView: View {
      * Stay on this exit: reconnect to the one provider, through the same
      * connect gate as a location pick, and return to the grid.
      */
-    private func stayOnExit(_ row: ProviderLocationRow) {
-        connectViewModel.connect(stayOnExitLocation(row))
+    private func stayOnExit(_ row: ProviderLocationRow, extenderIp: String?) {
+        connectViewModel.connect(stayOnExitLocation(row, extenderIp: extenderIp))
         dismiss()
+    }
+
+    /// Stays on `row` through the extender its offer names, if any; nil when
+    /// the connection already stays on it.
+    private func stayAction(_ row: ProviderLocationRow) -> (() -> Void)? {
+        guard case .offer(let extenderIp) = stayOnExitState(
+            row,
+            selectedClientId: row.id,
+            stayingClientId: stayingClientId,
+            stayingExtenderIp: stayingExtenderIp,
+            pinsExtender: store.supportsExtenderPin
+        ) else {
+            return nil
+        }
+        return { stayOnExit(row, extenderIp: extenderIp) }
     }
 
     private var unavailableState: some View {
@@ -194,8 +220,12 @@ struct ProviderLocationsView: View {
  * One provider: a fixed-size country-color dot column on the left (so the row
  * never shifts when the selection ring appears) and four stacked labels on the
  * right — the client id (tap to copy), the place, the coordinates, and how long
- * the provider has been connected — then the "Stay on this exit" action on the
+ * the provider has been connected — then one line per extender carrying the
+ * connection to it (EXTENDER.md K9), then the "Stay on this exit" action on the
  * selected row, or the line that says the connection already stays here.
+ *
+ * A provider reached through extenders has their rings on its dot, the same
+ * glyph as on the connect grid (K2).
  */
 private struct ProviderLocationRowView: View {
 
@@ -218,7 +248,11 @@ private struct ProviderLocationRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: Self.rowPadding) {
 
-            ProviderSelectableDot(color: providerDotColor(row), selected: selected)
+            ProviderSelectableDot(
+                color: providerDotColor(row),
+                extenderColorHexes: row.extenders.map(\.colorHex),
+                selected: selected
+            )
 
             VStack(alignment: .leading, spacing: 2) {
 
@@ -276,9 +310,24 @@ private struct ProviderLocationRowView: View {
                         .lineLimit(1)
                 }
 
+                // the extenders carrying the connection to this provider, one
+                // line each with its ring color: usually none, one through an
+                // extender, briefly two across a transport migration
+                ForEach(row.extenders) { extender in
+                    ProviderExtenderLine(extender: extender, selected: selected) {
+                        copyExtenderAddress(extender.ip)
+                    }
+                }
+
                 switch stayState {
-                case .offer:
-                    Text("Keeps this provider's IP address until it goes offline.")
+                case .offer(let extenderIp):
+                    Group {
+                        if extenderIp != nil {
+                            Text("Keeps this provider's IP address and extender until either goes offline.")
+                        } else {
+                            Text("Keeps this provider's IP address until it goes offline.")
+                        }
+                    }
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                         .padding(.top, 4)
@@ -291,8 +340,14 @@ private struct ProviderLocationRowView: View {
                         }
                         .buttonStyle(.borderless)
                     }
-                case .staying:
-                    Text("Staying on this exit. If it goes offline, choose another location.")
+                case .staying(let extenderIp):
+                    Group {
+                        if let extenderIp {
+                            Text("Staying on this exit through extender \(stayOnExitExtenderAddress(extenderIp)). If either goes offline, choose another location.")
+                        } else {
+                            Text("Staying on this exit. If it goes offline, choose another location.")
+                        }
+                    }
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                         .padding(.top, 4)
@@ -314,6 +369,15 @@ private struct ProviderLocationRowView: View {
             } label: {
                 Label("Copy client ID", systemImage: "doc.on.doc")
             }
+            // the outermost ring's extender; during a migration the second
+            // one's line still copies on a tap
+            if let extender = row.extenders.first {
+                Button {
+                    copyExtenderAddress(extender.ip)
+                } label: {
+                    Label("Copy extender address", systemImage: "doc.on.doc")
+                }
+            }
             if let onStay {
                 Button(action: onStay) {
                     Label("Stay on this exit", systemImage: "pin")
@@ -323,14 +387,65 @@ private struct ProviderLocationRowView: View {
     }
 
     private func copyClientId() {
+        copyToPasteboard(row.id)
+        snackbarManager.showSnackbar(message: String(localized: "Client ID copied"))
+    }
+
+    private func copyExtenderAddress(_ ip: String) {
+        copyToPasteboard(ip)
+        snackbarManager.showSnackbar(message: String(localized: "Extender address copied"))
+    }
+
+    private func copyToPasteboard(_ value: String) {
         #if os(iOS)
-        UIPasteboard.general.string = row.id
+        UIPasteboard.general.string = value
         #elseif os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(row.id, forType: .string)
+        pasteboard.setString(value, forType: .string)
         #endif
-        snackbarManager.showSnackbar(message: String(localized: "Client ID copied"))
+    }
+}
+
+/**
+ * One extender on a provider row (EXTENDER.md K9): a small ring in the
+ * extender's color, then its address, which is the extender's id, in the
+ * client id's monospaced style. Tapping it copies the address.
+ */
+private struct ProviderExtenderLine: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let extender: ProviderExtender
+    let selected: Bool
+    let onCopy: () -> Void
+
+    // the connect drawer extender panel's ring
+    private static let ringSize: CGFloat = 10
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 6) {
+            Circle()
+                .strokeBorder(Color(hex: extender.colorHex), lineWidth: extenderRingStrokeWidth)
+                .frame(width: Self.ringSize, height: Self.ringSize)
+            Text(verbatim: extender.ip)
+                .font(.system(size: 11, weight: .medium).monospaced())
+                .foregroundColor(
+                    selected
+                        ? themeManager.currentTheme.textColor
+                        : themeManager.currentTheme.textFaintColor
+                )
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding(.top, 2)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onCopy()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Extender \(extender.ip)"))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -338,10 +453,16 @@ private struct ProviderLocationRowView: View {
  * The country-color dot in its fixed-size column. The selection ring is an
  * outline sitting `ringGap` outside the dot's edge and is drawn inside the same
  * box, so the column width never changes with the selection.
+ *
+ * Extender rings grow inward from the dot's edge with the connect grid's
+ * geometry (`extenderRingGeometry`, K2), so a ringed dot keeps its footprint
+ * and the selection ring stays where it is.
  */
 private struct ProviderSelectableDot: View {
 
     let color: Color
+    // the provider's extender colors in the SDK's order, outermost ring first
+    let extenderColorHexes: [String]
     let selected: Bool
 
     // matches ProviderColorCircle, so a country reads the same size everywhere
@@ -355,10 +476,24 @@ private struct ProviderSelectableDot: View {
     private static let box = diameter + (ringGap + ringStroke) * 2
 
     var body: some View {
+        let geometry = extenderRingGeometry(cellSize: Self.diameter, colorHexes: extenderColorHexes)
         ZStack {
             Circle()
                 .fill(color)
-                .frame(width: Self.diameter, height: Self.diameter)
+                .frame(width: geometry.dotDiameter, height: geometry.dotDiameter)
+            // a ring is sized to its stroke centerline, so the outermost one's
+            // outer edge lands on the dot's edge
+            ForEach(Array(geometry.rings.enumerated()), id: \.offset) { _, ring in
+                Circle()
+                    .stroke(
+                        ring.color,
+                        style: StrokeStyle(
+                            lineWidth: geometry.strokeWidth,
+                            dash: ring.dashed ? [geometry.dashLength, geometry.dashLength] : []
+                        )
+                    )
+                    .frame(width: ring.diameter, height: ring.diameter)
+            }
             if selected {
                 Circle()
                     .stroke(color, lineWidth: Self.ringStroke)
@@ -463,36 +598,64 @@ func providerConnectedDurationLabel(_ row: ProviderLocationRow, now: Date) -> St
 // network peer, so the provider keeps carrying the traffic as the public exit
 // it already is. The rows are the user's own current exits, so this pins one
 // of them; it is not a way to browse or pick from all providers.
+//
+// On a row reached through an extender, the stay pins the extender too
+// (EXTENDER.md K10): the location carries its address, and the SDK reaches the
+// provider through that extender and nothing else, so the stay names it.
 
 /// What a provider row shows for "Stay on this exit".
 enum StayOnExitState: Equatable {
     case none
-    /// the selected row offers the action
-    case offer
-    /// the connection already stays on this provider
-    case staying
+    /// the selected row offers the action, through `extenderIp` alone when set
+    case offer(extenderIp: String?)
+    /// the connection already stays on this provider, through `extenderIp`
+    /// alone when the stay pinned one
+    case staying(extenderIp: String?)
 }
 
 /// The selected row offers to stay on its provider; the provider the connection
 /// already stays on says so instead, selected or not. `stayingClientId` is the
 /// client id of the current location when it is a client id location (a stayed
-/// exit or a network peer).
+/// exit or a network peer), and `stayingExtenderIp` the extender it pins.
+///
+/// The offer pins the row's first extender, its dot's outermost ring, when the
+/// device keeps a pin (`pinsExtender`). During a transport migration a row
+/// briefly carries two, in address order; the stay text then names the one
+/// pinned.
 func stayOnExitState(
     _ row: ProviderLocationRow,
     selectedClientId: String?,
-    stayingClientId: String?
+    stayingClientId: String?,
+    stayingExtenderIp: String?,
+    pinsExtender: Bool
 ) -> StayOnExitState {
     let clientId = row.id
     if clientId.isEmpty {
         return .none
     }
     if let stayingClientId, clientId.caseInsensitiveCompare(stayingClientId) == .orderedSame {
-        return .staying
+        return .staying(extenderIp: stayingExtenderIp)
     }
     if let selectedClientId, clientId.caseInsensitiveCompare(selectedClientId) == .orderedSame {
-        return .offer
+        return .offer(extenderIp: pinsExtender ? row.extenders.first?.ip : nil)
     }
     return .none
+}
+
+/// The extender `location` stays on its exit through: only a client id
+/// location carries one, and nil when it pins none.
+func stayOnExitPinnedExtenderIp(_ location: SdkConnectLocation?) -> String? {
+    guard let location, location.connectLocationId?.clientId != nil else {
+        return nil
+    }
+    let extenderIp = location.extenderIp.trimmingCharacters(in: .whitespaces)
+    return extenderIp.isEmpty ? nil : extenderIp
+}
+
+/// An extender address set inside a sentence: isolated, so an IPv6 address
+/// keeps its order in a right-to-left translation.
+func stayOnExitExtenderAddress(_ extenderIp: String) -> String {
+    "\u{2068}\(extenderIp)\u{2069}"
 }
 
 /// "018f…5c6d": the first and last four characters of a client id, the form the
@@ -523,8 +686,9 @@ func stayOnExitName(_ row: ProviderLocationRow) -> String {
 
 /// The location "Stay on this exit" connects to: the provider alone, by its
 /// client id, as a public exit rather than one of the user's own network peers
-/// (which would egress under the network provide mode).
-func stayOnExitLocation(_ row: ProviderLocationRow) -> SdkConnectLocation {
+/// (which would egress under the network provide mode), and through
+/// `extenderIp` alone when the stay pins the row's extender.
+func stayOnExitLocation(_ row: ProviderLocationRow, extenderIp: String?) -> SdkConnectLocation {
     let location = SdkConnectLocation()
     let locationId = SdkConnectLocationId()
     locationId.clientId = row.clientId
@@ -535,5 +699,6 @@ func stayOnExitLocation(_ row: ProviderLocationRow) -> SdkConnectLocation {
     location.country = row.country
     location.countryCode = row.countryCode
     location.networkPeer = false
+    location.extenderIp = extenderIp ?? ""
     return location
 }

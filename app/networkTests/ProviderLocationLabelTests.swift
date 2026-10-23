@@ -19,7 +19,8 @@ struct ProviderLocationLabelTests {
         lat: Double? = nil,
         lon: Double? = nil,
         connectedSinceMillis: Int64 = 0,
-        ipFamilyLabel: String = ""
+        ipFamilyLabel: String = "",
+        extenders: [ProviderExtender] = []
     ) -> ProviderLocationRow {
         ProviderLocationRow(
             clientId: SdkNewId()!,
@@ -31,7 +32,8 @@ struct ProviderLocationLabelTests {
             lat: lat,
             lon: lon,
             connectedSinceMillis: connectedSinceMillis,
-            ipFamilyLabel: ipFamilyLabel
+            ipFamilyLabel: ipFamilyLabel,
+            extenders: extenders
         )
     }
 

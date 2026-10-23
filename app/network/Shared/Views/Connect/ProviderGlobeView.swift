@@ -375,8 +375,13 @@ private struct GlobeCanvas: View, Animatable {
             // Provider dots. The selected one is held back and drawn last so it
             // is never covered by a dot that happens to sit on top of it —
             // providers in one city land on the same pixel.
-            var selected: (center: CGPoint, color: Color)? = nil
-            let r = dotRadius * unit
+            //
+            // A provider reached through extenders carries their rings
+            // (EXTENDER.md K9). The geometry is the connect grid's (K2), taken
+            // at the dot's size in the 600-unit space and scaled with
+            // everything else, so a dot holds one ring at any globe size; more
+            // extenders than fit collapse into a dashed ring.
+            var selected: (center: CGPoint, color: Color, geometry: ExtenderRingGeometry)? = nil
             for row in rows {
                 guard let lon = row.lon, let lat = row.lat,
                       let projected = GlobeGeometry.project(
@@ -386,27 +391,23 @@ private struct GlobeCanvas: View, Animatable {
                 }
                 let center = canvasPoint(projected)
                 let color = providerDotColor(row)
+                let geometry = providerGlobeDotGeometry(row, unit: unit)
                 if row.id == selectedClientId {
-                    selected = (center, color)
+                    selected = (center, color, geometry)
                     continue
                 }
-                context.fill(
-                    Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: 2 * r, height: 2 * r)),
-                    with: .color(color)
-                )
+                context.fill(circlePath(center: center, diameter: geometry.dotDiameter), with: .color(color))
+                strokeExtenderRings(geometry, center: center, in: context)
             }
             if let selected {
                 // a darker core inside its own full-strength ring: the selection
-                // reads at a glance without changing which country color it is
+                // reads at a glance without changing which country color it is.
+                // The extender rings keep their own colors.
                 context.fill(
-                    Path(ellipseIn: CGRect(
-                        x: selected.center.x - r,
-                        y: selected.center.y - r,
-                        width: 2 * r,
-                        height: 2 * r
-                    )),
+                    circlePath(center: selected.center, diameter: selected.geometry.dotDiameter),
                     with: .color(selected.color.darkenedForSelection())
                 )
+                strokeExtenderRings(selected.geometry, center: selected.center, in: context)
                 let ringR = selectedRingRadius * unit
                 context.stroke(
                     Path(ellipseIn: CGRect(
@@ -487,6 +488,42 @@ private struct GlobeCanvas: View, Animatable {
             paths.append(finished)
         }
         return paths
+    }
+}
+
+/**
+ * A provider's globe dot and its extender rings in canvas points: the connect
+ * grid's geometry (K2) at the dot's size in the globe's 600-unit space, scaled
+ * by `unit`, so the rings shrink with the globe instead of crowding out a small
+ * dot.
+ */
+func providerGlobeDotGeometry(_ row: ProviderLocationRow, unit: Double) -> ExtenderRingGeometry {
+    extenderRingGeometry(
+        cellSize: 2 * dotRadius,
+        colorHexes: row.extenders.map(\.colorHex)
+    ).scaled(by: unit)
+}
+
+private func circlePath(center: CGPoint, diameter: CGFloat) -> Path {
+    Path(ellipseIn: CGRect(
+        x: center.x - diameter / 2,
+        y: center.y - diameter / 2,
+        width: diameter,
+        height: diameter
+    ))
+}
+
+/// Strokes a dot's extender rings, each sized to its stroke centerline.
+private func strokeExtenderRings(_ geometry: ExtenderRingGeometry, center: CGPoint, in context: GraphicsContext) {
+    for ring in geometry.rings {
+        context.stroke(
+            circlePath(center: center, diameter: ring.diameter),
+            with: .color(ring.color),
+            style: StrokeStyle(
+                lineWidth: geometry.strokeWidth,
+                dash: ring.dashed ? [geometry.dashLength, geometry.dashLength] : []
+            )
+        )
     }
 }
 

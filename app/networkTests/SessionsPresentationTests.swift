@@ -255,7 +255,8 @@ struct SessionsPresentationTests {
                 lat: nil,
                 lon: nil,
                 connectedSinceMillis: 0,
-                ipFamilyLabel: ""
+                ipFamilyLabel: "",
+                extenders: []
             )
             #expect(providerDotColor(provider) == Color(hex: countryDotColorHex(countryCode)))
         }

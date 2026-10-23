@@ -40,7 +40,7 @@ struct ConnectStatsSections: View {
 
             /**
              * Client statistics: remote and blocked traffic.
-             * Tap to open the client contract details.
+             * Tap to open the client contract details (not on the blocked plot).
              */
             statsCard(action: { openSheet(.clientContracts) }) {
 
@@ -100,6 +100,11 @@ struct ConnectStatsSections: View {
                     byteColor: .urCoral,
                     packetColor: .urMutedCoral
                 )
+                /**
+                 * Tapping the blocked plot does nothing: it is not part of
+                 * the client contracts.
+                 */
+                .blocksCardTap()
 
             }
 

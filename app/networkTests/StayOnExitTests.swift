@@ -26,7 +26,8 @@ struct StayOnExitTests {
         countryCode: String = "",
         region: String = "",
         city: String = "",
-        hasLocation: Bool = true
+        hasLocation: Bool = true,
+        extenders: [ProviderExtender] = []
     ) -> ProviderLocationRow {
         ProviderLocationRow(
             clientId: clientId,
@@ -38,7 +39,8 @@ struct StayOnExitTests {
             lat: nil,
             lon: nil,
             connectedSinceMillis: 0,
-            ipFamilyLabel: SdkIpFamilyLabelBoth
+            ipFamilyLabel: SdkIpFamilyLabelBoth,
+            extenders: extenders
         )
     }
 

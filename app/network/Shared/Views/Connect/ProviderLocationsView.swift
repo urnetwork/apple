@@ -194,8 +194,12 @@ struct ProviderLocationsView: View {
  * One provider: a fixed-size country-color dot column on the left (so the row
  * never shifts when the selection ring appears) and four stacked labels on the
  * right — the client id (tap to copy), the place, the coordinates, and how long
- * the provider has been connected — then the "Stay on this exit" action on the
+ * the provider has been connected — then one line per extender carrying the
+ * connection to it (EXTENDER.md K9), then the "Stay on this exit" action on the
  * selected row, or the line that says the connection already stays here.
+ *
+ * A provider reached through extenders has their rings on its dot, the same
+ * glyph as on the connect grid (K2).
  */
 private struct ProviderLocationRowView: View {
 
@@ -218,7 +222,11 @@ private struct ProviderLocationRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: Self.rowPadding) {
 
-            ProviderSelectableDot(color: providerDotColor(row), selected: selected)
+            ProviderSelectableDot(
+                color: providerDotColor(row),
+                extenderColorHexes: row.extenders.map(\.colorHex),
+                selected: selected
+            )
 
             VStack(alignment: .leading, spacing: 2) {
 
@@ -276,6 +284,15 @@ private struct ProviderLocationRowView: View {
                         .lineLimit(1)
                 }
 
+                // the extenders carrying the connection to this provider, one
+                // line each with its ring color: usually none, one through an
+                // extender, briefly two across a transport migration
+                ForEach(row.extenders) { extender in
+                    ProviderExtenderLine(extender: extender, selected: selected) {
+                        copyExtenderAddress(extender.ip)
+                    }
+                }
+
                 switch stayState {
                 case .offer:
                     Text("Keeps this provider's IP address until it goes offline.")
@@ -314,6 +331,15 @@ private struct ProviderLocationRowView: View {
             } label: {
                 Label("Copy client ID", systemImage: "doc.on.doc")
             }
+            // the outermost ring's extender; during a migration the second
+            // one's line still copies on a tap
+            if let extender = row.extenders.first {
+                Button {
+                    copyExtenderAddress(extender.ip)
+                } label: {
+                    Label("Copy extender address", systemImage: "doc.on.doc")
+                }
+            }
             if let onStay {
                 Button(action: onStay) {
                     Label("Stay on this exit", systemImage: "pin")
@@ -323,14 +349,65 @@ private struct ProviderLocationRowView: View {
     }
 
     private func copyClientId() {
+        copyToPasteboard(row.id)
+        snackbarManager.showSnackbar(message: String(localized: "Client ID copied"))
+    }
+
+    private func copyExtenderAddress(_ ip: String) {
+        copyToPasteboard(ip)
+        snackbarManager.showSnackbar(message: String(localized: "Extender address copied"))
+    }
+
+    private func copyToPasteboard(_ value: String) {
         #if os(iOS)
-        UIPasteboard.general.string = row.id
+        UIPasteboard.general.string = value
         #elseif os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(row.id, forType: .string)
+        pasteboard.setString(value, forType: .string)
         #endif
-        snackbarManager.showSnackbar(message: String(localized: "Client ID copied"))
+    }
+}
+
+/**
+ * One extender on a provider row (EXTENDER.md K9): a small ring in the
+ * extender's color, then its address, which is the extender's id, in the
+ * client id's monospaced style. Tapping it copies the address.
+ */
+private struct ProviderExtenderLine: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let extender: ProviderExtender
+    let selected: Bool
+    let onCopy: () -> Void
+
+    // the connect drawer extender panel's ring
+    private static let ringSize: CGFloat = 10
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 6) {
+            Circle()
+                .strokeBorder(Color(hex: extender.colorHex), lineWidth: extenderRingStrokeWidth)
+                .frame(width: Self.ringSize, height: Self.ringSize)
+            Text(verbatim: extender.ip)
+                .font(.system(size: 11, weight: .medium).monospaced())
+                .foregroundColor(
+                    selected
+                        ? themeManager.currentTheme.textColor
+                        : themeManager.currentTheme.textFaintColor
+                )
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding(.top, 2)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onCopy()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Extender \(extender.ip)"))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -338,10 +415,16 @@ private struct ProviderLocationRowView: View {
  * The country-color dot in its fixed-size column. The selection ring is an
  * outline sitting `ringGap` outside the dot's edge and is drawn inside the same
  * box, so the column width never changes with the selection.
+ *
+ * Extender rings grow inward from the dot's edge with the connect grid's
+ * geometry (`extenderRingGeometry`, K2), so a ringed dot keeps its footprint
+ * and the selection ring stays where it is.
  */
 private struct ProviderSelectableDot: View {
 
     let color: Color
+    // the provider's extender colors in the SDK's order, outermost ring first
+    let extenderColorHexes: [String]
     let selected: Bool
 
     // matches ProviderColorCircle, so a country reads the same size everywhere
@@ -355,10 +438,24 @@ private struct ProviderSelectableDot: View {
     private static let box = diameter + (ringGap + ringStroke) * 2
 
     var body: some View {
+        let geometry = extenderRingGeometry(cellSize: Self.diameter, colorHexes: extenderColorHexes)
         ZStack {
             Circle()
                 .fill(color)
-                .frame(width: Self.diameter, height: Self.diameter)
+                .frame(width: geometry.dotDiameter, height: geometry.dotDiameter)
+            // a ring is sized to its stroke centerline, so the outermost one's
+            // outer edge lands on the dot's edge
+            ForEach(Array(geometry.rings.enumerated()), id: \.offset) { _, ring in
+                Circle()
+                    .stroke(
+                        ring.color,
+                        style: StrokeStyle(
+                            lineWidth: geometry.strokeWidth,
+                            dash: ring.dashed ? [geometry.dashLength, geometry.dashLength] : []
+                        )
+                    )
+                    .frame(width: ring.diameter, height: ring.diameter)
+            }
             if selected {
                 Circle()
                     .stroke(color, lineWidth: Self.ringStroke)

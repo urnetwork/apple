@@ -32,6 +32,11 @@ struct ProviderLocationRow: Identifiable, Equatable {
     // the provider's address-family label as the SDK spells it: "both", "v4"
     // or "v6" (connect/IPV6.md D2). Legacy providers read as "v4"
     let ipFamilyLabel: String
+    // the extenders carrying this client's connection to the provider right
+    // now (connect/EXTENDER.md K1), in the SDK's order, which is the order of
+    // the dot's rings from the outside in: none over a direct or p2p route, one
+    // through an extender, briefly two across a transport migration
+    let extenders: [ProviderExtender]
 
     var id: String {
         clientId.idStr
@@ -54,7 +59,30 @@ struct ProviderLocationRow: Identifiable, Equatable {
             && lhs.lon == rhs.lon
             && lhs.connectedSinceMillis == rhs.connectedSinceMillis
             && lhs.ipFamilyLabel == rhs.ipFamilyLabel
+            && lhs.extenders == rhs.extenders
     }
+}
+
+/// One extender on a provider's route: its address and its color (K3), paired
+/// by the SDK. The address is the extender's id on the provider rows (K9).
+struct ProviderExtender: Identifiable, Equatable {
+
+    let ip: String
+    let colorHex: String
+
+    var id: String {
+        ip
+    }
+}
+
+/// Pairs the SDK's comma-separated extender addresses and colors by index (K1,
+/// K3). The SDK keeps the two lists the same length; if they ever differ, the
+/// unpaired tail is dropped rather than drawn in a made-up color.
+func providerExtenders(ips: String, colorHexes: String) -> [ProviderExtender] {
+    zip(
+        extenderCommaSeparatedValues(ips),
+        extenderCommaSeparatedValues(colorHexes)
+    ).map { ProviderExtender(ip: $0, colorHex: $1) }
 }
 
 private class ConnectedProviderLocationsListener: NSObject, SdkConnectedProviderLocationChangeListenerProtocol {
@@ -251,7 +279,11 @@ class ProviderLocationsStore: ObservableObject {
                         lat: lat,
                         lon: lon,
                         connectedSinceMillis: location.connectedSinceMillis,
-                        ipFamilyLabel: location.ipFamilyLabel
+                        ipFamilyLabel: location.ipFamilyLabel,
+                        extenders: providerExtenders(
+                            ips: location.extenderIps,
+                            colorHexes: location.extenderColorHexes
+                        )
                     )
                 )
             }

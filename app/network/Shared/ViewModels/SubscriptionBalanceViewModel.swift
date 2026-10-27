@@ -128,6 +128,11 @@ class SubscriptionBalanceViewModel: ObservableObject {
     /// "crypto" for a one-time crypto year, which does not renew.
     @Published private(set) var currentSubscriptionStoreClass: String = ""
 
+    /// The renewal the store is retrying after its payment did not go
+    /// through, for the plan cards' past-due notice in every build: set
+    /// exactly while the latest balance carries one (see PaymentPastDue).
+    @Published private(set) var paymentPastDue: PaymentPastDue?
+
     /// The method row's methods for the plan a coin buys on a surface: the
     /// welcome offer while one is active, else yearly.
     func cryptoPaymentMethods(offerActive: Bool) -> [String] {
@@ -239,6 +244,23 @@ class SubscriptionBalanceViewModel: ObservableObject {
             if ids != experimentIds { experimentIds = ids }
         }
         applyCryptoPayments(result)
+        applyPaymentPastDue(result)
+    }
+
+    /// Reads the failing renewal off a balance result; a balance without one
+    /// (no failing renewal, or an older server) clears it.
+    func applyPaymentPastDue(_ result: SdkSubscriptionBalanceResult) {
+        let pastDue = PaymentPastDue(result.paymentPastDue)
+        if pastDue != paymentPastDue { paymentPastDue = pastDue }
+    }
+
+    /// The past-due notice's link, with a one-time auth code made for it (see
+    /// PaymentPastDue.updatePaymentMethodURL).
+    func updatePaymentMethodURL() async -> URL {
+        let urApiService = self.urApiService
+        return await PaymentPastDue.updatePaymentMethodURL {
+            try await urApiService.createAuthCode().authCode
+        }
     }
 
     /// Reads the crypto payment methods, the crypto term and the current

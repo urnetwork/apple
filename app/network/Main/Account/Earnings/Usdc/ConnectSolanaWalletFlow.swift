@@ -6,8 +6,9 @@
 //  Bittensor is complete. Phantom or Solflare (the apps on iOS, their browser
 //  extensions through the ur.io bridge on macOS) return the wallet's public
 //  key through the encrypted connect round trip; nothing is signed. A pasted
-//  address is checked on the Solana chain first. Linking makes the wallet the
-//  payout wallet: the server does it when the network has none, the flow
+//  address is checked on the Solana chain first: on the device by the
+//  server's rule (SolanaAddress), then by the server. Linking makes the wallet
+//  the payout wallet: the server does it when the network has none, the flow
 //  selects it otherwise.
 //
 
@@ -199,6 +200,13 @@ final class ConnectSolanaWalletFlow: ObservableObject {
             validationTask = nil
             manualValidation = .notChecked
             manualSupportingText = nil
+            return
+        }
+        // the server's own rule: an address it would refuse is not sent
+        guard SolanaAddress.isValid(candidate) else {
+            validationTask = nil
+            manualValidation = .invalid
+            manualSupportingText = String(localized: "That is not a valid Solana address.")
             return
         }
         manualValidation = .validating

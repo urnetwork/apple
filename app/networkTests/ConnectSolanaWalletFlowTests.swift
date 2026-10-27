@@ -49,6 +49,9 @@ private final class RecordingUrApiService: MockUrApiService {
 struct ConnectSolanaWalletFlowTests {
 
     private static let address = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+    /// synthetic keys: the base58 of the bytes 01 02 … 20 and 20 1f … 01
+    private static let ascendingKey = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
+    private static let descendingKey = "3APZt7ozMtE2uLgm6RQjfR9r7YJq2QLTtPLkqnWiAGxQ"
 
     private static func flow(_ client: FakeUsdcWalletsClient) -> ConnectSolanaWalletFlow {
         ConnectSolanaWalletFlow(client: client, validationDebounce: .zero)
@@ -223,16 +226,16 @@ struct ConnectSolanaWalletFlowTests {
         #expect(flow.manualValidation == .valid)
         #expect(flow.manualSupportingText == nil)
 
-        // not a Solana address
+        // a key the server refuses
         client.validate = { _ in false }
-        flow.manualAddress = "0x52908400098527886E0F7030069857D2E4169EE7"
+        flow.manualAddress = Self.ascendingKey
         await flow.validationTask?.value
         #expect(flow.manualValidation == .invalid)
         #expect(flow.manualSupportingText == "That is not a valid Solana address.")
 
         // the check itself fails
         client.validate = { _ in throw UsdcWalletsClientError.message("offline") }
-        flow.manualAddress = "7xKX"
+        flow.manualAddress = Self.descendingKey
         await flow.validationTask?.value
         #expect(flow.manualValidation == .notChecked)
         #expect(flow.manualSupportingText == "There was an error connecting your wallet.")
@@ -253,10 +256,12 @@ struct ConnectSolanaWalletFlowTests {
     }
 
     @Test func aChangeDuringTheCheckDiscardsTheStaleResult() async {
+        let first = Self.ascendingKey
+        let second = Self.descendingKey
         let client = FakeUsdcWalletsClient()
         let gate = Gate()
         client.validate = { address in
-            if address == "first" {
+            if address == first {
                 await gate.wait()
                 return true
             }
@@ -265,20 +270,20 @@ struct ConnectSolanaWalletFlowTests {
         let flow = Self.flow(client)
         flow.enterManually()
 
-        flow.manualAddress = "first"
+        flow.manualAddress = first
         let firstCheck = flow.validationTask
         // let the first check reach the server
-        for _ in 0..<100 where !client.calls.contains(.validate("first")) {
+        for _ in 0..<100 where !client.calls.contains(.validate(first)) {
             await Task.yield()
         }
-        #expect(client.calls == [.validate("first")])
+        #expect(client.calls == [.validate(first)])
 
-        flow.manualAddress = "second"
+        flow.manualAddress = second
         await flow.validationTask?.value
         gate.open()
         await firstCheck?.value
 
-        #expect(client.calls == [.validate("first"), .validate("second")])
+        #expect(client.calls == [.validate(first), .validate(second)])
         #expect(flow.manualValidation == .invalid)
         #expect(flow.manualSupportingText == "That is not a valid Solana address.")
     }
@@ -288,16 +293,84 @@ struct ConnectSolanaWalletFlowTests {
         client.validate = { _ in false }
         let flow = Self.flow(client)
         flow.enterManually()
-        flow.manualAddress = "not-an-address"
+        flow.manualAddress = Self.ascendingKey
 
         // still being checked
         await flow.submitManualAddress()
         await flow.validationTask?.value
-        // checked, and not a Solana address
+        // checked, and refused by the server
         await flow.submitManualAddress()
 
-        #expect(client.calls == [.validate("not-an-address")])
+        #expect(client.calls == [.validate(Self.ascendingKey)])
         #expect(flow.stage == .manualEntry)
+    }
+
+    // Support inbox 8045: the payout review found a Solana key saved as a
+    // Polygon wallet, and the server now holds each address to its chain's
+    // rule. A pasted address the server would refuse is answered at once on
+    // the device and never sent, as android, windows and linux answer a
+    // malformed one.
+    @Test func anAddressTheServerWouldRefuseIsNotSent() async {
+        let client = FakeUsdcWalletsClient()
+        // the server's answers: of these, only the synthetic key is a wallet
+        client.validate = { $0 == Self.ascendingKey }
+        let flow = Self.flow(client)
+        flow.enterManually()
+
+        for address in [
+            // the USDC token mint
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            // the all-zero key
+            "11111111111111111111111111111111",
+            // base58 of 33 bytes
+            String(repeating: "z", count: 44),
+            // a Polygon address
+            "0x1234567812345678123456781234567812345678",
+        ] {
+            flow.manualAddress = address
+            // no check waits on the server
+            #expect(flow.manualValidation == .invalid, "\(address)")
+            #expect(flow.manualSupportingText == "That is not a valid Solana address.", "\(address)")
+            await flow.validationTask?.value
+            await flow.submitManualAddress()
+            #expect(flow.manualValidation == .invalid, "\(address)")
+        }
+        #expect(client.calls.isEmpty)
+        #expect(flow.stage == .manualEntry)
+
+        // a key that passes is still checked by the server
+        flow.manualAddress = Self.ascendingKey
+        #expect(flow.manualValidation == .validating)
+        await flow.validationTask?.value
+        #expect(client.calls == [.validate(Self.ascendingKey)])
+        #expect(flow.manualValidation == .valid)
+    }
+
+    // refused while an earlier address is still being checked: the earlier
+    // answer does not replace the refusal
+    @Test func aRefusalDuringACheckDiscardsTheCheck() async {
+        let client = FakeUsdcWalletsClient()
+        let reached = Gate()
+        let answer = Gate()
+        client.validate = { _ in
+            reached.open()
+            await answer.wait()
+            return true
+        }
+        let flow = Self.flow(client)
+        flow.enterManually()
+
+        flow.manualAddress = Self.ascendingKey
+        let check = flow.validationTask
+        await reached.wait()
+        flow.manualAddress = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        answer.open()
+        await check?.value
+        await flow.validationTask?.value
+
+        #expect(client.calls == [.validate(Self.ascendingKey)])
+        #expect(flow.manualValidation == .invalid)
+        #expect(flow.manualSupportingText == "That is not a valid Solana address.")
     }
 
     @Test func submitLinksTheWallet() async {

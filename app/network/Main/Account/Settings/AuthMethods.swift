@@ -45,13 +45,29 @@ func parseAuthMethods(_ networkUser: SdkNetworkUser) -> [String] {
     return methods
 }
 
+/// An email or phone password sign-in of the account (the server's
+/// `user_auths`), kept free of the sdk so the choice below is tested without it.
+struct PasswordSignIn: Equatable {
+    let userAuth: String
+    /// "email" or "phone"
+    let authType: String
+}
+
 /// The address Change password mails a reset link to, or nil when the account
-/// has no password sign-in. The server's reset only rewrites an email or phone
-/// password sign-in, while `userAuth` is the identity the account was created
-/// with: a Google or Apple account has one but no password (the reset
-/// "succeeded" and changed nothing), and an account that added an email and
-/// password later has none.
-func passwordResetUserAuth(userAuth: String?, authType: String, authTypes: [String]) -> String? {
+/// has no password sign-in. The server's reset rewrites the account's email
+/// and phone password sign-ins, `userAuths`, so the link goes to one of them,
+/// an email before a phone. `userAuth` is only the identity the account was
+/// created with: an account created with a wallet, a seed phrase or as a
+/// guest that added an email and password later has none, so it was never
+/// offered the reset, and a Google or Apple account has the provider's email,
+/// which has no password. It is read only when there are no `userAuths` (an
+/// older sdk or server).
+func passwordResetUserAuth(userAuth: String?, authType: String, authTypes: [String], userAuths: [PasswordSignIn]) -> String? {
+    for passwordAuthType in ["email", "phone"] {
+        if let signIn = userAuths.first(where: { $0.authType == passwordAuthType && !$0.userAuth.isEmpty }) {
+            return signIn.userAuth
+        }
+    }
     guard let userAuth, !userAuth.isEmpty else { return nil }
     let listed = authTypes.filter { !$0.isEmpty }
     // an old server sends no list, only the single auth type
@@ -59,6 +75,19 @@ func passwordResetUserAuth(userAuth: String?, authType: String, authTypes: [Stri
         ? authType == "password"
         : listed.contains("email") || listed.contains("phone")
     return hasPasswordSignIn ? userAuth : nil
+}
+
+/// The account's password sign-ins, the server's `user_auths`.
+func passwordSignIns(_ networkUser: SdkNetworkUser) -> [PasswordSignIn] {
+    var signIns: [PasswordSignIn] = []
+    if let list = networkUser.userAuths {
+        for i in 0..<list.len() {
+            if let signIn = list.get(i) {
+                signIns.append(PasswordSignIn(userAuth: signIn.userAuth, authType: signIn.authType))
+            }
+        }
+    }
+    return signIns
 }
 
 func passwordResetUserAuth(_ networkUser: SdkNetworkUser) -> String? {
@@ -71,7 +100,8 @@ func passwordResetUserAuth(_ networkUser: SdkNetworkUser) -> String? {
     return passwordResetUserAuth(
         userAuth: networkUser.userAuth,
         authType: networkUser.authType,
-        authTypes: authTypes
+        authTypes: authTypes,
+        userAuths: passwordSignIns(networkUser)
     )
 }
 

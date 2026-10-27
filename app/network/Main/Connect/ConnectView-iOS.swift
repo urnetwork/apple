@@ -301,6 +301,10 @@ struct ConnectView_iOS: View {
                                 balanceRecovery: connectViewModel.balanceRecoveryState,
                                 cancelBalanceRecovery: connectViewModel.clearBalanceRecovery,
                                 isPro: isPro,
+                                paymentPastDue: subscriptionBalanceViewModel.paymentPastDue,
+                                updatePaymentMethodURL: {
+                                    await subscriptionBalanceViewModel.updatePaymentMethodURL()
+                                },
                                 selectedWindowType: $deviceManager.selectedWindowType,
                                 fixedIpSize: $deviceManager.fixedIpSize,
                                 allowDirect: $deviceManager.allowDirect,

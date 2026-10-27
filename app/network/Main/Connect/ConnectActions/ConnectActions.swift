@@ -81,6 +81,10 @@ struct ConnectActions: View {
     let balanceRecovery: BalanceRecoveryState
     let cancelBalanceRecovery: () -> Void
     let isPro: Bool
+    // the renewal the store is retrying, for the plan card's past-due notice
+    // (see PaymentPastDue), and the notice's "Update payment method" link
+    let paymentPastDue: PaymentPastDue?
+    let updatePaymentMethodURL: () async -> URL
     @Binding var selectedWindowType: WindowType
     @Binding var fixedIpSize: Bool
     @Binding var allowDirect: Bool
@@ -453,6 +457,12 @@ struct ConnectActions: View {
                             
                         }
                             
+                        // a renewal whose payment did not go through, while
+                        // the store retries it, as on the account plan card
+                        if paymentPastDue != nil {
+                            PaymentPastDueNotice(updatePaymentMethodURL: updatePaymentMethodURL)
+                        }
+
                         UsageBar(
                             availableByteCount: availableByteCount,
                             pendingByteCount: pendingByteCount,

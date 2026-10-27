@@ -206059,6 +206059,173 @@
         }
       }
     },
+    "Update payment method" : {
+      "comment" : "Button on the notice that a UR Pro payment didn't go through: opens the subscription page on ur.io in the browser, where the payment method (a card, for example) is updated.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحديث طريقة الدفع"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizovat způsob platby"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zahlungsmethode aktualisieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ενημέρωση τρόπου πληρωμής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update payment method"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar método de pago"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar método de pago"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar método de pago"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour le moyen de paiement"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עדכון אמצעי התשלום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "भुगतान का तरीका अपडेट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perbarui metode pembayaran"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiorna metodo di pagamento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お支払い方法を更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "결제 수단 업데이트"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betaalmethode bijwerken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaktualizuj metodę płatności"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar método de pagamento"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar forma de pagamento"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar método de pagamento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить способ оплаты"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uppdatera betalningsmetod"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัปเดตวิธีการชำระเงิน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оновити спосіб оплати"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cập nhật phương thức thanh toán"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新支付方式"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新付款方式"
+          }
+        }
+      }
+    },
     "Update referral network" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -230572,6 +230739,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在你升級或斷開連接之前，你的流量會保留在隧道中。"
+          }
+        }
+      }
+    },
+    "Your UR Pro payment didn't go through. Update your payment method to keep Pro." : {
+      "comment" : "In-app notice while the renewal payment of a UR Pro subscription has failed (a declined card, for example) and the store is still retrying it. If no payment goes through before the retries end, the subscription is cancelled. Keep UR Pro and Pro (the plan's name) unchanged. Didn't go through = failed.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم تنجح عملية الدفع لاشتراك UR Pro. حدّث طريقة الدفع للاحتفاظ بـ Pro."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platba za UR Pro neproběhla. Aktualizujte způsob platby, abyste si Pro ponechali."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Zahlung für UR Pro ist fehlgeschlagen. Aktualisiere deine Zahlungsmethode, um Pro zu behalten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η πληρωμή για το UR Pro δεν ολοκληρώθηκε. Ενημερώστε τον τρόπο πληρωμής σας για να διατηρήσετε το Pro."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your UR Pro payment didn't go through. Update your payment method to keep Pro."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pago de UR Pro no se ha completado. Actualiza tu método de pago para mantener Pro."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pago de UR Pro no se completó. Actualiza tu método de pago para conservar Pro."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pago de UR Pro no se completó. Actualiza tu método de pago para conservar Pro."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre paiement pour UR Pro n’a pas abouti. Mettez à jour votre moyen de paiement pour conserver Pro."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התשלום על UR Pro לא עבר. עדכנו את אמצעי התשלום כדי לשמור על Pro."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका UR Pro भुगतान पूरा नहीं हो सका। Pro बनाए रखने के लिए अपना भुगतान का तरीका अपडेट करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran UR Pro Anda tidak berhasil. Perbarui metode pembayaran Anda agar tetap menggunakan Pro."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il pagamento di UR Pro non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere Pro."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UR Pro のお支払いが完了しませんでした。Pro を継続するには、お支払い方法を更新してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UR Pro 결제가 처리되지 않았습니다. Pro를 계속 이용하려면 결제 수단을 업데이트하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je betaling voor UR Pro is niet gelukt. Werk je betaalmethode bij om Pro te houden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Płatność za UR Pro nie powiodła się. Zaktualizuj metodę płatności, aby zachować Pro."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pagamento do UR Pro não foi concluído. Atualize o seu método de pagamento para manter o Pro."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pagamento do UR Pro não foi concluído. Atualize sua forma de pagamento para continuar com o Pro."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O pagamento do UR Pro não foi concluído. Atualize o seu método de pagamento para manter o Pro."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Платёж за UR Pro не прошёл. Обновите способ оплаты, чтобы сохранить Pro."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din betalning för UR Pro gick inte igenom. Uppdatera din betalningsmetod för att behålla Pro."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การชำระเงินสำหรับ UR Pro ของคุณไม่สำเร็จ อัปเดตวิธีการชำระเงินเพื่อใช้ Pro ต่อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Платіж за UR Pro не пройшов. Оновіть спосіб оплати, щоб зберегти Pro."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanh toán UR Pro của bạn không thành công. Hãy cập nhật phương thức thanh toán để giữ Pro."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的 UR Pro 付款未成功。请更新支付方式以保留 Pro。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 UR Pro 付款未能完成。請更新付款方式以保留 Pro。"
           }
         }
       }

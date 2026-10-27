@@ -224,6 +224,17 @@ struct AccountRootView: View {
                             }
                         }
 
+                        /**
+                         * A renewal whose payment did not go through, while the
+                         * store retries it: every build, whatever store bills
+                         * the plan (see PaymentPastDue)
+                         */
+                        if subscriptionBalanceViewModel.paymentPastDue != nil {
+                            PaymentPastDueNotice(updatePaymentMethodURL: {
+                                await subscriptionBalanceViewModel.updatePaymentMethodURL()
+                            })
+                        }
+
                         #if DIRECT_DOWNLOAD
                         cryptoPlanLines
                         #endif

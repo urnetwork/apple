@@ -57,7 +57,9 @@ struct ConnectView_iOS: View {
             presentedStatsSheet = .providerLocations
         case .contracts:
             presentedStatsSheet = .clientContracts
-        case .connect:
+        case .connect, .slowInternet:
+            // the slow internet Live Activity lands here too: the pill is
+            // the whole story
             break
         }
     }
@@ -397,7 +399,15 @@ struct ConnectView_iOS: View {
                 .animation(.spring(response: 0.25, dampingFraction: 0.85, blendDuration: 0.1),
                            value: sheetDragTranslation)
                 .zIndex(1)
-                
+
+            }
+            // the slow internet pill, 16 pt from the trailing edge and 8 pt
+            // below the top safe area (apple/DELAY.md §5.2); it observes the
+            // transport delay itself, so a reading re-renders only the pill
+            .overlay(alignment: .topTrailing) {
+                SlowInternetPillOverlay()
+                    .padding(.top, 8)
+                    .padding(.trailing, 16)
             }
             .sheet(isPresented: $providerListSheetViewModel.isPresented) {
                 

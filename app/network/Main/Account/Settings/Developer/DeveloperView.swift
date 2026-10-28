@@ -54,6 +54,10 @@ struct DeveloperView: View {
     @ObservedObject private var ipFamilyState = IpFamilyState.shared
     @State private var showLogPicker = false
     @State private var selectedLogNames: Set<String> = []
+    #if os(iOS)
+    // the slow internet notice's scripted episode
+    @ObservedObject private var slowInternetPreference = TransportDelayLiveActivityPreference.shared
+    #endif
 
     // read what was recorded at startup; do NOT call configure() here, which
     // would re-point glog every time this view is constructed
@@ -66,6 +70,9 @@ struct DeveloperView: View {
 
             introSection
             diagnosticsSection
+            #if os(iOS)
+            slowInternetSection
+            #endif
 
             if reliabilityStore.connected {
                 measurementsSection
@@ -147,6 +154,121 @@ struct DeveloperView: View {
             .padding(.vertical, 2)
         }
     }
+
+    #if os(iOS)
+    /**
+     * The slow internet notice on a phone (apple/DELAY.md §5.5). The episode
+     * plays a scripted slow spell in the tunnel extension, so the test needs
+     * no slow network: the extension posts its notification as it would for
+     * a real one. The log shows its lines. English only, like the phone test
+     * it serves.
+     */
+    private var slowInternetSection: some View {
+        Section {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                simulationRow(now: context.date)
+            }
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                activityLogRow
+            }
+        } footer: {
+            Text(verbatim: "Connect and play the episode. The connect screen's pill follows it at once: level 2, then 4 at 40 s, 3 at 55 s, and back to normal at 75 s. Leave the app to see the notification instead: the extension posts it at 30 s, it reads back to normal at about 90 s, and it goes away at about 93 s. The notification needs notifications allowed and \"Notify me when my internet is slow\" on. The log shows each post and error.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+        }
+    }
+
+    private static let activityLogTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        return formatter
+    }()
+
+    /// The live-activity tag's lines of both processes since the last clear,
+    /// the newest 30.
+    private var activityLogRow: some View {
+        let entries = TransportDelayActivityLog.entries().suffix(30)
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: "Slow internet log")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                }
+                Spacer()
+                Button {
+                    TransportDelayActivityLog.clear()
+                } label: {
+                    Text(verbatim: "Clear")
+                        .font(themeManager.currentTheme.bodyFont)
+                }
+                .buttonStyle(.borderless)
+            }
+            if entries.isEmpty {
+                Text(verbatim: "Nothing logged yet")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            } else {
+                ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
+                    Text(verbatim: "\(Self.activityLogTime.string(from: entry.at)) \(entry.source) \(entry.line)")
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .textSelection(.enabled)
+    }
+
+    private func simulationRow(now: Date) -> some View {
+        let remaining = slowInternetPreference.simulationRemaining(now: now)
+        let status: String
+        if let startsIn = slowInternetPreference.simulationStartsIn(now: now) {
+            status = "Starts in \(Int(startsIn.rounded(.up))) s"
+        } else if let remaining {
+            status = "Playing, \(Int(remaining.rounded(.up))) s left"
+        } else {
+            status = "Plays in the tunnel extension for \(Int(TransportDelaySimulation.duration)) s"
+        }
+        return HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: "Slow internet episode")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                Text(verbatim: status)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+            Spacer()
+            if remaining == nil {
+                // a delayed start, so the app can be suspended, closed or
+                // restarted away before the extension's start comes
+                Button {
+                    slowInternetPreference.playSimulation(after: 3 * 60)
+                } label: {
+                    Text(verbatim: "In 3 min")
+                        .font(themeManager.currentTheme.bodyFont)
+                }
+                .buttonStyle(.borderless)
+                Button {
+                    slowInternetPreference.playSimulation()
+                } label: {
+                    Text(verbatim: "Play")
+                        .font(themeManager.currentTheme.bodyFont)
+                }
+                .buttonStyle(.borderless)
+            } else {
+                Button {
+                    slowInternetPreference.stopSimulation()
+                } label: {
+                    Text(verbatim: "Stop")
+                        .font(themeManager.currentTheme.bodyFont)
+                }
+                .buttonStyle(.borderless)
+            }
+        }
+    }
+    #endif
 
     /** Diagnostics: everything the client knows, as one file the user can send. */
     private var diagnosticsSection: some View {

@@ -377,9 +377,14 @@ struct SettingsForm_iOS: View {
                     Text("Send me product updates")
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
-                    
+
                 }
-                
+
+                /**
+                 * The slow internet notification, only here
+                 */
+                SlowInternetNotifyToggle()
+
                 /**
                  * Discord Link
                  */

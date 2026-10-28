@@ -288,6 +288,13 @@ struct NetworkApp: App {
     @StateObject var reliabilityStore: ReliabilityStore
     // this device's provider status from the server, for the provider statistics
     @StateObject var providerStatusStore: ProviderStatusStore
+    // the transport delay, for the slow internet pill
+    @StateObject var transportDelayStore: TransportDelayStore
+    #if os(macOS)
+    // the menu bar's slow internet row: its own store, for the device's life,
+    // since the device stores reset when the window hides (apple/DELAY.md §5.3)
+    @StateObject private var menuBarTransportDelayStore: TransportDelayStore
+    #endif
     // what providing does on battery, and the power state (P077)
     @StateObject var providePowerStore = ProvidePowerStore()
     // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
@@ -323,10 +330,20 @@ struct NetworkApp: App {
         _networkPeersStore = StateObject(wrappedValue: deviceStores.networkPeersStore)
         _reliabilityStore = StateObject(wrappedValue: deviceStores.reliabilityStore)
         _providerStatusStore = StateObject(wrappedValue: deviceStores.providerStatusStore)
+        _transportDelayStore = StateObject(wrappedValue: deviceStores.transportDelayStore)
+        #if os(macOS)
+        _menuBarTransportDelayStore = StateObject(
+            wrappedValue: TransportDelayStore(deviceWorkQueue: connectViewModel.connectCommandQueue)
+        )
+        #endif
         appDelegate.deviceManager = deviceManager
         // every logout, the server's included, stops the account connecting
         deviceManager.logoutStarted = { [weak connectViewModel] device in
             connectViewModel?.signOutStarted(device: device)
+            #if os(iOS)
+            // and ends the slow internet Live Activity at once
+            TransportDelayActivityAppDriver.shared.signedOut()
+            #endif
         }
         #if os(macOS)
         // every quit waits for its queued commands (QuitSequence)
@@ -539,6 +556,7 @@ struct NetworkApp: App {
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
                 .environmentObject(providerStatusStore)
+                .environmentObject(transportDelayStore)
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
@@ -574,6 +592,9 @@ struct NetworkApp: App {
                 }
                 .onChange(of: scenePhase) { phase in
                     setPresentationActive(phase == .active)
+                    // the slow internet Live Activity starts from the app
+                    // only in the foreground (TransportDelayActivityAppDriver)
+                    TransportDelayActivityAppDriver.shared.setForeground(phase == .active)
                     if phase == .background {
                         // pending product events go out before the system suspends the app
                         ClientEvents.shared.flush()
@@ -591,6 +612,7 @@ struct NetworkApp: App {
                 }
                 .onAppear {
                     setPresentationActive(scenePhase == .active)
+                    TransportDelayActivityAppDriver.shared.setForeground(scenePhase == .active)
                 }
                 #if DEBUG
                 .task {
@@ -617,6 +639,7 @@ struct NetworkApp: App {
                 .environmentObject(networkPeersStore)
                 .environmentObject(reliabilityStore)
                 .environmentObject(providerStatusStore)
+                .environmentObject(transportDelayStore)
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environmentObject(splitTunnelProxyController)
@@ -673,6 +696,7 @@ struct NetworkApp: App {
                 }
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
+                    updateMenuBarTransportDelay(device)
                 }
                 .onChange(of: scenePhase) { phase in
                     setMacPresentationActive(sceneActive: phase == .active)
@@ -824,6 +848,10 @@ struct NetworkApp: App {
             }
             .buttonStyle(.plain)
             .disabled(true)
+
+            // only while slow, from the menu bar's own store: cached values,
+            // no sdk call while the menu draws
+            SlowInternetMenuBarRow(state: menuBarTransportDelayStore.state)
             
             Divider()
             
@@ -856,6 +884,18 @@ struct NetworkApp: App {
     }
     
     #if os(macOS)
+
+    /// The menu bar's slow internet store follows the device for its life,
+    /// window shown or not; the window's own store is the device stores'.
+    private func updateMenuBarTransportDelay(_ device: SdkDeviceRemote?) {
+        guard let device else {
+            menuBarTransportDelayStore.reset()
+            return
+        }
+        if menuBarTransportDelayStore.device !== device {
+            menuBarTransportDelayStore.setup(device)
+        }
+    }
 
     private func setMacPresentationActive(sceneActive: Bool) {
         guard let transition = presentationLifecycle.update(

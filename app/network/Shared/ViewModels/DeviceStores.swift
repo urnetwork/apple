@@ -48,6 +48,8 @@ struct DeviceStores {
     let reliabilityStore: ReliabilityStore
     // this device's provider status from the server, for the provider statistics
     let providerStatusStore: ProviderStatusStore
+    // the transport delay, for the slow internet pill
+    let transportDelayStore: TransportDelayStore
 
     /// The stores, closing their device subs and controllers on
     /// `deviceWorkQueue`: NetworkApp passes the connect view model's command
@@ -61,6 +63,7 @@ struct DeviceStores {
         networkPeersStore = NetworkPeersStore(deviceWorkQueue: deviceWorkQueue)
         reliabilityStore = ReliabilityStore()
         providerStatusStore = ProviderStatusStore(deviceWorkQueue: deviceWorkQueue)
+        transportDelayStore = TransportDelayStore(deviceWorkQueue: deviceWorkQueue)
     }
 
     /// `localState` is the app's own local state, which mirrors the split
@@ -74,6 +77,7 @@ struct DeviceStores {
         networkPeersStore.setup(device)
         reliabilityStore.setup(device)
         providerStatusStore.setup(device)
+        transportDelayStore.setup(device)
     }
 
     func reset() {
@@ -84,6 +88,7 @@ struct DeviceStores {
         networkPeersStore.reset()
         reliabilityStore.reset()
         providerStatusStore.reset()
+        transportDelayStore.reset()
     }
 }
 

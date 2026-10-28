@@ -931,6 +931,22 @@ struct ConnectTapStateTests {
             return stateLock.withLock { remoteConnectedValue }
         }
 
+        // the transport delay listener reports the worst level; the getter
+        // answers none
+        override func add(_ listener: SdkTransportDelayChangeListenerProtocol?) -> SdkSubProtocol? {
+            addStoreListener("TransportDelayChangeListener") {
+                let delay = SdkTransportDelay()
+                delay.downQuality = 1
+                delay.downQueueDelayMillis = 2600
+                listener?.transportDelayChanged(delay)
+            }
+        }
+
+        override func getTransportDelay() -> SdkTransportDelay? {
+            record("getTransportDelay")
+            return nil
+        }
+
         override func add(_ listener: SdkDnsResolverSettingsChangeListenerProtocol?) -> SdkSubProtocol? {
             addStoreListener("DnsResolverSettingsChangeListener") {
                 listener?.dnsResolverSettingsChanged(nil)
@@ -1719,8 +1735,8 @@ struct ConnectTapStateTests {
         model.setup(api: nil, device: device, connectViewController: FakeConnectViewController())
         let stores = Self.deviceStores(model, on: device)
         await Self.deviceWorkSettled(model)
-        // dns 2, transport 4, split rules 2, peers 1
-        #expect(device.storeListeners.count == 9)
+        // dns 2, transport 4, split rules 2, peers 1, transport delay 2
+        #expect(device.storeListeners.count == 11)
         #expect(device.controllers.count == 4)
 
         model.connect()
@@ -1732,7 +1748,7 @@ struct ConnectTapStateTests {
         stores.reset()
         model.readConnectionStatus = { nil }
         #expect(device.mainThreadCalls == [])
-        #expect(device.storeListeners.count == 9)
+        #expect(device.storeListeners.count == 11)
         #expect(device.controllers.map { $0.calls.closeCount } == [0, 0, 0, 0])
 
         commands.release()
@@ -1769,6 +1785,8 @@ struct ConnectTapStateTests {
         #expect(stores.transportSettingsStore.status(.client) == nil)
         #expect(stores.transportSettingsStore.status(.provider) == nil)
         #expect(!stores.networkPeersStore.peersAvailable)
+        // the retired listener's worst level, and its link up, show nothing
+        #expect(stores.transportDelayStore.state == TransportDelayState())
         #expect(device.mainThreadCalls == [])
 
         commands.release()
@@ -1804,6 +1822,7 @@ struct ConnectTapStateTests {
         #expect(stores.transportSettingsStore.settings(.client) == nil)
         #expect(stores.transportSettingsStore.status(.client) == nil)
         #expect(!stores.networkPeersStore.peersAvailable)
+        #expect(stores.transportDelayStore.state.level == 0)
         #expect(next.mainThreadCalls == [])
         #expect(next.controllerMainThreadCalls == [])
 

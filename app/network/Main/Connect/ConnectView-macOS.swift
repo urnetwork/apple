@@ -50,7 +50,9 @@ import URnetworkSdk
                 presentedStatsSheet = .providerLocations
             case .contracts:
                 presentedStatsSheet = .clientContracts
-            case .connect:
+            case .connect, .slowInternet:
+                // the slow internet Live Activity lands here too: the pill
+                // is the whole story
                 break
             }
         }
@@ -418,6 +420,11 @@ import URnetworkSdk
             }
 
             .toolbar {
+                // the slow internet pill, next to the provider list toggle
+                // (apple/DELAY.md §5.3); empty while the connection is normal
+                ToolbarItem(placement: .automatic) {
+                    SlowInternetToolbarPill()
+                }
                 ToolbarItem(placement: .automatic) {
                     Button(action: {
                         withAnimation(.spring(duration: 0.3)) {

@@ -291,6 +291,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         var configuration: [String: String]?
         var close: (() -> Void)?
         var snapshotWriter: WidgetSnapshotWriter?
+        #if os(iOS)
+        // the slow internet Live Activity (TransportDelayActivityController)
+        var transportDelayActivity: TransportDelayActivityController?
+        #endif
         var networkStateRefresh: (() -> Void)?
         var destinationRecovery: DestinationRecovery?
         var recoveryEffects: RecoveryEffects?
@@ -1591,11 +1595,20 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             // publish location, providers, throughput and balance for the widgets
             let snapshotWriter = WidgetSnapshotWriter(device: device, logger: logger)
             snapshotWriter.start()
+#if os(iOS)
+            // the slow internet Live Activity, from the device's transport
+            // delay listener (apple/DELAY.md §5.5, spike S1)
+            let transportDelayActivity = TransportDelayActivityController(device: device, diagnosticLog: diagnosticLog)
+            transportDelayActivity.start()
+#endif
 
             let closeSession = {
                 destinationRecovery.cancel()
                 recoveryEffects.cancel()
                 snapshotWriter.close()
+#if os(iOS)
+                transportDelayActivity.close()
+#endif
                 packetReceiverSub?.close()
                 defaultPathObservation.invalidate()
                 NotificationCenter.default.removeObserver(powerStateObserver)
@@ -1624,6 +1637,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             guard self.providerSessions.update(providerTicket, {
                 $0.close = closeSession
                 $0.snapshotWriter = snapshotWriter
+#if os(iOS)
+                $0.transportDelayActivity = transportDelayActivity
+#endif
                 $0.networkStateRefresh = networkStateRefresh
             }) else {
                 closeSession()
@@ -1704,6 +1720,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     // the tunnel is up: re-render the quick connect control and
                     // the widgets now that NEVPNStatus reads connected
                     snapshotWriter.tunnelStarted()
+#if os(iOS)
+                    // and the slow internet Live Activity may show
+                    transportDelayActivity.tunnelStarted()
+#endif
                 }
             }
         }
@@ -2362,6 +2382,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     // reaped as soon as the completion handler runs
                     snapshotWriter.tunnelStopped()
                 }
+                #if os(iOS)
+                // ends the slow internet Live Activity at once; synchronous
+                // for the same reason
+                retiringProvider?.transportDelayActivity?.tunnelStopped()
+                #endif
 
                 if let close = retiringProvider?.close {
                     close()

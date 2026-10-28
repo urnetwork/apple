@@ -186,7 +186,7 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
   - **The three existing widgets stay as they are.**
 - **The mockups.** They are local HTML pages rendered to PNG: "Split screen and foldable layouts" and "One cover screen widget".
 
-## As built (2026-10-28, uncommitted)
+## As built (2026-10-28)
 
 ### Apple app
 

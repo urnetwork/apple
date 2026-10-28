@@ -16,9 +16,6 @@ struct BalanceBarView: View {
 
     let balance: WidgetBalanceSnapshot?
 
-    private static let minimumFraction = 0.015
-    private static let barHeight: CGFloat = 8
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
@@ -31,17 +28,7 @@ struct BalanceBarView: View {
                     .foregroundStyle(WidgetTheme.text)
                     .lineLimit(1)
             }
-            GeometryReader { geometry in
-                HStack(spacing: 2) {
-                    ForEach(segments(width: geometry.size.width), id: \.id) { segment in
-                        Rectangle()
-                            .fill(segment.color)
-                            .frame(width: segment.width)
-                    }
-                }
-                .clipShape(Capsule())
-            }
-            .frame(height: Self.barHeight)
+            BalanceBar(balance: balance)
         }
     }
 
@@ -52,6 +39,30 @@ struct BalanceBarView: View {
         let available = formatBalanceBytes(Int(clamping: balance.balanceByteCount))
         let start = formatBalanceBytes(Int(clamping: balance.startBalanceByteCount))
         return "\(available) / \(start)"
+    }
+}
+
+/// The bar alone, which the overview widget's balance tile draws under its
+/// own figure.
+struct BalanceBar: View {
+
+    let balance: WidgetBalanceSnapshot?
+    var height: CGFloat = 8
+
+    private static let minimumFraction = 0.015
+
+    var body: some View {
+        GeometryReader { geometry in
+            HStack(spacing: 2) {
+                ForEach(segments(width: geometry.size.width), id: \.id) { segment in
+                    Rectangle()
+                        .fill(segment.color)
+                        .frame(width: segment.width)
+                }
+            }
+            .clipShape(Capsule())
+        }
+        .frame(height: height)
     }
 
     private struct Segment {

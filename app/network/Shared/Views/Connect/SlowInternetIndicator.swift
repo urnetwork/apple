@@ -35,59 +35,9 @@ struct AnimatedTunnelIndicator: View {
     }
 }
 
-/// What the pill says (apple/DELAY.md §5.2), as a value so its rules are
-/// tested (SlowInternetPillContentTests). "Poor signal", or "Fallback" on the
-/// fallback connection; then each direction's standing delay, or its limited
-/// rate when it has no delay, and nothing when it has neither. The larger
-/// delay is the worse direction, drawn amber. Recovered, the pill says
-/// "Internet back to normal" instead.
-struct SlowInternetPillContent: Equatable {
-
-    enum Label: Equatable {
-        case poorSignal
-        case fallback
-    }
-
-    var label: Label
-    /// "640 ms", or "48 kb/s" with no delay; nil hides the direction.
-    var up: String?
-    var down: String?
-    /// The larger delay's direction; nil when the delays are equal.
-    var worse: TransportDelayDirection?
-    /// The few seconds after a return to normal, before the pill leaves.
-    var recovered = false
-
-    /// What the pill says for a slow reading.
-    init(reading: TransportDelayReading) {
-        label = reading.fallback ? .fallback : .poorSignal
-        // the standing delay, else the limited rate, else nothing
-        up = TransportDelayFormat.delay(millis: reading.upDelayMillis)
-            ?? TransportDelayFormat.rate(bitsPerSecond: reading.upBitsPerSecond)
-        down = TransportDelayFormat.delay(millis: reading.downDelayMillis)
-            ?? TransportDelayFormat.rate(bitsPerSecond: reading.downBitsPerSecond)
-        worse = TransportDelayDirection.worse(upDelayMillis: reading.upDelayMillis, downDelayMillis: reading.downDelayMillis)
-    }
-
-    /// With room for one direction: the worse one, or the download when
-    /// neither is worse (the upload when only it shows).
-    var worseOnly: SlowInternetPillContent {
-        var content = self
-        switch worse ?? (down != nil ? .down : .up) {
-        case .up:
-            content.down = nil
-        case .down:
-            content.up = nil
-        }
-        return content
-    }
-
-    /// With no room for numbers: the tunnel and the label.
-    var labelOnly: SlowInternetPillContent {
-        var content = self
-        content.up = nil
-        content.down = nil
-        return content
-    }
+/// The connect screen's rule for what the pill shows; what it says is shared
+/// with the dashboard widget (SlowInternetPillContent.swift).
+extension SlowInternetPillContent {
 
     /// What the pill shows once `state` arrives, after `shown` (nil when the
     /// pill is not up, or is leaving):
@@ -354,26 +304,6 @@ struct SlowInternetPillHost: View {
             withAnimation(.easeOut(duration: TunnelMotion.fadeOutDuration)) {
                 visible = false
             }
-        }
-    }
-}
-
-/// The accessibility text for the numbers.
-enum SlowInternetText {
-
-    /// "Upload delay 640 ms, Download delay 1.2 s": each direction's text in
-    /// the pill (its delay, or its limited rate), leaving out a direction
-    /// with neither.
-    static func delaysValue(up: String?, down: String?) -> Text {
-        switch (up, down) {
-        case let (up?, down?):
-            return Text("Upload delay") + Text(verbatim: " \(up), ") + Text("Download delay") + Text(verbatim: " \(down)")
-        case let (up?, nil):
-            return Text("Upload delay") + Text(verbatim: " \(up)")
-        case let (nil, down?):
-            return Text("Download delay") + Text(verbatim: " \(down)")
-        case (nil, nil):
-            return Text(verbatim: "")
         }
     }
 }

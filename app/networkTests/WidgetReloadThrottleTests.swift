@@ -62,6 +62,37 @@ struct WidgetReloadThrottleTests {
         #expect(counter.value == 1)
     }
 
+    /// The overview reloads with each of the other kinds, and takes the
+    /// urgency of the reload it follows from this mark.
+    @Test func aRoutineReloadIsMarkedAsOne() async {
+        let routine = Recorder()
+        let throttle = WidgetReloadThrottle(interval: 60) { routine.record(WidgetReloadThrottle.firingRoutine) }
+
+        // nothing has fired yet, so a routine request goes at once
+        throttle.request()
+        #expect(await routine.reaches(1))
+        throttle.request(urgent: true)
+        #expect(await routine.reaches(2))
+
+        #expect(routine.values == [true, false])
+        #expect(!WidgetReloadThrottle.firingRoutine)
+    }
+
+    /// One event reloads two or three kinds; the overview follows each, and
+    /// with a delay the urgent requests go as one.
+    @Test func urgentRequestsInsideTheDelayGoAsOne() async {
+        let counter = Counter()
+        let throttle = WidgetReloadThrottle(interval: 60, urgentDelay: Self.interval / 2) { counter.increment() }
+
+        throttle.request(urgent: true)
+        throttle.request(urgent: true)
+        throttle.request(urgent: true)
+        #expect(await counter.reaches(1))
+        await Self.settle()
+
+        #expect(counter.value == 1)
+    }
+
     @Test func cancelDropsAPendingReload() async {
         let counter = Counter()
         let throttle = WidgetReloadThrottle(interval: Self.interval) { counter.increment() }
@@ -102,6 +133,8 @@ struct WidgetReloadThrottleTests {
         }
 
         /// True once the count reaches `target`; false if it never does.
+        /// Looks once more at the deadline: a loaded machine can hold this
+        /// task asleep past it while the throttle fires on time.
         func reaches(_ target: Int, timeout: TimeInterval = 5) async -> Bool {
             let deadline = Date().addingTimeInterval(timeout)
             while Date() < deadline {
@@ -110,7 +143,31 @@ struct WidgetReloadThrottleTests {
                 }
                 try? await Task.sleep(nanoseconds: 20_000_000)
             }
-            return false
+            return target <= value
+        }
+    }
+
+    /// What each fire saw, in order, behind the same lock.
+    private final class Recorder: @unchecked Sendable {
+        private let lock = NSLock()
+        private var recorded: [Bool] = []
+        private let counter = Counter()
+
+        func record(_ value: Bool) {
+            lock.lock()
+            recorded.append(value)
+            lock.unlock()
+            counter.increment()
+        }
+
+        var values: [Bool] {
+            lock.lock()
+            defer { lock.unlock() }
+            return recorded
+        }
+
+        func reaches(_ target: Int) async -> Bool {
+            await counter.reaches(target)
         }
     }
 }

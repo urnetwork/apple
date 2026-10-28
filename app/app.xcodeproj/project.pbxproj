@@ -73,10 +73,14 @@
 		D3A7E1112F10000100000011 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1012F10000100000001 /* network/Shared/TransportDelay/TransportDelayAttributes.swift */; };
 		D3A7E1122F10000100000012 /* network/Shared/TransportDelay/TransportDelayFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1022F10000100000002 /* network/Shared/TransportDelay/TransportDelayFormat.swift */; };
 		D3A7E1132F10000100000013 /* network/Shared/TransportDelay/TunnelIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1032F10000100000003 /* network/Shared/TransportDelay/TunnelIndicator.swift */; };
+		D3A7E1142F10000100000014 /* network/Shared/TransportDelay/SlowInternetPillContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1072F10000100000007 /* network/Shared/TransportDelay/SlowInternetPillContent.swift */; };
+		D3A7E1152F10000100000015 /* network/Shared/TransportDelay/TransportDelaySharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */; };
+		D3A7E1162F10000100000016 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */; };
 		D3A7E1212F10000100000021 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1012F10000100000001 /* network/Shared/TransportDelay/TransportDelayAttributes.swift */; };
 		D3A7E1242F10000100000024 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */; };
 		D3A7E1252F10000100000025 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1052F10000100000005 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift */; };
 		D3A7E1262F10000100000026 /* network/Shared/TransportDelay/TransportDelaySharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */; };
+		E4B10A022F11000100000002 /* network/Shared/Widgets/WidgetOverview.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B10A012F11000100000001 /* network/Shared/Widgets/WidgetOverview.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,6 +232,8 @@
 		D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelayActivityPolicy.swift; sourceTree = SOURCE_ROOT; };
 		D3A7E1052F10000100000005 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelayActivityPresenter.swift; sourceTree = SOURCE_ROOT; };
 		D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelaySharedState.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1072F10000100000007 /* network/Shared/TransportDelay/SlowInternetPillContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/SlowInternetPillContent.swift; sourceTree = SOURCE_ROOT; };
+		E4B10A012F11000100000001 /* network/Shared/Widgets/WidgetOverview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetOverview.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -449,6 +455,8 @@
 				D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */,
 				D3A7E1052F10000100000005 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift */,
 				D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */,
+				D3A7E1072F10000100000007 /* network/Shared/TransportDelay/SlowInternetPillContent.swift */,
+				E4B10A012F11000100000001 /* network/Shared/Widgets/WidgetOverview.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -963,6 +971,10 @@
 				D3A7E1112F10000100000011 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */,
 				D3A7E1122F10000100000012 /* network/Shared/TransportDelay/TransportDelayFormat.swift in Sources */,
 				D3A7E1132F10000100000013 /* network/Shared/TransportDelay/TunnelIndicator.swift in Sources */,
+				D3A7E1142F10000100000014 /* network/Shared/TransportDelay/SlowInternetPillContent.swift in Sources */,
+				D3A7E1152F10000100000015 /* network/Shared/TransportDelay/TransportDelaySharedState.swift in Sources */,
+				D3A7E1162F10000100000016 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift in Sources */,
+				E4B10A022F11000100000002 /* network/Shared/Widgets/WidgetOverview.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1136,8 +1148,8 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = NO;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = NO;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
@@ -1219,8 +1231,8 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = NO;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = NO;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
@@ -1765,8 +1777,8 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = NO;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = NO;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
@@ -1774,7 +1786,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -1844,8 +1856,8 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
 				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = NO;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = NO;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
@@ -1853,7 +1865,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)network.ur.tunnel-credentials";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;

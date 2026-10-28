@@ -23,10 +23,11 @@ struct URnetworkWidgetBundle: WidgetBundle {
         DashboardWidget()
         ProviderGlobeWidget()
         ContractsWidget()
+        OverviewWidget()
         // iOS only at compile time: the control's WidgetKit types are
         // macOS 26 symbols and are absent from the macOS 15 SDK CI builds
         // against, so QuickConnectControl itself is not compiled there. The
-        // macOS bundle is still valid, with the three Home Screen widgets.
+        // macOS bundle is still valid, with the Home Screen widgets.
         #if os(iOS)
         if #available(iOS 18.0, macOS 26.0, *) {
             QuickConnectControl()

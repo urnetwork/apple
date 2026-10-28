@@ -1,5 +1,12 @@
 # Cross-platform parity audit — 2026-07-16
 
+> **Update 2026-10-28.** The foldable work (DUO.md, "As built") resolves the size-detection findings below:
+> - D8: iOS login now reads the size class;
+> - the Android `isTablet()` portrait miss: `isTablet()` is gone;
+> - recommendations 4 and 5: size classes and adaptive navigation.
+>
+> iPad and regular-width iPhone Duo are now UI targets, with split layouts for Connect, Account and Leaderboard.
+
 Seven audits over six app surfaces, grounded in current source (not planning docs):
 
 1. iPad vs iPhone (this repo)

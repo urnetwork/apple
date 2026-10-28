@@ -31,6 +31,10 @@ struct SnapshotEntry: TimelineEntry {
     let isConfigured: Bool
     /// The widget gallery / placeholder rendering: sample data.
     let isPreview: Bool
+    /// The dashboard's slow internet pill, decided from the extension's
+    /// transport delay snapshot as of the read, like the rest: nil while the
+    /// notice is not up (SlowInternetWidgetPill).
+    var slowInternet: SlowInternetWidgetPill? = nil
 
     /// The tunnel snapshot is meaningful only while the tunnel that wrote it
     /// is still up.
@@ -76,7 +80,7 @@ struct SnapshotTimelineProvider: TimelineProvider {
         let state = await TunnelControlSupport.currentState()
         let tunnel = WidgetSnapshotStore.loadTunnel() ?? .inactive(at: date)
         let balance = WidgetSnapshotStore.loadBalance()
-        return SnapshotEntry(
+        var entry = SnapshotEntry(
             date: date,
             tunnel: tunnel,
             balance: balance,
@@ -84,6 +88,15 @@ struct SnapshotTimelineProvider: TimelineProvider {
             isConfigured: state.isConfigured,
             isPreview: false
         )
+        // fresh as of this read, so every entry of the timeline keeps it:
+        // the extension reloads the timeline when the pill changes, and not
+        // for its numbers
+        entry.slowInternet = SlowInternetWidgetPill.decide(
+            snapshot: TransportDelaySnapshotStore.load(),
+            showsTunnelData: entry.showsTunnelData,
+            now: date
+        )
+        return entry
     }
 }
 
@@ -92,7 +105,8 @@ extension SnapshotEntry {
     func at(_ date: Date) -> SnapshotEntry {
         SnapshotEntry(
             date: date, tunnel: tunnel, balance: balance,
-            isOn: isOn, isConfigured: isConfigured, isPreview: isPreview
+            isOn: isOn, isConfigured: isConfigured, isPreview: isPreview,
+            slowInternet: slowInternet
         )
     }
 

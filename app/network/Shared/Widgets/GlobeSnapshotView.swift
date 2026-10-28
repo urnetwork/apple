@@ -18,6 +18,9 @@ import SwiftUI
 struct GlobeSnapshotView: View {
 
     let providers: [WidgetProviderSnapshot]
+    /// One color for every provider's dot instead of its country's: the
+    /// overview widget draws its providers in the stats' green.
+    var dotColor: Color? = nil
 
     // virtual-space constants shared with the app's globe
     private static let dotRadius: Double = 7
@@ -41,7 +44,7 @@ struct GlobeSnapshotView: View {
         let rotation = Self.rotation(facing: providers)
         Canvas { context, size in
             Self.draw(
-                &context, size: size, providers: providers,
+                &context, size: size, providers: providers, dotColor: dotColor,
                 lambda: rotation.lambda, phi: rotation.phi
             )
         }
@@ -75,6 +78,7 @@ struct GlobeSnapshotView: View {
         _ context: inout GraphicsContext,
         size: CGSize,
         providers: [WidgetProviderSnapshot],
+        dotColor: Color?,
         lambda: Double,
         phi: Double
     ) {
@@ -120,7 +124,7 @@ struct GlobeSnapshotView: View {
             }
             let center = canvasPoint(projected)
             let dot = Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: 2 * r, height: 2 * r))
-            context.fill(dot, with: .color(Color(hexString: provider.colorHex)))
+            context.fill(dot, with: .color(dotColor ?? Color(hexString: provider.colorHex)))
             // a hairline of the sphere color keeps overlapping dots distinct
             context.stroke(dot, with: .color(WidgetTheme.urBlack), lineWidth: 0.5)
         }

@@ -190,6 +190,8 @@ class PointsLeaderboardStore: ObservableObject {
     private var api: SdkApi?
     private var viewController: SdkPointsLeaderboardViewController?
     private var sub: SdkSubProtocol?
+    // the views holding the controller open (open, close)
+    private var holders: Set<Holder> = []
 
     // after a local toggle or save, `me` from an older in-flight page could
     // briefly disagree with what the user just did; the local values win
@@ -221,6 +223,38 @@ class PointsLeaderboardStore: ObservableObject {
         })
         vc?.start()
         readState()
+    }
+
+    /// The views that hold the controller open.
+    enum Holder: Hashable {
+        /// the Points tab of the ranking
+        case pointsTab
+        /// the network's own standing beside the ranking (regular width)
+        case ownNetwork
+    }
+
+    /**
+     * Holds the controller open for `holder`; it closes once no holder is
+     * left. Two views share it (the Points tab, the network's own standing),
+     * so either may appear or go first, and a repeated call changes nothing.
+     */
+    func open(_ holder: Holder, device: SdkDeviceRemote?, api: SdkApi?) {
+        holders.insert(holder)
+        attach(device: device, api: api)
+    }
+
+    func close(_ holder: Holder) {
+        holders.remove(holder)
+        if holders.isEmpty {
+            detach()
+        }
+    }
+
+    /// The device changed: the controller moves to it while a view holds it.
+    func deviceChanged(device: SdkDeviceRemote?, api: SdkApi?) {
+        if !holders.isEmpty {
+            attach(device: device, api: api)
+        }
     }
 
     func detach() {

@@ -5,8 +5,10 @@
 //  Tells the user their internet is slow from the process that owns the
 //  device (apple/DELAY.md §5.5, §5.6): the device's transport delay listener
 //  feeds the dwell policy (TransportDelayActivityPolicy), and the policy's
-//  start, update and end become a local notification posted from here. Each
-//  step also publishes Widgets/transport-delay.json, which the app's Live
+//  start, update and end become a local notification posted from here, as
+//  the notify toggle allows (TransportDelayNotice), which gates nothing else.
+//  Each step also publishes Widgets/transport-delay.json, which the
+//  dashboard widget's pill shows (apple/DELAY.md §5.7) and the app's Live
 //  Activity path follows in the foreground (off until server pushes can keep
 //  an activity up to date, the next step).
 //
@@ -47,8 +49,8 @@ final class TransportDelayActivityController {
     // steps at each change of a scripted episode's reading (spike S1)
     private var simulationTimer: DispatchSourceTimer?
     private var lines = TunnelDiagnosticLineFilter(limit: TransportDelayActivityController.logLineLimit)
-    // what the posted notification says, nil while none is posted
-    private var posted: TransportDelayNotification.Kind?
+    // what the notification shows over the policy's episodes
+    private var notice = TransportDelayNotice()
     private var lastSnapshot: TransportDelaySnapshot?
 
     /// The controller the process-wide Darwin observer forwards to.
@@ -106,7 +108,7 @@ final class TransportDelayActivityController {
         queue.async { [self] in
             guard running else { return }
             tunnelConnected = true
-            // the step takes up the toggle and the tunnel (`enabled`)
+            // the step takes up the tunnel and the toggle
             step(.tick)
         }
     }
@@ -134,7 +136,7 @@ final class TransportDelayActivityController {
         write("finish reason=\(reason)")
         // the policy hides whatever it showed, with no recovered state
         _ = policy.step(.enabled(false), now: now)
-        withdraw()
+        perform(notice.step(.end, enabled: false))
         publish(now: now, force: true)
         running = false
         if Self.current === self {
@@ -148,52 +150,47 @@ final class TransportDelayActivityController {
         simulationTimer = nil
     }
 
-    /// The toggle is on and the tunnel is connected.
-    private var enabled: Bool {
-        tunnelConnected && TransportDelayLiveActivitySetting.isEnabled()
-    }
-
     // MARK: Policy
 
     private func step(_ event: TransportDelayActivityPolicy.Event) {
         guard running else { return }
         let now = Date()
-        var acted = false
         // the toggle is read on every step: its Darwin notification is not
-        // delivered to a process that was suspended when it was posted
-        if policy.enabled != enabled {
-            acted = apply(.enabled(enabled), now: now) || acted
+        // delivered to a process that was suspended when it was posted. It
+        // gates only the notification: the dwell, and the dashboard widget's
+        // pill with it, run while the tunnel is connected (apple/DELAY.md §3)
+        let notify = TransportDelayLiveActivitySetting.isEnabled()
+        var acted = false
+        if policy.enabled != tunnelConnected {
+            acted = apply(.enabled(tunnelConnected), notify: notify, now: now) || acted
         }
-        acted = apply(event, now: now) || acted
+        acted = apply(event, notify: notify, now: now) || acted
+        perform(notice.setting(enabled: notify))
         publish(now: now, force: acted)
         schedule(now: now)
     }
 
     /// Steps the policy and performs what it returns; whether it acted.
-    private func apply(_ event: TransportDelayActivityPolicy.Event, now: Date) -> Bool {
+    private func apply(_ event: TransportDelayActivityPolicy.Event, notify: Bool, now: Date) -> Bool {
         let previousLevel = policy.content?.level
         guard let action = policy.step(event, now: now) else {
             return false
         }
         logStep(action, previousLevel: previousLevel)
-        perform(action)
+        perform(notice.step(action, enabled: notify))
         return true
     }
 
-    /// The notification follows the policy's content, but is posted again
-    /// only when what it says changes (slow, fallback, recovered): each post
-    /// alerts, so a change of level or a refresh of the numbers posts nothing.
-    private func perform(_ action: TransportDelayActivityPolicy.Action) {
-        switch action {
-        case .start(let content), .update(let content):
-            let kind = TransportDelayNotification.Kind(content)
-            guard kind != posted else {
-                return
-            }
-            posted = kind
+    /// Posts or withdraws the notification, as TransportDelayNotice has it.
+    private func perform(_ change: TransportDelayNotice.Change?) {
+        switch change {
+        case .post(let kind):
             post(kind)
-        case .end:
-            withdraw()
+        case .withdraw:
+            TransportDelayNotification.remove()
+            write("notification removed")
+        case nil:
+            break
         }
     }
 
@@ -216,15 +213,6 @@ final class TransportDelayActivityController {
                 }
             }
         }
-    }
-
-    private func withdraw() {
-        guard posted != nil else {
-            return
-        }
-        posted = nil
-        TransportDelayNotification.remove()
-        write("notification removed")
     }
 
     /// The policy's next deadline: a fresh reading then, which also moves the
@@ -307,6 +295,11 @@ final class TransportDelayActivityController {
             return
         }
         if TransportDelaySnapshotStore.save(snapshot) {
+            // the dashboard widget's pill reads it: reloaded, after the write,
+            // when the pill appears or leaves or its level or label changes
+            if TransportDelaySnapshot.dashboardChanged(from: lastSnapshot, to: snapshot) {
+                WidgetRefresh.reloadDashboard()
+            }
             lastSnapshot = snapshot
         } else {
             write("failed to write the snapshot")
@@ -383,24 +376,8 @@ enum TransportDelayNotification {
 
     static let identifier = "network.ur.slow-internet"
 
-    /// What the notification says.
-    enum Kind: Equatable {
-        case slow(fallback: Bool)
-        case recovered
-
-        init(_ content: TransportDelayAttributes.ContentState) {
-            self = content.recovered ? .recovered : .slow(fallback: content.fallback)
-        }
-
-        var logName: String {
-            switch self {
-            case .slow(let fallback):
-                return fallback ? "slow fallback" : "slow"
-            case .recovered:
-                return "recovered"
-            }
-        }
-    }
+    /// What the notification says, as TransportDelayNotice decides it.
+    typealias Kind = TransportDelayNotice.Kind
 
     static func content(_ kind: Kind) -> UNNotificationContent {
         let content = UNMutableNotificationContent()

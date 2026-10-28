@@ -26,13 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SdkSetMemoryLimit(48 * 1024 * 1024)
     }
     
-    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return .allButUpsideDown
-        } else {
-            return .portrait
-        }
-    }
+    // the supported orientations are the Info.plist's: all of them, on
+    // iPhone as on iPad (apple/DUO.md item 9)
     
     func application(
         _ application: UIApplication,

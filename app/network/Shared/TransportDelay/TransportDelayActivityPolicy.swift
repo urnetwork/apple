@@ -4,15 +4,19 @@
 //
 //  When the slow internet Live Activity starts, updates and ends
 //  (apple/DELAY.md §5.5), as a pure value: whoever drives the activity feeds
-//  it the device's readings, the toggle and the tunnel, and the clock, and
-//  performs the action it returns. TransportDelayActivityPolicyTests pins it.
+//  it the device's readings, the tunnel and the clock, and performs the
+//  action it returns. TransportDelayActivityPolicyTests pins it.
 //
 //  A notification surface must not flap, so it dwells: it appears only once
 //  the level has been above 0 for 30 s of the last 60 s, then stays at
 //  least 60 s, and a 3 s recovered state precedes its end. The in-app pill
-//  follows the sdk's level directly and does not use this.
+//  follows the sdk's level directly and does not use this; the dashboard
+//  widget's pill shows its content (§5.7). The notify toggle gates only the
+//  notification (TransportDelayNotice), like the Windows and Linux trays'
+//  balloon (§3).
 //
-//  Compiled into the app and the packet tunnel extension.
+//  Compiled into the app, the packet tunnel extension and the widget
+//  extension (for TransportDelaySharedState.swift).
 //
 
 import Foundation
@@ -51,7 +55,7 @@ struct TransportDelayActivityPolicy {
     enum Event: Equatable {
         /// The device's transport delay.
         case reading(TransportDelayReading)
-        /// The toggle is on and the tunnel is connected.
+        /// The tunnel is connected.
         case enabled(Bool)
         /// Time passed (the driver's deadline, `nextDeadline`).
         case tick
@@ -91,7 +95,7 @@ struct TransportDelayActivityPolicy {
             apply(next, now: now)
         case .enabled(let next):
             if next && !enabled {
-                // turned back on: a dismissal from before does not hold
+                // connected again: a dismissal from before does not hold
                 suppressed = false
             }
             enabled = next
@@ -273,5 +277,85 @@ struct TransportDelayActivityPolicy {
     private mutating func prune(now: Date) {
         let windowStart = now.addingTimeInterval(-Self.dwellWindow)
         slowSpans.removeAll { $0.end <= windowStart }
+    }
+}
+
+/// The slow internet notification over the policy's episodes, each from its
+/// start to its end (apple/DELAY.md §3, §5.5). "Notify me when my internet is
+/// slow" gates only the notification: the dwell, and the dashboard widget's
+/// pill with it, run whatever it says. An episode's notification moment is
+/// its start, spent whether or not the toggle posts it, as the Windows
+/// balloon's is, so the toggle turned on mid-episode posts nothing until the
+/// next one; turned off, it withdraws what is posted. Each post alerts, so it
+/// posts again only when what it says changes (slow, fallback, recovered),
+/// never for a change of level or a refresh of the numbers.
+struct TransportDelayNotice {
+
+    /// What the notification says.
+    enum Kind: Equatable {
+        case slow(fallback: Bool)
+        case recovered
+
+        init(_ content: TransportDelayAttributes.ContentState) {
+            self = content.recovered ? .recovered : .slow(fallback: content.fallback)
+        }
+
+        var logName: String {
+            switch self {
+            case .slow(let fallback):
+                return fallback ? "slow fallback" : "slow"
+            case .recovered:
+                return "recovered"
+            }
+        }
+    }
+
+    enum Change: Equatable {
+        /// Posts the notification, or replaces the posted one in place.
+        case post(Kind)
+        case withdraw
+    }
+
+    /// What the posted notification says, nil while none is posted.
+    private(set) var posted: Kind? = nil
+
+    /// What the notification does for the policy's `action`, with the toggle
+    /// as it reads now.
+    mutating func step(_ action: TransportDelayActivityPolicy.Action, enabled: Bool) -> Change? {
+        switch action {
+        case .start(let content):
+            // the episode's moment: a toggle that is off spends it unposted
+            return enabled ? post(Kind(content)) : nil
+        case .update(let content):
+            // only the notification this episode posted follows its content
+            guard enabled else {
+                return withdraw()
+            }
+            return posted == nil ? nil : post(Kind(content))
+        case .end:
+            return withdraw()
+        }
+    }
+
+    /// The toggle read again with no action from the policy: turned off, the
+    /// notification goes, and the episode posts nothing more.
+    mutating func setting(enabled: Bool) -> Change? {
+        enabled ? nil : withdraw()
+    }
+
+    private mutating func post(_ kind: Kind) -> Change? {
+        guard kind != posted else {
+            return nil
+        }
+        posted = kind
+        return .post(kind)
+    }
+
+    private mutating func withdraw() -> Change? {
+        guard posted != nil else {
+            return nil
+        }
+        posted = nil
+        return .withdraw
     }
 }

@@ -48,6 +48,9 @@ struct AccountRootView: View {
     let networkName: String?
     let meanReliabilityWeight: Double
     let isPro: Bool
+    // the screen shown beside the list in a regular-width window, whose row
+    // is marked; nil on a phone, where the screen covers the list
+    let selection: AccountNavigationPath?
     
     @StateObject private var viewModel: ViewModel = ViewModel()
 
@@ -77,7 +80,8 @@ struct AccountRootView: View {
         accountPointsStore: AccountPointsStore,
         networkName: String?,
         meanReliabilityWeight: Double,
-        isPro: Bool
+        isPro: Bool,
+        selection: AccountNavigationPath? = nil
     ) {
         self.navigate = navigate
         self.logout = logout
@@ -89,6 +93,7 @@ struct AccountRootView: View {
         self.networkName = networkName
         self.meanReliabilityWeight = meanReliabilityWeight
         self.isPro = isPro
+        self.selection = selection
     }
     
     
@@ -339,7 +344,8 @@ struct AccountRootView: View {
                                     navigate(.profile)
                                 }
                                 
-                            }
+                            },
+                            isSelected: selection == .profile
                         )
 
                         /**
@@ -359,7 +365,8 @@ struct AccountRootView: View {
                                 } else {
                                     navigate(.sessions)
                                 }
-                            }
+                            },
+                            isSelected: selection == .sessions
                         )
                         .accessibilityIdentifier("acceptance.account.sessions")
                         AccountNavLink(
@@ -371,7 +378,8 @@ struct AccountRootView: View {
                                 } else {
                                     navigate(.settings)
                                 }
-                            }
+                            },
+                            isSelected: selection == .settings
                         )
                         .accessibilityIdentifier("acceptance.account.settings")
                         AccountNavLink(
@@ -383,7 +391,8 @@ struct AccountRootView: View {
                                 } else {
                                     navigate(.earnings)
                                 }
-                            }
+                            },
+                            isSelected: selection == .earnings
                         )
                         
                         /**
@@ -395,7 +404,8 @@ struct AccountRootView: View {
                         AccountNavLink(
                             name: "Referrals",
                             iconPath: "ur.symbols.heart",
-                            action: { openReferrals(isGuest: isGuest) }
+                            action: { openReferrals(isGuest: isGuest) },
+                            isSelected: selection == .referrals
                         )
 
                         /**
@@ -408,7 +418,8 @@ struct AccountRootView: View {
                             iconPath: "ur.symbols.widgets",
                             action: {
                                 navigate(.widgets)
-                            }
+                            },
+                            isSelected: selection == .widgets
                         )
                         .accessibilityIdentifier("acceptance.account.widgets")
 
@@ -422,7 +433,8 @@ struct AccountRootView: View {
                             iconPath: "ur.symbols.extenders",
                             action: {
                                 navigate(.extenders)
-                            }
+                            },
+                            isSelected: selection == .extenders
                         )
                         .accessibilityIdentifier("acceptance.account.extenders")
 
@@ -811,6 +823,8 @@ private struct AccountNavLink: View {
     var name: LocalizedStringKey
     var iconPath: String
     var action: () -> Void
+    // the row of the screen shown beside the list
+    var isSelected: Bool = false
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -837,6 +851,14 @@ private struct AccountNavLink: View {
                 }
                 .padding(.vertical, 8)
                 .padding(.horizontal)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isSelected ? themeManager.currentTheme.tintedBackgroundBase : Color.clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(isSelected ? Color.urPink.opacity(0.35) : Color.clear)
+                        )
+                )
                 
                 Divider()
                     .background(themeManager.currentTheme.borderBaseColor)

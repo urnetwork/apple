@@ -65,16 +65,32 @@ struct ContractStackRow: View {
     let arrow: String
     let compact: Bool
 
-    private var slot: CGFloat { compact ? 14 : 18 }
+    private var slot: CGFloat { Self.slot(compact: compact) }
     private var minimumDiameter: CGFloat { compact ? 6 : 8 }
     private static let streamRingGap: CGFloat = 1.5
+    private static let spacing: CGFloat = 3
+    /// The arrow's width with some to spare: the glyph's own width is the
+    /// font's to decide.
+    private static let arrowAllowance: CGFloat = 9
+
+    /// The square each circle sits in, also the row's height.
+    static func slot(compact: Bool) -> CGFloat {
+        compact ? 14 : 18
+    }
+
+    /// How many circles of a stack fit a row `width` wide, at least one: the
+    /// overview's contracts tile draws as many as fit and counts them all.
+    static func capacity(width: CGFloat, compact: Bool) -> Int {
+        let room = width - arrowAllowance
+        return max(1, Int((room / (slot(compact: compact) + spacing)).rounded(.down)))
+    }
 
     private var stackMax: Int64 {
         contracts.map(\.totalByteCount).max() ?? 0
     }
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: Self.spacing) {
             Image(systemName: arrow)
                 .font(.system(size: 7, weight: .semibold))
                 .foregroundStyle(color)

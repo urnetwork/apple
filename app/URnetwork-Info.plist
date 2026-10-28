@@ -79,6 +79,16 @@
 		<string>ABCGravity-ExtraCondensed.otf</string>
 		<string>ABCGravity-Extended.otf</string>
 	</array>
+	<!-- iOS: one window. A VPN client with one tunnel shows the same thing
+	     in a second window, and every view model is app-wide
+	     (apple/DUO.md item 12). The Mac ignores this key. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict/>
+	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

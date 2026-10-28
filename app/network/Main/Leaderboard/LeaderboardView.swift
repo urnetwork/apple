@@ -23,6 +23,9 @@ enum LeaderboardListAnchor: Hashable {
 struct LeaderboardView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
+    // a regular-width window shows the network's own standing beside the
+    // ranking instead of above it
+    @Environment(\.isRegularWidth) private var isRegularWidth
     
     @StateObject private var viewModel: ViewModel
     
@@ -52,80 +55,119 @@ struct LeaderboardView: View {
     var body: some View {
         
         NavigationStack {
-            
-            VStack(spacing: 0) {
-                
-                Picker("", selection: $selectedTab) {
-                    Text("Data").tag(LeaderboardTab.data)
-                    Text("Points").tag(LeaderboardTab.points)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .accessibilityIdentifier("leaderboard.tab.picker")
-                .overlay {
-                    // the taps are taken over the native control: its binding
-                    // is silent for a re-tap and a SwiftUI gesture laid over
-                    // it never fires, so each half selects its tab and counts
-                    // the tap; assistive tech still drives the picker itself
-                    HStack(spacing: 0) {
-                        ForEach(LeaderboardTab.allCases, id: \.self) { tab in
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    selectTab(tab)
-                                }
-                        }
-                    }
-                    .accessibilityHidden(true)
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                
-                switch selectedTab {
-                case .points:
-                    /**
-                     * Points: the all-time points leaderboard
-                     */
-                    
-                    PointsLeaderboardTab(store: pointsStore, scrollResetToken: scrollResetToken)
-                    
-                case .data:
-                    if (viewModel.isInitializing) {
-                        /**
-                         * Initializing
-                         */
-                        
-                        VStack {
-                            Spacer()
-                            ProgressView()
-                            Spacer()
-                        }
-                        
-                    } else {
-                        /**
-                         * Leaderboard initialized
-                         */
-                        
-                        LeaderboardViewPopulated(
+
+            GeometryReader { geometry in
+
+                let panes = SplitLayout.panes(size: geometry.size, sideBySide: true, fold: geometry.windowFold)
+
+                ZStack {
+
+                    // the ranking stays this one view whatever the width, so
+                    // its tab and its place in the list carry over a resize
+                    ranking
+                        // compact: the picker and the ranked list share the
+                        // readable column; regular: the left pane
+                        .frame(maxWidth: isRegularWidth ? panes.firstEnd : TabletLayout.contentWidth)
+                        .frame(maxWidth: .infinity, alignment: isRegularWidth ? .leading : .center)
+
+                    if isRegularWidth {
+                        LeaderboardOwnNetwork(
                             leaderboardRank: viewModel.networkRank,
                             netProvidedFormatted: viewModel.netProvidedFormatted,
-                            fetchLeaderboardData: viewModel.fetchLeaderboardData,
                             rankingPublic: $viewModel.networkRankingPublic,
-                            leaderboardEntries: viewModel.leaderboardEarners,
                             isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
-                            isLoading: viewModel.isLoading,
-                            scrollResetToken: scrollResetToken
+                            pointsStore: pointsStore
                         )
-                        
+                        .frame(width: geometry.size.width - panes.secondStart)
+                        .overlay(alignment: .leading) {
+                            Rectangle()
+                                .fill(themeManager.currentTheme.borderBaseColor)
+                                .frame(width: 1)
+                                .ignoresSafeArea()
+                        }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-                }
 
+                }
             }
-            // tablets: the picker and the ranked list share the readable column
-            .tabletReadableColumn()
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
             .navigationTitle("Leaderboard")
             
+        }
+    }
+
+    /// The tab picker over the Data or Points ranking. The data ranking
+    /// leads with the network's own standing unless it shows beside it.
+    private var ranking: some View {
+        
+        VStack(spacing: 0) {
+            
+            Picker("", selection: $selectedTab) {
+                Text("Data").tag(LeaderboardTab.data)
+                Text("Points").tag(LeaderboardTab.points)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityIdentifier("leaderboard.tab.picker")
+            .overlay {
+                // the taps are taken over the native control: its binding
+                // is silent for a re-tap and a SwiftUI gesture laid over
+                // it never fires, so each half selects its tab and counts
+                // the tap; assistive tech still drives the picker itself
+                HStack(spacing: 0) {
+                    ForEach(LeaderboardTab.allCases, id: \.self) { tab in
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectTab(tab)
+                            }
+                    }
+                }
+                .accessibilityHidden(true)
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            
+            switch selectedTab {
+            case .points:
+                /**
+                 * Points: the all-time points leaderboard
+                 */
+                
+                PointsLeaderboardTab(store: pointsStore, scrollResetToken: scrollResetToken)
+                
+            case .data:
+                if (viewModel.isInitializing) {
+                    /**
+                     * Initializing
+                     */
+                    
+                    VStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                    
+                } else {
+                    /**
+                     * Leaderboard initialized
+                     */
+                    
+                    LeaderboardViewPopulated(
+                        leaderboardRank: viewModel.networkRank,
+                        netProvidedFormatted: viewModel.netProvidedFormatted,
+                        fetchLeaderboardData: viewModel.fetchLeaderboardData,
+                        rankingPublic: $viewModel.networkRankingPublic,
+                        leaderboardEntries: viewModel.leaderboardEarners,
+                        isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
+                        isLoading: viewModel.isLoading,
+                        scrollResetToken: scrollResetToken,
+                        showsOwnStanding: !isRegularWidth
+                    )
+                    
+                }
+            }
+
         }
     }
 }
@@ -144,6 +186,8 @@ private struct LeaderboardViewPopulated: View {
     var isLoading: Bool
     /// bumped by the tab picker on every tap: the list scrolls to its top
     var scrollResetToken: Int = 0
+    /// the network's own standing heads the list, unless it shows beside it
+    var showsOwnStanding: Bool = true
     
     var body: some View {
         
@@ -153,12 +197,18 @@ private struct LeaderboardViewPopulated: View {
             
             ScrollView {
                 
-                LeaderboardHeader(
-                    leaderboardRank: leaderboardRank,
-                    netProvidedFormatted: netProvidedFormatted,
-                    rankingPublic: rankingPublic,
-                    isSettingRankingVisibility: isSettingRankingVisibility
-                )
+                VStack(spacing: 0) {
+                    if showsOwnStanding {
+                        LeaderboardHeader(
+                            leaderboardRank: leaderboardRank,
+                            netProvidedFormatted: netProvidedFormatted,
+                            rankingPublic: rankingPublic,
+                            isSettingRankingVisibility: isSettingRankingVisibility
+                        )
+                    } else {
+                        Spacer().frame(height: 8)
+                    }
+                }
                 .id(LeaderboardListAnchor.top)
                 
                 LazyVStack(spacing: 0) {
@@ -212,6 +262,9 @@ private struct LeaderboardHeader: View {
     var netProvidedFormatted: String
     var rankingPublic: Binding<Bool>
     var isSettingRankingVisibility: Bool
+    /// the network's all-time points and longest streak, beside the ranking
+    var pointsText: String? = nil
+    var longestStreakText: String? = nil
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -264,6 +317,14 @@ private struct LeaderboardHeader: View {
                     .background(themeManager.currentTheme.borderBaseColor)
                 
                 Spacer().frame(height: 16)
+
+                if let pointsText {
+                    standingRow("Points", value: pointsText)
+                }
+
+                if let longestStreakText {
+                    standingRow("Longest streak", value: longestStreakText)
+                }
                 
                 Toggle(isOn: rankingPublic) {
                     Text("Display network on leaderboard")
@@ -286,7 +347,80 @@ private struct LeaderboardHeader: View {
         }
         .padding()
     }
+
+    /// A label over its value and a divider, as the rank and net provided are.
+    private func standingRow(_ label: LocalizedStringKey, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(label)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundStyle(themeManager.currentTheme.textMutedColor)
+
+            Text(value)
+                .font(themeManager.currentTheme.titleCondensedFont)
+                .foregroundStyle(themeManager.currentTheme.textColor)
+
+            Spacer().frame(height: 8)
+
+            Divider()
+                .background(themeManager.currentTheme.borderBaseColor)
+
+            Spacer().frame(height: 16)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
     
+}
+
+/**
+ * "Your network" beside the ranking in a regular-width window: the network's
+ * data leaderboard rank and net provided, its all-time points and longest
+ * streak, and whether it shows on the leaderboard. It holds the points
+ * controller open while it shows, whichever tab the ranking has.
+ */
+private struct LeaderboardOwnNetwork: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var deviceManager: DeviceManager
+
+    var leaderboardRank: Int
+    var netProvidedFormatted: String
+    var rankingPublic: Binding<Bool>
+    var isSettingRankingVisibility: Bool
+    @ObservedObject var pointsStore: PointsLeaderboardStore
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+
+                Text("Your network")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                    .padding(.horizontal)
+                    .padding(.top)
+
+                LeaderboardHeader(
+                    leaderboardRank: leaderboardRank,
+                    netProvidedFormatted: netProvidedFormatted,
+                    rankingPublic: rankingPublic,
+                    isSettingRankingVisibility: isSettingRankingVisibility,
+                    pointsText: pointsStore.me?.row?.totalPointsText ?? "-",
+                    longestStreakText: pointsStore.me?.row?.longestStreakText ?? "-"
+                )
+
+            }
+            .frame(maxWidth: TabletLayout.contentWidth, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+        .onAppear {
+            pointsStore.open(.ownNetwork, device: deviceManager.device, api: deviceManager.api)
+        }
+        .onReceive(deviceManager.$device) { device in
+            pointsStore.deviceChanged(device: device, api: deviceManager.api)
+        }
+        .onDisappear {
+            pointsStore.close(.ownNetwork)
+        }
+    }
 }
 
 private struct LeaderboardRow: View {

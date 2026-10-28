@@ -101,8 +101,9 @@ struct TransportDelayActivityPolicyTests {
         #expect(policy.step(.tick, now: at(40)) == .start(ContentState(reading: Self.slow(1), previousLevel: 0)))
     }
 
-    // the toggle off or the tunnel down shows nothing; on again while slow,
-    // the slow time already counted shows it at once
+    // the tunnel down shows nothing, whatever the notify toggle says (it
+    // gates only the notification); connected while slow, the slow time
+    // already counted shows it at once
     @Test func itStartsOnlyWhileEnabled() {
         var policy = Policy()
         _ = policy.step(.reading(Self.slow(4)), now: at(0))
@@ -203,7 +204,7 @@ struct TransportDelayActivityPolicyTests {
 
     // MARK: ending
 
-    // the toggle off, the tunnel stopping or a sign out end it at once
+    // the tunnel stopping or a sign out end it at once
     @Test func disablingEndsAtOnce() {
         var policy = shownPolicy(level: 4)
         #expect(policy.step(.enabled(false), now: at(31)) == .end)
@@ -230,8 +231,8 @@ struct TransportDelayActivityPolicyTests {
         #expect(policy.step(.tick, now: at(500)) == .start(ContentState(reading: Self.slow(2), previousLevel: 0)))
     }
 
-    // turning the toggle back on lifts a dismissal
-    @Test func theToggleBackOnLiftsADismissal() {
+    // connecting again lifts a dismissal
+    @Test func connectingAgainLiftsADismissal() {
         var policy = shownPolicy(level: 2)
         _ = policy.step(.gone(dismissedByUser: true), now: at(40))
         _ = policy.step(.enabled(false), now: at(41))
@@ -251,6 +252,93 @@ struct TransportDelayActivityPolicyTests {
 
     @Test func eachUpdateIsStaleAMinuteLater() {
         #expect(Policy.staleDate(now: at(10)) == at(70))
+    }
+}
+
+/**
+ * The slow internet notification over the policy's episodes (apple/DELAY.md
+ * §3, §5.5). "Notify me when my internet is slow" gates only the
+ * notification: the dwell, and the dashboard widget's pill with it, run
+ * whatever it says. An episode's notification moment is its start, spent
+ * whether or not the toggle posts it, so the toggle turned on mid-episode
+ * posts nothing until the next; turned off, it withdraws what is posted.
+ */
+struct TransportDelayNoticeTests {
+
+    typealias Notice = TransportDelayNotice
+    typealias ContentState = TransportDelayAttributes.ContentState
+
+    private let t0 = Date(timeIntervalSince1970: 1_800_000_000)
+
+    private static func slow(_ level: Int, fallback: Bool = false) -> TransportDelayReading {
+        TransportDelayReading(upQuality: TransportDelayLevel.quality(level: level), upDelayMillis: 640, fallback: fallback)
+    }
+
+    private static func content(_ level: Int, fallback: Bool = false) -> ContentState {
+        ContentState(reading: slow(level, fallback: fallback), previousLevel: 0)
+    }
+
+    // posted at the start, then again only when what it says changes: the
+    // fallback, the recovered state, slow again during it. A change of level
+    // posts nothing, and the end withdraws it
+    @Test func itPostsOnlyWhenWhatItSaysChanges() {
+        var notice = Notice()
+        #expect(notice.step(.start(Self.content(2)), enabled: true) == .post(.slow(fallback: false)))
+        #expect(notice.step(.update(Self.content(3)), enabled: true) == nil)
+        #expect(notice.step(.update(Self.content(3, fallback: true)), enabled: true) == .post(.slow(fallback: true)))
+        #expect(notice.step(.update(Self.content(3).recoveredState), enabled: true) == .post(.recovered))
+        #expect(notice.step(.update(Self.content(1)), enabled: true) == .post(.slow(fallback: false)))
+        #expect(notice.setting(enabled: true) == nil)
+        #expect(notice.step(.end, enabled: true) == .withdraw)
+        #expect(notice.posted == nil)
+    }
+
+    // the toggle off spends the episode's moment unposted: turned on
+    // mid-episode, it posts nothing until the next episode starts
+    @Test func theToggleTurnedOnMidEpisodePostsNothingUntilTheNext() {
+        var notice = Notice()
+        #expect(notice.step(.start(Self.content(2)), enabled: false) == nil)
+        #expect(notice.setting(enabled: true) == nil)
+        #expect(notice.step(.update(Self.content(4)), enabled: true) == nil)
+        #expect(notice.step(.update(Self.content(4, fallback: true)), enabled: true) == nil)
+        #expect(notice.step(.update(Self.content(4).recoveredState), enabled: true) == nil)
+        #expect(notice.step(.end, enabled: true) == nil)
+        #expect(notice.step(.start(Self.content(1)), enabled: true) == .post(.slow(fallback: false)))
+    }
+
+    // turned off, the toggle withdraws the notification at once, and the
+    // episode posts nothing more when it is turned back on
+    @Test func theToggleTurnedOffWithdrawsForTheRestOfTheEpisode() {
+        var notice = Notice()
+        #expect(notice.step(.start(Self.content(2)), enabled: true) == .post(.slow(fallback: false)))
+        #expect(notice.setting(enabled: false) == .withdraw)
+        #expect(notice.setting(enabled: true) == nil)
+        #expect(notice.step(.update(Self.content(2, fallback: true)), enabled: true) == nil)
+        #expect(notice.step(.end, enabled: true) == nil)
+        // the next episode posts; an update read with the toggle off withdraws
+        #expect(notice.step(.start(Self.content(2)), enabled: true) == .post(.slow(fallback: false)))
+        #expect(notice.step(.update(Self.content(3)), enabled: false) == .withdraw)
+    }
+
+    // with the toggle off nothing posts, while the dwell still shows its
+    // content and the dashboard widget's pill follows it
+    @Test func theToggleGatesOnlyTheNotification() throws {
+        var policy = TransportDelayActivityPolicy()
+        var notice = Notice()
+        _ = policy.step(.enabled(true), now: t0)
+        _ = policy.step(.reading(Self.slow(2)), now: t0)
+        let now = t0.addingTimeInterval(30)
+        let action = policy.step(.tick, now: now)
+        let start = try #require(action)
+        #expect(notice.step(start, enabled: false) == nil)
+        let snapshot = TransportDelaySnapshot(
+            updatedAt: now,
+            tunnelActive: true,
+            reading: policy.reading,
+            activity: policy.content,
+            staleDate: nil
+        )
+        #expect(SlowInternetWidgetPill.decide(snapshot: snapshot, showsTunnelData: true, now: now)?.level == 2)
     }
 }
 

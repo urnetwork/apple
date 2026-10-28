@@ -5,9 +5,9 @@
 //  The sample the widgets render in the gallery and as their placeholder,
 //  and the app renders on the onboarding page (before anyone has connected)
 //  and on Account > Widgets until a real snapshot exists: a connected tunnel
-//  with a few providers, an hour of bursty client traffic, provide mode
-//  Never and a handful of contracts, so the widgets' purpose reads at a
-//  glance. One definition, compiled into the
+//  with a few providers, an hour of bursty client traffic, the day's traffic
+//  by hour, provide mode Never and a handful of contracts, so the widgets'
+//  purpose reads at a glance. One definition, compiled into the
 //  app and the widget extension, so the two never drift.
 //
 
@@ -102,8 +102,19 @@ enum WidgetSnapshotSample {
                 bestAvailable: false, networkPeer: false, providerCount: 3, colorHex: "F94144"
             ),
             providers: providers,
-            throughput: WidgetThroughputSnapshot(bucketSeconds: bucketSeconds, buckets: buckets),
+            throughput: WidgetThroughputSnapshot(bucketSeconds: bucketSeconds, buckets: buckets, today: today(at: date)),
             contracts: contracts
+        )
+    }
+
+    /// Today's traffic up to the hour of `date`, for the overview's tile: a
+    /// quiet night, then a morning, a lunchtime and a larger evening peak.
+    static func today(at date: Date, calendar: Calendar = .current) -> WidgetTodaySnapshot {
+        let mib: Int64 = 1024 * 1024
+        let hour = calendar.component(.hour, from: date)
+        return WidgetTodaySnapshot(
+            dayStart: calendar.startOfDay(for: date),
+            hourlyByteCounts: sampleHourlyMiB.prefix(hour + 1).map { $0 * mib }
         )
     }
 
@@ -118,6 +129,11 @@ enum WidgetSnapshotSample {
         )
     }
 }
+
+/// The sample day's traffic in MiB, one per hour from midnight.
+private let sampleHourlyMiB: [Int64] = [
+    1, 0, 0, 0, 0, 0, 2, 9, 16, 7, 5, 11, 14, 6, 4, 8, 12, 18, 26, 21, 13, 7, 4, 2,
+]
 
 /// One burst of the sample curve: where it sits in the window (0 an hour
 /// ago, 1 now), how wide it is, and how far it rises above the floor. The

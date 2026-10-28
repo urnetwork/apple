@@ -8,12 +8,14 @@
 //    - the extension publishes `Widgets/transport-delay.json`: its latest
 //      reading and what its dwell policy has the Live Activity show, and
 //      posts a Darwin notification. The app, in the foreground, starts or
-//      updates the activity from it when the extension cannot.
+//      updates the activity from it when the extension cannot. The dashboard
+//      widget's pill shows the same content (§5.7).
 //    - the app keeps the "Notify me when my internet is slow" toggle in the
 //      App Group defaults, and posts a Darwin notification when it flips,
 //      the one channel that reaches a running extension.
 //
-//  Compiled into the app and the packet tunnel extension. No SDK import.
+//  Compiled into the app, the packet tunnel extension and the widget
+//  extension. No SDK import.
 //
 
 import Foundation
@@ -36,6 +38,27 @@ struct TransportDelaySnapshot: Codable, Equatable {
 
     func isFresh(now: Date = Date()) -> Bool {
         now.timeIntervalSince(updatedAt) < Self.freshInterval
+    }
+
+    /// The notice's content as the dashboard widget's pill shows it
+    /// (apple/DELAY.md §5.7): while the notice is up on a running tunnel, but
+    /// not its recovered state, which a widget cannot hold for 3 s. The widget
+    /// also needs the snapshot fresh (SlowInternetWidgetPill).
+    var dashboardActivity: TransportDelayAttributes.ContentState? {
+        guard tunnelActive, let activity, !activity.recovered else {
+            return nil
+        }
+        return activity
+    }
+
+    /// Whether the dashboard's pill draws `next` other than `previous`, the
+    /// numbers aside: it appears or leaves, or its level or its label
+    /// changes. The extension reloads the widget then, and not for a refresh
+    /// of the numbers, which keeps it inside WidgetKit's reload budget.
+    static func dashboardChanged(from previous: TransportDelaySnapshot?, to next: TransportDelaySnapshot) -> Bool {
+        let shown = previous?.dashboardActivity
+        let showing = next.dashboardActivity
+        return shown?.level != showing?.level || shown?.fallback != showing?.fallback
     }
 }
 
@@ -108,7 +131,8 @@ enum TransportDelaySnapshotStore {
 
 /// "Notify me when my internet is slow": on by default (apple/DELAY.md §13
 /// decision 3), in the App Group defaults so the extension reads it. The
-/// name is the Live Activity's, which it gated first.
+/// name is the Live Activity's, which it gated first. In the extension it
+/// gates only the notification (TransportDelayNotice), not the dwell.
 enum TransportDelayLiveActivitySetting {
 
     static let key = "network.ur.transport-delay.live-activity"

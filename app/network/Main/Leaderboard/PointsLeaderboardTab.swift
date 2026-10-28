@@ -189,13 +189,13 @@ struct PointsLeaderboardTab: View {
         }
         #endif
         .onAppear {
-            store.attach(device: deviceManager.device, api: deviceManager.api)
+            store.open(.pointsTab, device: deviceManager.device, api: deviceManager.api)
         }
         .onReceive(deviceManager.$device) { device in
-            store.attach(device: device, api: deviceManager.api)
+            store.deviceChanged(device: device, api: deviceManager.api)
         }
         .onDisappear {
-            store.detach()
+            store.close(.pointsTab)
         }
         .sheet(isPresented: $showEmojiSheet) {
             EmojiTagSheet(

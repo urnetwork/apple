@@ -22,8 +22,15 @@ struct LoginInitialView: View {
     // NetworkApp.onOpenURL routes here
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     #endif
+    @Environment(\.isRegularWidth) private var isRegularWidth
     @StateObject private var viewModel: ViewModel
-    @State private var initialIsLandscape: Bool = false
+    // above the layout switch, so turning or resizing the window never
+    // closes the sheet
+    @State private var presentNetworkServerSheet = false
+    #if os(iOS)
+    // Google sign-in presents in this view's own window
+    @State private var hostingWindow = HostingWindow()
+    #endif
     @State private var browserRequest: NetworkLoginRequest?
     @State private var solanaRequest: NetworkLoginRequest?
     @State private var solanaAttempt: NetworkLoginWalletAttempt?
@@ -55,15 +62,11 @@ struct LoginInitialView: View {
         
         GeometryReader { geometry in
             
-            #if os(iOS)
-            let isTablet = UIDevice.current.userInterfaceIdiom == .pad
-            #else
-            let isTablet = false
-            #endif
-      
             ScrollView {
                 
-                if initialIsLandscape && isTablet {
+                // the carousel beside the form in a regular-width window wider
+                // than tall: the window's shape, not the device's orientation
+                if TabletLayout.showsCarouselBesideForm(isRegularWidth: isRegularWidth, size: geometry.size) {
                     
                     HStack(alignment: .center) {
                         
@@ -96,12 +99,17 @@ struct LoginInitialView: View {
                             },
                             presentCreateInstant: {
                                 navigate(.createInstant)
+                            },
+                            presentNetworkServer: {
+                                presentNetworkServerSheet = true
                             }
                         )
                         .frame(width: geometry.size.width / 2, alignment: .leading)
                         
                     }
-                    .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center) // Fill the height and center content
+                    // fill the height and center the content; a short window scrolls
+                    .frame(width: geometry.size.width)
+                    .frame(minHeight: geometry.size.height)
                     
                 } else {
                 
@@ -137,6 +145,9 @@ struct LoginInitialView: View {
                             },
                             presentCreateInstant: {
                                 navigate(.createInstant)
+                            },
+                            presentNetworkServer: {
+                                presentNetworkServerSheet = true
                             }
                         )
                         
@@ -239,23 +250,30 @@ struct LoginInitialView: View {
                 }
             }
         }
-        .onAppear {
-            // Cache initial orientation
-            #if os(iOS)
-            let orientation = UIDevice.current.orientation
-            initialIsLandscape = orientation.isLandscape
-            #elseif os(macOS)
-            initialIsLandscape = true
+        .sheet(isPresented: $presentNetworkServerSheet) {
+            NetworkServerSheet(
+                initialHostName: deviceManager.activeHostName,
+                currentApiUrl: deviceManager.activeApiUrl,
+                currentConnectUrl: deviceManager.activePlatformUrl,
+                configuredApiUrl: deviceManager.configuredApiUrl,
+                configuredConnectUrl: deviceManager.configuredPlatformUrl,
+                managerAvailable: deviceManager.networkSpaceManager != nil,
+                onApply: { hostName, apiUrl, connectUrl in
+                    deviceManager.applyNetworkSpace(hostName: hostName, apiUrl: apiUrl, connectUrl: connectUrl)
+                },
+                dismiss: {
+                    presentNetworkServerSheet = false
+                }
+            )
+            .environmentObject(themeManager)
+            // the sheet's VLESS row edits the active network space
+            .environmentObject(deviceManager)
+            #if os(macOS)
+            .frame(minWidth: 420, minHeight: 480)
             #endif
         }
         #if os(iOS)
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            // Only update on actual rotation events
-            let orientation = UIDevice.current.orientation
-            if orientation.isValidInterfaceOrientation {
-                initialIsLandscape = orientation.isLandscape
-            }
-        }
+        .readsHostingWindow(hostingWindow)
         #endif
         .onOpenURL { url in
             // a Bittensor bridge hand-back goes to the SDK session
@@ -431,7 +449,7 @@ struct LoginInitialView: View {
         do {
             #if os(iOS)
             
-            guard let rootViewController = getRootViewController() else {
+            guard let rootViewController = hostingWindow.presenter else {
                 print("no root view controller found")
                 viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
                 return
@@ -665,7 +683,6 @@ struct LoginInitialView: View {
 private struct LoginInitialFormView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var deviceManager: DeviceManager
     
     @Binding var userAuth: String
     let handleUserAuth: () async -> Void
@@ -684,8 +701,8 @@ private struct LoginInitialFormView: View {
 
     let presentSeedphraseLogin: () -> Void
     let presentCreateInstant: () -> Void
-    
-    @State private var presentNetworkServerSheet = false
+    // "Change Network API": its sheet is the page's, above the layout switch
+    let presentNetworkServer: () -> Void
     
     // The login stack rule shared by every app: up to three full-width
     // buttons (Apple, Google, Create Instant Account), then the remaining
@@ -800,9 +817,7 @@ private struct LoginInitialFormView: View {
                 .frame(height: 8)
 
             HStack {
-                Button(action: {
-                    presentNetworkServerSheet = true
-                }) {
+                Button(action: presentNetworkServer) {
                     Text("Change Network API")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
@@ -825,28 +840,6 @@ private struct LoginInitialFormView: View {
 
         }
         .frame(maxWidth: 400)
-        .sheet(isPresented: $presentNetworkServerSheet) {
-            NetworkServerSheet(
-                initialHostName: deviceManager.activeHostName,
-                currentApiUrl: deviceManager.activeApiUrl,
-                currentConnectUrl: deviceManager.activePlatformUrl,
-                configuredApiUrl: deviceManager.configuredApiUrl,
-                configuredConnectUrl: deviceManager.configuredPlatformUrl,
-                managerAvailable: deviceManager.networkSpaceManager != nil,
-                onApply: { hostName, apiUrl, connectUrl in
-                    deviceManager.applyNetworkSpace(hostName: hostName, apiUrl: apiUrl, connectUrl: connectUrl)
-                },
-                dismiss: {
-                    presentNetworkServerSheet = false
-                }
-            )
-            .environmentObject(themeManager)
-            // the sheet's VLESS row edits the active network space
-            .environmentObject(deviceManager)
-            #if os(macOS)
-            .frame(minWidth: 420, minHeight: 480)
-            #endif
-        }
     }
 }
 

@@ -22,6 +22,10 @@ struct AddAuthSheet: View {
     @State private var browserSsoAttempts = BrowserSsoAttemptStore()
     @State private var browserSsoTimeoutTask: Task<Void, Never>?
     #endif
+    #if os(iOS)
+    // Google sign-in presents in this sheet's own window
+    @State private var hostingWindow = HostingWindow()
+    #endif
     
     let api: UrApiServiceProtocol
     let networkUserViewModel: NetworkUserViewModel?
@@ -139,6 +143,9 @@ struct AddAuthSheet: View {
                 }
             }
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+            #if os(iOS)
+            .readsHostingWindow(hostingWindow)
+            #endif
             .onReceive(verifyTimer) { _ in
                 verifyModel.tick()
             }
@@ -712,10 +719,7 @@ struct AddAuthSheet: View {
         
         do {
             #if os(iOS)
-            guard let rootViewController = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
-                .first?.keyWindow?
-                .rootViewController else {
+            guard let rootViewController = hostingWindow.presenter else {
                 addError = "Could not get root view controller"
                 isAdding = false
                 return

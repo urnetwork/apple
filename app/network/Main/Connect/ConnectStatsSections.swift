@@ -33,159 +33,185 @@ struct ConnectStatsSections: View {
     @EnvironmentObject var deviceManager: DeviceManager
 
     let openSheet: (ConnectStatsSheet) -> Void
+    // two columns lay the client statistics beside the other sections, for
+    // the pane under the canvas of the stacked split connect screen
+    var columns: Int = 1
 
     var body: some View {
 
-        VStack(spacing: 16) {
+        if 2 <= columns {
+            HStack(alignment: .top, spacing: 16) {
+                clientStatisticsCard
+
+                VStack(spacing: 16) {
+                    localStatisticsCard
+                    customDnsCard
+                    blockerCard
+                }
+            }
+        } else {
+            VStack(spacing: 16) {
+                clientStatisticsCard
+                localStatisticsCard
+                customDnsCard
+                blockerCard
+            }
+        }
+    }
+
+    /**
+     * Client statistics: remote and blocked traffic.
+     * Tap to open the client contract details (not on the blocked plot).
+     */
+    private var clientStatisticsCard: some View {
+        statsCard(action: { openSheet(.clientContracts) }) {
+
+            cardHeader("Client statistics")
+
+            TransferChart(
+                points: throughputStore.clientPoints,
+                route: .remote,
+                title: "Remote",
+                window: throughputStore.windowDuration
+            )
+
+            Spacer().frame(height: 12)
 
             /**
-             * Client statistics: remote and blocked traffic.
-             * Tap to open the client contract details (not on the blocked plot).
+             * The remote traffic of the window by transport, full width
+             * under the remote plot. Tap to open the transport settings.
+             * The child tap wins over the card's tap.
              */
-            statsCard(action: { openSheet(.clientContracts) }) {
+            TransportSettingsEntry(
+                distribution: throughputStore.clientTransportDistribution,
+                open: { openSheet(.transportSettings) }
+            )
 
-                cardHeader("Client statistics")
+            Spacer().frame(height: 12)
 
-                TransferChart(
-                    points: throughputStore.clientPoints,
-                    route: .remote,
-                    title: "Remote",
-                    window: throughputStore.windowDuration
-                )
-
-                Spacer().frame(height: 12)
-
-                /**
-                 * The remote traffic of the window by transport, full width
-                 * under the remote plot. Tap to open the transport settings.
-                 * The child tap wins over the card's tap.
-                 */
-                TransportSettingsEntry(
-                    distribution: throughputStore.clientTransportDistribution,
-                    open: { openSheet(.transportSettings) }
-                )
-
-                Spacer().frame(height: 12)
-
-                /**
-                 * The address families of the window's providers: Dualstack,
-                 * IPv4 and IPv6 columns, each with its connected and connecting
-                 * counts. Its own view so its grid subscription does not
-                 * re-render the charts (like DnsRecommendationPill).
-                 * Tapping it does nothing.
-                 */
-                IpFamilyStatusRow()
-                    .blocksCardTap()
-
-                Spacer().frame(height: 12)
-
-                /**
-                 * The extender network: the active extenders' rings, the
-                 * active-of-usable count, and the gossip network's state
-                 * (EXTENDER.md K4). Its own view for the same reason as the
-                 * status row — its once-a-second status subscription must not
-                 * re-render the charts. Tapping it does nothing.
-                 */
-                ExtenderPanel()
-                    .blocksCardTap()
-
-                Spacer().frame(height: 12)
-
-                TransferChart(
-                    points: throughputStore.clientPoints,
-                    route: .block,
-                    title: "Blocked",
-                    height: 64,  // secondary series — half height
-                    window: throughputStore.windowDuration,
-                    byteColor: .urCoral,
-                    packetColor: .urMutedCoral
-                )
-                /**
-                 * Tapping the blocked plot does nothing: it is not part of
-                 * the client contracts.
-                 */
+            /**
+             * The address families of the window's providers: Dualstack,
+             * IPv4 and IPv6 columns, each with its connected and connecting
+             * counts. Its own view so its grid subscription does not
+             * re-render the charts (like DnsRecommendationPill).
+             * Tapping it does nothing.
+             */
+            IpFamilyStatusRow()
                 .blocksCardTap()
 
-            }
+            Spacer().frame(height: 12)
 
             /**
-             * Local statistics: traffic routed to the local network.
-             * Tap to open the split rules.
+             * The extender network: the active extenders' rings, the
+             * active-of-usable count, and the gossip network's state
+             * (EXTENDER.md K4). Its own view for the same reason as the
+             * status row — its once-a-second status subscription must not
+             * re-render the charts. Tapping it does nothing.
              */
-            statsCard(action: { openSheet(.splitRules) }) {
+            ExtenderPanel()
+                .blocksCardTap()
 
-                cardHeader("Local statistics")
+            Spacer().frame(height: 12)
 
-                TransferChart(
-                    points: throughputStore.clientPoints,
-                    route: .local,
-                    title: "Local",
-                    height: 64,  // secondary series — half height
-                    window: throughputStore.windowDuration
-                )
-
-                Spacer().frame(height: 12)
-
-                SplitRuleCountLabel()
-
-            }
-
+            TransferChart(
+                points: throughputStore.clientPoints,
+                route: .block,
+                title: "Blocked",
+                height: 64,  // secondary series — half height
+                window: throughputStore.windowDuration,
+                byteColor: .urCoral,
+                packetColor: .urMutedCoral
+            )
             /**
-             * Custom dns summary. Tap to open the dns settings, once the
-             * store has them: the editor never starts from the blank form
-             * (SettingsEditorSeed).
+             * Tapping the blocked plot does nothing: it is not part of
+             * the client contracts.
              */
-            statsCard(action: {
-                if dnsSettingsStore.settings != nil {
-                    openSheet(.dnsSettings)
-                }
-            }) {
-
-                cardHeader("Custom DNS")
-
-                // a nudge when the applied dns settings differ from the recommended
-                // ones (regional recommendation, or the safe defaults)
-                DnsRecommendationPill()
-
-                if let settings = dnsSettingsStore.settings {
-                    VStack(spacing: 8) {
-                        dnsStatusRow("DNS over HTTPS", enabled: settings.dohEnabled)
-                        dnsStatusRow("Unencrypted DNS", enabled: settings.unencryptedDnsEnabled)
-                        dnsStatusRow("Local DNS", enabled: settings.localDnsEnabled)
-                        dnsStatusRow("Fast DNS on connect", enabled: settings.fastDnsOnConnectEnabled)
-                    }
-                } else {
-                    // the settings arrive once the device attaches (the store
-                    // publishes nil until then); reserve the four rows at their
-                    // final height so the drawer's content does not grow when
-                    // they land (mmm/DESIGNSTYLE.md "Placeholders, not pop-in")
-                    VStack(spacing: 8) {
-                        ForEach(0..<4, id: \.self) { _ in
-                            dnsStatusRowSkeleton()
-                        }
-                    }
-                    .skeletonGroup("Loading...")
-                }
-
-            }
-
-            /**
-             * Ad and tracker blocker toggle. The device applies it immediately
-             * and persists it to local settings.
-             */
-            VStack(alignment: .leading, spacing: 0) {
-                UrSwitchToggle(isOn: $deviceManager.blockerEnabled) {
-                    Text("Block ads and trackers")
-                        .font(themeManager.currentTheme.bodyFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(themeManager.currentTheme.tintedBackgroundBase)
-            .cornerRadius(12)
+            .blocksCardTap()
 
         }
+    }
+
+    /**
+     * Local statistics: traffic routed to the local network.
+     * Tap to open the split rules.
+     */
+    private var localStatisticsCard: some View {
+        statsCard(action: { openSheet(.splitRules) }) {
+
+            cardHeader("Local statistics")
+
+            TransferChart(
+                points: throughputStore.clientPoints,
+                route: .local,
+                title: "Local",
+                height: 64,  // secondary series — half height
+                window: throughputStore.windowDuration
+            )
+
+            Spacer().frame(height: 12)
+
+            SplitRuleCountLabel()
+
+        }
+    }
+
+    /**
+     * Custom dns summary. Tap to open the dns settings, once the
+     * store has them: the editor never starts from the blank form
+     * (SettingsEditorSeed).
+     */
+    private var customDnsCard: some View {
+        statsCard(action: {
+            if dnsSettingsStore.settings != nil {
+                openSheet(.dnsSettings)
+            }
+        }) {
+
+            cardHeader("Custom DNS")
+
+            // a nudge when the applied dns settings differ from the recommended
+            // ones (regional recommendation, or the safe defaults)
+            DnsRecommendationPill()
+
+            if let settings = dnsSettingsStore.settings {
+                VStack(spacing: 8) {
+                    dnsStatusRow("DNS over HTTPS", enabled: settings.dohEnabled)
+                    dnsStatusRow("Unencrypted DNS", enabled: settings.unencryptedDnsEnabled)
+                    dnsStatusRow("Local DNS", enabled: settings.localDnsEnabled)
+                    dnsStatusRow("Fast DNS on connect", enabled: settings.fastDnsOnConnectEnabled)
+                }
+            } else {
+                // the settings arrive once the device attaches (the store
+                // publishes nil until then); reserve the four rows at their
+                // final height so the drawer's content does not grow when
+                // they land (mmm/DESIGNSTYLE.md "Placeholders, not pop-in")
+                VStack(spacing: 8) {
+                    ForEach(0..<4, id: \.self) { _ in
+                        dnsStatusRowSkeleton()
+                    }
+                }
+                .skeletonGroup("Loading...")
+            }
+
+        }
+    }
+
+    /**
+     * Ad and tracker blocker toggle. The device applies it immediately
+     * and persists it to local settings.
+     */
+    private var blockerCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            UrSwitchToggle(isOn: $deviceManager.blockerEnabled) {
+                Text("Block ads and trackers")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
     }
 
     private func cardHeader(_ title: LocalizedStringKey) -> some View {

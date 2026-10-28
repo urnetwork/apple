@@ -25,6 +25,7 @@ DownQuality)`.
 | Connect screen, Mac | Nothing. | The same pill as a toolbar item, plus a "Slow internet" row in the menu bar extra. |
 | Notification (iPhone) | None. | The tunnel extension posts "Slow internet" once the level has been above 0 for 30 s of the last 60 s, replaces it with "Internet back to normal" on recovery, and removes it 3 s later (§5.5). |
 | Live Activity (iPhone) | None. | Off for now. With server pushes, the next step (§5.5): appears with a fade, deepens with q, shows the upload and download delay numbers when expanded, and fades out when q returns to 0. |
+| Dashboard widget (iPhone, Android) | The provider count under the location. | The pill takes the provider count's place under the location, on the notice's dwell (§5.7). |
 | Android | The normal VPN notification. | The VPN notification switches to the slow presentation (§7.2). No Live Update promotion (§7.3). |
 | Windows | The normal tray icon. | The tray icon shows the tunnel, the tooltip shows the delays, one balloon per episode, and a connect-page pill (§8). |
 | Linux | The normal tray icon. | The tray icon shows the tunnel, one `Gio::Notification` per episode, and a connect-page chip (§9). |
@@ -459,6 +460,71 @@ log): the extension can do none of these, the table's third row.**
   tags `sdk_mobile_bind,ios_extension` (sdk/build/Makefile:149-158). The
   `TransportDelay` API must not sit behind `!ios_extension`.
 
+### 5.7 Dashboard widget (iPhone and Android)
+
+Accepted 2026-10-28, variant A of the "Dashboard widget with the slow internet
+pill" proposal (a local HTML mock rendered to PNG). It applies to the iOS
+`DashboardWidget` (medium and large) and Android's Glance `DashboardWidget`
+(short, tall and compact).
+
+- **Placement.** While the notice shows, the pill takes the place of the
+  header's subtitle, the provider count, under the location title. Nothing else
+  in the widget moves. The provider count returns when the spell ends.
+- **Why there.** The pill sits with the location it describes, where the eye
+  lands first. In the footer (variant B), beside the faint "Updated" line, it
+  read as metadata. The provider count is the least urgent fact while the
+  connection is slow.
+- **When.** A surface outside the app, so it follows the notice's dwell (§3),
+  as the notification does: 30 s of slow time in the last 60 s, then at least
+  60 s up. It shows only while the widget shows tunnel data (signed in and
+  connected).
+  - It follows the dwell whatever "Notify me when my internet is slow" says,
+    as the Windows and Linux trays do. The setting gates only the
+    notification. Turning the setting on mid-episode posts nothing until the
+    next episode.
+  - It has no recovered state: a widget cannot hold one for 3 s.
+- **Look.** The A+ pill (§5.2), scaled to the widget's type:
+  - 22 pt tall, with a static 14 pt tunnel at the level. A widget renders once
+    per update, so no square fades.
+  - "Poor signal", or "Fallback", in amber semibold 11 pt.
+  - ↑/↓ values in semibold 11 pt with tabular digits, and 8 pt arrows at 55%
+    white. The worse direction is amber.
+  - Square corners, black fill, a 1 pt outline in 35% amber.
+  - The header grows by about 10 pt, and the medium widget keeps room above
+    the footer.
+- **Values.** The in-app pill's rules (`SlowInternetPillContent`): each
+  direction's delay, else its limited rate, else hidden. A tight row drops the
+  better direction, then the numbers.
+  - The numbers are as of the widget's last update; the footer's "Updated"
+    already says how old.
+  - Android's compact (2×1) size has no room for words, so it shows the tunnel
+    and the worse value only.
+- **Data and refresh.**
+  - iOS: the timeline provider reads `Widgets/transport-delay.json`, the dwell
+    policy's content, which the extension already publishes.
+  - The extension reloads the dashboard timeline when the pill appears or
+    leaves, or when the level or the fallback changes. It does not reload for
+    a refresh of the numbers. The hysteresis keeps those changes rare, well
+    inside WidgetKit's reload budget.
+  - Android: MainService's dwell policy (`SlowInternetNoticePolicy`) publishes
+    the same state for the Glance widget and updates it through
+    `GlanceWidgetRefresh`, on the same changes.
+- **Glance limits.** Glance has no canvas and no font features. The tunnel
+  uses the notification's vector drawables (`ic_tunnel_1..4`) tinted amber,
+  and the box is a shape drawable. The digits are not tabular.
+- **Accessibility.** The header reads as one element: "Germany. Poor signal.
+  Upload delay 800 milliseconds, download delay 1.9 seconds". The widget's tap
+  target is unchanged: the whole widget opens the connect screen, and the
+  toggle stays the toggle.
+- **The overview widget carries the same pill.** The overview (DUO.md, "As
+  built") reuses the dashboard's header, so the pill shows there by the same
+  rules: the large and extra-large widgets on Apple, and the super-large and
+  Samsung cover widgets on Android.
+  - iOS: a dashboard reload also reloads the overview, through the overview's
+    own throttle. A pill change is urgent, so the overview follows within 1 s.
+  - Android: `GlanceWidgetRefresh` updates the overview whenever it updates
+    the dashboard.
+
 ## 6. Settings
 
 | Setting | Default | Where |
@@ -553,6 +619,11 @@ with the small icon and "Slow" (canvas: Android).
   while slow, and confirm
   `FLAG_PROMOTED_ONGOING` with `adb shell dumpsys notification` on 16.0 and
   later devices, because promotion rules differ between SDK revisions.
+
+### 7.4 Dashboard widget
+
+The Glance dashboard widget shows the pill as on iPhone (§5.7), and the compact
+size shows the tunnel and the worse value only.
 
 ## 8. Windows
 
@@ -718,6 +789,9 @@ Accepted 2026-10-28:
 9. **The pill on every app:** Apple, Android (§7.1), Windows (§8) and Linux
    (§9), each with its details surface removed. Not the web app: the platform
    does not measure the web user's connection (§10).
+10. **The pill on the dashboard widget:** variant A on iPhone and Android
+    (§5.7). The pill takes the provider count's place under the location, on
+    the notice's dwell.
 
 Still open:
 

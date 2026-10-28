@@ -13,6 +13,7 @@ private struct SeedWord: Identifiable {
 struct SeedphraseDisplayView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.isRegularWidth) private var isRegularWidth
 
     let seedphrase: String
     let onConfirmed: (_ jwt: String) -> Void
@@ -91,10 +92,11 @@ struct SeedphraseDisplayView: View {
     }
 
     private var wordGridView: some View {
-        // two columns on a phone; three on a tablet, where the readable column is
-        // wide enough and the short landscape height of a tablet mini needs the
-        // eight-row grid so the confirm button stays on screen
-        let columnCount = TabletLayout.isTablet ? 3 : 2
+        // two columns in a compact window; three in a regular-width one, where
+        // the readable column is wide enough and the short landscape height of
+        // a tablet mini needs the eight-row grid so the confirm button stays
+        // on screen
+        let columnCount = isRegularWidth ? 3 : 2
         let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: columnCount)
         return LazyVGrid(columns: columns, spacing: 8) {
             ForEach(words) { seedWord in

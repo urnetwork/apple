@@ -81,6 +81,12 @@ enum WidgetRefreshPolicy {
     /// The tunnel extension's routine reload floor. Slower than
     /// `refreshIntervalWhileUp` on purpose: a backstop, not a second clock.
     static let extensionBackstopInterval: TimeInterval = 30 * 60
+
+    /// How long the overview waits on an urgent reload before it goes, so
+    /// the two or three kinds one event reloads (a connect reloads all three)
+    /// reload the overview once. Every one of them follows that event's
+    /// single write, so the wait loses nothing.
+    static let overviewUrgentDelay: TimeInterval = 1
 }
 
 enum WidgetRefresh {
@@ -105,46 +111,86 @@ enum WidgetRefresh {
 
     static func reloadDashboard() {
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.dashboard)
+        reloadOverview()
         WidgetSnapshotChange.post()
     }
 
     static func reloadProviderGlobe() {
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.providerGlobe)
+        reloadOverview()
         WidgetSnapshotChange.post()
     }
 
     static func reloadContracts() {
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.contracts)
+        reloadOverview()
         WidgetSnapshotChange.post()
     }
 
-    /// Everything that shows tunnel state.
+    /// Everything that shows tunnel state. Every kind directly, the overview
+    /// too: the tunnel extension calls this as it stops, and its process can
+    /// be reaped before a throttle's queue runs.
     static func reloadAll() {
         reloadControl()
-        reloadDashboard()
-        reloadProviderGlobe()
-        reloadContracts()
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.dashboard)
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.providerGlobe)
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.contracts)
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.overview)
+        WidgetSnapshotChange.post()
+    }
+
+    /// The overview shows what the other three show, so it reloads whenever
+    /// one of them does -- but it is one widget with one budget. The tunnel
+    /// extension's three throttles keep an interval each, and an urgent
+    /// reload of one kind (the provide toggle reloads only the dashboard)
+    /// restarts that kind's interval, so after a while they fire at three
+    /// different moments: followed one for one, they would reload the
+    /// overview up to three times an interval. Its own throttle keeps it to
+    /// their cadence instead: a routine reload at most once an interval, and
+    /// an urgent one (a connect, a location change, the slow internet pill,
+    /// anything the app asks for) a moment later, once for all the kinds the
+    /// same event reloads.
+    private static func reloadOverview() {
+        overviewReload.request(urgent: !WidgetReloadThrottle.firingRoutine)
+    }
+
+    private static let overviewReload = WidgetReloadThrottle(
+        interval: WidgetRefreshPolicy.extensionBackstopInterval,
+        urgentDelay: WidgetRefreshPolicy.overviewUrgentDelay
+    ) {
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKinds.overview)
     }
 }
 
 /// Coalesces reload requests so a chatty source (a provider joining and
 /// leaving every few minutes, a counter tick every second) cannot burn the
 /// WidgetKit budget. `urgent` requests (connect, disconnect, location change)
-/// go through at once; routine ones wait for the interval.
+/// go through at once, or `urgentDelay` later as one; routine ones wait for
+/// the interval.
 final class WidgetReloadThrottle {
 
+    /// True while a throttle runs a routine reload (one it deferred, or let
+    /// through because its interval had passed), false for an urgent one.
+    /// WidgetRefresh reads it to give the overview's reload the urgency of
+    /// the reload it follows.
+    @TaskLocal static var firingRoutine = false
+
     private let interval: TimeInterval
+    private let urgentDelay: TimeInterval
     private let queue: DispatchQueue
     private let reload: () -> Void
     private var lastReloadAt: Date?
     private var pending: DispatchWorkItem?
+    private var pendingUrgent: DispatchWorkItem?
 
     init(
         interval: TimeInterval,
+        urgentDelay: TimeInterval = 0,
         queue: DispatchQueue = DispatchQueue(label: "network.ur.widget-reload"),
         reload: @escaping () -> Void
     ) {
         self.interval = interval
+        self.urgentDelay = urgentDelay
         self.queue = queue
         self.reload = reload
     }
@@ -154,19 +200,31 @@ final class WidgetReloadThrottle {
             guard let self else { return }
             let now = Date()
             if urgent {
-                self.fire(at: now)
+                guard 0 < self.urgentDelay else {
+                    self.fire(at: now, routine: false)
+                    return
+                }
+                // the urgent requests inside the delay go as one
+                guard self.pendingUrgent == nil else { return }
+                let work = DispatchWorkItem { [weak self] in
+                    guard let self else { return }
+                    self.pendingUrgent = nil
+                    self.fire(at: Date(), routine: false)
+                }
+                self.pendingUrgent = work
+                self.queue.asyncAfter(deadline: .now() + self.urgentDelay, execute: work)
                 return
             }
             let elapsed = self.lastReloadAt.map { now.timeIntervalSince($0) } ?? .infinity
             if self.interval <= elapsed {
-                self.fire(at: now)
+                self.fire(at: now, routine: true)
                 return
             }
             guard self.pending == nil else { return }
             let work = DispatchWorkItem { [weak self] in
                 guard let self else { return }
                 self.pending = nil
-                self.fire(at: Date())
+                self.fire(at: Date(), routine: true)
             }
             self.pending = work
             self.queue.asyncAfter(deadline: .now() + (self.interval - elapsed), execute: work)
@@ -177,13 +235,21 @@ final class WidgetReloadThrottle {
         queue.async { [weak self] in
             self?.pending?.cancel()
             self?.pending = nil
+            self?.pendingUrgent?.cancel()
+            self?.pendingUrgent = nil
         }
     }
 
-    private func fire(at date: Date) {
+    /// Any reload covers whatever is waiting: the waiting requests followed
+    /// writes that are already on disk.
+    private func fire(at date: Date, routine: Bool) {
         pending?.cancel()
         pending = nil
+        pendingUrgent?.cancel()
+        pendingUrgent = nil
         lastReloadAt = date
-        reload()
+        Self.$firingRoutine.withValue(routine) {
+            reload()
+        }
     }
 }

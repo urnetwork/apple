@@ -32,10 +32,40 @@ extension AccountNavStackView {
     
     class ViewModel: ObservableObject {
         
+        // the one path both layouts show: the phone's stack, and in a
+        // regular-width window the screen chosen from the list (its first
+        // screen) with what that screen opened, so a fold or a resize keeps
+        // the screen and its place
         @Published var navigationPath: [AccountNavigationPath] = []
         
         func navigate(_ path: AccountNavigationPath) {
             navigationPath.append(path)
+        }
+
+        /// A row of the list beside the chosen screen: it replaces the
+        /// chosen screen and whatever that screen opened.
+        func select(_ path: AccountNavigationPath) {
+            navigationPath = [path]
+        }
+
+        /// The screen chosen from the list, beside it.
+        var selection: AccountNavigationPath? {
+            navigationPath.first
+        }
+
+        /// The screens the chosen screen opened, stacked over it.
+        var detailPath: [AccountNavigationPath] {
+            get {
+                Array(navigationPath.dropFirst())
+            }
+            set {
+                let path = Array(navigationPath.prefix(1)) + newValue
+                // an unchanged path publishes nothing, so the detail stack
+                // writing back what it shows cannot loop
+                if path != navigationPath {
+                    navigationPath = path
+                }
+            }
         }
 
         func back() {

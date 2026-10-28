@@ -21,7 +21,7 @@ struct DashboardView: View {
         Group {
             if family == .systemLarge {
                 VStack(alignment: .leading, spacing: 10) {
-                    header
+                    DashboardHeader(entry: entry)
                     BalanceBarView(balance: entry.balance)
                     charts
                     Spacer(minLength: 0)
@@ -31,7 +31,7 @@ struct DashboardView: View {
                 // the short widget is exactly the large one's top section:
                 // location, provider count, quick connect, balance bar
                 VStack(alignment: .leading, spacing: 10) {
-                    header
+                    DashboardHeader(entry: entry)
                     BalanceBarView(balance: entry.balance)
                     Spacer(minLength: 0)
                     footer
@@ -40,60 +40,6 @@ struct DashboardView: View {
         }
         // a tap anywhere else opens the app on the connect tab
         .widgetURL(WidgetDestination.connect.url)
-    }
-
-    // MARK: Header: location + quick connect
-
-    private var header: some View {
-        HStack(spacing: 10) {
-            // the location's country color, as the in-app location list shows it
-            LocationColorDot(location: entry.showsTunnelData ? entry.tunnel.location : nil)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(locationTitle)
-                    .font(WidgetTheme.title)
-                    .foregroundStyle(WidgetTheme.text)
-                    .lineLimit(1)
-                    .widgetAccentable()
-                subtitle
-                    .font(WidgetTheme.caption)
-                    .foregroundStyle(WidgetTheme.textMuted)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 4)
-            QuickConnectButton(entry: entry)
-        }
-    }
-
-    private var locationTitle: LocalizedStringKey {
-        if !entry.isConfigured {
-            return "Not signed in"
-        }
-        if !entry.isOn {
-            return "Disconnected"
-        }
-        guard entry.showsTunnelData, let location = entry.tunnel.location else {
-            return "Connected"
-        }
-        if location.bestAvailable {
-            return "Best available provider"
-        }
-        return "\(location.name)"
-    }
-
-    @ViewBuilder
-    private var subtitle: some View {
-        if entry.showsTunnelData {
-            let count = entry.tunnel.providers.count
-            if entry.tunnel.providing {
-                Text("\(count) providers · providing")
-            } else {
-                Text("\(count) providers")
-            }
-        } else if entry.isConfigured {
-            Text("URnetwork")
-        } else {
-            Text("Open URnetwork to set up")
-        }
     }
 
     // MARK: Charts (large)
@@ -192,6 +138,99 @@ struct DashboardView: View {
                 .font(WidgetTheme.caption)
                 .foregroundStyle(WidgetTheme.textFaint)
         }
+    }
+}
+
+/// The dashboard's header: the location's dot and title, the provider count
+/// (or the slow internet pill) under the title, and quick connect. The
+/// overview widget shares it.
+struct DashboardHeader: View {
+
+    let entry: SnapshotEntry
+    /// "Connected · 12 providers" where it fits rather than "12 providers":
+    /// the overview, which has no other line saying it is connected.
+    var leadsWithConnected = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            // the location's country color, as the in-app location list shows it
+            LocationColorDot(location: entry.showsTunnelData ? entry.tunnel.location : nil)
+            if let slowInternet = entry.slowInternet {
+                // while the notice shows, the slow internet pill takes the
+                // provider count's place (apple/DELAY.md §5.7). One element:
+                // "Germany. Poor signal", with the numbers as its value
+                VStack(alignment: .leading, spacing: 2) {
+                    title
+                    DashboardSlowInternetPill(pill: slowInternet)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(
+                    Text(locationTitle) + Text(verbatim: ". ")
+                        + Text(DashboardSlowInternetPill.label(slowInternet.content.label))
+                )
+                .accessibilityValue(SlowInternetText.delaysValue(up: slowInternet.content.up, down: slowInternet.content.down))
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    title
+                    subtitle
+                        .font(WidgetTheme.caption)
+                        .foregroundStyle(WidgetTheme.textMuted)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 4)
+            QuickConnectButton(entry: entry)
+        }
+    }
+
+    private var title: some View {
+        Text(locationTitle)
+            .font(WidgetTheme.title)
+            .foregroundStyle(WidgetTheme.text)
+            .lineLimit(1)
+            .widgetAccentable()
+    }
+
+    private var locationTitle: LocalizedStringKey {
+        if !entry.isConfigured {
+            return "Not signed in"
+        }
+        if !entry.isOn {
+            return "Disconnected"
+        }
+        guard entry.showsTunnelData, let location = entry.tunnel.location else {
+            return "Connected"
+        }
+        if location.bestAvailable {
+            return "Best available provider"
+        }
+        return "\(location.name)"
+    }
+
+    @ViewBuilder
+    private var subtitle: some View {
+        if entry.showsTunnelData {
+            if leadsWithConnected {
+                ViewThatFits(in: .horizontal) {
+                    Text("Connected") + Text(verbatim: " · ") + providerCount
+                    providerCount
+                }
+            } else {
+                providerCount
+            }
+        } else if entry.isConfigured {
+            Text("URnetwork")
+        } else {
+            Text("Open URnetwork to set up")
+        }
+    }
+
+    private var providerCount: Text {
+        let count = entry.tunnel.providers.count
+        if entry.tunnel.providing {
+            return Text("\(count) providers · providing")
+        }
+        return Text("\(count) providers")
     }
 }
 

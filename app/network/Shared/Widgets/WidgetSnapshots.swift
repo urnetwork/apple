@@ -28,6 +28,8 @@ enum WidgetKinds {
     static let dashboard = "network.ur.widgets.dashboard"
     static let providerGlobe = "network.ur.widgets.globe"
     static let contracts = "network.ur.widgets.contracts"
+    /// The three together in one large widget (OverviewWidget).
+    static let overview = "network.ur.widgets.overview"
 }
 
 /// One open contract, un-aggregated (contracts are never paired: a peer's
@@ -165,10 +167,38 @@ struct WidgetThroughputSnapshot: Codable, Equatable {
     var bucketSeconds: Int64
     /// Oldest first. Missing buckets mean no traffic.
     var buckets: [WidgetThroughputBucket]
+    /// This device's traffic today, folded from the same client counters.
+    /// Optional so snapshots written before it existed still decode.
+    var today: WidgetTodaySnapshot? = nil
 
     static let empty = WidgetThroughputSnapshot(
         bucketSeconds: WidgetThroughputAccumulator.bucketSeconds, buckets: []
     )
+}
+
+/// This device's own traffic today, the client route both ways, by hour of
+/// the local day: the overview widget's traffic tile. A new day starts it
+/// over, and one written on an earlier day says nothing of today (`asOf`).
+/// Android's WidgetTodaySnapshot, term for term.
+struct WidgetTodaySnapshot: Codable, Equatable {
+    /// The local day's first moment.
+    var dayStart: Date
+    /// Bytes in each hour of the day so far, the day's first hour first.
+    var hourlyByteCounts: [Int64]
+
+    var byteCount: Int64 {
+        hourlyByteCounts.reduce(0, +)
+    }
+
+    /// What it says of the local day of `date`: itself, or nothing when it is
+    /// an earlier day's.
+    func asOf(_ date: Date, calendar: Calendar = .current) -> WidgetTodaySnapshot {
+        let dayStart = calendar.startOfDay(for: date)
+        guard self.dayStart == dayStart else {
+            return WidgetTodaySnapshot(dayStart: dayStart, hourlyByteCounts: [])
+        }
+        return self
+    }
 }
 
 struct WidgetTunnelSnapshot: Codable, Equatable {
@@ -216,10 +246,11 @@ struct WidgetBalanceSnapshot: Codable, Equatable {
     }
 }
 
-/// Folds cumulative byte and packet counters into fixed one-minute buckets. Pure
-/// value type so the extension can persist it inside the snapshot and pick
-/// up where it left off after a restart (the chart then survives a tunnel
-/// restart instead of resetting to flat).
+/// Folds cumulative byte and packet counters into fixed one-minute buckets,
+/// and the client side's bytes into today's hours. Pure value type so the
+/// extension can persist it inside the snapshot and pick up where it left off
+/// after a restart (the chart then survives a tunnel restart instead of
+/// resetting to flat, and the day is not started over).
 struct WidgetThroughputAccumulator: Codable, Equatable {
 
     /// One second per bucket, one minute of history -- the same shape the
@@ -239,6 +270,8 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
     static let bucketCount = 60
 
     private(set) var buckets: [WidgetThroughputBucket] = []
+    /// The client side's bytes today, by local hour; nil until any is counted.
+    private(set) var today: WidgetTodaySnapshot?
 
     private var lastClientEgress: Int64?
     private var lastClientIngress: Int64?
@@ -255,17 +288,23 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
         if snapshot.bucketSeconds == Self.bucketSeconds {
             buckets = Array(snapshot.buckets.suffix(Self.bucketCount))
         }
+        // the day resumes whatever the bucket size, so a tunnel restart does
+        // not start today's traffic over
+        today = snapshot.today
     }
 
     var snapshot: WidgetThroughputSnapshot {
-        WidgetThroughputSnapshot(bucketSeconds: Self.bucketSeconds, buckets: buckets)
+        WidgetThroughputSnapshot(bucketSeconds: Self.bucketSeconds, buckets: buckets, today: today)
     }
 
-    /// Record the client-side cumulative counters (bytes and packets) as of `date`.
+    /// Record the client-side cumulative counters (bytes and packets) as of
+    /// `date`. The bytes also count toward today's hour of `date` in
+    /// `calendar`, read on each call so a time zone change follows.
     mutating func recordClient(
         egress: Int64, ingress: Int64,
         egressPackets: Int64, ingressPackets: Int64,
-        at date: Date = Date()
+        at date: Date = Date(),
+        calendar: Calendar = .current
     ) {
         let dEgress = Self.delta(from: lastClientEgress, to: egress)
         let dIngress = Self.delta(from: lastClientIngress, to: ingress)
@@ -282,6 +321,23 @@ struct WidgetThroughputAccumulator: Codable, Equatable {
         bucket.clientEgressPackets += dEgressPackets
         bucket.clientIngressPackets += dIngressPackets
         buckets[buckets.count - 1] = bucket
+        countToday(dEgress + dIngress, at: date, calendar: calendar)
+    }
+
+    /// Adds client bytes to the hour of `date` in its local day, a new day
+    /// starting over.
+    private mutating func countToday(_ byteCount: Int64, at date: Date, calendar: Calendar) {
+        guard 0 < byteCount else { return }
+        let dayStart = calendar.startOfDay(for: date)
+        // a day that skips an hour or repeats one (daylight saving) keeps 24
+        // slots: the slot is the hour on the clock
+        let hour = calendar.component(.hour, from: date)
+        var hours = today?.dayStart == dayStart ? today?.hourlyByteCounts ?? [] : []
+        while hours.count <= hour {
+            hours.append(0)
+        }
+        hours[hour] += byteCount
+        today = WidgetTodaySnapshot(dayStart: dayStart, hourlyByteCounts: hours)
     }
 
     /// Record the provider-side cumulative counters (bytes and packets) as of `date`.

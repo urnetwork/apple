@@ -30,8 +30,13 @@ struct ConnectButtonView: View {
     var showProviderLocations: (() -> Void)? = nil
 
     @Binding var tunnelConnected: Bool
+
+    /// The canvas's side on screen. The canvas draws at its full 256 pt and
+    /// scales to this, so a short window or a large pane resizes it without
+    /// restarting its animations; the gaps around the status scale with it.
+    var canvasSide: CGFloat = SplitLayout.canvasFullSide
     
-    let canvasWidth: CGFloat = 256
+    let canvasWidth: CGFloat = SplitLayout.canvasFullSide
     
     @State var displayReconnectTunnel: Bool = false
 
@@ -154,9 +159,11 @@ struct ConnectButtonView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             }
+            .scaleEffect(canvasScale)
+            .frame(width: canvasSide, height: canvasSide)
 
             
-            Spacer().frame(height: 32)
+            Spacer().frame(height: SplitLayout.canvasStatusGap * canvasScale)
             
             ConnectStatusIndicator(
                 connectionStatus: connectionStatus,
@@ -167,11 +174,20 @@ struct ConnectButtonView: View {
                 currentPlan: currentPlan,
                 showProviderLocations: showProviderLocations
             )
+            // the connect screen sizes the canvas to the room this leaves
+            .background(
+                GeometryReader { statusGeometry in
+                    Color.clear.preference(
+                        key: ConnectStatusHeightPreferenceKey.self,
+                        value: statusGeometry.size.height
+                    )
+                }
+            )
 
-            Spacer().frame(height: 16)
+            Spacer().frame(height: SplitLayout.canvasStatusBottomGap * canvasScale)
             
         }
-        .padding()
+        .padding(SplitLayout.canvasBlockPadding)
         .onChange(of: connectionStatus) { status in
             checkTunnelStatus()
             if status != .connected {
@@ -184,6 +200,10 @@ struct ConnectButtonView: View {
         
     }
     
+    private var canvasScale: CGFloat {
+        canvasSide / canvasWidth
+    }
+    
     private func checkTunnelStatus() {
         
         if connectionStatus == .connected && !tunnelConnected {
@@ -194,6 +214,14 @@ struct ConnectButtonView: View {
         
     }
     
+}
+
+/// The measured height of the connect status line under the canvas.
+struct ConnectStatusHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
 }
 
 /// The connector shows the warning in place of the provider grid while the

@@ -3,8 +3,8 @@
 //  URnetworkWidgets
 //
 //  Entry point for the widget extension: the Control Center / Lock Screen /
-//  Action button toggle (iOS 18, macOS 26) and the Home Screen widgets
-//  (iOS 17, macOS 14).
+//  Action button toggle (iOS 18, macOS 26), the Home Screen widgets
+//  (iOS 17, macOS 14) and the slow internet Live Activity (iOS).
 //
 //  Everything in this target is SDK-free. Tunnel state comes from
 //  NetworkExtension directly; everything else is read from the snapshots the
@@ -31,6 +31,9 @@ struct URnetworkWidgetBundle: WidgetBundle {
         if #available(iOS 18.0, macOS 26.0, *) {
             QuickConnectControl()
         }
+        // the slow internet Live Activity (apple/DELAY.md §5.4); ActivityKit
+        // is unavailable on macOS
+        TransportDelayLiveActivity()
         #endif
     }
 }

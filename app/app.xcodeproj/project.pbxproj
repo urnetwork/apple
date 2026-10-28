@@ -12,44 +12,6 @@
 		1728CF992D1691F100050EC5 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
 		175DEFB62D6DAB7700A9BD36 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */; };
 		17A25D3E2D5C702200507C75 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */; platformFilter = ios; };
-		B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = B17E00032F00000100000003 /* URnetworkExtensionSdk */; };
-		B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */; };
-		B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
-		B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B17E01012F0000010000A002 /* URnetworkWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
-		B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
-		B17E01102F0000010000A011 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
-		B17E01612F0000010000A061 /* network/Shared/ProvidePausePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */; };
-		B17E01622F0000010000A062 /* network/Shared/ProvidePausePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */; };
-		B17E01642F0000010000A064 /* network/Shared/ProvideChargingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */; };
-		B17E01652F0000010000A065 /* network/Shared/ProvideChargingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */; };
-		B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
-		B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
-		B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
-		B17E01162F0000010000A017 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
-		B17E01182F0000010000A019 /* network/Shared/Utilities/GlobeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */; };
-		B17E011A2F0000010000A01B /* network/Shared/Utilities/WorldTopology.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01192F0000010000A01A /* network/Shared/Utilities/WorldTopology.swift */; };
-		B17E011C2F0000010000A01D /* network/Shared/Utilities/ByteFormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */; };
-		B17E011E2F0000010000A01F /* network/Shared/Utilities/RateFormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011D2F0000010000A01E /* network/Shared/Utilities/RateFormatUtils.swift */; };
-		B17E01202F0000010000A021 /* network/Shared/Intents/OpenURnetworkIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */; };
-		B17E01512F0000010000A051 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01502F0000010000A050 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift */; };
-		B17E01222F0000010000A023 /* network/Shared/Resources/world-110m.json in Resources */ = {isa = PBXBuildFile; fileRef = B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */; };
-		B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */; };
-		B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
-		B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */; };
-		B17E01312F0000010000A031 /* network/Shared/Widgets/WidgetTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01302F0000010000A030 /* network/Shared/Widgets/WidgetTheme.swift */; };
-		B17E01332F0000010000A033 /* network/Shared/Widgets/ThroughputChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01322F0000010000A032 /* network/Shared/Widgets/ThroughputChartView.swift */; };
-		B17E01352F0000010000A035 /* network/Shared/Widgets/GlobeSnapshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01342F0000010000A034 /* network/Shared/Widgets/GlobeSnapshotView.swift */; };
-		B17E01372F0000010000A037 /* network/Shared/Widgets/BalanceBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01362F0000010000A036 /* network/Shared/Widgets/BalanceBarView.swift */; };
-		B17E01392F0000010000A039 /* network/Shared/Widgets/ContractStackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */; };
-		B17E013B2F0000010000A03B /* network/Shared/Widgets/WidgetSnapshotSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */; };
-		B17E01412F0000010000A041 /* extension/TunnelLocalStateIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01402F0000010000A040 /* extension/TunnelLocalStateIdentity.swift */; };
-		B17E01432F0000010000A043 /* extension/TunnelIpv6Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */; };
-		D1A60C0D2F0E000100000002 /* extension/TunnelDiagnosticLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A60C0D2F0E000100000001 /* extension/TunnelDiagnosticLog.swift */; };
-		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
-		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
-		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
-		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1D0000A2F0D00010000000A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0000E2F0D00010000000E /* GoogleSignIn */; };
 		A1D0000B2F0D00010000000B /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0000F2F0D00010000000F /* GoogleSignInSwift */; };
 		A1D0000C2F0D00010000000C /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A1D000102F0D000100000010 /* URnetworkSdk */; };
@@ -62,6 +24,39 @@
 		A1D0002C2F0D00010000002C /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */; };
 		A1D0002D2F0D00010000002D /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
 		A1D0002E2F0D00010000002E /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
+		B17E00012F00000100000001 /* URnetworkExtensionSdk in Frameworks */ = {isa = PBXBuildFile; productRef = B17E00032F00000100000003 /* URnetworkExtensionSdk */; };
+		B17E00052F00000100000005 /* extension/TunnelMemoryBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */; };
+		B17E00072F00000100000007 /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
+		B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B17E01012F0000010000A002 /* URnetworkWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B17E010D2F0000010000A00E /* network/Shared/DiagnosticsLogContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */; };
+		B17E010F2F0000010000A010 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
+		B17E01102F0000010000A011 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */; };
+		B17E01122F0000010000A013 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
+		B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */; };
+		B17E01152F0000010000A016 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
+		B17E01162F0000010000A017 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */; };
+		B17E01182F0000010000A019 /* network/Shared/Utilities/GlobeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */; };
+		B17E011A2F0000010000A01B /* network/Shared/Utilities/WorldTopology.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01192F0000010000A01A /* network/Shared/Utilities/WorldTopology.swift */; };
+		B17E011C2F0000010000A01D /* network/Shared/Utilities/ByteFormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */; };
+		B17E011E2F0000010000A01F /* network/Shared/Utilities/RateFormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011D2F0000010000A01E /* network/Shared/Utilities/RateFormatUtils.swift */; };
+		B17E01202F0000010000A021 /* network/Shared/Intents/OpenURnetworkIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */; };
+		B17E01222F0000010000A023 /* network/Shared/Resources/world-110m.json in Resources */ = {isa = PBXBuildFile; fileRef = B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */; };
+		B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */; };
+		B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
+		B17E01272F0000010000A028 /* network/Shared/Widgets/WidgetDeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */; };
+		B17E01312F0000010000A031 /* network/Shared/Widgets/WidgetTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01302F0000010000A030 /* network/Shared/Widgets/WidgetTheme.swift */; };
+		B17E01332F0000010000A033 /* network/Shared/Widgets/ThroughputChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01322F0000010000A032 /* network/Shared/Widgets/ThroughputChartView.swift */; };
+		B17E01352F0000010000A035 /* network/Shared/Widgets/GlobeSnapshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01342F0000010000A034 /* network/Shared/Widgets/GlobeSnapshotView.swift */; };
+		B17E01372F0000010000A037 /* network/Shared/Widgets/BalanceBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01362F0000010000A036 /* network/Shared/Widgets/BalanceBarView.swift */; };
+		B17E01392F0000010000A039 /* network/Shared/Widgets/ContractStackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01382F0000010000A038 /* network/Shared/Widgets/ContractStackViews.swift */; };
+		B17E013B2F0000010000A03B /* network/Shared/Widgets/WidgetSnapshotSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */; };
+		B17E01412F0000010000A041 /* extension/TunnelLocalStateIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01402F0000010000A040 /* extension/TunnelLocalStateIdentity.swift */; };
+		B17E01432F0000010000A043 /* extension/TunnelIpv6Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */; };
+		B17E01512F0000010000A051 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01502F0000010000A050 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift */; };
+		B17E01612F0000010000A061 /* network/Shared/ProvidePausePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */; };
+		B17E01622F0000010000A062 /* network/Shared/ProvidePausePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */; };
+		B17E01642F0000010000A064 /* network/Shared/ProvideChargingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */; };
+		B17E01652F0000010000A065 /* network/Shared/ProvideChargingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */; };
 		C5A100012F0E000100000001 /* network.ur.splittunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */; platformFilters = (macos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C5A100022F0E000100000002 /* com.bringyour.urnetwork.splittunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C5A100032F0E000100000003 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */; };
@@ -70,15 +65,48 @@
 		C5A100062F0E000100000006 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A100322F0E000100000032 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift */; };
 		C5A100072F0E000100000007 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
 		C5A100082F0E000100000008 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B95A832CEBE76400542E0E /* NetworkExtension.framework */; };
+		D1829C222CEBF0D700920833 /* URnetworkSdk in Frameworks */ = {isa = PBXBuildFile; productRef = D1829C212CEBF0D700920833 /* URnetworkSdk */; };
+		D196DD2D2E5CD6AD00083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
+		D196DD2E2E5CD6C700083E0C /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */; };
+		D1A60C0D2F0E000100000002 /* extension/TunnelDiagnosticLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A60C0D2F0E000100000001 /* extension/TunnelDiagnosticLog.swift */; };
+		D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D3A7E1112F10000100000011 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1012F10000100000001 /* network/Shared/TransportDelay/TransportDelayAttributes.swift */; };
+		D3A7E1122F10000100000012 /* network/Shared/TransportDelay/TransportDelayFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1022F10000100000002 /* network/Shared/TransportDelay/TransportDelayFormat.swift */; };
+		D3A7E1132F10000100000013 /* network/Shared/TransportDelay/TunnelIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1032F10000100000003 /* network/Shared/TransportDelay/TunnelIndicator.swift */; };
+		D3A7E1212F10000100000021 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1012F10000100000001 /* network/Shared/TransportDelay/TransportDelayAttributes.swift */; };
+		D3A7E1242F10000100000024 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */; };
+		D3A7E1252F10000100000025 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1052F10000100000005 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift */; };
+		D3A7E1262F10000100000026 /* network/Shared/TransportDelay/TransportDelaySharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A1D000132F0D000100000013 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1D000202F0D000100000020;
+			remoteInfo = URnetworkVPNSystem;
+		};
 		B17E010C2F0000010000A00D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = B17E01002F0000010000A001;
 			remoteInfo = URnetworkWidgets;
+		};
+		C5A100112F0E000100000011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C5A100412F0E000100000041;
+			remoteInfo = URnetworkSplitTunnel;
+		};
+		C5A100122F0E000100000012 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C5A100422F0E000100000042;
+			remoteInfo = URnetworkSplitTunnelDirect;
 		};
 		D1B95A612CEBDD6A00542E0E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -101,27 +129,6 @@
 			remoteGlobalIDString = D1B95A802CEBE76400542E0E;
 			remoteInfo = extension;
 		};
-		A1D000132F0D000100000013 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A1D000202F0D000100000020;
-			remoteInfo = URnetworkVPNSystem;
-		};
-		C5A100112F0E000100000011 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C5A100412F0E000100000041;
-			remoteInfo = URnetworkSplitTunnel;
-		};
-		C5A100122F0E000100000012 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D1B95A472CEBDD6900542E0E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C5A100422F0E000100000042;
-			remoteInfo = URnetworkSplitTunnelDirect;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -133,18 +140,6 @@
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
-		};
-		D1B95A912CEBE76400542E0E /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */,
-				B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A1D000082F0D000100000008 /* Embed System Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -169,18 +164,30 @@
 			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D1B95A912CEBE76400542E0E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D1B95A8C2CEBE76400542E0E /* URnetworkVPN.appex in Embed Foundation Extensions */,
+				B17E010A2F0000010000A00B /* URnetworkWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		175DEFB52D6DAB7700A9BD36 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		1783A00D2D60111600024F80 /* URnetworkLaunchHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = URnetworkLaunchHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		178F47EA2CEDA80A00CD9C3D /* URnetwork-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "URnetwork-Info.plist"; sourceTree = "<group>"; };
+		A1D000092F0D000100000009 /* URnetworkDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetworkDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.bringyour.urnetwork.extension.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		B17E00042F00000100000004 /* extension/TunnelMemoryBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelMemoryBounds.swift; sourceTree = SOURCE_ROOT; };
 		B17E00062F00000100000006 /* network/Shared/DiagnosticsLogContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/DiagnosticsLogContract.swift; sourceTree = SOURCE_ROOT; };
 		B17E01012F0000010000A002 /* URnetworkWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B17E010E2F0000010000A00F /* network/Shared/Widgets/TunnelIntentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/TunnelIntentStore.swift; sourceTree = SOURCE_ROOT; };
-		B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ProvidePausePolicy.swift; sourceTree = SOURCE_ROOT; };
-		B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ProvideChargingMonitor.swift; sourceTree = SOURCE_ROOT; };
 		B17E01112F0000010000A012 /* network/Shared/Widgets/WidgetSnapshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetSnapshots.swift; sourceTree = SOURCE_ROOT; };
 		B17E01142F0000010000A015 /* network/Shared/Widgets/WidgetRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetRefresh.swift; sourceTree = SOURCE_ROOT; };
 		B17E01172F0000010000A018 /* network/Shared/Utilities/GlobeGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/GlobeGeometry.swift; sourceTree = SOURCE_ROOT; };
@@ -188,7 +195,6 @@
 		B17E011B2F0000010000A01C /* network/Shared/Utilities/ByteFormatUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/ByteFormatUtils.swift; sourceTree = SOURCE_ROOT; };
 		B17E011D2F0000010000A01E /* network/Shared/Utilities/RateFormatUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Utilities/RateFormatUtils.swift; sourceTree = SOURCE_ROOT; };
 		B17E011F2F0000010000A020 /* network/Shared/Intents/OpenURnetworkIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Intents/OpenURnetworkIntent.swift; sourceTree = SOURCE_ROOT; };
-		B17E01502F0000010000A050 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ViewModels/InsufficientBalancePolicy.swift; sourceTree = SOURCE_ROOT; };
 		B17E01212F0000010000A022 /* network/Shared/Resources/world-110m.json */ = {isa = PBXFileReference; lastKnownFileType = file.json; path = "network/Shared/Resources/world-110m.json"; sourceTree = SOURCE_ROOT; };
 		B17E01232F0000010000A024 /* network/Shared/Resources/Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = network/Shared/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetDeepLinks.swift; sourceTree = SOURCE_ROOT; };
@@ -200,39 +206,31 @@
 		B17E013A2F0000010000A03A /* network/Shared/Widgets/WidgetSnapshotSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/Widgets/WidgetSnapshotSample.swift; sourceTree = SOURCE_ROOT; };
 		B17E01402F0000010000A040 /* extension/TunnelLocalStateIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelLocalStateIdentity.swift; sourceTree = SOURCE_ROOT; };
 		B17E01422F0000010000A042 /* extension/TunnelIpv6Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelIpv6Routes.swift; sourceTree = SOURCE_ROOT; };
-		D1A60C0D2F0E000100000001 /* extension/TunnelDiagnosticLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelDiagnosticLog.swift; sourceTree = SOURCE_ROOT; };
+		B17E01502F0000010000A050 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ViewModels/InsufficientBalancePolicy.swift; sourceTree = SOURCE_ROOT; };
+		B17E01602F0000010000A060 /* network/Shared/ProvidePausePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ProvidePausePolicy.swift; sourceTree = SOURCE_ROOT; };
+		B17E01632F0000010000A063 /* network/Shared/ProvideChargingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/ProvideChargingMonitor.swift; sourceTree = SOURCE_ROOT; };
+		C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = network.ur.splittunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.bringyour.urnetwork.splittunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift; sourceTree = SOURCE_ROOT; };
+		C5A100322F0E000100000032 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift; sourceTree = SOURCE_ROOT; };
 		D10517532E5CD4C0002D73A5 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.9.tbd; sourceTree = DEVELOPER_DIR; };
 		D10517542E5CD4CD002D73A5 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		D1880DF52D36F732001DE81F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D1A60C0D2F0E000100000001 /* extension/TunnelDiagnosticLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension/TunnelDiagnosticLog.swift; sourceTree = SOURCE_ROOT; };
 		D1B95A4F2CEBDD6900542E0E /* URnetwork.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetwork.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A602CEBDD6A00542E0E /* networkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A6A2CEBDD6A00542E0E /* networkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = networkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = URnetworkVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1B95A832CEBE76400542E0E /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		A1D000092F0D000100000009 /* URnetworkDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URnetworkDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.bringyour.urnetwork.extension.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
-		C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = network.ur.splittunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
-		C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.bringyour.urnetwork.splittunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
-		C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift; sourceTree = SOURCE_ROOT; };
-		C5A100322F0E000100000032 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1012F10000100000001 /* network/Shared/TransportDelay/TransportDelayAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelayAttributes.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1022F10000100000002 /* network/Shared/TransportDelay/TransportDelayFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelayFormat.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1032F10000100000003 /* network/Shared/TransportDelay/TunnelIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TunnelIndicator.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelayActivityPolicy.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1052F10000100000005 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelayActivityPresenter.swift; sourceTree = SOURCE_ROOT; };
+		D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = network/Shared/TransportDelay/TransportDelaySharedState.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B17E01092F0000010000A00A /* Exceptions for "widgets" folder in "URnetworkWidgets" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = B17E01002F0000010000A001 /* URnetworkWidgets */;
-		};
-		D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Info-macOS-sysext.plist",
-				Info.plist,
-			);
-			target = D1B95A802CEBE76400542E0E /* URnetworkVPN */;
-		};
 		A1D000302F0D000100000030 /* Exceptions for "extension" folder in "URnetworkVPNSystem" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -240,6 +238,13 @@
 				Info.plist,
 			);
 			target = A1D000202F0D000100000020 /* URnetworkVPNSystem */;
+		};
+		B17E01092F0000010000A00A /* Exceptions for "widgets" folder in "URnetworkWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B17E01002F0000010000A001 /* URnetworkWidgets */;
 		};
 		C5A100232F0E000100000023 /* Exceptions for "splittunnel" folder in "URnetworkSplitTunnel" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -257,6 +262,14 @@
 			);
 			target = C5A100422F0E000100000042 /* URnetworkSplitTunnelDirect */;
 		};
+		D1B95A8D2CEBE76400542E0E /* Exceptions for "extension" folder in "URnetworkVPN" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Info-macOS-sysext.plist",
+				Info.plist,
+			);
+			target = D1B95A802CEBE76400542E0E /* URnetworkVPN */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -271,6 +284,15 @@
 				B17E01092F0000010000A00A /* Exceptions for "widgets" folder in "URnetworkWidgets" target */,
 			);
 			path = widgets;
+			sourceTree = "<group>";
+		};
+		C5A100252F0E000100000025 /* splittunnel */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C5A100232F0E000100000023 /* Exceptions for "splittunnel" folder in "URnetworkSplitTunnel" target */,
+				C5A100242F0E000100000024 /* Exceptions for "splittunnel" folder in "URnetworkSplitTunnelDirect" target */,
+			);
+			path = splittunnel;
 			sourceTree = "<group>";
 		};
 		D1B95A512CEBDD6900542E0E /* network */ = {
@@ -297,15 +319,6 @@
 			path = extension;
 			sourceTree = "<group>";
 		};
-		C5A100252F0E000100000025 /* splittunnel */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				C5A100232F0E000100000023 /* Exceptions for "splittunnel" folder in "URnetworkSplitTunnel" target */,
-				C5A100242F0E000100000024 /* Exceptions for "splittunnel" folder in "URnetworkSplitTunnelDirect" target */,
-			);
-			path = splittunnel;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -316,11 +329,48 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1D000062F0D000100000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D0000B2F0D00010000000B /* GoogleSignInSwift in Frameworks */,
+				A1D0000C2F0D00010000000C /* URnetworkSdk in Frameworks */,
+				A1D0000D2F0D00010000000D /* libresolv.9.tbd in Frameworks */,
+				A1D0000A2F0D00010000000A /* GoogleSignIn in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000252F0D000100000025 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D0002C2F0D00010000002C /* URnetworkExtensionSdk in Frameworks */,
+				A1D0002D2F0D00010000002D /* libresolv.9.tbd in Frameworks */,
+				A1D0002E2F0D00010000002E /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B17E01032F0000010000A004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				B17E01252F0000010000A026 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5A100432F0E000100000043 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5A100072F0E000100000007 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5A100442F0E000100000044 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5A100082F0E000100000008 /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,43 +410,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A1D000062F0D000100000006 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1D0000B2F0D00010000000B /* GoogleSignInSwift in Frameworks */,
-				A1D0000C2F0D00010000000C /* URnetworkSdk in Frameworks */,
-				A1D0000D2F0D00010000000D /* libresolv.9.tbd in Frameworks */,
-				A1D0000A2F0D00010000000A /* GoogleSignIn in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A1D000252F0D000100000025 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1D0002C2F0D00010000002C /* URnetworkExtensionSdk in Frameworks */,
-				A1D0002D2F0D00010000002D /* libresolv.9.tbd in Frameworks */,
-				A1D0002E2F0D00010000002E /* NetworkExtension.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C5A100432F0E000100000043 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C5A100072F0E000100000007 /* NetworkExtension.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C5A100442F0E000100000044 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C5A100082F0E000100000008 /* NetworkExtension.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -430,6 +443,12 @@
 				B17E01262F0000010000A027 /* network/Shared/Widgets/WidgetDeepLinks.swift */,
 				C5A100312F0E000100000031 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift */,
 				C5A100322F0E000100000032 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift */,
+				D3A7E1012F10000100000001 /* network/Shared/TransportDelay/TransportDelayAttributes.swift */,
+				D3A7E1022F10000100000002 /* network/Shared/TransportDelay/TransportDelayFormat.swift */,
+				D3A7E1032F10000100000003 /* network/Shared/TransportDelay/TunnelIndicator.swift */,
+				D3A7E1042F10000100000004 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift */,
+				D3A7E1052F10000100000005 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift */,
+				D3A7E1062F10000100000006 /* network/Shared/TransportDelay/TransportDelaySharedState.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -505,6 +524,57 @@
 			productReference = 1783A00D2D60111600024F80 /* URnetworkLaunchHelper */;
 			productType = "com.apple.product-type.tool";
 		};
+		A1D000012F0D000100000001 /* URnetworkDirect */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1D000022F0D000100000002 /* Build configuration list for PBXNativeTarget "URnetworkDirect" */;
+			buildPhases = (
+				A1D000052F0D000100000005 /* Sources */,
+				A1D000062F0D000100000006 /* Frameworks */,
+				A1D000072F0D000100000007 /* Resources */,
+				A1D000082F0D000100000008 /* Embed System Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1D000122F0D000100000012 /* PBXTargetDependency */,
+				C5A100152F0E000100000015 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D1B95A512CEBDD6900542E0E /* network */,
+			);
+			name = URnetworkDirect;
+			packageProductDependencies = (
+				A1D000102F0D000100000010 /* URnetworkSdk */,
+				A1D0000E2F0D00010000000E /* GoogleSignIn */,
+				A1D0000F2F0D00010000000F /* GoogleSignInSwift */,
+			);
+			productName = network;
+			productReference = A1D000092F0D000100000009 /* URnetworkDirect.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A1D000202F0D000100000020 /* URnetworkVPNSystem */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1D000212F0D000100000021 /* Build configuration list for PBXNativeTarget "URnetworkVPNSystem" */;
+			buildPhases = (
+				A1D000242F0D000100000024 /* Sources */,
+				A1D000252F0D000100000025 /* Frameworks */,
+				A1D000262F0D000100000026 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D1B95A852CEBE76400542E0E /* extension */,
+			);
+			name = URnetworkVPNSystem;
+			packageProductDependencies = (
+				A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */,
+			);
+			productName = extension;
+			productReference = A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */;
+			productType = "com.apple.product-type.system-extension";
+		};
 		B17E01002F0000010000A001 /* URnetworkWidgets */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B17E01052F0000010000A006 /* Build configuration list for PBXNativeTarget "URnetworkWidgets" */;
@@ -526,6 +596,50 @@
 			productName = widgets;
 			productReference = B17E01012F0000010000A002 /* URnetworkWidgets.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		C5A100412F0E000100000041 /* URnetworkSplitTunnel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5A100512F0E000100000051 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnel" */;
+			buildPhases = (
+				C5A100452F0E000100000045 /* Sources */,
+				C5A100432F0E000100000043 /* Frameworks */,
+				C5A100472F0E000100000047 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C5A100252F0E000100000025 /* splittunnel */,
+			);
+			name = URnetworkSplitTunnel;
+			packageProductDependencies = (
+			);
+			productName = splittunnel;
+			productReference = C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */;
+			productType = "com.apple.product-type.system-extension";
+		};
+		C5A100422F0E000100000042 /* URnetworkSplitTunnelDirect */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5A100522F0E000100000052 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnelDirect" */;
+			buildPhases = (
+				C5A100462F0E000100000046 /* Sources */,
+				C5A100442F0E000100000044 /* Frameworks */,
+				C5A100482F0E000100000048 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C5A100252F0E000100000025 /* splittunnel */,
+			);
+			name = URnetworkSplitTunnelDirect;
+			packageProductDependencies = (
+			);
+			productName = splittunnel;
+			productReference = C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */;
+			productType = "com.apple.product-type.system-extension";
 		};
 		D1B95A4E2CEBDD6900542E0E /* URnetwork */ = {
 			isa = PBXNativeTarget;
@@ -626,101 +740,6 @@
 			productReference = D1B95A812CEBE76400542E0E /* URnetworkVPN.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		A1D000012F0D000100000001 /* URnetworkDirect */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A1D000022F0D000100000002 /* Build configuration list for PBXNativeTarget "URnetworkDirect" */;
-			buildPhases = (
-				A1D000052F0D000100000005 /* Sources */,
-				A1D000062F0D000100000006 /* Frameworks */,
-				A1D000072F0D000100000007 /* Resources */,
-				A1D000082F0D000100000008 /* Embed System Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A1D000122F0D000100000012 /* PBXTargetDependency */,
-				C5A100152F0E000100000015 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				D1B95A512CEBDD6900542E0E /* network */,
-			);
-			name = URnetworkDirect;
-			packageProductDependencies = (
-				A1D000102F0D000100000010 /* URnetworkSdk */,
-				A1D0000E2F0D00010000000E /* GoogleSignIn */,
-				A1D0000F2F0D00010000000F /* GoogleSignInSwift */,
-			);
-			productName = network;
-			productReference = A1D000092F0D000100000009 /* URnetworkDirect.app */;
-			productType = "com.apple.product-type.application";
-		};
-		A1D000202F0D000100000020 /* URnetworkVPNSystem */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A1D000212F0D000100000021 /* Build configuration list for PBXNativeTarget "URnetworkVPNSystem" */;
-			buildPhases = (
-				A1D000242F0D000100000024 /* Sources */,
-				A1D000252F0D000100000025 /* Frameworks */,
-				A1D000262F0D000100000026 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				D1B95A852CEBE76400542E0E /* extension */,
-			);
-			name = URnetworkVPNSystem;
-			packageProductDependencies = (
-				A1D0002F2F0D00010000002F /* URnetworkExtensionSdk */,
-			);
-			productName = extension;
-			productReference = A1D000272F0D000100000027 /* com.bringyour.urnetwork.extension.systemextension */;
-			productType = "com.apple.product-type.system-extension";
-		};
-		C5A100412F0E000100000041 /* URnetworkSplitTunnel */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C5A100512F0E000100000051 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnel" */;
-			buildPhases = (
-				C5A100452F0E000100000045 /* Sources */,
-				C5A100432F0E000100000043 /* Frameworks */,
-				C5A100472F0E000100000047 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				C5A100252F0E000100000025 /* splittunnel */,
-			);
-			name = URnetworkSplitTunnel;
-			packageProductDependencies = (
-			);
-			productName = splittunnel;
-			productReference = C5A100212F0E000100000021 /* network.ur.splittunnel.systemextension */;
-			productType = "com.apple.product-type.system-extension";
-		};
-		C5A100422F0E000100000042 /* URnetworkSplitTunnelDirect */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C5A100522F0E000100000052 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnelDirect" */;
-			buildPhases = (
-				C5A100462F0E000100000046 /* Sources */,
-				C5A100442F0E000100000044 /* Frameworks */,
-				C5A100482F0E000100000048 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				C5A100252F0E000100000025 /* splittunnel */,
-			);
-			name = URnetworkSplitTunnelDirect;
-			packageProductDependencies = (
-			);
-			productName = splittunnel;
-			productReference = C5A100222F0E000100000022 /* com.bringyour.urnetwork.splittunnel.systemextension */;
-			productType = "com.apple.product-type.system-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -734,7 +753,19 @@
 					1783A00C2D60111600024F80 = {
 						CreatedOnToolsVersion = 16.2;
 					};
+					A1D000012F0D000100000001 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					A1D000202F0D000100000020 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					B17E01002F0000010000A001 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					C5A100412F0E000100000041 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					C5A100422F0E000100000042 = {
 						CreatedOnToolsVersion = 16.2;
 					};
 					D1B95A4E2CEBDD6900542E0E = {
@@ -750,18 +781,6 @@
 					};
 					D1B95A802CEBE76400542E0E = {
 						CreatedOnToolsVersion = 16.1;
-					};
-					A1D000012F0D000100000001 = {
-						CreatedOnToolsVersion = 16.2;
-					};
-					A1D000202F0D000100000020 = {
-						CreatedOnToolsVersion = 16.2;
-					};
-					C5A100412F0E000100000041 = {
-						CreatedOnToolsVersion = 16.2;
-					};
-					C5A100422F0E000100000042 = {
-						CreatedOnToolsVersion = 16.2;
 					};
 				};
 			};
@@ -793,6 +812,9 @@
 				"zh-Hans",
 				"pt-BR",
 				"pt-PT",
+				"es-MX",
+				nl,
+				pt,
 			);
 			mainGroup = D1B95A462CEBDD6900542E0E;
 			minimizedProjectReferenceProxies = 1;
@@ -821,12 +843,40 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A1D000072F0D000100000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000262F0D000100000026 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B17E01042F0000010000A005 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				B17E01222F0000010000A023 /* network/Shared/Resources/world-110m.json in Resources */,
 				B17E01242F0000010000A025 /* network/Shared/Resources/Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5A100472F0E000100000047 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5A100482F0E000100000048 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -859,34 +909,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A1D000072F0D000100000007 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A1D000262F0D000100000026 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C5A100472F0E000100000047 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C5A100482F0E000100000048 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -894,6 +916,26 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000052F0D000100000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1D000242F0D000100000024 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D000282F0D000100000028 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
+				A1D000292F0D000100000029 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
+				B17E01622F0000010000A062 /* network/Shared/ProvidePausePolicy.swift in Sources */,
+				B17E01652F0000010000A065 /* network/Shared/ProvideChargingMonitor.swift in Sources */,
+				A1D0002A2F0D00010000002A /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
+				A1D0002B2F0D00010000002B /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -918,6 +960,27 @@
 				B17E011E2F0000010000A01F /* network/Shared/Utilities/RateFormatUtils.swift in Sources */,
 				B17E01202F0000010000A021 /* network/Shared/Intents/OpenURnetworkIntent.swift in Sources */,
 				B17E01512F0000010000A051 /* network/Shared/ViewModels/InsufficientBalancePolicy.swift in Sources */,
+				D3A7E1112F10000100000011 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */,
+				D3A7E1122F10000100000012 /* network/Shared/TransportDelay/TransportDelayFormat.swift in Sources */,
+				D3A7E1132F10000100000013 /* network/Shared/TransportDelay/TunnelIndicator.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5A100452F0E000100000045 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5A100032F0E000100000003 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */,
+				C5A100042F0E000100000004 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5A100462F0E000100000046 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5A100052F0E000100000005 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */,
+				C5A100062F0E000100000006 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -956,54 +1019,38 @@
 				B17E01642F0000010000A064 /* network/Shared/ProvideChargingMonitor.swift in Sources */,
 				B17E01132F0000010000A014 /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
 				B17E01162F0000010000A017 /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A1D000052F0D000100000005 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A1D000242F0D000100000024 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1D000282F0D000100000028 /* network/Shared/DiagnosticsLogContract.swift in Sources */,
-				A1D000292F0D000100000029 /* network/Shared/Widgets/TunnelIntentStore.swift in Sources */,
-				B17E01622F0000010000A062 /* network/Shared/ProvidePausePolicy.swift in Sources */,
-				B17E01652F0000010000A065 /* network/Shared/ProvideChargingMonitor.swift in Sources */,
-				A1D0002A2F0D00010000002A /* network/Shared/Widgets/WidgetSnapshots.swift in Sources */,
-				A1D0002B2F0D00010000002B /* network/Shared/Widgets/WidgetRefresh.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C5A100452F0E000100000045 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C5A100032F0E000100000003 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */,
-				C5A100042F0E000100000004 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C5A100462F0E000100000046 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C5A100052F0E000100000005 /* network/Shared/SplitTunnel/SplitTunnelFlowDecision.swift in Sources */,
-				C5A100062F0E000100000006 /* network/Shared/SplitTunnel/SplitTunnelProxyConfiguration.swift in Sources */,
+				D3A7E1212F10000100000021 /* network/Shared/TransportDelay/TransportDelayAttributes.swift in Sources */,
+				D3A7E1242F10000100000024 /* network/Shared/TransportDelay/TransportDelayActivityPolicy.swift in Sources */,
+				D3A7E1252F10000100000025 /* network/Shared/TransportDelay/TransportDelayActivityPresenter.swift in Sources */,
+				D3A7E1262F10000100000026 /* network/Shared/TransportDelay/TransportDelaySharedState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A1D000122F0D000100000012 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1D000202F0D000100000020 /* URnetworkVPNSystem */;
+			targetProxy = A1D000132F0D000100000013 /* PBXContainerItemProxy */;
+		};
 		B17E010B2F0000010000A00C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B17E01002F0000010000A001 /* URnetworkWidgets */;
 			targetProxy = B17E010C2F0000010000A00D /* PBXContainerItemProxy */;
+		};
+		C5A100142F0E000100000014 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilters = (
+				macos,
+			);
+			target = C5A100412F0E000100000041 /* URnetworkSplitTunnel */;
+			targetProxy = C5A100112F0E000100000011 /* PBXContainerItemProxy */;
+		};
+		C5A100152F0E000100000015 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C5A100422F0E000100000042 /* URnetworkSplitTunnelDirect */;
+			targetProxy = C5A100122F0E000100000012 /* PBXContainerItemProxy */;
 		};
 		D1B95A622CEBDD6A00542E0E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1019,24 +1066,6 @@
 			isa = PBXTargetDependency;
 			target = D1B95A802CEBE76400542E0E /* URnetworkVPN */;
 			targetProxy = D1B95A8A2CEBE76400542E0E /* PBXContainerItemProxy */;
-		};
-		A1D000122F0D000100000012 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A1D000202F0D000100000020 /* URnetworkVPNSystem */;
-			targetProxy = A1D000132F0D000100000013 /* PBXContainerItemProxy */;
-		};
-		C5A100142F0E000100000014 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilters = (
-				macos,
-			);
-			target = C5A100412F0E000100000041 /* URnetworkSplitTunnel */;
-			targetProxy = C5A100112F0E000100000011 /* PBXContainerItemProxy */;
-		};
-		C5A100152F0E000100000015 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C5A100422F0E000100000042 /* URnetworkSplitTunnelDirect */;
-			targetProxy = C5A100122F0E000100000012 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1066,6 +1095,265 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A1D000032F0D000100000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = "network/network-macOS-direct.entitlements";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"network/Preview Content\"";
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				DIRECT_GOOGLE_CLIENT_ID = "";
+				DIRECT_GOOGLE_URL_SCHEME = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "URnetwork-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork;
+				PRODUCT_NAME = URnetwork;
+				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Download";
+				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				UR_GOOGLE_CLIENT_ID = "$(DIRECT_GOOGLE_CLIENT_ID)";
+				UR_GOOGLE_URL_SCHEME = "$(DIRECT_GOOGLE_URL_SCHEME)";
+				UR_SHARED_KEYCHAIN_ACCESS_GROUP = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
+				UR_TUNNEL_PROVIDER_BUNDLE_ID = com.bringyour.urnetwork.extension;
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_NO = "$(TARGET_NAME).app";
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_YES = "$(PRODUCT_NAME).app";
+				WRAPPER_NAME = "$(UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_$(DEPLOYMENT_LOCATION))";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Debug;
+		};
+		A1D000042F0D000100000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = "network/network-macOS-direct.entitlements";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"network/Preview Content\"";
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				DIRECT_GOOGLE_CLIENT_ID = "";
+				DIRECT_GOOGLE_URL_SCHEME = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "URnetwork-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork;
+				PRODUCT_NAME = URnetwork;
+				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Download";
+				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				UR_GOOGLE_CLIENT_ID = "$(DIRECT_GOOGLE_CLIENT_ID)";
+				UR_GOOGLE_URL_SCHEME = "$(DIRECT_GOOGLE_URL_SCHEME)";
+				UR_SHARED_KEYCHAIN_ACCESS_GROUP = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
+				UR_TUNNEL_PROVIDER_BUNDLE_ID = com.bringyour.urnetwork.extension;
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_NO = "$(TARGET_NAME).app";
+				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_YES = "$(PRODUCT_NAME).app";
+				WRAPPER_NAME = "$(UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_$(DEPLOYMENT_LOCATION))";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Release;
+		};
+		A1D000222F0D000100000022 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "extension/extension-macOS-sysext.entitlements";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "extension/Info-macOS-sysext.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork VPN";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Extension Download";
+				REGISTER_APP_GROUPS = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
+			};
+			name = Debug;
+		};
+		A1D000232F0D000100000023 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "extension/extension-macOS-sysext.entitlements";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "extension/Info-macOS-sysext.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork VPN";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Extension Download";
+				REGISTER_APP_GROUPS = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 			};
 			name = Release;
 		};
@@ -1141,6 +1429,182 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C5A100532F0E000100000053 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = splittunnel/splittunnel.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = splittunnel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur.splittunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
+			};
+			name = Debug;
+		};
+		C5A100542F0E000100000054 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = splittunnel/splittunnel.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = splittunnel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = network.ur.splittunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
+			};
+			name = Release;
+		};
+		C5A100552F0E000100000055 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "splittunnel/splittunnel-direct.entitlements";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "splittunnel/Info-direct.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.splittunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Split Tunnel Download";
+				REGISTER_APP_GROUPS = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
+			};
+			name = Debug;
+		};
+		C5A100562F0E000100000056 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "splittunnel/splittunnel-direct.entitlements";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0;
+				DEVELOPMENT_TEAM = 6BGU69Q742;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "splittunnel/Info-direct.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.splittunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Split Tunnel Download";
+				REGISTER_APP_GROUPS = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
 			};
 			name = Release;
 		};
@@ -1624,441 +2088,6 @@
 			};
 			name = Release;
 		};
-		A1D000032F0D000100000003 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				AUTOMATION_APPLE_EVENTS = NO;
-				CODE_SIGN_ENTITLEMENTS = "network/network-macOS-direct.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 0;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"network/Preview Content\"";
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				ENABLE_USER_SELECTED_FILES = readwrite;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "URnetwork-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork;
-				PRODUCT_NAME = URnetwork;
-				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Download";
-				REGISTER_APP_GROUPS = NO;
-				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
-				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
-				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
-				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
-				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
-				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				DIRECT_GOOGLE_CLIENT_ID = "";
-				DIRECT_GOOGLE_URL_SCHEME = "";
-				UR_GOOGLE_CLIENT_ID = "$(DIRECT_GOOGLE_CLIENT_ID)";
-				UR_GOOGLE_URL_SCHEME = "$(DIRECT_GOOGLE_URL_SCHEME)";
-				UR_SHARED_KEYCHAIN_ACCESS_GROUP = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
-				UR_TUNNEL_PROVIDER_BUNDLE_ID = com.bringyour.urnetwork.extension;
-				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_NO = "$(TARGET_NAME).app";
-				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_YES = "$(PRODUCT_NAME).app";
-				WRAPPER_NAME = "$(UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_$(DEPLOYMENT_LOCATION))";
-				XROS_DEPLOYMENT_TARGET = 2.1;
-			};
-			name = Debug;
-		};
-		A1D000042F0D000100000004 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				AUTOMATION_APPLE_EVENTS = NO;
-				CODE_SIGN_ENTITLEMENTS = "network/network-macOS-direct.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 0;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"network/Preview Content\"";
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				ENABLE_USER_SELECTED_FILES = readwrite;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "URnetwork-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = URnetwork;
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphoneos*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_NSCameraUsageDescription[sdk=iphonesimulator*]" = "Camera access is needed to scan a code.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_URSharedKeychainAccessGroup = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork;
-				PRODUCT_NAME = URnetwork;
-				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Download";
-				REGISTER_APP_GROUPS = NO;
-				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
-				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
-				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
-				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
-				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
-				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				DIRECT_GOOGLE_CLIENT_ID = "";
-				DIRECT_GOOGLE_URL_SCHEME = "";
-				UR_GOOGLE_CLIENT_ID = "$(DIRECT_GOOGLE_CLIENT_ID)";
-				UR_GOOGLE_URL_SCHEME = "$(DIRECT_GOOGLE_URL_SCHEME)";
-				UR_SHARED_KEYCHAIN_ACCESS_GROUP = "$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials";
-				UR_TUNNEL_PROVIDER_BUNDLE_ID = com.bringyour.urnetwork.extension;
-				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_NO = "$(TARGET_NAME).app";
-				UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_YES = "$(PRODUCT_NAME).app";
-				WRAPPER_NAME = "$(UR_WRAPPER_NAME_DEPLOYMENT_LOCATION_$(DEPLOYMENT_LOCATION))";
-				XROS_DEPLOYMENT_TARGET = 2.1;
-			};
-			name = Release;
-		};
-		A1D000222F0D000100000022 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "extension/extension-macOS-sysext.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 0;
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "extension/Info-macOS-sysext.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork VPN";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.extension;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
-				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Extension Download";
-				REGISTER_APP_GROUPS = NO;
-				SKIP_INSTALL = YES;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		A1D000232F0D000100000023 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "extension/extension-macOS-sysext.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 0;
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "extension/Info-macOS-sysext.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork VPN";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.extension;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
-				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Extension Download";
-				REGISTER_APP_GROUPS = NO;
-				SKIP_INSTALL = YES;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		C5A100532F0E000100000053 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = splittunnel/splittunnel.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 0;
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = splittunnel/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = network.ur.splittunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				REGISTER_APP_GROUPS = NO;
-				SKIP_INSTALL = YES;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		C5A100542F0E000100000054 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = splittunnel/splittunnel.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 0;
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = splittunnel/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = network.ur.splittunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				REGISTER_APP_GROUPS = NO;
-				SKIP_INSTALL = YES;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		C5A100552F0E000100000055 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "splittunnel/splittunnel-direct.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 0;
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "splittunnel/Info-direct.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.splittunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
-				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Split Tunnel Download";
-				REGISTER_APP_GROUPS = NO;
-				SKIP_INSTALL = YES;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		C5A100562F0E000100000056 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "splittunnel/splittunnel-direct.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 0;
-				DEVELOPMENT_TEAM = 6BGU69Q742;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
-				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
-				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
-				ENABLE_RESOURCE_ACCESS_USB = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "splittunnel/Info-direct.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "URnetwork Split Tunnel";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bringyour.urnetwork.splittunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER).systemextension";
-				PROVISIONING_PROFILE_SPECIFIER = "URnetwork Split Tunnel Download";
-				REGISTER_APP_GROUPS = NO;
-				SKIP_INSTALL = YES;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIRECT_DOWNLOAD $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2071,11 +2100,47 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		A1D000022F0D000100000002 /* Build configuration list for PBXNativeTarget "URnetworkDirect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1D000032F0D000100000003 /* Debug */,
+				A1D000042F0D000100000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1D000212F0D000100000021 /* Build configuration list for PBXNativeTarget "URnetworkVPNSystem" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1D000222F0D000100000022 /* Debug */,
+				A1D000232F0D000100000023 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B17E01052F0000010000A006 /* Build configuration list for PBXNativeTarget "URnetworkWidgets" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B17E01062F0000010000A007 /* Debug */,
 				B17E01072F0000010000A008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5A100512F0E000100000051 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5A100532F0E000100000053 /* Debug */,
+				C5A100542F0E000100000054 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5A100522F0E000100000052 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnelDirect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5A100552F0E000100000055 /* Debug */,
+				C5A100562F0E000100000056 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2125,42 +2190,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1D000022F0D000100000002 /* Build configuration list for PBXNativeTarget "URnetworkDirect" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A1D000032F0D000100000003 /* Debug */,
-				A1D000042F0D000100000004 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A1D000212F0D000100000021 /* Build configuration list for PBXNativeTarget "URnetworkVPNSystem" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A1D000222F0D000100000022 /* Debug */,
-				A1D000232F0D000100000023 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		C5A100512F0E000100000051 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnel" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C5A100532F0E000100000053 /* Debug */,
-				C5A100542F0E000100000054 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		C5A100522F0E000100000052 /* Build configuration list for PBXNativeTarget "URnetworkSplitTunnelDirect" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C5A100552F0E000100000055 /* Debug */,
-				C5A100562F0E000100000056 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -2196,16 +2225,6 @@
 			package = 17041CF52D026BE4003F4D5A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
 		};
-		B17E00032F00000100000003 /* URnetworkExtensionSdk */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */;
-			productName = URnetworkExtensionSdk;
-		};
-		D1829C212CEBF0D700920833 /* URnetworkSdk */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
-			productName = URnetworkSdk;
-		};
 		A1D0000E2F0D00010000000E /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 17041CF52D026BE4003F4D5A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
@@ -2225,6 +2244,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */;
 			productName = URnetworkExtensionSdk;
+		};
+		B17E00032F00000100000003 /* URnetworkExtensionSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B17E00022F00000100000002 /* XCLocalSwiftPackageReference "URnetworkExtensionSdk" */;
+			productName = URnetworkExtensionSdk;
+		};
+		D1829C212CEBF0D700920833 /* URnetworkSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1829C202CEBF08F00920833 /* XCLocalSwiftPackageReference "URnetworkSdk" */;
+			productName = URnetworkSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

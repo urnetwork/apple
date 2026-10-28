@@ -30,6 +30,9 @@ enum WidgetTheme {
     static let urPink = Color(hex: 0xED8FFF)
     static let urElectricBlue = Color(hex: 0x0039DE)
     static let urLightBlue = Color(hex: 0xD6E6F4)
+    /// The app's runtime-warning amber (Color.urAmber): the slow internet
+    /// tunnel and its Live Activity.
+    static let urAmber = Color(hex: 0xF5C242)
 
     /// The quick connect tint: the control's and the widget button's solid
     /// white connector turns this color when the tunnel is up (the app's

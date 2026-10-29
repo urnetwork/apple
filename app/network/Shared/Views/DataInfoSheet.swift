@@ -120,7 +120,7 @@ struct DataInfoSheetPresenter: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(isPresented: $isPresented) {
+            .sheetOffTheFold(isPresented: $isPresented) {
                 DataInfoSheet(
                     startBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
                     availableByteCount: subscriptionBalanceViewModel.availableByteCount,

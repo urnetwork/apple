@@ -243,7 +243,7 @@ struct ConnectView_iOS: View {
         // refresh the provider counts while the home screen shows
         .modifier(HomeLocationsRefresh(providerListStore: providerListStore))
         // referrals: the Account section's screen, unchanged, in a sheet
-        .sheet(isPresented: $isPresentedReferrals) {
+        .sheetOffTheFold(isPresented: $isPresentedReferrals) {
             ReferralsSheet(
                 api: urApiService,
                 sdkApi: api,
@@ -255,7 +255,7 @@ struct ConnectView_iOS: View {
         // "About your data", from the usage bar and the out-of-balance notice
         .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
             // upgrade subscription
-            .sheet(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
+            .sheetOffTheFold(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 // a legacy guest adds a sign-in method to this network
                 // first: a plan bought on a guest network is stranded
                 GuestPurchaseGate(urApiService: urApiService) {

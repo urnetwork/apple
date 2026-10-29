@@ -400,7 +400,7 @@ struct IntroductionView: View {
                     #if os(iOS)
                     .toolbar(.hidden, for: .navigationBar)
                     #endif
-                    .sheet(isPresented: $presentRedeemBalanceCodeSheet) {
+                    .sheetOffTheFold(isPresented: $presentRedeemBalanceCodeSheet) {
                         VStack {
                          
                             RedeemBalanceCodeSheet(

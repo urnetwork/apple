@@ -107,7 +107,7 @@ struct SettingsView: View {
             .onOpenURL { url in
                 handleWalletDeepLink(url)
             }
-            .sheet(isPresented: $viewModel.presentSeedphraseSheet) {
+            .sheetOffTheFold(isPresented: $viewModel.presentSeedphraseSheet) {
                 SeedphraseDisplayView(
                     seedphrase: viewModel.generatedSeedphrase,
                     onConfirmed: { _ in
@@ -146,7 +146,7 @@ struct SettingsView: View {
                     Text("Are you sure you want to remove \(authType) as a sign-in method?")
                 }
             }
-            .sheet(isPresented: $viewModel.presentAddAuthSheet) {
+            .sheetOffTheFold(isPresented: $viewModel.presentAddAuthSheet) {
                 AddAuthSheet(api: api, networkUserViewModel: networkUserViewModel)
                     .environmentObject(themeManager)
                     .environmentObject(snackbarManager)
@@ -208,7 +208,7 @@ struct SettingsView: View {
                 }
                 .accessibilityIdentifier("acceptance.account.delete.confirm")
             }
-            .sheet(isPresented: $viewModel.presentSeedphraseSheet) {
+            .sheetOffTheFold(isPresented: $viewModel.presentSeedphraseSheet) {
                 SeedphraseDisplayView(
                     seedphrase: viewModel.generatedSeedphrase,
                     onConfirmed: { _ in
@@ -247,7 +247,7 @@ struct SettingsView: View {
                     Text("Are you sure you want to remove \(authType) as a sign-in method?")
                 }
             }
-            .sheet(isPresented: $viewModel.presentAddAuthSheet) {
+            .sheetOffTheFold(isPresented: $viewModel.presentAddAuthSheet) {
                 AddAuthSheet(api: api, networkUserViewModel: networkUserViewModel)
                     .environmentObject(themeManager)
                     .environmentObject(snackbarManager)

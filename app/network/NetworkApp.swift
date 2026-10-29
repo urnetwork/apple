@@ -560,6 +560,9 @@ struct NetworkApp: App {
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
+                // where sheets go while a fold divides the window (iPhone
+                // Duo partly folded like a book; apple/DUO.md item 11)
+                .publishesSheetPlacement()
                 .onOpenURL { url in
                     if let destination = WidgetDestination(url: url) {
                         // a Home Screen widget tap: the tab view and the
@@ -716,7 +719,7 @@ struct NetworkApp: App {
                 }
                 #if DIRECT_DOWNLOAD
                 .environmentObject(systemExtensionActivator)
-                .sheet(isPresented: $systemExtensionActivator.isPromptPresented) {
+                .sheetOffTheFold(isPresented: $systemExtensionActivator.isPromptPresented) {
                     SystemExtensionApprovalView()
                         .environmentObject(systemExtensionActivator)
                         .environmentObject(themeManager)

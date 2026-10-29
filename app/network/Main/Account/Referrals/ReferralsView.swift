@@ -55,7 +55,7 @@ struct ReferralsView: View {
         .task {
             await refresh()
         }
-        .sheet(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
+        .sheetOffTheFold(isPresented: $viewModel.presentUpdateReferralNetworkSheet) {
             UpdateReferralNetworkSheet(
                 api: api,
                 onSuccess: {

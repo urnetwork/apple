@@ -224,14 +224,14 @@ struct NetworkServerSheet: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 24)
-        .sheet(isPresented: $presentVlessSettings) {
+        .sheetOffTheFold(isPresented: $presentVlessSettings) {
             StatsSheetContainer(title: "VLESS") {
                 VlessSettingsView()
             }
             .environmentObject(themeManager)
             .environmentObject(deviceManager)
         }
-        .sheet(isPresented: $presentControlDohSettings) {
+        .sheetOffTheFold(isPresented: $presentControlDohSettings) {
             StatsSheetContainer(title: "Bootstrap DNS-over-HTTPS servers") {
                 ControlDohSettingsView()
             }

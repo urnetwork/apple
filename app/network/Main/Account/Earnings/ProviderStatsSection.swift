@@ -174,7 +174,7 @@ struct ProviderStatsSection: View {
         .onChange(of: providerStatsEnabled) { enabled in
             providerStatusStore.setVisible(onScreen && enabled)
         }
-        .sheet(isPresented: $presentTransportSettings) {
+        .sheetOffTheFold(isPresented: $presentTransportSettings) {
             let transportView = TransportSettingsView(
                 kind: .provider,
                 settings: transportSettingsStore.providerSettings

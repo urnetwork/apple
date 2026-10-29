@@ -267,7 +267,7 @@ struct SplitRulesView: View {
                 displayedActions = displayedActions.map { liveById[$0.id] ?? $0 }
             }
         }
-        .sheet(item: $editorTarget) { target in
+        .sheetOffTheFold(item: $editorTarget) { target in
             SplitRuleEditorView(
                 candidates: target.candidates,
                 initialSelection: target.selected,

@@ -111,7 +111,7 @@ private struct ConnectionRegionSheetModifier: ViewModifier {
     let store: ConnectionRegionStore
 
     func body(content: Content) -> some View {
-        content.sheet(isPresented: $isPresented) {
+        content.sheetOffTheFold(isPresented: $isPresented) {
             ConnectionRegionPickerSheet(store: store, dismiss: { isPresented = false })
                 .environmentObject(themeManager)
                 #if os(macOS)
@@ -224,6 +224,10 @@ struct CantReachUrnetworkOverlay: View {
             }
             Spacer()
         }
+        // the whole window even with no banner, so the fold is measured
+        // against it; one pane while a fold divides the window
+        .frame(maxWidth: .infinity)
+        .overlayOffTheFold()
         .modifier(ConnectionRegionSheetModifier(isPresented: $presentPicker, store: store))
     }
 }

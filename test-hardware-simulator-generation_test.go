@@ -75,11 +75,12 @@ func TestSimulatorActionOwnerIdentityIsBounded(t *testing.T) {
 	cmd := exec.CommandContext(ctx, "/bin/bash", "-c", `
 set -euo pipefail
 source "$1"
-for owner in ios-17-unit-1 ios-18-ui-2 ios-2026-unit-10 ios-27-ui-1; do
+for owner in ios-17-unit-1 ios-18-ui-2 ios-2026-unit-10 ios-27-ui-1 ios-27-ipad-unit-1 ios-27-duo-ui-2; do
   apple_ios_simulator_owner_is_valid "$owner"
   apple_ios_simulator_name_is_valid "$owner" "urnetwork-acceptance-$owner-20260101-120000Z"
 done
-for owner in ios-16-unit-1 ios-27-unit-0 ios-27-unit-01 ios-27-service-1 ios-27-unit-1/..; do
+for owner in ios-16-unit-1 ios-27-unit-0 ios-27-unit-01 ios-27-service-1 ios-27-unit-1/.. \
+    ios-26-duo-unit-1 ios-27-duo-unit-0 ios-27-ipad-pro-ui-1 ios-27-fold-unit-1; do
   if apple_ios_simulator_owner_is_valid "$owner"; then
     echo "invalid simulator owner accepted: $owner" >&2
     exit 1

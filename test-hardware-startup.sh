@@ -17,6 +17,12 @@
 # it is recorded as tailored coverage, never a full four-release pass.
 # There are no device or test selectors or implicit environment exclusions.
 # Missing simulator runtimes are installed automatically.
+#
+# Two form-factor lanes then run both corpora on an iPad mini (A17 Pro) and on
+# the iPhone Duo, each on its newest supporting iOS 27 runtime. They are not
+# release coverage and are never provisioned: a host without the runtime or
+# device type skips the lane, prints and records why, and can still pass. The
+# Duo runs closed (compact width); simctl and XCUITest cannot unfold it.
 set -euo pipefail
 umask 077
 
@@ -83,6 +89,8 @@ runtime_inventory_before="$artifacts/simulator-runtimes-before.json"
 runtime_inventory="$artifacts/simulator-runtimes.json"
 runtime_download_logs="$artifacts/simulator-runtime-downloads"
 simulator_plan="$artifacts/simulator-plan.json"
+form_factor_plan="$artifacts/simulator-form-factor-plan.json"
+simulator_run_plan="$artifacts/simulator-run-plan.json"
 simulator_results_root="$artifacts/simulators"
 owned_simulators="$artifacts/owned-simulators.tsv"
 simulator_derived="$artifacts/DerivedData-simulator"
@@ -96,6 +104,7 @@ fi
 chmod 400 "$artifacts/simulator-coverage.json"
 
 simulator_count=0
+form_factor_summary=""
 active_simulator_lane=""
 active_simulator_udid=""
 active_simulator_name=""
@@ -159,10 +168,11 @@ cleanup() {
     mkdir -p "$(dirname "$result_matrix")"
     if [ "$exit_status" -eq 0 ]; then
       if [ "$defer_ios_17_2" -eq 1 ]; then
-        printf 'apple\thardware-startup-no-vpn\tPASS\t3 selected lanes passed; TAILORED coverage; ios-17/17.2 DEFERRED, not full four-release coverage\n' >>"$result_matrix"
+        printf 'apple\thardware-startup-no-vpn\tPASS\t3 selected lanes passed; TAILORED coverage; ios-17/17.2 DEFERRED, not full four-release coverage; %s\n' \
+          "$form_factor_summary" >>"$result_matrix"
       else
-        printf 'apple\thardware-startup-no-vpn\tPASS\t%s required simulator lane(s) passed\n' \
-          "$simulator_count" >>"$result_matrix"
+        printf 'apple\thardware-startup-no-vpn\tPASS\t%s required simulator lane(s) passed; %s\n' \
+          "$simulator_count" "$form_factor_summary" >>"$result_matrix"
       fi
     else
       printf 'apple\thardware-startup-no-vpn\tFAIL\tiOS simulator no-VPN startup failed; see Apple simulator artifacts\n' \
@@ -172,6 +182,7 @@ cleanup() {
   fi
 
   if [ "$exit_status" -eq 0 ]; then
+    echo "[apple iOS simulators] $form_factor_summary"
     if [ "$defer_ios_17_2" -eq 1 ]; then
       echo "[apple iOS simulators] ✓ PASS_TAILORED: iOS 17.2 DEFERRED (artifacts: $artifacts)"
     else
@@ -269,9 +280,32 @@ runtime_inventory_hash="$(apple_hardware_sha256 "$runtime_inventory")"
 simulator_plan_hash="$(apple_hardware_sha256 "$simulator_plan")"
 simulator_count="$(apple_hardware_plan_count "$simulator_plan")"
 [ "$simulator_count" -eq "$expected_simulator_count" ] || die "simulator plan is missing a required release"
-printf '%s  %s\n%s  %s\n' \
+
+# The iPad and iPhone Duo lanes come from the same immutable inventory but are
+# never downloaded and never join the release coverage above. A lane this host
+# cannot run is recorded as skipped in the form-factor plan, not failed.
+apple_ios_write_form_factor_simulator_plan \
+  "$runtime_inventory" "$form_factor_plan" || \
+  die "could not plan the iPad and iPhone Duo form-factor simulators"
+chmod 400 "$form_factor_plan"
+form_factor_lanes="$(apple_ios_describe_form_factor_plan "$form_factor_plan")" || \
+  die "could not describe the form-factor simulator plan"
+while IFS= read -r form_factor_lane; do
+  echo "[apple iOS simulators] form factor $form_factor_lane"
+done <<<"$form_factor_lanes"
+form_factor_summary="$(apple_ios_form_factor_pass_summary "$form_factor_plan")" || \
+  die "could not summarize the form-factor simulator plan"
+apple_ios_write_simulator_run_plan \
+  "$simulator_plan" "$form_factor_plan" "$simulator_run_plan" || \
+  die "could not combine the release and form-factor simulator plans"
+chmod 400 "$simulator_run_plan"
+form_factor_plan_hash="$(apple_hardware_sha256 "$form_factor_plan")"
+simulator_run_plan_hash="$(apple_hardware_sha256 "$simulator_run_plan")"
+printf '%s  %s\n%s  %s\n%s  %s\n%s  %s\n' \
   "$runtime_inventory_hash" "$(basename "$runtime_inventory")" \
   "$simulator_plan_hash" "$(basename "$simulator_plan")" \
+  "$form_factor_plan_hash" "$(basename "$form_factor_plan")" \
+  "$simulator_run_plan_hash" "$(basename "$simulator_run_plan")" \
   >"$artifacts/simulator-plan.sha256"
 chmod 400 "$artifacts/simulator-plan.sha256"
 
@@ -569,10 +603,10 @@ done < <(jq -r '.[] | [
   .runtimeIdentifier,
   .deviceTypeIdentifier,
   .deviceTypeName
-] | @tsv' "$simulator_plan")
+] | @tsv' "$simulator_run_plan")
 
 apple_hardware_results_match_plan \
-  "$simulator_plan" "$simulator_results_root" || \
+  "$simulator_run_plan" "$simulator_results_root" || \
   die "result set does not match the selected simulator plan exactly once"
 [ "$(apple_hardware_sha256 "$runtime_inventory")" = \
   "$runtime_inventory_hash" ] || \
@@ -580,6 +614,12 @@ apple_hardware_results_match_plan \
 [ "$(apple_hardware_sha256 "$simulator_plan")" = \
   "$simulator_plan_hash" ] || \
   die "simulator plan changed during the run"
+[ "$(apple_hardware_sha256 "$form_factor_plan")" = \
+  "$form_factor_plan_hash" ] || \
+  die "form-factor simulator plan changed during the run"
+[ "$(apple_hardware_sha256 "$simulator_run_plan")" = \
+  "$simulator_run_plan_hash" ] || \
+  die "simulator run plan changed during the run"
 
 if [ -f "$owned_simulators" ]; then
   apple_ios_validate_owned_simulator_journal "$owned_simulators" || \
@@ -599,7 +639,7 @@ fi
 results="$artifacts/results.tsv"
 while IFS= read -r simulator_lane; do
   cat "$simulator_results_root/$simulator_lane/status.tsv"
-done < <(apple_hardware_plan_ids "$simulator_plan") >"$results"
+done < <(apple_hardware_plan_ids "$simulator_run_plan") >"$results"
 chmod 400 "$results"
 
 exit "$overall"

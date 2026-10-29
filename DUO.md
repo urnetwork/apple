@@ -212,7 +212,7 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
   - Saved: sheet and dialog flags, the drawer position, the web-pay page and non-secret fields. Passwords and seed phrases stay unsaved.
   - LoginActivity runs a link only on a fresh create.
 - **Rules.** `ui/components/AdaptiveLayout.kt` chooses by size class and fold, with 22 JVM tests.
-  - A navigation rail only at expanded width, in a window at least 480 dp tall, outside tabletop. The bottom bar everywhere else, medium width and landscape phones included, as the mockup shows.
+  - A navigation rail only at expanded width, in a window at least 480 dp tall, outside tabletop. The bottom bar everywhere else, medium width and landscape phones included, as the mockup shows. Since 2026-10-29 the rail starts at medium width (below).
   - Compact width keeps the phone drawer, capped at the window and at a tabletop fold.
   - Medium width stacks, except in a window under 480 dp tall, which goes side by side. Expanded width, or a book posture, goes side by side, split 40/60 (the side pane 300–400 dp, the main pane at least 240 dp) or at the hinge. A fold under 200 dp from an edge is ignored. Since 2026-10-29 a flat fold splits at the hinge too (below).
   - `isTablet()` and the unused window-size-class library are gone.
@@ -338,12 +338,12 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
   - Connecting, couldn't connect and the tunnel down read the tile's status line over the place. Connecting no longer counts providers.
   - The slow internet swap and its dwell are unchanged.
 - **The tile stays current.** An active tile is bound only when the app asks, and stops listening after each update, so it stayed on "Connecting to providers" after connecting and kept its state after a sign-out. `QuickConnectTileRefresh` now asks again on every sign-in or sign-out and whenever the window or the tunnel changes what it says (7 tests).
-- **Locked, the tile still toggles directly** (the 2026-09-01 decision in QUICKCONNECT.md). Mullvad's tile asks to unlock first; that change is a few lines if wanted. The overview widget's locked toggle does ask to unlock, as designed.
+- **Locked, the tile still toggles directly** (the 2026-09-01 decision in QUICKCONNECT.md, confirmed on 2026-10-29: no unlock). Mullvad's tile asks to unlock first. The overview widget's locked toggle does ask to unlock, as designed.
 - **Already matched Mullvad's fixes:** a missing VPN permission and a signed-out device open the app; long-press opens the app; the label is the app name with the status as subtitle.
 
 ### Android: keyboard, mouse and stylus (item 14)
 
-- **Against the current guidelines** (updated 2026-10-21, which added Keyboard_Exit), the app meets every Tier 2 and Tier 3 input criterion except Touch_Targets, listed under "Still open". Media playback, send and zoom don't apply.
+- **Against the current guidelines** (updated 2026-10-21, which added Keyboard_Exit), the app meets every Tier 2 and Tier 3 input criterion except Touch_Targets, met since 2026-10-29 (below). Media playback, send and zoom don't apply.
 - **The root cause on Connect.** The navigation scaffold's black content color drew every ripple, hover and focus layer black on black. It is `onBackground` now, Material's default, so taps on the connect screen show the same light ripple as the other tabs.
 - **Focus.** Focus layers are 20% and hover 12%, and a 2 dp `focusRing` marks the connect graphic, switches, location and peer rows, buttons, sign-in tiles, the globe, the leaderboard thumb and session rows. URSwitch now reads as a switch to TalkBack.
 - **Keyboard.**
@@ -374,17 +374,37 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
 - The rules come from `SplitLayout.swift` and `AdaptiveLayout.kt`: the compact, medium and expanded windows; the rail; the splits, postures and edge guards; the 680 pt drawer as a cap; one window. Dialogs and keyboard input are stated generally.
 - `PARITY.md`'s scene notes now say iOS runs one scene.
 
+### Android: the rail at medium width and 48 dp touch targets
+
+Decided on 2026-10-29, closing the two Tier 2 gaps that changed layouts.
+
+- **The rail from medium width.** `navigationLayoutFor` now follows Material's default, as the Tier 2 example does: the rail from 600 dp in a window at least 480 dp tall, outside tabletop. A tablet or an unfolded book-style foldable held upright gets the rail instead of the bottom bar. Compact windows, short windows and tabletop keep the bar. The stacked connect split, the list-detail screens and the hinge splits lay out beside it unchanged.
+- **Measured with the scanner's own check.** The screenshot tests now run the Accessibility Test Framework's `TouchTargetSizeCheck`, the check the Accessibility Scanner runs, on every capture (`checkTouchTargets`). `TouchTargetTest` runs it on the small controls among the neighbors they have in the app.
+  - Compose reports a small clickable to accessibility services as 48 dp, centered on it, so the four controls listed before weren't failing as drawn. But a neighbor that claims part of that area first cuts it off, and the scanner reports what is left.
+  - On the unchanged code that failed in three places: the drawer's Strong Anonymization switch (36 dp, under Post Quantum Encryption's area), and on Account the "Daily Data Balance" line (34 dp) and the "Total referrals" row (41 dp).
+  - The terms checkbox, the info icon and the search field's clear button passed where the tests placed them. A review of every call site found neighbors that could still cut into two of them, though: the info icon beside "Route locally" in the block actions list, and the search field under the location picker's Close and under a sheet's drag handle.
+- **Fixes.**
+  - URSwitch reserves a 48 dp square (`minimumInteractiveComponentSize`), its track drawn in the middle, as Material's switch does. The track now sits 6 dp further from a row's trailing edge.
+  - Where a switch row grew, the spacer above or below it shrank by the same amount, across 16 files, so labels stay where they were. Two single-line switch rows now sit 48 dp apart instead of 36 dp. Where the space was a shared padding, the screen grew instead: up to 28 dp on Settings, and 14 dp at the top of the Transport and DNS settings groups.
+  - The info icon is a standard 48 dp icon button around the same 16 dp glyph, and the spacer before it is gone, so the glyph sits 16 dp from its label (2–8 dp before).
+  - The search field keeps 6 dp clear above and below its unchanged 36 dp pill, so its touch areas stay inside its own 48 dp; the spacers next to it shrank by 6 dp.
+  - "Route locally" is 48 dp tall to touch. The terms checkbox is unchanged.
+  - The usage bar's balance line and its referral row are 48 dp tall to touch, with the spacers around them removed.
+  - The blocker tile's two rows, the switch and DNS over HTTPS, are 48 dp tall, and the tile drops its vertical padding.
+- **Verified.**
+  - The JVM suite passes: 1,925 tests, including `AdaptiveLayoutTest` (33).
+  - `checkTouchTargets` passes on all 12 screenshots.
+  - `TouchTargetTest` (9) passes. It covers the drawer's switches, the terms checkbox above the product updates switch (narrow and wide), the info icon, the search field (above a list row, under the picker's Close, under a drag handle) and a safety-ruled block action above the next one. A control squeezed between neighbors fails it, as it should.
+  - The 10 changed screenshots were re-recorded and checked: the rail at medium width, the Account card 30 dp taller around its two 48 dp rows, and elsewhere labels within a few dp of where they were. All four flavors compile.
+  - Settings, sign-in and the other screens without screenshots were adjusted by rule, not scanned.
+
 ## Still open
 
 - **Tabletop sheets on Apple.** SwiftUI reports a centered placement for a plain sheet, even one set to automatic, so sheets may stay centered across a tabletop fold. The remaining lever is UIKit's `sourceView`, through a UIKit bridge, and it needs a real fold to test.
-- **The locked tile.** It toggles directly, as decided on 2026-09-01; the cover widget asks to unlock first. Say if the tile should match.
-- **Two Tier 2 gaps that change layouts.**
-  - A rail at medium width (600–839 dp, tablets in portrait): the agreed design keeps the bottom bar there, while the guideline's example and Material's default use a rail.
-  - Touch targets under 48 dp as drawn: URSwitch (36 × 20 dp), the terms checkbox and the info icon (16 dp), the search clear icon (24 dp). Compose widens their touch area, but the Accessibility Scanner the guideline names measures what's drawn.
 - **Compact height on Android.** At 780 × 360 dp the 300 dp statistics pane wraps "Streaming" onto two lines and truncates "Best available provider" (`connect-compact-height.png`).
 - **The tabletop phase has no row of its own** in the tests repo's result matrix, so a tabletop failure marks every Android case failed.
 - **Smaller input follow-ups.** The Keyboard Shortcuts Helper (Meta+/) isn't registered; provider-location rows don't yet offer the Apple app's menu (copy client ID, copy extender address, stay on this exit); the drawer handle drags but doesn't click.
-- **The Play large-screen badge.** Check by hand with a keyboard, mouse and stylus; ship to production (the form takes only live apps); upload 4–8 tablet and Chromebook screenshots per device type under Main store listing (16:9 or 9:16, 1,080–7,680 px); then submit "Get your badge" from the guidelines overview. Review takes 4–6 weeks.
+- **The Play large-screen badge.** Check by hand with a keyboard, mouse and stylus, and run the Accessibility Scanner over the screens the tests don't scan (Settings, sign-in and the screens they open); ship to production (the form takes only live apps); upload 4–8 tablet and Chromebook screenshots per device type under Main store listing (16:9 or 9:16, 1,080–7,680 px); then submit "Get your badge" from the guidelines overview. Review takes 4–6 weeks.
 - **Not seen on a device.**
   - The iPhone Duo's unfolded, tabletop and Split View layouts, and its sheets off the fold.
   - Android dialogs and sheets in book and tabletop postures, and the side a touch picks.

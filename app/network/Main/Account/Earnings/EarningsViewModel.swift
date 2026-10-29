@@ -6,7 +6,7 @@
 //  points store; this holds the subnet layer, which only carries data once a
 //  Bittensor coldkey is attached: the wallet, the epoch history rows, the
 //  vault claims, the settlement v2 accounts and their claim, the gas key
-//  balance and the Top 200 head status.
+//  balance and the network's Top 200 standing on the Protocol leaderboard.
 //
 
 import Foundation
@@ -41,7 +41,9 @@ final class EarningsViewModel: ObservableObject {
     @Published private(set) var schedule: SnEpochScheduleInfo?
     @Published private(set) var gasKey: SnGasKeyInfo?
     @Published private(set) var gasTao: Double?
-    @Published private(set) var head: SnHeadInfo?
+    /// the network on the Protocol leaderboard (GET /sn/top/me); a failed
+    /// read keeps the one shown
+    @Published private(set) var top: SnTopMeResultInfo?
     @Published private(set) var isLoading = false
     @Published private(set) var loadedOnce = false
     /// the latest epoch history read failed; with no epochs shown that is
@@ -116,9 +118,9 @@ final class EarningsViewModel: ObservableObject {
         SectionLoad.of(hasData: !epochs.isEmpty, settled: loadedOnce, failed: epochsLoadFailed)
     }
 
-    var showsTop200Tile: Bool {
-        guard let head else { return false }
-        return head.eligible || head.bound
+    /// the Top 200 tile, or nil for none (Top200TilePresentation)
+    var top200Tile: Top200TilePresentation? {
+        Top200TilePresentation.of(top)
     }
 
     /// the Settlement v2 tile, or nil for none
@@ -175,14 +177,14 @@ final class EarningsViewModel: ObservableObject {
         }
         isLoading = true
 
-        // `try?` flattens an optional result, so a failed wallet or head read
-        // would read as "none"; earningsAttempt keeps the failure distinct
+        // `try?` flattens an optional result, so a failed wallet read would
+        // read as "none"; earningsAttempt keeps the failure distinct
         let client = client
         async let walletTask = earningsAttempt { try await client.fetchWallet() }
         async let epochsTask = earningsAttempt { try await client.accountEpochs() }
-        async let headTask = earningsAttempt { try await client.head() }
+        async let topTask = earningsAttempt { try await client.topMe() }
 
-        let (walletResult, epochsResult, headResult) = await (walletTask, epochsTask, headTask)
+        let (walletResult, epochsResult, topResult) = await (walletTask, epochsTask, topTask)
         if let walletResult {
             wallet = walletResult
             walletLoadFailed = false
@@ -197,8 +199,8 @@ final class EarningsViewModel: ObservableObject {
             // the epochs already shown stay
             epochsLoadFailed = true
         }
-        if let headResult {
-            head = headResult
+        if let topResult {
+            top = topResult
         }
 
         await refreshSubnet()
@@ -374,8 +376,8 @@ final class EarningsViewModel: ObservableObject {
     }
 }
 
-/// The value, or nil when the read threw, so an optional result (no wallet,
-/// no head status) stays distinguishable from a failure.
+/// The value, or nil when the read threw, so an optional result (no wallet)
+/// stays distinguishable from a failure.
 private func earningsAttempt<T>(_ operation: () async throws -> T) async -> T? {
     do {
         return try await operation()

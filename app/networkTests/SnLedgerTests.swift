@@ -603,5 +603,5 @@ private final class FakeLedgerClient: EarningsClient {
         onClaimEvent = onEvent
     }
     func accountEpochs() async throws -> [AccountEpochInfo] { [] }
-    func head() async throws -> SnHeadInfo? { nil }
+    func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }
 }

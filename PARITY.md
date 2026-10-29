@@ -28,7 +28,7 @@ Corrections to prior notes discovered during verification:
 
 ## 1. iPad vs iPhone
 
-**Posture:** iPad is a build target (`TARGETED_DEVICE_FAMILY "1,2"` app+extension, all iPad orientations, no `UIRequiresFullScreen` → Split View/Stage Manager resizable) but **not a UI target**. Zero `horizontalSizeClass` reads, zero `.popover`, no iOS `NavigationSplitView`, no scene manifest. `MainView.swift:77-99` hard-selects the phone `MainTabView` for all iOS; `MainNavigationSplitView` exists but is macOS-gated.
+**Posture:** iPad is a build target (`TARGETED_DEVICE_FAMILY "1,2"` app+extension, all iPad orientations, no `UIRequiresFullScreen` → Split View/Stage Manager resizable) but **not a UI target**. Zero `horizontalSizeClass` reads, zero `.popover`, no iOS `NavigationSplitView`. The scene manifest was Xcode-generated, with `UIApplicationSupportsMultipleScenes = true` (first noted here as "no scene manifest"); since 2026-10-28 `URnetwork-Info.plist` declares it with the key false and generation is off, so iOS runs one scene. `MainView.swift:77-99` hard-selects the phone `MainTabView` for all iOS; `MainNavigationSplitView` exists but is macOS-gated.
 
 The only genuinely iPad-adaptive screen is login (`LoginInitialView.swift:52-95`, two-column when landscape+pad) — and its trigger is fragile: it seeds from `UIDevice.current.orientation` at `onAppear` (`:224`), which is `.unknown`/`.faceUp` at launch, so a landscape iPad often gets the single-column phone layout until rotated.
 
@@ -45,7 +45,7 @@ The only genuinely iPad-adaptive screen is login (`LoginInitialView.swift:52-95`
 | D7 | All modals are `.sheet` with small fixed detents → tiny centered cards on iPad (guest/auth-code/Solana login sheets, redeem code, update-referral, connect-wallet); stats sheets have `#if os(macOS)` sizing but no iPad sizing | `LoginInitialView.swift:156,174,189`; `RedeemBalanceCodeSheet.swift:101`; `SettingsView.swift:125`; `WalletsView.swift:189`; `ConnectStatsSections.swift:282` |
 | D8 | Two-column login trigger uses device orientation, not size class | `LoginInitialView.swift:59,221-238` |
 | D9 | **Root cause:** no size-class/regular-width layout path anywhere on iOS | `MainView.swift:77-99`; `MainTabView.swift:97` |
-| D10 | No multi-window/Stage Manager posture (single `WindowGroup`, no scene manifest) — app IS resizable but no layout responds | `NetworkApp.swift:139-203` |
+| D10 | No multi-window/Stage Manager posture (single `WindowGroup`, but the Xcode-generated scene manifest allowed multiple scenes, each sharing the app-wide view models) — app IS resizable but no layout responds. Since 2026-10-28 iOS runs one scene: `URnetwork-Info.plist` sets `UIApplicationSupportsMultipleScenes` false and manifest generation is off (DUO.md item 12) | `NetworkApp.swift:139-203`; `URnetwork-Info.plist:85-91` |
 
 **Well-adapted already (keep):** width caps `maxWidth: 600` on AccountRoot/Feedback/ContractDetails/Wallet(s)/Profile/ConnectActions content; auth forms capped 400; `TransferChart` Canvas is width-responsive.
 

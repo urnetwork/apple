@@ -1,7 +1,7 @@
 # DELAY: slow-internet indicator and live notifications
 
-Status: designed and implemented 2026-10-27 in all four apps, uncommitted;
-§14 records what was built. The §13 decisions were accepted the same day.
+Status: designed and implemented 2026-10-27 in all four apps, merged to main
+2026-10-28; §14 records what was built. The §13 decisions were accepted the same day.
 Spike S1 ran on a phone on 2026-10-28. ActivityKit refuses the tunnel
 extension, so the iPhone shows a notification posted by the extension, and
 the Live Activity is off until server pushes can drive it, the next step
@@ -803,7 +803,7 @@ Still open:
 5. **Web:** nothing to build (§10). The connection that matters for a hosted
    device is on the server machines, not the user's link.
 
-## 14. As built (2026-10-27, uncommitted)
+## 14. As built (2026-10-27)
 
 All four apps are implemented. Nothing has run on a device; the builds and
 tests below ran on a Mac.

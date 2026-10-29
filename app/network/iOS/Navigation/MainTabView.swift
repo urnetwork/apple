@@ -221,6 +221,17 @@ struct MainTabView: View {
             selectedTab = 1
             deepLinkRouter.pushAccount(.top200Sign(link))
         }
+        // the Protocol leaderboard's Claim on Earnings: Account › Earnings at
+        // its Top 200 tile
+        .onReceive(deepLinkRouter.$pendingEarningsTop200) { pending in
+            guard pending, deepLinkRouter.consumeEarningsTop200() else { return }
+            selectedTab = 1
+        }
+        // the Earnings Top 200 tile's "See the Protocol leaderboard"
+        .onReceive(deepLinkRouter.$pendingProtocolLeaderboard) { pending in
+            guard pending, deepLinkRouter.consumeProtocolLeaderboard() else { return }
+            selectedTab = 2
+        }
         .sheetOffTheFold(isPresented: $presentOnboardingOffer) {
             // a legacy guest adds a sign-in method to this network first
             GuestPurchaseGate(urApiService: urApiService) {

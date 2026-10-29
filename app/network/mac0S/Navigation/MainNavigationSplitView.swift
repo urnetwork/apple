@@ -298,6 +298,17 @@ struct MainNavigationSplitView: View {
             selectedTab = .account
             deepLinkRouter.pushAccount(.top200Sign(link))
         }
+        // the Protocol leaderboard's Claim on Earnings: Account › Earnings at
+        // its Top 200 tile
+        .onReceive(deepLinkRouter.$pendingEarningsTop200) { pending in
+            guard pending, deepLinkRouter.consumeEarningsTop200() else { return }
+            selectedTab = .account
+        }
+        // the Earnings Top 200 tile's "See the Protocol leaderboard"
+        .onReceive(deepLinkRouter.$pendingProtocolLeaderboard) { pending in
+            guard pending, deepLinkRouter.consumeProtocolLeaderboard() else { return }
+            selectedTab = .leaderboard
+        }
         // a Stripe checkout handing control back from the browser (the
         // direct-download build's hosted fallback): the server only believes
         // the Stripe webhook, so a confirmed return starts the confirmation poll

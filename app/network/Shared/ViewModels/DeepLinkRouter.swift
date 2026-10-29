@@ -34,6 +34,16 @@ final class DeepLinkRouter: ObservableObject {
     /// A Top 200 sign link (urnetwork://top200/sign?binding=...) from the
     /// ur.io page, until the tab view opens Account > Sign fleet binding.
     @Published private(set) var pendingTop200Sign: Top200SignDestination? = nil
+    /// The Protocol leaderboard's Claim on Earnings, until the tab view
+    /// switches to the account tab (apple/LEADERTOP.md §5).
+    @Published private(set) var pendingEarningsTop200 = false
+    /// The Earnings screen scrolls to its Top 200 tile once the tile shows.
+    @Published private(set) var pendingEarningsTop200Scroll = false
+    /// The Earnings Top 200 tile's "See the Protocol leaderboard", until the
+    /// tab view switches to the leaderboard.
+    @Published private(set) var pendingProtocolLeaderboard = false
+    /// The leaderboard selects its Protocol tab once it is on screen.
+    @Published private(set) var pendingLeaderboardProtocol = false
 
     func open(_ destination: WidgetDestination) {
         pending = destination
@@ -57,6 +67,16 @@ final class DeepLinkRouter: ObservableObject {
 
     func pushAccount(_ path: AccountNavigationPath) {
         pendingAccountPath = path
+    }
+
+    /// Account › Earnings, scrolled to its Top 200 tile.
+    func openEarningsTop200() {
+        pendingEarningsTop200 = true
+    }
+
+    /// The leaderboard on its Protocol tab.
+    func openProtocolLeaderboard() {
+        pendingProtocolLeaderboard = true
     }
 
     func prefillFeedback(_ prefill: FeedbackPrefill) {
@@ -87,6 +107,51 @@ final class DeepLinkRouter: ObservableObject {
         guard let link = pendingTop200Sign else { return nil }
         pendingTop200Sign = nil
         return link
+    }
+
+    /**
+     * The tab view takes Claim on Earnings: true when there was one, and
+     * the tab view then shows the account tab. The account tab is handed
+     * Earnings to open, and Earnings the scroll to its Top 200 tile.
+     */
+    func consumeEarningsTop200() -> Bool {
+        guard pendingEarningsTop200 else { return false }
+        pendingEarningsTop200 = false
+        pendingAccountPath = .earnings
+        pendingEarningsTop200Scroll = true
+        return true
+    }
+
+    /// The Earnings screen takes the scroll to its Top 200 tile.
+    func consumeEarningsTop200Scroll() -> Bool {
+        guard pendingEarningsTop200Scroll else { return false }
+        pendingEarningsTop200Scroll = false
+        return true
+    }
+
+    /// The Earnings screen left before its Top 200 tile showed: the scroll
+    /// is dropped, so a later visit does not jump.
+    func cancelEarningsTop200Scroll() {
+        if pendingEarningsTop200Scroll {
+            pendingEarningsTop200Scroll = false
+        }
+    }
+
+    /// The tab view takes "See the Protocol leaderboard": true when there
+    /// was one, and the tab view then shows the leaderboard, which is handed
+    /// its Protocol tab to select.
+    func consumeProtocolLeaderboard() -> Bool {
+        guard pendingProtocolLeaderboard else { return false }
+        pendingProtocolLeaderboard = false
+        pendingLeaderboardProtocol = true
+        return true
+    }
+
+    /// The leaderboard takes its Protocol tab.
+    func consumeLeaderboardProtocol() -> Bool {
+        guard pendingLeaderboardProtocol else { return false }
+        pendingLeaderboardProtocol = false
+        return true
     }
 
     func consumeAccountPath() -> AccountNavigationPath? {

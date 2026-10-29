@@ -358,6 +358,16 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
 - **Shared pieces** are in `ui/components/KeyboardMouseInput.kt`: `focusRing`, `onEscape`, `ContextMenuBox`, `keyboardScrollable`.
 - **Verified:** 32 new JVM tests, the full suite (1,863) and all four flavors. Nothing yet on a device with a keyboard, mouse or stylus.
 
+### Android: window-size and tabletop tests (item 7)
+
+- **Screenshots.** Roborazzi on Robolectric, run on the JVM, renders connect, the Account list-detail and the Leaderboard list-detail in MainNavHost's navigation frame at compact (411 × 914), medium (704 × 933), expanded (1280 × 800) and compact-height (780 × 360) dp windows.
+  - The 12 baselines live in `src/testPlayDebug/screenshots`. `testPlayDebugUnitTest` verifies them; `-Pscreenshots=record` re-records them.
+  - The libraries are `testPlayDebugImplementation` only, so no app build, the F-Droid build included, resolves them. Paparazzi and Compose Preview Screenshot Testing were ruled out because each needs a Gradle plugin the F-Droid build would resolve.
+  - The SDK is inert on the JVM, so the screens show the signed-in app before any data arrives.
+  - The test frame copies MainNavHost's private navigation frame and Account row, so it must follow changes to them.
+- **Tabletop.** `ConnectTabletopTest` folds a Gradle Managed Pixel Fold (API 36) with Espresso Device and checks that the graphic and status sit above the fold and Connect below it. `test-main.sh` runs it once per acceptance run as phase `tabletop`.
+- **Verified on the merged code:** the JVM suite (1,916) and all 12 screenshots, unchanged by the other follow-ups; the tabletop job 1/1 on Play and on GitHub.
+
 ### Design guide (item 8)
 
 - `mmm/DESIGNSTYLE.md` replaces "Tablet layouts" with "Layout follows the window, not the device", adds "Split layouts", and rewrites "Supported form factors".
@@ -371,6 +381,8 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
 - **Two Tier 2 gaps that change layouts.**
   - A rail at medium width (600–839 dp, tablets in portrait): the agreed design keeps the bottom bar there, while the guideline's example and Material's default use a rail.
   - Touch targets under 48 dp as drawn: URSwitch (36 × 20 dp), the terms checkbox and the info icon (16 dp), the search clear icon (24 dp). Compose widens their touch area, but the Accessibility Scanner the guideline names measures what's drawn.
+- **Compact height on Android.** At 780 × 360 dp the 300 dp statistics pane wraps "Streaming" onto two lines and truncates "Best available provider" (`connect-compact-height.png`).
+- **The tabletop phase has no row of its own** in the tests repo's result matrix, so a tabletop failure marks every Android case failed.
 - **Smaller input follow-ups.** The Keyboard Shortcuts Helper (Meta+/) isn't registered; provider-location rows don't yet offer the Apple app's menu (copy client ID, copy extender address, stay on this exit); the drawer handle drags but doesn't click.
 - **The Play large-screen badge.** Check by hand with a keyboard, mouse and stylus; ship to production (the form takes only live apps); upload 4–8 tablet and Chromebook screenshots per device type under Main store listing (16:9 or 9:16, 1,080–7,680 px); then submit "Get your badge" from the guidelines overview. Review takes 4–6 weeks.
 - **Not seen on a device.**

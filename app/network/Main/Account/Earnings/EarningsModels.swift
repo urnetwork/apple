@@ -4,9 +4,9 @@
 //
 //  Plain models for the points-first Earnings screen: the account's points
 //  per finalized epoch, the connected Bittensor coldkey, the SDK-held gas key,
-//  the settlement-vault claims, the settlement v2 accounts and the Top 200
-//  head-spot status. They mirror the SDK's sn* shapes so the views never hold
-//  gomobile objects.
+//  the settlement-vault claims and the settlement v2 accounts (the Top 200
+//  standing is the Protocol leaderboard's SnTopMeResultInfo). They mirror the
+//  SDK's sn* shapes so the views never hold gomobile objects.
 //
 
 import Foundation
@@ -59,26 +59,6 @@ struct AccountEpochInfo: Identifiable, Equatable {
     let shareBps: Int64
 
     var id: Int64 { epoch }
-}
-
-/// Head-miner (Top 200) status of the network.
-struct SnHeadInfo: Equatable {
-    let eligible: Bool
-    let score: Double
-    let floor: Double
-    let rankEstimate: Int64
-    let cutoff: Int64
-    let bound: Bool
-    let hotkey: String
-    let uid: Int64
-    let rank: Int64
-    let epoch: Int64
-    let source: String
-
-    /// bound, with a score within 15% of the eviction floor
-    var nearEvictionFloor: Bool {
-        bound && floor > 0 && score < floor * 1.15
-    }
 }
 
 /// The unauthenticated wallet check every address goes through before it is

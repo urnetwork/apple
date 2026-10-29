@@ -5,7 +5,8 @@
 //  The Earnings screen's door to the SDK: the account's epoch history, the
 //  Bittensor wallet attached to this device's provider client, the gas key,
 //  the settlement-vault claims, the settlement v2 accounts and their claim,
-//  and the Top 200 head status. Claims are direct between the SDK on this
+//  and the network's Top 200 standing on the Protocol leaderboard (GET
+//  /sn/top/me). Claims are direct between the SDK on this
 //  device and the vault contracts; nothing here goes through a URnetwork API
 //  at claim time.
 //
@@ -68,9 +69,11 @@ protocol EarningsClient: AnyObject {
     func ledgerAccounts() async throws -> [SnLedgerAccountInfo]
     func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void)
 
-    // points history and head spot
+    // points history and the Top 200 standing
     func accountEpochs() async throws -> [AccountEpochInfo]
-    func head() async throws -> SnHeadInfo?
+    /// GET /sn/top/me: the network on the Protocol leaderboard, from the
+    /// same snapshot as the board (apple/LEADERTOP.md §8)
+    func topMe() async throws -> SnTopMeResultInfo
 }
 
 /// The SDK-backed client. The device methods run in this process (they need
@@ -433,7 +436,7 @@ final class EarningsSdkClient: EarningsClient {
         device.snLedgerClaim(SnLedgerClaimCallbackBridge(onEvent))
     }
 
-    // MARK: points history and head spot
+    // MARK: points history and the Top 200 standing
 
     func accountEpochs() async throws -> [AccountEpochInfo] {
         let api = try requireApi()
@@ -471,39 +474,13 @@ final class EarningsSdkClient: EarningsClient {
         return epochs
     }
 
-    func head() async throws -> SnHeadInfo? {
+    func topMe() async throws -> SnTopMeResultInfo {
         let api = try requireApi()
-        let result: SdkSnHeadResult = try await withCheckedThrowingContinuation { continuation in
-            let callback = SnHeadCallback { result, err in
-                if let err {
-                    continuation.resume(throwing: err)
-                    return
-                }
-                guard let result else {
-                    continuation.resume(throwing: EarningsClientError.emptyResult)
-                    return
-                }
-                if let error = Self.error(result.error) {
-                    continuation.resume(throwing: error)
-                    return
-                }
-                continuation.resume(returning: result)
+        return try await withCheckedThrowingContinuation { continuation in
+            api.fetchTopMe { result in
+                continuation.resume(with: result)
             }
-            api.snHead(callback)
         }
-        return SnHeadInfo(
-            eligible: result.eligible,
-            score: result.score,
-            floor: result.floor,
-            rankEstimate: result.rankEstimate,
-            cutoff: result.cutoff,
-            bound: result.bound,
-            hotkey: result.hotkey,
-            uid: result.uid,
-            rank: result.rank,
-            epoch: result.epoch,
-            source: result.source
-        )
     }
 }
 
@@ -547,12 +524,6 @@ private class SnClaimsCallback: SdkCallback<SdkSnClaimsResult, SdkSnClaimsCallba
 
 private class AccountEpochsCallback: SdkCallback<SdkAccountEpochsResult, SdkAccountEpochsCallbackProtocol>, SdkAccountEpochsCallbackProtocol {
     func result(_ result: SdkAccountEpochsResult?, err: Error?) {
-        handleResult(result, err: err)
-    }
-}
-
-private class SnHeadCallback: SdkCallback<SdkSnHeadResult, SdkSnHeadCallbackProtocol>, SdkSnHeadCallbackProtocol {
-    func result(_ result: SdkSnHeadResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }
@@ -632,7 +603,7 @@ private final class SnWalletChangeListener: NSObject, SdkSnWalletChangeListenerP
 final class EarningsPreviewClient: EarningsClient {
 
     var wallet: SnWalletInfo?
-    var headInfo: SnHeadInfo?
+    var topInfo: SnTopMeResultInfo?
     var epochRows: [AccountEpochInfo]
     var claimRows: [SnEpochClaimInfo]
     var scheduleInfo: SnEpochScheduleInfo?
@@ -642,7 +613,7 @@ final class EarningsPreviewClient: EarningsClient {
 
     init(
         wallet: SnWalletInfo? = nil,
-        head: SnHeadInfo? = nil,
+        top: SnTopMeResultInfo? = nil,
         epochs: [AccountEpochInfo] = [],
         claims: [SnEpochClaimInfo] = [],
         schedule: SnEpochScheduleInfo? = nil,
@@ -651,7 +622,7 @@ final class EarningsPreviewClient: EarningsClient {
         ledgerChain: SnLedgerChainInfo = .unconfigured
     ) {
         self.wallet = wallet
-        self.headInfo = head
+        self.topInfo = top
         self.epochRows = epochs
         self.claimRows = claims
         self.scheduleInfo = schedule
@@ -706,5 +677,10 @@ final class EarningsPreviewClient: EarningsClient {
         onEvent(.done)
     }
     func accountEpochs() async throws -> [AccountEpochInfo] { epochRows }
-    func head() async throws -> SnHeadInfo? { headInfo }
+    func topMe() async throws -> SnTopMeResultInfo {
+        guard let topInfo else {
+            throw EarningsClientError.emptyResult
+        }
+        return topInfo
+    }
 }

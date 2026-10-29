@@ -1,6 +1,6 @@
 # LEADERTOP (apps): the Protocol leaderboard
 
-**Status:** design settled with the owner, 2026-10-29. Nothing is implemented.
+**Status:** design settled with the owner, 2026-10-29. Apple implements it (§12); ur.io, Android, Windows and Linux follow.
 
 **What this doc covers:** how the apps present the SN25-aligned leaderboard. Apple is the reference implementation; ur.io, Android, Windows and Linux follow it with the same strings and rules.
 
@@ -153,3 +153,19 @@ The "Protocol leaderboard" design canvas shows:
 - regular width (iPad or Mac) split.
 
 It uses the apps' dark theme. It illustrates the layout; the stored strings and theme tokens are what ship.
+
+## 12. Apple implementation notes
+
+Rules the reference implementation settled where the design leaves room. The other apps should match them.
+
+- **Claim prompt:** shown exactly when the row's `claim_prompt` flag is true. The server sets it for a measurable network at positions 1–200 with no active claimed fleet, and the app never works it out itself. The close-to-the-line line shows when the label is borderline, or, while labels read "estimate", when the margin is within ±20%.
+- **Earnings tile:** shows the claim flow when the server prompts the network, its claimed fleet when it has one (at any position), and nothing otherwise, including while `GET /sn/top/me` fails or isn't served. Its margin is signed: "+12%", "−8%".
+- **Incentive:** a fraction from 0 to 1, shown as a percent with one decimal: 0.018 is "1.8%".
+- **Card header:** the network's name while "Show my network name" is on, else "Anonymous". The switch is the Points board's own. Until the snapshot carries a name just turned on, the session's name stands in.
+- **Signed out:** the public list only, with no card. Apple shows no sign-in prompt, since its tabs exist only in a session and there is no key for one.
+- **Paging:**
+  - The first page asks for 50 rows, and later pages follow `next` alone.
+  - A seek asks for up to 200 rows at once.
+  - A page that adds no rows ends the list, and a page from another snapshot restarts it.
+- **Reload:** the tab reloads when it becomes visible again after 5 minutes.
+- **VoiceOver:** a row reads "You" for the caller, the rank, the name, the score and its trend, the claimed UIDs, then the caller's label or "Not measurable".

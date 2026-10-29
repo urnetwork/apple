@@ -264,5 +264,5 @@ private final class FakeEarningsClient: EarningsClient {
         return epochRows
     }
 
-    func head() async throws -> SnHeadInfo? { nil }
+    func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }
 }

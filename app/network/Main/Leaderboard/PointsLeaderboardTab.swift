@@ -368,13 +368,19 @@ struct PointsLeaderboardTab: View {
     }
 }
 
-/// The ranks of the rows currently on screen, as `onAppear`/`onDisappear` report them.
-private final class PointsVisibleRows {
+/// The ranks of the rows currently on screen, as `onAppear`/`onDisappear`
+/// report them. The Protocol list keeps its own.
+final class PointsVisibleRows {
     private var positions: Set<Int64> = []
 
     /// the lowest visible rank, 0 when no row is on screen
     var first: Int64 {
         positions.min() ?? 0
+    }
+
+    /// how many rows are on screen
+    var count: Int {
+        positions.count
     }
 
     func insert(_ position: Int64) {
@@ -393,9 +399,10 @@ private final class PointsVisibleRows {
  * is held, a label beside it with the rank and tier under it from the sdk's
  * helper. Dragging moves only the thumb; releasing seeks the controller.
  * The thumb is an adjustable accessibility element stepping one percent of
- * the population at a time.
+ * the population at a time. The Protocol list carries the same indicator
+ * over its top 400.
  */
-private struct PointsPositionIndicator: View {
+struct PointsPositionIndicator: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     let total: Int64

@@ -466,7 +466,7 @@ struct BittensorWalletConnectorTests {
         func ledgerAccounts() async throws -> [SnLedgerAccountInfo] { [] }
         func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {}
         func accountEpochs() async throws -> [AccountEpochInfo] { [] }
-        func head() async throws -> SnHeadInfo? { nil }
+        func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }
     }
 
     static func flow(platform: String, client: FakeClient, recorder: Recorder) -> ConnectBittensorWalletFlow {

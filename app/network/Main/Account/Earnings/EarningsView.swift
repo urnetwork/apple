@@ -24,6 +24,7 @@ struct EarningsView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var throughputStore: ThroughputStore
     @EnvironmentObject var deviceManager: DeviceManager
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
 
     let navigate: (AccountNavigationPath) -> Void
     @ObservedObject var accountPointsStore: AccountPointsStore
@@ -40,6 +41,8 @@ struct EarningsView: View {
     @State private var presentClaimSheet = false
     @State private var presentLedgerClaimSheet = false
     @State private var presentConsentSheet = false
+    // the Top 200 tile is in the stack: a Claim on Earnings scroll waits for it
+    @State private var top200TileShown = false
 
     init(
         navigate: @escaping (AccountNavigationPath) -> Void,
@@ -67,126 +70,152 @@ struct EarningsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 16) {
 
-                AccountPointsBreakdown(
-                    netPoints: accountPointsStore.netPoints,
-                    providingPoints: accountPointsStore.providingPoints,
-                    referralPoints: accountPointsStore.referralPoints,
-                    multiplierPoints: accountPointsStore.multiplierPoints,
-                    reliabilityPoints: accountPointsStore.reliabilityPoints,
-                    load: accountPointsStore.load,
-                    retry: {
-                        Task {
-                            await accountPointsStore.fetchAccountPoints()
-                        }
-                    },
-                    payoutLine: viewModel.payoutLine(
-                        nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
-                        formatTime: { SnPayoutLine.formatTime($0) }
-                    ),
-                    claim: {
-                        viewModel.resetClaimProgress()
-                        presentClaimSheet = true
-                    },
-                    setColdkey: {
-                        connectFlow.reset()
-                        presentConnectSheet = true
-                    }
-                )
-
-                if let head = viewModel.head, viewModel.showsTop200Tile {
-                    Top200Tile(head: head, sign: {
-                        navigate(.top200Sign(nil))
-                    })
-                }
-
-                BittensorWalletCard(
-                    wallet: viewModel.wallet,
-                    shortAddress: viewModel.client.shortSs58,
-                    connect: {
-                        connectFlow.reset()
-                        presentConnectSheet = true
-                    },
-                    pendingUsd: usdcViewModel.showsPendingLine ? usdcViewModel.pendingUsd : nil,
-                    connectSolana: {
-                        solanaFlow.reset()
-                        presentSolanaSheet = true
-                    },
-                    loadFailed: viewModel.walletLoadFailed,
-                    retry: {
-                        Task {
-                            await viewModel.refresh()
-                        }
-                    }
-                )
-
-                // the wallet USDC payouts go to until the migration to Bittensor
-                if usdcViewModel.loadedOnce, let wallet = usdcViewModel.payoutWallet {
-                    SolanaWalletCard(
-                        wallet: wallet,
-                        pendingUsd: usdcViewModel.pendingUsd,
-                        isRemoving: usdcViewModel.isRemoving,
-                        remove: {
-                            usdcViewModel.walletQueuedForRemoval = wallet
-                        }
-                    )
-                } else if usdcViewModel.loadFailed {
-                    // unread is not "no payout wallet"
-                    SolanaWalletLoadFailedCard(retry: {
-                        Task {
-                            await usdcViewModel.refresh()
-                        }
-                    })
-                }
-
-                if viewModel.hasWallet {
-                    UnclaimedAlphaTile(
-                        totalClaimableRao: viewModel.totalClaimableRao,
-                        claimableEpochs: viewModel.claimableClaims.count,
+                    AccountPointsBreakdown(
+                        netPoints: accountPointsStore.netPoints,
+                        providingPoints: accountPointsStore.providingPoints,
+                        referralPoints: accountPointsStore.referralPoints,
+                        multiplierPoints: accountPointsStore.multiplierPoints,
+                        reliabilityPoints: accountPointsStore.reliabilityPoints,
+                        load: accountPointsStore.load,
+                        retry: {
+                            Task {
+                                await accountPointsStore.fetchAccountPoints()
+                            }
+                        },
+                        payoutLine: viewModel.payoutLine(
+                            nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+                            formatTime: { SnPayoutLine.formatTime($0) }
+                        ),
                         claim: {
                             viewModel.resetClaimProgress()
                             presentClaimSheet = true
+                        },
+                        setColdkey: {
+                            connectFlow.reset()
+                            presentConnectSheet = true
                         }
                     )
-                }
 
-                // settlement v2, separate from the v1 claims above
-                if viewModel.hasWallet, let ledgerTile = viewModel.ledgerTile {
-                    SnLedgerTile(
-                        presentation: ledgerTile,
-                        claim: {
-                            viewModel.resetLedgerClaimProgress()
-                            presentLedgerClaimSheet = true
+                    if let tile = viewModel.top200Tile {
+                        Top200Tile(
+                            tile: tile,
+                            sign: {
+                                navigate(.top200Sign(nil))
+                            },
+                            seeBoard: {
+                                deepLinkRouter.openProtocolLeaderboard()
+                            }
+                        )
+                        .id(EarningsScrollAnchor.top200)
+                        .onAppear {
+                            top200TileShown = true
+                            scrollToTop200IfAsked(proxy)
                         }
-                    )
-                }
-
-                // the network's payout consent, with or without a coldkey on
-                // this device: without one, no provider of the network is paid
-                NetworkConsentCard(
-                    status: consentFlow.status,
-                    hasNetworkCredential: consentFlow.hasNetworkCredential,
-                    shortAddress: viewModel.client.shortSs58,
-                    sign: {
-                        consentFlow.reset()
-                        presentConsentSheet = true
-                    },
-                    retry: {
-                        Task {
-                            await consentFlow.refreshStatus()
+                        .onDisappear {
+                            top200TileShown = false
                         }
                     }
-                )
 
-                historySection
+                    BittensorWalletCard(
+                        wallet: viewModel.wallet,
+                        shortAddress: viewModel.client.shortSs58,
+                        connect: {
+                            connectFlow.reset()
+                            presentConnectSheet = true
+                        },
+                        pendingUsd: usdcViewModel.showsPendingLine ? usdcViewModel.pendingUsd : nil,
+                        connectSolana: {
+                            solanaFlow.reset()
+                            presentSolanaSheet = true
+                        },
+                        loadFailed: viewModel.walletLoadFailed,
+                        retry: {
+                            Task {
+                                await viewModel.refresh()
+                            }
+                        }
+                    )
 
-                providerCard
+                    // the wallet USDC payouts go to until the migration to Bittensor
+                    if usdcViewModel.loadedOnce, let wallet = usdcViewModel.payoutWallet {
+                        SolanaWalletCard(
+                            wallet: wallet,
+                            pendingUsd: usdcViewModel.pendingUsd,
+                            isRemoving: usdcViewModel.isRemoving,
+                            remove: {
+                                usdcViewModel.walletQueuedForRemoval = wallet
+                            }
+                        )
+                    } else if usdcViewModel.loadFailed {
+                        // unread is not "no payout wallet"
+                        SolanaWalletLoadFailedCard(retry: {
+                            Task {
+                                await usdcViewModel.refresh()
+                            }
+                        })
+                    }
+
+                    if viewModel.hasWallet {
+                        UnclaimedAlphaTile(
+                            totalClaimableRao: viewModel.totalClaimableRao,
+                            claimableEpochs: viewModel.claimableClaims.count,
+                            claim: {
+                                viewModel.resetClaimProgress()
+                                presentClaimSheet = true
+                            }
+                        )
+                    }
+
+                    // settlement v2, separate from the v1 claims above
+                    if viewModel.hasWallet, let ledgerTile = viewModel.ledgerTile {
+                        SnLedgerTile(
+                            presentation: ledgerTile,
+                            claim: {
+                                viewModel.resetLedgerClaimProgress()
+                                presentLedgerClaimSheet = true
+                            }
+                        )
+                    }
+
+                    // the network's payout consent, with or without a coldkey on
+                    // this device: without one, no provider of the network is paid
+                    NetworkConsentCard(
+                        status: consentFlow.status,
+                        hasNetworkCredential: consentFlow.hasNetworkCredential,
+                        shortAddress: viewModel.client.shortSs58,
+                        sign: {
+                            consentFlow.reset()
+                            presentConsentSheet = true
+                        },
+                        retry: {
+                            Task {
+                                await consentFlow.refreshStatus()
+                            }
+                        }
+                    )
+
+                    historySection
+
+                    providerCard
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 16)
+                .tabletReadableColumn()
             }
-            .padding(.horizontal)
-            .padding(.vertical, 16)
-            .tabletReadableColumn()
+            // the Protocol leaderboard's Claim on Earnings lands at the tile
+            .onReceive(deepLinkRouter.$pendingEarningsTop200Scroll) { pending in
+                if pending {
+                    scrollToTop200IfAsked(proxy)
+                }
+            }
+        }
+        .onDisappear {
+            // a scroll the tile never showed for is not kept for a later visit
+            deepLinkRouter.cancelEarningsTop200Scroll()
         }
         .refreshable {
             await refresh()
@@ -346,6 +375,19 @@ struct EarningsView: View {
             }
         }
         #endif
+    }
+
+    /// Claim on Earnings asked for the Top 200 tile: once the tile is in the
+    /// stack, the screen scrolls to it, and only once.
+    private func scrollToTop200IfAsked(_ proxy: ScrollViewProxy) {
+        guard top200TileShown, deepLinkRouter.consumeEarningsTop200Scroll() else {
+            return
+        }
+        DispatchQueue.main.async {
+            withAnimation {
+                proxy.scrollTo(EarningsScrollAnchor.top200, anchor: .top)
+            }
+        }
     }
 
     private var historySection: some View {
@@ -518,6 +560,12 @@ struct EarningsView: View {
     }
 }
 
+/// The places on the Earnings screen a link scrolls to.
+enum EarningsScrollAnchor: Hashable {
+    /// the Top 200 tile (Claim on Earnings)
+    case top200
+}
+
 /// Which connect sheet a wallet deep link belongs to: Phantom and Solflare
 /// (or the ur.io bridge driving their extensions) return to the Solana sheet,
 /// the ur.io Bittensor bridge to the Bittensor sheet or the payout consent
@@ -544,9 +592,10 @@ enum EarningsWalletLink: Equatable {
 
 #Preview {
     let themeManager = ThemeManager.shared
+    let board = SnTopPreviewClient()
     let client = EarningsPreviewClient(
         wallet: nil,
-        head: SnHeadInfo(eligible: true, score: 12, floor: 10, rankEstimate: 143, cutoff: 200, bound: false, hotkey: "", uid: 0, rank: 0, epoch: 42, source: "server"),
+        top: SnTopMeResultInfo(snapshot: board.snapshot, me: board.me),
         epochs: [
             AccountEpochInfo(epoch: 42, startMillis: 1_756_000_000_000, endMillis: 1_756_600_000_000, points: 1234.5, shareBps: 71),
             AccountEpochInfo(epoch: 41, startMillis: 1_755_400_000_000, endMillis: 1_756_000_000_000, points: 980, shareBps: 65),
@@ -566,5 +615,6 @@ enum EarningsWalletLink: Equatable {
     .environmentObject(themeManager)
     .environmentObject(ConnectWalletProviderViewModel())
     .environmentObject(UrSnackbarManager())
+    .environmentObject(DeepLinkRouter())
     .background(themeManager.currentTheme.backgroundColor)
 }

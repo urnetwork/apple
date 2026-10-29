@@ -90,7 +90,7 @@ struct AccountNavStackView: View {
             if isRegularWidth {
                 viewModel.select(path)
             } else {
-                viewModel.navigate(path)
+                viewModel.open(path)
             }
         }
     }

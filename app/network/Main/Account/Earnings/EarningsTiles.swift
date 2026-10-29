@@ -2,8 +2,8 @@
 //  EarningsTiles.swift
 //  URnetwork
 //
-//  The tiles of the Earnings screen: the Top 200 head
-//  spot, the Bittensor wallet block with its wallet options, the unclaimed
+//  The tiles of the Earnings screen: the Top 200
+//  standing, the Bittensor wallet block with its wallet options, the unclaimed
 //  alpha tile, the settlement v2 tile, the network payout consent card, the
 //  SN payout line of the points card and the epoch history rows.
 //
@@ -15,44 +15,163 @@ import UIKit
 import AppKit
 #endif
 
-/// The head-miner spot. Eligible and not yet bound: the gold call to claim
-/// the spot on ur.io. Bound: the UID and rank, with the eviction warning
-/// when the score sits close to the floor. Both carry Sign fleet binding,
-/// where this device signs the binding the fleet operator builds on ur.io
-/// (bindings renew per epoch window and new devices join the fleet).
+/// The network's Top 200 standing (apple/LEADERTOP.md §8), as the Protocol
+/// leaderboard projects it: the position, the margin to the 200 line and
+/// the label. While binding is closed a projected top-200 network sees that
+/// claiming opens soon, with no button and no Sign fleet binding (Q16); once
+/// it opens, the existing claim flow: the gold Claim your spot on ur.io and
+/// Sign fleet binding, where this device signs the binding the fleet
+/// operator builds there. A claimed network sees its fleet's UID and the
+/// validator's rank and selection. Every claim prompt warns that a fleet
+/// ranked 201 or lower earns nothing.
 struct Top200Tile: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.openURL) private var openURL
 
-    let head: SnHeadInfo
+    let tile: Top200TilePresentation
     /// opens Sign fleet binding
     let sign: () -> Void
+    /// the leaderboard's Protocol tab
+    let seeBoard: () -> Void
 
     static let top200Url = "https://ur.io/app/account/top200"
 
     var body: some View {
-        if head.bound {
-            boundStatus
-        } else if head.eligible {
-            eligibleTile
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                UrLabel(text: "Top 200")
+                Spacer(minLength: 0)
+                if let label = tile.label {
+                    ProtocolLabelChip(label: label)
+                }
+                if tile.fleet != nil {
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(introProGold)
+                        .accessibilityHidden(true)
+                }
+            }
+
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: ProtocolFormat.rank(tile.position))
+                    .font(themeManager.currentTheme.titleCondensedFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                Text(verbatim: ProtocolText.earningsProjected(margin: tile.margin))
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let fleet = tile.fleet {
+                fleetStatus(fleet)
+            }
+
+            Text(verbatim: ProtocolText.earningsBody)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+
+            switch tile.action {
+            case .claimingSoon:
+                claimingSoon
+            case .claim:
+                claimFlow
+            case .claimed(let signs):
+                Text("Emission is paid to your coldkey directly. Bindings renew per epoch.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                if signs {
+                    UrButton(
+                        text: "Sign fleet binding",
+                        action: sign,
+                        style: .secondary,
+                        isFullWidth: false,
+                        accessibilityIdentifier: "earnings.top200.sign"
+                    )
+                }
+            }
+
+            Button(action: seeBoard) {
+                HStack(spacing: 4) {
+                    Text(verbatim: ProtocolText.earningsSeeBoard)
+                        .font(themeManager.currentTheme.secondaryBodyFont.weight(.semibold))
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .accessibilityHidden(true)
+                }
+                .foregroundColor(.urLightBlue)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("earnings.top200.board")
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(themeManager.currentTheme.accentColor.opacity(0.6), lineWidth: 1)
+        )
+        .accessibilityIdentifier("earnings.top200")
     }
 
-    private var eligibleTile: some View {
+    /// The claimed fleet: its UID, the validator's rank, and whether the
+    /// validator selected it this tempo.
+    private func fleetStatus(_ fleet: SnTopFleetInfo) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            ProtocolUidBadge(uid: fleet.uid)
+            if let rank = tile.validatorRank {
+                Text(verbatim: ProtocolText.detailValidatorRank + " " + rank)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            if let selection = ProtocolClaimedDetail.selection(fleet) {
+                Text(verbatim: selection)
+                    .font(themeManager.currentTheme.secondaryBodyFont.weight(.semibold))
+                    .foregroundColor(fleet.selected == true ? .urGreen : themeManager.currentTheme.textMutedColor)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Binding is closed: a note in place of the claim button.
+    private var claimingSoon: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "clock")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.urLightBlue)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: ProtocolText.earningsClaimingSoon)
+                    .font(themeManager.currentTheme.bodyFont.weight(.semibold))
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                Text(verbatim: ProtocolText.earningsClaimingSoonBody)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(themeManager.currentTheme.backgroundColor.opacity(0.6))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(themeManager.currentTheme.borderBaseColor, lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("earnings.top200.soon")
+    }
+
+    /// Binding is open: the existing claim flow, unchanged.
+    private var claimFlow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Top 200")
-                .textCase(.uppercase)
-                .font(.system(size: 11, weight: .bold))
-                .kerning(1.5)
-                .foregroundColor(introProGoldLight)
-            Text("You qualify")
-                .font(Font.custom("PP NeueBit", size: 28).weight(.bold))
-                .foregroundColor(.white)
-            Text("Your network's routable IP breadth ranks about #\(head.rankEstimate) of \(head.cutoff) head spots. Head miners earn SN25α natively, every tempo.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(Color.white.opacity(0.85))
-            Spacer().frame(height: 4)
             Button(action: {
                 if let url = URL(string: Self.top200Url) {
                     openURL(url)
@@ -71,6 +190,7 @@ struct Top200Tile: View {
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("earnings.top200.claim")
             Button(action: sign) {
                 Text("Sign fleet binding")
                     .font(themeManager.currentTheme.bodyFont.weight(.semibold))
@@ -81,49 +201,11 @@ struct Top200Tile: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("earnings.top200.sign")
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .goldPlanDress(cornerRadius: 12)
-        .padding(.vertical, 8)
-    }
-
-    private var boundStatus: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                UrLabel(text: "Top 200")
-                Spacer()
-                Image(systemName: "crown.fill")
-                    .foregroundColor(introProGold)
-            }
-            Text("UID \(head.uid) · rank #\(head.rank)")
-                .font(themeManager.currentTheme.titleCondensedFont)
-                .foregroundColor(themeManager.currentTheme.textColor)
-            Text("Emission is paid to your coldkey directly. Bindings renew per epoch.")
+            Text(verbatim: ProtocolText.claimWarning)
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
-            if head.nearEvictionFloor {
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.urAmber)
-                    Text("Your score is close to the eviction floor. Add routable IPs to keep the spot.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(.urAmber)
-                }
-            }
-            Spacer().frame(height: 4)
-            UrButton(
-                text: "Sign fleet binding",
-                action: sign,
-                style: .secondary,
-                isFullWidth: false,
-                accessibilityIdentifier: "earnings.top200.sign"
-            )
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(themeManager.currentTheme.tintedBackgroundBase)
-        .cornerRadius(12)
     }
 }
 

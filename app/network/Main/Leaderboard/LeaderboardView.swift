@@ -8,11 +8,17 @@
 import SwiftUI
 import URnetworkSdk
 
-/// The leaderboard's two tabs: the last-4-payments data leaderboard and the
-/// all-time points leaderboard (android/POINTSLEADERBOARD.md).
+/// The leaderboard's tabs, in the picker's order: the Protocol board, the
+/// SN25-aligned Top 200 projection (apple/LEADERTOP.md, Q14), first and the
+/// default; the all-time points leaderboard (android/POINTSLEADERBOARD.md);
+/// and the last-4-payments data leaderboard, frozen since 2026-10-06.
 enum LeaderboardTab: String, CaseIterable {
-    case data
+    case `protocol`
     case points
+    case data
+
+    /// the tab the leaderboard opens on
+    static let initial: LeaderboardTab = .protocol
 }
 
 /// The scroll id of a leaderboard list's top (its header): the tab reset's target.
@@ -33,8 +39,14 @@ struct LeaderboardView: View {
     // switch to Data and back keeps the opt-in and tag the user just set;
     // the sdk controller itself is open only while the Points tab shows
     @StateObject private var pointsStore = PointsLeaderboardStore()
-    
-    @State private var selectedTab: LeaderboardTab = .data
+
+    // the Protocol board lives as long as the leaderboard does, so a switch
+    // to another tab and back keeps its pages
+    @StateObject private var protocolStore = ProtocolTopStore()
+
+    @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+
+    @State private var selectedTab: LeaderboardTab = .initial
     
     // every tap on the picker, the selected tab included, scrolls the shown
     // list back to its top (mmm/DESIGNSTYLE.md, "Long ranked lists"): the
@@ -71,13 +83,7 @@ struct LeaderboardView: View {
                         .frame(maxWidth: .infinity, alignment: isRegularWidth ? .leading : .center)
 
                     if isRegularWidth {
-                        LeaderboardOwnNetwork(
-                            leaderboardRank: viewModel.networkRank,
-                            netProvidedFormatted: viewModel.netProvidedFormatted,
-                            rankingPublic: $viewModel.networkRankingPublic,
-                            isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
-                            pointsStore: pointsStore
-                        )
+                        secondPane
                         .frame(width: geometry.size.width - panes.secondStart)
                         .overlay(alignment: .leading) {
                             Rectangle()
@@ -94,17 +100,51 @@ struct LeaderboardView: View {
             .navigationTitle("Leaderboard")
             
         }
+        // the Earnings Top 200 tile's "See the Protocol leaderboard"
+        .onReceive(deepLinkRouter.$pendingLeaderboardProtocol) { pending in
+            guard pending, deepLinkRouter.consumeLeaderboardProtocol() else { return }
+            selectTab(.protocol)
+        }
     }
 
-    /// The tab picker over the Data or Points ranking. The data ranking
-    /// leads with the network's own standing unless it shows beside it.
+    /// Beside the ranking in a regular-width window: the Protocol board's
+    /// banner, own-status card and explainer, or the network's own standing
+    /// beside the Points and Data rankings.
+    @ViewBuilder
+    private var secondPane: some View {
+        if selectedTab == .protocol {
+            ProtocolSidePane(
+                store: protocolStore,
+                pointsStore: pointsStore,
+                claimOnEarnings: claimOnEarnings
+            )
+        } else {
+            LeaderboardOwnNetwork(
+                leaderboardRank: viewModel.networkRank,
+                netProvidedFormatted: viewModel.netProvidedFormatted,
+                rankingPublic: $viewModel.networkRankingPublic,
+                isSettingRankingVisibility: viewModel.isSettingRankingVisibility,
+                pointsStore: pointsStore
+            )
+        }
+    }
+
+    /// Claim on Earnings: Account › Earnings at its Top 200 tile.
+    private func claimOnEarnings() {
+        deepLinkRouter.openEarningsTop200()
+    }
+
+    /// The tab picker over the Protocol, Points or Data ranking. The
+    /// Protocol and Data rankings lead with the network's own standing
+    /// unless it shows beside it.
     private var ranking: some View {
         
         VStack(spacing: 0) {
             
             Picker("", selection: $selectedTab) {
-                Text("Data").tag(LeaderboardTab.data)
+                Text("Protocol").tag(LeaderboardTab.protocol)
                 Text("Points").tag(LeaderboardTab.points)
+                Text("Data").tag(LeaderboardTab.data)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -129,6 +169,20 @@ struct LeaderboardView: View {
             .padding(.top, 8)
             
             switch selectedTab {
+            case .protocol:
+                /**
+                 * Protocol: the SN25-aligned Top 200 projection
+                 */
+
+                ProtocolLeaderboardTab(
+                    store: protocolStore,
+                    pointsStore: pointsStore,
+                    scrollResetToken: scrollResetToken,
+                    showsStatus: !isRegularWidth,
+                    isWide: isRegularWidth,
+                    claimOnEarnings: claimOnEarnings
+                )
+
             case .points:
                 /**
                  * Points: the all-time points leaderboard

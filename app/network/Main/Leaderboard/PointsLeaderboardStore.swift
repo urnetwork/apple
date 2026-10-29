@@ -231,6 +231,9 @@ class PointsLeaderboardStore: ObservableObject {
         case pointsTab
         /// the network's own standing beside the ranking (regular width)
         case ownNetwork
+        /// the Protocol tab's own-status card, whose "Show my network name"
+        /// switch is this one (points_leaderboard_public covers both boards)
+        case protocolCard
     }
 
     /**
@@ -409,7 +412,9 @@ class PointsLeaderboardStore: ObservableObject {
         }
     }
 
-    func togglePointsPublic() {
+    /// `onChanged` runs once the server took the new setting, so another
+    /// board showing the name (the Protocol tab) can reload.
+    func togglePointsPublic(onChanged: (() -> Void)? = nil) {
         if isSettingPublic {
             return
         }
@@ -433,6 +438,7 @@ class PointsLeaderboardStore: ObservableObject {
                     self.isPointsPublic = target
                     // the list shows or hides the own row; `me` is re-read too
                     self.refresh()
+                    onChanged?()
                 }
                 self.isSettingPublic = false
             }

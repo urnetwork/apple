@@ -194,7 +194,7 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
 - **Connect.**
   - Compact width keeps the drawer, capped by the window and by a tabletop fold. The canvas shrinks to clear it.
   - Regular width stacks under 840 pt and splits side by side from 840 pt. An active fold chooses by posture.
-  - The panes split at the division region (`reservedRegions`, flat or folded), else 40/60, or 50/50 when stacked.
+  - The panes split at the division region (`reservedRegions`, flat or folded), else 40/60, or 50/50 when stacked. A fold that would leave a pane under a quarter of the window is ignored. The side pane has no fixed width range (about 550 pt on a 13-inch iPad in landscape).
   - The location picker is one `.popover` on the location row, which becomes a sheet at compact width. An open picker survives rotation.
   - `ArrangementView` is unused: one canvas view spans every arrangement, so a fold never restarts its animation.
 - **Account and Leaderboard** are list-detail at regular width. Leaderboard's right pane is "Your network" (`your_network`).
@@ -212,9 +212,9 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
   - Saved: sheet and dialog flags, the drawer position, the web-pay page and non-secret fields. Passwords and seed phrases stay unsaved.
   - LoginActivity runs a link only on a fresh create.
 - **Rules.** `ui/components/AdaptiveLayout.kt` chooses by size class and fold, with 22 JVM tests.
-  - A navigation rail only at expanded width outside tabletop. The bottom bar everywhere else, medium width included, as the mockup shows.
+  - A navigation rail only at expanded width, in a window at least 480 dp tall, outside tabletop. The bottom bar everywhere else, medium width and landscape phones included, as the mockup shows.
   - Compact width keeps the phone drawer, capped at the window and at a tabletop fold.
-  - Medium width stacks. Expanded width, or a book posture, goes side by side, split 40/60 (the side pane 300–400 dp) or at the hinge.
+  - Medium width stacks, except in a window under 480 dp tall, which goes side by side. Expanded width, or a book posture, goes side by side, split 40/60 (the side pane 300–400 dp, the main pane at least 240 dp) or at the hinge. A fold under 200 dp from an edge is ignored. Since 2026-10-29 a flat fold splits at the hinge too (below).
   - `isTablet()` and the unused window-size-class library are gone.
 - **Connect.**
   - The drawer becomes the statistics pane (`ConnectPanes.kt`, `ConnectStatsTiles.kt`), and connect moves to the connect pane.
@@ -222,7 +222,7 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
   - The location picker is a dialog over its pane, and turns back into its screen on a fold.
 - **Account and Leaderboard** are list-detail from 600 dp. Leaderboard's right pane is "Your network".
 - **Libraries.** Material 3 Adaptive is held at 1.2.0, using `currentWindowAdaptiveInfo(supportLargeAndXLargeWidth = true)`.
-  - 1.3.0 and `currentWindowAdaptiveInfoV2()` need AGP 9.1 and compileSdk 37, and AGP stays at 8.11.1 for F-Droid.
+  - 1.3.0 and `currentWindowAdaptiveInfoV2()` need AGP 9.1 and compileSdk 37. AGP stays at 8.11.1, the version F-Droid's builder uses, until F-Droid moves it.
   - `SupportingPaneScaffold` is unused because it can't stack panes.
 - **Verified.**
   - The play, F-Droid (github), solana_dapp and ethos_dapp variants compile, and the JVM suite passes.
@@ -274,11 +274,110 @@ These decisions came from reviewing the split-screen mockups. Where they differ 
     2. Submit the "Get your badge" form linked from those guidelines.
     3. Upload tablet screenshots under Store presence › Main store listing. There is no foldable slot.
 
-### Still open
+## Follow-ups built (2026-10-29)
 
-- **Dialogs on the fold.** iOS sheets other than the location picker, and Android's Material AlertDialogs, still open centered, so a half-open fold can split them (item 11).
+### Apple: sheets and overlays off the fold (item 11)
+
+- **Rule.** While the device is partly folded like a book (an active fold running top to bottom), sheets and window-wide overlays go to the trailing pane, where the system moves its own alerts.
+  - If the trailing pane is under a quarter of the window (Split View), they go to the leading pane.
+  - A sheet is no wider than its pane less 16 pt on each side.
+  - Nothing moves without a fold (iPhone, iPad, the Mac, a closed Duo), with a flat hinge, or in tabletop.
+- **Why a fixed side.** Sheets have no source on Apple platforms, and many open without a tap (widget links, purchase results, the onboarding offer). One side keeps alerts, sheets and overlays together, and on the connect screen the statistics pane stays in view beside a sheet opened from it. The kind anchored to its source is the popover, which the system already keeps beside its source (the location picker).
+- **How.**
+  - `sheetOffTheFold` (`Shared/Extensions/FoldPresentation.swift`) replaces all 43 `.sheet` calls. It sets iOS 27's `presentationPlacement` and a pane-capped `presentationSizing`; on the Mac it is a plain sheet.
+  - The window root publishes the placement (`publishesSheetPlacement`), measured inside the safe area, so a sheet never reads its own geometry.
+  - The modifiers sit on a clear background inside the sheet, so a fold never resets the sheet's content or typed text.
+  - `overlayOffTheFold()` keeps both snackbars, the can't-reach banner and the referral celebration in the same pane.
+- **Unchanged.** Alerts, confirmation dialogs, menus, share sheets and popovers, which the system moves; the three full-screen covers, which are the whole window; the pro celebration.
+- **The SDK.** Nothing in the iOS 27.1 SDK places or sizes a presentation by reserved region, and nothing places one vertically. The 27.1 additions (`ArrangementView`, `DeviceHinge`, `UIHingeInteraction`, the vertical-bar toolbar APIs) don't touch presentations.
+- **Verified.** `FoldPresentationTests` (13, including a check that no raw `.sheet(` is left) and `FoldSheetWiringTests` (3: real sheets report trailing or leading, and a plain sheet's placement without a fold). The iPhone and both Mac schemes build. The full iOS suite passed 1,992 of 1,993; the one failure, the load-sensitive `WidgetReloadThrottleTests/cancelDropsAPendingReload`, passes on its own.
+
+### Apple: iPad and Duo simulator lanes (item 7)
+
+- `test-hardware-startup.sh` runs the unit corpus and the startup UI test on two more lanes after the four release lanes, each on a fresh disposable simulator:
+  - `ios-27-ipad`: iPad mini (A17 Pro) on the newest iOS 27 runtime that offers it, the regular-width stand-in for the Duo's inner display;
+  - `ios-27-duo`: iPhone Duo on iOS 27.1, booted closed, so at compact width.
+- A host without a lane's runtime or device type skips the lane, says why, and still passes. These lanes are never downloaded and aren't release coverage. A lane that runs and fails fails the run.
+- The iOS 27.1 runtime offers only the Duo, so installing it had moved the iOS 27 release lane onto the Duo. The release lanes now skip the Duo, in the harness and in the tests repo's runner (`tests/runner/apple`).
+- **Verified:** the harness's own suites pass, and both simulators create, boot and clean up. The harness has no layout assertion: its startup test checks that the app reaches the login field.
+
+### Android: dialogs and sheets off the fold (item 11)
+
+- **Rule** (`foldSafeDialogRegion` in `AdaptiveLayout.kt`, with JVM tests). Only a separating fold moves anything.
+  - Tabletop: the half below the fold, where Google puts a half-open device's controls; with the keyboard up, the half above.
+  - Book: the half the user touched to open it, else the start side, the rule of Google's own hinge-aware dialogs in Flutter (`DisplayFeatureSubScreen`).
+  - Always inside the safe area, keyboard included. A side under 240 dp falls back to the other side.
+- **How.** `FoldSafeDialogs.kt` wraps `AlertDialog`, `BasicAlertDialog`, `Dialog` and `ModalBottomSheet`, and every call site uses the wrappers. Without a fold each makes exactly the call it replaces. Beside a fold the dialog window spans the screen and Material's own card is placed in its half, so Material isn't forked.
+  - `MainNavHost` and `LoginNavHost` record where each touch goes down, for the book rule.
+  - A card dialog open through a fold or an unfold is re-shown in its new place.
+  - The full-screen dialogs (DoH, VLESS, the F-Droid web checkout) keep the window they opened with, so the checkout page never reloads on a posture change.
+  - Sheets beside a book fold take one half; in tabletop they open partly, to the half below the fold.
+- **Unchanged.** Popups and dropdown menus, which open beside their control; the location picker over its pane.
+
+### Android: the flat hinge
+
+- Connect, Account and Leaderboard split at a vertical fold whether it is flat or half open, as iOS does. On a flat Fold in landscape the split had landed about 45 dp before the crease, so the connect pane straddled it.
+- The hinge wins over the 300–400 dp side-pane range. A flat fold under 200 dp from an edge, or one that would leave the main pane under 240 dp, falls back to 40/60. A half-open fold always splits, since a pane across it would bend in two.
+- `WindowLayout` carries the `hinge`, flat or separating; `fold` still means a separating fold only.
+- **Verified:** `AdaptiveLayoutTest` 33/33 (was 22).
+
+### Android: widgets before API 37 (item 15)
+
+- **Density.** Bitmaps draw at the Glance context's `Configuration` density, which equals `WindowMetrics` for an app targeting API 35 and up, and carry it in `Bitmap.density`. Before, they took the device's factory density, so the contract stacks were the wrong size after a display-size change or on a foldable's other display.
+- **Memory.** An update's bitmaps stay under half of Android 17's limit of 6 bytes per display pixel; past that budget every size draws one density lower.
+- **Size.** Dashboard, globe and contracts lose their 624 × 422 dp cap. The dashboard's charts grow with its height, and the globe puts its list beside it when wide and shows the rows that fit at the user's font scale.
+- **Fixed on the way:** the globe list and the contracts grid had hit Glance's limit of ten children per container, which hid providers, cards and the "+N more" line.
+- `SizeMode` stays `Exact`. The slow internet pill keeps `DisplayMetrics`, the only public way to apply Android 14's non-linear font scale.
+- **Verified:** `WidgetScalingTest` 9/9; the full JVM suite (1,851 tests) and all four flavors compile.
+
+### Android: notification text and the Quick Settings tile (item 16)
+
+- **The cover screen shows the notification and the cover widget, not the tile.** Samsung's cover Quick Settings are a fixed set that can't be customized, so the notification text is what reaches the cover.
+- **Notification text.** `VpnNotificationText.kt` composes it as a pure function, with 12 tests. The title gives the status first, so a narrow row cuts the place, never the status.
+  - Connected reads "Protected · Germany" over "3 providers" (the new key `vpn_notification_protected`, 28 locales).
+  - Connecting, couldn't connect and the tunnel down read the tile's status line over the place. Connecting no longer counts providers.
+  - The slow internet swap and its dwell are unchanged.
+- **The tile stays current.** An active tile is bound only when the app asks, and stops listening after each update, so it stayed on "Connecting to providers" after connecting and kept its state after a sign-out. `QuickConnectTileRefresh` now asks again on every sign-in or sign-out and whenever the window or the tunnel changes what it says (7 tests).
+- **Locked, the tile still toggles directly** (the 2026-09-01 decision in QUICKCONNECT.md). Mullvad's tile asks to unlock first; that change is a few lines if wanted. The overview widget's locked toggle does ask to unlock, as designed.
+- **Already matched Mullvad's fixes:** a missing VPN permission and a signed-out device open the app; long-press opens the app; the label is the app name with the status as subtitle.
+
+### Android: keyboard, mouse and stylus (item 14)
+
+- **Against the current guidelines** (updated 2026-10-21, which added Keyboard_Exit), the app meets every Tier 2 and Tier 3 input criterion except Touch_Targets, listed under "Still open". Media playback, send and zoom don't apply.
+- **The root cause on Connect.** The navigation scaffold's black content color drew every ripple, hover and focus layer black on black. It is `onBackground` now, Material's default, so taps on the connect screen show the same light ripple as the other tabs.
+- **Focus.** Focus layers are 20% and hover 12%, and a 2 dp `focusRing` marks the connect graphic, switches, location and peer rows, buttons, sign-in tiles, the globe, the leaderboard thumb and session rows. URSwitch now reads as a switch to TalkBack.
+- **Keyboard.**
+  - One Tab stop per action: the location rows, search, account rows and "change network" each stopped twice.
+  - Hidden swipe actions take focus only once revealed, so Enter can't fire an invisible delete.
+  - The phone-width drawer opens for the control focus moves to.
+  - The leaderboards scroll with the arrows, Page Up and Down, Home, End and Space. The globe steps through providers with Left and Right, and the position thumb moves with the arrows.
+  - Down moves from the location search into the results.
+  - Esc clears the search, leaves fields, cancels a profile rename, and closes the drawer and the full-screen overlays (which Back now closes too).
+  - Hardware keyboards attach and detach without recreating the activities.
+- **Pointer.** Right-click, the Menu key or Shift+F10 opens a context menu: Connect or Disconnect on location and peer rows, and a swipe row's own action (Sessions adds Copy session ID). A mouse wheel opens or closes the phone-width drawer fully instead of leaving it part way.
+- **Shared pieces** are in `ui/components/KeyboardMouseInput.kt`: `focusRing`, `onEscape`, `ContextMenuBox`, `keyboardScrollable`.
+- **Verified:** 32 new JVM tests, the full suite (1,863) and all four flavors. Nothing yet on a device with a keyboard, mouse or stylus.
+
+### Design guide (item 8)
+
+- `mmm/DESIGNSTYLE.md` replaces "Tablet layouts" with "Layout follows the window, not the device", adds "Split layouts", and rewrites "Supported form factors".
+- The rules come from `SplitLayout.swift` and `AdaptiveLayout.kt`: the compact, medium and expanded windows; the rail; the splits, postures and edge guards; the 680 pt drawer as a cap; one window. Dialogs and keyboard input are stated generally.
+- `PARITY.md`'s scene notes now say iOS runs one scene.
+
+## Still open
+
+- **Tabletop sheets on Apple.** SwiftUI reports a centered placement for a plain sheet, even one set to automatic, so sheets may stay centered across a tabletop fold. The remaining lever is UIKit's `sourceView`, through a UIKit bridge, and it needs a real fold to test.
+- **The locked tile.** It toggles directly, as decided on 2026-09-01; the cover widget asks to unlock first. Say if the tile should match.
+- **Two Tier 2 gaps that change layouts.**
+  - A rail at medium width (600–839 dp, tablets in portrait): the agreed design keeps the bottom bar there, while the guideline's example and Material's default use a rail.
+  - Touch targets under 48 dp as drawn: URSwitch (36 × 20 dp), the terms checkbox and the info icon (16 dp), the search clear icon (24 dp). Compose widens their touch area, but the Accessibility Scanner the guideline names measures what's drawn.
+- **Smaller input follow-ups.** The Keyboard Shortcuts Helper (Meta+/) isn't registered; provider-location rows don't yet offer the Apple app's menu (copy client ID, copy extender address, stay on this exit); the drawer handle drags but doesn't click.
+- **The Play large-screen badge.** Check by hand with a keyboard, mouse and stylus; ship to production (the form takes only live apps); upload 4–8 tablet and Chromebook screenshots per device type under Main store listing (16:9 or 9:16, 1,080–7,680 px); then submit "Get your badge" from the guidelines overview. Review takes 4–6 weeks.
 - **Not seen on a device.**
-  - The iPhone Duo's unfolded, tabletop and Split View layouts.
-  - Both overview widgets.
-  - The Samsung cover widget, which needs a Flip.
-- **Deferred:** `ArrangementView` on iOS and Adaptive 1.3.0 on Android, as above.
+  - The iPhone Duo's unfolded, tabletop and Split View layouts, and its sheets off the fold.
+  - Android dialogs and sheets in book and tabletop postures, and the side a touch picks.
+  - Both overview widgets, and the older Android widgets at tablet sizes.
+  - The Samsung cover widget and the shorter notification on a Flip cover.
+  - The tile staying current after connecting and after a sign-out.
+- **A full harness run** with the iPad and Duo lanes, on a host that isn't loaded.
+- **Deferred.** `ArrangementView` on iOS, as above. Adaptive 1.3.0 on Android waits for F-Droid's builder to move past AGP 8.11.1; F-Droid tells us when.

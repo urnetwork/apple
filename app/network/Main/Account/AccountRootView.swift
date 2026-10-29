@@ -369,6 +369,28 @@ struct AccountRootView: View {
                             isSelected: selection == .sessions
                         )
                         .accessibilityIdentifier("acceptance.account.sessions")
+
+                        /**
+                         * API keys: the network's keys for its own apps and
+                         * scripts, each created from a name and shown once,
+                         * and each deleted after a confirmation. Beside
+                         * Sessions, the account's other credentials. A guest
+                         * creates an account first, as for Profile and
+                         * Sessions.
+                         */
+                        AccountNavLink(
+                            name: "API keys",
+                            iconPath: "ur.symbols.api.key",
+                            action: {
+                                if isGuest {
+                                    viewModel.isPresentedCreateAccount = true
+                                } else {
+                                    navigate(.apiKeys)
+                                }
+                            },
+                            isSelected: selection == .apiKeys
+                        )
+                        .accessibilityIdentifier("acceptance.account.apikeys")
                         AccountNavLink(
                             name: "Settings",
                             iconPath: "ur.symbols.sliders",

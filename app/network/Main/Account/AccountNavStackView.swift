@@ -205,6 +205,13 @@ struct AccountNavStackView: View {
                 .navigationTitle("Sessions")
                 .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
 
+        case .apiKeys:
+
+            // the network's API keys, on the account api (no device)
+            ApiKeysView(api: api)
+                .navigationTitle("API keys")
+                .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
         case .settings:
             SettingsView(
                 api: urApiService,

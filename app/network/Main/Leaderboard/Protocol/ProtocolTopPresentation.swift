@@ -325,17 +325,14 @@ enum ProtocolClaimPrompt: Equatable {
     static let closeMargin = 0.20
 
     /**
-     * Only a measurable network projected inside the top 200 is prompted,
-     * and one that has claimed already is not asked to claim. `close` adds
-     * the "close to the line" warning: the label says borderline, or, while
+     * The server decides who is prompted (the contract's claim_prompt: a
+     * measurable network projected inside the top 200 with no active
+     * claimed fleet); the app never works it out itself. `close` adds the
+     * "close to the line" warning: the label says borderline, or, while
      * every row reads "estimate" (Q17), the margin is within 20% of the line.
      */
     static func of(row: SnTopRowInfo?, bindingOpen: Bool) -> ProtocolClaimPrompt {
-        guard let row,
-              row.claimPrompt,
-              row.measurable,
-              1 <= row.position && row.position <= 200,
-              !row.claimed else {
+        guard let row, row.claimPrompt else {
             return .hidden
         }
         let close = isClose(row)

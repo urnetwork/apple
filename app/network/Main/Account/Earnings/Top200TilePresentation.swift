@@ -33,15 +33,26 @@ struct Top200TilePresentation: Equatable {
     let action: Action
 
     /**
-     * The tile for a network that has claimed, or one the Protocol board
-     * prompts to claim: measurable and projected inside the top 200. Any
-     * other network has no tile; the Protocol tab shows where it ranks.
+     * The tile for a network the Protocol board prompts to claim (the
+     * server's claim_prompt), or one that has claimed. Any other network,
+     * and a GET /sn/top/me that failed or is not served yet, has no tile;
+     * the Protocol tab shows where it ranks.
      */
     static func of(_ top: SnTopMeResultInfo?) -> Top200TilePresentation? {
         guard let top, let row = top.me.rankedRow else {
             return nil
         }
         let bindingOpen = top.snapshot.bindingOpen
+        if row.claimPrompt {
+            // a network whose fleets are not active any more is asked again
+            return Top200TilePresentation(
+                position: row.position,
+                label: row.label,
+                margin: row.margin,
+                fleet: nil,
+                action: bindingOpen ? .claim : .claimingSoon
+            )
+        }
         if let fleet = row.fleets.first {
             return Top200TilePresentation(
                 position: row.position,
@@ -51,16 +62,7 @@ struct Top200TilePresentation: Equatable {
                 action: .claimed(signs: bindingOpen)
             )
         }
-        guard ProtocolClaimPrompt.of(row: row, bindingOpen: bindingOpen) != .hidden else {
-            return nil
-        }
-        return Top200TilePresentation(
-            position: row.position,
-            label: row.label,
-            margin: row.margin,
-            fleet: nil,
-            action: bindingOpen ? .claim : .claimingSoon
-        )
+        return nil
     }
 
     /// "#1 of 142 claimed", when the validator's summary ranks the fleet

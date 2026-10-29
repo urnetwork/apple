@@ -17,11 +17,14 @@ struct Top200TilePresentationTests {
 
     private static let enUS = Locale(identifier: "en_US")
 
+    /// `claimPrompt` defaults to the server's rule: measurable, inside the
+    /// top 200 and no active claimed fleet.
     private static func top(
         position: Int,
         margin: Double = 0.12,
         label: SnTopLabel? = .estimate,
         measurable: Bool = true,
+        claimPrompt: Bool? = nil,
         bindingOpen: Bool = false,
         fleets: [SnTopFleetInfo] = []
     ) -> SnTopMeResultInfo {
@@ -32,7 +35,7 @@ struct Top200TilePresentationTests {
                 margin: margin,
                 label: label,
                 measurable: measurable,
-                claimPrompt: measurable && 1 <= position && position <= 200,
+                claimPrompt: claimPrompt ?? (measurable && 1 <= position && position <= 200 && fleets.isEmpty),
                 isMe: true,
                 fleets: fleets
             ))
@@ -66,6 +69,13 @@ struct Top200TilePresentationTests {
         #expect(tile?.action == .claim)
     }
 
+    @Test func aNetworkWhoseFleetsLapsedIsPromptedAgain() {
+        // the server prompts it: the claim flow, not the claimed fleet
+        let tile = Top200TilePresentation.of(Self.top(position: 40, claimPrompt: true, bindingOpen: true, fleets: [Self.fleet]))
+        #expect(tile?.action == .claim)
+        #expect(tile?.fleet == nil)
+    }
+
     @Test func onlyAProjectedTop200NetworkGetsTheTile() {
         #expect(Top200TilePresentation.of(nil) == nil)
         // just outside the line
@@ -88,6 +98,28 @@ struct Top200TilePresentationTests {
         // a claimed network keeps its tile outside the line, where it earns nothing
         let below = Top200TilePresentation.of(Self.top(position: 260, margin: -0.3, label: .unlikely, bindingOpen: true, fleets: [Self.fleet]))
         #expect(below?.action == .claimed(signs: true))
+    }
+
+    /// GET /sn/top/me answers 404 until the server's routes deploy: the
+    /// tile stays away rather than showing broken, and Earnings still loads.
+    @MainActor
+    @Test func aFailedStandingReadLeavesNoTile() async {
+        let client = EarningsPreviewClient(
+            top: nil,
+            epochs: [AccountEpochInfo(epoch: 42, startMillis: 0, endMillis: 1, points: 10, shareBps: 5)]
+        )
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        #expect(viewModel.top200Tile == nil)
+        #expect(viewModel.epochs.count == 1)
+
+        // once it reads, the tile shows; a later failed read keeps it
+        client.topInfo = Self.top(position: 173, bindingOpen: false)
+        await viewModel.refresh()
+        #expect(viewModel.top200Tile?.action == .claimingSoon)
+        client.topInfo = nil
+        await viewModel.refresh()
+        #expect(viewModel.top200Tile?.action == .claimingSoon)
     }
 
     @Test func aFleetTheValidatorHasNotRankedHasNoRankLine() {

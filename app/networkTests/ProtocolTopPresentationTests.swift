@@ -132,19 +132,24 @@ struct ProtocolTopPresentationTests {
         #expect(ProtocolClaimPrompt.of(row: inside, bindingOpen: false) == .soon(close: false))
     }
 
-    @Test func onlyAMeasurableNetworkInsideTheTop200IsPrompted() {
+    @Test func theServersFlagAloneDecidesThePrompt() {
         #expect(ProtocolClaimPrompt.of(row: nil, bindingOpen: true) == .hidden)
+        // outside the line, or not measurable: the server leaves it false
         #expect(ProtocolClaimPrompt.of(row: Self.row(201, margin: -0.01), bindingOpen: true) == .hidden)
         #expect(ProtocolClaimPrompt.of(row: Self.row(150, label: .notMeasurable, measurable: false), bindingOpen: true) == .hidden)
-        // the server's flag decides as well
+        // inside the line without the flag is not prompted either
         #expect(ProtocolClaimPrompt.of(row: Self.row(150, claimPrompt: false), bindingOpen: true) == .hidden)
-        // an unranked network
-        #expect(ProtocolClaimPrompt.of(row: Self.row(0, claimPrompt: true), bindingOpen: true) == .hidden)
+        #expect(ProtocolClaimPrompt.of(row: Self.row(150, margin: 0.3, claimPrompt: true), bindingOpen: true) == .claim(close: false))
     }
 
-    @Test func aNetworkThatClaimedIsNotAskedToClaim() {
-        let claimed = Self.row(12, margin: 0.9, fleets: [SnTopFleetInfo(uid: 81)])
+    @Test func aNetworkIsAskedToClaimAgainOnlyWhenTheServerSays() {
+        // an active claimed fleet: the server leaves the flag false
+        let claimed = Self.row(12, margin: 0.9, claimPrompt: false, fleets: [SnTopFleetInfo(uid: 81)])
         #expect(ProtocolClaimPrompt.of(row: claimed, bindingOpen: true) == .hidden)
+        // fleets that are not active any more: the server prompts again,
+        // and the app does not second-guess it
+        let lapsed = Self.row(12, margin: 0.9, claimPrompt: true, fleets: [SnTopFleetInfo(uid: 81)])
+        #expect(ProtocolClaimPrompt.of(row: lapsed, bindingOpen: true) == .claim(close: false))
     }
 
     @Test func closeToTheLineAddsItsWarning() {

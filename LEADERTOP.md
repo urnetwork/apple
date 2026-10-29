@@ -158,8 +158,9 @@ It uses the apps' dark theme. It illustrates the layout; the stored strings and 
 
 Rules the reference implementation settled where the design leaves room. The other apps should match them.
 
-- **Claim prompt:** shown only for a row the server flags `claim_prompt` that is also measurable and at positions 1–200, and never for a network that has already claimed. The close-to-the-line line shows when the label is borderline, or, while labels read "estimate", when the margin is within ±20%.
-- **Earnings tile:** shown for a network the board prompts to claim, or for one that has claimed (at any position), and hidden otherwise. Its margin is signed: "+12%", "−8%".
+- **Claim prompt:** shown exactly when the row's `claim_prompt` flag is true. The server sets it for a measurable network at positions 1–200 with no active claimed fleet, and the app never works it out itself. The close-to-the-line line shows when the label is borderline, or, while labels read "estimate", when the margin is within ±20%.
+- **Earnings tile:** shows the claim flow when the server prompts the network, its claimed fleet when it has one (at any position), and nothing otherwise, including while `GET /sn/top/me` fails or isn't served. Its margin is signed: "+12%", "−8%".
+- **Incentive:** a fraction from 0 to 1, shown as a percent with one decimal: 0.018 is "1.8%".
 - **Card header:** the network's name while "Show my network name" is on, else "Anonymous". The switch is the Points board's own. Until the snapshot carries a name just turned on, the session's name stands in.
 - **Signed out:** the public list only, with no card. Apple shows no sign-in prompt, since its tabs exist only in a session and there is no key for one.
 - **Paging:**

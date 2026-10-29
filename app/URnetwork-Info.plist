@@ -46,7 +46,7 @@
 		<string>phantom</string>
 	</array>
 	<!-- WalletConnect Cloud project id for the Bittensor WalletConnect wallet
-	     (Nova, Nightly, ...), passed to ur.io/bittensor-connect as wc_project_id
+	     (Nova, Nightly, ...), passed to ur.io/wallet-connect as wc_project_id
 	     by BittensorWalletConnector. When empty, the page uses its own
 	     configured id. -->
 	<key>URWalletConnectProjectId</key>

@@ -37,11 +37,52 @@ private func consentMessage(for coldkey: String) -> String {
     "Approve URnetwork network wallet mapping\n{\"schema\":\"urnetwork-network-wallet-mapping-consent-v1\",\"scope\":\"network\",\"coldkey\":\"\(coldkey)\",\"nonce\":\"q+1&w=2%3/e r\",\"issued_at\":1757340000,\"expires_at\":1757340300,\"from_epoch\":43,\"through_epoch\":65578}"
 }
 
+/// A consent message the real SDK session takes: the canonical statement, in
+/// the shape of the SDK's fixture (sn/protocol/testdata/
+/// network-consent-challenge-v1.json), for a dev account's coldkey and this
+/// file's epochs and times. Since sdk 45e6c4a4 the session decodes the
+/// statement and binds its coldkey to the challenge's, so it refuses
+/// consentMessage(for:). The scripted session takes any text, and the other
+/// tests keep that message for its query-string characters.
+private func canonicalConsentMessage(for coldkey: String) -> String {
+    // the sr25519 public keys the dev accounts' SS58 addresses encode
+    let publicKeys = [
+        alice: "d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+        bob: "8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
+    ]
+    let hex = Array(publicKeys[coldkey] ?? "")
+    let coldkeyBytes = stride(from: 0, to: hex.count, by: 2).map { UInt8(String(hex[$0...$0 + 1]), radix: 16) ?? 0 }
+    // Go encodes a byte array as a JSON array of numbers
+    func bytes(_ values: [UInt8]) -> String {
+        "[" + values.map { String($0) }.joined(separator: ",") + "]"
+    }
+    let idPrefix = [UInt8](repeating: 0, count: 14)
+    let issuedAt = consentNowMillis / 1000
+    // the fields in the statement's order, which its canonical form keeps
+    let fields = [
+        "\"schema\":\"urnetwork-network-wallet-mapping-consent-v1\"",
+        "\"scope\":\"network\"",
+        "\"domain\":{\"chain_id\":964,\"netuid\":25}",
+        "\"user_id\":" + bytes(idPrefix + [176, 1]),
+        "\"network_id\":" + bytes(idPrefix + [160, 1]),
+        "\"coldkey\":" + bytes(coldkeyBytes),
+        "\"generation\":1",
+        "\"previous_hash\":" + bytes([UInt8](repeating: 0, count: 32)),
+        "\"nonce\":" + bytes(Array(208...239)),
+        "\"issued_at\":\(issuedAt)",
+        "\"expires_at\":\(issuedAt + 300)",
+        "\"from_epoch\":\(currentEpoch + 1)",
+        "\"through_epoch\":\(currentEpoch + 1 + 65535)",
+        "\"prospective\":{\"boundary\":{\"epoch\":\(currentEpoch)}}",
+    ]
+    return "Approve URnetwork network wallet mapping\n{" + fields.joined(separator: ",") + "}"
+}
+
 /// A challenge as SnNetworkConsentChallenge returns it: from the next epoch,
 /// until changed, for 300 s.
-private func consentChallenge(_ coldkey: String) -> SdkSnNetworkConsentChallengeResult {
+private func consentChallenge(_ coldkey: String, message: String) -> SdkSnNetworkConsentChallengeResult {
     let result = SdkSnNetworkConsentChallengeResult()
-    result.message = consentMessage(for: coldkey)
+    result.message = message
     result.coldkeySs58 = coldkey
     result.fromEpoch = currentEpoch + 1
     result.throughEpoch = currentEpoch + 1 + 65535
@@ -73,6 +114,8 @@ private final class FakeConsentClient: NetworkConsentClient {
     var submitError: Error?
     /// runs in challenge() after the call is recorded, before it returns
     var beforeChallengeReturns: () async -> Void = {}
+    /// the message a challenge carries for a coldkey
+    var messageFor: (String) -> String = { consentMessage(for: $0) }
 
     private(set) var challengeRequests: [String] = []
     private(set) var issued: [SdkSnNetworkConsentChallengeResult] = []
@@ -95,7 +138,7 @@ private final class FakeConsentClient: NetworkConsentClient {
         if let challengeError {
             throw challengeError
         }
-        let result = consentChallenge(coldkeySs58)
+        let result = consentChallenge(coldkeySs58, message: messageFor(coldkeySs58))
         issued.append(result)
         return result
     }
@@ -163,7 +206,7 @@ private final class ScriptedConsentSession: BittensorWalletSessioning {
     func setWalletConnectProjectId(_ projectId: String) {}
 
     func bridgeUrl() throws -> String {
-        "https://ur.io/bittensor-connect?purpose=\(purpose)"
+        "https://ur.io/wallet-connect?provider=bittensor&purpose=\(purpose)"
     }
 
     func isReturn(_ uri: String) -> Bool {
@@ -619,9 +662,11 @@ struct NetworkConsentFlowTests {
     // a fresh state. The success hand-back carries the address, the
     // signature, the purpose, the state unchanged and the bytes' SHA-256, and
     // no message. One for other bytes completes nothing and leaves the
-    // session waiting; the one for these bytes goes back as issued.
+    // session waiting; the one for these bytes goes back as issued. The real
+    // session takes only a canonical statement for the coldkey asked for.
     @Test func theRealSessionCarriesTheServersMessageToTheWallet() async throws {
         let client = FakeConsentClient()
+        client.messageFor = { canonicalConsentMessage(for: $0) }
         let recorder = WalletRecorder()
         let connector = BittensorWalletConnector(
             platform: SdkBittensorWalletPlatformMacos,
@@ -644,8 +689,12 @@ struct NetworkConsentFlowTests {
         let opened = try #require(recorder.opened.first)
         let components = try #require(URLComponents(url: opened, resolvingAgainstBaseURL: false))
         let query = Self.formValues(components.percentEncodedQuery)
+        // the bridge page both chains share, in its Bittensor mode (sdk ef5aab2a)
+        #expect(components.host == "ur.io")
+        #expect(components.path == "/wallet-connect")
+        #expect(query["provider"] == "bittensor")
         #expect(query["message"] == nil)
-        #expect(components.percentEncodedFragment == "message=" + Self.base64Url(consentMessage(for: alice)))
+        #expect(components.percentEncodedFragment == "message=" + Self.base64Url(canonicalConsentMessage(for: alice)))
         #expect(query["purpose"] == SdkBittensorWalletPurposeConsent)
         #expect(query["wallet"] == SdkBittensorWalletTalisman)
         #expect(query["address"] == alice)
@@ -662,12 +711,12 @@ struct NetworkConsentFlowTests {
                 "wallet": SdkBittensorWalletTalisman,
             ])
         }
-        await connector.handleBridgeReturn(handBack(signed: consentMessage(for: bob)))
+        await connector.handleBridgeReturn(handBack(signed: canonicalConsentMessage(for: bob)))
         #expect(client.submissions.isEmpty)
         #expect(flow.stage == .signing)
 
-        await connector.handleBridgeReturn(handBack(signed: consentMessage(for: alice)))
-        #expect(client.submissions == [Submission(coldkeySs58: alice, message: consentMessage(for: alice), signature: consentSignature)])
+        await connector.handleBridgeReturn(handBack(signed: canonicalConsentMessage(for: alice)))
+        #expect(client.submissions == [Submission(coldkeySs58: alice, message: canonicalConsentMessage(for: alice), signature: consentSignature)])
         #expect(flow.status == .active(coldkeySs58: alice))
     }
 

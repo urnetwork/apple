@@ -6,7 +6,7 @@
 
 **What it doesn't cover:** the ranking, the data and the API. Those are in [server/LEADERTOP.md](https://github.com/urnetwork/server/blob/main/LEADERTOP.md), and the Q numbers below are its design questions.
 
-**Mockup:** the "Protocol leaderboard" design canvas (§11).
+**Mockup:** the "Protocol leaderboard" design canvas, https://claude.ai/artifact/5yk5iLFfT1HAnCke8q8krx (private to the owner until shared; §11).
 
 ## 1. Purpose
 

@@ -11,6 +11,7 @@ import URnetworkSdk
 enum AccountNavigationPath: Hashable {
     case profile
     case sessions
+    case apiKeys
     case settings
     case earnings
     /// Earnings › Top 200 › Sign fleet binding, with the app link that opened it, if any

@@ -65,7 +65,7 @@ struct SplitTunnelAppsSection: View {
         .task {
             await scanApplications()
         }
-        .sheet(isPresented: $isPresentingPicker) {
+        .sheetOffTheFold(isPresented: $isPresentingPicker) {
             SplitTunnelAppPickerView(applications: applications)
                 .environmentObject(themeManager)
                 .environmentObject(blockActionsStore)

@@ -197,7 +197,7 @@ struct PointsLeaderboardTab: View {
         .onDisappear {
             store.close(.pointsTab)
         }
-        .sheet(isPresented: $showEmojiSheet) {
+        .sheetOffTheFold(isPresented: $showEmojiSheet) {
             EmojiTagSheet(
                 currentTag: store.emojiTag,
                 isSaving: store.isSavingEmojiTag,

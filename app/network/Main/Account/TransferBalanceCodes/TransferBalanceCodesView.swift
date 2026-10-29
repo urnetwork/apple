@@ -117,7 +117,7 @@ struct TransferBalanceCodesView: View {
                         }
                     }
                 }
-                .sheet(isPresented: $viewModel.displayRedeemSheet) {
+                .sheetOffTheFold(isPresented: $viewModel.displayRedeemSheet) {
                     VStack {
                         
                         RedeemBalanceCodeSheet(

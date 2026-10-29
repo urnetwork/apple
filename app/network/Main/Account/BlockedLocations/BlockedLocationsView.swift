@@ -136,7 +136,7 @@ struct BlockedLocationsView: View {
         .refreshable {
             await viewModel.fetchBlockedLocations()
         }
-        .sheet(isPresented: $viewModel.displayProviderSheet) {
+        .sheetOffTheFold(isPresented: $viewModel.displayProviderSheet) {
             
             #if os(macOS)
             

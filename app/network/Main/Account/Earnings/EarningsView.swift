@@ -228,7 +228,7 @@ struct EarningsView: View {
         .onOpenURL { url in
             handleDeepLink(url)
         }
-        .sheet(isPresented: $presentConnectSheet, onDismiss: {
+        .sheetOffTheFold(isPresented: $presentConnectSheet, onDismiss: {
             connectFlow.reset()
         }) {
             ConnectBittensorWalletSheet(
@@ -243,7 +243,7 @@ struct EarningsView: View {
             .frame(minWidth: 460, minHeight: 320)
             #endif
         }
-        .sheet(isPresented: $presentSolanaSheet, onDismiss: {
+        .sheetOffTheFold(isPresented: $presentSolanaSheet, onDismiss: {
             solanaFlow.reset()
         }) {
             ConnectSolanaWalletSheet(
@@ -288,7 +288,7 @@ struct EarningsView: View {
             // line for both
             Text("USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one.")
         }
-        .sheet(isPresented: $presentClaimSheet) {
+        .sheetOffTheFold(isPresented: $presentClaimSheet) {
             ClaimAlphaSheet(
                 viewModel: viewModel,
                 dismiss: { presentClaimSheet = false }
@@ -301,7 +301,7 @@ struct EarningsView: View {
             .frame(minWidth: 480, minHeight: 560)
             #endif
         }
-        .sheet(isPresented: $presentLedgerClaimSheet) {
+        .sheetOffTheFold(isPresented: $presentLedgerClaimSheet) {
             ClaimLedgerSheet(
                 viewModel: viewModel,
                 dismiss: { presentLedgerClaimSheet = false }
@@ -314,7 +314,7 @@ struct EarningsView: View {
             .frame(minWidth: 480, minHeight: 560)
             #endif
         }
-        .sheet(isPresented: $presentConsentSheet, onDismiss: {
+        .sheetOffTheFold(isPresented: $presentConsentSheet, onDismiss: {
             consentFlow.reset()
         }) {
             NetworkConsentSheet(

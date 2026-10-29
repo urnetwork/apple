@@ -139,7 +139,7 @@ struct CreateNetworkInstantView: View {
             .environmentObject(themeManager)
         }
         #elseif os(macOS)
-        .sheet(item: $accountResult) { result in
+        .sheetOffTheFold(item: $accountResult) { result in
             SeedphraseDisplayView(
                 seedphrase: result.seedphrase,
                 onConfirmed: { _ in

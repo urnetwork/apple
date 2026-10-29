@@ -108,7 +108,7 @@ struct PostQuantumIdentityPanel: View {
         .onDisappear {
             store.reset()
         }
-        .sheet(isPresented: $isPresentedShareSheet) {
+        .sheetOffTheFold(isPresented: $isPresentedShareSheet) {
             if let ownRow = store.ownIdentityRow {
                 PostQuantumIdentityShareSheet(row: ownRow)
             }

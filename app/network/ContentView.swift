@@ -123,6 +123,8 @@ struct ContentView: View {
             
             UrSnackBar(message: snackbarManager.message, isVisible: snackbarManager.isVisible, onTap: snackbarManager.dismiss)
                 .padding(.bottom, 50)
+                // one pane while a fold divides the window (apple/DUO.md item 11)
+                .overlayOffTheFold()
 
             // Present only in acceptance builds.  XCUITest asserts this
             // compile-time marker before touching credentials, which prevents

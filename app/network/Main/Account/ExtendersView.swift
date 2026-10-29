@@ -196,7 +196,7 @@ struct ExtendersView: View {
         .onDisappear {
             store.reset()
         }
-        .sheet(item: $presentedSheet) { sheet in
+        .sheetOffTheFold(item: $presentedSheet) { sheet in
             Group {
                 switch sheet {
                 case .share:

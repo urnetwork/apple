@@ -165,7 +165,7 @@ struct LoginInitialView: View {
             } message: {
                 Text("No Solana wallets were found installed on this device. Please install a wallet and try again.")
             }
-            .sheet(isPresented: $viewModel.presentSigninWithSolanaSheet) {
+            .sheetOffTheFold(isPresented: $viewModel.presentSigninWithSolanaSheet) {
                 
                 SolanaSignMessageSheet(
                     isSigningMessage: viewModel.isSigningMessage,
@@ -192,7 +192,7 @@ struct LoginInitialView: View {
                 #endif
                 
             }
-            .sheet(isPresented: Binding(
+            .sheetOffTheFold(isPresented: Binding(
                 get: { viewModel.bittensorConnector.isActive },
                 set: { presented in
                     if !presented {
@@ -250,7 +250,7 @@ struct LoginInitialView: View {
                 }
             }
         }
-        .sheet(isPresented: $presentNetworkServerSheet) {
+        .sheetOffTheFold(isPresented: $presentNetworkServerSheet) {
             NetworkServerSheet(
                 initialHostName: deviceManager.activeHostName,
                 currentApiUrl: deviceManager.activeApiUrl,

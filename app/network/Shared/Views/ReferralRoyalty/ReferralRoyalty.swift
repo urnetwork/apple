@@ -310,6 +310,9 @@ struct ReferralCelebrationOverlay: View {
                 .frame(maxWidth: 400)
                 .frame(maxWidth: .infinity)
             }
+            // the column keeps to one pane while a fold divides the window
+            // (apple/DUO.md item 11); the backdrop still covers it all
+            .overlayOffTheFold()
 
             VStack {
                 HStack {

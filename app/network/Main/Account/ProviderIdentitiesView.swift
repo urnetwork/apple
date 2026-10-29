@@ -57,7 +57,7 @@ struct ProviderIdentitiesView: View {
         }
         // the identity details sheet for a tapped peer identicon — the same
         // sheet the panel opens for this device's own identicon
-        .sheet(item: $presentingRow) { row in
+        .sheetOffTheFold(item: $presentingRow) { row in
             PostQuantumIdentityShareSheet(row: row)
         }
 

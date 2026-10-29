@@ -205,7 +205,7 @@ struct MainNavigationSplitView: View {
                 }
             }
         }
-        .sheet(
+        .sheetOffTheFold(
             isPresented: $displayIntroduction,
             // a sheet the system dismisses, Escape included, still counts as finished
             onDismiss: {
@@ -308,7 +308,7 @@ struct MainNavigationSplitView: View {
                 subscriptionBalanceViewModel.startPolling()
             }
         }
-        .sheet(isPresented: $presentOnboardingOffer) {
+        .sheetOffTheFold(isPresented: $presentOnboardingOffer) {
             // a legacy guest adds a sign-in method to this network first
             GuestPurchaseGate(urApiService: urApiService) {
                 OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })

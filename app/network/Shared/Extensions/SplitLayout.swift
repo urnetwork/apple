@@ -5,9 +5,11 @@
 //  The window rules of the split screens (apple/DUO.md, "Design direction
 //  agreed after this research"): which arrangement the connect screen takes
 //  for the window it gets, where a split puts its two panes (at the fold of a
-//  foldable, else 40/60 side by side and 50/50 stacked), and how far the
-//  connect canvas and the phone drawer give way in a short window. Pure
-//  geometry, so every rule is testable without a window.
+//  foldable, else 40/60 side by side and 50/50 stacked), how far the connect
+//  canvas and the phone drawer give way in a short window, and which pane a
+//  sheet or a window-wide overlay moves into while the device is partly
+//  folded (DUO.md item 11). Pure geometry, so every rule is testable without
+//  a window.
 //
 
 import CoreGraphics
@@ -55,6 +57,29 @@ struct SplitPanes: Equatable {
 struct CanvasPlacement: Equatable {
     var canvasSide: CGFloat
     var bottomSpacer: CGFloat
+}
+
+/// A side of a fold that runs top to bottom through the window, in the
+/// layout direction (leading is the right side in a right-to-left language).
+enum FoldSide: Equatable {
+    case leading
+    case trailing
+}
+
+/// The pane a presentation that would cross the fold moves into: one side of
+/// it, and that side's frame in the window's coordinates, the fold and its
+/// margins left out.
+struct FoldPresentationPane: Equatable {
+    var side: FoldSide
+    var frame: CGRect
+}
+
+/// Where a sheet goes while the fold divides the window like a book: the side
+/// the system places it on (`presentationPlacement`), and the widest it can
+/// be there without reaching the fold.
+struct SheetPlacement: Equatable {
+    var side: FoldSide
+    var maxWidth: CGFloat
 }
 
 enum SplitLayout {
@@ -230,5 +255,73 @@ enum SplitLayout {
             canvasSide: side,
             bottomSpacer: max(0, height - top - bottom)
         )
+    }
+}
+
+// MARK: presentations off the fold
+
+extension SplitLayout {
+
+    /// What a sheet moved into a pane keeps clear on each side of it, from
+    /// the window's edge and from the fold's own margins: room for the
+    /// margins the system places a sheet within.
+    static let sheetPaneMargin: CGFloat = 16
+
+    /// The pane a sheet, or an overlay as wide as the window, moves into
+    /// while the device is partly folded like a book, the fold running top
+    /// to bottom between two panes: the trailing pane, the side the system
+    /// moves its own alerts to in that pose, unless the fold leaves it
+    /// narrower than a pane can be, then the leading one.
+    ///
+    /// Nil leaves a presentation where it is today:
+    /// - no fold: iPhone, iPad, the Mac, a closed iPhone Duo;
+    /// - a flat hinge: inactive, nothing to straddle. The system centers
+    ///   sheets on the open inner display, and they move when it folds, as
+    ///   the system's alerts do;
+    /// - a fold across the window (tabletop): a sheet has no vertical
+    ///   placement, so the system places it, and the window-wide overlays
+    ///   already sit at the top or the bottom edge, each in one pane;
+    /// - a fold outside the window, or one that leaves no pane wide enough.
+    static func presentationPane(size: CGSize, fold: WindowFold?) -> FoldPresentationPane? {
+        guard let fold, fold.isActive, fold.isVertical,
+              0 < size.width, fold.frame.minX < size.width, 0 < fold.frame.maxX else {
+            return nil
+        }
+        let minimumWidth = size.width * minimumPaneFraction
+        let trailingWidth = size.width - fold.frame.maxX
+        if minimumWidth <= trailingWidth {
+            return FoldPresentationPane(
+                side: .trailing,
+                frame: CGRect(x: fold.frame.maxX, y: 0, width: trailingWidth, height: size.height)
+            )
+        }
+        let leadingWidth = fold.frame.minX
+        if minimumWidth <= leadingWidth {
+            return FoldPresentationPane(
+                side: .leading,
+                frame: CGRect(x: 0, y: 0, width: leadingWidth, height: size.height)
+            )
+        }
+        return nil
+    }
+
+    /// Where a sheet goes while the fold divides the window like a book: its
+    /// pane's side, at most the pane's width less a margin on each side. Nil
+    /// leaves the sheet where the system puts it today.
+    static func sheetPlacement(size: CGSize, fold: WindowFold?) -> SheetPlacement? {
+        guard let pane = presentationPane(size: size, fold: fold) else {
+            return nil
+        }
+        return SheetPlacement(
+            side: pane.side,
+            maxWidth: max(0, pane.frame.width - 2 * sheetPaneMargin)
+        )
+    }
+
+    /// The frame an overlay as wide as the window keeps (the snackbar, the
+    /// can't-reach banner, the referral celebration's column): its pane
+    /// while the fold divides the window like a book, else the whole window.
+    static func overlayFrame(size: CGSize, fold: WindowFold?) -> CGRect {
+        presentationPane(size: size, fold: fold)?.frame ?? CGRect(origin: .zero, size: size)
     }
 }

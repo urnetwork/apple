@@ -221,7 +221,7 @@ struct MainTabView: View {
             selectedTab = 1
             deepLinkRouter.pushAccount(.top200Sign(link))
         }
-        .sheet(isPresented: $presentOnboardingOffer) {
+        .sheetOffTheFold(isPresented: $presentOnboardingOffer) {
             // a legacy guest adds a sign-in method to this network first
             GuestPurchaseGate(urApiService: urApiService) {
                 OnboardingOfferSheet(dismiss: { presentOnboardingOffer = false })
@@ -271,6 +271,7 @@ struct MainTabView: View {
                     onTap: snackbarManager.dismiss
                 )
                 .padding(.bottom, 50)
+                .overlayOffTheFold()
 
             }
             .presentationBackgroundIfAvailable(themeManager.currentTheme.backgroundColor)

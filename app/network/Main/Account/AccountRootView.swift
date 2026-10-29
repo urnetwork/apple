@@ -580,7 +580,7 @@ struct AccountRootView: View {
         #endif
         // "About your data", from the usage bar's info button
         .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
-        .sheet(isPresented: $viewModel.isPresentedRedeemBalanceCodeSheet) {
+        .sheetOffTheFold(isPresented: $viewModel.isPresentedRedeemBalanceCodeSheet) {
             
             VStack {
              
@@ -611,7 +611,7 @@ struct AccountRootView: View {
             .background(themeManager.currentTheme.backgroundColor)
             
         }
-        .sheet(isPresented: $viewModel.balanceCodeRedeemed) {
+        .sheetOffTheFold(isPresented: $viewModel.balanceCodeRedeemed) {
             BalanceCodeRedeemedView(redeemed: viewModel.redeemedBalanceCode, dismiss: {
                 viewModel.balanceCodeRedeemed = false
             })
@@ -629,7 +629,7 @@ struct AccountRootView: View {
             }
         }
         #endif
-        .sheet(isPresented: $viewModel.isPresentedUpgradeSheet) {
+        .sheetOffTheFold(isPresented: $viewModel.isPresentedUpgradeSheet) {
             // the plans, the purchase and the per-attempt state come from the
             // build's SubscriptionStore: StoreKit here is exactly the
             // AppStoreSubscriptionManager path it always was; the
@@ -721,7 +721,7 @@ struct AccountRootView: View {
         #if os(iOS)
         // a legacy guest converts in place (see GuestAccount): a sign-in
         // method is added to THIS network, so its plan and balance stay
-        .sheet(isPresented: $viewModel.isPresentedCreateAccount) {
+        .sheetOffTheFold(isPresented: $viewModel.isPresentedCreateAccount) {
             createAccountSheet
         }
         .toolbar {
@@ -740,7 +740,7 @@ struct AccountRootView: View {
         #if os(macOS)
         // a legacy guest converts in place (see GuestAccount): a sign-in
         // method is added to THIS network, so its plan and balance stay
-        .sheet(isPresented: $viewModel.isPresentedCreateAccount) {
+        .sheetOffTheFold(isPresented: $viewModel.isPresentedCreateAccount) {
             createAccountSheet
                 .frame(minWidth: 520, minHeight: 620)
         }

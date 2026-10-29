@@ -205,15 +205,17 @@ struct TunnelDiagnosticLogTests {
     }
 
     // the extension writes through the sdk's LogAppInfo, the only way into the
-    // uploaded logs: the start lines at each start, and the path once it
-    // settles, usable or not
+    // uploaded logs: the start lines at each start, the path once it settles,
+    // usable or not, and on iOS the settled path again when only its radio
+    // type or Wi-Fi bars change (7e35a706 moved those out of the settle timer
+    // that wrote their line), all through the one line filter
     @Test func theExtensionWritesTheLinesThroughTheSdkLog() throws {
         let text = try Self.source("extension/PacketTunnelProvider.swift")
         #expect(text.contains("sdkLog: { tag, line in SdkLogAppInfo(tag, line) }"))
         #expect(text.contains(#"line: "start source=\(TunnelIntentStore.startSource(options: options))""#))
         #expect(text.contains("line: tunnelNetworkCountryLogLine(platformHasCellular: platformHasCellular)"))
         #expect(text.contains("TunnelDiagnosticLineFilter(limit: TunnelDiagnosticLog.pathLineLimit)"))
-        #expect(text.components(separatedBy: "writePathLine(diagnostic)").count - 1 == 2)
+        #expect(text.components(separatedBy: "writePathLine(diagnostic)").count - 1 == 3)
     }
 
     // the app and the widget name themselves when they start the tunnel, so a

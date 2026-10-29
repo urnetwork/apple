@@ -116,7 +116,7 @@ struct GuestPurchaseGate<Checkout: View>: View {
                 isPresentedConversion = true
             }
         }
-        .sheet(
+        .sheetOffTheFold(
             isPresented: $isPresentedConversion,
             onDismiss: {
                 if GuestAccount.conversionClosed(signInMethodAdded: signInMethodAdded) == .closePurchase {

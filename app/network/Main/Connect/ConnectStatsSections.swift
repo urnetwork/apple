@@ -426,7 +426,7 @@ struct ConnectStatsSheets: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(item: $presentedStatsSheet) { sheet in
+            .sheetOffTheFold(item: $presentedStatsSheet) { sheet in
                 Group {
                     switch sheet {
                     case .clientContracts:

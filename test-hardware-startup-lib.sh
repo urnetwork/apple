@@ -26,6 +26,9 @@ apple_ios_runtime_major_available() {
   local inventory="$1" major="$2"
   case "$major" in ''|*[!0-9]*) return 2 ;; esac
 
+  # A release lane runs on an ordinary iPhone. The iPhone Duo has the phone
+  # family but its own form-factor lane, and the iOS 27.1 runtime offers no
+  # other device; the Duo must neither satisfy nor replace a release's iPhone.
   jq -e --argjson major "$major" '
     def runtime_major:
       .version
@@ -46,6 +49,7 @@ apple_ios_runtime_major_available() {
         and (.name | startswith("iPhone"))
         and (.identifier | type) == "string"
         and (.identifier | test("^com\\.apple\\.CoreSimulator\\.SimDeviceType\\.[A-Za-z0-9-]+$"))
+        and (.identifier | startswith("com.apple.CoreSimulator.SimDeviceType.iPhone-Duo") | not)
       )
     )
   ' "$inventory" >/dev/null
@@ -95,6 +99,10 @@ apple_ios_download_missing_simulator_runtimes() {
   done <<<"$missing_downloads"
 }
 
+# Each release lane takes the newest runtime of its major that offers an
+# ordinary iPhone, then the first ordinary iPhone that runtime lists. As above,
+# the iPhone Duo is excluded: apple_ios_write_form_factor_simulator_plan
+# plans it.
 apple_ios_write_simulator_runtime_plan() {
   local inventory="$1" plan="$2" temporary defer_ios_17_2="${3:-0}"
   case "$defer_ios_17_2" in 0|1) ;; *) return 2 ;; esac
@@ -137,6 +145,7 @@ apple_ios_write_simulator_runtime_plan() {
             and (.name | startswith("iPhone"))
             and (.identifier | type) == "string"
             and (.identifier | test("^com\\.apple\\.CoreSimulator\\.SimDeviceType\\.[A-Za-z0-9-]+$"))
+            and (.identifier | startswith("com.apple.CoreSimulator.SimDeviceType.iPhone-Duo") | not)
           )
       ];
 
@@ -209,12 +218,181 @@ apple_ios_runtime_plan_supports_deployment_target() {
   ' "$plan" >/dev/null
 }
 
+# Form-factor lanes run both corpora again on an iPad and on the iPhone Duo.
+# Each pins one device type and takes the newest runtime of its release major
+# that supports it. They provision nothing and stay out of the release
+# coverage: a lane whose runtime or device type is missing is planned as
+# skipped with its reason, and the release lanes alone decide the result. A
+# planned form-factor lane that fails still fails the run.
+#
+# simctl and XCUITest cannot unfold the Duo, so its lane runs closed: the outer
+# display has ordinary iPhone size classes, compact width. The iPad mini is the
+# regular-width stand-in for the Duo's unfolded inner display.
+apple_ios_write_form_factor_simulator_plan() {
+  local inventory="$1" plan="$2" temporary
+  temporary="${plan}.tmp"
+  [ ! -L "$plan" ] || return 2
+  [ ! -e "$temporary" ] || return 2
+
+  if ! jq -e '
+    def form_factors:
+      [
+        {identifier: "ios-27-ipad", formFactor: "iPad", requestedRelease: "27",
+          major: 27, productFamily: "iPad",
+          deviceTypeIdentifier: "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro"},
+        {identifier: "ios-27-duo", formFactor: "iPhone Duo", requestedRelease: "27",
+          major: 27, productFamily: "iPhone",
+          deviceTypeIdentifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo"}
+      ];
+    def parsed_version:
+      .version
+      | capture("^(?<major>[0-9]+)\\.(?<minor>[0-9]+)(?:\\.(?<patch>[0-9]+))?$")
+      | [
+          (.major | tonumber),
+          (.minor | tonumber),
+          ((.patch // "0") | tonumber)
+        ];
+    def valid_runtime:
+      .platform == "iOS"
+      and .isAvailable == true
+      and (.version | type) == "string"
+      and (try parsed_version catch null) != null
+      and (.buildversion | type) == "string"
+      and (.buildversion | test("^[A-Za-z0-9]+$"))
+      and (.identifier | type) == "string"
+      and (.identifier | test("^com\\.apple\\.CoreSimulator\\.SimRuntime\\.iOS-[0-9-]+$"))
+      and (.supportedDeviceTypes | type) == "array";
+    def pinned_device_type($lane):
+      [
+        .supportedDeviceTypes[]
+        | select(
+            .identifier == $lane.deviceTypeIdentifier
+            and .productFamily == $lane.productFamily
+            and (.name | type) == "string"
+            and (.name | length) > 0
+          )
+      ] | first;
+
+    if type != "object" or (.runtimes | type) != "array" then
+      error("simctl runtime inventory is malformed")
+    else . end
+    | .runtimes as $runtimes
+    | [
+        form_factors[] as $lane
+        | [
+            $runtimes[]
+            | select(valid_runtime)
+            | . + {parsedVersion: parsed_version}
+            | select(.parsedVersion[0] == $lane.major)
+          ] as $release_runtimes
+        | ([
+            $release_runtimes[]
+            | . + {deviceType: pinned_device_type($lane)}
+            | select(.deviceType != null)
+          ] | sort_by([.parsedVersion, .buildversion, .identifier]) | last) as $runtime
+        | {
+            identifier: $lane.identifier,
+            formFactor: $lane.formFactor,
+            requestedRelease: $lane.requestedRelease,
+            runtimeMajor: $lane.major,
+            deviceTypeIdentifier: $lane.deviceTypeIdentifier
+          }
+          + if $runtime != null then
+              {
+                status: "planned",
+                runtimeVersion: $runtime.version,
+                runtimeBuildVersion: $runtime.buildversion,
+                runtimeIdentifier: $runtime.identifier,
+                deviceTypeName: $runtime.deviceType.name
+              }
+            else
+              {
+                status: "skipped",
+                skipReason: (if ($release_runtimes | length) == 0
+                  then "runtime-unavailable" else "device-type-unavailable" end),
+                availableRuntimeVersions:
+                  [$release_runtimes | sort_by(.parsedVersion)[] | .version]
+              }
+            end
+      ]
+  ' "$inventory" >"$temporary"; then
+    rm -f -- "$temporary"
+    return 1
+  fi
+  mv "$temporary" "$plan"
+}
+
+# One line per form-factor lane: the simulator it runs on, or why it skips.
+apple_ios_describe_form_factor_plan() {
+  jq -r '
+    if type != "array" then error("form-factor plan is malformed") else . end
+    | .[]
+    | if .status == "planned" then
+        "\(.identifier): \(.formFactor) lane on \(.deviceTypeName), iOS \(.runtimeVersion)"
+      elif .status == "skipped" and .skipReason == "runtime-unavailable" then
+        "\(.identifier): SKIPPED \(.formFactor) lane: no available iOS \(.runtimeMajor) simulator runtime is installed"
+      elif .status == "skipped" and .skipReason == "device-type-unavailable" then
+        "\(.identifier): SKIPPED \(.formFactor) lane: no available iOS \(.runtimeMajor) simulator runtime (\(.availableRuntimeVersions | join(", "))) supports \(.deviceTypeIdentifier)"
+      else
+        error("form-factor plan has an unknown lane status")
+      end
+  ' "$1"
+}
+
+# The form-factor clause of a passing result. A run passes only when every
+# planned lane passed, so each lane is reported as passed or as skipped.
+apple_ios_form_factor_pass_summary() {
+  jq -er '
+    if type != "array" or length == 0
+      or any(.[]; .status != "planned" and .status != "skipped") then
+      error("form-factor plan is malformed")
+    else . end
+    | "form factors: " + (map(.identifier + " " + (
+        if .status == "planned" then "passed" else "skipped (\(.skipReason))" end
+      )) | join(", "))
+  ' "$1"
+}
+
+# The run plan is every lane this run executes: the release plan, unchanged
+# and in order, then each planned form-factor lane. Results must match it.
+apple_ios_write_simulator_run_plan() {
+  local plan="$1" form_factor_plan="$2" run_plan="$3" temporary
+  temporary="${run_plan}.tmp"
+  [ ! -L "$run_plan" ] && [ ! -e "$run_plan" ] || return 2
+  [ ! -e "$temporary" ] || return 2
+
+  if ! jq -e -s '
+    def runnable_lane:
+      (.identifier | type) == "string"
+      and (.identifier | test("^[A-Za-z0-9-]+$"))
+      and all(
+        .requestedRelease, .runtimeVersion, .runtimeIdentifier,
+        .deviceTypeIdentifier, .deviceTypeName;
+        type == "string"
+      );
+    if length != 2 or (.[0] | type) != "array" or (.[1] | type) != "array" then
+      error("simulator plans are malformed")
+    else . end
+    | (.[0] + [.[1][] | select(.status == "planned")]) as $lanes
+    | if all($lanes[]; runnable_lane)
+        and ($lanes | map(.identifier) | unique | length) == ($lanes | length) then
+        $lanes
+      else
+        error("simulator run plan has a malformed or duplicate lane")
+      end
+  ' "$plan" "$form_factor_plan" >"$temporary"; then
+    rm -f -- "$temporary"
+    return 1
+  fi
+  mv "$temporary" "$run_plan"
+}
+
 apple_ios_simulator_udid_is_valid() {
   [[ "$1" =~ ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$ ]]
 }
 
 apple_ios_simulator_lane_is_valid() {
-  case "$1" in ios-17|ios-18|ios-2026|ios-27) return 0 ;; esac
+  case "$1" in ios-17|ios-18|ios-2026|ios-27|ios-27-ipad|ios-27-duo) return 0 ;; esac
   return 1
 }
 
@@ -222,7 +400,7 @@ apple_ios_simulator_lane_is_valid() {
 # Retain the plain release form for previously written ownership journals.
 apple_ios_simulator_owner_is_valid() {
   apple_ios_simulator_lane_is_valid "$1" || \
-    [[ "$1" =~ ^ios-(17|18|2026|27)-(unit|ui)-[1-9][0-9]*$ ]]
+    [[ "$1" =~ ^ios-(17|18|2026|27|27-ipad|27-duo)-(unit|ui)-[1-9][0-9]*$ ]]
 }
 
 apple_ios_simulator_name_is_valid() {

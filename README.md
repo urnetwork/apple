@@ -72,3 +72,26 @@ cleanup failures, identity validation and cancellation without Apple services:
 GOMAXPROCS=2 go test -p 1 -parallel 1 -count=1 \
   apple/test-hardware-simulator-generation_test.go
 ```
+
+### Form-factor simulator lanes
+
+After the four release lanes, `test-hardware-startup.sh` runs the same unit
+and UI corpora on two form-factor lanes, with the same per-action ownership:
+
+- `ios-27-ipad`: the iPad mini (A17 Pro), on the newest iOS 27 runtime that
+  offers it. It is the regular-width stand-in for the iPhone Duo's inner
+  display.
+- `ios-27-duo`: the iPhone Duo, on the newest iOS 27 runtime that offers it
+  (iOS 27.1, from Xcode 27.1). It runs closed, because simctl and XCUITest
+  cannot unfold it, so it covers the outer display: compact width.
+
+These lanes are not release coverage. They are never downloaded, and they
+never enter the tailored-coverage receipt. When a host has no runtime or no
+device type for a lane, the run prints `SKIPPED` and the reason, records it in
+`simulator-form-factor-plan.json`, and passes on the release lanes alone. A
+planned form-factor lane that fails still fails the run. The aggregate result
+ends with each lane's outcome, for example `form factors: ios-27-ipad passed,
+ios-27-duo skipped (device-type-unavailable)`. `simulator-run-plan.json` lists
+every lane that ran. The release lanes still use an ordinary iPhone, never the
+Duo, even though the iOS 27.1 runtime offers only the Duo. The fake-command
+regressions are in `bash apple/test-hardware-startup.test.sh`.

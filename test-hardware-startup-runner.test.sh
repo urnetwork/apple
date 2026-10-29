@@ -96,14 +96,29 @@ case "${1:-}" in
   list)
     case "${2:-} ${3:-}" in
       'runtimes --json')
-        jq -n --arg mode "$APPLE_RUNNER_MODE" '{runtimes: [
-          "17.2", "18.5", "26.5", "27.0"
+        # Form-factor modes add the iPad mini to iOS 27.0 and, like Xcode
+        # 27.1, an iOS 27.1 runtime that offers only the iPhone Duo.
+        jq -n --arg mode "$APPLE_RUNNER_MODE" '
+          ($mode | test("form-factor")) as $ipad
+          | ($ipad and $mode != "form-factor-duo-missing") as $duo
+          | {runtimes: [
+          "17.2", "18.5", "26.5", "27.0", "27.1"
           | select(($mode != "missing-runtime" and ($mode | startswith("deferred") | not)) or . != "17.2")
+          | select(. != "27.1" or $duo)
           | . as $version | {
             platform: "iOS", version: $version, buildversion: "fixture",
             identifier: ("com.apple.CoreSimulator.SimRuntime.iOS-" + ($version | gsub("\\."; "-"))),
-            isAvailable: true, supportedDeviceTypes: [{productFamily: "iPhone",
-              name: "iPhone Fixture", identifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-Fixture"}]
+            isAvailable: true, supportedDeviceTypes: (if $version == "27.1" then
+              [{productFamily: "iPhone", name: "iPhone Duo",
+                identifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo"}]
+            else
+              [{productFamily: "iPhone", name: "iPhone Fixture",
+                identifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-Fixture"}]
+              + if $ipad and $version == "27.0" then
+                  [{productFamily: "iPad", name: "iPad mini (A17 Pro)",
+                    identifier: "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro"}]
+                else [] end
+            end)
           }
         ]}'
         ;;
@@ -251,6 +266,14 @@ case "$mode" in
         ;;
       networkUITests/HardwareStartupNoVPNUITests/testDeviceStartsWithoutVPNProfileAccess)
         [ "$APPLE_RUNNER_MODE" != ui-failure ] || exit 6
+        # A planned form-factor lane that fails is a failure, never a skip.
+        if [ "$APPLE_RUNNER_MODE" = form-factor-failure ] && \
+           awk -F '\t' -v udid="$udid" '
+             $1 == udid && $2 ~ /^urnetwork-acceptance-ios-27-duo-/ { found = 1 }
+             END { exit(found ? 0 : 1) }
+           ' "$APPLE_RUNNER_DEVICES"; then
+          exit 6
+        fi
         printf 'UR_HARDWARE_STARTUP_PASS device=%s\n' "$udid"
         ;;
       *) exit 98 ;;
@@ -264,6 +287,7 @@ chmod 700 "$test_root/bin/"*
 run_fixture() {
   local mode="$1" expected_status="$2" fixture status artifacts
   local expected_actions lane repetition corpus owner owner_out action_count owner_count
+  local release_lanes expected_lanes expected_lane_count expected_form_factors
   local -a startup_args
   startup_args=()
   case "$mode" in deferred*) startup_args=(--defer-ios-17-2) ;; esac
@@ -312,10 +336,31 @@ run_fixture() {
   [ -d "$artifacts" ] || fail "$mode has no artifact directory"
   [ ! -e "$artifacts/device-plan.json" ] && \
     [ ! -e "$artifacts/real-device-matrix.md" ] || fail "$mode claimed physical proof"
-  if [ "$mode" = deferred ]; then
+  # The release lanes run beside whichever form-factor lanes the fixture
+  # inventory offers; without the iPad and Duo types both lanes are skipped.
+  release_lanes=ios-17,ios-18,ios-2026,ios-27
+  case "$mode" in deferred*) release_lanes=ios-18,ios-2026,ios-27 ;; esac
+  case "$mode" in
+    form-factors|deferred-form-factors|form-factor-failure)
+      expected_lanes="$release_lanes,ios-27-ipad,ios-27-duo"
+      expected_form_factors='ios-27-ipad passed, ios-27-duo passed'
+      ;;
+    form-factor-duo-missing)
+      expected_lanes="$release_lanes,ios-27-ipad"
+      expected_form_factors='ios-27-ipad passed, ios-27-duo skipped (device-type-unavailable)'
+      ;;
+    *)
+      expected_lanes="$release_lanes"
+      expected_form_factors='ios-27-ipad skipped (device-type-unavailable), ios-27-duo skipped (device-type-unavailable)'
+      ;;
+  esac
+  expected_lane_count="$(printf '%s\n' "$expected_lanes" | tr ',' '\n' | wc -l | tr -d ' ')"
+  if [ "$mode" = deferred ] || [ "$mode" = deferred-form-factors ]; then
     grep -q 'TAILORED coverage; ios-17/17.2 DEFERRED' "$fixture/matrix.tsv" || fail "deferral looked like full coverage"
-    [ "$(cut -f 1 "$artifacts/results.tsv" | paste -sd, -)" = ios-18,ios-2026,ios-27 ] || fail "deferral changed another row"
-    [ "$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log")" -eq 12 ] || fail "remaining corpora changed"
+    grep -qF "not full four-release coverage; form factors: $expected_form_factors" "$fixture/matrix.tsv" || \
+      fail "deferral did not report its form-factor lanes"
+    [ "$(cut -f 1 "$artifacts/results.tsv" | paste -sd, -)" = "$expected_lanes" ] || fail "deferral changed another row"
+    [ "$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log")" -eq $((4 * expected_lane_count)) ] || fail "remaining corpora changed"
     ! grep -q -- '-downloadPlatform\|urnetwork-acceptance-ios-17-' "$fixture/calls.log" || fail "deferred row was provisioned"
     jq -e '.version == 1 and .run_id == "fixture-run" and .plan_sha256 == "fixture-plan"
       and .coverage_scope == "tailored-ios17.2-deferred" and .deferred == ["ios-17/17.2"]
@@ -323,13 +368,13 @@ run_fixture() {
       and (.runtime_plan_sha256 | test("^[a-f0-9]{64}$"))' "$fixture/coverage.json" >/dev/null || fail "missing coverage receipt"
     [ "$(jq -r .runtime_plan_sha256 "$fixture/coverage.json")" = "$(shasum -a 256 "$artifacts/simulator-plan.json" | awk '{print $1}')" ] || fail "runtime plan hash was not bound"
   elif [ "$expected_status" -eq 0 ]; then
-    grep -q $'^apple\thardware-startup-no-vpn\tPASS\t4 required simulator lane(s) passed$' \
-      "$fixture/matrix.tsv" || fail "success did not report the four simulator cells"
+    [ "$(cat "$fixture/matrix.tsv")" = "$(printf 'apple\thardware-startup-no-vpn\tPASS\t4 required simulator lane(s) passed; form factors: %s' "$expected_form_factors")" ] || \
+      fail "success did not report the four simulator cells and the form factors"
     [ "$(cut -f 1 "$artifacts/results.tsv" | paste -sd, -)" = \
-      ios-17,ios-18,ios-2026,ios-27 ] || fail "success narrowed the simulator matrix"
-    [ "$(grep -c $'\tPASS\t' "$artifacts/results.tsv")" -eq 4 ] || fail "missing simulator PASS"
-    [ "$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log")" -eq 16 ] || \
-      fail "success did not repeat both corpora on all four simulators"
+      "$expected_lanes" ] || fail "success narrowed the simulator matrix"
+    [ "$(grep -c $'\tPASS\t' "$artifacts/results.tsv")" -eq "$expected_lane_count" ] || fail "missing simulator PASS"
+    [ "$(grep -c '^xcodebuild test-without-building ' "$fixture/calls.log")" -eq $((4 * expected_lane_count)) ] || \
+      fail "success did not repeat both corpora on every planned simulator"
   else
     grep -q $'^apple\thardware-startup-no-vpn\tFAIL\t' "$fixture/matrix.tsv" || \
       fail "$mode failure became a passing aggregate"
@@ -365,7 +410,14 @@ run_fixture() {
   if [ "$expected_status" -eq 0 ]; then
     # Keep both complete corpora on every selected release and repetition,
     # including the original full/deferred controls, with one owner per action.
-    expected_actions=$((4 * $(jq 'length' "$artifacts/simulator-plan.json")))
+    # Planned form-factor lanes follow the same ownership as release lanes.
+    [ "$(jq -r 'map(.identifier) | join(",")' "$artifacts/simulator-run-plan.json")" = "$expected_lanes" ] || \
+      fail "$mode ran a different lane set than its plans"
+    [ "$(awk '{print $2}' "$artifacts/simulator-plan.sha256" | paste -sd, -)" = \
+      simulator-runtimes.json,simulator-plan.json,simulator-form-factor-plan.json,simulator-run-plan.json ] && \
+      (cd "$artifacts" && shasum -a 256 -c simulator-plan.sha256 >/dev/null) || \
+      fail "$mode did not bind every simulator plan to its hash"
+    expected_actions=$((4 * $(jq 'length' "$artifacts/simulator-run-plan.json")))
     [ "$(grep -c '^xcrun simctl create ' "$fixture/calls.log")" -eq "$expected_actions" ] || \
       fail 'test actions did not each create a fresh simulator'
     [ "$(grep -c '^xcrun simctl shutdown ' "$fixture/calls.log")" -eq "$expected_actions" ] || \
@@ -400,7 +452,60 @@ run_fixture() {
             fail "$owner lost its successful test and cleanup receipt"
         done
       done
-    done < <(jq -r '.[].identifier' "$artifacts/simulator-plan.json")
+    done < <(jq -r '.[].identifier' "$artifacts/simulator-run-plan.json")
+  fi
+  # Form-factor lanes are never provisioned. A skipped lane says why and owns
+  # nothing; a planned one runs its pinned device type, and the iOS 27 release
+  # lane keeps its ordinary iPhone even beside the Duo-only iOS 27.1 runtime.
+  ! grep -q -- '-downloadPlatform iOS -buildVersion 27.1' "$fixture/calls.log" || \
+    fail "$mode provisioned the iPhone Duo runtime"
+  case "$mode" in
+    success|deferred|extension-generation-unit-ui|extension-generation-repetition)
+      for skipped_form_factor in \
+          'ios-27-ipad: SKIPPED iPad lane: no available iOS 27 simulator runtime (27.0) supports com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro' \
+          'ios-27-duo: SKIPPED iPhone Duo lane: no available iOS 27 simulator runtime (27.0) supports com.apple.CoreSimulator.SimDeviceType.iPhone-Duo'; do
+        grep -qF "[apple iOS simulators] form factor $skipped_form_factor" "$fixture/run.log" || \
+          fail "$mode did not explain a skipped form-factor lane"
+      done
+      ! grep -q '^xcrun simctl create urnetwork-acceptance-ios-27-ipad-\|^xcrun simctl create urnetwork-acceptance-ios-27-duo-' \
+        "$fixture/calls.log" || fail "$mode created a simulator for a skipped form-factor lane"
+      ;;
+    form-factors|deferred-form-factors|form-factor-duo-missing|form-factor-failure)
+      jq -e '.runtimeIdentifier == "com.apple.CoreSimulator.SimRuntime.iOS-27-0"
+        and .deviceTypeIdentifier == "com.apple.CoreSimulator.SimDeviceType.iPhone-Fixture"' \
+        "$artifacts/simulators/ios-27/identity.json" >/dev/null || \
+        fail "$mode moved the iOS 27 release lane off its ordinary iPhone"
+      jq -e '.runtimeIdentifier == "com.apple.CoreSimulator.SimRuntime.iOS-27-0"
+        and .deviceTypeIdentifier == "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro"' \
+        "$artifacts/simulators/ios-27-ipad/identity.json" >/dev/null || \
+        fail "$mode did not run the iPad lane on the iPad mini"
+      grep -qF '[apple iOS simulators] form factor ios-27-ipad: iPad lane on iPad mini (A17 Pro), iOS 27.0' \
+        "$fixture/run.log" || fail "$mode did not announce the iPad lane"
+      if [ "$mode" = form-factor-duo-missing ]; then
+        grep -qF '[apple iOS simulators] form factor ios-27-duo: SKIPPED iPhone Duo lane: no available iOS 27 simulator runtime (27.0) supports com.apple.CoreSimulator.SimDeviceType.iPhone-Duo' \
+          "$fixture/run.log" || fail "a missing iPhone Duo runtime was not explained"
+        jq -e '.[1] | .identifier == "ios-27-duo" and .status == "skipped"
+          and .skipReason == "device-type-unavailable"' \
+          "$artifacts/simulator-form-factor-plan.json" >/dev/null || \
+          fail "a missing iPhone Duo runtime was not recorded as skipped"
+        [ ! -e "$artifacts/simulators/ios-27-duo" ] && \
+          ! grep -q '^xcrun simctl create urnetwork-acceptance-ios-27-duo-' "$fixture/calls.log" || \
+          fail "a skipped iPhone Duo lane created a simulator"
+      else
+        jq -e '.runtimeIdentifier == "com.apple.CoreSimulator.SimRuntime.iOS-27-1"
+          and .deviceTypeIdentifier == "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo"' \
+          "$artifacts/simulators/ios-27-duo/identity.json" >/dev/null || \
+          fail "$mode did not run the Duo lane on the iPhone Duo with iOS 27.1"
+        [ "$(grep -c '^xcrun simctl create urnetwork-acceptance-ios-27-duo-.* com\.apple\.CoreSimulator\.SimDeviceType\.iPhone-Duo com\.apple\.CoreSimulator\.SimRuntime\.iOS-27-1$' \
+          "$fixture/calls.log")" -eq "$(if [ "$mode" = form-factor-failure ]; then echo 2; else echo 4; fi)" ] || \
+          fail "$mode did not create one iPhone Duo simulator per Duo action"
+      fi
+      ;;
+  esac
+  if [ "$mode" = form-factor-failure ]; then
+    [ "$(cut -f 1,2 "$artifacts/results.tsv" | tr '\t' : | paste -sd, -)" = \
+      ios-17:PASS,ios-18:PASS,ios-2026:PASS,ios-27:PASS,ios-27-ipad:PASS,ios-27-duo:FAIL ] || \
+      fail "a failed iPhone Duo lane was skipped or hid among the release lanes"
   fi
   if [ "$mode" = ownership-mismatch ]; then
     ! grep -Eq '^xcrun simctl (shutdown|delete) ' "$fixture/calls.log" || \
@@ -457,6 +562,8 @@ if [ "$#" -ne 0 ]; then
   [ "$#" -eq 1 ] || fail "expected one fixture name"
   case "$1" in
     success|deferred|extension-generation-unit-ui|extension-generation-repetition) run_fixture "$1" 0 ;;
+    form-factors|deferred-form-factors|form-factor-duo-missing) run_fixture "$1" 0 ;;
+    form-factor-failure) run_fixture "$1" 1 ;;
     extension-generation-cleanup-failure|extension-generation-shutdown-failure) run_fixture "$1" 1 ;;
     unsupported-host|missing-app-slice|missing-extension-slice|wrong-app-slice|wrong-extension-slice)
       run_fixture "$1" 1 ;;
@@ -485,4 +592,8 @@ run_fixture extension-generation-unit-ui 0
 run_fixture extension-generation-repetition 0
 run_fixture extension-generation-cleanup-failure 1
 run_fixture extension-generation-shutdown-failure 1
+run_fixture form-factors 0
+run_fixture deferred-form-factors 0
+run_fixture form-factor-duo-missing 0
+run_fixture form-factor-failure 1
 echo 'apple simulator startup entry-point tests passed'

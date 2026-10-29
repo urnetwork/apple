@@ -252,6 +252,192 @@ if apple_ios_write_simulator_runtime_plan \
   exit 1
 fi
 
+# Form-factor lanes add an iPad and the iPhone Duo beside the release lanes.
+# As installed by Xcode 27.1, the iOS 27.1 runtime offers only the Duo; it must
+# neither move nor satisfy the iOS 27 release lane's ordinary iPhone.
+jq '(.runtimes[] | select(.version == "27.0").supportedDeviceTypes) += [{
+      productFamily: "iPad", name: "iPad mini (A17 Pro)",
+      identifier: "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro"
+    }]
+    | .runtimes += [{
+      platform: "iOS", version: "27.1", buildversion: "24A94425",
+      identifier: "com.apple.CoreSimulator.SimRuntime.iOS-27-1",
+      isAvailable: true,
+      supportedDeviceTypes: [{
+        productFamily: "iPhone", name: "iPhone Duo",
+        identifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo"
+      }]
+    }]' "$runtime_inventory" >"$test_root/runtime-form-factors.json"
+apple_ios_write_simulator_runtime_plan \
+  "$test_root/runtime-form-factors.json" "$test_root/runtime-form-factors-plan.json"
+cmp "$runtime_plan" "$test_root/runtime-form-factors-plan.json" || {
+  echo "an iPad or the Duo-only iOS 27.1 runtime changed the release lanes" >&2
+  exit 1
+}
+[ -z "$(apple_ios_missing_simulator_downloads "$test_root/runtime-form-factors.json")" ] || {
+  echo "form-factor runtimes requested a release runtime download" >&2
+  exit 1
+}
+jq '(.runtimes[] | select(.version == "27.0").supportedDeviceTypes) |= [{
+      productFamily: "iPhone", name: "iPhone Duo",
+      identifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo"
+    }] + .' "$runtime_inventory" >"$test_root/runtime-duo-first.json"
+apple_ios_write_simulator_runtime_plan \
+  "$test_root/runtime-duo-first.json" "$test_root/runtime-duo-first-plan.json"
+cmp "$runtime_plan" "$test_root/runtime-duo-first-plan.json" || {
+  echo "the iPhone Duo became a release lane's first compatible iPhone" >&2
+  exit 1
+}
+jq '.runtimes |= map(select(.version != "27.0"))' \
+  "$test_root/runtime-form-factors.json" >"$test_root/runtime-duo-only-27.json"
+[ "$(apple_ios_missing_simulator_downloads "$test_root/runtime-duo-only-27.json")" = \
+  $'ios-27\t27\t27.0' ] || {
+  echo "a Duo-only iOS 27.1 runtime satisfied the iOS 27 iPhone lane" >&2
+  exit 1
+}
+if apple_ios_write_simulator_runtime_plan \
+  "$test_root/runtime-duo-only-27.json" \
+  "$test_root/runtime-duo-only-27-plan.json" 2>/dev/null; then
+  echo "the iPhone Duo was planned as the iOS 27 release iPhone" >&2
+  exit 1
+fi
+
+form_factor_plan="$test_root/form-factor-plan.json"
+apple_ios_write_form_factor_simulator_plan \
+  "$test_root/runtime-form-factors.json" "$form_factor_plan"
+[ "$(jq -r '.[] | [.identifier, .status, .runtimeIdentifier, .deviceTypeIdentifier, .deviceTypeName] | @tsv' "$form_factor_plan")" = \
+  $'ios-27-ipad\tplanned\tcom.apple.CoreSimulator.SimRuntime.iOS-27-0\tcom.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro\tiPad mini (A17 Pro)\nios-27-duo\tplanned\tcom.apple.CoreSimulator.SimRuntime.iOS-27-1\tcom.apple.CoreSimulator.SimDeviceType.iPhone-Duo\tiPhone Duo' ] || {
+  echo "the form-factor plan did not pin the iPad mini and the iPhone Duo" >&2
+  exit 1
+}
+[ "$(apple_ios_describe_form_factor_plan "$form_factor_plan")" = \
+  $'ios-27-ipad: iPad lane on iPad mini (A17 Pro), iOS 27.0\nios-27-duo: iPhone Duo lane on iPhone Duo, iOS 27.1' ] && \
+  [ "$(apple_ios_form_factor_pass_summary "$form_factor_plan")" = \
+    'form factors: ios-27-ipad passed, ios-27-duo passed' ] || {
+  echo "planned form-factor lanes were not described exactly" >&2
+  exit 1
+}
+jq '(.runtimes[] | select(.version == "27.1").supportedDeviceTypes) += [{
+      productFamily: "iPad", name: "iPad mini (A17 Pro)",
+      identifier: "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro"
+    }]' "$test_root/runtime-form-factors.json" >"$test_root/runtime-ipad-27-1.json"
+apple_ios_write_form_factor_simulator_plan \
+  "$test_root/runtime-ipad-27-1.json" "$test_root/runtime-ipad-27-1-plan.json"
+[ "$(jq -r '.[0].runtimeVersion' "$test_root/runtime-ipad-27-1-plan.json")" = 27.1 ] || {
+  echo "the iPad lane did not take the newest runtime that supports it" >&2
+  exit 1
+}
+
+# A missing runtime or device type skips only that lane, with its reason.
+# Nothing is downloaded for it, and the release plan is unaffected.
+jq '.runtimes |= map(select(.version != "27.1"))' \
+  "$test_root/runtime-form-factors.json" >"$test_root/runtime-without-duo.json"
+[ -z "$(apple_ios_missing_simulator_downloads "$test_root/runtime-without-duo.json")" ] || {
+  echo "a missing iPhone Duo runtime requested a download" >&2
+  exit 1
+}
+apple_ios_write_form_factor_simulator_plan \
+  "$test_root/runtime-without-duo.json" "$test_root/form-factor-without-duo.json"
+[ "$(jq -r '.[] | [.identifier, .status, .skipReason // "-"] | @tsv' "$test_root/form-factor-without-duo.json")" = \
+  $'ios-27-ipad\tplanned\t-\nios-27-duo\tskipped\tdevice-type-unavailable' ] || {
+  echo "a missing iPhone Duo runtime did not skip only the Duo lane" >&2
+  exit 1
+}
+[ "$(apple_ios_describe_form_factor_plan "$test_root/form-factor-without-duo.json" | sed -n 2p)" = \
+  'ios-27-duo: SKIPPED iPhone Duo lane: no available iOS 27 simulator runtime (27.0) supports com.apple.CoreSimulator.SimDeviceType.iPhone-Duo' ] && \
+  [ "$(apple_ios_form_factor_pass_summary "$test_root/form-factor-without-duo.json")" = \
+    'form factors: ios-27-ipad passed, ios-27-duo skipped (device-type-unavailable)' ] || {
+  echo "a skipped iPhone Duo lane was not explained" >&2
+  exit 1
+}
+apple_ios_write_form_factor_simulator_plan \
+  "$runtime_inventory" "$test_root/form-factor-none.json"
+[ "$(jq -r 'map(.status + "/" + .skipReason) | join(",")' "$test_root/form-factor-none.json")" = \
+  'skipped/device-type-unavailable,skipped/device-type-unavailable' ] || {
+  echo "missing form-factor device types did not skip both lanes" >&2
+  exit 1
+}
+apple_ios_write_form_factor_simulator_plan \
+  "$test_root/runtime-missing-27.json" "$test_root/form-factor-no-27.json"
+[ "$(apple_ios_describe_form_factor_plan "$test_root/form-factor-no-27.json")" = \
+  $'ios-27-ipad: SKIPPED iPad lane: no available iOS 27 simulator runtime is installed\nios-27-duo: SKIPPED iPhone Duo lane: no available iOS 27 simulator runtime is installed' ] || {
+  echo "a missing iOS 27 runtime did not skip both form-factor lanes" >&2
+  exit 1
+}
+jq '(.runtimes[] | select(.version == "27.1").supportedDeviceTypes[0].productFamily) = "iPad"' \
+  "$test_root/runtime-form-factors.json" >"$test_root/runtime-duo-wrong-family.json"
+apple_ios_write_form_factor_simulator_plan \
+  "$test_root/runtime-duo-wrong-family.json" "$test_root/form-factor-duo-wrong-family.json"
+[ "$(jq -r '.[1].status' "$test_root/form-factor-duo-wrong-family.json")" = skipped ] || {
+  echo "the pinned Duo identifier was planned from another product family" >&2
+  exit 1
+}
+printf '{"runtimes":null}\n' >"$test_root/form-factor-inventory-malformed.json"
+for rejected_inventory in "$test_root/form-factor-inventory-malformed.json" \
+    "$test_root/form-factor-inventory-does-not-exist.json"; do
+  if apple_ios_write_form_factor_simulator_plan \
+    "$rejected_inventory" "$test_root/form-factor-rejected.json" 2>/dev/null; then
+    echo "an invalid runtime inventory produced a form-factor plan" >&2
+    exit 1
+  fi
+  [ ! -e "$test_root/form-factor-rejected.json" ] || {
+    echo "a rejected runtime inventory left a form-factor plan" >&2
+    exit 1
+  }
+done
+
+# The run plan executes the release lanes unchanged, then planned form factors.
+apple_ios_write_simulator_run_plan \
+  "$runtime_plan" "$form_factor_plan" "$test_root/run-plan.json"
+[ "$(apple_hardware_plan_ids "$test_root/run-plan.json" | paste -sd, -)" = \
+  ios-17,ios-18,ios-2026,ios-27,ios-27-ipad,ios-27-duo ] && \
+  [ "$(jq -c '.[0:4]' "$test_root/run-plan.json")" = "$(jq -c . "$runtime_plan")" ] || {
+  echo "the run plan changed, reordered or omitted a lane" >&2
+  exit 1
+}
+apple_ios_write_simulator_run_plan \
+  "$runtime_plan" "$test_root/form-factor-without-duo.json" \
+  "$test_root/run-plan-without-duo.json"
+[ "$(apple_hardware_plan_ids "$test_root/run-plan-without-duo.json" | paste -sd, -)" = \
+  ios-17,ios-18,ios-2026,ios-27,ios-27-ipad ] || {
+  echo "a skipped form-factor lane entered the run plan" >&2
+  exit 1
+}
+apple_ios_write_simulator_run_plan \
+  "$runtime_plan" "$test_root/form-factor-none.json" "$test_root/run-plan-releases.json"
+[ "$(jq -c . "$test_root/run-plan-releases.json")" = "$(jq -c . "$runtime_plan")" ] || {
+  echo "skipping every form factor changed the release lanes" >&2
+  exit 1
+}
+jq '.[0].identifier = "ios-27"' "$form_factor_plan" >"$test_root/form-factor-duplicate.json"
+if apple_ios_write_simulator_run_plan \
+  "$runtime_plan" "$test_root/form-factor-duplicate.json" \
+  "$test_root/run-plan-duplicate.json" 2>/dev/null; then
+  echo "a form-factor lane replaced a release lane in the run plan" >&2
+  exit 1
+fi
+[ ! -e "$test_root/run-plan-duplicate.json" ] || {
+  echo "a rejected run plan was left behind" >&2
+  exit 1
+}
+
+form_factor_results="$test_root/form-factor-results"
+for planned_lane in ios-17 ios-18 ios-2026 ios-27 ios-27-ipad ios-27-duo; do
+  mkdir -p "$form_factor_results/$planned_lane"
+  apple_hardware_write_result_once \
+    "$form_factor_results/$planned_lane/status.tsv" "$planned_lane" PASS startup-no-vpn
+done
+apple_hardware_results_match_plan "$test_root/run-plan.json" "$form_factor_results"
+if apple_hardware_results_match_plan "$runtime_plan" "$form_factor_results"; then
+  echo "form-factor results passed as unplanned release results" >&2
+  exit 1
+fi
+mv "$form_factor_results/ios-27-duo/status.tsv" "$test_root/ios-27-duo-status.tsv"
+if apple_hardware_results_match_plan "$test_root/run-plan.json" "$form_factor_results"; then
+  echo "a missing iPhone Duo result silently passed the run plan" >&2
+  exit 1
+fi
+
 owned_journal="$test_root/owned-simulators.tsv"
 if apple_ios_simulator_lane_is_valid ios-16; then
   echo "the removed iOS 16 simulator lane remains eligible for ownership" >&2
@@ -290,6 +476,27 @@ printf 'ios-18\tAAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE\twrong-prefix\n' \
 if apple_ios_validate_owned_simulator_journal \
   "$test_root/owned-malformed.tsv" 2>/dev/null; then
   echo "a simulator with an unowned name passed journal validation" >&2
+  exit 1
+fi
+apple_ios_append_owned_simulator \
+  "$owned_journal" ios-27-ipad-unit-1 BBBBBBBB-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-ipad-unit-1-20261028-120000Z
+apple_ios_append_owned_simulator \
+  "$owned_journal" ios-27-duo-ui-2 CCCCCCCC-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-duo-ui-2-20261028-120000Z
+apple_ios_validate_owned_simulator_journal "$owned_journal"
+for unowned_lane in ios-27-fold-unit-1 ios-26-duo-unit-1 ios-27-duo-unit-0 ios-27-ipad-pro-ui-1; do
+  if apple_ios_append_owned_simulator \
+    "$owned_journal" "$unowned_lane" DDDDDDDD-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+    "urnetwork-acceptance-$unowned_lane-20261028-120000Z" 2>/dev/null; then
+    echo "an unplanned form-factor owner entered the ownership journal: $unowned_lane" >&2
+    exit 1
+  fi
+done
+if apple_ios_append_owned_simulator \
+  "$owned_journal" ios-27-duo-unit-1 DDDDDDDD-BBBB-CCCC-DDDD-EEEEEEEEEEEE \
+  urnetwork-acceptance-ios-27-ipad-unit-1-20261028-120000Z 2>/dev/null; then
+  echo "an iPhone Duo owner adopted an iPad simulator name" >&2
   exit 1
 fi
 

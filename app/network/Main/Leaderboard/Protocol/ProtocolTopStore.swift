@@ -209,7 +209,9 @@ enum ProtocolTopRows {
  * the first page; the rows on screen stay until the new page lands.
  *
  * Pages: the list asks for the next page near its end. A failed page parks
- * the list until its retry row asks again. A seek (the position indicator's
+ * the list until its retry row asks again, except a page whose snapshot
+ * expired (410) or moved on: the list starts over on the newest snapshot's
+ * first page, at the top. A seek (the position indicator's
  * release) scrolls to a loaded row at once, or loads the pages down to it,
  * up to 200 rows a request, and then scrolls.
  */
@@ -525,7 +527,7 @@ final class ProtocolTopStore: ObservableObject {
             if let current = state.snapshot, page.snapshot.id != current.id {
                 // the pinned snapshot is gone: the rows so far rank another
                 // tempo, so the list starts over on the new one
-                loadFirstPage()
+                restartFromTop()
                 return
             }
             let before = state.lastPosition
@@ -539,10 +541,23 @@ final class ProtocolTopStore: ObservableObject {
                 state.meRow = me
             }
             continueSeek()
-        case .failure:
+        case .failure(let failure):
+            if failure.snapshotExpired {
+                // the cursor's snapshot expired (410): asking again fails
+                // every time, so the list starts over on the newest snapshot
+                restartFromTop()
+                return
+            }
             state.pageFailed = true
             state.seekTarget = nil
         }
+    }
+
+    /// The list's snapshot is gone: its first page of the newest snapshot,
+    /// at the top, since the rows below it are no longer loaded.
+    private func restartFromTop() {
+        loadFirstPage()
+        requestScroll(.top)
     }
 
     private func continueSeek() {

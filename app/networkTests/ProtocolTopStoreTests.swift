@@ -268,9 +268,47 @@ struct ProtocolTopStoreTests {
         h.store.loadMore()
         try h.client.answerPage(.success(Self.page(51...100, next: "c100", snapshot: Self.snapshot("s2", tempo: 101))))
         h.hops.drain()
-        // the rows of two tempos never mix: the first page again
+        // the rows of two tempos never mix: the first page again, at the top
         #expect(h.client.pageRequests.last == PageRequest(limit: 50, cursor: "", snapshot: ""))
         #expect(h.store.state.rows.map(\.position) == Array(1...50))
+        #expect(h.store.state.scrollRequest?.target == .top)
+    }
+
+    @Test func aPageWhoseSnapshotExpiredReloadsFromTheTopInsteadOfAskingAgain() throws {
+        let h = visibleStore()
+        try h.client.answerPage(.success(Self.page(1...50, next: "c50", snapshot: Self.snapshot("s1"))))
+        h.hops.drain()
+        h.store.loadMore()
+        // 410: the cursor's snapshot expired
+        try h.client.answerPage(.failure(SnTopRequestFailed(snapshotExpired: true)))
+        h.hops.drain()
+
+        // the first page of the newest snapshot, at the top, not a parked list
+        #expect(h.client.pageRequests.last == PageRequest(limit: 50, cursor: "", snapshot: ""))
+        #expect(!h.store.state.pageFailed)
+        #expect(h.store.state.scrollRequest?.target == .top)
+        try h.client.answerPage(.success(Self.page(1...50, next: "d50", snapshot: Self.snapshot("s2", tempo: 101))))
+        h.hops.drain()
+        #expect(h.store.state.snapshot?.id == "s2")
+        #expect(h.store.state.rows.map(\.position) == Array(1...50))
+
+        // the next page follows the new cursor; the expired one was asked once
+        h.store.loadMore()
+        #expect(h.client.pageRequests.last == PageRequest(limit: 50, cursor: "d50", snapshot: ""))
+        #expect(h.client.pageRequests.filter { $0.cursor == "c50" }.count == 1)
+    }
+
+    @Test func aSeekWhoseSnapshotExpiredStartsOverAtTheTop() throws {
+        let h = visibleStore()
+        try h.client.answerPage(.success(Self.page(1...50, next: "c50")))
+        h.hops.drain()
+        h.store.seek(to: 300)
+        try h.client.answerPage(.failure(SnTopRequestFailed(snapshotExpired: true)))
+        h.hops.drain()
+        #expect(h.store.state.seekTarget == nil)
+        #expect(!h.store.state.pageFailed)
+        #expect(h.client.pageRequests.last == PageRequest(limit: 50, cursor: "", snapshot: ""))
+        #expect(h.store.state.scrollRequest?.target == .top)
     }
 
     // MARK: seeks

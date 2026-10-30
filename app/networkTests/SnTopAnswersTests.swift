@@ -195,6 +195,35 @@ struct SnTopAnswersTests {
         #expect(answer.me.history == [SnTopHistoryPointInfo(day: "2026-10-29", rank: 173, score: 41.2)])
     }
 
+    /// The sdk passes connect's HttpStatusError on as its text.
+    private static func goError(_ message: String) -> NSError {
+        NSError(domain: "go", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+    }
+
+    @Test func aCursorWhoseSnapshotExpiredIsTold() {
+        let gone = Self.goError("410 Gone: The snapshot expired. Reload from the top.")
+        #expect(SnTopAnswers.page(nil, err: gone) == .failure(SnTopRequestFailed(snapshotExpired: true)))
+        // any other refusal or failure is only a failure
+        for message in [
+            "404 Not Found: Unknown snapshot.",
+            "400 Bad Request: Invalid cursor.",
+            "503 Service Unavailable: Temporarily busy. Retry shortly.",
+            "dial tcp: lookup api.bringyour.com: no such host",
+            // a status is the leading code, not a number in the body
+            "500 Internal Server Error: 410 rows",
+        ] {
+            #expect(SnTopAnswers.page(nil, err: Self.goError(message)) == .failure(SnTopRequestFailed()), "\(message)")
+        }
+    }
+
+    @Test func theStatusIsTheRefusalsLeadingCode() {
+        #expect(SnTopAnswers.httpStatus(Self.goError("410 Gone: The snapshot expired. Reload from the top.")) == 410)
+        #expect(SnTopAnswers.httpStatus(Self.goError("404 Not Found: Unknown snapshot.")) == 404)
+        #expect(SnTopAnswers.httpStatus(Self.goError("context deadline exceeded")) == nil)
+        #expect(SnTopAnswers.httpStatus(Self.goError("4100 Gone")) == nil)
+        #expect(SnTopAnswers.httpStatus(Self.goError("")) == nil)
+    }
+
     @Test func errorsAndMissingSnapshotsAreFailures() {
         struct Offline: Error {}
         #expect(throws: SnTopRequestFailed.self) {

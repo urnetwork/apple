@@ -10,8 +10,13 @@
 import Foundation
 
 /// A request that failed. Its cause is never shown or kept: the screen says
-/// what could not load, in its own words.
-struct SnTopRequestFailed: Error, Equatable {}
+/// what could not load, in its own words. The one cause the board acts on is
+/// a next page whose snapshot expired: it reloads from the top.
+struct SnTopRequestFailed: Error, Equatable {
+    /// GET /sn/top refused a cursor whose snapshot expired (HTTP 410;
+    /// snapshots are kept 7 days): sending it again fails every time
+    var snapshotExpired = false
+}
 
 /// Each request answers exactly once, on any thread.
 protocol SnTopClient: AnyObject {

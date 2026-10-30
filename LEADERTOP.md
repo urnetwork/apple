@@ -166,6 +166,8 @@ Rules the reference implementation settled where the design leaves room. The oth
 - **Paging:**
   - The first page asks for 50 rows, and later pages follow `next` alone.
   - A seek asks for up to 200 rows at once.
-  - A page that adds no rows ends the list, and a page from another snapshot restarts it.
+  - A page that adds no rows ends the list.
+  - A page from another snapshot, or a 410 for a cursor whose snapshot expired, restarts the list on the newest snapshot's first page, scrolled to the top. Sending an expired cursor again would fail every time.
+  - The app never sends a snapshot id, so the 404 for an unknown one doesn't arise.
 - **Reload:** the tab reloads when it becomes visible again after 5 minutes.
 - **VoiceOver:** a row reads "You" for the caller, the rank, the name, the score and its trend, the claimed UIDs, then the caller's label or "Not measurable".

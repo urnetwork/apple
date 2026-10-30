@@ -25,7 +25,10 @@ enum SnTopSdk {
 enum SnTopAnswers {
 
     static func page(_ result: SdkSnTopResult?, err: Error?) -> Result<SnTopPageInfo, SnTopRequestFailed> {
-        guard err == nil, let result, result.error == nil, let snapshot = result.snapshot else {
+        if let err {
+            return .failure(SnTopRequestFailed(snapshotExpired: httpStatus(err) == 410))
+        }
+        guard let result, result.error == nil, let snapshot = result.snapshot else {
             return .failure(SnTopRequestFailed())
         }
         var rows: [SnTopRowInfo] = []
@@ -141,6 +144,21 @@ enum SnTopAnswers {
             notMeasurableReason: SnTopNotMeasurableReason(wire: me.notMeasurableReason),
             history: history
         )
+    }
+
+    /// The http status a refusal carries: the sdk passes connect's
+    /// HttpStatusError on as its text, "<code> <text>: <body>" ("410 Gone:
+    /// The snapshot expired. Reload from the top."); nil for any other
+    /// failure.
+    static func httpStatus(_ error: Error) -> Int? {
+        let message = (error as NSError).localizedDescription
+        guard let first = message.split(separator: " ", maxSplits: 1).first,
+              first.count == 3,
+              let code = Int(first),
+              100 <= code && code <= 599 else {
+            return nil
+        }
+        return code
     }
 
     /// nil means null

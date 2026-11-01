@@ -427,7 +427,7 @@ struct UnclaimedAlphaTile: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                 Spacer()
             }
-            Text("Across \(claimableEpochs) finalized epochs")
+            Text(SnClaimText.claimableEpochs(claimableEpochs))
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer().frame(height: 8)

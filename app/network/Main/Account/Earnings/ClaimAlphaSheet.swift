@@ -38,7 +38,7 @@ struct ClaimAlphaSheet: View {
                     Text(verbatim: amountText)
                         .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
                         .foregroundColor(themeManager.currentTheme.textColor)
-                    Text("Across \(claimableCount) finalized epochs")
+                    Text(SnClaimText.claimableEpochs(claimableCount))
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 }
@@ -235,16 +235,7 @@ struct ClaimStatusPill: View {
                 return Text("Failed")
             }
         }
-        switch status {
-        case .claimable:
-            return Text("Unclaimed")
-        case .claimed:
-            return Text("Claimed")
-        case .expired:
-            return Text("Expired")
-        case .open, .notFinalized:
-            return Text("Pending")
-        }
+        return Text(SnClaimText.status(status))
     }
 
     private var color: Color {

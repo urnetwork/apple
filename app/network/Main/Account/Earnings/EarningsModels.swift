@@ -25,6 +25,13 @@ struct SnGasKeyInfo: Equatable {
     let mirrorSs58: String
 }
 
+/// The SDK's SnEpochClaim.Status. `open`: the vault has not finalized the
+/// epoch, so nothing is claimable yet. `notFinalized` ("not-finalized"):
+/// despite the SDK's name, the vault has finalized the epoch with nothing for
+/// this coldkey to claim, because no payout root was published for it (the
+/// root was missed, which is final) or its payout list holds no share for
+/// this coldkey. A status this build does not know is `open`, which promises
+/// nothing.
 enum SnClaimStatus: String {
     case open
     case claimable
@@ -34,6 +41,34 @@ enum SnClaimStatus: String {
 
     init(sdkStatus: String) {
         self = SnClaimStatus(rawValue: sdkStatus) ?? .open
+    }
+}
+
+/// The words a v1 claim reads as on Earnings: an epoch's status in the
+/// history rows and the claim sheet, and the count under the unclaimed total.
+/// `bundle` is the catalog to read (nil: the app's).
+enum SnClaimText {
+
+    static func status(_ status: SnClaimStatus, bundle: Bundle? = nil) -> String {
+        switch status {
+        case .claimable:
+            return String(localized: "Unclaimed", bundle: bundle)
+        case .claimed:
+            return String(localized: "Claimed", bundle: bundle)
+        case .expired:
+            return String(localized: "Expired", bundle: bundle)
+        case .open:
+            return String(localized: "Pending", bundle: bundle)
+        case .notFinalized:
+            // finalized by the vault, never "finalizing": no payout was published for it
+            return String(localized: "No payout published", bundle: bundle)
+        }
+    }
+
+    /// How many epochs the unclaimed total comes from: the claimable ones,
+    /// which is what it says (not "finalized epochs").
+    static func claimableEpochs(_ count: Int, bundle: Bundle? = nil) -> String {
+        String(localized: "Claimable epochs: \(count)", bundle: bundle)
     }
 }
 

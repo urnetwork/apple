@@ -460,11 +460,12 @@ struct NetworkApp: App {
 
     // Cold launch already gets a fresh JWT (the SDK's token manager refreshes
     // once immediately on start), but returning from the background does not
-    // -- the token manager only refreshes on a schedule (~14 days out from
-    // expiration) or when explicitly asked. Force one here so anything that
-    // could have changed out-of-band (e.g. a network name changed from
-    // another device or the web dashboard) shows up when the user comes
-    // back to the app, not just after a local rename or a full logout/login.
+    // -- the token manager only refreshes on a schedule (at a point drawn
+    // between 40% and 50% of each token's lifetime) or when explicitly asked.
+    // Force one here so anything that could have changed out-of-band (e.g. a
+    // network name changed from another device or the web dashboard) shows up
+    // when the user comes back to the app, not just after a local rename or a
+    // full logout/login.
     private func refreshJwtOnForeground() {
         do {
             try deviceManager.device?.refreshToken(0)

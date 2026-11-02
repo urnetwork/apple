@@ -209467,6 +209467,173 @@
         }
       }
     },
+    "To upgrade, press Disconnect first. Payment can't get through until you do." : {
+      "comment" : "Out-of-balance alert, on the builds whose checkout has to go through the tunnel (Windows, Linux, the Android Play flavor, the macOS direct download), while the tunnel holds or blocks traffic. Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. Each translation names that button by its own label (the disconnect key).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "للترقية، اختر «قطع الاتصال» أولًا. لا يمكن إتمام الدفع قبل ذلك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro přechod na vyšší tarif nejprve zvolte „Odpojení“. Do té doby platba neprojde."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle zum Upgraden zuerst „Trennen“. Vorher kommt die Zahlung nicht durch."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Για να αναβαθμίσετε, επιλέξτε πρώτα «Αποσύνδεση». Μέχρι τότε η πληρωμή δεν μπορεί να ολοκληρωθεί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To upgrade, press Disconnect first. Payment can't get through until you do."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero «Desconectar». Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero \"Desconectar\". Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero \"Desconectar\". Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour passer à une offre supérieure, choisissez d’abord « Déconnecter ». Le paiement ne peut pas aboutir avant cela."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לשדרג, בחר קודם \"התנתק\". עד אז התשלום לא יוכל לעבור."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपग्रेड करने के लिए पहले \"डिस्कनेक्ट करें\" चुनें। तब तक भुगतान पूरा नहीं हो पाएगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untuk meningkatkan paket, pilih “Putuskan” terlebih dahulu. Pembayaran tidak dapat diproses sebelum itu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per effettuare l’upgrade, scegli prima «Disconnetti». Fino ad allora il pagamento non può andare a buon fine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップグレードするには、先に「切断する」を選択してください。それまでは支払いを完了できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업그레이드하려면 먼저 '연결 해제'를 선택하세요. 그 전에는 결제를 완료할 수 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies eerst ‘Verbinding verbreken’ om te upgraden. Tot die tijd kan de betaling niet doorgaan."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aby przejść na wyższy plan, najpierw wybierz „Rozłącz”. Do tego czasu płatność nie przejdzie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desconectar\". Até lá, o pagamento não será concluído."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desconectar\". Até lá, o pagamento não será concluído."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desligar\". Até lá, o pagamento não será concluído."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы повысить тариф, сначала выберите «Отключить». До этого оплата не пройдёт."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj först ”Koppla från” för att uppgradera. Innan dess går betalningen inte igenom."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หากต้องการอัปเกรด ให้เลือก “ตัดการเชื่อมต่อ” ก่อน จนกว่าจะถึงตอนนั้น การชำระเงินจะไม่สำเร็จ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб підвищити тариф, спочатку виберіть «Відключитися». Доти оплата не пройде."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để nâng cấp, trước tiên hãy chọn “Ngắt kết nối”. Cho đến lúc đó, thanh toán sẽ không thể hoàn tất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要升级，请先选择“断开连接”。在此之前，付款无法完成。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要升級，請先選擇「斷開連接」。在此之前，付款無法完成。"
+          }
+        }
+      }
+    },
     "Today" : {
       "comment" : "Onboarding offer screen trial timeline: the first row's label.",
       "localizations" : {

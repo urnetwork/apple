@@ -163,7 +163,8 @@ struct ConnectActions: View {
             buttons: actionButtons,
             kind: outOfBalanceKind,
             recovery: balanceRecovery,
-            tunnelStarted: tunnelConnected
+            tunnelStarted: tunnelConnected,
+            checkoutRidesTunnel: BillingDistribution.current.checkoutRidesTunnel
         )
     }
 
@@ -364,6 +365,16 @@ struct ConnectActions: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("acceptance.insufficientBalance.notice")
+            }
+
+            // this build's checkout goes through the tunnel, so paying has to
+            // wait for the Disconnect below, which nothing presses for the user
+            if notice.disconnectFirst {
+                Text("To upgrade, press Disconnect first. Payment can't get through until you do.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("acceptance.insufficientBalance.disconnectFirst")
             }
 
             if notice.willReconnect {

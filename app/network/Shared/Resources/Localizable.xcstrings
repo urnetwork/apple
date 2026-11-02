@@ -2355,6 +2355,173 @@
         }
       }
     },
+    "%@ hasn't allowed ur.io to use your Bittensor account yet. Approve the connection request in the wallet, or allow ur.io under Connected Sites in its settings, then try again." : {
+      "comment" : "Bittensor wallet error (ur.io, and the apps when a ur.io wallet bridge page returns extension_not_authorized): the browser extension has not allowed the site to use an account yet, so nothing was signed. The user rejected or closed the extension's connect window, has no Polkadot/Bittensor account in the extension, removed the site's accounts in the extension's connected sites, or a connect request is still open in it. Talisman says \"Site <url> has not been authorised for Talisman yet\"; polkadot{.js}, SubWallet and TAO.com say \"The source <url> has not been enabled yet\" or \"is not allowed to interact with this extension\". The argument is the wallet product name (Talisman or TAO.com). \"Connected Sites\" is the extension's settings page that lists the sites allowed to use its accounts: use the extension's own name for it where it ships your language (Talisman: de Verbundene Seiten, es Sitios Conectados, ru Подключенные сайты, zh 连接网站); otherwise keep the English name, followed by a translation in parentheses.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يسمح %@ بعد لموقع ur.io باستخدام حساب Bittensor الخاص بك. وافق على طلب الاتصال في المحفظة، أو اسمح لموقع ur.io ضمن «Connected Sites» (المواقع المتصلة) في إعداداتها، ثم حاول مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ zatím nepovolil webu ur.io používat váš účet Bittensor. Schvalte žádost o připojení v peněžence nebo povolte ur.io v jejím nastavení v části „Connected Sites“ (připojené weby) a zkuste to znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ hat ur.io noch nicht erlaubt, dein Bittensor-Konto zu verwenden. Bestätige die Verbindungsanfrage in der Wallet oder erlaube ur.io in ihren Einstellungen unter „Verbundene Seiten“ und versuche es dann erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το %@ δεν έχει επιτρέψει ακόμη στο ur.io να χρησιμοποιεί τον λογαριασμό σας Bittensor. Εγκρίνετε το αίτημα σύνδεσης στο πορτοφόλι ή επιτρέψτε το ur.io στο «Connected Sites» (συνδεδεμένοι ιστότοποι) στις ρυθμίσεις του και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ hasn't allowed ur.io to use your Bittensor account yet. Approve the connection request in the wallet, or allow ur.io under Connected Sites in its settings, then try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ todavía no ha permitido que ur.io use tu cuenta de Bittensor. Aprueba la solicitud de conexión en la billetera o permite ur.io en «Sitios Conectados» de su configuración, y vuelve a intentarlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ todavía no permitió que ur.io use tu cuenta de Bittensor. Aprueba la solicitud de conexión en la billetera o permite ur.io en Sitios Conectados en su configuración y vuelve a intentarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ todavía no permitió que ur.io use tu cuenta de Bittensor. Aprueba la solicitud de conexión en la cartera o permite ur.io en Sitios Conectados en su configuración y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n'a pas encore autorisé ur.io à utiliser votre compte Bittensor. Approuvez la demande de connexion dans le portefeuille ou autorisez ur.io dans « Connected Sites » (sites connectés) dans ses réglages, puis réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ עדיין לא אישר ל-ur.io להשתמש בחשבון Bittensor שלכם. אשרו את בקשת החיבור בארנק, או אשרו את ur.io תחת «Connected Sites» (אתרים מחוברים) בהגדרות שלו, ואז נסו שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ने अभी तक ur.io को आपका Bittensor खाता उपयोग करने की अनुमति नहीं दी है। वॉलेट में कनेक्शन अनुरोध स्वीकृत करें, या उसकी सेटिंग्स में “Connected Sites” (कनेक्ट की गई साइटें) के अंतर्गत ur.io को अनुमति दें, फिर से प्रयास करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ belum mengizinkan ur.io menggunakan akun Bittensor Anda. Setujui permintaan koneksi di dompet, atau izinkan ur.io di “Connected Sites” (situs terhubung) pada pengaturannya, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ non ha ancora consentito a ur.io di usare il tuo account Bittensor. Approva la richiesta di connessione nel portafoglio oppure consenti ur.io in «Connected Sites» (siti connessi) nelle sue impostazioni, quindi riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ はまだ ur.io に Bittensor アカウントの使用を許可していません。ウォレットで接続リクエストを承認するか、設定の「Connected Sites」（接続済みサイト）で ur.io を許可してから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@에서 아직 ur.io가 Bittensor 계정을 사용하도록 허용하지 않았습니다. 지갑에서 연결 요청을 승인하거나 설정의 “Connected Sites”(연결된 사이트)에서 ur.io를 허용한 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ heeft ur.io nog geen toestemming gegeven om je Bittensor-account te gebruiken. Keur het verbindingsverzoek goed in de wallet of sta ur.io toe onder ‘Connected Sites’ (verbonden sites) in de instellingen en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ nie zezwolił jeszcze ur.io na używanie Twojego konta Bittensor. Zatwierdź żądanie połączenia w portfelu lub zezwól na ur.io w sekcji „Connected Sites” (połączone witryny) w jego ustawieniach, a następnie spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ainda não permitiu que o ur.io use a sua conta Bittensor. Aprove o pedido de ligação na carteira ou permita o ur.io em «Connected Sites» (sites ligados) nas definições e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ainda não permitiu que o ur.io use sua conta Bittensor. Aprove a solicitação de conexão na carteira ou permita o ur.io em “Connected Sites” (sites conectados) nas configurações e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ainda não permitiu que o ur.io use a sua conta Bittensor. Aprove o pedido de ligação na carteira ou permita o ur.io em «Connected Sites» (sites ligados) nas definições e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В %@ еще нет разрешения для ur.io на использование вашего аккаунта Bittensor. Подтвердите запрос на подключение в кошельке или разрешите ur.io в его настройках в разделе «Подключенные сайты», затем повторите попытку."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ har ännu inte tillåtit ur.io att använda ditt Bittensor-konto. Godkänn anslutningsbegäran i plånboken eller tillåt ur.io under ”Connected Sites” (anslutna webbplatser) i dess inställningar och försök sedan igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ยังไม่อนุญาตให้ ur.io ใช้บัญชี Bittensor ของคุณ อนุมัติคำขอเชื่อมต่อในกระเป๋าเงิน หรืออนุญาต ur.io ภายใต้ “Connected Sites” (เว็บไซต์ที่เชื่อมต่อ) ในการตั้งค่า แล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ще не дозволив ur.io використовувати ваш обліковий запис Bittensor. Підтвердьте запит на підключення в гаманці або дозвольте ur.io у розділі «Connected Sites» (підключені сайти) в його налаштуваннях, а потім спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ chưa cho phép ur.io sử dụng tài khoản Bittensor của bạn. Hãy chấp thuận yêu cầu kết nối trong ví hoặc cho phép ur.io trong “Connected Sites” (trang web đã kết nối) ở phần cài đặt của ví, rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 尚未允许 ur.io 使用您的 Bittensor 账户。请在钱包中批准连接请求，或在其设置的“连接网站”中允许 ur.io，然后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 尚未允許 ur.io 使用你的 Bittensor 帳戶。請在錢包中批准連接請求，或在其設定的「Connected Sites」（已連接網站）中允許 ur.io，然後再試一次。"
+          }
+        }
+      }
+    },
     "%@ in %@ will be signed out." : {
       "comment" : "Sessions screen (Account > Sessions): body of the confirmation before signing another session out. {device} is the row's device label (\"Android\") and {place} its approximate location (\"Chicago, Illinois, United States\"), both inserted as they are, so no case ending or article can attach to them.",
       "localizations" : {
@@ -103725,6 +103892,173 @@
         }
       }
     },
+    "If your wallet can't sign a pasted message, go back and choose WalletConnect (Nova and others), or sign at ur.io/app/account/earnings in a computer's browser." : {
+      "comment" : "The phone apps' manual signing sheet: what to do when the wallet can't sign a pasted message. WalletConnect and Nova are product names, and ur.io/app/account/earnings is a web address: keep them as they are.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إذا لم تتمكن محفظتك من توقيع رسالة ملصقة، فارجع واختر WalletConnect (Nova وغيرها)، أو وقّع من خلال ur.io/app/account/earnings في متصفح على الكمبيوتر."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokud vaše peněženka neumí podepsat vloženou zprávu, vraťte se a zvolte WalletConnect (Nova a další), nebo podepište na ur.io/app/account/earnings v prohlížeči na počítači."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn deine Wallet keine eingefügte Nachricht signieren kann, gehe zurück und wähle WalletConnect (Nova und andere), oder signiere auf ur.io/app/account/earnings im Browser eines Computers."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αν το πορτοφόλι σας δεν μπορεί να υπογράψει επικολλημένο μήνυμα, επιστρέψτε και επιλέξτε WalletConnect (Nova και άλλα) ή υπογράψτε στο ur.io/app/account/earnings από το πρόγραμμα περιήγησης ενός υπολογιστή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If your wallet can't sign a pasted message, go back and choose WalletConnect (Nova and others), or sign at ur.io/app/account/earnings in a computer's browser."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si tu billetera no puede firmar un mensaje pegado, vuelve atrás y elige WalletConnect (Nova y otras), o firma en ur.io/app/account/earnings en el navegador de un ordenador."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si tu billetera no puede firmar un mensaje pegado, vuelve atrás y elige WalletConnect (Nova y otras), o firma en ur.io/app/account/earnings en el navegador de una computadora."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si tu cartera no puede firmar un mensaje pegado, regresa y elige WalletConnect (Nova y otras), o firma en ur.io/app/account/earnings en el navegador de una computadora."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si votre portefeuille ne peut pas signer un message collé, revenez en arrière et choisissez WalletConnect (Nova et d'autres), ou signez sur ur.io/app/account/earnings dans le navigateur d'un ordinateur."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אם הארנק שלכם לא יכול לחתום על הודעה מודבקת, חזרו ובחרו ב-WalletConnect (Nova ואחרים), או חתמו ב-ur.io/app/account/earnings בדפדפן של מחשב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यदि आपका वॉलेट चिपकाए गए संदेश पर हस्ताक्षर नहीं कर सकता, तो वापस जाएँ और WalletConnect (Nova और अन्य) चुनें, या कंप्यूटर के ब्राउज़र में ur.io/app/account/earnings पर हस्ताक्षर करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jika dompet Anda tidak dapat menandatangani pesan yang ditempel, kembali dan pilih WalletConnect (Nova dan lainnya), atau tanda tangani di ur.io/app/account/earnings pada browser komputer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se il tuo portafoglio non può firmare un messaggio incollato, torna indietro e scegli WalletConnect (Nova e altri), oppure firma su ur.io/app/account/earnings nel browser di un computer."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォレットが貼り付けたメッセージに署名できない場合は、戻って WalletConnect（Nova など）を選ぶか、コンピューターのブラウザで ur.io/app/account/earnings から署名してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지갑에서 붙여 넣은 메시지에 서명할 수 없다면 뒤로 돌아가 WalletConnect(Nova 등)를 선택하거나, 컴퓨터 브라우저의 ur.io/app/account/earnings에서 서명하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan je wallet geen geplakt bericht ondertekenen, ga dan terug en kies WalletConnect (Nova en andere), of onderteken op ur.io/app/account/earnings in de browser van een computer."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeśli Twój portfel nie może podpisać wklejonej wiadomości, wróć i wybierz WalletConnect (Nova i inne) albo podpisz na ur.io/app/account/earnings w przeglądarce na komputerze."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se a sua carteira não conseguir assinar uma mensagem colada, volte atrás e escolha WalletConnect (Nova e outras) ou assine em ur.io/app/account/earnings no navegador de um computador."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se sua carteira não puder assinar uma mensagem colada, volte e escolha WalletConnect (Nova e outras) ou assine em ur.io/app/account/earnings no navegador de um computador."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se a sua carteira não conseguir assinar uma mensagem colada, volte atrás e escolha WalletConnect (Nova e outras) ou assine em ur.io/app/account/earnings no navegador de um computador."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Если ваш кошелек не может подписать вставленное сообщение, вернитесь и выберите WalletConnect (Nova и другие) или подпишите на ur.io/app/account/earnings в браузере на компьютере."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om din plånbok inte kan signera ett inklistrat meddelande, gå tillbaka och välj WalletConnect (Nova med flera), eller signera på ur.io/app/account/earnings i en webbläsare på en dator."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หากกระเป๋าเงินของคุณลงนามข้อความที่วางไม่ได้ ให้ย้อนกลับแล้วเลือก WalletConnect (Nova และอื่น ๆ) หรือลงนามที่ ur.io/app/account/earnings ในเบราว์เซอร์บนคอมพิวเตอร์"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Якщо ваш гаманець не може підписати вставлене повідомлення, поверніться й виберіть WalletConnect (Nova та інші) або підпишіть на ur.io/app/account/earnings у браузері на комп'ютері."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nếu ví của bạn không thể ký tin nhắn đã dán, hãy quay lại và chọn WalletConnect (Nova và các ví khác), hoặc ký tại ur.io/app/account/earnings trong trình duyệt trên máy tính."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果您的钱包无法对粘贴的消息签名，请返回并选择 WalletConnect（Nova 等），或在电脑浏览器中前往 ur.io/app/account/earnings 签名。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果你的錢包無法為貼上的訊息簽名，請返回並選擇 WalletConnect（Nova 等），或在電腦瀏覽器中前往 ur.io/app/account/earnings 簽名。"
+          }
+        }
+      }
+    },
     "Import extenders" : {
       "comment" : "Button and screen title: import extenders from a QR code, a photo, or pasted text.",
       "localizations" : {
@@ -127172,6 +127506,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未進行速度測試。在完成測試之前，此裝置被推薦給客戶端的頻率會低很多。"
+          }
+        }
+      }
+    },
+    "No wallet window opens for this. You sign the message yourself, then paste the signature below." : {
+      "comment" : "First line of the manual signing form, on ur.io and in the apps' sheet. Support inbox 8167: a user waited for a wallet window that never comes on this path.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لن تُفتح نافذة محفظة هنا. وقّع الرسالة بنفسك، ثم الصق التوقيع أدناه."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádné okno peněženky se neotevře. Zprávu podepíšete sami a podpis pak vložíte níže."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hierfür öffnet sich kein Wallet-Fenster. Du signierst die Nachricht selbst und fügst die Signatur dann unten ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν ανοίγει παράθυρο πορτοφολιού για αυτό. Υπογράφετε το μήνυμα μόνοι σας και, στη συνέχεια, επικολλάτε την υπογραφή παρακάτω."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No wallet window opens for this. You sign the message yourself, then paste the signature below."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí no se abre ninguna ventana de billetera. Tú mismo firmas el mensaje y luego pegas la firma abajo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí no se abre ninguna ventana de billetera. Tú firmas el mensaje y luego pegas la firma abajo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí no se abre ninguna ventana de cartera. Tú firmas el mensaje y luego pegas la firma abajo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune fenêtre de portefeuille ne s'ouvre ici. Vous signez le message vous-même, puis vous collez la signature ci-dessous."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא ייפתח כאן חלון ארנק. אתם חותמים על ההודעה בעצמכם, ואז מדביקים את החתימה למטה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इसके लिए कोई वॉलेट विंडो नहीं खुलेगी। आप संदेश पर स्वयं हस्ताक्षर करें, फिर हस्ताक्षर नीचे चिपकाएँ।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak ada jendela dompet yang terbuka untuk ini. Tanda tangani pesan sendiri, lalu tempel tanda tangannya di bawah."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qui non si apre alcuna finestra del portafoglio. Firmi tu il messaggio, poi incolli la firma qui sotto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここではウォレットのウィンドウは開きません。メッセージにご自身で署名し、署名を下に貼り付けてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여기서는 지갑 창이 열리지 않습니다. 메시지에 직접 서명한 다음 아래에 서명을 붙여 넣으세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiervoor wordt geen walletvenster geopend. Je ondertekent het bericht zelf en plakt de handtekening hieronder."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okno portfela się tu nie otworzy. Podpisujesz wiadomość samodzielnie, a następnie wklejasz podpis poniżej."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aqui não se abre nenhuma janela da carteira. Assine a mensagem por si e cole a assinatura abaixo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma janela da carteira é aberta aqui. Você mesmo assina a mensagem e depois cola a assinatura abaixo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aqui não se abre nenhuma janela da carteira. Assine a mensagem por si e cole a assinatura abaixo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Окно кошелька здесь не откроется. Вы подписываете сообщение сами, а затем вставляете подпись ниже."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget plånboksfönster öppnas för detta. Du signerar meddelandet själv och klistrar sedan in signaturen nedan."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "จะไม่มีหน้าต่างกระเป๋าเงินเปิดขึ้นสำหรับขั้นตอนนี้ คุณต้องลงนามข้อความด้วยตนเอง แล้ววางลายเซ็นด้านล่าง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вікно гаманця тут не відкриється. Ви підписуєте повідомлення самі, а потім вставляєте підпис нижче."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có cửa sổ ví nào mở ra ở đây. Bạn tự ký tin nhắn, rồi dán chữ ký vào bên dưới."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此处不会打开钱包窗口。请您自行对消息签名，然后将签名粘贴到下方。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此處不會開啟錢包視窗。請你自行為訊息簽名，然後將簽名貼到下方。"
           }
         }
       }
@@ -178629,6 +179130,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用您的 Apple ID 登入，將其添加為登入方式。"
+          }
+        }
+      }
+    },
+    "Sign manually" : {
+      "comment" : "The manual signing option in a Bittensor wallet chooser: on ur.io its own entry, and in the phone apps the line under a wallet that has no way to sign here directly. The user signs a message outside the page or app, for example with the btcli command line tool, and pastes the signature back.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التوقيع يدويًا"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podepsat ručně"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manuell signieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Χειροκίνητη υπογραφή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign manually"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar manualmente"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar manualmente"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmar manualmente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signer manuellement"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חתימה ידנית"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मैन्युअल रूप से हस्ताक्षर करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanda tangani secara manual"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firma manualmente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手動で署名"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "수동으로 서명"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Handmatig ondertekenen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podpisz ręcznie"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar manualmente"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar manualmente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assinar manualmente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подписать вручную"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signera manuellt"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลงนามด้วยตนเอง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підписати вручну"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ký thủ công"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动签名"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手動簽名"
           }
         }
       }

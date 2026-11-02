@@ -334,15 +334,37 @@ func TestNetworkConsentSignIsOfferedOnlyWithTheNetworkCredential(t *testing.T) {
 
 // CS-9 (consent review L2): a manual session never opened the bridge, so a
 // hand-back on the app's redirect link came from another app or page, which
-// may hold the shown message: the connector hands it to no manual session
+// may hold the shown message: the connector hands it to no manual session.
+// A return is captured when the link arrives and handled when its task runs, so
+// the check lives in the capture, and the handling has no other way in.
 func TestNetworkConsentManualSessionTakesNoBridgeReturn(t *testing.T) {
-	connector := consentRead(t, "app/network/Shared/Bittensor/BittensorWalletConnector.swift")
-	handle := consentBlock(t, connector, strings.Index(connector, "    func handleBridgeReturn(_ url: URL) async {"))
-	call := strings.Index(handle, "switch session.handleBridgeReturn(")
-	if call < 0 {
-		t.Fatal("premise changed: the connector no longer hands returns to the session")
+	source := consentRead(t, "app/network/Shared/Bittensor/BittensorWalletConnector.swift")
+	connector := source[strings.Index(source, "final class BittensorWalletConnector"):]
+
+	entry := consentBlock(t, connector, strings.Index(connector, "    func handleBridgeReturn(_ url: URL) async {"))
+	if !strings.Contains(entry, "captureBridgeReturn(url)") {
+		t.Fatalf("premise changed: a return no longer goes through the capture:\n%s", entry)
 	}
-	if !strings.Contains(handle[:call], "session.transport == SdkBittensorWalletTransportBrowserBridge") {
-		t.Errorf("the connector hands a bridge return to a session that never opened the bridge:\n%s", handle[:call])
+
+	capture := consentBlock(t, connector, strings.Index(connector, "    func captureBridgeReturn(_ url: URL)"))
+	const handling = "self.handleBridgeReturn(url, session: session)"
+	call := strings.Index(capture, handling)
+	if call < 0 {
+		t.Fatalf("premise changed: the capture no longer hands returns to the session:\n%s", capture)
+	}
+	if !strings.Contains(capture[:call], "session.transport == SdkBittensorWalletTransportBrowserBridge") {
+		t.Errorf("the connector hands a bridge return to a session that never opened the bridge:\n%s", capture[:call])
+	}
+	if count := strings.Count(connector, "handleBridgeReturn(url, session:"); count != 1 {
+		t.Errorf("the handling of a return has %d callers, and only the capture checks the transport", count)
+	}
+
+	const sessionCall = "session.handleBridgeReturn("
+	if count := strings.Count(connector, sessionCall); count != 1 {
+		t.Errorf("the connector hands returns to a session in %d places, and only the capture checks the transport", count)
+	}
+	handler := consentBlock(t, connector, strings.Index(connector, "    private func handleBridgeReturn(_ url: URL, session: BittensorWalletSessioning) async {"))
+	if !strings.Contains(handler, sessionCall) {
+		t.Errorf("the session gets its returns from somewhere other than the checked handling:\n%s", handler)
 	}
 }

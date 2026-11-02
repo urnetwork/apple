@@ -7,7 +7,9 @@
 //  its own: dropping the connect request could release traffic outside the
 //  tunnel without the user knowing. Instead the tunnel keeps holding traffic,
 //  the user is told once per out of balance episode, and an explicit
-//  disconnect stays in reach next to the upgrade button.
+//  disconnect stays in reach next to the upgrade button. The health audit does
+//  not restart such a tunnel either (VPNOutOfBalanceHold,
+//  VPNReconciliationSupport.swift): a restart lets traffic out while it runs.
 //
 //  A connect the user does not have yet is different: starting one out of
 //  balance is blocked at every entry point (the connect view, the macOS menu

@@ -815,6 +815,10 @@ class VPNManager: ObservableObject {
         #endif
     }
 
+    /// Out of balance a tunnel with no provider is not restarted. Updated on
+    /// every health reading, on the main queue like the rest of the health state.
+    private var outOfBalanceHold = VPNOutOfBalanceHold()
+
     private struct TunnelHealthSnapshot {
         let connectionState: VPNTunnelConnectionState
         let rpcConnected: Bool
@@ -823,6 +827,7 @@ class VPNManager: ObservableObject {
         let providerCount: Int
         var windowTargetSize = 0
         var windowFailed = false
+        var outOfBalanceHeld = false
 
         func satisfies(expectedStarted: Bool) -> Bool {
             vpnTunnelHealthIsSatisfied(
@@ -831,7 +836,8 @@ class VPNManager: ObservableObject {
                 rpcConnected: rpcConnected,
                 sdkTunnelStarted: sdkTunnelStarted,
                 requiresProvider: requiresProvider,
-                providerCount: providerCount
+                providerCount: providerCount,
+                outOfBalanceHeld: outOfBalanceHeld
             )
         }
 
@@ -847,7 +853,7 @@ class VPNManager: ObservableObject {
         }
 
         var description: String {
-            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount) target=\(windowTargetSize) failed=\(windowFailed)"
+            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount) target=\(windowTargetSize) failed=\(windowFailed) outOfBalance=\(outOfBalanceHeld)"
         }
     }
 
@@ -887,7 +893,20 @@ class VPNManager: ObservableObject {
 
         let sdkTunnelStarted = device.getTunnelStarted()
         let requiresProvider = device.getConnectLocation() != nil
+        // The contract status before the window status (VPNOutOfBalanceHold).
+        let contractStatus = requiresProvider ? device.getContractStatus() : nil
         let windowStatus = requiresProvider ? device.getWindowStatus() : nil
+        if !requiresProvider {
+            // the user's disconnect: the next connect is another session
+            outOfBalanceHold = VPNOutOfBalanceHold()
+        } else if let contractStatus, let windowStatus, device.getConnected() {
+            outOfBalanceHold.observe(
+                insufficientBalance: contractStatus.insufficientBalance,
+                noPermission: contractStatus.noPermission,
+                connectionGeneration: windowStatus.connectionGeneration,
+                providerCount: Int(windowStatus.providerStateAdded)
+            )
+        }
         return TunnelHealthSnapshot(
             connectionState: connectionState,
             rpcConnected: true,
@@ -895,7 +914,8 @@ class VPNManager: ObservableObject {
             requiresProvider: requiresProvider,
             providerCount: Int(windowStatus?.providerStateAdded ?? 0),
             windowTargetSize: Int(windowStatus?.targetSize ?? 0),
-            windowFailed: windowStatus?.failed ?? false
+            windowFailed: windowStatus?.failed ?? false,
+            outOfBalanceHeld: outOfBalanceHold.held
         )
     }
 

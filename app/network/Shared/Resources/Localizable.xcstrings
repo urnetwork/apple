@@ -69112,6 +69112,173 @@
         }
       }
     },
+    "Data limit reached" : {
+      "comment" : "Alert title and status line on the connect screen, and the title of a local notification, when the server refuses a paying account's connection because a data limit was reached (a per-device data cap or the plan's data), not because the account has no balance. Short.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم بلوغ حد البيانات"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosažen limit dat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenlimit erreicht"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συμπληρώθηκε το όριο δεδομένων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data limit reached"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite de datos alcanzado"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite de datos alcanzado"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite de datos alcanzado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de données atteinte"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגעת למגבלת הנתונים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डेटा सीमा पूरी हो गई"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batas data tercapai"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite dati raggiunto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データ上限に達しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 한도에 도달했습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datalimiet bereikt"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osiągnięto limit danych"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de dados atingido"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de dados atingido"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de dados atingido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Достигнут лимит данных"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datagränsen är nådd"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ถึงขีดจำกัดข้อมูลแล้ว"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Досягнуто ліміту даних"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã đạt giới hạn dữ liệu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达到数据上限"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已達到數據上限"
+          }
+        }
+      }
+    },
     "Data reserved for your open connections. What they don't use is returned when they close." : {
       "comment" : "\"About your data\" sheet: explains the Pending part of the usage bar, shown under the Pending amount. Pending is balance held (escrowed) by the user's open connections; the unused part is returned when they close. Do not add a time promise.",
       "localizations" : {
@@ -243269,6 +243436,173 @@
         }
       }
     },
+    "Your internet traffic is not protected." : {
+      "comment" : "Connect page and the out-of-balance or data-limit alert: warning that the internet traffic is not protected, shown when the tunnel is not capturing traffic.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حركة الإنترنت لديك غير محمية."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš internetový provoz není chráněn."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Internetverkehr ist nicht geschützt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η κίνηση του διαδικτύου σας δεν προστατεύεται."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your internet traffic is not protected."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico de internet no está protegido."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico de internet no está protegido."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico de internet no está protegido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre trafic Internet n’est pas protégé."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תעבורת האינטרנט שלכם אינה מוגנת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका इंटरनेट ट्रैफ़िक सुरक्षित नहीं है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lalu lintas internet Anda tidak terlindungi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo traffico Internet non è protetto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インターネット通信は保護されていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인터넷 트래픽이 보호되지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je internetverkeer is niet beschermd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój ruch internetowy nie jest chroniony."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu tráfego de internet não está protegido."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu tráfego de internet não está protegido."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu tráfego de internet não está protegido."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш интернет-трафик не защищён."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din internettrafik är inte skyddad."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทราฟฟิกอินเทอร์เน็ตของคุณไม่ได้รับการป้องกัน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш інтернет-трафік не захищено."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu lượng internet của bạn không được bảo vệ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的互联网流量未受保护。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的互聯網流量未受保護。"
+          }
+        }
+      }
+    },
     "Your network" : {
       "comment" : "Heading of the panel beside the leaderboard on wide screens (an unfolded foldable phone, a tablet, a wide window). The panel shows the user's own URnetwork network: its current ranking, the data it provided, its points, its longest streak and the switch that shows it on the leaderboard. \"Network\" is the user's URnetwork account (the network they named), not a Wi-Fi or mobile network. A short heading: two or three words.",
       "localizations" : {
@@ -245772,6 +246106,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的主要客戶端合約，隨其建立與結束即時流動。"
+          }
+        }
+      }
+    },
+    "Your traffic is held in the tunnel until more data is available or you disconnect." : {
+      "comment" : "Alert body shown in the app and in a local notification when a paying account is refused at a data limit while the tunnel is capturing traffic. Connect stays requested and the VPN keeps holding traffic until the limit allows more data or the user disconnects. The paying counterpart of insufficient_balance_held_notice, with no upgrade to offer.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تبقى حركة بياناتك محتجزة داخل النفق حتى تتوفر بيانات إضافية أو تقوم بقطع الاتصال."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš provoz zůstává zadržen v tunelu, dokud nebudou k dispozici další data nebo se neodpojíte."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Datenverkehr wird im Tunnel gehalten, bis wieder Daten verfügbar sind oder du die Verbindung trennst."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η κίνησή σας παραμένει στη σήραγγα μέχρι να υπάρξουν περισσότερα δεδομένα ή να αποσυνδεθείτε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your traffic is held in the tunnel until more data is available or you disconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico se mantiene en el túnel hasta que haya más datos disponibles o te desconectes."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico se mantiene en el túnel hasta que haya más datos disponibles o te desconectes."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tráfico se mantiene en el túnel hasta que haya más datos disponibles o te desconectes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre trafic est retenu dans le tunnel jusqu’à ce que davantage de données soient disponibles ou que vous vous déconnectiez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התעבורה שלך מוחזקת במנהרה עד שיהיו עוד נתונים זמינים או עד שתתנתק."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जब तक और डेटा उपलब्ध नहीं होता या आप डिस्कनेक्ट नहीं करते, आपका ट्रैफ़िक टनल में रोका रहता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lalu lintas Anda ditahan di terowongan sampai ada lebih banyak data atau Anda memutuskan koneksi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo traffico resta trattenuto nel tunnel finché non saranno disponibili altri dati o non ti disconnetti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加のデータが利用可能になるか切断するまで、通信はトンネル内に保持されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가 데이터를 사용할 수 있게 되거나 연결을 해제할 때까지 트래픽이 터널 안에 보류됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je verkeer wordt in de tunnel vastgehouden totdat er meer data beschikbaar is of je de verbinding verbreekt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój ruch jest zatrzymany w tunelu, dopóki nie będzie dostępnych więcej danych lub się nie rozłączysz."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu tráfego fica retido no túnel até haver mais dados disponíveis ou você desconectar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu tráfego fica retido no túnel até haver mais dados disponíveis ou você desconectar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu tráfego fica retido no túnel até haver mais dados disponíveis ou até desligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш трафик удерживается в туннеле, пока не появятся дополнительные данные или вы не отключитесь."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din trafik hålls kvar i tunneln tills mer data finns tillgänglig eller du kopplar från."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทราฟฟิกของคุณถูกกักไว้ในอุโมงค์จนกว่าจะมีข้อมูลเพิ่มหรือคุณตัดการเชื่อมต่อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш трафік утримується в тунелі, доки не з’являться додаткові дані або ви не відключитеся."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu lượng của bạn được giữ trong đường hầm cho đến khi có thêm dữ liệu hoặc bạn ngắt kết nối."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在有更多可用数据或你断开连接之前，你的流量会保留在隧道中。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在有更多可用數據或你斷開連接之前，你的流量會保留在隧道中。"
           }
         }
       }

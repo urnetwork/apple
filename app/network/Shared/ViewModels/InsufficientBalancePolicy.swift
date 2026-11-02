@@ -11,6 +11,14 @@
 //  not restart such a tunnel either (VPNOutOfBalanceHold,
 //  VPNReconciliationSupport.swift): a restart lets traffic out while it runs.
 //
+//  "Held in the tunnel" is a claim about a running tunnel. A connection can be
+//  requested with none (the extension not up yet, a permission refused, its link
+//  dropped), and then nothing is held: the notice and the alert say what the
+//  traffic is doing (refusedTraffic).
+//
+//  A paying account refused at a data limit gets the same alert and notice in
+//  words for the limit, with no upgrade on offer (DataLimitGate).
+//
 //  A connect the user does not have yet is different: starting one out of
 //  balance is blocked at every entry point (the connect view, the macOS menu
 //  bar, Shortcuts and Siri, the Control Center control, the widget), which
@@ -95,36 +103,94 @@ func connectActionButtons(
     )
 }
 
+/// What the traffic is doing while a connection is refused. The tunnel is what
+/// holds it: with none running, nothing is held and the traffic goes out the
+/// normal way, and saying otherwise implies a protection the user does not have.
+enum RefusedTraffic: Equatable {
+    // no connection is requested: nothing to say about the traffic
+    case none
+    // the tunnel runs and captures the traffic, which waits in it
+    case held
+    // a connection is requested and no tunnel is running
+    case notProtected
+}
+
+func refusedTraffic(connectRequested: Bool, tunnelStarted: Bool) -> RefusedTraffic {
+    guard connectRequested else { return .none }
+    return tunnelStarted ? .held : .notProtected
+}
+
+/// A refusal the plan does not explain. The server refuses a paying account with
+/// the same status it gives an empty one when a data limit stands in the way: the
+/// client's own data cap, or the plan's data. The upgrade gate never applies to
+/// it, so without this the account hears nothing.
+///
+/// A supporter and the status together do not always mean that. A refusal made
+/// before a purchase still stands right after it: the status changes only with
+/// the next contract result, and a held connection that sends nothing may not get
+/// one. So a refusal seen on a plan known not to be a supporter's says nothing
+/// about the supporter plan until it clears. A plan not reported yet decides
+/// nothing.
+struct DataLimitGate {
+    private var refusedBeforeSupporter = false
+
+    mutating func observe(insufficientBalance: Bool, plan: Plan?, isPolling: Bool) -> Bool {
+        guard insufficientBalance else {
+            refusedBeforeSupporter = false
+            return false
+        }
+        if plan == Plan.none {
+            refusedBeforeSupporter = true
+        }
+        return plan == .supporter && !refusedBeforeSupporter && !isPolling
+    }
+}
+
 enum InsufficientBalanceNoticeAction: Equatable {
     case none
-    // post the held-traffic notice
-    case post
+    // post the notice for this refusal
+    case post(dataLimit: Bool, traffic: RefusedTraffic)
+    // the notice still up has stopped being true: replace it in place
+    case update(dataLimit: Bool, traffic: RefusedTraffic)
     // the episode ended: withdraw the delivered notice
     case remove
 }
 
-/// Decides the held-traffic notice once per out of balance episode. An
-/// episode starts when insufficient balance turns on and ends only when it
-/// turns off. The notice posts the first time the gate holds within the
-/// episode, so a supporter or a polling balance at entry suppresses it until
-/// the gate actually holds, and it never posts again until the episode ends.
+/// Decides the notice once per episode of refusal. An episode starts when
+/// insufficient balance turns on and ends only when it turns off. The notice
+/// posts the first time the gate holds (or the data limit reads) within the
+/// episode with a connection requested, so a supporter or a polling balance at
+/// entry suppresses it until then, and it never posts again until the episode
+/// ends. If what it says stops being true (the tunnel came up, or went away) it
+/// is replaced in place.
 struct InsufficientBalanceNoticeTracker {
     private var inEpisode = false
-    private var posted = false
+    private var said: InsufficientBalanceNoticeAction? = nil
 
-    mutating func update(insufficientBalance: Bool, isSupporter: Bool, isPolling: Bool) -> InsufficientBalanceNoticeAction {
+    mutating func update(
+        insufficientBalance: Bool,
+        isSupporter: Bool,
+        isPolling: Bool,
+        dataLimit: Bool,
+        traffic: RefusedTraffic
+    ) -> InsufficientBalanceNoticeAction {
         guard insufficientBalance else {
-            let wasPosted = posted
+            let wasPosted = said != nil
             inEpisode = false
-            posted = false
+            said = nil
             return wasPosted ? .remove : .none
         }
         inEpisode = true
-        if !posted && !isSupporter && !isPolling {
-            posted = true
-            return .post
+        guard traffic != .none, dataLimit || (!isSupporter && !isPolling) else {
+            return .none
         }
-        return .none
+        let now = InsufficientBalanceNoticeAction.post(dataLimit: dataLimit, traffic: traffic)
+        if said == now {
+            return .none
+        }
+        let replacing = said != nil
+        said = now
+        return replacing ? .update(dataLimit: dataLimit, traffic: traffic) : now
     }
 }
 
@@ -146,12 +212,16 @@ final class InsufficientBalanceContractReaction {
         insufficientBalance: Bool,
         isSupporter: Bool,
         isPolling: Bool,
+        dataLimit: Bool,
+        traffic: RefusedTraffic,
         connectionStatus: ConnectionStatus?
     ) {
         let action = tracker.update(
             insufficientBalance: insufficientBalance,
             isSupporter: isSupporter,
-            isPolling: isPolling
+            isPolling: isPolling,
+            dataLimit: dataLimit,
+            traffic: traffic
         )
         if action != .none {
             notice(action)
@@ -160,7 +230,14 @@ final class InsufficientBalanceContractReaction {
 
     /// Ends any episode (sign out, account switch) and withdraws its notice.
     func reset() {
-        update(insufficientBalance: false, isSupporter: false, isPolling: false, connectionStatus: nil)
+        update(
+            insufficientBalance: false,
+            isSupporter: false,
+            isPolling: false,
+            dataLimit: false,
+            traffic: .none,
+            connectionStatus: nil
+        )
     }
 }
 

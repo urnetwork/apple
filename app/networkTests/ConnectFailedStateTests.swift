@@ -76,7 +76,8 @@ struct ConnectFailedStateTests {
                 connectionStatus: .connectFailed,
                 displayReconnectTunnel: false,
                 insufficientBalance: false,
-                currentPlan: plan
+                currentPlan: plan,
+                dataLimitReached: false
             ))
         }
         for status in Self.otherStatuses {
@@ -84,13 +85,14 @@ struct ConnectFailedStateTests {
                 connectionStatus: status,
                 displayReconnectTunnel: false,
                 insufficientBalance: false,
-                currentPlan: .none
+                currentPlan: .none,
+                dataLimitReached: false
             ), "\(String(describing: status)) hides the grid")
         }
         // the existing warnings are unchanged
-        #expect(connectCanvasShowsWarning(connectionStatus: .connected, displayReconnectTunnel: true, insufficientBalance: false, currentPlan: .none))
-        #expect(connectCanvasShowsWarning(connectionStatus: .connecting, displayReconnectTunnel: false, insufficientBalance: true, currentPlan: .none))
-        #expect(!connectCanvasShowsWarning(connectionStatus: .connecting, displayReconnectTunnel: false, insufficientBalance: true, currentPlan: .supporter))
+        #expect(connectCanvasShowsWarning(connectionStatus: .connected, displayReconnectTunnel: true, insufficientBalance: false, currentPlan: .none, dataLimitReached: false))
+        #expect(connectCanvasShowsWarning(connectionStatus: .connecting, displayReconnectTunnel: false, insufficientBalance: true, currentPlan: .none, dataLimitReached: false))
+        #expect(!connectCanvasShowsWarning(connectionStatus: .connecting, displayReconnectTunnel: false, insufficientBalance: true, currentPlan: .supporter, dataLimitReached: false))
     }
 
     // MARK: the drawer

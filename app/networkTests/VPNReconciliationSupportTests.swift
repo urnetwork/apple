@@ -420,6 +420,8 @@ struct VPNReconciliationSupportTests {
                 insufficientBalance: insufficient,
                 isSupporter: false,
                 isPolling: false,
+                dataLimit: false,
+                traffic: .held,
                 connectionStatus: .connecting
             )
             hold.observe(
@@ -453,14 +455,14 @@ struct VPNReconciliationSupportTests {
             // the window latches failed after its two 45 s outcome deadlines
             healthCheck(insufficient: true, windowFailed: 90 <= second)
         }
-        #expect(notices == [.post])
+        #expect(notices == [.post(dataLimit: false, traffic: .held)])
         #expect(disconnects == 0)
         #expect(restarts == 0)
 
         // a contract went through: the notice goes, and this tunnel, still with no
         // provider and a failed window, is the app's to recover again
         healthCheck(insufficient: false, windowFailed: true)
-        #expect(notices == [.post, .remove])
+        #expect(notices == [.post(dataLimit: false, traffic: .held), .remove])
         #expect(disconnects == 0)
         #expect(restarts == 1)
     }

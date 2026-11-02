@@ -339,6 +339,18 @@ struct PurchaseAroundConnectionTests {
         #expect(flow.events.all == ["notice"])
     }
 
+    /// A sign out that has started and has not finished yet is the same.
+    @Test func aSignOutStartingWhileTheNoticeIsUpBuysNothing() async {
+        let flow = Self.flow(status: .connected, rpcUp: true)
+        flow.model.confirmPurchaseDisconnect = { [model = flow.model, events = flow.events] in
+            events.append("notice")
+            model.signOutStarted(device: model.device)
+            return true
+        }
+        await flow.buy()
+        #expect(flow.events.all == ["notice"])
+    }
+
     /// The restore is for the device it dropped the connection on.
     @Test func anAccountChangingWhileTheStoreIsOpenIsNotConnected() async {
         let flow = Self.flow(status: .connected, rpcUp: true)

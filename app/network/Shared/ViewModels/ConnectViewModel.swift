@@ -761,7 +761,7 @@ class ConnectViewModel: ObservableObject {
         }
         let purchaseDevice = device
         if connectRequested {
-            guard await confirmPurchaseDisconnect(), device === purchaseDevice else {
+            guard await confirmPurchaseDisconnect(), device === purchaseDevice, !signingOut else {
                 return
             }
         }

@@ -85,13 +85,19 @@ enum PurchaseDisconnectNotice {
 
     static func confirm() async -> Bool {
         #if os(macOS)
-        return makeAlert().runModal() == .alertFirstButtonReturn
+        return answer(makeAlert())
         #else
         return true
         #endif
     }
 
     #if os(macOS)
+    /// Waits for a button in the alert's own modal loop, which keeps running
+    /// the app's other main actor work.
+    static func answer(_ alert: NSAlert) -> Bool {
+        alert.runModal() == .alertFirstButtonReturn
+    }
+
     static func makeAlert() -> NSAlert {
         let alert = NSAlert()
         alert.messageText = String(localized: "Disconnect the VPN for this purchase?")

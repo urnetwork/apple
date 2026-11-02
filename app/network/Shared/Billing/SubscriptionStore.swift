@@ -57,17 +57,21 @@ protocol SubscriptionStore: AnyObject {
     var restoreResultMessage: String? { get }
 }
 
-/// The store a surface sells through, by distribution.
+/// The store a surface sells through, by distribution, with the connection out
+/// of its purchases' way (ConnectionAwareSubscriptionStore).
 @MainActor
 func makeSubscriptionStore(
     for distribution: BillingDistribution,
     appStore: AppStoreSubscriptionManager,
-    stripe: StripeSubscriptionStore
+    stripe: StripeSubscriptionStore,
+    connection: ConnectViewModel
 ) -> any SubscriptionStore {
+    let store: any SubscriptionStore
     switch distribution {
     case .appStore:
-        return StoreKitSubscriptionStore(manager: appStore)
+        store = StoreKitSubscriptionStore(manager: appStore)
     case .direct:
-        return stripe
+        store = stripe
     }
+    return ConnectionAwareSubscriptionStore(store: store, connection: connection)
 }

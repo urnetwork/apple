@@ -207,6 +207,14 @@ class ConnectViewModel: ObservableObject {
     // a disconnect or sign out cancels it
     private(set) var startConnectTask: Task<Void, Never>?
 
+    // a store's purchase goes with the connection dropped: macOS only (the A6
+    // note on AppStoreSubscriptionManager.purchase); replaced in tests
+    #if os(macOS)
+    var purchaseDropsConnection = true
+    #else
+    var purchaseDropsConnection = false
+    #endif
+
     // connect and disconnect commands, run off the main actor in the order
     // they were made (see runConnectCommand), and the device work queued
     // behind them: the view model's own, and the device stores' closes
@@ -712,6 +720,28 @@ class ConnectViewModel: ObservableObject {
         }
         admitConnect(.alreadyConnected, target: selectedProvider) { [weak self] in
             self?.connectSelected()
+        }
+    }
+
+    /**
+     * Runs a store's purchase with the connection out of its way: the Mac App
+     * Store's client honors the tunnel's default route, so macOS disconnects
+     * around the purchase and reconnects after it, for this device only. iOS
+     * App Store traffic does not ride the tunnel (the A6 note on
+     * AppStoreSubscriptionManager.purchase). Every surface's purchase comes
+     * through here (ConnectionAwareSubscriptionStore).
+     */
+    func purchaseAroundConnection(_ purchase: () async -> Void) async {
+        let initiallyConnected = purchaseDropsConnection && (device?.getConnected() ?? false)
+        let purchaseDevice = device
+        if initiallyConnected {
+            disconnect()
+            // the disconnect reaches the sdk before the store opens
+            await connectCommandsSettled()
+        }
+        await purchase()
+        if initiallyConnected {
+            restoreConnect(onDevice: purchaseDevice)
         }
     }
 

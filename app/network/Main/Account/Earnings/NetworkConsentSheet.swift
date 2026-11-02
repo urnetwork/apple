@@ -81,7 +81,11 @@ struct NetworkConsentSheet: View {
             cancelButton
 
         case .requestingChallenge:
-            waiting
+            if flow.awaitingSignature {
+                waiting
+            } else {
+                ProgressView()
+            }
             cancelButton
 
         case .signing:

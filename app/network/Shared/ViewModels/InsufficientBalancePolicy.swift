@@ -19,6 +19,11 @@
 //  A paying account refused at a data limit gets the same alert and notice in
 //  words for the limit, with no upgrade on offer (DataLimitGate).
 //
+//  Where the checkout has to go through the tunnel (the direct download,
+//  BillingDistribution.checkoutRidesTunnel) a held tunnel stops a purchase too.
+//  There is no way around it, which could leak: the alert says to disconnect
+//  first (OutOfBalanceNotice.disconnectFirst), and the user does.
+//
 //  A connect the user does not have yet is different: starting one out of
 //  balance is blocked at every entry point (the connect view, the macOS menu
 //  bar, Shortcuts and Siri, the Control Center control, the widget), which

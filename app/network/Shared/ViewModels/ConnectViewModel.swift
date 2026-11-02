@@ -214,6 +214,10 @@ class ConnectViewModel: ObservableObject {
     #else
     var purchaseDropsConnection = false
     #endif
+    // asks the user before a purchase drops the connection; replaced in tests
+    var confirmPurchaseDisconnect: () async -> Bool = { await PurchaseDisconnectNotice.confirm() }
+    // a purchase is under way (purchaseAroundConnection)
+    private var purchaseAroundConnectionRunning = false
 
     // connect and disconnect commands, run off the main actor in the order
     // they were made (see runConnectCommand), and the device work queued
@@ -730,17 +734,48 @@ class ConnectViewModel: ObservableObject {
      * App Store traffic does not ride the tunnel (the A6 note on
      * AppStoreSubscriptionManager.purchase). Every surface's purchase comes
      * through here (ConnectionAwareSubscriptionStore).
+     *
+     * The user is told before the connection drops, and may keep it and not
+     * buy. The notice and the disconnect are for a connection the user requested
+     * (`connectRequested`). The tunnel can be up with none, providing or with
+     * the kill switch on: a disconnect then changes nothing and a reconnect
+     * starts a connection nobody asked for, past the start gate, with public
+     * providing on under Auto (the sdk's Connect).
+     *
+     * One at a time: a second tap's restore would bring the tunnel back under
+     * the store the first one opened. The notice waits on the user, so what it
+     * was about is read again after it: a disconnect made meanwhile stands, and
+     * an account that left buys nothing.
      */
     func purchaseAroundConnection(_ purchase: () async -> Void) async {
-        let initiallyConnected = purchaseDropsConnection && (device?.getConnected() ?? false)
+        guard purchaseDropsConnection else {
+            await purchase()
+            return
+        }
+        guard !purchaseAroundConnectionRunning else {
+            return
+        }
+        purchaseAroundConnectionRunning = true
+        defer {
+            purchaseAroundConnectionRunning = false
+        }
         let purchaseDevice = device
-        if initiallyConnected {
+        if connectRequested {
+            guard await confirmPurchaseDisconnect(), device === purchaseDevice else {
+                return
+            }
+        }
+        let dropped = connectRequested
+        if dropped {
             disconnect()
-            // the disconnect reaches the sdk before the store opens
+        }
+        // a disconnect, this one or one the user just made, reaches the sdk
+        // before the store opens
+        if hasPendingConnectCommands {
             await connectCommandsSettled()
         }
         await purchase()
-        if initiallyConnected {
+        if dropped {
             restoreConnect(onDevice: purchaseDevice)
         }
     }
@@ -913,6 +948,13 @@ class ConnectViewModel: ObservableObject {
         pendingConnectCommandStatus ?? reportedConnectionStatus
     }
 
+    /// The user asked for a connection and has not left it, however far it got.
+    /// Not the rpc link to the extension (`device.getConnected()`), which is up
+    /// whenever the extension runs, with no connection too.
+    private var connectRequested: Bool {
+        connectAttempt(connectionStatus: requestedConnectionStatus) == .alreadyConnected
+    }
+
     /// Publishes what the connect views show: connecting while a start waits
     /// on its balance, else the requested status. Only on a change.
     private func publishConnectionStatus() {
@@ -1061,7 +1103,7 @@ extension ConnectViewModel {
             isPolling: insufficientBalancePolling || insufficientBalancePlan == nil,
             dataLimit: dataLimit,
             traffic: refusedTraffic(
-                connectRequested: connectAttempt(connectionStatus: requestedConnectionStatus) == .alreadyConnected,
+                connectRequested: connectRequested,
                 tunnelStarted: tunnelConnected
             ),
             connectionStatus: requestedConnectionStatus
@@ -1105,7 +1147,7 @@ extension ConnectViewModel {
                 plan: insufficientBalancePlan ?? Plan.none,
                 isPollingSubscriptionBalance: insufficientBalancePolling
             ),
-            connectRequested: connectAttempt(connectionStatus: requestedConnectionStatus) == .alreadyConnected,
+            connectRequested: connectRequested,
             balance: loadCachedBalance(),
             now: now()
         )

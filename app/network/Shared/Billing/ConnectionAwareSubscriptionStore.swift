@@ -8,9 +8,17 @@
 //  buy past it: makeSubscriptionStore takes the connection, and everything
 //  else is forwarded as it is.
 //
+//  The notice before the disconnect is an AppKit alert for the same reason. A
+//  SwiftUI alert has to hang from a view on the sheet each surface shows, and a
+//  surface without one would wait on it forever. The alert asks from here,
+//  over whatever is on screen, and always answers.
+//
 
 import Foundation
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 @MainActor
 final class ConnectionAwareSubscriptionStore: SubscriptionStore {
@@ -68,4 +76,30 @@ final class ConnectionAwareSubscriptionStore: SubscriptionStore {
 
     var isRestoringPurchases: Bool { store.isRestoringPurchases }
     var restoreResultMessage: String? { store.restoreResultMessage }
+}
+
+/// What the user is told before a purchase drops the connection. Its first
+/// button goes ahead; only macOS ever drops one (purchaseDropsConnection).
+@MainActor
+enum PurchaseDisconnectNotice {
+
+    static func confirm() async -> Bool {
+        #if os(macOS)
+        return makeAlert().runModal() == .alertFirstButtonReturn
+        #else
+        return true
+        #endif
+    }
+
+    #if os(macOS)
+    static func makeAlert() -> NSAlert {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Disconnect the VPN for this purchase?")
+        alert.informativeText = String(localized: "URnetwork reconnects it afterward. Until it does, your internet traffic won't go through the VPN.")
+        alert.addButton(withTitle: String(localized: "Disconnect"))
+        // AppKit gives Escape to a button titled Cancel only in English
+        alert.addButton(withTitle: String(localized: "Cancel")).keyEquivalent = "\u{1b}"
+        return alert
+    }
+    #endif
 }

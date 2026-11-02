@@ -73956,6 +73956,173 @@
         }
       }
     },
+    "Disconnect the VPN for this purchase?" : {
+      "comment" : "macOS alert title, shown when the user starts a purchase while a VPN connection is requested, before the app disconnects the VPN for the purchase. The alert's buttons are Disconnect and Cancel.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هل تريد قطع اتصال VPN لإتمام عملية الشراء هذه؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpojit VPN kvůli tomuto nákupu?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN für diesen Kauf trennen?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποσύνδεση του VPN για αυτή την αγορά;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect the VPN for this purchase?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Desconectar la VPN para esta compra?"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Desconectar la VPN para esta compra?"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Desconectar la VPN para esta compra?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter le VPN pour cet achat ?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לנתק את ה-VPN לצורך הרכישה הזו?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस खरीदारी के लिए VPN डिस्कनेक्ट करें?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Putuskan VPN untuk pembelian ini?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnettere la VPN per questo acquisto?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この購入のためにVPNを切断しますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 구매를 위해 VPN 연결을 해제할까요?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN-verbinding verbreken voor deze aankoop?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozłączyć VPN na czas tego zakupu?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar a VPN para esta compra?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar a VPN para esta compra?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desligar a VPN para esta compra?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключить VPN для этой покупки?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppla från VPN för det här köpet?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตัดการเชื่อมต่อ VPN สำหรับการซื้อครั้งนี้หรือไม่?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відключити VPN для цієї покупки?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngắt kết nối VPN cho giao dịch mua này?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要为此次购买断开 VPN 连接吗？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要為此次購買斷開 VPN 連接嗎？"
+          }
+        }
+      }
+    },
     "Disconnect URnetwork VPN" : {
       "comment" : "Used in Shared/Intents/DisconnectIntent.swift.",
       "localizations" : {
@@ -221591,6 +221758,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "URnetwork 會透過 DNS-over-HTTPS 查找其伺服器的名稱。如果內建伺服器在你的網絡上被封鎖，請加入在該網絡上可用的伺服器。URnetwork 會優先使用它們，而這些伺服器能夠看到這些查詢。"
+          }
+        }
+      }
+    },
+    "URnetwork reconnects it afterward. Until it does, your internet traffic won't go through the VPN." : {
+      "comment" : "macOS alert body under purchase_disconnect_notice_title. The app reconnects the VPN by itself after the purchase; \"it\" is the VPN. Until then the user's internet traffic does not go through the VPN.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيعيد URnetwork الاتصال بها بعد ذلك. وحتى يحدث ذلك، لن تمر حركة الإنترنت لديك عبر VPN."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork ji poté znovu připojí. Do té doby nebude váš internetový provoz procházet přes VPN."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork verbindet es danach wieder. Bis dahin läuft dein Internetverkehr nicht über das VPN."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το URnetwork θα το επανασυνδέσει μετά. Μέχρι τότε, η κίνηση του διαδικτύου σας δεν θα περνά μέσα από το VPN."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork reconnects it afterward. Until it does, your internet traffic won't go through the VPN."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork la volverá a conectar después. Hasta entonces, tu tráfico de internet no pasará por la VPN."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork la volverá a conectar después. Hasta entonces, tu tráfico de internet no pasará por la VPN."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork la volverá a conectar después. Hasta entonces, tu tráfico de internet no pasará por la VPN."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork le reconnectera ensuite. D’ici là, votre trafic Internet ne passera pas par le VPN."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork יחבר אותו מחדש לאחר מכן. עד אז, תעבורת האינטרנט שלכם לא תעבור דרך ה-VPN."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork इसके बाद इसे फिर से कनेक्ट कर देगा। तब तक आपका इंटरनेट ट्रैफ़िक VPN से होकर नहीं जाएगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork akan menyambungkannya kembali setelah itu. Sampai saat itu, lalu lintas internet Anda tidak akan melewati VPN."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork la ricollegherà in seguito. Fino ad allora, il tuo traffico Internet non passerà attraverso la VPN."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetworkはその後に再接続します。再接続されるまで、インターネット通信はVPNを経由しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork가 이후 다시 연결합니다. 그때까지 인터넷 트래픽은 VPN을 거치지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork maakt daarna opnieuw verbinding. Tot die tijd gaat je internetverkeer niet via de VPN."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork połączy go ponownie później. Do tego czasu Twój ruch internetowy nie będzie przechodził przez VPN."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O URnetwork reconecta a VPN depois. Até lá, seu tráfego de internet não passará pela VPN."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O URnetwork reconecta a VPN depois. Até lá, seu tráfego de internet não passará pela VPN."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O URnetwork volta a ligar a VPN depois. Até lá, o seu tráfego de internet não passará pela VPN."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После этого URnetwork подключит его снова. До этого момента ваш интернет-трафик не будет проходить через VPN."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork ansluter den igen efteråt. Tills dess går din internettrafik inte via VPN."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork จะเชื่อมต่อใหม่ภายหลัง ระหว่างนี้ทราฟฟิกอินเทอร์เน็ตของคุณจะไม่ผ่าน VPN"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Після цього URnetwork підключить його знову. До того часу ваш інтернет-трафік не проходитиме через VPN."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork sẽ kết nối lại sau đó. Cho đến lúc đó, lưu lượng internet của bạn sẽ không đi qua VPN."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 稍后会重新连接。在此之前，你的互联网流量不会通过 VPN。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 稍後會重新連接。在此之前，你的互聯網流量不會通過 VPN。"
           }
         }
       }

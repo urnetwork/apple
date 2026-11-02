@@ -10,6 +10,17 @@ app creates a Bittensor key on the device, signs the network's payout consent wi
 it, and keeps the recovery phrase until the user has saved it. URnetwork relays the
 claims and pays their gas.
 
+Two promises, from the owner (2026-11-02), that this plan is checked against:
+
+1. **Setting up a wallet for all miners on your network is a single tap in the app.**
+2. **Claiming Top 200 for all miners on your network is a single tap.**
+
+"All miners" here means the one tap handles the whole network, including miners with no
+app. For Top 200 the server then binds only the devices that add score, and the rest keep
+earning in the pool, because binding every device would cost most of them their pool
+earnings (see [What has to hold](#what-has-to-hold)). What each promise doesn't cover yet
+is listed under [Where one tap stops](#where-one-tap-stops).
+
 **URnetwork is not a wallet.** The app creates one key and signs for URnetwork's own
 payout flow. It can't send funds to anyone. To transfer or use SN25α, the user enters
 the recovery phrase into another wallet or btcli. The one on-chain action in the first
@@ -25,6 +36,12 @@ version is a minimal **convert SN25α to TAO**, which stays on the same key (see
 - The app gets a minimal convert from SN25α to TAO, with the user choosing the amount.
 - Binding opens on mainnet as its own release, with each on-chain step brought to the owner first.
 - The fleet hotkey lives on the key holder's device, as a key separate from the recovery phrase.
+- The Earnings card's main button is the one tap: it creates the key, saves it for later and signs.
+- Headless miners get auto-signing in a `provider` release, and networks with an existing wallet
+  get a path of their own.
+- URnetwork relays bindings for small fleets, and a miner with no alpha gets a capped top-up
+  (questions 15 and 16).
+- The delete confirmation warns that deleting the key also gives up one-tap Top 200.
 
 ### Not in scope
 
@@ -71,19 +88,23 @@ The relay can only be tested on testnet until settlement goes live.
 
 ## The flow
 
-**Entry:** the payout card on Earnings, when the network has no consent. Two
-choices: **Create a key on this device** (new, first) and **Use a wallet I already
-have** (today's flow).
+**Entry:** the payout card on Earnings, when the network has no consent. The card
+holds the few lines of explanation, so they're read before the tap (see
+[Wording](#wording)), one main button, **Set up payouts**, and two smaller links:
+**Save the recovery phrase first** and **Use a wallet I already have** (today's flow).
+There's no screen between the card and the result.
 
-**Create a key** explains in a few lines, then offers two buttons:
+- **Set up payouts** (the Save later flow) writes the key to the Keychain, reads it
+  back, then signs. This is the one tap: consent is done for every miner on the
+  network, and the card reads "Payouts start next epoch" with a reminder to back up
+  the key.
+- **Save the recovery phrase first** (the Save now flow) never writes anything to
+  disk. The key exists only in memory. The Key screen opens, and the user taps the
+  same button as in the other flow. Only then does the app sign. When consent
+  succeeds, the key is dropped from memory.
 
-- **Save the recovery phrase later** writes the key to the Keychain, then signs.
-  This is the one tap: consent is done, and the card reads "Payouts start next
-  epoch" with a reminder to back up the key.
-- **Save the recovery phrase now** never writes anything to disk. The key exists
-  only in memory. The Key screen opens, and the user taps the same button as in the
-  other flow. Only then does the app sign. When consent succeeds, the key is dropped
-  from memory.
+The one tap is only for a network with no consent. Replacing a payout wallet keeps its
+warning (see [Edge cases](#edge-cases)).
 
 **The ordering is the safety rule: the app never signs until the phrase is safe**,
 meaning stored and read back, or confirmed by the user. Otherwise earnings could be
@@ -97,7 +118,11 @@ paid to a key nobody holds.
 - It hides itself again after 60 s and whenever the app leaves the foreground.
 - One destructive action: **I have saved the key, it's OK to delete it now.**
 - A confirmation before it acts: URnetwork can't get this key back, earnings keep
-  going to this address, and only the recovery phrase can move them.
+  going to this address, and only the recovery phrase can move them. If the network
+  hasn't registered for Top 200, it also says that deleting the key gives up the one-tap
+  claim, since registering needs this key. After that, claiming takes a wallet holding
+  the recovery phrase (see
+  [Networks with an existing wallet](#networks-with-an-existing-wallet)).
 - The not-a-wallet text is always visible (see [Wording](#wording)).
 
 **Copy** carries a short warning that other apps may be able to read the clipboard.
@@ -113,7 +138,7 @@ after 60 s. On Mac the app clears the clipboard after 60 s if it still holds the
 | Save now, consent failed | nothing | phrase | Key screen with Retry | Leaving discards the key; no earnings went to it |
 | Save later, not linked | Keychain | when needed | Finish setup | Retry the consent |
 | Save later, linked | Keychain | when needed | Address, "Back up your key" | Key screen |
-| Saved and deleted | nothing | nothing | Address, "This app no longer has the key" | Claims keep working; convert doesn't |
+| Saved and deleted | nothing | nothing | Address, "This app no longer has the key" | Claims keep working; convert and one-tap Top 200 registration don't |
 
 The address stays visible after deletion, because it comes from the consent and
 isn't a secret.
@@ -220,7 +245,7 @@ A second phase, after the key flow ships. It follows the owner's proposal of 202
 centrally, distribute to the devices, let them save what they receive, and convert alpha on
 demand. No contract change is needed. It can't ship until binding opens on mainnet.
 Copy-and-paste docs are being written now for wallet users and fleet operators, and stay
-unlinked until then.
+unlinked until then. They stay afterward as the fallback for anyone the one tap can't reach.
 
 ### State on 2026-11-02
 
@@ -264,16 +289,19 @@ Rank 1's projection alone is about 2,858.
 
 ### The flow, from one tap
 
+This is the flow for a network whose key is on the key holder's device. The tap covers the
+whole network: the server chooses the devices in step 3, and everything else stays in the pool.
+
 | Step | Done by | Cost |
 |---|---|---|
-| 1. Convert just enough alpha | The key, on the device | Fee in alpha |
+| 1. Convert just enough alpha, or receive the top-up | The key, on the device | Fee in alpha, or URnetwork's top-up |
 | 2. Burn-register a new hotkey | The key, on the device | The burn and its fee, from step 1 |
 | 3. Choose the devices and build the manifest | Server | Nothing |
 | 4. Publish the manifest's commitment | The hotkey, on the device | Nothing: `set_commitment` is `Pays::No` in Subtensor's source |
 | 5. Mirror the commitment | Commitment oracle | URnetwork |
 | 6. Sign each device's binding | The hotkey, on the device | Nothing |
 | 7. Deliver each binding; the device checks it, signs with its client key and saves it | Server and device | Nothing |
-| 8. Submit each binding | Relayer | URnetwork if we choose to (question 15); gas unmeasured |
+| 8. Submit each binding | Relayer | URnetwork, for small fleets (question 15): about 263,640 gas a bind, about 0.0013 TAO at 5 gwei, read from two mainnet binds |
 
 A binding starts at the next settlement epoch, up to 7 days later, and lasts at most 12 epochs,
 about 3 months. Renewal repeats steps 6 to 8 with no tap.
@@ -281,9 +309,9 @@ about 3 months. Renewal repeats steps 6 to 8 with no tap.
 **Converting on demand.** Signing is free; only the burn and its fee need TAO. Step 1 converts
 that amount at the tap, with a price limit. The key must already hold alpha: today's burn is
 about 0.12 α, roughly 8 weeks of an average miner's earnings by sn's 100k-population figures.
-A miner with none could get a top-up from us instead (question 16). At today's burn that costs
-less than relaying the claim that would fund it, and all 200 seats come to about 0.1 TAO in
-burns.
+A miner with too little gets a capped top-up from us instead (question 16), so a new miner isn't
+stuck waiting for alpha. At today's burn that costs less than relaying the claim that would fund
+it, and all 200 seats come to about 0.1 TAO in burns.
 
 ### What has to hold
 
@@ -292,7 +320,8 @@ burns.
   so that's what's distributed and saved. One compromised device must not expose the fleet's
   hotkey.
 - **The client signature stays on the device.** The client key exists only there, so a device
-  has to be online and on a release with this support. Older devices stay in the pool.
+  has to be online and on a release with this support. Older devices stay in the pool. Miners
+  with no app sign the same way (see [Headless miners](#headless-miners)).
 - **Bind only devices that add score, not every active provider.** Bound members leave the pool
   whether or not they're selected, and score counts distinct IP prefixes. A second device on the
   same prefix adds nothing and loses its pool share, and members past the per-fleet priority share
@@ -317,16 +346,96 @@ burns.
 - **Manifest changes are batched once per epoch,** since each one needs a new commitment and a
   fresh mirror, and a binding can't start before the next epoch anyway.
 
+### Headless miners
+
+Operators with many devices run `provider` on servers or in Docker, with nobody at the host.
+Without a path for them the second promise fails: those devices couldn't sign, so the tap would
+bind nothing and they'd stay in the pool.
+
+Today a binding on a host takes a person: `provider fleet sign` (sn `miner/fleet_sign.go`) signs
+with the host's client key when someone runs it, and no code signs automatically. A running
+`provider` already holds that key, `.provider.key` in its state directory, so the new work is:
+
+- **Auto-signing, in a `provider` release.** A running provider asks the server for its pending
+  binding, runs the checks in [What has to hold](#what-has-to-hold), signs with its client key,
+  saves the result in its state directory and returns the signature. The operator runs no command,
+  and the fleet hotkey is never on the host.
+- **One copy of the checks.** The apps and `provider` call the same code, so they can't drift. The
+  sdk's `SignSnFleetBinding` already refuses another client id or key; the hotkey signature and
+  coldkey authorization checks join it there.
+- **Pin before there's anything to attack.** A provider pins the network's coldkey when it first
+  sees the network's consent, not when the first binding arrives. A changed coldkey or hotkey stops
+  auto-signing and says why in the log. Auto-signing is on by default (question 18), and a flag on
+  `provider start` opts out.
+- **Leaving.** A short `provider` command signs a revocation with the client key and sends it through
+  the relay. Today's `provider fleet revoke` needs a manifest, an RPC endpoint and a relayer key.
+- **Cheap to run.** Every provider asks, so the request is slow and jittered, and the server answers
+  from the short list of chosen devices.
+- **Proxy slots.** Slots on one host share one client key under separate client ids. Each signs only
+  for its own id, and the one-device-per-prefix choice applies across them.
+- **Lost state.** A host that loses its state directory, such as a container with no volume, gets a
+  new key and can't revoke its old binding, which runs to its end. It comes back as a new device.
+- **It reaches fleets only as they update.** Hosts restart when they update, and the release is its own
+  decision. A device on an older release isn't chosen and stays in the pool, so the card shows how many
+  of the network's devices are chosen, ready, and still to update.
+- **The manual route stays.** `provider fleet sign` and `provider fleet bind` remain for operators who
+  hold their own hotkey. The server sends a device work only for a hotkey its network's coldkey
+  authorized, so those operators' devices never auto-sign anything.
+
+### Networks with an existing wallet
+
+These networks consented with a wallet, so the app doesn't hold their coldkey. People who deleted the
+app's key join them once they've imported the recovery phrase into a wallet. The tap is the same, and
+the wallet signs only what the coldkey has to:
+
+| Step | Done by | Notes |
+|---|---|---|
+| Create the hotkey | The app, on the device | The same separate key as above; no wallet involved |
+| Authorize the hotkey | The wallet | One message signature, through the wallet proof transports that exist today. Devices check it exactly as they check the local key's |
+| Register the hotkey, with a conversion first if needed | The wallet | One transaction, the coldkey's own: `register_limit` is signed by the hotkey's owner |
+| Steps 3 to 8 | As above | No wallet involved |
+
+**So this is one tap plus up to two wallet approvals, not one signature.** The authorization is one
+signature, as planned, but a new registration also needs the coldkey on chain. A relayer can't do it for
+them: whoever signs `register_limit` owns the seat, which would be custodial. Question 17 asks whether to
+fold the two into one.
+
+- **Only registering needs the transaction.** Afterward, renewals and new devices need no wallet.
+- **Transports are unproven for this.** Today's sign messages only. Sending a transaction through them is
+  new, and whether a zero-TAO wallet can submit at all is still unknown. Where they can't, the app shows
+  the hotkey's address and the btcli command from the copy-and-paste docs.
+- **The top-up applies here too,** for a wallet with too little to register (question 16).
+- **A network with its own registered hotkey** keeps using `provider fleet` with it, since that hotkey
+  isn't on the device.
+- **Replacing the payout wallet with a key on this device** (question 9) gets the plain one tap, but
+  earlier earnings stay on the old coldkey, so it's never the default.
+
+### Where one tap stops
+
+| Who | What they get |
+|---|---|
+| Key on this device, enough alpha or a top-up, miners online and updated | Both promises, in one tap each |
+| Headless miners on an older `provider` release | Wallet setup covers them; for Top 200 they stay in the pool until they update |
+| Network with an existing wallet | One tap, plus up to two wallet approvals, once for Top 200 |
+| Key deleted, or Save now | Wallet setup is done; Top 200 takes a wallet holding the phrase |
+| Android, Windows and Linux, before the port | No key flow yet; today's wallet paths |
+| ur.io | No key flow; wallets and manual signing |
+
 ### To prove on testnet, and tests
 
 - A zero-TAO key converts alpha, then registers. A zero-TAO hotkey publishes a commitment.
-- The gas for `bindFleetMember` and `revokeFleetBinding`. The public node no longer has the two
-  mainnet blocks, so this is unmeasured.
+- The gas for `revokeFleetBinding`, which is unmeasured, and for `bindFleetMember` on testnet: two
+  mainnet binds read 263,634 and 263,646 gas.
+- A `provider` on the new release binds with no command at the host. One on an older release is never
+  chosen and keeps earning in the pool. A provider that restarts mid-binding doesn't sign twice.
+- The wallet path: authorize, register, then bind, including a wallet with no TAO and one whose
+  transport can't send a transaction.
 - Whether a new UID can be evicted before its binding starts: immunity lasts 3 days, and the
   binding can be up to 7 days away.
 - Whether anything penalizes a network whose other devices stay in the pool.
 - A device refuses a binding for another client or key, a bad hotkey signature, and an unpinned
-  or changed hotkey. Only the chosen devices are bound. Leave works from one device.
+  or changed hotkey, in the apps and in `provider` alike. Only the chosen devices are bound. Leave
+  works from one device, and the opt-out flag stops a provider from signing.
 
 ## Design
 
@@ -403,6 +512,11 @@ screen and the delete confirmation, in short form on the Earnings card, and in t
 > can't recover it. If you lose this device before saving it, your SN25α can't be
 > reached.
 
+The delete confirmation adds this while the network hasn't registered for Top 200:
+
+> Deleting this key also gives up claiming a Top 200 spot with one tap. You could still
+> claim from a Bittensor wallet holding this recovery phrase.
+
 It must also be clear this is **not** the account seed phrase from sign-up (see
 question 7). The docs get tested, exact steps for importing into Talisman, Nova and
 `btcli wallet regen-coldkey`, shared with the manual flow's docs now being written.
@@ -421,7 +535,8 @@ question 7). The docs get tested, exact steps for importing into Talisman, Nova 
 7. **Convert** (question 2). Ship the rest without waiting for it.
 8. **Port.**
 9. **Top 200,** once binding is open and convert is proven. Its server side covers every
-   platform; each platform adds auto-signing and Leave.
+   platform; each platform adds auto-signing and Leave. A `provider` release adds the same for
+   headless miners, without which fleets aren't covered, and the existing-wallet path follows.
 
 ### Tests
 
@@ -472,13 +587,14 @@ Each has my recommendation, so "yes to all" is a valid answer.
 3. **Convert after the key is deleted.** Once deleted, the app can't sign, so convert is gone; the
    user goes to a wallet or btcli. That means Save now users never get convert. **Recommend** accepting
    that and saying so on the delete confirmation. Alternatively, a user could keep the key to keep
-   convert, which the Save later flow already allows.
+   convert, which the Save later flow already allows. Deleting also gives up one-tap Top 200
+   registration, and the delete confirmation says so (decided, owner, 2026-11-02).
 
 4. **What does the key sign?** I read "the transaction" as the payout consent, plus convert now.
    Claims use the relay. Is that what you meant?
 
-5. **Which option is the highlighted default?** **Recommend Save later**, since it's
-   the one tap, with the reminder doing the work. Save now stays one tap away.
+5. **Decided (owner, 2026-11-02): Save later is the default,** as the card's main button,
+   with the reminder doing the work. Save now stays one tap away, as a smaller link.
 
 6. **Must the user prove they saved the phrase before deleting?** For example, by
    entering two of the words. A single tap is simplest, but it's the only moment that
@@ -512,12 +628,28 @@ Each has my recommendation, so "yes to all" is a valid answer.
 14. **Decided (owner, 2026-11-02): the hotkey lives on the key holder's device,** as a key separate
     from the recovery phrase.
 
-15. **Who pays to submit bindings?** Each bound device is its own transaction, at least every 3
-    months. **Recommend** relaying for small fleets up to a device limit, set once testnet gives the
-    gas, with larger fleets paying their own.
+15. **Decided (owner, 2026-11-02): URnetwork relays bindings for small fleets up to a device limit,**
+    with larger fleets paying their own. Each bound device is its own transaction, at least every 3
+    months. Two mainnet binds read about 263,640 gas each, so 7 devices cost about 0.009 TAO per binding
+    period at 5 gwei, and 200 fleets of 7 about 1.8 TAO. **Still to set: the limit.** Recommend the
+    per-fleet share (7 at a cohort of 1,500), since the server binds no more than that, so every fleet
+    the one tap binds is covered. Funding the relayer is an on-chain step that comes to the owner first.
 
-16. **A miner with no alpha yet: top up or wait?** **Recommend** a capped top-up, only for networks
-    the app already prompts to claim.
+16. **Decided (owner, 2026-11-02): a capped top-up,** only for networks the app already prompts to
+    claim. **Still to set: the cap and the key that pays it.** Recommend the live burn plus its fee,
+    once per network. Creating and funding that key are on-chain steps that come to the owner first.
+
+17. **Existing wallets: two approvals or one?** The authorization is a message and the registration is a
+    transaction. They could become one approval, a single batched transaction, if devices took the chain's
+    record of the hotkey's owner as the authorization. That needs a chain read on every device and a
+    transport that can send a batch, neither of which exists on the phone today. **Recommend** two
+    approvals in the first version, since it happens once and the device check stays simple, and folding
+    them later if wallets prove able.
+
+18. **Headless auto-signing: on by default?** Opt-in would need someone at every host, which is the thing
+    this path removes. The risk is a server bug, breach or stolen account reaching those devices, which
+    the coldkey authorization, the pin and the admin email are there to catch. **Recommend** on by default,
+    with the opt-out flag.
 
 ## Found while planning
 

@@ -78,9 +78,9 @@ struct BittensorWalletConnectorTests {
         // no documented mobile deep link: Talisman and TAO.com are manual on iOS
         #expect(BittensorWallet.transport("talisman", platform: SdkBittensorWalletPlatformIos) == SdkBittensorWalletTransportManual)
         #expect(BittensorWallet.transport("taocom", platform: SdkBittensorWalletPlatformIos) == SdkBittensorWalletTransportManual)
-        // macOS: the Talisman extension through the browser bridge
+        // macOS: the Talisman and TAO.com extensions through the browser bridge
         #expect(BittensorWallet.transport("talisman", platform: SdkBittensorWalletPlatformMacos) == SdkBittensorWalletTransportBrowserBridge)
-        #expect(BittensorWallet.transport("taocom", platform: SdkBittensorWalletPlatformMacos) == SdkBittensorWalletTransportManual)
+        #expect(BittensorWallet.transport("taocom", platform: SdkBittensorWalletPlatformMacos) == SdkBittensorWalletTransportBrowserBridge)
         #if os(iOS)
         #expect(BittensorWallet.platform == SdkBittensorWalletPlatformIos)
         #else
@@ -117,6 +117,9 @@ struct BittensorWalletConnectorTests {
             (SdkBittensorWalletBridgeErrorAddressMismatch, String(localized: "The wallet that signed is not the address you entered.")),
             (SdkBittensorWalletBridgeErrorExtensionNotFound, String(localized: "The \("Talisman") extension was not found in this browser. Install it, then try again.")),
             (SdkBittensorWalletBridgeErrorNoAccount, String(localized: "Your \("Talisman") wallet has no account to sign with. Add or connect an account in the wallet, then try again.")),
+            // the follow-up from support inbox 8142: the page used to hand back
+            // wallet_error for this, with the extension's own English
+            (SdkBittensorWalletBridgeErrorExtensionNotAuthorized, String(localized: "\("Talisman") hasn't allowed ur.io to use your Bittensor account yet. Approve the connection request in the wallet, or allow ur.io under Connected Sites in its settings, then try again.")),
             (SdkBittensorWalletBridgeErrorUserRejected, String(localized: "The request was declined in your wallet. Start again and approve it to continue.")),
             (SdkBittensorWalletBridgeErrorWalletConnectExpired, String(localized: "The WalletConnect request expired before the wallet answered. Start again.")),
             (SdkBittensorWalletBridgeErrorWalletConnectUnavailable, String(localized: "WalletConnect is not available right now. Try again later, or enter your address manually.")),
@@ -210,7 +213,7 @@ struct BittensorWalletConnectorTests {
 
     @Test func manualProofBoundToTheTypedAddress() async {
         let recorder = Recorder()
-        let connector = Self.connector(platform: SdkBittensorWalletPlatformMacos, recorder: recorder)
+        let connector = Self.connector(platform: SdkBittensorWalletPlatformIos, recorder: recorder)
 
         await connector.choose(walletId: "taocom", purpose: SdkBittensorWalletPurposeCreate, expectedAddress: Self.alice)
         #expect(recorder.challengeArgs.first?.walletAddress == Self.alice)
@@ -483,7 +486,7 @@ struct BittensorWalletConnectorTests {
     @Test func earningsTaoComTakesTheAddressThenTheSignature() async {
         let recorder = Recorder()
         let client = FakeClient()
-        let flow = Self.flow(platform: SdkBittensorWalletPlatformMacos, client: client, recorder: recorder)
+        let flow = Self.flow(platform: SdkBittensorWalletPlatformIos, client: client, recorder: recorder)
         var connectedWallet: SnWalletInfo?
         flow.onConnected = { connectedWallet = $0 }
 
@@ -579,8 +582,8 @@ struct BittensorWalletConnectorTests {
 
     @Test func signatureMismatchTextNamesTheManualWalletOnly() {
         let mismatch = EarningsClientError.signatureMismatch(Self.serverMismatchMessage)
-        // manual: TAO.com everywhere, Talisman on iOS
-        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "taocom", platform: SdkBittensorWalletPlatformMacos) == "This signature isn't from the address you entered. In TAO.com, sign the message with that address, then paste the signature again.")
+        // manual: TAO.com and Talisman on iOS
+        #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "taocom", platform: SdkBittensorWalletPlatformIos) == "This signature isn't from the address you entered. In TAO.com, sign the message with that address, then paste the signature again.")
         #expect(ConnectBittensorWalletFlow.failureText(mismatch, walletId: "talisman", platform: SdkBittensorWalletPlatformIos) == "This signature isn't from the address you entered. In Talisman, sign the message with that address, then paste the signature again.")
         // a browser-bridge wallet signed with the account it returned: nothing
         // was pasted, so the error reads as before
@@ -646,17 +649,23 @@ struct BittensorWalletConnectorTests {
 
     @Test func signInCreateAndAddNameTheManualWalletOnly() {
         let mismatch = WalletSignatureMismatchError(message: Self.walletAuthMismatchMessage)
-        // sign-in: manual is TAO.com everywhere, Talisman on iOS
+        // sign-in: manual is TAO.com and Talisman on iOS
         let refused = AuthLoginResult.failure(mismatch)
-        #expect(bittensorSignInFailureText(refused, walletId: "taocom", platform: SdkBittensorWalletPlatformMacos) == Self.mismatchLine("TAO.com"))
+        #expect(bittensorSignInFailureText(refused, walletId: "taocom", platform: SdkBittensorWalletPlatformIos) == Self.mismatchLine("TAO.com"))
+        // on macOS TAO.com's extension signs on the bridge page, like Talisman's
+        #expect(bittensorSignInFailureText(refused, walletId: "taocom", platform: SdkBittensorWalletPlatformMacos) == nil)
         #expect(bittensorSignInFailureText(refused, walletId: "talisman", platform: SdkBittensorWalletPlatformIos) == Self.mismatchLine("Talisman"))
         // a browser-bridge wallet signed with the account it returned
         #expect(bittensorSignInFailureText(refused, walletId: "talisman", platform: SdkBittensorWalletPlatformMacos) == nil)
         #expect(bittensorSignInFailureText(refused, walletId: "walletconnect", platform: SdkBittensorWalletPlatformIos) == nil)
         #expect(bittensorSignInFailureText(.failure(NSError(domain: "UrApiService", code: -1)), walletId: "taocom") == nil)
 
-        // create (TAO.com is manual on every platform)
+        // create: TAO.com is manual on iOS, and signs on the bridge page on macOS
+        #if os(iOS)
         #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage), bittensorWalletId: "taocom") == Self.mismatchLine("TAO.com"))
+        #else
+        #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage), bittensorWalletId: "taocom") == Self.walletAuthMismatchMessage)
+        #endif
         #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage), bittensorWalletId: "walletconnect") == Self.walletAuthMismatchMessage)
         #expect(createNetworkFailureMessage(NetworkCreateError.signatureMismatch(message: Self.walletAuthMismatchMessage)) == Self.walletAuthMismatchMessage)
 

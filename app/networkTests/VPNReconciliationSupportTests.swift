@@ -265,6 +265,236 @@ struct VPNReconciliationSupportTests {
         ))
     }
 
+    // The session the app must not restart: an account out of balance, whose
+    // extension answers and holds the traffic with no provider behind it. An
+    // extension with no provider reports reasserting, and the window latches
+    // failed after its two outcome deadlines, which is what used to hand it to a
+    // restart in place: a stop of the tunnel, with the traffic in the clear until
+    // it came back. A restart cannot bring the balance back.
+    @Test func anAccountOutOfBalanceIsNotRestartedForItsEmptyWindow() {
+        let settings = VPNManagerSettings()
+        for state in [VPNTunnelConnectionState.connected, .reasserting] {
+            let held = vpnTunnelHealthIsSatisfied(
+                expectedStarted: true,
+                connectionState: state,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: true,
+                providerCount: 0,
+                outOfBalanceHeld: true
+            )
+            #expect(held)
+            // no audit is scheduled for it, so nothing reconciles it
+            #expect(vpnTunnelHealthAuditDelay(
+                shouldRun: true,
+                reconcileInFlight: false,
+                connectionState: state,
+                isHealthy: held,
+                settings: settings
+            ) == nil)
+        }
+    }
+
+    // The same session in balance is restarted as before, once its window has
+    // given up: the rule took nothing away from a tunnel the balance has no part in.
+    @Test func theSameSessionInBalanceStillGoesToARestart() {
+        for state in [VPNTunnelConnectionState.connected, .reasserting] {
+            #expect(!vpnTunnelHealthIsSatisfied(
+                expectedStarted: true,
+                connectionState: state,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: true,
+                providerCount: 0,
+                outOfBalanceHeld: false
+            ))
+            #expect(!vpnTunnelRecoveryInProgress(
+                connectionState: state,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: true,
+                windowTargetSize: 4,
+                windowFailed: true
+            ))
+        }
+    }
+
+    // The hold only speaks for the empty window. An extension that stopped
+    // answering, or is not up at all, is restarted whatever the balance, like a
+    // hung SDK on the desktop apps.
+    @Test func theHoldDoesNotCoverADeadExtension() {
+        for state in [VPNTunnelConnectionState.invalid, .disconnected, .connecting, .disconnecting] {
+            #expect(!vpnTunnelHealthIsSatisfied(
+                expectedStarted: true,
+                connectionState: state,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: true,
+                providerCount: 0,
+                outOfBalanceHeld: true
+            ))
+        }
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: false,
+            sdkTunnelStarted: true,
+            requiresProvider: true,
+            providerCount: 0,
+            outOfBalanceHeld: true
+        ))
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: true,
+            connectionState: .connected,
+            rpcConnected: true,
+            sdkTunnelStarted: false,
+            requiresProvider: true,
+            providerCount: 0,
+            outOfBalanceHeld: true
+        ))
+        // and a stop the user asked for stays a stop
+        #expect(!vpnTunnelHealthIsSatisfied(
+            expectedStarted: false,
+            connectionState: .connected,
+            rpcConnected: true,
+            sdkTunnelStarted: true,
+            requiresProvider: true,
+            providerCount: 0,
+            outOfBalanceHeld: true
+        ))
+    }
+
+    @Test func theOutOfBalanceHoldsTable() {
+        var hold = VPNOutOfBalanceHold()
+        func observe(_ insufficient: Bool, _ generation: Int64, _ providers: Int, noPermission: Bool = false) {
+            hold.observe(
+                insufficientBalance: insufficient,
+                noPermission: noPermission,
+                connectionGeneration: generation,
+                providerCount: providers
+            )
+        }
+        // not told: a status that never rose holds nothing
+        observe(false, 1, 0)
+        observe(false, 1, 3)
+        #expect(!hold.held)
+        // told, with providers from before the refusal still counted
+        observe(true, 1, 3)
+        #expect(hold.held)
+        // a grant on the destination that was refused
+        observe(false, 1, 0)
+        #expect(!hold.held)
+        // a new destination's reset is not a grant
+        observe(true, 1, 0)
+        observe(false, 2, 0)
+        #expect(hold.held)
+        // nor is a refusal of another kind, even with a provider admitted
+        observe(false, 2, 1, noPermission: true)
+        #expect(hold.held)
+        // a provider admitted past the reset is
+        observe(false, 2, 1)
+        #expect(!hold.held)
+        // a refusal on the newer destination moves the bar with it
+        observe(true, 2, 1)
+        observe(false, 3, 0)
+        #expect(hold.held)
+        observe(true, 3, 0)
+        observe(false, 3, 0)
+        #expect(!hold.held)
+    }
+
+    // The session as the app reads it, every health check for ten minutes: the
+    // notice once, no disconnect, no restart; then the balance back and a restart
+    // allowed again if the tunnel is still dead.
+    @Test func theNoticeStaysAndNothingRestartsForTheWholeHold() {
+        var notices: [InsufficientBalanceNoticeAction] = []
+        var disconnects = 0
+        let reaction = InsufficientBalanceContractReaction(
+            disconnect: { disconnects += 1 },
+            notice: { notices.append($0) }
+        )
+        var hold = VPNOutOfBalanceHold()
+        var restarts = 0
+        func healthCheck(insufficient: Bool, windowFailed: Bool) {
+            reaction.update(
+                insufficientBalance: insufficient,
+                isSupporter: false,
+                isPolling: false,
+                connectionStatus: .connecting
+            )
+            hold.observe(
+                insufficientBalance: insufficient,
+                noPermission: false,
+                connectionGeneration: 1,
+                providerCount: 0
+            )
+            let satisfied = vpnTunnelHealthIsSatisfied(
+                expectedStarted: true,
+                connectionState: .reasserting,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: true,
+                providerCount: 0,
+                outOfBalanceHeld: hold.held
+            )
+            let recovering = vpnTunnelRecoveryInProgress(
+                connectionState: .reasserting,
+                rpcConnected: true,
+                sdkTunnelStarted: true,
+                requiresProvider: true,
+                windowTargetSize: 4,
+                windowFailed: windowFailed
+            )
+            if !satisfied && !recovering {
+                restarts += 1
+            }
+        }
+        for second in 0..<600 {
+            // the window latches failed after its two 45 s outcome deadlines
+            healthCheck(insufficient: true, windowFailed: 90 <= second)
+        }
+        #expect(notices == [.post])
+        #expect(disconnects == 0)
+        #expect(restarts == 0)
+
+        // a contract went through: the notice goes, and this tunnel, still with no
+        // provider and a failed window, is the app's to recover again
+        healthCheck(insufficient: false, windowFailed: true)
+        #expect(notices == [.post, .remove])
+        #expect(disconnects == 0)
+        #expect(restarts == 1)
+    }
+
+    // The health reading is what every restart decision reads, so the hold has to
+    // reach it. VPNManager needs NetworkExtension, so its source is read: the
+    // status from the device the alert reads it from, ahead of the window status,
+    // and reset by the user's disconnect.
+    @Test func theHealthReadingFeedsTheHold() throws {
+        let appRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: appRoot.appendingPathComponent("network/Shared/ViewModels/VPNManager.swift"),
+            encoding: .utf8
+        )
+        var from = source.startIndex
+        for needle in [
+            "let contractStatus = requiresProvider ? device.getContractStatus() : nil",
+            "let windowStatus = requiresProvider ? device.getWindowStatus() : nil",
+            "outOfBalanceHold = VPNOutOfBalanceHold()",
+            "outOfBalanceHold.observe(",
+            "insufficientBalance: contractStatus.insufficientBalance,",
+            "noPermission: contractStatus.noPermission,",
+            "connectionGeneration: windowStatus.connectionGeneration,",
+            "outOfBalanceHeld: outOfBalanceHold.held",
+        ] {
+            let range = source.range(of: needle, range: from..<source.endIndex)
+            #expect(range != nil, "VPNManager.swift is missing, or misorders: \(needle)")
+            if let range { from = range.upperBound }
+        }
+        #expect(source.contains("outOfBalanceHeld: outOfBalanceHeld"))
+    }
+
     @Test func connectingAndReassertingAreNeverHealthy() {
         for state in [VPNTunnelConnectionState.connecting, .reasserting] {
             #expect(!vpnTunnelHealthIsSatisfied(

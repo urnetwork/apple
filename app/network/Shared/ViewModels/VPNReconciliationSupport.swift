@@ -99,7 +99,8 @@ struct VPNManagerSettings: Equatable {
     /// window that never formed latches `failed` after its own silent rebuild
     /// (two 45 s outcome deadlines); one that lost its exits mid-session never
     /// latches, so this bound still restarts an extension that answers but
-    /// stopped recovering. 0 restarts at the grace deadline.
+    /// stopped recovering. 0 restarts at the grace deadline. An account out of
+    /// balance is never restarted for this (VPNOutOfBalanceHold).
     var recoveryPatience: TimeInterval = 120
     /// Listener bursts within this coalesce into one reconcile; 0 reconciles
     /// every event.
@@ -127,20 +128,76 @@ struct VPNManagerSettings: Equatable {
     var profileJwtConvergeAttempts = 3
 }
 
+/// Whether the session is out of balance, kept across the readings that cannot
+/// tell (owner decisions 2026-10-02 and 2026-11-02; the same rule as linux's
+/// TunnelWatchdog.hpp and windows' DeadTunnelVerdict.h). While it holds, an empty
+/// provider window is what the account is meant to have, and the app must not
+/// restart the tunnel over it: a restart cannot bring the balance back, and while
+/// the tunnel is stopped traffic leaves in the clear. The user is told (the view
+/// model's InsufficientBalanceContractReaction) and disconnects themselves.
+///
+/// The SDK's status only says that the last result on this destination was not a
+/// refusal, and it reads the same for a grant and for nothing yet: a refusal
+/// raises it, a granted contract clears it, a result about something else leaves
+/// it, and a new destination resets it with the connection it replaces. So it is
+/// raised by the first refusal and kept until the platform has said contracts go
+/// through: the status cleared in the generation that was refused, or, past a
+/// reset, that destination's window admitting a provider. A no-permission result
+/// says nothing. Holding a funded account costs it a tunnel left as it is, told
+/// and with a working Disconnect; a wrong restart costs a leak.
+///
+/// Read the contract status first, so a destination change between the two reads
+/// can never pair a status it reset with the generation before it.
+struct VPNOutOfBalanceHold: Equatable {
+    private(set) var held = false
+    private var refusedGeneration: Int64 = 0
+
+    mutating func observe(
+        insufficientBalance: Bool,
+        noPermission: Bool,
+        connectionGeneration: Int64,
+        providerCount: Int
+    ) {
+        if insufficientBalance {
+            refusedGeneration = connectionGeneration
+            held = true
+            return
+        }
+        guard held, !noPermission else {
+            return
+        }
+        if connectionGeneration <= refusedGeneration || 0 < providerCount {
+            held = false
+        }
+    }
+}
+
 /// NetworkExtension status is the process-level source of truth, while the RPC
 /// and SDK values prove that the containing app can actually reach a started,
 /// usable tunnel. Cached SDK state alone must never make a dead provider look
 /// healthy.
+///
+/// Out of balance the tunnel is healthy with no provider: the extension answers,
+/// its SDK tunnel runs, and it holds the traffic. An extension with no provider
+/// reports reasserting, so that counts here too. The other readings still decide:
+/// an extension that stopped answering is restarted whatever the balance.
 func vpnTunnelHealthIsSatisfied(
     expectedStarted: Bool,
     connectionState: VPNTunnelConnectionState,
     rpcConnected: Bool,
     sdkTunnelStarted: Bool,
     requiresProvider: Bool,
-    providerCount: Int
+    providerCount: Int,
+    outOfBalanceHeld: Bool = false
 ) -> Bool {
     guard expectedStarted else {
         return vpnTunnelConnectionIsStopped(connectionState)
+    }
+    if outOfBalanceHeld,
+       connectionState == .connected || connectionState == .reasserting,
+       rpcConnected,
+       sdkTunnelStarted {
+        return true
     }
     guard connectionState == .connected,
           rpcConnected,
@@ -156,7 +213,8 @@ func vpnTunnelHealthIsSatisfied(
 /// sign-in and window formation from nothing -- and drops every app's traffic
 /// while the tunnel comes back, so it is never faster than waiting. The window
 /// reports `failed` when forming stops working, which hands the decision back
-/// to a restart.
+/// to a restart, unless the account is out of balance: forming cannot work then,
+/// and the tunnel reads healthy instead (vpnTunnelHealthIsSatisfied).
 func vpnTunnelRecoveryInProgress(
     connectionState: VPNTunnelConnectionState,
     rpcConnected: Bool,

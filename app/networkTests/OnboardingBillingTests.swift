@@ -24,6 +24,27 @@ struct OnboardingBillingTests {
         #expect(OnboardingPurchase.forSelection(.monthly, offer: nil) == .purchase(.monthly))
     }
 
+    // MARK: whether an issued offer is shown at all
+
+    @Test func theAppStoreRedeemsTheOfferOnlyWithItsOfferCode() {
+        #expect(WelcomeOfferSurface.redeemable(Self.offer, distribution: .appStore))
+        // no code: the purchase would be the plain yearly plan at the full
+        // price, under the first-year discount the offer surfaces show
+        var withoutCode = Self.offer
+        withoutCode.appleOfferCode = ""
+        #expect(!WelcomeOfferSurface.redeemable(withoutCode, distribution: .appStore))
+        withoutCode.appleOfferCode = "  \n"
+        #expect(!WelcomeOfferSurface.redeemable(withoutCode, distribution: .appStore))
+    }
+
+    @Test func theDirectDownloadLeavesTheOfferToTheStripePrices() {
+        var withoutCode = Self.offer
+        withoutCode.appleOfferCode = ""
+        // the Stripe coupon redeems it; stripeOfferEligible gates the surfaces
+        #expect(WelcomeOfferSurface.redeemable(withoutCode, distribution: .direct))
+        #expect(WelcomeOfferSurface.redeemable(Self.offer, distribution: .direct))
+    }
+
     // MARK: the onboarding offer page
 
     @Test func theAppStoreOfferPageFollowsTheHoldoutOnly() {

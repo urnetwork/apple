@@ -254,6 +254,13 @@ struct IntroductionOfferView: View {
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                     }
 
+                    // the terms of use and the privacy policy, linked on every
+                    // surface that sells the subscription (as on the upgrade sheet)
+                    Spacer().frame(height: 10)
+                    Text("By subscribing, you agree to URnetwork's [Terms and Services](https://ur.io/terms) and [Privacy Policy](https://ur.io/privacy)")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+
                     Spacer().frame(height: 8)
 
                     // always visible: the free plan, one tap, no second offer

@@ -46,6 +46,12 @@ struct BittensorWalletSignView: View {
                             .font(themeManager.currentTheme.secondaryBodyFont)
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
                             .frame(maxWidth: .infinity)
+                    } else if BittensorWallet.transport(walletId, platform: BittensorWallet.platform) == SdkBittensorWalletTransportManual {
+                        // no way to sign here directly: say so up front
+                        Text("Sign manually")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .frame(maxWidth: .infinity)
                     }
                 }
                 cancelButton
@@ -96,6 +102,18 @@ struct BittensorWalletSignView: View {
 
     @ViewBuilder
     private func manualForm(walletId: String, message: String) -> some View {
+        // no wallet window comes on this path: say so before the steps, and what
+        // works when the wallet has no way to sign a pasted message
+        Text("No wallet window opens for this. You sign the message yourself, then paste the signature below.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textColor)
+            .fixedSize(horizontal: false, vertical: true)
+
+        Text("If your wallet can't sign a pasted message, go back and choose WalletConnect (Nova and others), or sign at ur.io/app/account/earnings in a computer's browser.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
+
         Text("Sign this message with the \(BittensorWallet.displayName(walletId)) wallet that holds your coldkey, then paste the address and the signature below.")
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textColor)

@@ -206,6 +206,8 @@ enum BittensorWallet {
             return String(localized: "The \(walletName) extension was not found in this browser. Install it, then try again.")
         case SdkBittensorWalletBridgeErrorNoAccount:
             return String(localized: "Your \(walletName) wallet has no account to sign with. Add or connect an account in the wallet, then try again.")
+        case SdkBittensorWalletBridgeErrorExtensionNotAuthorized:
+            return String(localized: "\(walletName) hasn't allowed ur.io to use your Bittensor account yet. Approve the connection request in the wallet, or allow ur.io under Connected Sites in its settings, then try again.")
         case SdkBittensorWalletBridgeErrorUserRejected:
             return String(localized: "The request was declined in your wallet. Start again and approve it to continue.")
         case SdkBittensorWalletBridgeErrorWalletConnectExpired:

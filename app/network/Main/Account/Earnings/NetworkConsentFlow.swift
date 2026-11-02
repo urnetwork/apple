@@ -135,19 +135,22 @@ final class NetworkConsentFlow: ObservableObject {
         }
     }
 
-    /// The server's message is on its way to the wallet, or with it: the
-    /// sheet waits for the signature.
+    /// The server's message is on its way to a wallet, or with one: the sheet
+    /// waits for the signature. Never for a wallet signed by hand: no wallet
+    /// window comes on that path, and the manual form says what to do (support
+    /// inbox 8167).
     var awaitingSignature: Bool {
         switch stage {
         case .requestingChallenge:
-            return true
-        case .signing:
-            switch connector.stage {
-            case .awaitingBrowser, .manualSignature:
+            guard let walletId else {
                 return true
-            default:
-                return false
             }
+            return BittensorWallet.transport(walletId, platform: connector.platform) != SdkBittensorWalletTransportManual
+        case .signing:
+            if case .awaitingBrowser = connector.stage {
+                return true
+            }
+            return false
         default:
             return false
         }

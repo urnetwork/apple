@@ -375,7 +375,9 @@ struct NetworkConsentFlowTests {
         #expect(flow.connector.stage == .manualSignature(walletId: SdkBittensorWalletTaoCom, message: consentMessage(for: alice)))
         #expect(flow.connector.manualAddress == alice)
         #expect(flow.connector.addressLocked)
-        #expect(flow.awaitingSignature)
+        // support inbox 8167: no wallet window comes on this path, so nothing
+        // says the sheet is waiting on one
+        #expect(!flow.awaitingSignature)
         #expect(recorder.opened.isEmpty)
 
         flow.connector.manualSignature = consentSignature

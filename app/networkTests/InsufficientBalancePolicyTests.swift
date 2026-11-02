@@ -197,41 +197,42 @@ struct InsufficientBalancePolicyTests {
 
     // MARK: a paying account refused: the data limit
 
-    @Test func aDataLimitIsAPayingAccountsRefusal() {
+    /// One gate through a sequence of readings: what it said to each.
+    private static func dataLimits(_ steps: [(insufficient: Bool, plan: Plan?, polling: Bool)]) -> [Bool] {
         var gate = DataLimitGate()
-        #expect(gate.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
-        #expect(!gate.observe(insufficientBalance: false, plan: .supporter, isPolling: false))
-        var notPro = DataLimitGate()
-        #expect(!notPro.observe(insufficientBalance: true, plan: Plan.none, isPolling: false))
-        var fine = DataLimitGate()
-        #expect(!fine.observe(insufficientBalance: false, plan: .supporter, isPolling: false))
-        var polled = DataLimitGate()
-        #expect(!polled.observe(insufficientBalance: true, plan: .supporter, isPolling: true))
-        #expect(polled.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
+        return steps.map {
+            gate.observe(insufficientBalance: $0.insufficient, plan: $0.plan, isPolling: $0.polling)
+        }
+    }
+
+    @Test func aDataLimitIsAPayingAccountsRefusal() {
+        #expect(Self.dataLimits([(true, .supporter, false), (false, .supporter, false)]) == [true, false])
+        #expect(Self.dataLimits([(true, Plan.none, false)]) == [false])
+        #expect(Self.dataLimits([(false, .supporter, false)]) == [false])
+        // a poll defers it
+        #expect(Self.dataLimits([(true, .supporter, true), (true, .supporter, false)]) == [false, true])
     }
 
     @Test func aRefusalFromBeforeThePurchaseIsNoDataLimit() {
-        var gate = DataLimitGate()
-        #expect(!gate.observe(insufficientBalance: true, plan: Plan.none, isPolling: false))
-        #expect(!gate.observe(insufficientBalance: true, plan: Plan.none, isPolling: true))
-        #expect(!gate.observe(insufficientBalance: true, plan: .supporter, isPolling: true))
-        // the purchase landed with the old refusal still standing
-        #expect(!gate.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
-        #expect(!gate.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
-        // it clears, and the next one the supporter plan got for itself
-        #expect(!gate.observe(insufficientBalance: false, plan: .supporter, isPolling: false))
-        #expect(gate.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
+        let said = Self.dataLimits([
+            (true, Plan.none, false),
+            (true, Plan.none, true),
+            (true, .supporter, true),
+            // the purchase landed with the old refusal still standing
+            (true, .supporter, false),
+            (true, .supporter, false),
+            // it clears, and the next one the supporter plan got for itself
+            (false, .supporter, false),
+            (true, .supporter, false),
+        ])
+        #expect(said == [false, false, false, false, false, false, true])
     }
 
     /// The plan not reported yet is not a plan: its first report is no upgrade.
     @Test func aDataLimitWaitsForThePlan() {
-        var gate = DataLimitGate()
-        #expect(!gate.observe(insufficientBalance: true, plan: nil, isPolling: false))
-        #expect(gate.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
-        var notPro = DataLimitGate()
-        #expect(!notPro.observe(insufficientBalance: true, plan: nil, isPolling: false))
-        #expect(!notPro.observe(insufficientBalance: true, plan: Plan.none, isPolling: false))
-        #expect(!notPro.observe(insufficientBalance: true, plan: .supporter, isPolling: false))
+        #expect(Self.dataLimits([(true, nil, false), (true, .supporter, false)]) == [false, true])
+        #expect(Self.dataLimits([(true, nil, false), (true, Plan.none, false), (true, .supporter, false)])
+            == [false, false, false])
     }
 
     @Test func aDataLimitPostsOncePerEpisodeInItsOwnWordsAndNeverDisconnects() {

@@ -25,4 +25,18 @@ enum BillingDistribution: Equatable {
         return .appStore
         #endif
     }()
+
+    /// Whether a purchase has to go through this device's tunnel, so that a tunnel
+    /// holding traffic stops it until the user disconnects. There is no way around
+    /// that on purpose: a checkout bypass could leak. The out-of-balance alert says
+    /// so where it is true (OutOfBalanceNotice.disconnectFirst).
+    ///
+    /// The direct download pays on a page: the sheet's WKWebView or the browser,
+    /// neither of them the tunnel's own process, and the macOS purchase flow's
+    /// reconnect comes as soon as the page is asked for, before it has loaded. The
+    /// App Store builds do not need it: on iOS the purchase runs in system daemons
+    /// outside the tunnel, and the Mac App Store client, which does honor the tunnel,
+    /// gets a flow that disconnects around the store itself (the A6 note on
+    /// AppStoreSubscriptionManager.purchase).
+    var checkoutRidesTunnel: Bool { self == .direct }
 }

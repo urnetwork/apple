@@ -103,6 +103,9 @@ struct OutOfBalanceNotice: Equatable {
     var willReconnect: Bool = false
     /// A Cancel action next to it: a refused start has no Disconnect to stop it.
     var cancel: Bool = false
+    /// "To upgrade, press Disconnect first ...": this build's checkout goes through
+    /// the tunnel, and the tunnel is holding the traffic.
+    var disconnectFirst: Bool = false
 }
 
 /// The notice above the drawer's out-of-balance buttons. It leads with when
@@ -115,21 +118,29 @@ struct OutOfBalanceNotice: Equatable {
 /// when there is none), it says the app reconnects by itself: for a held
 /// connection, and for a refused start even outside the gate, since that
 /// start can still fire. A refused start gets Cancel, the only way to stop it.
+///
+/// On a build whose checkout goes through the tunnel
+/// (`BillingDistribution.checkoutRidesTunnel`), a tunnel holding the traffic stops
+/// a purchase too, so it says to disconnect first, beside the Disconnect it names.
+/// Nothing disconnects for the user. With no tunnel running nothing is in the way.
 func outOfBalanceNotice(
     buttons: ConnectActionButtons,
     kind: OutOfBalanceKind = .unknown,
     recovery: BalanceRecoveryState? = nil,
-    tunnelStarted: Bool
+    tunnelStarted: Bool,
+    checkoutRidesTunnel: Bool = false
 ) -> OutOfBalanceNotice {
     let startWaiting = recovery?.startWaiting == true
     let willReconnect = recovery?.retriesLeft == true
         && (startWaiting || (buttons.upgrade && buttons.disconnect))
+    let traffic = refusedTraffic(connectRequested: buttons.upgrade && buttons.disconnect, tunnelStarted: tunnelStarted)
     return OutOfBalanceNotice(
         refresh: buttons.upgrade,
-        traffic: refusedTraffic(connectRequested: buttons.upgrade && buttons.disconnect, tunnelStarted: tunnelStarted),
+        traffic: traffic,
         kind: buttons.upgrade ? kind : .unknown,
         willReconnect: willReconnect,
-        cancel: willReconnect && startWaiting
+        cancel: willReconnect && startWaiting,
+        disconnectFirst: checkoutRidesTunnel && traffic == .held
     )
 }
 

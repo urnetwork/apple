@@ -20,7 +20,9 @@ struct IntroductionOfferView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
 
-    /// The offer with the prices; the view is not shown without one.
+    /// The prices, with the offer when this build can redeem one. Without an
+    /// offer (the App Store build's fallback, WelcomeOfferSurface.pageEnabled)
+    /// the page is the plain yearly plan and shows no offer headline.
     let presentation: PlanPresentation
     /// Keeps the free plan and finishes the flow (the link, and Skip).
     let continueFree: () -> Void
@@ -144,22 +146,31 @@ struct IntroductionOfferView: View {
 
                     Spacer().frame(height: 16)
 
-                    Text("Welcome offer")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(introProGoldLight)
-                        .textCase(.uppercase)
-                        .tracking(1.2)
+                    if let offer = presentation.offer {
+                        Text("Welcome offer")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(introProGoldLight)
+                            .textCase(.uppercase)
+                            .tracking(1.2)
 
-                    Spacer().frame(height: 8)
+                        Spacer().frame(height: 8)
 
-                    Text(PlanPresentation.monthsFreeHeadline(presentation.offer?.monthsFree ?? 3))
-                        .font(themeManager.currentTheme.titleFont)
+                        Text(PlanPresentation.monthsFreeHeadline(offer.monthsFree))
+                            .font(themeManager.currentTheme.titleFont)
 
-                    Spacer().frame(height: 8)
+                        Spacer().frame(height: 8)
 
-                    Text(String(format: String(localized: "%lld%% off your first year"), presentation.offer?.percentOff ?? 25))
-                        .font(themeManager.currentTheme.bodyFontLarge)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        Text(String(format: String(localized: "%lld%% off your first year"), offer.percentOff))
+                            .font(themeManager.currentTheme.bodyFontLarge)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    } else {
+                        // no offer this build can redeem (none issued, or the
+                        // App Store build without its offer code): the card
+                        // below is the plain yearly plan at its full price, so
+                        // no discount is promised above it
+                        Text("Get Pro")
+                            .font(themeManager.currentTheme.titleFont)
+                    }
 
                     // room for the card's halo and pill
                     Spacer().frame(height: 40)

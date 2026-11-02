@@ -278,12 +278,17 @@ class SubscriptionBalanceViewModel: ObservableObject {
         var next: PlanOffer? = nil
         if let offer, offer.isActive() {
             let expiresAt = Date(timeIntervalSince1970: TimeInterval(offer.expiresAtUnixMillis()) / 1000)
-            next = PlanOffer(
+            let issued = PlanOffer(
                 percentOff: offer.percentOff,
                 monthsFree: offer.monthsFree,
                 expiresAt: expiresAt,
                 appleOfferCode: offer.appleOfferCode
             )
+            // an offer this build cannot redeem at its price (the App Store
+            // build without an offer code) is not shown on any surface
+            if WelcomeOfferSurface.redeemable(issued, distribution: .current) {
+                next = issued
+            }
         }
         if next != onboardingOffer { onboardingOffer = next }
     }

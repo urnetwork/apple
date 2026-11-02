@@ -6,8 +6,9 @@
 //  so they are tested: which purchase a tap on a plan starts, and whether a
 //  welcome-offer surface (the onboarding offer page, the email link's offer
 //  sheet) can be shown on this build. The App Store build redeems the offer
-//  through the App Store offer code and can fall back to the plain yearly
-//  trial; the direct-download build sells through Stripe, where the offer is
+//  only through the App Store offer code the server assigned, so an offer
+//  without one is not shown there, and the offer page falls back to the plain
+//  yearly trial; the direct-download build sells through Stripe, where the offer is
 //  the server's welcome-offer coupon (GET /subscription/stripe/prices says
 //  whether the caller may redeem it) and no trial is promised, so an offer
 //  surface without a redeemable offer has nothing to show.
@@ -34,10 +35,27 @@ enum OnboardingPurchase: Equatable {
 
 enum WelcomeOfferSurface {
 
+    /// Whether this build can sell an issued offer at the price its surfaces
+    /// show. The App Store build redeems it only with the one-time (or
+    /// custom) App Store offer code the server assigned: without a code the
+    /// purchase is the plain yearly plan at the full price, so showing the
+    /// first-year discount over it would advertise a price the store does not
+    /// charge. The direct-download build redeems the server's Stripe coupon,
+    /// which the Stripe prices confirm separately (`stripeOfferEligible`).
+    static func redeemable(_ offer: PlanOffer, distribution: BillingDistribution) -> Bool {
+        switch distribution {
+        case .appStore:
+            return !offer.appleOfferCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case .direct:
+            return true
+        }
+    }
+
     /// Whether the onboarding flow has the offer page. On the App Store build
     /// that is everyone outside the in-app holdout: the page restates the
-    /// offer issued on page 1 and falls back to the plain yearly trial when
-    /// none could be issued. The direct-download build has no trial to fall
+    /// offer issued on page 1 and falls back to the plain yearly trial, without
+    /// the offer's headline, when none could be issued or it is not
+    /// redeemable (no offer code). The direct-download build has no trial to fall
     /// back to, so the page needs the issued offer and the Stripe prices
     /// saying the coupon is redeemable.
     static func pageEnabled(

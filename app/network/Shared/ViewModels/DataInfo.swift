@@ -93,8 +93,10 @@ func dataInfoShowsFreeRefresh(isPro: Bool) -> Bool {
 struct OutOfBalanceNotice: Equatable {
     /// "Free data refreshes in {time}." with a Why? link to the data sheet.
     var refresh: Bool
-    /// Traffic is held in the tunnel until the user upgrades or disconnects.
-    var held: Bool
+    /// What the traffic is doing with a connection requested (none outside the
+    /// gate): held in a running tunnel until the user upgrades or disconnects, or
+    /// with no tunnel, not protected.
+    var traffic: RefusedTraffic
     /// "{amount} is reserved ..." or "You're out of data ...", or neither.
     var kind: OutOfBalanceKind = .unknown
     /// "You'll be reconnected when data is available again."
@@ -106,8 +108,8 @@ struct OutOfBalanceNotice: Equatable {
 /// The notice above the drawer's out-of-balance buttons. It leads with when
 /// the free data refreshes, so the upgrade button does not read as the only
 /// way back; Why? opens the "About your data" sheet. Then whether the data is
-/// reserved or used up (BalanceRecovery.swift), and the held-traffic line,
-/// shown whenever the gate holds as before.
+/// reserved or used up (BalanceRecovery.swift), and what the traffic is doing,
+/// from whether a tunnel is running (`tunnelStarted`).
 ///
 /// While a connect the user asked for waits on the balance (`recovery`, nil
 /// when there is none), it says the app reconnects by itself: for a held
@@ -116,14 +118,15 @@ struct OutOfBalanceNotice: Equatable {
 func outOfBalanceNotice(
     buttons: ConnectActionButtons,
     kind: OutOfBalanceKind = .unknown,
-    recovery: BalanceRecoveryState? = nil
+    recovery: BalanceRecoveryState? = nil,
+    tunnelStarted: Bool
 ) -> OutOfBalanceNotice {
     let startWaiting = recovery?.startWaiting == true
     let willReconnect = recovery?.retriesLeft == true
         && (startWaiting || (buttons.upgrade && buttons.disconnect))
     return OutOfBalanceNotice(
         refresh: buttons.upgrade,
-        held: buttons.upgrade,
+        traffic: refusedTraffic(connectRequested: buttons.upgrade && buttons.disconnect, tunnelStarted: tunnelStarted),
         kind: buttons.upgrade ? kind : .unknown,
         willReconnect: willReconnect,
         cancel: willReconnect && startWaiting

@@ -133,6 +133,12 @@ class ConnectViewModel: ObservableObject {
      * Tunnel connected
      */
     @Published var tunnelConnected: Bool = false
+
+    /**
+     * A paying account refused at a data limit (DataLimitGate): the connect views
+     * show the limit's alert, with nothing to buy on it
+     */
+    @Published private(set) var dataLimitReached: Bool = false
     
     /**
      * Contract status
@@ -188,6 +194,7 @@ class ConnectViewModel: ObservableObject {
     // nil until a connect view reports the plan
     private var insufficientBalancePlan: Plan? = nil
     private var insufficientBalancePolling: Bool = false
+    private var dataLimitGate = DataLimitGate()
     // the start gate's inputs, replaced in tests: the App Group balance the
     // app, the tunnel and the gate itself save on every fetch, the clock, and
     // the bounded fetch used when that balance is stale
@@ -351,6 +358,8 @@ class ConnectViewModel: ObservableObject {
         self.isPresentedUpgradeSheet = false
         // a signed out account's episode is over: withdraw its notice
         self.insufficientBalanceReaction.reset()
+        self.dataLimitGate = DataLimitGate()
+        self.dataLimitReached = false
         // and a connect it asked for must not start later
         self.clearBalanceRecovery()
     }
@@ -542,6 +551,8 @@ class ConnectViewModel: ObservableObject {
     private func setTunnelConnected(_ tunnelStarted: Bool) {
         if tunnelConnected != tunnelStarted {
             tunnelConnected = tunnelStarted
+            // the notice says what the traffic is doing
+            evaluateInsufficientBalance()
         }
     }
     
@@ -1003,12 +1014,26 @@ extension ConnectViewModel {
     /// Out of balance keeps the connect request: the tunnel holds traffic
     /// until the user upgrades or disconnects (see InsufficientBalancePolicy).
     private func evaluateInsufficientBalance() {
+        let insufficientBalance = contractStatus?.insufficientBalance == true
+        let dataLimit = dataLimitGate.observe(
+            insufficientBalance: insufficientBalance,
+            plan: insufficientBalancePlan,
+            isPolling: insufficientBalancePolling
+        )
+        if dataLimitReached != dataLimit {
+            dataLimitReached = dataLimit
+        }
         insufficientBalanceReaction.update(
-            insufficientBalance: contractStatus?.insufficientBalance == true,
+            insufficientBalance: insufficientBalance,
             isSupporter: insufficientBalancePlan == .supporter,
             // an unknown plan defers the notice like a poll, so a supporter
             // is never told before the plan arrives
             isPolling: insufficientBalancePolling || insufficientBalancePlan == nil,
+            dataLimit: dataLimit,
+            traffic: refusedTraffic(
+                connectRequested: connectAttempt(connectionStatus: requestedConnectionStatus) == .alreadyConnected,
+                tunnelStarted: tunnelConnected
+            ),
             connectionStatus: requestedConnectionStatus
         )
         evaluateBalanceRecovery()
@@ -1246,7 +1271,8 @@ extension ConnectViewModel {
         reportedConnectionStatus = status
         reportedConnectionStatusFromLocation = false
         publishConnectionStatus()
-        evaluateBalanceRecovery()
+        // the notice follows the request, and it feeds the recovery
+        evaluateInsufficientBalance()
     }
     
 }

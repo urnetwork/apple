@@ -130,6 +130,7 @@ import URnetworkSdk
                             },
                             currentPlan: isPro ? .supporter : .none,
                             isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
+                            dataLimitReached: connectViewModel.dataLimitReached,
                             showProviderLocations: {
                                 presentedStatsSheet = .providerLocations
                             },
@@ -154,6 +155,8 @@ import URnetworkSdk
                                 displayReconnectTunnel: displayReconnectTunnel,
                                 reconnectTunnel: deviceManager.vpnManager?.updateVpnService,
                                 contractStatus: connectViewModel.contractStatus,
+                                tunnelConnected: connectViewModel.tunnelConnected,
+                                dataLimitReached: connectViewModel.dataLimitReached,
                                 windowCurrentSize: connectViewModel.windowCurrentSize,
                                 isPollingSubscriptionBalance: subscriptionBalanceViewModel.isPolling,
                                 availableByteCount: subscriptionBalanceViewModel.availableByteCount,

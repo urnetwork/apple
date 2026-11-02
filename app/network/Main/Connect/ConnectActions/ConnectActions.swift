@@ -89,6 +89,10 @@ struct ConnectActions: View {
     let displayReconnectTunnel: Bool
     let reconnectTunnel: (() -> Void)?
     let contractStatus: SdkContractStatus?
+    // whether a tunnel is running, for what the alert says about the traffic
+    let tunnelConnected: Bool
+    // a paying account refused at a data limit (DataLimitGate)
+    let dataLimitReached: Bool
     let windowCurrentSize: Int32
     let isPollingSubscriptionBalance: Bool
     let availableByteCount: Int
@@ -155,7 +159,26 @@ struct ConnectActions: View {
     }
 
     private var notice: OutOfBalanceNotice {
-        outOfBalanceNotice(buttons: actionButtons, kind: outOfBalanceKind, recovery: balanceRecovery)
+        outOfBalanceNotice(
+            buttons: actionButtons,
+            kind: outOfBalanceKind,
+            recovery: balanceRecovery,
+            tunnelStarted: tunnelConnected
+        )
+    }
+
+    /// The data limit's line: what the traffic is doing, as for out of balance.
+    private var dataLimitLine: String? {
+        guard dataLimitReached else {
+            return nil
+        }
+        return InsufficientBalanceNotice.body(
+            dataLimit: true,
+            traffic: refusedTraffic(
+                connectRequested: connectAttempt(connectionStatus: connectionStatus) == .alreadyConnected,
+                tunnelStarted: tunnelConnected
+            )
+        )
     }
 
     /// "You'll be reconnected when data is available again.", with Cancel for
@@ -335,8 +358,8 @@ struct ConnectActions: View {
             OutOfBalanceKindText(kind: notice.kind, reservedByteCount: reservedByteCount)
                 .accessibilityIdentifier("acceptance.insufficientBalance.kind")
 
-            if notice.held {
-                Text(InsufficientBalanceNotice.body)
+            if let trafficLine = InsufficientBalanceNotice.body(dataLimit: false, traffic: notice.traffic) {
+                Text(trafficLine)
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                     .fixedSize(horizontal: false, vertical: true)
@@ -373,6 +396,18 @@ struct ConnectActions: View {
              * sufficient balance
              */
          
+            /**
+             * A paying account refused at a data limit: nothing to buy, and
+             * Disconnect below stays the way out
+             */
+            if let dataLimitLine {
+                Text(dataLimitLine)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("acceptance.dataLimit.notice")
+            }
+
             /**
              * A start the gate refused waits on the balance
              * (the gate itself only shows while connected),

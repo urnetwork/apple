@@ -26,6 +26,8 @@ struct ConnectButtonView: View {
     let openUpgradeSheet: () -> Void
     let currentPlan: Plan
     let isPollingSubscriptionBalance: Bool
+    // a paying account refused at a data limit (DataLimitGate)
+    var dataLimitReached: Bool = false
     // opens the provider-locations detail view from the connected status label
     var showProviderLocations: (() -> Void)? = nil
 
@@ -67,7 +69,8 @@ struct ConnectButtonView: View {
                     connectionStatus: connectionStatus,
                     displayReconnectTunnel: displayReconnectTunnel,
                     insufficientBalance: contractStatus?.insufficientBalance == true,
-                    currentPlan: currentPlan
+                    currentPlan: currentPlan,
+                    dataLimitReached: dataLimitReached
                 ) {
                     
                     ConnectErrorStateView()
@@ -172,6 +175,7 @@ struct ConnectButtonView: View {
                 windowCurrentSize: windowCurrentSize,
                 isPollingSubscriptionBalance: isPollingSubscriptionBalance,
                 currentPlan: currentPlan,
+                dataLimitReached: dataLimitReached,
                 showProviderLocations: showProviderLocations
             )
             // the connect screen sizes the canvas to the room this leaves
@@ -233,10 +237,12 @@ func connectCanvasShowsWarning(
     connectionStatus: ConnectionStatus?,
     displayReconnectTunnel: Bool,
     insufficientBalance: Bool,
-    currentPlan: Plan
+    currentPlan: Plan,
+    dataLimitReached: Bool
 ) -> Bool {
     displayReconnectTunnel
         || (insufficientBalance && currentPlan == .none)
+        || dataLimitReached
         || connectionStatus == .connectFailed
 }
 

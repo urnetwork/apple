@@ -147,17 +147,17 @@ struct DataInfoTests {
     @Test func outOfBalanceNoticeLeadsWithTheRefreshWheneverTheGateHolds() {
         for status in [ConnectionStatus.connecting, .destinationSet, .connected, .disconnected] {
             let buttons = connectActionButtons(gateActive: true, connectionStatus: status, displayReconnectTunnel: false)
-            #expect(outOfBalanceNotice(buttons: buttons) == OutOfBalanceNotice(refresh: true, held: true), "\(status)")
+            #expect(outOfBalanceNotice(buttons: buttons, tunnelStarted: true) == OutOfBalanceNotice(refresh: true, traffic: status == .disconnected ? .none : .held), "\(status)")
         }
         let held = connectActionButtons(gateActive: true, connectionStatus: nil, displayReconnectTunnel: false)
-        #expect(outOfBalanceNotice(buttons: held) == OutOfBalanceNotice(refresh: true, held: true))
+        #expect(outOfBalanceNotice(buttons: held, tunnelStarted: true) == OutOfBalanceNotice(refresh: true, traffic: .none))
     }
 
     @Test func noOutOfBalanceNoticeOutsideTheGate() {
         for status in [ConnectionStatus.connecting, .destinationSet, .connected, .disconnected] {
             for reconnect in [false, true] {
                 let buttons = connectActionButtons(gateActive: false, connectionStatus: status, displayReconnectTunnel: reconnect)
-                #expect(outOfBalanceNotice(buttons: buttons) == OutOfBalanceNotice(refresh: false, held: false), "\(status)")
+                #expect(outOfBalanceNotice(buttons: buttons, tunnelStarted: true) == OutOfBalanceNotice(refresh: false, traffic: .none), "\(status)")
             }
         }
         // a supporter or a balance poll never holds the gate
@@ -169,9 +169,9 @@ struct DataInfoTests {
         for kind in [OutOfBalanceKind.unknown, .reserved, .exhausted] {
             for status in [ConnectionStatus.connecting, .destinationSet, .connected, .disconnected] {
                 let gated = connectActionButtons(gateActive: true, connectionStatus: status, displayReconnectTunnel: false)
-                #expect(outOfBalanceNotice(buttons: gated, kind: kind).kind == kind, "\(kind) \(status)")
+                #expect(outOfBalanceNotice(buttons: gated, kind: kind, tunnelStarted: true).kind == kind, "\(kind) \(status)")
                 let funded = connectActionButtons(gateActive: false, connectionStatus: status, displayReconnectTunnel: false)
-                #expect(outOfBalanceNotice(buttons: funded, kind: kind).kind == .unknown, "\(kind) \(status) funded")
+                #expect(outOfBalanceNotice(buttons: funded, kind: kind, tunnelStarted: true).kind == .unknown, "\(kind) \(status) funded")
             }
         }
     }
@@ -184,18 +184,18 @@ struct DataInfoTests {
         let spent = BalanceRecoveryState(startWaiting: false, retriesLeft: false)
 
         // a held connection is rebuilt by itself; Disconnect is its way out
-        let heldNotice = outOfBalanceNotice(buttons: held, recovery: waiting)
+        let heldNotice = outOfBalanceNotice(buttons: held, recovery: waiting, tunnelStarted: true)
         #expect(heldNotice.willReconnect)
         #expect(!heldNotice.cancel)
         // a refused start waits with Cancel (the gate only shows while connected)
-        let startNotice = outOfBalanceNotice(buttons: disconnected, recovery: startWaiting)
+        let startNotice = outOfBalanceNotice(buttons: disconnected, recovery: startWaiting, tunnelStarted: true)
         #expect(startNotice.willReconnect)
         #expect(startNotice.cancel)
         // nothing the user asked for is waiting: no promise
-        #expect(!outOfBalanceNotice(buttons: disconnected, recovery: waiting).willReconnect)
+        #expect(!outOfBalanceNotice(buttons: disconnected, recovery: waiting, tunnelStarted: true).willReconnect)
         // the retries are used up, or there is no recovery: no promise
-        #expect(!outOfBalanceNotice(buttons: held, recovery: spent).willReconnect)
-        #expect(!outOfBalanceNotice(buttons: held).willReconnect)
+        #expect(!outOfBalanceNotice(buttons: held, recovery: spent, tunnelStarted: true).willReconnect)
+        #expect(!outOfBalanceNotice(buttons: held, tunnelStarted: true).willReconnect)
     }
 
     @Test func upgradeShowsTheRefreshOnlyWhenABlockedConnectOpenedIt() {

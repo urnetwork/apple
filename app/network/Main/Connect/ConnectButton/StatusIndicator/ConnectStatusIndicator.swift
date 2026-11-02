@@ -16,6 +16,8 @@ struct ConnectStatusIndicator: View {
     let windowCurrentSize: Int32
     let isPollingSubscriptionBalance: Bool
     let currentPlan: Plan
+    // a paying account refused at a data limit (DataLimitGate)
+    var dataLimitReached: Bool = false
     // opens the provider-locations detail view; the label is the tap target
     // while it reads "Connected to N providers" or "Connecting to providers"
     var showProviderLocations: (() -> Void)? = nil
@@ -35,11 +37,12 @@ struct ConnectStatusIndicator: View {
             && !displayReconnectTunnel
             && !isPollingSubscriptionBalance
             && !(contractStatus?.insufficientBalance == true && currentPlan == .none)
+            && !dataLimitReached
     }
 
     var statusMsgIconColor: Color {
         
-        if (contractStatus?.insufficientBalance == true && currentPlan == .none) {
+        if (contractStatus?.insufficientBalance == true && currentPlan == .none) || dataLimitReached {
             return .urCoral
         } else {
             switch connectionStatus {
@@ -60,6 +63,8 @@ struct ConnectStatusIndicator: View {
             return String(localized: "Processing subscription balance...")
         } else if (contractStatus?.insufficientBalance == true && currentPlan == .none) {
             return String(localized: "Insufficient balance")
+        } else if dataLimitReached {
+            return String(localized: "Data limit reached")
         } else {
             switch connectionStatus {
             case .disconnected: return String(localized: "Ready to connect")

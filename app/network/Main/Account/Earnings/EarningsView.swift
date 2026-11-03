@@ -25,6 +25,7 @@ struct EarningsView: View {
     @EnvironmentObject var throughputStore: ThroughputStore
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+    @EnvironmentObject var providerStatusStore: ProviderStatusStore
 
     let navigate: (AccountNavigationPath) -> Void
     @ObservedObject var accountPointsStore: AccountPointsStore
@@ -493,6 +494,7 @@ struct EarningsView: View {
     }
 
     private func refresh() async {
+        providerStatusStore.refresh()
         async let earnings: Void = viewModel.refresh()
         async let points: Void = accountPointsStore.fetchAccountPoints()
         async let reliability: Void = fetchNetworkReliability()

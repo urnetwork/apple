@@ -18,10 +18,9 @@ struct SettingsView: View {
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
-    #if os(macOS) && DIRECT_DOWNLOAD
+    // every build: Delete account's Back up first opens the Key screen through it
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
-    #endif
-    
+
     var clientId: SdkId?
     @ObservedObject var accountPreferencesViewModel: AccountPreferencesViewModel
     

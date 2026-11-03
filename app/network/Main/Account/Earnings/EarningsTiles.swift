@@ -552,7 +552,7 @@ struct NetworkConsentCard: View {
             case .unavailable:
                 SectionLoadFailedView(retry: retry)
             case .noConsent:
-                if let key, let keyActions, key.fillsNoConsentCard {
+                if let key, let keyActions, key.showsKeyPath {
                     BittensorKeyNoConsentBody(key: key, actions: keyActions)
                 } else {
                     Text("No payout wallet yet. Earnings aren't paid until you sign.")

@@ -405,7 +405,7 @@ func TestBittensorKeyCardComesFromTheFlow(t *testing.T) {
 		}
 	}
 	tiles := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsTiles.swift")
-	if !strings.Contains(tiles, "if let key, let keyActions, key.fillsNoConsentCard {") {
+	if !strings.Contains(tiles, "if let key, let keyActions, key.showsKeyPath {") {
 		t.Error("the card no longer decides from the flow")
 	}
 	nav := bittensorKeyRead(t, "app/network/Main/Account/AccountNavStackView.swift")

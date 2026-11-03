@@ -214,9 +214,10 @@ struct BittensorLocalKeyStoreTests {
         let group = try #require(BittensorLocalKeyStore.bundleAccessGroup())
         let store = BittensorLocalKeyStore(keychain: SystemBittensorKeychain(), accessGroup: group, notes: freshDefaults())
         guard store.keyAddress(network) != SdkBittensorLocalKeyStoreUnavailable else {
-            // recorded in the report: this run had no real Keychain
+            print("[BittensorLocalKeyStoreTests]this run has no real Keychain: the round trip did not run")
             return
         }
+        print("[BittensorLocalKeyStoreTests]the round trip is on the real Keychain, group \(group)")
         defer {
             _ = store.deleteKey(network)
         }

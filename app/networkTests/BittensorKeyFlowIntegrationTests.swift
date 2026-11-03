@@ -139,9 +139,10 @@ struct BittensorKeyFlowIntegrationTests {
 
         let (first, second) = run.askedWords(in: phrase)
         run.flow.submitWords(first: first, second: second)
-        await waitUntil(run.flow) { run.keychain.items.isEmpty && !run.flow.screen.busy }
+        // the item goes, a read shows it gone, and the card reads the store again
+        await waitUntil(run.flow) { run.flow.card.state == SdkBittensorLocalKeyStateNone }
+        #expect(run.keychain.items.isEmpty)
         run.flow.closeScreen()
-        #expect(run.flow.card.state == SdkBittensorLocalKeyStateNone)
         #expect(!run.store.needsBackup(networkId: networkId))
     }
 

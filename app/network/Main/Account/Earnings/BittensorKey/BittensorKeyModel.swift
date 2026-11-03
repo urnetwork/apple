@@ -79,8 +79,17 @@ final class BittensorKeyModel: ObservableObject {
             flow.closeScreen()
             screen = flow.screen
         }
+        // saved or deleted since the last look: a notification still on its way
+        // would remind of nothing
+        let reminderEnded = self.card.backupReminder && !card.backupReminder
         if self.card != card {
             self.card = card
+        }
+        if reminderEnded {
+            reminderNotice.apply(
+                flow.reminder(currentEpoch: 0, claimOpenMillis: 0, epochBlocks: 0, claimable: false),
+                flow: flow
+            )
         }
         if self.screen != screen {
             self.screen = screen

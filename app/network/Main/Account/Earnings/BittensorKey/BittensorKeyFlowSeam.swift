@@ -17,6 +17,7 @@ struct BittensorKeyCardInfo: Equatable {
     var state: String = SdkBittensorLocalKeyStateLoading
     var address: String = ""
     var storedAddress: String = ""
+    var showsKeyPath = false
     var offersSetUp = false
     var offersSaveFirst = false
     var offersWallet = false
@@ -136,6 +137,7 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
             state: card.state,
             address: card.address,
             storedAddress: card.storedAddress,
+            showsKeyPath: card.showsKeyPath,
             offersSetUp: card.offersSetUp,
             offersSaveFirst: card.offersSaveFirst,
             offersWallet: card.offersWallet,
@@ -290,7 +292,7 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
 /// Canned states for previews. A real phrase never reaches a preview.
 final class BittensorKeyPreviewFlow: BittensorKeyFlowing {
 
-    var card = BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateNone, offersSetUp: true, offersSaveFirst: true, offersWallet: true)
+    var card = BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateNone, showsKeyPath: true, offersSetUp: true, offersSaveFirst: true, offersWallet: true)
     var screen = BittensorKeyScreenInfo()
     var revealedWords: [String] = []
     var phraseToCopy = ""

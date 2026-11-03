@@ -28,7 +28,7 @@ struct BittensorKeyScreen: View {
     @Environment(\.isRegularWidth) private var isRegularWidth
     #if os(iOS)
     @Environment(\.scenePhase) private var scenePhase
-    #else
+    #elseif os(macOS)
     @Environment(\.controlActiveState) private var controlActiveState
     #endif
 
@@ -72,7 +72,7 @@ struct BittensorKeyScreen: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
             model.screenshotTaken()
         }
-        #else
+        #elseif os(macOS)
         .background(BittensorKeyWindowPrivacy())
         .onChange(of: controlActiveState) { state in
             if state != .key {
@@ -115,14 +115,7 @@ struct BittensorKeyScreen: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
 
-        Text("URnetwork is not a wallet. It created this key so you can receive SN25α. To transfer or use your SN25α, enter this recovery phrase into a Bittensor wallet such as Talisman or Nova, or into btcli.")
-            .font(themeManager.currentTheme.secondaryBodyFont)
-            .foregroundColor(themeManager.currentTheme.textColor)
-            .fixedSize(horizontal: false, vertical: true)
-        Text("Anyone with this phrase controls your SN25α. URnetwork will never ask for it, and can't recover it. If you lose this device before saving it, your SN25α can't be reached.")
-            .font(themeManager.currentTheme.secondaryBodyFont)
-            .foregroundColor(themeManager.currentTheme.textColor)
-            .fixedSize(horizontal: false, vertical: true)
+        BittensorKeyWording()
 
         if let failure = BittensorKeyText.failure(code: model.screen.failureCode, message: model.screen.failureMessage) {
             Text(verbatim: failure)
@@ -166,7 +159,13 @@ struct BittensorKeyScreen: View {
         }
 
         Button(action: dismiss) {
-            Text(model.screen.saveNow ? "Cancel" : "Close")
+            Group {
+                if model.screen.saveNow {
+                    Text("Cancel")
+                } else {
+                    Text("Close")
+                }
+            }
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .frame(maxWidth: .infinity)
@@ -269,12 +268,19 @@ struct BittensorKeyConfirmation: View {
     }
 
     var body: some View {
-        Text(keeps ? "Keep this key on this device?" : "Delete this key from this app?")
+        Group {
+            if keeps {
+                Text("Keep this key on this device?")
+            } else {
+                Text("Delete this key from this app?")
+            }
+        }
             .font(themeManager.currentTheme.toolbarTitleFont)
             .foregroundColor(themeManager.currentTheme.textColor)
             .fixedSize(horizontal: false, vertical: true)
 
         if !keeps {
+            BittensorKeyWording()
             line("URnetwork can't get this key back. Earnings keep going to this address, and only the recovery phrase can move them.")
             if !model.screen.address.isEmpty {
                 Text(verbatim: SnAlpha.shortSs58(model.screen.address))
@@ -344,6 +350,24 @@ struct BittensorKeyConfirmation: View {
             #endif
             .accessibilityLabel(Text("Word \(position)"))
             .accessibilityIdentifier(identifier)
+    }
+}
+
+/// The not-a-wallet text, the plan's words, always in view on the Key screen and
+/// in its delete confirmation.
+struct BittensorKeyWording: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        Text("URnetwork is not a wallet. It created this key so you can receive SN25α. To transfer or use your SN25α, enter this recovery phrase into a Bittensor wallet such as Talisman or Nova, or into btcli.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textColor)
+            .fixedSize(horizontal: false, vertical: true)
+        Text("Anyone with this phrase controls your SN25α. URnetwork will never ask for it, and can't recover it. If you lose this device before saving it, your SN25α can't be reached.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textColor)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -531,7 +555,7 @@ final class BittensorKeyCaptureProtectedView: UIView {
     }
 }
 
-#else
+#elseif os(macOS)
 
 /// Keeps the sheet's window out of screen sharing and capture for as long as
 /// the Key screen is in it. Newer capture APIs are reported not to fully honor

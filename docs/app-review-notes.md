@@ -42,8 +42,9 @@ Where the reviewer finds it:
 5. **I have saved the key, it's OK to delete it now.** asks for two of the words before it
    deletes the key from the device.
 
-Permissions: Face ID is used only to show or delete the phrase of a stored key. No new
-background mode or new network destination is added. The local notification goes out once,
+Permissions: Face ID (or Touch ID, or the device passcode) is asked for only before the app
+shows the phrase of a stored key, or before the user confirms it's saved, which can delete it.
+Setting up payouts asks for nothing. No new background mode or network destination is added. The local notification goes out once,
 when the first earnings can be claimed, and only if the user already allowed notifications
 in Settings.
 

@@ -52,15 +52,6 @@ struct BittensorKeyCardActions {
     let reload: () -> Void
 }
 
-extension BittensorKeyCardInfo {
-
-    /// With no consent in force the key has the whole card. A guest, or a
-    /// session that isn't the owner's, keeps the card as it was.
-    var fillsNoConsentCard: Bool {
-        offersSetUp || state == SdkBittensorLocalKeyStateSaveLaterNotLinked || state == SdkBittensorLocalKeyStateStoreUnavailable
-    }
-}
-
 /// The card with no consent in force: the one tap and its two smaller links,
 /// or Finish setup for a key already here.
 struct BittensorKeyNoConsentBody: View {
@@ -86,7 +77,15 @@ struct BittensorKeyNoConsentBody: View {
                     accessibilityIdentifier: "earnings.key.finishSetup"
                 )
             }
-            BittensorKeyBackUpLink(key: key, open: actions.openKeyScreen)
+            BittensorKeyBackUpLink(key: key, open: actions.openKeyScreen, prominence: .secondary)
+            if key.offersWallet {
+                BittensorKeyCardLink(
+                    text: "Use a wallet I already have",
+                    action: actions.useWallet,
+                    accessibilityIdentifier: "earnings.key.useWallet"
+                )
+                .disabled(key.busy)
+            }
         } else if key.state == SdkBittensorLocalKeyStateStoreUnavailable {
             BittensorKeyStoreUnavailable(reload: actions.reload)
         } else {
@@ -159,7 +158,7 @@ struct BittensorKeyActiveLines: View {
                     accessibilityIdentifier: "earnings.key.finishSetup"
                 )
             }
-            BittensorKeyBackUpLink(key: key, open: actions.openKeyScreen)
+            BittensorKeyBackUpLink(key: key, open: actions.openKeyScreen, prominence: .link)
         case SdkBittensorLocalKeyStateSavedAndDeleted:
             Text("This app no longer has the key")
                 .font(themeManager.currentTheme.secondaryBodyFont.weight(.semibold))
@@ -187,10 +186,21 @@ struct BittensorKeyActiveLines: View {
 /// reachable: Back up your key while unsaved, and the screen after that.
 struct BittensorKeyBackUpLink: View {
 
+    /// How loud Back up your key is beside the card's other actions.
+    enum Prominence {
+        /// the card's main action
+        case primary
+        /// under another main action
+        case secondary
+        /// beside two buttons already
+        case link
+    }
+
     @EnvironmentObject var themeManager: ThemeManager
 
     let key: BittensorKeyCardInfo
     let open: () -> Void
+    var prominence: Prominence = .primary
 
     var body: some View {
         if key.keySaved {
@@ -200,12 +210,17 @@ struct BittensorKeyBackUpLink: View {
                 .fixedSize(horizontal: false, vertical: true)
             BittensorKeyCardLink(text: "Show key", action: open, accessibilityIdentifier: "earnings.key.show")
         } else if key.offersKeyScreen {
-            UrButton(
-                text: "Back up your key",
-                action: open,
-                style: .outlineSecondary,
-                accessibilityIdentifier: "earnings.key.backUp"
-            )
+            switch prominence {
+            case .primary, .secondary:
+                UrButton(
+                    text: "Back up your key",
+                    action: open,
+                    style: prominence == .primary ? .primary : .secondary,
+                    accessibilityIdentifier: "earnings.key.backUp"
+                )
+            case .link:
+                BittensorKeyCardLink(text: "Back up your key", action: open, accessibilityIdentifier: "earnings.key.backUp")
+            }
         }
     }
 }

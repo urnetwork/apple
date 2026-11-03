@@ -158,6 +158,13 @@ struct BittensorKeyReminderNotice: BittensorKeyReminderPosting {
 
     static let identifier = "network.ur.bittensor-key-reminder"
 
+    /// The account is gone, and the key with it.
+    static func withdraw() {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        center.removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+
     func apply(_ reminder: BittensorKeyReminderInfo, flow: BittensorKeyFlowing) {
         let center = UNUserNotificationCenter.current()
         switch reminder.action {

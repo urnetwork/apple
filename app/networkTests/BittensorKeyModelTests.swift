@@ -254,6 +254,22 @@ struct BittensorKeyModelTests {
         #expect(fixture.flow.calls.suffix(2) == ["setCurrentEpoch(0)", "reminder(0, 0, 0, false)"])
     }
 
+    // a key saved or deleted takes back the notification still on its way
+    @Test func theReminderEndsWithTheBackup() {
+        let fixture = Fixture()
+        fixture.flow.card = BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateSaveLaterLinked, backupReminder: true)
+        let model = make(fixture)
+        fixture.flow.reminderAnswer = BittensorKeyReminderInfo(action: SdkBittensorLocalKeyReminderCancel)
+        model.refresh()
+        #expect(fixture.poster.applied.isEmpty)
+
+        fixture.flow.card.backupReminder = false
+        model.refresh()
+        #expect(fixture.poster.applied == [BittensorKeyReminderInfo(action: SdkBittensorLocalKeyReminderCancel)])
+        model.refresh()
+        #expect(fixture.poster.applied.count == 1)
+    }
+
     @Test func theFlowEndsWithTheModel() {
         let fixture = Fixture()
         do {
@@ -284,17 +300,6 @@ struct BittensorKeyModelTests {
         }
         #expect(BittensorKeyText.failure(code: SdkBittensorLocalKeyFailureConsent, message: "server_error: 500") == "server_error: 500")
         #expect(BittensorKeyText.failure(code: SdkBittensorLocalKeyFailureConsent, message: "")?.isEmpty == false)
-    }
-
-    // which states the key fills the no-consent card in: a guest, or a session
-    // that isn't the owner's, keeps the wallet card
-    @Test func theCardKeepsTheWalletPathForWhoCantMakeAKey() {
-        #expect(BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateNone, offersSetUp: true).fillsNoConsentCard)
-        #expect(BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateSaveLaterNotLinked).fillsNoConsentCard)
-        #expect(BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateStoreUnavailable).fillsNoConsentCard)
-        #expect(!BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateNone, offersWallet: true).fillsNoConsentCard)
-        #expect(!BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateNone, ownerOnly: true).fillsNoConsentCard)
-        #expect(!BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateLoading).fillsNoConsentCard)
     }
 
     // MARK: sign out

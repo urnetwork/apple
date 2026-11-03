@@ -127,18 +127,18 @@ struct BittensorKeyFlowIntegrationTests {
     }
 
     private func runDelete(_ run: Run, phrase: String) async {
-        run.flow.confirmDelete(authenticated: false)
-        #expect(run.flow.screen.confirming == SdkBittensorLocalKeyConfirmNone)
-        run.flow.confirmDelete(authenticated: true)
+        run.flow.confirmDelete()
         #expect(run.flow.screen.confirming == SdkBittensorLocalKeyConfirmDelete)
+        #expect(run.flow.screen.confirmNeedsAuthentication)
         #expect(run.flow.screen.warnsTop200)
 
-        run.flow.submitWords(first: "wrong", second: "words")
+        run.flow.submitWords(first: "wrong", second: "words", authenticated: true)
         await waitUntil(run.flow) { run.flow.screen.wordsRejected }
         #expect(run.keychain.items.count == 1)
 
         let (first, second) = run.askedWords(in: phrase)
-        run.flow.submitWords(first: first, second: second)
+        #expect(run.flow.checkWords(first: first, second: second).ready)
+        run.flow.submitWords(first: first, second: second, authenticated: true)
         // the item goes, a read shows it gone, and the card reads the store again
         await waitUntil(run.flow) { run.flow.card.state == SdkBittensorLocalKeyStateNone }
         #expect(run.keychain.items.isEmpty)
@@ -189,9 +189,9 @@ struct BittensorKeyFlowIntegrationTests {
         run.flow.reveal(authenticated: false)
         let phrase = run.flow.phraseToCopy
         #expect(phrase.split(separator: " ").count == 12)
-        run.flow.confirmDelete(authenticated: false)
+        run.flow.confirmDelete()
         let (first, second) = run.askedWords(in: phrase)
-        run.flow.submitWords(first: first, second: second)
+        run.flow.submitWords(first: first, second: second, authenticated: false)
         await waitUntil(run.flow) { run.flow.screen.offersRetry && !run.flow.screen.busy }
         #expect(run.flow.card.state == SdkBittensorLocalKeyStateSaveNowConsentFailed)
         // the flow looks for a stored address, and never reads or writes a secret

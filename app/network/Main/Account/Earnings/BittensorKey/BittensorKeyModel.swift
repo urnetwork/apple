@@ -20,8 +20,10 @@ final class BittensorKeyModel: ObservableObject {
 
     /// What the warning before a replacement goes on to do.
     enum PendingReplacement: Equatable {
-        /// a new key: Set up payouts or Save the recovery phrase first
-        case makeKey
+        /// a new key, in one tap
+        case setUp
+        /// a new key, its phrase saved first
+        case saveFirst
         /// the key on this device, which the consent doesn't pay
         case finishSetup
     }
@@ -36,6 +38,9 @@ final class BittensorKeyModel: ObservableObject {
     @Published private(set) var copied = false
     /// iOS said a screenshot was taken while the words showed
     @Published private(set) var screenshotWarning = false
+    /// what deleting means, before the two words are asked: the step the
+    /// delete's Continue leaves
+    @Published private(set) var deleteExplained = false
 
     let flow: BittensorKeyFlowing
     private let authenticator: BittensorDeviceAuthenticating
@@ -100,6 +105,10 @@ final class BittensorKeyModel: ObservableObject {
         }
         if !screen.open {
             screenshotWarning = false
+            deleteExplained = false
+        }
+        if screen.confirming != SdkBittensorLocalKeyConfirmNone {
+            deleteExplained = false
         }
         if card.linkGeneration != observedLinkGeneration {
             observedLinkGeneration = card.linkGeneration
@@ -159,7 +168,7 @@ final class BittensorKeyModel: ObservableObject {
     /// The one tap. With a consent in force the warning comes first.
     func setUpPayouts() {
         if card.replacesPayoutWallet {
-            pendingReplacement = .makeKey
+            pendingReplacement = .setUp
         } else {
             flow.setUpPayouts(replaceConfirmed: false)
         }
@@ -167,7 +176,7 @@ final class BittensorKeyModel: ObservableObject {
 
     func saveFirst() {
         if card.replacesPayoutWallet {
-            pendingReplacement = .makeKey
+            pendingReplacement = .saveFirst
         } else {
             flow.saveFirst(replaceConfirmed: false)
         }
@@ -181,20 +190,20 @@ final class BittensorKeyModel: ObservableObject {
         }
     }
 
-    /// The user read the warning.
-    func replacementConfirmedSetUp() {
+    /// The user read the warning and replaces the payout wallet.
+    func replacementConfirmed() {
+        let pending = pendingReplacement
         pendingReplacement = nil
-        flow.setUpPayouts(replaceConfirmed: true)
-    }
-
-    func replacementConfirmedSaveFirst() {
-        pendingReplacement = nil
-        flow.saveFirst(replaceConfirmed: true)
-    }
-
-    func replacementConfirmedFinishSetup() {
-        pendingReplacement = nil
-        flow.finishSetup(replaceConfirmed: true)
+        switch pending {
+        case .setUp:
+            flow.setUpPayouts(replaceConfirmed: true)
+        case .saveFirst:
+            flow.saveFirst(replaceConfirmed: true)
+        case .finishSetup:
+            flow.finishSetup(replaceConfirmed: true)
+        case nil:
+            break
+        }
     }
 
     func openKeyScreen() {
@@ -252,21 +261,30 @@ final class BittensorKeyModel: ObservableObject {
         }
     }
 
-    /// I have saved the key, it's OK to delete it now. The words hide first,
-    /// so none can be read behind the device's authentication or the check.
-    func confirmDelete() async {
+    /// I have saved the key, it's OK to delete it now: what deleting means
+    /// comes first. The words hide before it shows, so none can be read
+    /// behind it.
+    func explainDelete() {
         hide()
-        let authenticated = await authenticatedIfNeeded()
-        flow.confirmDelete(authenticated: authenticated)
+        deleteExplained = true
+    }
+
+    func cancelDelete() {
+        deleteExplained = false
+    }
+
+    /// Continue: two of the words are asked for.
+    func confirmDelete() {
+        deleteExplained = false
+        flow.confirmDelete()
         refresh()
     }
 
-    /// I've saved it, keep it on this device. The words hide first, as for
-    /// the delete.
-    func confirmKeep() async {
-        hide()
-        let authenticated = await authenticatedIfNeeded()
-        flow.confirmKeep(authenticated: authenticated)
+    /// I've saved it. Keep it on this device: two of the words, and no device
+    /// authentication, since keeping shows and deletes nothing. The words
+    /// hide first.
+    func confirmKeep() {
+        flow.confirmKeep()
         refresh()
     }
 
@@ -275,8 +293,22 @@ final class BittensorKeyModel: ObservableObject {
         refresh()
     }
 
-    func submitWords(first: String, second: String) {
-        flow.submitWords(first: first, second: second)
+    /// The two words as the user types them.
+    func checkWords(first: String, second: String) -> BittensorKeyWordCheckInfo {
+        flow.checkWords(first: first, second: second)
+    }
+
+    /// The confirmation's button. Deleting a stored key asks for device
+    /// authentication first, at the button, after the words.
+    func submitWords(first: String, second: String) async {
+        var authenticated = false
+        if screen.confirmNeedsAuthentication {
+            authenticated = await authenticator.authenticate(reason: String(localized: "use your Bittensor recovery phrase"))
+            guard authenticated else {
+                return
+            }
+        }
+        flow.submitWords(first: first, second: second, authenticated: authenticated)
     }
 
     func retry() {

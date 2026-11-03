@@ -37,6 +37,9 @@ struct SnLedgerTilePresentation: Equatable {
         /// "Unavailable" in place of the amounts
         case unavailable
         case accounts([SnLedgerAccountInfo])
+        /// what the claim relay says is claimable, for a network with no
+        /// wallet on this device to read the ledger by
+        case claimable(Int64)
     }
 
     let balances: Balances

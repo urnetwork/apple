@@ -49,6 +49,13 @@ struct EarningsView: View {
     @State private var presentClaimSheet = false
     @State private var presentLedgerClaimSheet = false
     @State private var presentConsentSheet = false
+    /// the consent sheet opened from Change wallet, which offers a key on this
+    /// device too; Use a wallet I already have opens it as it always was
+    @State private var consentSheetOffersKey = false
+    /// Create a key on this device was tapped in that sheet: the one tap, with
+    /// its warning, once the sheet is gone
+    @State private var createKeyAfterConsentSheet = false
+    @State private var presentRelayClaimSheet = false
     // the Top 200 tile is in the stack: a Claim on Earnings scroll waits for it
     @State private var top200TileShown = false
 
@@ -89,6 +96,12 @@ struct EarningsView: View {
                     // until the key's phrase is saved
                     if keyModel.card.backupReminder {
                         BittensorKeyBackupBanner(open: keyModel.openKeyScreen)
+                    }
+
+                    // the payout card leads while it needs action: no consent,
+                    // or setup cut short
+                    if keyModel.card.showsKeyPath {
+                        payoutCard
                     }
 
                     AccountPointsBreakdown(
@@ -138,36 +151,9 @@ struct EarningsView: View {
                         }
                     }
 
-                    // the network's payout consent, with or without a coldkey on
-                    // this device: without one, no provider of the network is paid
-                    NetworkConsentCard(
-                        status: consentFlow.status,
-                        hasNetworkCredential: consentFlow.hasNetworkCredential,
-                        shortAddress: viewModel.client.shortSs58,
-                        sign: {
-                            consentFlow.reset()
-                            presentConsentSheet = true
-                        },
-                        retry: {
-                            Task {
-                                await consentFlow.refreshStatus()
-                            }
-                        },
-                        key: keyModel.card,
-                        keyActions: BittensorKeyCardActions(
-                            setUp: keyModel.setUpPayouts,
-                            saveFirst: keyModel.saveFirst,
-                            useWallet: {
-                                consentFlow.reset()
-                                presentConsentSheet = true
-                            },
-                            finishSetup: keyModel.finishSetup,
-                            openKeyScreen: keyModel.openKeyScreen,
-                            reload: {
-                                keyModel.visit(isGuest: isGuest)
-                            }
-                        )
-                    )
+                    if !keyModel.card.showsKeyPath {
+                        payoutCard
+                    }
 
                     BittensorWalletCard(
                         wallet: viewModel.wallet,
@@ -210,6 +196,7 @@ struct EarningsView: View {
                     }
 
                     if viewModel.hasWallet {
+                        // the first claim tile carries the claim card's disclaimer
                         UnclaimedAlphaTile(
                             totalClaimableRao: viewModel.totalClaimableRao,
                             claimableEpochs: viewModel.claimableClaims.count,
@@ -221,15 +208,26 @@ struct EarningsView: View {
                         )
                     }
 
-                    // settlement v2, separate from the v1 claims above; the tile
-                    // above, always there with it, carries the disclaimer once
-                    if viewModel.hasWallet, let ledgerTile = viewModel.ledgerTile {
+                    // settlement v2, separate from the v1 claims above: URnetwork
+                    // claims it for every consented network (the claim relay), and
+                    // the device's own claim stays as the fallback
+                    if let ledgerTile = viewModel.ledgerTileWithRelay {
                         SnLedgerTile(
                             presentation: ledgerTile,
                             claim: {
                                 viewModel.resetLedgerClaimProgress()
                                 presentLedgerClaimSheet = true
-                            }
+                            },
+                            relay: viewModel.claimStatus,
+                            claimNow: {
+                                viewModel.resetClaimNow()
+                                presentRelayClaimSheet = true
+                            },
+                            selfClaim: {
+                                viewModel.resetLedgerClaimProgress()
+                                presentLedgerClaimSheet = true
+                            },
+                            fundsDisclaimer: viewModel.hasWallet ? SdkBittensorFundsDisclaimerNone : keyModel.card.claimFundsDisclaimer
                         )
                     }
 
@@ -245,6 +243,12 @@ struct EarningsView: View {
             .onReceive(deepLinkRouter.$pendingEarningsTop200Scroll) { pending in
                 if pending {
                     scrollToTop200IfAsked(proxy)
+                }
+            }
+            // Back up first, and the reminder's notification, open the Key screen
+            .onReceive(deepLinkRouter.$pendingEarningsKeyScreen) { pending in
+                if pending, deepLinkRouter.consumeEarningsKeyScreen() {
+                    keyModel.openKeyScreen()
                 }
             }
         }
@@ -393,13 +397,38 @@ struct EarningsView: View {
             .frame(minWidth: 480, minHeight: 560)
             #endif
         }
+        .sheetOffTheFold(isPresented: $presentRelayClaimSheet) {
+            ClaimRelaySheet(
+                viewModel: viewModel,
+                fundsDisclaimer: keyModel.flow.fundsDisclaimer(at: SdkBittensorFundsDisclaimerPlaceClaimSheet),
+                selfClaim: {
+                    presentRelayClaimSheet = false
+                    viewModel.resetLedgerClaimProgress()
+                    presentLedgerClaimSheet = true
+                },
+                dismiss: { presentRelayClaimSheet = false }
+            )
+            .environmentObject(themeManager)
+            #if os(iOS)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            #elseif os(macOS)
+            .frame(minWidth: 480, minHeight: 560)
+            #endif
+        }
         .sheetOffTheFold(isPresented: $presentConsentSheet, onDismiss: {
             consentFlow.reset()
+            if createKeyAfterConsentSheet {
+                createKeyAfterConsentSheet = false
+                keyModel.setUpPayouts()
+            }
         }) {
             NetworkConsentSheet(
                 flow: consentFlow,
                 connector: consentFlow.connector,
-                dismiss: { presentConsentSheet = false }
+                dismiss: { presentConsentSheet = false },
+                createKey: changeWalletCreatesKey,
+                createKeyDisclaimer: keyModel.flow.fundsDisclaimer(at: SdkBittensorFundsDisclaimerPlaceChangeWallet)
             )
             .environmentObject(themeManager)
             // a signed consent on its way to the server is not abandoned
@@ -444,23 +473,13 @@ struct EarningsView: View {
                 }
             ),
             presenting: keyModel.pendingReplacement
-        ) { pending in
-            switch pending {
-            case .makeKey:
-                Button("Set up payouts", role: .destructive) {
-                    keyModel.replacementConfirmedSetUp()
-                }
-                Button("Save the recovery phrase first", role: .destructive) {
-                    keyModel.replacementConfirmedSaveFirst()
-                }
-            case .finishSetup:
-                Button("Finish setup", role: .destructive) {
-                    keyModel.replacementConfirmedFinishSetup()
-                }
+        ) { _ in
+            Button("Replace payout wallet", role: .destructive) {
+                keyModel.replacementConfirmed()
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("This key replaces your payout wallet from the next epoch. Earlier earnings stay on the old wallet.")
+            Text("From the next epoch, your network's earnings go to a new key on this device. Earlier earnings stay on \(viewModel.client.shortSs58(keyModel.card.address)). The network admin gets an email about this change.")
         }
         #if os(macOS)
         .toolbar {
@@ -476,6 +495,52 @@ struct EarningsView: View {
             }
         }
         #endif
+    }
+
+    /// Change wallet's offer of a key on this device, while the flow offers one.
+    private var changeWalletCreatesKey: (() -> Void)? {
+        guard consentSheetOffersKey, keyModel.card.offersSetUp else {
+            return nil
+        }
+        return {
+            createKeyAfterConsentSheet = true
+            presentConsentSheet = false
+        }
+    }
+
+    /// The network's payout consent, with or without a coldkey on this device:
+    /// without one, no provider of the network is paid.
+    private var payoutCard: some View {
+        NetworkConsentCard(
+            status: consentFlow.status,
+            hasNetworkCredential: consentFlow.hasNetworkCredential,
+            shortAddress: viewModel.client.shortSs58,
+            sign: {
+                consentFlow.reset()
+                consentSheetOffersKey = true
+                presentConsentSheet = true
+            },
+            retry: {
+                Task {
+                    await consentFlow.refreshStatus()
+                }
+            },
+            key: keyModel.card,
+            keyActions: BittensorKeyCardActions(
+                setUp: keyModel.setUpPayouts,
+                saveFirst: keyModel.saveFirst,
+                useWallet: {
+                    consentFlow.reset()
+                    consentSheetOffersKey = false
+                    presentConsentSheet = true
+                },
+                finishSetup: keyModel.finishSetup,
+                openKeyScreen: keyModel.openKeyScreen,
+                reload: {
+                    keyModel.visit(isGuest: isGuest)
+                }
+            )
+        )
     }
 
     /// Claim on Earnings asked for the Top 200 tile: once the tile is in the
@@ -610,7 +675,7 @@ struct EarningsView: View {
         keyModel.setTop200Registered(viewModel.top?.me.rankedRow?.fleets.isEmpty == false)
         keyModel.earningsRead(
             schedule: viewModel.schedule,
-            claimable: viewModel.totalClaimableRao > 0 || viewModel.ledgerClaimableRao > 0
+            claimable: viewModel.totalClaimableRao > 0 || viewModel.ledgerClaimableRao > 0 || (viewModel.claimStatus?.claimableRao ?? 0) > 0
         )
     }
 

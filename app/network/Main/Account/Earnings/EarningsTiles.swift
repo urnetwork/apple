@@ -508,6 +508,16 @@ struct SnLedgerTile: View {
 
     let presentation: SnLedgerTilePresentation
     let claim: () -> Void
+    /// what URnetwork's claim relay says, nil while it says nothing: the tile
+    /// is then the device's own claim, as before the relay
+    var relay: SnClaimStatusInfo? = nil
+    /// Claim now's sheet
+    var claimNow: () -> Void = {}
+    /// the device's own claim, with its gas key
+    var selfClaim: () -> Void = {}
+    /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*), when this
+    /// is the first claim tile on Earnings
+    var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -521,16 +531,38 @@ struct SnLedgerTile: View {
                 ForEach(accounts) { account in
                     accountBalances(account)
                 }
+            case .claimable(let rao):
+                amount(rao)
+                Text("Claimable")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
-            if presentation.showsClaim {
+            if let relay, !relay.unavailable, relay.action != SdkSnClaimActionNone || 0 < relay.claimableRao {
+                Spacer().frame(height: 8)
+                SnClaimRelaySection(status: relay, claimNow: claimNow, selfClaim: selfClaim, inSheet: false)
+            } else if presentation.showsClaim {
                 Spacer().frame(height: 8)
                 UrButton(text: "Claim", action: claim, enabled: presentation.claimEnabled)
             }
+            BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)
+                .padding(.top, 4)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
+    }
+
+    private func amount(_ rao: Int64) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(verbatim: SnAlpha.formatAmount(rao: rao))
+                .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
+                .foregroundColor(themeManager.currentTheme.textColor)
+            Text(verbatim: SnAlpha.symbol)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            Spacer()
+        }
     }
 
     @ViewBuilder
@@ -627,24 +659,35 @@ struct NetworkConsentCard: View {
                     }
                 }
             case .active(let coldkeySs58):
-                Text("Earnings are paid to \(shortAddress(coldkeySs58))")
-                    .font(themeManager.currentTheme.bodyFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                if let key, let keyActions {
-                    BittensorKeyActiveLines(key: key, actions: keyActions)
-                }
-                if hasNetworkCredential {
-                    Spacer().frame(height: 4)
-                    UrButton(text: "Change wallet", action: sign, style: .secondary)
+                if let key, let keyActions, BittensorKeyActiveBody.draws(key) {
+                    BittensorKeyActiveBody(
+                        key: key,
+                        coldkeySs58: coldkeySs58,
+                        shortAddress: shortAddress,
+                        changesWallet: hasNetworkCredential,
+                        changeWallet: sign,
+                        actions: keyActions
+                    )
+                    if !hasNetworkCredential {
+                        ownerOnly
+                    }
                 } else {
-                    ownerOnly
-                }
-                Text("A new wallet takes effect from the next epoch.")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let key, let keyActions {
-                    BittensorKeyCreateHereLink(key: key, actions: keyActions)
+                    Text("Earnings are paid to \(shortAddress(coldkeySs58))")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    if let key, let keyActions {
+                        BittensorKeyActiveLines(key: key, actions: keyActions)
+                    }
+                    if hasNetworkCredential {
+                        Spacer().frame(height: 4)
+                        UrButton(text: "Change wallet", action: sign, style: .secondary)
+                    } else {
+                        ownerOnly
+                    }
+                    Text("A new wallet takes effect from the next epoch.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let key {

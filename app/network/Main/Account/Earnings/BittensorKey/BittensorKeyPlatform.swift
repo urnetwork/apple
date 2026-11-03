@@ -38,6 +38,27 @@ struct BittensorDeviceAuthenticator: BittensorDeviceAuthenticating {
         }
         return (try? await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)) ?? false
     }
+
+    /// The symbol for what the device asks: Face ID, Touch ID, Optic ID, or a
+    /// lock for a passcode, on the controls that ask for it.
+    static var systemImage: String {
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            return "lock"
+        }
+        switch context.biometryType {
+        case .faceID:
+            return "faceid"
+        case .touchID:
+            return "touchid"
+        default:
+            if #available(iOS 17.0, macOS 14.0, *), context.biometryType == .opticID {
+                return "opticid"
+            }
+            return "lock"
+        }
+    }
 }
 
 // MARK: the pasteboard
@@ -190,8 +211,8 @@ struct BittensorKeyReminderNotice: BittensorKeyReminderPosting {
             switch settings.authorizationStatus {
             case .authorized, .provisional:
                 let content = UNMutableNotificationContent()
-                content.title = String(localized: "Back up your Bittensor key")
-                content.body = String(localized: "Your first epoch of earnings can now be claimed. If you lose this device before saving your recovery phrase, your SN25α can't be reached.")
+                content.title = String(localized: "Your first SN25α is claimable")
+                content.body = String(localized: "Back up your Bittensor recovery phrase now. If you lose this device before saving it, your SN25α can't be reached.")
                 // the same identifier replaces rather than stacks
                 let request = UNNotificationRequest(identifier: Self.identifier, content: content, trigger: trigger)
                 center.add(request) { error in

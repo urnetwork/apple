@@ -44,6 +44,11 @@ final class DeepLinkRouter: ObservableObject {
     @Published private(set) var pendingProtocolLeaderboard = false
     /// The leaderboard selects its Protocol tab once it is on screen.
     @Published private(set) var pendingLeaderboardProtocol = false
+    /// Back up first, or the key reminder's notification, until the tab view
+    /// switches to the account tab (apple/BTEASY.md, Edge cases).
+    @Published private(set) var pendingEarningsKey = false
+    /// The Earnings screen opens its Key screen once it is on screen.
+    @Published private(set) var pendingEarningsKeyScreen = false
 
     func open(_ destination: WidgetDestination) {
         pending = destination
@@ -77,6 +82,11 @@ final class DeepLinkRouter: ObservableObject {
     /// The leaderboard on its Protocol tab.
     func openProtocolLeaderboard() {
         pendingProtocolLeaderboard = true
+    }
+
+    /// Account › Earnings with the payout key's Key screen open.
+    func openEarningsKeyScreen() {
+        pendingEarningsKey = true
     }
 
     func prefillFeedback(_ prefill: FeedbackPrefill) {
@@ -119,6 +129,24 @@ final class DeepLinkRouter: ObservableObject {
         pendingEarningsTop200 = false
         pendingAccountPath = .earnings
         pendingEarningsTop200Scroll = true
+        return true
+    }
+
+    /// The tab view takes the Key screen: true when there was one, and the tab
+    /// view then shows the account tab, which is handed Earnings to open, and
+    /// Earnings the Key screen.
+    func consumeEarningsKey() -> Bool {
+        guard pendingEarningsKey else { return false }
+        pendingEarningsKey = false
+        pendingAccountPath = .earnings
+        pendingEarningsKeyScreen = true
+        return true
+    }
+
+    /// The Earnings screen takes the Key screen.
+    func consumeEarningsKeyScreen() -> Bool {
+        guard pendingEarningsKeyScreen else { return false }
+        pendingEarningsKeyScreen = false
         return true
     }
 

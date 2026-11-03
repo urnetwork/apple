@@ -59,6 +59,25 @@ enum SnAlpha {
         String(format: "%.4f TAO", tao)
     }
 
+    /// "0.0125" (no symbol): an amount in rao of TAO, for a sentence that
+    /// names TAO itself
+    static func formatTaoAmount(rao: Int64) -> String {
+        String(format: "%.4f", Double(rao) / raoPerAlpha)
+    }
+
+    /// "3", "1.5" or "0.0420" (no symbol): an estimate, as precise as its size
+    /// needs, for "about 3 SN25α"
+    static func formatApprox(rao: Int64) -> String {
+        let value = Double(rao) / raoPerAlpha
+        if 10 <= value {
+            return String(format: "%.0f", value)
+        }
+        if 1 <= value {
+            return String(format: "%.1f", value)
+        }
+        return String(format: "%.4f", value)
+    }
+
     static func formatPoints(_ points: Double) -> String {
         points.formatted(.number.precision(.fractionLength(0...2)).grouping(.automatic))
     }

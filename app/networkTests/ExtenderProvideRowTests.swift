@@ -239,6 +239,20 @@ struct ExtenderProvideRowTests {
         #expect(row.isError)
     }
 
+    // the required tcp test found no answer: what it needs, in the reader's language
+    @Test func anUnreachableDeviceIsRedAndSaysWhatTheExtenderNeeds() {
+        let reason = "the tcp carrier failed after 0.05 s: no route to host"
+        let row = reading(
+            state: SdkExtenderProvideStateError,
+            errorCase: SdkExtenderProvideErrorActivationUnreachable,
+            reason: reason,
+            lastActivationRefused: true
+        )
+        #expect(row.dot == .red)
+        #expect(row.text == "The internet can't reach this device on TCP port 443. Allow or forward TCP 443 (and UDP 443 and 4053), or turn Extender off: \(reason)")
+        #expect(row.isError)
+    }
+
     @Test func aFailedActivationIsRedWithTheError() {
         let row = reading(
             state: SdkExtenderProvideStateError,

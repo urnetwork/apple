@@ -106,7 +106,7 @@ struct OutOfBalanceDisconnectFirstTests {
             closing: "* sufficient balance"
         )
         let line = try #require(section.range(of: "if notice.disconnectFirst {"))
-        let text = try #require(section.range(of: "Text(\"To upgrade, press Disconnect first. Payment can't get through until you do.\")"))
+        let text = try #require(section.range(of: "Text(\"To upgrade, press Disconnect first, and turn off the kill switch if it's on. Payment can't get through until you do.\")"))
         let id = try #require(section.range(of: "\"acceptance.insufficientBalance.disconnectFirst\""))
         let disconnect = try #require(section.range(of: "accessibilityIdentifier: \"acceptance.disconnect\""))
         #expect(line.lowerBound < text.lowerBound)

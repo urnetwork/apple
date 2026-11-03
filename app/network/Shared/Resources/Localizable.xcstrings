@@ -225907,8 +225907,176 @@
         }
       }
     },
+    "To upgrade, press Disconnect first, and turn off the kill switch if it's on. Payment can't get through until you do." : {
+      "comment" : "Out-of-balance alert, on the apple and android builds whose checkout has to go through the tunnel (the macOS direct download, the Android Play flavor), while the tunnel holds traffic. Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. On these apps a kill switch that is on keeps the tunnel up after a Disconnect and still stops the payment, so the line also says to turn it off. Each translation names Disconnect by its own label (the disconnect key) and the kill switch by the label of its setting (the kill_switch key).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "للترقية، اختر «قطع الاتصال» أولًا، وأوقف «مفتاح القتل» إن كان مفعّلًا. لا يمكن إتمام الدفع قبل ذلك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro přechod na vyšší tarif nejprve zvolte „Odpojení“ a vypněte Kill switch, pokud je zapnutý. Do té doby platba neprojde."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle zum Upgraden zuerst „Trennen“ und schalte den Kill switch aus, falls er an ist. Vorher kommt die Zahlung nicht durch."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Για να αναβαθμίσετε, επιλέξτε πρώτα «Αποσύνδεση» και απενεργοποιήστε το Kill switch, αν είναι ενεργό. Μέχρι τότε η πληρωμή δεν μπορεί να ολοκληρωθεί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To upgrade, press Disconnect first, and turn off the kill switch if it's on. Payment can't get through until you do."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero «Desconectar» y desactiva el Kill switch si está activado. Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero \"Desconectar\" y desactiva el Kill switch si está activado. Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero \"Desconectar\" y desactiva el Kill switch si está activado. Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour passer à une offre supérieure, choisissez d’abord « Déconnecter » et désactivez le Kill switch s’il est activé. Le paiement ne peut pas aboutir avant cela."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לשדרג, בחר קודם \"התנתק\" וכבה את הקיל סוויץ' אם הוא פועל. עד אז התשלום לא יוכל לעבור."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपग्रेड करने के लिए पहले \"डिस्कनेक्ट करें\" चुनें, और किल स्विच चालू हो तो उसे बंद करें। तब तक भुगतान पूरा नहीं हो पाएगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untuk meningkatkan paket, pilih “Putuskan” terlebih dahulu dan matikan Kill switch jika sedang aktif. Pembayaran tidak dapat diproses sebelum itu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per effettuare l’upgrade, scegli prima «Disconnetti» e disattiva il Kill switch se è attivo. Fino ad allora il pagamento non può andare a buon fine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップグレードするには、先に「切断する」を選択し、キルスイッチがオンの場合はオフにしてください。それまでは支払いを完了できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업그레이드하려면 먼저 '연결 해제'를 선택하고, 킬 스위치가 켜져 있으면 끄세요. 그 전에는 결제를 완료할 수 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies eerst ‘Verbinding verbreken’ om te upgraden en zet de Kill switch uit als die aan staat. Tot die tijd kan de betaling niet doorgaan."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aby przejść na wyższy plan, najpierw wybierz „Rozłącz” i wyłącz Kill switch, jeśli jest włączony. Do tego czasu płatność nie przejdzie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desconectar\" e desative o Kill switch se estiver ativado. Até lá, o pagamento não será concluído."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desconectar\" e desative o Kill switch se estiver ativado. Até lá, o pagamento não será concluído."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desligar\" e desative o Kill switch se estiver ativado. Até lá, o pagamento não será concluído."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы повысить тариф, сначала выберите «Отключить» и выключите Kill switch, если он включён. До этого оплата не пройдёт."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj först ”Koppla från” för att uppgradera och stäng av Kill switch om den är på. Innan dess går betalningen inte igenom."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หากต้องการอัปเกรด ให้เลือก “ตัดการเชื่อมต่อ” ก่อน และปิดสวิตช์หยุดการเชื่อมต่อหากเปิดอยู่ จนกว่าจะถึงตอนนั้น การชำระเงินจะไม่สำเร็จ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб підвищити тариф, спочатку виберіть «Відключитися» і вимкніть Kill switch, якщо його ввімкнено. Доти оплата не пройде."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để nâng cấp, trước tiên hãy chọn “Ngắt kết nối” và tắt Kill switch nếu đang bật. Cho đến lúc đó, thanh toán sẽ không thể hoàn tất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要升级，请先选择“断开连接”；如果断网保护已开启，请将其关闭。在此之前，付款无法完成。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要升級，請先選擇「斷開連接」；如果斷線開關 (Kill switch) 已開啟，請將其關閉。在此之前，付款無法完成。"
+          }
+        }
+      }
+    },
     "To upgrade, press Disconnect first. Payment can't get through until you do." : {
-      "comment" : "Out-of-balance alert, on the builds whose checkout has to go through the tunnel (Windows, Linux, the Android Play flavor, the macOS direct download), while the tunnel holds or blocks traffic. Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. Each translation names that button by its own label (the disconnect key).",
+      "comment" : "Out-of-balance alert, on the desktop builds whose checkout has to go through the tunnel (Windows, Linux), while the tunnel holds or blocks traffic. Their Disconnect lifts the kill switch too; apple and android say more (insufficient_balance_disconnect_first_kill_switch). Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. Each translation names that button by its own label (the disconnect key).",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

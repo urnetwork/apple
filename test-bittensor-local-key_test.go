@@ -469,6 +469,27 @@ func TestBittensorKeyWalletCardShowsTheKeyOnThisDevice(t *testing.T) {
 	}
 }
 
+// The Settlement v2 tile of a network with no wallet on this device follows the
+// sdk's rule (SnClaimStatusResult.ShowsTile), the one the ports read: a claimable
+// or pending balance, or a claim URnetwork paid in full, and nothing while the
+// status can't be read. No balance arithmetic of the app's own.
+func TestBittensorKeyClaimTileFollowsTheSdk(t *testing.T) {
+	model := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsViewModel.swift")
+	tile := bittensorKeyDeclaration(t, model, "    ", "var ledgerTileWithRelay: SnLedgerTilePresentation? {")
+	if !strings.Contains(tile, "guard let claimStatus, claimStatus.showsTile else {") {
+		t.Error("the relay's tile is not the sdk's ShowsTile")
+	}
+	for _, own := range []string{"claimableRao + ", "pendingRao", "unavailable"} {
+		if strings.Contains(tile, own) {
+			t.Errorf("the relay's tile decides by %q of its own", own)
+		}
+	}
+	client := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsClient.swift")
+	if !strings.Contains(client, "showsTile: result.showsTile") {
+		t.Error("the claim status doesn't carry the sdk's ShowsTile")
+	}
+}
+
 // The sdk decides. The app reads what to show from it and makes no key and signs
 // nothing of its own, so the ports get the same rules.
 func TestBittensorKeyDecisionsStayInTheSdk(t *testing.T) {

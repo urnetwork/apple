@@ -36,6 +36,10 @@ struct BittensorKeyCardInfo: Equatable {
     var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
     /// the disclaimer the claim cards show: at least its last sentence
     var claimFundsDisclaimer: String = SdkBittensorFundsDisclaimerFundsOnly
+    /// the consent pays the key on this device (sdk PaysKeyOnThisDevice): the
+    /// network has a coldkey before the wallet read lists one, so no card asks
+    /// for a coldkey
+    var paysKeyOnThisDevice = false
 }
 
 /// What the Key screen shows (sdk BittensorLocalKeyScreen). Holds no secret:
@@ -181,7 +185,8 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
             failureCode: card.failureCode,
             failureMessage: card.failureMessage,
             fundsDisclaimer: card.fundsDisclaimer,
-            claimFundsDisclaimer: card.claimFundsDisclaimer
+            claimFundsDisclaimer: card.claimFundsDisclaimer,
+            paysKeyOnThisDevice: card.paysKeyOnThisDevice
         )
     }
 

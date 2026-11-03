@@ -460,8 +460,16 @@ func TestBittensorKeyWalletCardShowsTheKeyOnThisDevice(t *testing.T) {
 	if !strings.Contains(view, "localKey: BittensorWalletCardLocalKey(card: keyModel.card),") {
 		t.Error("Earnings doesn't give the wallet card the key")
 	}
-	if !strings.Contains(view, "localKeyPaid: keyModel.card.state == SdkBittensorLocalKeyStateSaveLaterLinked") {
-		t.Error("the points card still asks for a coldkey the key provides")
+	// the sdk's rule (BittensorLocalKeyCard.PaysKeyOnThisDevice), the one the ports read
+	if !strings.Contains(view, "localKeyPaid: keyModel.card.paysKeyOnThisDevice") {
+		t.Error("the points card still asks for a coldkey the key provides, or decides it apart from the sdk")
+	}
+	if strings.Contains(view, "localKeyPaid: keyModel.card.state") {
+		t.Error("the points card decides by the card's state of its own")
+	}
+	seam := bittensorKeyRead(t, "app/network/Main/Account/Earnings/BittensorKey/BittensorKeyFlowSeam.swift")
+	if !strings.Contains(seam, "paysKeyOnThisDevice: card.paysKeyOnThisDevice") {
+		t.Error("the card doesn't carry the sdk's PaysKeyOnThisDevice")
 	}
 	model := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsViewModel.swift")
 	if !strings.Contains(model, "let hasColdkey = hasWallet || localKeyPaid") || !strings.Contains(model, "hasColdkey: hasColdkey,") {

@@ -119,7 +119,7 @@ struct EarningsView: View {
                         payoutLine: viewModel.payoutLine(
                             nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
                             formatTime: { SnPayoutLine.formatTime($0) },
-                            localKeyPaid: keyModel.card.state == SdkBittensorLocalKeyStateSaveLaterLinked
+                            localKeyPaid: keyModel.card.paysKeyOnThisDevice
                         ),
                         claim: {
                             viewModel.resetClaimProgress()

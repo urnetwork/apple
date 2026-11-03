@@ -238,6 +238,110 @@ func TestBittensorKeySourcesHoldNoWayToLeakTheWords(t *testing.T) {
 	}
 }
 
+// Keep and Delete hide the words before anything is asked, so none can be read
+// behind the device's authentication or the two-word check.
+func TestBittensorKeyWordsHideBeforeTheConfirmation(t *testing.T) {
+	model := bittensorKeySources(t)["BittensorKeyModel.swift"]
+	for _, name := range []string{"func confirmDelete() async {", "func confirmKeep() async {"} {
+		body := bittensorKeyBlock(t, model, strings.Index(model, name))
+		hide := strings.Index(body, "hide()")
+		authenticate := strings.Index(body, "authenticatedIfNeeded()")
+		if hide < 0 || authenticate < 0 || authenticate < hide {
+			t.Errorf("%s asks before the words hide", name)
+		}
+	}
+	hide := bittensorKeyBlock(t, model, strings.Index(model, "func hide() {"))
+	if !strings.Contains(hide, "flow.hide()") || !strings.Contains(hide, "refresh()") {
+		t.Error("hide() no longer hides through the flow")
+	}
+}
+
+// The two-word fields: nothing the keyboard could learn the words from or
+// suggest them with, on both platforms, and the confirmation uses them.
+func TestBittensorKeyWordFieldsLearnNothing(t *testing.T) {
+	screen := bittensorKeySources(t)["BittensorKeyScreen.swift"]
+	confirmation := bittensorKeyDeclaration(t, screen, "", "struct BittensorKeyConfirmation: View")
+	if !strings.Contains(confirmation, "BittensorKeyWordField(") || strings.Contains(confirmation, "TextField(") || strings.Contains(confirmation, "SecureField(") {
+		t.Error("the two-word check doesn't use the quiet field")
+	}
+	ios := screen[strings.Index(screen, "struct BittensorKeyWordField: UIViewRepresentable"):strings.Index(screen, "struct BittensorKeyWordField: NSViewRepresentable")]
+	for _, trait := range []string{
+		"field.autocorrectionType = .no",
+		"field.spellCheckingType = .no",
+		"field.autocapitalizationType = .none",
+		"field.smartQuotesType = .no",
+		"field.smartDashesType = .no",
+		"field.smartInsertDeleteType = .no",
+		"field.keyboardType = .asciiCapable",
+		"field.inlinePredictionType = .no",
+		"Self.quiet(field)",
+	} {
+		if !strings.Contains(ios, trait) {
+			t.Errorf("iOS: the word field lost %s", trait)
+		}
+	}
+	mac := screen[strings.Index(screen, "struct BittensorKeyWordField: NSViewRepresentable"):]
+	for _, trait := range []string{
+		"editor.isAutomaticSpellingCorrectionEnabled = false",
+		"editor.isContinuousSpellCheckingEnabled = false",
+		"editor.isAutomaticQuoteSubstitutionEnabled = false",
+		"editor.isAutomaticDashSubstitutionEnabled = false",
+		"editor.isAutomaticTextReplacementEnabled = false",
+		"editor.isAutomaticTextCompletionEnabled = false",
+		"editor.inlinePredictionType = .no",
+		"field.isAutomaticTextCompletionEnabled = false",
+		"Self.quiet(editor)",
+	} {
+		if !strings.Contains(mac, trait) {
+			t.Errorf("macOS: the word field lost %s", trait)
+		}
+	}
+	// a quiet field is quiet before the first key: on focus, not on the first change
+	focus := bittensorKeyBlock(t, mac, strings.Index(mac, "override func becomeFirstResponder() -> Bool {"))
+	if !strings.Contains(focus, "Self.quiet(editor)") {
+		t.Error("macOS quiets the field editor late")
+	}
+}
+
+// After the one tap the wallet card and the points card show the key on this
+// device, not a call to connect a second wallet.
+func TestBittensorKeyWalletCardShowsTheKeyOnThisDevice(t *testing.T) {
+	tiles := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsTiles.swift")
+	card := bittensorKeyDeclaration(t, tiles, "", "struct BittensorWalletCard: View")
+	key := strings.Index(card, "} else if let localKey {")
+	connect := strings.Index(card, `UrButton(text: "Connect Bittensor wallet", action: connect)`)
+	failed := strings.Index(card, "} else if loadFailed {")
+	if key < 0 || connect < key || failed < 0 || key < failed {
+		t.Error("the wallet card offers Connect Bittensor wallet beside the key on this device")
+	}
+	keyBranch := card[key:connect]
+	for _, line := range []string{"shortAddress(localKey.address)", "connectSolanaItem", "if localKey.linked {"} {
+		if !strings.Contains(keyBranch, line) {
+			t.Errorf("the key's wallet card lost %s", line)
+		}
+	}
+	if strings.Contains(keyBranch, "action: connect") {
+		t.Error("the key's wallet card still connects a wallet")
+	}
+	local := bittensorKeyDeclaration(t, tiles, "", "struct BittensorWalletCardLocalKey: Equatable")
+	for _, line := range []string{"guard !card.storedAddress.isEmpty else {", "linked = card.state == SdkBittensorLocalKeyStateSaveLaterLinked"} {
+		if !strings.Contains(local, line) {
+			t.Errorf("the wallet card's key lost %s", line)
+		}
+	}
+	view := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
+	if !strings.Contains(view, "localKey: BittensorWalletCardLocalKey(card: keyModel.card),") {
+		t.Error("Earnings doesn't give the wallet card the key")
+	}
+	if !strings.Contains(view, "localKeyPaid: keyModel.card.state == SdkBittensorLocalKeyStateSaveLaterLinked") {
+		t.Error("the points card still asks for a coldkey the key provides")
+	}
+	model := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsViewModel.swift")
+	if !strings.Contains(model, "let hasColdkey = hasWallet || localKeyPaid") || !strings.Contains(model, "hasColdkey: hasColdkey,") {
+		t.Error("the payout line doesn't count the key as a coldkey")
+	}
+}
+
 // The sdk decides. The app reads what to show from it and makes no key and signs
 // nothing of its own, so the ports get the same rules.
 func TestBittensorKeyDecisionsStayInTheSdk(t *testing.T) {
@@ -497,14 +601,34 @@ func TestBittensorFundsDisclaimerShowsOnEveryEasyFlowScreen(t *testing.T) {
 	if !strings.Contains(consentCard, "BittensorFundsDisclaimerText(disclaimer: key.fundsDisclaimer)") {
 		t.Error("the payout card shows no disclaimer")
 	}
-	for _, tile := range []string{"struct UnclaimedAlphaTile: View", "struct SnLedgerTile: View"} {
-		if !strings.Contains(bittensorKeyDeclaration(t, tiles, "", tile), "BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)") {
-			t.Errorf("%s shows no disclaimer", tile)
-		}
+	// once a screen: the claim tiles share Earnings with the payout card, so the sdk gives them the
+	// disclaimer only while the payout card has none, and only the tile that is always there with the
+	// other one shows it
+	unclaimed := bittensorKeyDeclaration(t, tiles, "", "struct UnclaimedAlphaTile: View")
+	if !strings.Contains(unclaimed, "BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)") ||
+		!strings.Contains(unclaimed, "var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone") {
+		t.Error("the claim tile shows no disclaimer, or one of its own")
+	}
+	if strings.Contains(bittensorKeyDeclaration(t, tiles, "", "struct SnLedgerTile: View"), "BittensorFundsDisclaimerText(") {
+		t.Error("the second claim tile shows the disclaimer again")
 	}
 	view := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
-	if got := strings.Count(view, "fundsDisclaimer: keyModel.card.claimFundsDisclaimer"); got != 2 {
-		t.Errorf("%d claim cards take the flow's disclaimer, want both", got)
+	if got := strings.Count(view, "fundsDisclaimer: keyModel.card.claimFundsDisclaimer"); got != 1 {
+		t.Errorf("%d claim tiles take the flow's disclaimer, want one", got)
+	}
+	unclaimedAt := strings.Index(view, "UnclaimedAlphaTile(")
+	ledgerAt := strings.Index(view, "SnLedgerTile(")
+	if unclaimedAt < 0 || ledgerAt < unclaimedAt ||
+		!strings.Contains(view[unclaimedAt:ledgerAt], "if viewModel.hasWallet {") && !strings.Contains(view[:unclaimedAt], "if viewModel.hasWallet {") ||
+		!strings.Contains(view[unclaimedAt-200:ledgerAt], "fundsDisclaimer: keyModel.card.claimFundsDisclaimer") {
+		t.Error("the tile with the disclaimer is not the one always shown with the other")
+	}
+	// the Key screen and its confirmation replace each other, so each shows it once
+	if strings.Count(main, "BittensorFundsDisclaimerText(") != 1 || strings.Count(confirmation, "BittensorFundsDisclaimerText(") != 1 {
+		t.Error("a Key screen shows the disclaimer more than once")
+	}
+	if !strings.Contains(screen, "if model.screen.confirming == SdkBittensorLocalKeyConfirmNone {\n                        mainContent\n                    } else {\n                        BittensorKeyConfirmation(model: model)") {
+		t.Error("the confirmation no longer replaces the Key screen, so both disclaimers could show")
 	}
 
 	seam := sources["BittensorKeyFlowSeam.swift"]

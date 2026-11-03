@@ -344,18 +344,176 @@ struct BittensorKeyConfirmation: View {
     }
 
     private func wordField(position: Int, text: Binding<String>, identifier: String) -> some View {
-        TextField("", text: text, prompt: Text("Word \(position)"))
-            .textFieldStyle(.roundedBorder)
-            .font(.system(.body, design: .monospaced))
-            .autocorrectionDisabled()
-            .privacySensitive()
-            #if os(iOS)
-            .textInputAutocapitalization(.never)
-            #endif
-            .accessibilityLabel(Text("Word \(position)"))
-            .accessibilityIdentifier(identifier)
+        BittensorKeyWordField(
+            placeholder: String(localized: "Word \(position)"),
+            text: text,
+            accessibilityIdentifier: identifier
+        )
+        .frame(maxWidth: .infinity)
+        .privacySensitive()
     }
 }
+
+#if os(iOS)
+
+/// A field for one word of the recovery phrase that the keyboard learns
+/// nothing from and suggests nothing in: no autocorrection, spell check,
+/// predictions or smart punctuation, and a plain keyboard. SwiftUI's
+/// TextField can't turn all of these off.
+struct BittensorKeyWordField: UIViewRepresentable {
+
+    let placeholder: String
+    @Binding var text: String
+    let accessibilityIdentifier: String
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.borderStyle = .roundedRect
+        field.font = UIFontMetrics(forTextStyle: .body).scaledFont(
+            for: UIFont.monospacedSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .regular)
+        )
+        field.adjustsFontForContentSizeCategory = true
+        Self.quiet(field)
+        field.returnKeyType = .done
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        field.delegate = context.coordinator
+        field.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .editingChanged)
+        return field
+    }
+
+    func updateUIView(_ field: UITextField, context: Context) {
+        context.coordinator.text = $text
+        if field.text != text {
+            field.text = text
+        }
+        field.placeholder = placeholder
+        field.accessibilityLabel = placeholder
+        field.accessibilityIdentifier = accessibilityIdentifier
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+
+    /// Everything that would learn the word, or offer one, is off.
+    static func quiet(_ field: UITextField) {
+        field.autocorrectionType = .no
+        field.spellCheckingType = .no
+        field.autocapitalizationType = .none
+        field.smartQuotesType = .no
+        field.smartDashesType = .no
+        field.smartInsertDeleteType = .no
+        field.keyboardType = .asciiCapable
+        if #available(iOS 17.0, *) {
+            field.inlinePredictionType = .no
+        }
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+
+        var text: Binding<String>
+
+        init(text: Binding<String>) {
+            self.text = text
+        }
+
+        @objc func changed(_ field: UITextField) {
+            text.wrappedValue = field.text ?? ""
+        }
+
+        func textFieldShouldReturn(_ field: UITextField) -> Bool {
+            field.resignFirstResponder()
+            return true
+        }
+    }
+}
+
+#elseif os(macOS)
+
+/// A field for one word of the recovery phrase that suggests and corrects
+/// nothing: its field editor has spelling, completion, substitutions and
+/// inline predictions off while it edits.
+struct BittensorKeyWordField: NSViewRepresentable {
+
+    let placeholder: String
+    @Binding var text: String
+    let accessibilityIdentifier: String
+
+    func makeNSView(context: Context) -> BittensorKeyWordTextField {
+        let field = BittensorKeyWordTextField()
+        field.font = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        field.isBezeled = true
+        field.bezelStyle = .roundedBezel
+        field.isAutomaticTextCompletionEnabled = false
+        field.allowsCharacterPickerTouchBarItem = false
+        field.lineBreakMode = .byTruncatingTail
+        field.usesSingleLineMode = true
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.delegate = context.coordinator
+        return field
+    }
+
+    func updateNSView(_ field: BittensorKeyWordTextField, context: Context) {
+        context.coordinator.text = $text
+        if field.stringValue != text {
+            field.stringValue = text
+        }
+        field.placeholderString = placeholder
+        field.setAccessibilityLabel(placeholder)
+        field.setAccessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+
+    final class Coordinator: NSObject, NSTextFieldDelegate {
+
+        var text: Binding<String>
+
+        init(text: Binding<String>) {
+            self.text = text
+        }
+
+        func controlTextDidChange(_ notification: Notification) {
+            guard let field = notification.object as? NSTextField else {
+                return
+            }
+            text.wrappedValue = field.stringValue
+        }
+    }
+}
+
+/// Quiets the window's field editor as soon as it comes to this field, before
+/// the first key. The Key screen's sheet has no other text field to share it.
+final class BittensorKeyWordTextField: NSTextField {
+
+    override func becomeFirstResponder() -> Bool {
+        let became = super.becomeFirstResponder()
+        if became, let editor = currentEditor() as? NSTextView {
+            Self.quiet(editor)
+        }
+        return became
+    }
+
+    /// Everything that would correct the word, or offer one, is off.
+    static func quiet(_ editor: NSTextView) {
+        editor.isAutomaticSpellingCorrectionEnabled = false
+        editor.isContinuousSpellCheckingEnabled = false
+        editor.isGrammarCheckingEnabled = false
+        editor.isAutomaticQuoteSubstitutionEnabled = false
+        editor.isAutomaticDashSubstitutionEnabled = false
+        editor.isAutomaticTextReplacementEnabled = false
+        editor.isAutomaticTextCompletionEnabled = false
+        editor.smartInsertDeleteEnabled = false
+        if #available(macOS 14.0, *) {
+            editor.inlinePredictionType = .no
+        }
+    }
+}
+
+#endif
 
 /// The not-a-wallet text, the plan's words, always in view on the Key screen and
 /// in its delete confirmation.

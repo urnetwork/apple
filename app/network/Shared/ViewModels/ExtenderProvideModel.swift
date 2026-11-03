@@ -218,6 +218,12 @@ struct ExtenderProvideDisplay: Equatable {
             return String(format: String(localized: "Could not listen: %@"), status.reason)
         case SdkExtenderProvideErrorActivationRefused:
             return activationText(refused: true, reason: status.reason)
+        case SdkExtenderProvideErrorActivationUnreachable:
+            // the operator's required tcp test found no answer: say what it needs
+            return String(
+                format: String(localized: "The internet can't reach this device on TCP port 443. Allow or forward TCP 443 (and UDP 443 and 4053), or turn Extender off: %@"),
+                status.reason
+            )
         case SdkExtenderProvideErrorActivationFailed:
             return activationText(refused: false, reason: status.reason)
         default:

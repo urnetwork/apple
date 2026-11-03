@@ -460,12 +460,96 @@ func TestBittensorKeyWalletCardShowsTheKeyOnThisDevice(t *testing.T) {
 	if !strings.Contains(view, "localKey: BittensorWalletCardLocalKey(card: keyModel.card),") {
 		t.Error("Earnings doesn't give the wallet card the key")
 	}
-	if !strings.Contains(view, "localKeyPaid: keyModel.card.state == SdkBittensorLocalKeyStateSaveLaterLinked") {
-		t.Error("the points card still asks for a coldkey the key provides")
+	// the sdk's rule (BittensorLocalKeyCard.PaysKeyOnThisDevice), the one the ports read
+	if !strings.Contains(view, "localKeyPaid: keyModel.card.paysKeyOnThisDevice") {
+		t.Error("the points card still asks for a coldkey the key provides, or decides it apart from the sdk")
+	}
+	if strings.Contains(view, "localKeyPaid: keyModel.card.state") {
+		t.Error("the points card decides by the card's state of its own")
+	}
+	seam := bittensorKeyRead(t, "app/network/Main/Account/Earnings/BittensorKey/BittensorKeyFlowSeam.swift")
+	if !strings.Contains(seam, "paysKeyOnThisDevice: card.paysKeyOnThisDevice") {
+		t.Error("the card doesn't carry the sdk's PaysKeyOnThisDevice")
 	}
 	model := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsViewModel.swift")
 	if !strings.Contains(model, "let hasColdkey = hasWallet || localKeyPaid") || !strings.Contains(model, "hasColdkey: hasColdkey,") {
 		t.Error("the payout line doesn't count the key as a coldkey")
+	}
+}
+
+// The Settlement v2 tile of a network with no wallet on this device follows the
+// sdk's rule (SnClaimStatusResult.ShowsTile), the one the ports read: a claimable
+// or pending balance, or a claim URnetwork paid in full, and nothing while the
+// status can't be read. No balance arithmetic of the app's own.
+func TestBittensorKeyClaimTileFollowsTheSdk(t *testing.T) {
+	model := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsViewModel.swift")
+	tile := bittensorKeyDeclaration(t, model, "    ", "var ledgerTileWithRelay: SnLedgerTilePresentation? {")
+	if !strings.Contains(tile, "guard let claimStatus, claimStatus.showsTile else {") {
+		t.Error("the relay's tile is not the sdk's ShowsTile")
+	}
+	for _, own := range []string{"claimableRao + ", "pendingRao", "unavailable"} {
+		if strings.Contains(tile, own) {
+			t.Errorf("the relay's tile decides by %q of its own", own)
+		}
+	}
+	client := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsClient.swift")
+	if !strings.Contains(client, "showsTile: result.showsTile") {
+		t.Error("the claim status doesn't carry the sdk's ShowsTile")
+	}
+}
+
+// The claimed state as the mocks draw it (4d), when the sdk says (ShowsClaimed):
+// the tile keeps the relay's section, which says so and opens the claim sheet;
+// the sheet shows what URnetwork's claim paid and the key it is on, its
+// transaction, when Claim now works again, Done, and the claim sheet's funds-only
+// disclaimer.
+func TestBittensorKeyClaimedStateAsDrawn(t *testing.T) {
+	client := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsClient.swift")
+	for _, line := range []string{"showsClaimed: result.showsClaimed", "claimTxUrl: result.claimTxUrl", "claimAmountRao: result.claimAmountRao"} {
+		if !strings.Contains(client, line) {
+			t.Errorf("the claim status doesn't carry %s", line)
+		}
+	}
+	tiles := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsTiles.swift")
+	if !strings.Contains(tiles, "relay.action != SdkSnClaimActionNone || 0 < relay.claimableRao || relay.showsClaimed {") {
+		t.Error("the tile hides the relay's section in the claimed state")
+	}
+	sheet := bittensorKeyRead(t, "app/network/Main/Account/Earnings/ClaimRelaySheet.swift")
+	section := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelaySection: View {")
+	claimedOnTile := strings.Index(section, "if status.showsClaimed {")
+	if claimedOnTile < 0 || !strings.Contains(section[claimedOnTile:], "Button(action: claimNow) {") || !strings.Contains(section[claimedOnTile:], "SnClaimRelayClaimedText(status: status)") {
+		t.Error("the tile's claimed state doesn't open the claim sheet")
+	}
+	text := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayClaimedText: View {")
+	if !strings.Contains(text, `Text("Claimed by URnetwork. \(SnAlpha.formatAmount(rao: status.claimAmountRao)) SN25α is on your key, \(SnAlpha.shortSs58(status.coldkeySs58)).")`) {
+		t.Error("the claimed sentence is not the mock's, from ClaimAmountRao and ColdkeySs58")
+	}
+	claimed := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayClaimed: View {")
+	for _, line := range []string{"let url = URL(string: status.claimTxUrl)", "openURL(url)", `Text("Transaction")`} {
+		if !strings.Contains(claimed, line) {
+			t.Errorf("the claimed state's transaction link lost %s", line)
+		}
+	}
+	againOn := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayAgainOn: View {")
+	if !strings.Contains(againOn, `Text("Claim now is available again on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")`) {
+		t.Error("the claimed state doesn't say when Claim now works again")
+	}
+	content := sheet[strings.Index(sheet, "private func content(_ status: SnClaimStatusInfo)"):]
+	claimedInSheet := strings.Index(content, "if status.showsClaimed {")
+	if claimedInSheet < 0 {
+		t.Fatal("the claim sheet has no claimed state")
+	}
+	for _, line := range []string{"SnClaimRelayClaimed(status: status)", `UrButton(text: "Done", action: dismiss`, "SnClaimRelayAgainOn(status: status)"} {
+		if !strings.Contains(content[claimedInSheet:], line) {
+			t.Errorf("the claim sheet's claimed state lost %s", line)
+		}
+	}
+	if !strings.Contains(sheet, "BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer, boxed: true)") {
+		t.Error("the claim sheet lost its funds disclaimer")
+	}
+	view := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
+	if !strings.Contains(view, "fundsDisclaimer: keyModel.flow.fundsDisclaimer(at: SdkBittensorFundsDisclaimerPlaceClaimSheet),") {
+		t.Error("the claim sheet's disclaimer is not the sdk's claim_sheet line, the funds-only one")
 	}
 }
 
@@ -566,6 +650,29 @@ func (self bittensorKeyCatalogLocalization) translated() bool {
 		}
 	}
 	return true
+}
+
+// The key's words are every app's, so none names Apple's Keychain: Android,
+// Windows and Linux keep the key elsewhere. A store that can't answer is the
+// device's secure storage, as the funds disclaimer calls it.
+func TestBittensorKeyWordsNameNoPlatformsStore(t *testing.T) {
+	literal := regexp.MustCompile(`(?:Text\(|String\(localized: |UrButton\(\s*text: |text: |line\(|title\(|detail\(|note\(|Button\(|alert\(\s*|confirmationDialog\(\s*)"((?:[^"\\]|\\.)+)"`)
+	seen := 0
+	for name, source := range bittensorKeySources(t) {
+		for _, match := range literal.FindAllStringSubmatch(source, -1) {
+			seen += 1
+			if strings.Contains(strings.ToLower(match[1]), "keychain") {
+				t.Errorf("%s: %q names Apple's Keychain", name, match[1])
+			}
+		}
+	}
+	if seen < 30 {
+		t.Fatalf("CONTROL FAILED: read %d literals", seen)
+	}
+	card := bittensorKeyRead(t, filepath.Join(bittensorKeySourcesDir, "BittensorKeyCard.swift"))
+	if strings.Count(card, `"Couldn't read this device's secure storage. Unlock your device and try again."`) != 2 {
+		t.Error("the card doesn't say secure storage where the store can't answer")
+	}
 }
 
 // The words the plan fixes, spelled as it spells them, and every literal on these

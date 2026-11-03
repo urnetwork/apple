@@ -137,12 +137,13 @@ final class EarningsViewModel: ObservableObject {
 
     /// The Settlement v2 tile with the relay: the device's wallet's ledger as
     /// before, or, for a network with no wallet on this device, the balance
-    /// the relay claims for its consent.
+    /// the relay claims for its consent, while the sdk says the tile shows
+    /// (SnClaimStatusResult.ShowsTile), the one rule every app draws by.
     var ledgerTileWithRelay: SnLedgerTilePresentation? {
         if hasWallet, let ledgerTile {
             return ledgerTile
         }
-        guard let claimStatus, !claimStatus.unavailable, 0 < claimStatus.claimableRao + claimStatus.pendingRao else {
+        guard let claimStatus, claimStatus.showsTile else {
             return nil
         }
         return SnLedgerTilePresentation(balances: .claimable(claimStatus.claimableRao), showsClaim: false, claimEnabled: false, showsPools: false)

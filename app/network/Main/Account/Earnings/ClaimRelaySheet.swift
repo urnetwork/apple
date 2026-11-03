@@ -16,11 +16,14 @@ import URnetworkSdk
 
 /// Who claims, why the balance is still pending, and on the tile Claim now
 /// with its limit, or the device's own claim while the relay isn't claiming.
+/// Once URnetwork has claimed it all (sdk ShowsClaimed), the tile says so, and
+/// opens the claim sheet, which shows the claim's transaction.
 struct SnClaimRelaySection: View {
 
     @EnvironmentObject var themeManager: ThemeManager
 
     let status: SnClaimStatusInfo
+    /// opens the claim sheet
     let claimNow: () -> Void
     let selfClaim: () -> Void
     /// in the claim sheet, which has its own Claim now
@@ -46,7 +49,27 @@ struct SnClaimRelaySection: View {
                 }
             }
             if !inSheet {
-                if status.relayClaims {
+                if status.showsClaimed {
+                    // nothing is left to claim: the claimed state, which opens the
+                    // claim sheet with its transaction
+                    Button(action: claimNow) {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.urGreen)
+                                .accessibilityHidden(true)
+                            SnClaimRelayClaimedText(status: status)
+                                .multilineTextAlignment(.leading)
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("earnings.claimRelay.claimed")
+                    SnClaimRelayAgainOn(status: status)
+                } else if status.relayClaims {
                     UrButton(
                         text: "Claim now",
                         action: claimNow,
@@ -188,6 +211,89 @@ struct SnClaimRelayPill: View {
     }
 }
 
+/// The claimed state's sentence (the mocks' 4d): what URnetwork's claim paid
+/// and the key it is on, or "Claimed" without an amount or a key to name.
+struct SnClaimRelayClaimedText: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let status: SnClaimStatusInfo
+
+    var body: some View {
+        Group {
+            if 0 < status.claimAmountRao, !status.coldkeySs58.isEmpty {
+                Text("Claimed by URnetwork. \(SnAlpha.formatAmount(rao: status.claimAmountRao)) SN25α is on your key, \(SnAlpha.shortSs58(status.coldkeySs58)).")
+            } else {
+                Text("Claimed")
+            }
+        }
+        .font(themeManager.currentTheme.secondaryBodyFont)
+        .foregroundColor(themeManager.currentTheme.textColor)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// The claimed state in the claim sheet: the sentence and the claim's
+/// transaction on the explorer (sdk ClaimTxUrl).
+struct SnClaimRelayClaimed: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.openURL) private var openURL
+
+    let status: SnClaimStatusInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.urGreen)
+                    .accessibilityHidden(true)
+                SnClaimRelayClaimedText(status: status)
+            }
+            if !status.claimTxUrl.isEmpty, let url = URL(string: status.claimTxUrl) {
+                Button(action: {
+                    openURL(url)
+                }) {
+                    HStack(spacing: 4) {
+                        Text("Transaction")
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("earnings.claimRelay.transaction")
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.urGreen.opacity(0.6), lineWidth: 1)
+        )
+        .accessibilityIdentifier("earnings.claimRelay.claimed")
+    }
+}
+
+/// When Claim now works again after URnetwork paid a tapped claim (sdk
+/// ClaimNowNextAtMillis); nothing while no limit holds.
+struct SnClaimRelayAgainOn: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let status: SnClaimStatusInfo
+
+    var body: some View {
+        if 0 < status.claimNowNextAtMillis {
+            Text("Claim now is available again on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 /// Claim now, from the settlement v2 tile: the balance, where it lands, why
 /// it's still pending, and Claim now or why it can't act, with the device's own
 /// claim as the fallback.
@@ -217,14 +323,17 @@ struct ClaimRelaySheet: View {
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 }
                 BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer, boxed: true)
-                Button(action: dismiss) {
-                    Text("Close")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        .frame(maxWidth: .infinity)
+                // the claimed state ends with its own Done
+                if viewModel.claimStatus?.showsClaimed != true {
+                    Button(action: dismiss) {
+                        Text("Close")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("earnings.claimRelay.close")
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("earnings.claimRelay.close")
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -254,6 +363,23 @@ struct ClaimRelaySheet: View {
         }
         SnClaimRelaySection(status: status, claimNow: {}, selfClaim: selfClaim, inSheet: true)
 
+        if status.showsClaimed {
+            // the claimed state (the mocks' 4d): URnetwork claimed it all and paid
+            // the gas; a tap that queued it has landed
+            SnClaimRelayClaimed(status: status)
+            UrButton(text: "Done", action: dismiss, accessibilityIdentifier: "earnings.claimRelay.done")
+            SnClaimRelayAgainOn(status: status)
+        } else {
+            claimNowContent(status)
+        }
+        if status.selfClaimAvailable {
+            BittensorKeyCardLink(text: "Claim it yourself with your gas key", action: selfClaim, accessibilityIdentifier: "earnings.claimRelay.sheetSelfClaim")
+        }
+    }
+
+    /// Claim now, its answer, or why it waits.
+    @ViewBuilder
+    private func claimNowContent(_ status: SnClaimStatusInfo) -> some View {
         switch viewModel.claimNowOutcome {
         case .requested:
             Text("Claim now is queued. URnetwork sends it first, within today's budget.")
@@ -291,9 +417,6 @@ struct ClaimRelaySheet: View {
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
-        }
-        if status.selfClaimAvailable {
-            BittensorKeyCardLink(text: "Claim it yourself with your gas key", action: selfClaim, accessibilityIdentifier: "earnings.claimRelay.sheetSelfClaim")
         }
     }
 }

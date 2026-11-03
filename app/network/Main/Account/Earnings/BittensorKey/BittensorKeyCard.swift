@@ -30,7 +30,7 @@ enum BittensorKeyText {
         case SdkBittensorLocalKeyFailureStore:
             return String(localized: "Couldn't save the key on this device, so nothing was signed. Try again, or save the recovery phrase first.")
         case SdkBittensorLocalKeyFailureStoreUnavailable:
-            return String(localized: "Couldn't read this device's keychain. Unlock your device and try again.")
+            return String(localized: "Couldn't read this device's secure storage. Unlock your device and try again.")
         case SdkBittensorLocalKeyFailureDelete:
             return String(localized: "Couldn't delete the key from this device. It's still here.")
         case SdkBittensorLocalKeyFailureReplacementNotConfirmed:
@@ -362,7 +362,7 @@ struct BittensorKeyStoreUnavailable: View {
     let reload: () -> Void
 
     var body: some View {
-        Text("Couldn't read this device's keychain. Unlock your device and try again.")
+        Text("Couldn't read this device's secure storage. Unlock your device and try again.")
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textMutedColor)
             .fixedSize(horizontal: false, vertical: true)

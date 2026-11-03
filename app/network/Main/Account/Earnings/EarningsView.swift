@@ -7,11 +7,15 @@
 //  Connecting a Bittensor coldkey adds the subnet layer: the history rows gain
 //  SN25α, the unclaimed tile appears and claims go straight from this device
 //  to the settlement vault. The settlement v2 balances show in a tile of
-//  their own beside it, with their own claim, and the network payout consent
-//  beside them: the coldkey one signature by the network's owner pays every
-//  provider of the network to. Alpha is not retroactive. USDC
+//  their own beside it, with their own claim. The network payout consent names
+//  the coldkey one signature by the network's owner pays every provider of the
+//  network to. Alpha is not retroactive. USDC
 //  payouts continue to a Solana wallet until the migration to Bittensor is
-//  complete; the wallet options next to the Bittensor call connect it.
+//  complete; the wallet options next to the Bittensor call connect it. The
+//  payout consent card sits above the wallet cards, since a network without a
+//  consent is one tap away from earning (apple/BTEASY.md): the SDK's payout key
+//  flow behind it makes the key, and a banner stays while its phrase isn't
+//  saved.
 //
 
 import SwiftUI
@@ -33,10 +37,13 @@ struct EarningsView: View {
     let fetchNetworkReliability: () async -> Void
     @ObservedObject var viewModel: EarningsViewModel
     @ObservedObject var usdcViewModel: UsdcWalletsViewModel
+    /// the jwt's claim or the server's: a guest gets no key
+    let isGuest: Bool
 
     @StateObject private var connectFlow: ConnectBittensorWalletFlow
     @StateObject private var solanaFlow: ConnectSolanaWalletFlow
     @StateObject private var consentFlow: NetworkConsentFlow
+    @StateObject private var keyModel: BittensorKeyModel
     @State private var presentConnectSheet = false
     @State private var presentSolanaSheet = false
     @State private var presentClaimSheet = false
@@ -52,7 +59,9 @@ struct EarningsView: View {
         fetchNetworkReliability: @escaping () async -> Void,
         viewModel: EarningsViewModel,
         usdcViewModel: UsdcWalletsViewModel,
-        consentClient: NetworkConsentClient
+        consentClient: NetworkConsentClient,
+        isGuest: Bool = false,
+        makeKeyFlow: @escaping () -> BittensorKeyFlowing = { BittensorKeyPreviewFlow() }
     ) {
         self.navigate = navigate
         self.accountPointsStore = accountPointsStore
@@ -60,6 +69,8 @@ struct EarningsView: View {
         self.fetchNetworkReliability = fetchNetworkReliability
         self.viewModel = viewModel
         self.usdcViewModel = usdcViewModel
+        self.isGuest = isGuest
+        _keyModel = StateObject(wrappedValue: BittensorKeyModel(flow: makeKeyFlow()))
         _solanaFlow = StateObject(wrappedValue: ConnectSolanaWalletFlow(client: usdcViewModel.client))
         _connectFlow = StateObject(wrappedValue: ConnectBittensorWalletFlow(
             client: viewModel.client,
@@ -74,6 +85,11 @@ struct EarningsView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 16) {
+
+                    // until the key's phrase is saved
+                    if keyModel.card.backupReminder {
+                        BittensorKeyBackupBanner(open: keyModel.openKeyScreen)
+                    }
 
                     AccountPointsBreakdown(
                         netPoints: accountPointsStore.netPoints,
@@ -120,6 +136,37 @@ struct EarningsView: View {
                             top200TileShown = false
                         }
                     }
+
+                    // the network's payout consent, with or without a coldkey on
+                    // this device: without one, no provider of the network is paid
+                    NetworkConsentCard(
+                        status: consentFlow.status,
+                        hasNetworkCredential: consentFlow.hasNetworkCredential,
+                        shortAddress: viewModel.client.shortSs58,
+                        sign: {
+                            consentFlow.reset()
+                            presentConsentSheet = true
+                        },
+                        retry: {
+                            Task {
+                                await consentFlow.refreshStatus()
+                            }
+                        },
+                        key: keyModel.card,
+                        keyActions: BittensorKeyCardActions(
+                            setUp: keyModel.setUpPayouts,
+                            saveFirst: keyModel.saveFirst,
+                            useWallet: {
+                                consentFlow.reset()
+                                presentConsentSheet = true
+                            },
+                            finishSetup: keyModel.finishSetup,
+                            openKeyScreen: keyModel.openKeyScreen,
+                            reload: {
+                                keyModel.visit(isGuest: isGuest)
+                            }
+                        )
+                    )
 
                     BittensorWalletCard(
                         wallet: viewModel.wallet,
@@ -182,23 +229,6 @@ struct EarningsView: View {
                         )
                     }
 
-                    // the network's payout consent, with or without a coldkey on
-                    // this device: without one, no provider of the network is paid
-                    NetworkConsentCard(
-                        status: consentFlow.status,
-                        hasNetworkCredential: consentFlow.hasNetworkCredential,
-                        shortAddress: viewModel.client.shortSs58,
-                        sign: {
-                            consentFlow.reset()
-                            presentConsentSheet = true
-                        },
-                        retry: {
-                            Task {
-                                await consentFlow.refreshStatus()
-                            }
-                        }
-                    )
-
                     historySection
 
                     providerCard
@@ -228,9 +258,24 @@ struct EarningsView: View {
                 // the view model outlives this visit, the consent flow does
                 // not: a new visit reads the consent again
                 await consentFlow.refreshStatus()
+                syncKeyModelWithEarnings()
             }
         }
+        .onChange(of: isGuest) { isGuest in
+            keyModel.setGuest(isGuest)
+        }
         .onAppear {
+            // the key's flow works from the same consent read, and a consent
+            // it got accepted is read again with everything it changes
+            consentFlow.onStatusRead = { status, fromEpoch in
+                keyModel.consentRead(status, fromEpoch: fromEpoch)
+            }
+            keyModel.onLinked = {
+                Task {
+                    await refresh()
+                }
+            }
+            keyModel.visit(isGuest: isGuest)
             connectFlow.onConnected = { _ in
                 presentConnectSheet = false
                 snackbarManager.showSnackbar(message: String(localized: "Connected"))
@@ -361,6 +406,57 @@ struct EarningsView: View {
             #elseif os(macOS)
             .frame(minWidth: 460, minHeight: 320)
             #endif
+        }
+        // leaving discards a phrase that is only in memory; a signed consent on
+        // its way is not abandoned
+        .sheetOffTheFold(isPresented: Binding(
+            get: { keyModel.screen.open },
+            set: { presented in
+                if !presented {
+                    keyModel.closeScreen()
+                }
+            }
+        )) {
+            BittensorKeyScreen(model: keyModel, dismiss: keyModel.closeScreen)
+                .environmentObject(themeManager)
+                .interactiveDismissDisabled(keyModel.screen.busy)
+                #if os(iOS)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                #elseif os(macOS)
+                .frame(minWidth: 480, minHeight: 560)
+                #endif
+        }
+        // a key replaces the payout wallet from the next epoch: warned first,
+        // and it is never the default
+        .alert(
+            "Replace your payout wallet?",
+            isPresented: Binding(
+                get: { keyModel.pendingReplacement != nil },
+                set: { presented in
+                    if !presented {
+                        keyModel.pendingReplacement = nil
+                    }
+                }
+            ),
+            presenting: keyModel.pendingReplacement
+        ) { pending in
+            switch pending {
+            case .makeKey:
+                Button("Set up payouts", role: .destructive) {
+                    keyModel.replacementConfirmedSetUp()
+                }
+                Button("Save the recovery phrase first", role: .destructive) {
+                    keyModel.replacementConfirmedSaveFirst()
+                }
+            case .finishSetup:
+                Button("Finish setup", role: .destructive) {
+                    keyModel.replacementConfirmedFinishSetup()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("This key replaces your payout wallet from the next epoch. Earlier earnings stay on the old wallet.")
         }
         #if os(macOS)
         .toolbar {
@@ -501,6 +597,17 @@ struct EarningsView: View {
         async let usdc: Void = usdcViewModel.refresh()
         async let consent: Void = consentFlow.refreshStatus()
         (_, _, _, _, _) = await (earnings, points, reliability, usdc, consent)
+        syncKeyModelWithEarnings()
+    }
+
+    /// What the key's flow decides from the earnings: "Payouts start next
+    /// epoch", the Top 200 warning, and the one reminder.
+    private func syncKeyModelWithEarnings() {
+        keyModel.setTop200Registered(viewModel.top?.me.rankedRow?.fleets.isEmpty == false)
+        keyModel.earningsRead(
+            schedule: viewModel.schedule,
+            claimable: viewModel.totalClaimableRao > 0 || viewModel.ledgerClaimableRao > 0
+        )
     }
 
     /// The wallets come back as deep links. Phantom and Solflare (or the ur.io

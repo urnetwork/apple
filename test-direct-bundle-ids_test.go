@@ -308,9 +308,12 @@ func TestDirectEntitlementsAndSysextPlistAgree(t *testing.T) {
 	if len(groups) != 1 || groups[0] != directGroup {
 		t.Fatalf("direct app application-groups = %v, want [%s]", groups, directGroup)
 	}
+	// the tunnel's group stays first, since an item added with no group goes
+	// there; the second is the payout key's, shared with the App Store build on
+	// purpose (test-bittensor-local-key_test.go)
 	keychain := stringList(app["keychain-access-groups"])
-	if len(keychain) != 1 || keychain[0] != directKeychain {
-		t.Fatalf("direct app keychain-access-groups = %v, want [%s]", keychain, directKeychain)
+	if len(keychain) != 2 || keychain[0] != directKeychain || keychain[1] != "$(AppIdentifierPrefix)network.ur.bittensor-key" {
+		t.Fatalf("direct app keychain-access-groups = %v, want [%s, the payout key's]", keychain, directKeychain)
 	}
 	ne := stringList(app["com.apple.developer.networking.networkextension"])
 	if !contains(ne, "packet-tunnel-provider-systemextension") || !contains(ne, "dns-settings") || contains(ne, "packet-tunnel-provider") {

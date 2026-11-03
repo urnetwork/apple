@@ -351,7 +351,8 @@ final class EarningsSdkClient: EarningsClient {
                 epoch: sdkSchedule.epoch,
                 endMillis: sdkSchedule.endMillis,
                 claimOpenMillis: sdkSchedule.claimOpenMillis,
-                expiryMillis: sdkSchedule.expiryMillis
+                expiryMillis: sdkSchedule.expiryMillis,
+                epochBlocks: sdkSchedule.epochBlocks
             )
         }
         return (claims, result.totalClaimableRao, schedule)

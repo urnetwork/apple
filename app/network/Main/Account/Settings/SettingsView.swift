@@ -103,6 +103,11 @@ struct SettingsView: View {
                     
                 }
                 .accessibilityIdentifier("acceptance.account.delete.confirm")
+            } message: {
+                // the phrase can't be recovered once the key goes with the account
+                if BittensorLocalKeyStore.shared.needsBackup(networkId: deviceManager.parsedJwt?.networkId?.idStr) {
+                    Text("Your Bittensor recovery phrase isn't saved yet. Deleting your account also deletes this key from this device, and without the phrase your SN25α can't be reached.")
+                }
             }
             .onOpenURL { url in
                 handleWalletDeepLink(url)
@@ -207,6 +212,11 @@ struct SettingsView: View {
                     
                 }
                 .accessibilityIdentifier("acceptance.account.delete.confirm")
+            } message: {
+                // the phrase can't be recovered once the key goes with the account
+                if BittensorLocalKeyStore.shared.needsBackup(networkId: deviceManager.parsedJwt?.networkId?.idStr) {
+                    Text("Your Bittensor recovery phrase isn't saved yet. Deleting your account also deletes this key from this device, and without the phrase your SN25α can't be reached.")
+                }
             }
             .sheetOffTheFold(isPresented: $viewModel.presentSeedphraseSheet) {
                 SeedphraseDisplayView(
@@ -302,6 +312,9 @@ struct SettingsView: View {
     private func handleResult(_ result: Result<Void, Error>) {
         switch result {
         case .success:
+            // the network is gone, and so is its payout key on this device
+            BittensorLocalKeyStore.shared.forgetNetwork(networkId: deviceManager.parsedJwt?.networkId?.idStr)
+            BittensorKeyReminderNotice.withdraw()
             deviceManager.logout()
             break
         case .failure(let error):

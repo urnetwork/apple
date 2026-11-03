@@ -92,6 +92,8 @@ final class NetworkConsentFlow: ObservableObject {
     }
 
     @Published private(set) var status: Status = .loading
+    /// the first epoch of the consent in the status, 0 for none
+    @Published private(set) var fromEpoch: Int64 = 0
     /// the session holds the network credential: Sign with wallet and
     /// Change wallet are offered only then
     @Published private(set) var hasNetworkCredential = false
@@ -110,6 +112,9 @@ final class NetworkConsentFlow: ObservableObject {
 
     /// the consent was stored and its status read again
     var onSigned: () -> Void = {}
+    /// each status read, for the SDK's payout key flow (BittensorKeyModel),
+    /// which works from the same read
+    var onStatusRead: (Status, Int64) -> Void = { _, _ in }
 
     init(
         client: NetworkConsentClient,
@@ -164,9 +169,12 @@ final class NetworkConsentFlow: ObservableObject {
         do {
             let consent = try await client.status()
             status = consent.active ? .active(coldkeySs58: consent.coldkeySs58) : .noConsent
+            fromEpoch = consent.active ? consent.fromEpoch : 0
         } catch {
             status = .unavailable
+            fromEpoch = 0
         }
+        onStatusRead(status, fromEpoch)
     }
 
     /// Back to the wallet chooser with nothing signing. Sign with wallet and

@@ -8,6 +8,10 @@
 	     UR_GOOGLE_URL_SCHEME, set per target in project.pbxproj. -->
 	<key>URSharedKeychainAccessGroup</key>
 	<string>$(UR_SHARED_KEYCHAIN_ACCESS_GROUP)</string>
+	<!-- The payout key's Keychain group, the same in both app targets, which
+	     is how both Mac builds see the same key. See BittensorLocalKeyStore. -->
+	<key>URBittensorKeyKeychainAccessGroup</key>
+	<string>$(UR_BITTENSOR_KEY_KEYCHAIN_ACCESS_GROUP)</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>

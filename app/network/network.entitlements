@@ -31,6 +31,7 @@
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)network.ur.tunnel-credentials</string>
+		<string>$(AppIdentifierPrefix)network.ur.bittensor-key</string>
 	</array>
 </dict>
 </plist>

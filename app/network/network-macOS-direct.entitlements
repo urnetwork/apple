@@ -34,6 +34,11 @@
   system extension (splittunnel/splittunnel-direct.entitlements, which also
   lists the portal steps for that extension's own App ID and profile).
   "URnetwork Download" already grants it.
+  The second keychain group is the one exception to the product family: it holds
+  the payout key (BittensorLocalKeyStore), and the App Store build names the same
+  one, so both builds see the same key. "URnetwork Download" grants the team's
+  whole keychain prefix. The first group stays first: an item added with no group
+  goes there.
 -->
 <plist version="1.0">
 <dict>
@@ -54,6 +59,7 @@
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)com.bringyour.urnetwork.tunnel-credentials</string>
+		<string>$(AppIdentifierPrefix)network.ur.bittensor-key</string>
 	</array>
 </dict>
 </plist>

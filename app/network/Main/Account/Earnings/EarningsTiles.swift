@@ -522,13 +522,15 @@ struct SnLedgerTile: View {
     }
 }
 
-/// The network payout consent, beside the settlement v2 tile: the coldkey
+/// The network payout consent, above the wallet cards: the coldkey
 /// every provider client of the network is paid to, or that there is none,
 /// so earnings are not paid. Sign with wallet and Change wallet open the
 /// consent sheet, and only a session with the network credential is offered
 /// them: any other is told only the owner can. A consent, the first or a new
 /// one, takes effect from the next epoch. A status that could not be read is
-/// not "no consent".
+/// not "no consent". The SDK's payout key flow fills the card where it applies
+/// (BittensorKeyCard.swift): the one tap with no consent in force, and where the
+/// key is with one. A session that can't make a key keeps the wallet card.
 struct NetworkConsentCard: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -538,6 +540,8 @@ struct NetworkConsentCard: View {
     let shortAddress: (String) -> String
     let sign: () -> Void
     let retry: () -> Void
+    var key: BittensorKeyCardInfo?
+    var keyActions: BittensorKeyCardActions?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -548,24 +552,31 @@ struct NetworkConsentCard: View {
             case .unavailable:
                 SectionLoadFailedView(retry: retry)
             case .noConsent:
-                Text("No payout wallet yet. Earnings aren't paid until you sign.")
-                    .font(themeManager.currentTheme.bodyFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                    .fixedSize(horizontal: false, vertical: true)
-                if hasNetworkCredential {
-                    Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer().frame(height: 4)
-                    UrButton(text: "Sign with wallet", action: sign)
+                if let key, let keyActions, key.showsKeyPath {
+                    BittensorKeyNoConsentBody(key: key, actions: keyActions)
                 } else {
-                    ownerOnly
+                    Text("No payout wallet yet. Earnings aren't paid until you sign.")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if hasNetworkCredential {
+                        Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer().frame(height: 4)
+                        UrButton(text: "Sign with wallet", action: sign)
+                    } else {
+                        ownerOnly
+                    }
                 }
             case .active(let coldkeySs58):
                 Text("Earnings are paid to \(shortAddress(coldkeySs58))")
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
+                if let key, let keyActions {
+                    BittensorKeyActiveLines(key: key, actions: keyActions)
+                }
                 if hasNetworkCredential {
                     Spacer().frame(height: 4)
                     UrButton(text: "Change wallet", action: sign, style: .secondary)
@@ -576,6 +587,9 @@ struct NetworkConsentCard: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                     .fixedSize(horizontal: false, vertical: true)
+                if let key, let keyActions {
+                    BittensorKeyCreateHereLink(key: key, actions: keyActions)
+                }
             }
         }
         .padding()

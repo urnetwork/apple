@@ -537,17 +537,44 @@ func TestBittensorKeySignOutAndAccountDeletion(t *testing.T) {
 	}
 }
 
+// One locale's text of a catalog entry: one sentence, or a sentence per plural form
+// of its count.
+type bittensorKeyCatalogLocalization struct {
+	StringUnit struct {
+		Value string `json:"value"`
+	} `json:"stringUnit"`
+	Variations struct {
+		Plural map[string]struct {
+			StringUnit struct {
+				Value string `json:"value"`
+			} `json:"stringUnit"`
+		} `json:"plural"`
+	} `json:"variations"`
+}
+
+// translated: the sentence, or every plural form and "other" at least.
+func (self bittensorKeyCatalogLocalization) translated() bool {
+	if len(self.Variations.Plural) == 0 {
+		return self.StringUnit.Value != ""
+	}
+	if self.Variations.Plural["other"].StringUnit.Value == "" {
+		return false
+	}
+	for _, form := range self.Variations.Plural {
+		if form.StringUnit.Value == "" {
+			return false
+		}
+	}
+	return true
+}
+
 // The words the plan fixes, spelled as it spells them, and every literal on these
 // screens in the catalog in every locale it ships.
 func TestBittensorKeyStringsAreInTheCatalog(t *testing.T) {
 	var catalog struct {
 		Strings map[string]struct {
-			ExtractionState string `json:"extractionState"`
-			Localizations   map[string]struct {
-				StringUnit struct {
-					Value string `json:"value"`
-				} `json:"stringUnit"`
-			} `json:"localizations"`
+			ExtractionState string                                     `json:"extractionState"`
+			Localizations   map[string]bittensorKeyCatalogLocalization `json:"localizations"`
 		} `json:"strings"`
 	}
 	if err := json.Unmarshal([]byte(bittensorKeyRead(t, "app/network/Shared/Resources/Localizable.xcstrings")), &catalog); err != nil {
@@ -627,7 +654,7 @@ func TestBittensorKeyStringsAreInTheCatalog(t *testing.T) {
 				t.Errorf("%s: %q is stale", name, key)
 			}
 			for locale := range locales {
-				if entry.Localizations[locale].StringUnit.Value == "" {
+				if !entry.Localizations[locale].translated() {
 					t.Errorf("%s: %q has no %s translation", name, key, locale)
 				}
 			}
@@ -635,6 +662,20 @@ func TestBittensorKeyStringsAreInTheCatalog(t *testing.T) {
 	}
 	if seen < 30 {
 		t.Fatalf("CONTROL FAILED: read %d literals", seen)
+	}
+
+	// Claim now's period is a count: its sentences take the count's plural form in
+	// every locale, whatever period the relay sets
+	for _, key := range []string{
+		"Claim now is paid by URnetwork, once every %lld days.",
+		"Paid by URnetwork, once every %lld days for each coldkey.",
+	} {
+		for locale := range locales {
+			plural := catalog.Strings[key].Localizations[locale].Variations.Plural
+			if len(plural) == 0 || !strings.Contains(plural["other"].StringUnit.Value, "%lld") {
+				t.Errorf("%q has no plural forms in %s", key, locale)
+			}
+		}
 	}
 }
 

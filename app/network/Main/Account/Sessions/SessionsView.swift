@@ -17,6 +17,7 @@ struct SessionsView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
+    @EnvironmentObject var deviceManager: DeviceManager
     @Environment(\.presentationActive) private var presentationActive
 
     @StateObject private var store: SessionsStore
@@ -89,7 +90,10 @@ struct SessionsView: View {
             .keyboardShortcut(.defaultAction)
             #endif
         } message: { confirmation in
-            Text(verbatim: confirmation.message)
+            // this app's own sign out warns while the payout key isn't saved
+            Text(verbatim: confirmation.message(keyNeedsBackup: BittensorLocalKeyStore.shared.needsBackup(
+                networkId: deviceManager.parsedJwt?.networkId?.idStr
+            )))
         }
     }
 

@@ -809,13 +809,16 @@ struct NetworkApp: App {
                 CommandMenu("Account") {
                     Button("Sign out") {
                         
-                        Task {
-                            // no connect from here; the disconnect reaches
-                            // the sdk before the sign out, of this account only
-                            await connectViewModel.signOut(
-                                currentDevice: { deviceManager.device },
-                                logout: { deviceManager.logout() }
-                            )
+                        // warned first while the payout key isn't saved
+                        BittensorKeySignOut.shared.request(networkId: deviceManager.parsedJwt?.networkId?.idStr) {
+                            Task {
+                                // no connect from here; the disconnect reaches
+                                // the sdk before the sign out, of this account only
+                                await connectViewModel.signOut(
+                                    currentDevice: { deviceManager.device },
+                                    logout: { deviceManager.logout() }
+                                )
+                            }
                         }
                         
                     }

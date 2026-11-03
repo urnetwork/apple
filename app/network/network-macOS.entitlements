@@ -14,6 +14,10 @@
   the literal "$(AppIdentifierPrefix)group.network.ur" and rejects it as an
   invalid identifier. keychain-access-groups below can keep the variable because
   keychain groups are derived from the app id and are never registered.
+  The second keychain group holds the payout key (BittensorLocalKeyStore). The
+  direct build names it too, so both builds see the same key, and no extension
+  does. The profiles grant the team's whole prefix. The first group stays first:
+  an item added with no group goes there.
   The running binary still resolves the granted identifier from its own
   signature at runtime (DiagnosticsLogContract.appGroupIdentifier), so a build
   signed by another team resolves its own container.
@@ -58,6 +62,7 @@
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)network.ur.tunnel-credentials</string>
+		<string>$(AppIdentifierPrefix)network.ur.bittensor-key</string>
 	</array>
 </dict>
 </plist>

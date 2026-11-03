@@ -308,6 +308,15 @@ extension SessionsSnapshot {
 
 extension SessionsConfirmation {
 
+    /// The message, with the payout key's warning when this session's sign out
+    /// leaves an unsaved key behind.
+    func message(keyNeedsBackup: Bool) -> String {
+        if keyNeedsBackup, case .signOut(_, _, _, let current) = self, current {
+            return message + "\n\n" + BittensorKeySignOut.warning
+        }
+        return message
+    }
+
     var title: String {
         switch self {
         case .signOut:

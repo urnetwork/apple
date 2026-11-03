@@ -89,18 +89,21 @@ struct ContentView: View {
                             device: device,
                             logout: {
                                 
-                                Task {
-                                    // no connect from here; the disconnect
-                                    // reaches the sdk before the sign out,
-                                    // of this account only
-                                    await connectViewModel.signOut(
-                                        currentDevice: { deviceManager.device },
-                                        logout: {
-                                            // the session's pending product events go out before it ends
-                                            ClientEvents.shared.stop()
-                                            deviceManager.logout()
-                                        }
-                                    )
+                                // warned first while the payout key isn't saved
+                                BittensorKeySignOut.shared.request(networkId: networkId?.idStr) {
+                                    Task {
+                                        // no connect from here; the disconnect
+                                        // reaches the sdk before the sign out,
+                                        // of this account only
+                                        await connectViewModel.signOut(
+                                            currentDevice: { deviceManager.device },
+                                            logout: {
+                                                // the session's pending product events go out before it ends
+                                                ClientEvents.shared.stop()
+                                                deviceManager.logout()
+                                            }
+                                        )
+                                    }
                                 }
                                 
                             },
@@ -175,6 +178,7 @@ struct ContentView: View {
             
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .modifier(BittensorKeySignOutAlert())
         .environmentObject(deviceManager)
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(snackbarManager)

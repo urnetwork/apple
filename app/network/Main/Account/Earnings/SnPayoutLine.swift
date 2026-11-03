@@ -18,6 +18,8 @@ struct SnEpochScheduleInfo: Equatable {
     let endMillis: Int64
     let claimOpenMillis: Int64
     let expiryMillis: Int64
+    /// the policy's epoch length, 0 while unknown
+    var epochBlocks: Int64 = 0
 }
 
 /// The three times "This epoch ends …" names, formatted for the reader.

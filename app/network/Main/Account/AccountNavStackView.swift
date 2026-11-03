@@ -14,6 +14,7 @@ struct AccountNavStackView: View {
     @EnvironmentObject var deviceManager: DeviceManager
     @StateObject private var viewModel: ViewModel = ViewModel()
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+    @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     // a regular-width window shows the list beside the chosen screen
     @Environment(\.isRegularWidth) private var isRegularWidth
     
@@ -232,7 +233,14 @@ struct AccountNavStackView: View {
                 fetchNetworkReliability: fetchNetworkReliability,
                 viewModel: earningsViewModel,
                 usdcViewModel: usdcWalletsViewModel,
-                consentClient: NetworkConsentSdkClient(api: api)
+                consentClient: NetworkConsentSdkClient(api: api),
+                isGuest: GuestAccount.isGuest(
+                    guestModeClaim: deviceManager.parsedJwt?.guestMode,
+                    serverGuest: subscriptionBalanceViewModel.isGuest
+                ),
+                makeKeyFlow: { [api, networkId = deviceManager.parsedJwt?.networkId?.idStr] in
+                    SdkBittensorKeyFlow(api: api, networkId: networkId, store: .shared)
+                }
             )
             .navigationTitle("Earnings")
             .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())

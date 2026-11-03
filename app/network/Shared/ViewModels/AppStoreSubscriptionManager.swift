@@ -258,9 +258,10 @@ class AppStoreSubscriptionManager: ObservableObject {
     /**
      * VPN + purchase (finding A6):
      *
-     * The macOS call sites disconnect the tunnel around this call ("purchase
-     * fails in mac app store if vpn is connected") and reconnect after. iOS
-     * deliberately does NOT copy that:
+     * macOS tells the user, disconnects the tunnel around this call ("purchase
+     * fails in mac app store if vpn is connected") and reconnects after, in one
+     * place (ConnectViewModel.purchaseAroundConnection). iOS deliberately does
+     * NOT copy that:
      *
      * - The iOS App Store purchase path runs out of process, in Apple's system
      *   daemons (`appstored`/`itunesstored`) and the StoreKit system UI, not in

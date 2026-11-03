@@ -190,10 +190,15 @@ func isCantReachUrnetworkError(_ error: Error) -> Bool {
     if let first = message.split(separator: " ").first, first.count == 3, Int(first) != nil {
         return false
     }
+    // an api call that no route answered fails as "http request attempts
+    // exhausted" (connect HttpRequestExhaustedError), whose text names none of
+    // its causes; the rest are Go's net, tls and http errors
     let markers = [
-        "no such host", "lookup ", "dial tcp", "dial udp", "i/o timeout", "context deadline exceeded",
-        "connection refused", "connection reset", "network is unreachable", "no route to host",
-        "tls: ", "x509: ", "timeout awaiting response headers", "unexpected eof", ": eof",
+        "http request attempts exhausted", "http request failed",
+        "no such host", "lookup ", "server misbehaving", "dial tcp", "dial udp", "i/o timeout",
+        "context deadline exceeded", "connection refused", "connection reset", "network is unreachable",
+        "host is unreachable", "no route to host", "tls: ", "tls handshake", "x509: ",
+        "timeout awaiting response headers", "unexpected eof", ": eof",
     ]
     return markers.contains { message.contains($0) }
 }

@@ -30,7 +30,7 @@ struct AccountRootView: View {
     /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
     /// direct download (see BillingDistribution).
     private var subscriptionStore: any SubscriptionStore {
-        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore, connection: connectViewModel)
     }
 
     /// StoreKit's manage-subscriptions sheet (iOS; macOS opens the App Store page).
@@ -669,27 +669,7 @@ struct AccountRootView: View {
                 ),
                 purchasePlan: { plan in
 
-                    let initiallyConnected = deviceManager.device?.getConnected() ?? false
-                    // the restore after the store is for this device only
-                    let purchaseDevice = connectViewModel.device
-
-                    // purchase fails in the Mac App Store if the vpn is
-                    // connected; iOS App Store traffic does not ride the
-                    // tunnel, so only macOS disconnects around the purchase —
-                    // see the A6 note on AppStoreSubscriptionManager.purchase
-                    #if os(macOS)
-                    if (initiallyConnected) {
-                        connectViewModel.disconnect()
-                    }
-                    #endif
-
                     Task {
-                        #if os(macOS)
-                        // the disconnect reaches the sdk before the store opens
-                        if (initiallyConnected) {
-                            await connectViewModel.connectCommandsSettled()
-                        }
-                        #endif
                         // errors render inline via purchaseError
                         await subscriptionStore.purchase(
                             plan: plan,
@@ -698,13 +678,6 @@ struct AccountRootView: View {
                                 // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
                             }
                         )
-
-                        #if os(macOS)
-                        if (initiallyConnected) {
-                            connectViewModel.restoreConnect(onDevice: purchaseDevice)
-                        }
-                        #endif
-
                     }
 
                 },

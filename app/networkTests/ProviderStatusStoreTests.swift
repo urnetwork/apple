@@ -50,6 +50,10 @@ struct ProviderStatusStoreTests {
             events.log.append("stop")
         }
 
+        func refresh() {
+            events.log.append("refresh")
+        }
+
         func addStatusListener(_ changed: @escaping () -> Void) -> SdkSubProtocol? {
             listener = changed
             events.log.append("listen")
@@ -121,6 +125,40 @@ struct ProviderStatusStoreTests {
                 continuation.resume()
             }
         }
+    }
+
+    // a failed poll leaves the chart and its Why? empty for up to a minute, and
+    // the pull to refresh on Earnings is the user asking for them again
+    @Test func aRefreshPollsNowWhileTheChartShows() {
+        let events = Events()
+        let owner = FakeOwner(events)
+        let store = ProviderStatusStore()
+        store.setup(owner: owner)
+
+        // no controller yet: nothing to ask, and nothing is opened for it
+        store.refresh()
+        #expect(owner.opened.isEmpty)
+
+        store.setVisible(true)
+        store.refresh()
+        #expect(events.log.filter { $0 == "refresh" }.count == 1)
+
+        // the chart off screen: the controller is stopped and stays so
+        store.setVisible(false)
+        store.refresh()
+        #expect(events.log.filter { $0 == "refresh" }.count == 1)
+    }
+
+    // the pull to refresh reaches the store
+    @Test func theEarningsRefreshAsksForTheProviderStatus() throws {
+        let earningsView = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("network/Main/Account/Earnings/EarningsView.swift")
+        let text = try String(contentsOf: earningsView, encoding: .utf8)
+        let start = try #require(text.range(of: "private func refresh() async {"))
+        let end = try #require(text.range(of: "\n    }\n", range: start.upperBound..<text.endIndex))
+        #expect(text[start.upperBound..<end.lowerBound].contains("providerStatusStore.refresh()"))
     }
 
     // providing disabled or the chart off screen: nothing is opened

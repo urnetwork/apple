@@ -537,7 +537,9 @@ struct SnLedgerTile: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             }
-            if let relay, !relay.unavailable, relay.action != SdkSnClaimActionNone || 0 < relay.claimableRao {
+            // the relay's section while it has something to say: a balance it
+            // claims or waits on, or a claim it paid in full (the claimed state)
+            if let relay, !relay.unavailable, relay.action != SdkSnClaimActionNone || 0 < relay.claimableRao || relay.showsClaimed {
                 Spacer().frame(height: 8)
                 SnClaimRelaySection(status: relay, claimNow: claimNow, selfClaim: selfClaim, inSheet: false)
             } else if presentation.showsClaim {

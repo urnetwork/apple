@@ -190,6 +190,13 @@ struct SnClaimStatusInfo: Equatable {
     /// this device (SnClaimStatusResult.ShowsTile): a claimable or pending
     /// balance, or a claim URnetwork paid in full. Never while unavailable
     var showsTile = false
+    /// the claimed state, the mocks' 4d (sdk ShowsClaimed): URnetwork's claim is
+    /// the primary account's latest, and nothing is claimable now
+    var showsClaimed = false
+    /// that claim's page on the explorer (sdk ClaimTxUrl), "" without one
+    var claimTxUrl: String = ""
+    /// what that claim paid, in rao of α (sdk ClaimAmountRao)
+    var claimAmountRao: Int64 = 0
 
     /// URnetwork is the one claiming: it is, or it will once a balance or a
     /// new day allows. Otherwise the device's own claim is the way for now.

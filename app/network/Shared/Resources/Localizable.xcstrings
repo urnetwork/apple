@@ -49175,6 +49175,173 @@
         }
       }
     },
+    "Claimed by URnetwork. %@ SN25α is on your key, %@." : {
+      "comment" : "Earnings, the claim sheet and the settlement v2 tile, once URnetwork has claimed the balance and paid the gas (the claimed state, beside a link to the transaction). The first placeholder is the amount claimed, as 0.8420; the second is the user's Bittensor address, shortened (5F3s…kQ9v); keep both as they are.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمت المطالبة بواسطة URnetwork. أصبح %1$@ SN25α على مفتاحك، %2$@."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyzvednuto přes URnetwork. %1$@ SN25α je na vašem klíči %2$@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von URnetwork eingelöst. %1$@ SN25α sind auf deinem Schlüssel %2$@."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διεκδικήθηκε από το URnetwork. %1$@ SN25α βρίσκονται στο κλειδί σας, %2$@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claimed by URnetwork. %1$@ SN25α is on your key, %2$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamado por URnetwork. %1$@ SN25α ya están en tu clave, %2$@."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamado por URnetwork. %1$@ SN25α ya están en tu clave, %2$@."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamado por URnetwork. %1$@ SN25α ya están en tu clave, %2$@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réclamé par URnetwork. %1$@ SN25α sont sur votre clé, %2$@."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מומש על ידי URnetwork. %1$@ SN25α נמצאים במפתח שלכם, %2$@."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork ने दावा किया। %1$@ SN25α आपकी कुंजी %2$@ पर है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diklaim oleh URnetwork. %1$@ SN25α sudah ada di kunci Anda, %2$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riscattato da URnetwork. %1$@ SN25α sono sulla tua chiave, %2$@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork が受け取りました。%1$@ SN25α があなたのキー %2$@ にあります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork가 받았습니다. %1$@ SN25α가 내 키 %2$@에 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opgeëist door URnetwork. %1$@ SN25α staat op je sleutel, %2$@."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odebrano przez URnetwork. %1$@ SN25α jest na twoim kluczu %2$@."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reivindicado pelo URnetwork. %1$@ SN25α estão na sua chave, %2$@."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resgatado pelo URnetwork. %1$@ SN25α estão na sua chave, %2$@."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reivindicado pelo URnetwork. %1$@ SN25α estão na sua chave, %2$@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получено через URnetwork. %1$@ SN25α на вашем ключе %2$@."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uthämtat av URnetwork. %1$@ SN25α finns på din nyckel, %2$@."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork รับให้แล้ว %1$@ SN25α อยู่ในคีย์ของคุณ %2$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отримано через URnetwork. %1$@ SN25α на вашому ключі %2$@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork đã nhận. %1$@ SN25α đã ở trên khóa của bạn, %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已由 URnetwork 领取。%1$@ SN25α 已在您的密钥 %2$@ 上。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已由 URnetwork 領取。%1$@ SN25α 已在你的金鑰 %2$@ 上。"
+          }
+        }
+      }
+    },
     "Claiming isn't open yet. You can see where you'd rank now." : {
       "comment" : "Protocol leaderboard (Leaderboard > Protocol): the neutral one-line banner on top of the tab while claiming a Top 200 spot (binding a fleet to a miner UID on SN25) isn't open on mainnet. The board still shows where the network would rank if it claimed now.",
       "localizations" : {

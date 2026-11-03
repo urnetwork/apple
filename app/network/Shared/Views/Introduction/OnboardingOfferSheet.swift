@@ -92,7 +92,7 @@ struct OnboardingOfferSheet: View {
     /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
     /// direct download (see BillingDistribution).
     private var subscriptionStore: any SubscriptionStore {
-        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore, connection: connectViewModel)
     }
 
     private var presentation: PlanPresentation {
@@ -116,32 +116,13 @@ struct OnboardingOfferSheet: View {
     private func startTrial() {
         let subscriptionStore = self.subscriptionStore
         let purchase = OnboardingPurchase.forSelection(.yearly, offer: presentation.offer)
-        let initiallyConnected = deviceManager.device?.getConnected() ?? false
-        // the restore after the store is for this device only
-        let purchaseDevice = connectViewModel.device
-        #if os(macOS)
-        if initiallyConnected {
-            connectViewModel.disconnect()
-        }
-        #endif
         Task {
-            #if os(macOS)
-            // the disconnect reaches the sdk before the store opens
-            if initiallyConnected {
-                await connectViewModel.connectCommandsSettled()
-            }
-            #endif
             switch purchase {
             case .redeemOffer(let offer):
                 await subscriptionStore.redeemOffer(offer, onSuccess: { subscriptionBalanceViewModel.startPolling() })
             case .purchase(let plan):
                 await subscriptionStore.purchase(plan: plan, onSuccess: { subscriptionBalanceViewModel.startPolling() })
             }
-            #if os(macOS)
-            if initiallyConnected {
-                connectViewModel.restoreConnect(onDevice: purchaseDevice)
-            }
-            #endif
         }
     }
 

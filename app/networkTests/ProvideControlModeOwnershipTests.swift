@@ -27,6 +27,7 @@ struct ProvideControlModeOwnershipTests {
     private static let planPaths: [String] = [
         "Main/MainView.swift",
         "Shared/ViewModels/SubscriptionBalanceViewModel.swift",
+        "Shared/Billing/ConnectionAwareSubscriptionStore.swift",
     ]
 
     // …/apple/app/networkTests/ProvideControlModeOwnershipTests.swift -> …/apple/app/network

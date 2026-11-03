@@ -27,7 +27,7 @@ import URnetworkSdk
         /// Who sells Pro in this build: StoreKit on the App Store, Stripe on the
         /// direct download (see BillingDistribution).
         private var subscriptionStore: any SubscriptionStore {
-            makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+            makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore, connection: connectViewModel)
         }
 
         @EnvironmentObject var connectViewModel: ConnectViewModel
@@ -352,23 +352,7 @@ import URnetworkSdk
                         ),
                         purchasePlan: { plan in
 
-                            // purchase fails in the Mac App Store if the vpn is
-                            // connected (the store client honors the tunnel's
-                            // default route), so disconnect around the purchase;
-                            // see the A6 note on AppStoreSubscriptionManager.purchase
-                            let initiallyConnected = deviceManager.device?.getConnected() ?? false
-                            // the restore after the store is for this device only
-                            let purchaseDevice = connectViewModel.device
-
-                            if initiallyConnected {
-                                connectViewModel.disconnect()
-                            }
-
                             Task {
-                                // the disconnect reaches the sdk before the store opens
-                                if initiallyConnected {
-                                    await connectViewModel.connectCommandsSettled()
-                                }
                                 // errors render inline via purchaseError
                                 await subscriptionStore.purchase(
                                     plan: plan,
@@ -376,11 +360,6 @@ import URnetworkSdk
                                         subscriptionBalanceViewModel.startPolling()
                                     }
                                 )
-
-                                if initiallyConnected {
-                                    connectViewModel.restoreConnect(onDevice: purchaseDevice)
-                                }
-
                             }
 
                         },

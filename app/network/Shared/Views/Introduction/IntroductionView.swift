@@ -82,7 +82,7 @@ struct IntroductionView: View {
     /// direct download (see BillingDistribution). The plans, the purchase and
     /// the per-attempt state all come from it.
     private var subscriptionStore: any SubscriptionStore {
-        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore)
+        makeSubscriptionStore(for: .current, appStore: subscriptionManager, stripe: stripeSubscriptionStore, connection: connectViewModel)
     }
 
     private func celebrateIfConfirmed() {
@@ -216,25 +216,7 @@ struct IntroductionView: View {
             return
         }
         let subscriptionStore = self.subscriptionStore
-        let initiallyConnected = deviceManager.device?.getConnected() ?? false
-        // the restore after the store is for this device only
-        let purchaseDevice = connectViewModel.device
-#if os(macOS)
-        // purchase fails in mac app store if vpn is connected;
-        // iOS App Store traffic does not ride the tunnel, so only
-        // macOS disconnects around the purchase — see the A6 note
-        // on AppStoreSubscriptionManager.purchase
-        if (initiallyConnected) {
-            connectViewModel.disconnect()
-        }
-#endif
         Task {
-#if os(macOS)
-            // the disconnect reaches the sdk before the store opens
-            if (initiallyConnected) {
-                await connectViewModel.connectCommandsSettled()
-            }
-#endif
             switch purchase {
             case .redeemOffer(let offer):
                 await subscriptionStore.redeemOffer(offer, onSuccess: {
@@ -245,11 +227,6 @@ struct IntroductionView: View {
                     subscriptionBalanceViewModel.startPolling()
                 })
             }
-#if os(macOS)
-            if (initiallyConnected) {
-                connectViewModel.restoreConnect(onDevice: purchaseDevice)
-            }
-#endif
         }
     }
 

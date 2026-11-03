@@ -2,9 +2,12 @@
 //  BittensorKeyScreen.swift
 //  URnetwork
 //
-//  The Key screen, the same for both flows (apple/BTEASY.md): the words hidden
-//  by default, Tap to reveal, Hide and Copy once they show, the not-a-wallet
-//  text always, and one destructive action behind a check of two of the words.
+//  The Key screen, the same for both flows (apple/BTEASY.md, and the approved
+//  mocks' flows 1 and 2): the words hidden by default, Tap to reveal, Hide and
+//  Copy once they show, the not-a-wallet text always, Keep beside the one
+//  destructive action, and both behind a check of two of the words. What
+//  deleting means, and the check, replace the screen rather than cover it, so
+//  the disclaimer shows once.
 //  The SDK's flow decides all of that; this draws it and adds the privacy
 //  controls only this platform has. "No screenshots" is best effort on Apple's
 //  platforms, so nothing here promises it.
@@ -39,10 +42,13 @@ struct BittensorKeyScreen: View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    if model.screen.confirming == SdkBittensorLocalKeyConfirmNone {
-                        mainContent
-                    } else {
+                    // one at a time, so the disclaimer shows once
+                    if model.screen.confirming != SdkBittensorLocalKeyConfirmNone {
                         BittensorKeyConfirmation(model: model)
+                    } else if model.deleteExplained {
+                        BittensorKeyDeleteExplanation(model: model)
+                    } else {
+                        mainContent
                     }
                 }
                 .padding()
@@ -90,17 +96,20 @@ struct BittensorKeyScreen: View {
                 .foregroundColor(themeManager.currentTheme.textColor)
             Spacer()
         }
-        Text("This is not your account seed phrase from sign-up. It only controls this Bittensor key.")
-            .font(themeManager.currentTheme.secondaryBodyFont)
-            .foregroundColor(themeManager.currentTheme.textMutedColor)
-            .fixedSize(horizontal: false, vertical: true)
-        if !model.screen.address.isEmpty {
-            Text(verbatim: SnAlpha.shortSs58(model.screen.address))
-                .font(.system(.body, design: .monospaced))
-                .foregroundColor(themeManager.currentTheme.textColor)
-        }
 
-        wordsArea
+        banner
+
+        Text("URnetwork is not a wallet. It created this key so you can receive SN25α. To transfer or use your SN25α, enter this recovery phrase into a Bittensor wallet such as Talisman or Nova, or into btcli.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textColor)
+            .fixedSize(horizontal: false, vertical: true)
+
+        VStack(alignment: .leading, spacing: 8) {
+            if !model.screen.address.isEmpty {
+                UrLabel(text: "12 words · address \(SnAlpha.shortSs58(model.screen.address))")
+            }
+            wordsArea
+        }
 
         if model.screen.hiddenByCapture {
             Text("The words stay hidden while your screen is being recorded or mirrored.")
@@ -115,49 +124,38 @@ struct BittensorKeyScreen: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
 
-        BittensorKeyWording()
-        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer)
-
-        if let failure = BittensorKeyText.failure(code: model.screen.failureCode, message: model.screen.failureMessage) {
-            Text(verbatim: failure)
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.dangerColor)
-                .fixedSize(horizontal: false, vertical: true)
+        BittensorKeyNotice(systemImage: "exclamationmark.triangle.fill", tint: .urYellow) {
+            Text("Anyone with this phrase controls your SN25α. URnetwork will never ask for it, and can't recover it. If you lose this device before saving it, your SN25α can't be reached.")
         }
 
-        if model.screen.offersRetry {
-            Text("Payouts aren't set up yet. No earnings went to this key, and leaving discards it.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                .fixedSize(horizontal: false, vertical: true)
-            UrButton(
-                text: "Retry",
-                action: model.retry,
-                isProcessing: model.screen.busy,
-                accessibilityIdentifier: "earnings.key.retry"
-            )
-        } else {
-            BittensorKeyDestructiveButton(
-                text: "I have saved the key, it's OK to delete it now.",
-                isProcessing: model.screen.busy,
-                accessibilityIdentifier: "earnings.key.delete"
-            ) {
-                Task {
-                    await model.confirmDelete()
+        Text("Not the seedphrase from sign-up: that one is 24 words and signs you in to URnetwork. This Bittensor recovery phrase is 12 words and holds your SN25α.")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
+
+        if !model.screen.offersRetry {
+            VStack(alignment: .leading, spacing: 8) {
+                UrLabel(text: "Saved the recovery phrase?")
+                if model.screen.offersKeep {
+                    UrButton(
+                        text: "I've saved it. Keep it on this device.",
+                        action: model.confirmKeep,
+                        style: .secondary,
+                        enabled: !model.screen.busy,
+                        accessibilityIdentifier: "earnings.key.keep"
+                    )
                 }
-            }
-            if model.screen.offersKeep {
-                BittensorKeyCardLink(
-                    text: "I've saved it. Keep it on this device.",
-                    action: {
-                        Task {
-                            await model.confirmKeep()
-                        }
-                    },
-                    accessibilityIdentifier: "earnings.key.keep"
+                BittensorKeyDestructiveButton(
+                    text: "I have saved the key, it's OK to delete it now.",
+                    filled: false,
+                    enabled: !model.screen.busy,
+                    accessibilityIdentifier: "earnings.key.delete",
+                    action: model.explainDelete
                 )
             }
         }
+
+        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer, boxed: true)
 
         Button(action: dismiss) {
             Group {
@@ -176,6 +174,44 @@ struct BittensorKeyScreen: View {
         .accessibilityIdentifier("earnings.key.close")
     }
 
+    /// Signing, a refused consent, or the Save now notice.
+    @ViewBuilder
+    private var banner: some View {
+        if model.screen.busy {
+            BittensorKeyNotice(progress: true) {
+                Text("Setting up payouts: signing your network's payout consent with this key.")
+            }
+        } else if model.screen.offersRetry {
+            BittensorKeyNotice(systemImage: "exclamationmark.triangle.fill", tint: themeManager.currentTheme.dangerColor) {
+                VStack(alignment: .leading, spacing: 8) {
+                    if let failure = BittensorKeyText.failure(code: model.screen.failureCode, message: model.screen.failureMessage) {
+                        Text(verbatim: failure)
+                    }
+                    UrButton(
+                        text: "Retry",
+                        action: model.retry,
+                        isProcessing: model.screen.busy,
+                        accessibilityIdentifier: "earnings.key.retry"
+                    )
+                    Text("Payouts aren't set up yet. No earnings went to this key, and leaving discards it.")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+            }
+        } else {
+            if model.screen.saveNow {
+                BittensorKeyNotice(systemImage: "info.circle.fill", tint: .urLightBlue) {
+                    Text("This key isn't saved on this device. Write the 12 words down, then choose below. If you leave this screen, the key is discarded and nothing is paid to it.")
+                }
+            }
+            if let failure = BittensorKeyText.failure(code: model.screen.failureCode, message: model.screen.failureMessage) {
+                Text(verbatim: failure)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.dangerColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
     @ViewBuilder
     private var wordsArea: some View {
         if model.screen.revealed {
@@ -184,6 +220,7 @@ struct BittensorKeyScreen: View {
                 .accessibilityLabel(Text(verbatim: model.words.joined(separator: " ")))
                 .accessibilityIdentifier("earnings.key.words")
                 .privacySensitive()
+            BittensorKeyHideCountdown(untilMillis: model.screen.revealedUntilMillis)
             HStack(spacing: 8) {
                 UrButton(
                     text: "Hide",
@@ -200,7 +237,7 @@ struct BittensorKeyScreen: View {
                     accessibilityIdentifier: "earnings.key.copy"
                 )
             }
-            Text("Other apps may be able to read the clipboard. It's cleared after 60 seconds.")
+            Text("Other apps may be able to read the clipboard. The copy stays on this device and is cleared after 60 s.")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .fixedSize(horizontal: false, vertical: true)
@@ -211,7 +248,7 @@ struct BittensorKeyScreen: View {
                 }
             }) {
                 VStack(spacing: 8) {
-                    Image(systemName: "eye.slash")
+                    Image(systemName: model.screen.needsAuthentication ? BittensorDeviceAuthenticator.systemImage : "eye.slash")
                         .font(.system(size: 22))
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                         .accessibilityHidden(true)
@@ -248,9 +285,145 @@ struct BittensorKeyScreen: View {
     #endif
 }
 
-/// The confirmation before the key goes, or before it signs on Save now: what
-/// deleting means, then two of the words, which is what proves the phrase is
-/// saved. For a stored key that stays, the same proof ends the reminders.
+/// "Hides again in 0:58", counting down to when the words hide themselves.
+struct BittensorKeyHideCountdown: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let untilMillis: Int64
+
+    /// "0:58": minutes and seconds left, never below 0:00
+    static func remaining(untilMillis: Int64, now: Date) -> String {
+        let seconds = max(0, Int((Double(untilMillis) / 1000 - now.timeIntervalSince1970).rounded(.up)))
+        return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    var body: some View {
+        if 0 < untilMillis {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let time = Self.remaining(untilMillis: untilMillis, now: context.date)
+                Text("Hides again in \(time)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .monospacedDigit()
+            }
+        }
+    }
+}
+
+/// A notice in a tinted box: an icon or a spinner, then its text.
+struct BittensorKeyNotice<Content: View>: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var systemImage: String = ""
+    var tint: Color = .urLightBlue
+    var progress = false
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            if progress {
+                ProgressView()
+                    .controlSize(.small)
+            } else {
+                Image(systemName: systemImage)
+                    .foregroundColor(tint)
+                    .accessibilityHidden(true)
+            }
+            content()
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tint.opacity(0.12))
+        .cornerRadius(8)
+    }
+}
+
+/// What deleting means, before anything happens: no way back, where earnings
+/// keep going, what only the phrase can do, and convert ending. On Save now the
+/// same step sets up payouts first. Continue asks for two of the words.
+struct BittensorKeyDeleteExplanation: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject var model: BittensorKeyModel
+
+    private var address: String {
+        SnAlpha.shortSs58(model.screen.address)
+    }
+
+    var body: some View {
+        Group {
+            if model.screen.saveNow {
+                Text("Set up payouts and delete the key?")
+            } else {
+                Text("Delete the key from this device?")
+            }
+        }
+            .font(themeManager.currentTheme.toolbarTitleFont)
+            .foregroundColor(themeManager.currentTheme.textColor)
+            .fixedSize(horizontal: false, vertical: true)
+
+        VStack(alignment: .leading, spacing: 8) {
+            if model.screen.saveNow {
+                bullet(Text("Payouts go to this address, \(address), from the next epoch."))
+                bullet(Text("URnetwork can't get this key back."))
+                bullet(Text("Only the recovery phrase can move your SN25α."))
+                bullet(Text("Convert to TAO needs this key, so it won't be available in this app."))
+            } else {
+                bullet(Text("URnetwork can't get this key back."))
+                bullet(Text("Earnings keep going to this address, \(address)."))
+                bullet(Text("Only the recovery phrase can move them."))
+                bullet(Text("Convert to TAO stops working in this app."))
+            }
+        }
+
+        if model.screen.warnsTop200 {
+            BittensorKeyNotice(systemImage: "crown.fill", tint: .urReferralGold) {
+                Text("Deleting this key also gives up claiming a Top 200 spot with one tap. You could still claim from a Bittensor wallet holding this recovery phrase.")
+            }
+        }
+
+        BittensorKeyWording()
+
+        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer, boxed: true)
+
+        BittensorKeyDestructiveButton(
+            text: "Continue",
+            accessibilityIdentifier: "earnings.key.deleteContinue",
+            action: model.confirmDelete
+        )
+
+        Button(action: model.cancelDelete) {
+            Text("Cancel")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("earnings.key.deleteCancel")
+    }
+
+    private func bullet(_ text: Text) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(verbatim: "•")
+                .accessibilityHidden(true)
+            text
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(themeManager.currentTheme.secondaryBodyFont)
+        .foregroundColor(themeManager.currentTheme.textColor)
+    }
+}
+
+/// Two of the words, which prove the phrase is saved: before the key goes, or
+/// before it signs on Save now, or to keep it. Each field says as it's typed
+/// whether its word is wrong, and the button acts only with both right.
+/// Deleting a stored key asks for device authentication at the button.
 struct BittensorKeyConfirmation: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -263,44 +436,41 @@ struct BittensorKeyConfirmation: View {
         model.screen.confirming == SdkBittensorLocalKeyConfirmKeep
     }
 
-    private var canSubmit: Bool {
-        !firstWord.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !secondWord.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    private var check: BittensorKeyWordCheckInfo {
+        model.checkWords(first: firstWord, second: secondWord)
     }
 
     var body: some View {
+        let check = check
         Group {
             if keeps {
-                Text("Keep this key on this device?")
+                Text("Keep the key on this device?")
             } else {
-                Text("Delete this key from this app?")
+                Text("Enter two of the words")
             }
         }
             .font(themeManager.currentTheme.toolbarTitleFont)
             .foregroundColor(themeManager.currentTheme.textColor)
             .fixedSize(horizontal: false, vertical: true)
 
-        // on the delete and the keep confirmation alike
-        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer)
-
-        if !keeps {
-            BittensorKeyWording()
-            line("URnetwork can't get this key back. Earnings keep going to this address, and only the recovery phrase can move them.")
-            if !model.screen.address.isEmpty {
-                Text(verbatim: SnAlpha.shortSs58(model.screen.address))
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundColor(themeManager.currentTheme.textColor)
+        if keeps {
+            Group {
+                if model.screen.saveNow {
+                    Text("You've saved the recovery phrase. The key is stored on this device for convert and one-tap Top 200, and then payouts are set up.")
+                } else {
+                    Text("You've saved the recovery phrase, so the backup reminder ends. The key stays on this device for convert and one-tap Top 200.")
+                }
             }
-            line("This app also can't convert your SN25α to TAO after this. A Bittensor wallet or btcli can, with this recovery phrase.")
-            if model.screen.warnsTop200 {
-                line("Deleting this key also gives up claiming a Top 200 spot with one tap. You could still claim from a Bittensor wallet holding this recovery phrase.")
-            }
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+            line("To confirm, enter these two words from the phrase.")
+        } else {
+            line("To confirm you've saved the recovery phrase, enter these two words from it.")
         }
 
-        line("To show you saved it, enter these two words from your recovery phrase.")
-
-        wordField(position: model.screen.firstWordPosition, text: $firstWord, identifier: "earnings.key.word1")
-        wordField(position: model.screen.secondWordPosition, text: $secondWord, identifier: "earnings.key.word2")
+        wordField(position: model.screen.firstWordPosition, text: $firstWord, state: check.first, identifier: "earnings.key.word1")
+        wordField(position: model.screen.secondWordPosition, text: $secondWord, state: check.second, identifier: "earnings.key.word2")
 
         if model.screen.wordsRejected {
             Text("Those words don't match. Check your saved recovery phrase.")
@@ -308,14 +478,32 @@ struct BittensorKeyConfirmation: View {
                 .foregroundColor(themeManager.currentTheme.dangerColor)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        if let failure = BittensorKeyText.failure(code: model.screen.failureCode, message: model.screen.failureMessage) {
+            Text(verbatim: failure)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.dangerColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
 
-        BittensorKeyDestructiveButton(
-            text: confirmText,
-            enabled: canSubmit,
-            isProcessing: model.screen.busy,
-            accessibilityIdentifier: "earnings.key.confirm"
-        ) {
-            model.submitWords(first: firstWord, second: secondWord)
+        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer, boxed: true)
+
+        if keeps {
+            UrButton(
+                text: "Keep it on this device",
+                action: submit,
+                enabled: check.ready,
+                isProcessing: model.screen.busy,
+                accessibilityIdentifier: "earnings.key.confirm"
+            )
+        } else {
+            BittensorKeyDestructiveButton(
+                text: model.screen.saveNow ? "Set up payouts and delete key" : "Delete key",
+                systemImage: model.screen.confirmNeedsAuthentication ? BittensorDeviceAuthenticator.systemImage : nil,
+                enabled: check.ready,
+                isProcessing: model.screen.busy,
+                accessibilityIdentifier: "earnings.key.confirm",
+                action: submit
+            )
         }
 
         Button(action: model.cancelConfirmation) {
@@ -329,11 +517,12 @@ struct BittensorKeyConfirmation: View {
         .accessibilityIdentifier("earnings.key.confirmCancel")
     }
 
-    private var confirmText: LocalizedStringKey {
-        if keeps {
-            return "Keep key"
+    private func submit() {
+        let first = firstWord
+        let second = secondWord
+        Task {
+            await model.submitWords(first: first, second: second)
         }
-        return model.screen.saveNow ? "Set up payouts" : "Delete key"
     }
 
     private func line(_ text: LocalizedStringKey) -> some View {
@@ -343,14 +532,24 @@ struct BittensorKeyConfirmation: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func wordField(position: Int, text: Binding<String>, identifier: String) -> some View {
-        BittensorKeyWordField(
-            placeholder: String(localized: "Word \(position)"),
-            text: text,
-            accessibilityIdentifier: identifier
-        )
-        .frame(maxWidth: .infinity)
-        .privacySensitive()
+    private func wordField(position: Int, text: Binding<String>, state: String, identifier: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            UrLabel(text: "Word \(position)")
+            BittensorKeyWordField(
+                placeholder: String(localized: "Word \(position)"),
+                text: text,
+                accessibilityIdentifier: identifier
+            )
+            .frame(maxWidth: .infinity)
+            .privacySensitive()
+            if state == SdkBittensorLocalKeyWordWrong {
+                Text("That isn't word \(position) of this recovery phrase.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.dangerColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier(identifier + ".wrong")
+            }
+        }
     }
 }
 
@@ -533,11 +732,16 @@ struct BittensorKeyWording: View {
     }
 }
 
+/// The destructive action: coral, with dark text for contrast (white on coral
+/// is 2.8:1, dark 6.8:1), or a coral outline where it sits beside the safe
+/// choice. An optional icon says it asks for device authentication.
 struct BittensorKeyDestructiveButton: View {
 
     @EnvironmentObject var themeManager: ThemeManager
 
     let text: LocalizedStringKey
+    var filled = true
+    var systemImage: String? = nil
     var enabled = true
     var isProcessing = false
     var accessibilityIdentifier: String = ""
@@ -546,9 +750,11 @@ struct BittensorKeyDestructiveButton: View {
     var body: some View {
         Button(role: .destructive, action: action) {
             HStack(spacing: 8) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .accessibilityHidden(true)
+                }
                 Text(text)
-                    .font(themeManager.currentTheme.bodyFont.weight(.semibold))
-                    .foregroundColor(themeManager.currentTheme.dangerColor)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 if isProcessing {
@@ -556,11 +762,15 @@ struct BittensorKeyDestructiveButton: View {
                         .controlSize(.small)
                 }
             }
+            .font(themeManager.currentTheme.bodyFont.weight(.semibold))
+            .foregroundColor(filled ? Color.urBlack : themeManager.currentTheme.dangerColor)
             .frame(maxWidth: .infinity, minHeight: 48)
             .padding(.horizontal, 12)
+            .background(filled ? themeManager.currentTheme.dangerColor : Color.clear)
+            .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(themeManager.currentTheme.dangerColor, lineWidth: 1)
+                    .stroke(themeManager.currentTheme.dangerColor, lineWidth: filled ? 0 : 1)
             )
             .contentShape(Rectangle())
         }

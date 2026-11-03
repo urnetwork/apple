@@ -561,6 +561,12 @@ struct NetworkApp: App {
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
+                // the payout key's reminder, tapped: the Key screen
+                .onReceive(BittensorKeyReminderTaps.shared.$pending) { pending in
+                    if pending, BittensorKeyReminderTaps.shared.consume() {
+                        deepLinkRouter.openEarningsKeyScreen()
+                    }
+                }
                 // where sheets go while a fold divides the window (iPhone
                 // Duo partly folded like a book; apple/DUO.md item 11)
                 .publishesSheetPlacement()
@@ -648,6 +654,12 @@ struct NetworkApp: App {
                 .environmentObject(deepLinkRouter)
                 .environmentObject(splitTunnelProxyController)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
+                // the payout key's reminder, tapped: the Key screen
+                .onReceive(BittensorKeyReminderTaps.shared.$pending) { pending in
+                    if pending, BittensorKeyReminderTaps.shared.consume() {
+                        deepLinkRouter.openEarningsKeyScreen()
+                    }
+                }
                 .onAppear {
                     // follows the device and the rule store for the life of
                     // the process, window shown or not

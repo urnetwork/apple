@@ -304,6 +304,12 @@ struct MainNavigationSplitView: View {
             guard pending, deepLinkRouter.consumeEarningsTop200() else { return }
             selectedTab = .account
         }
+        // Back up first, and the key reminder's notification: Account ›
+        // Earnings, its Key screen open
+        .onReceive(deepLinkRouter.$pendingEarningsKey) { pending in
+            guard pending, deepLinkRouter.consumeEarningsKey() else { return }
+            selectedTab = .account
+        }
         // the Earnings Top 200 tile's "See the Protocol leaderboard"
         .onReceive(deepLinkRouter.$pendingProtocolLeaderboard) { pending in
             guard pending, deepLinkRouter.consumeProtocolLeaderboard() else { return }

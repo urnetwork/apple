@@ -147,10 +147,12 @@ final class FakeBittensorKeyFlow: BittensorKeyFlowing {
     func reveal(authenticated: Bool) { calls.append("reveal(\(authenticated))") }
     func hide() { calls.append("hide") }
     func setCaptureActive(_ active: Bool) { calls.append("setCaptureActive(\(active))") }
-    func confirmDelete(authenticated: Bool) { calls.append("confirmDelete(\(authenticated))") }
-    func confirmKeep(authenticated: Bool) { calls.append("confirmKeep(\(authenticated))") }
+    var wordCheck = BittensorKeyWordCheckInfo()
+    func confirmDelete() { calls.append("confirmDelete") }
+    func confirmKeep() { calls.append("confirmKeep") }
     func cancelConfirmation() { calls.append("cancelConfirmation") }
-    func submitWords(first: String, second: String) { calls.append("submitWords(\(first), \(second))") }
+    func checkWords(first: String, second: String) -> BittensorKeyWordCheckInfo { wordCheck }
+    func submitWords(first: String, second: String, authenticated: Bool) { calls.append("submitWords(\(first), \(second), \(authenticated))") }
     func reminder(currentEpoch: Int64, claimOpenMillis: Int64, epochBlocks: Int64, claimable: Bool) -> BittensorKeyReminderInfo {
         calls.append("reminder(\(currentEpoch), \(claimOpenMillis), \(epochBlocks), \(claimable))")
         return reminderAnswer

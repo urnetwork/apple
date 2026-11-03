@@ -16,6 +16,57 @@ import URnetworkSdk
 import BackgroundTasks
 #endif
 
+import UserNotifications
+
+/// A tap on the payout key's one reminder, held until a window's router takes
+/// it, so a cold launch from the notification lands on the Key screen too.
+@MainActor
+final class BittensorKeyReminderTaps: ObservableObject {
+
+    static let shared = BittensorKeyReminderTaps()
+
+    @Published private(set) var pending = false
+
+    func tapped() {
+        pending = true
+    }
+
+    func consume() -> Bool {
+        guard pending else { return false }
+        pending = false
+        return true
+    }
+}
+
+/// The app's local notifications: the payout key's reminder opens the Key
+/// screen when tapped. None shows while the app is in front, as before there
+/// was a delegate.
+final class AppNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+
+    static let shared = AppNotificationDelegate()
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        if response.notification.request.identifier == BittensorKeyReminderNotice.identifier {
+            Task { @MainActor in
+                BittensorKeyReminderTaps.shared.tapped()
+            }
+        }
+        completionHandler()
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([])
+    }
+}
+
 #if os(iOS)
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
@@ -42,6 +93,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             deviceManager.handleBackgroundUpdate(task: task)
         }
         #endif
+        UNUserNotificationCenter.current().delegate = AppNotificationDelegate.shared
         return true
     }
     
@@ -61,6 +113,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     override init() {
         SdkSetMemoryLimit(64 * 1024 * 1024)
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = AppNotificationDelegate.shared
     }
 
     func applicationDidReceiveMemoryWarning(_ notification: Notification) {

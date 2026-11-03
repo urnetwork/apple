@@ -63,6 +63,13 @@ final class EarningsViewModel: ObservableObject {
     @Published private(set) var ledgerClaimProgress: [SnLedgerAccountKey: LedgerClaimRowState] = [:]
     @Published private(set) var isLedgerClaiming = false
 
+    /// what URnetwork's claim relay says of the network's v2 balance; nil
+    /// until read, or with no sdk to ask
+    @Published private(set) var claimStatus: SnClaimStatusInfo?
+    /// the claim sheet's Claim now: nil before a tap
+    @Published private(set) var claimNowOutcome: SnClaimNowOutcome?
+    @Published private(set) var isClaimingNow = false
+
     let client: EarningsClient
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
@@ -126,6 +133,40 @@ final class EarningsViewModel: ObservableObject {
     /// the Settlement v2 tile, or nil for none
     var ledgerTile: SnLedgerTilePresentation? {
         SnLedgerTilePresentation.of(load: ledger, claimConfigured: ledgerChain.claimConfigured, isClaiming: isLedgerClaiming)
+    }
+
+    /// The Settlement v2 tile with the relay: the device's wallet's ledger as
+    /// before, or, for a network with no wallet on this device, the balance
+    /// the relay claims for its consent.
+    var ledgerTileWithRelay: SnLedgerTilePresentation? {
+        if hasWallet, let ledgerTile {
+            return ledgerTile
+        }
+        guard let claimStatus, !claimStatus.unavailable, 0 < claimStatus.claimableRao + claimStatus.pendingRao else {
+            return nil
+        }
+        return SnLedgerTilePresentation(balances: .claimable(claimStatus.claimableRao), showsClaim: false, claimEnabled: false, showsPools: false)
+    }
+
+    /// Reads what the relay says, after the wallet and the ledger.
+    func refreshClaimStatus() async {
+        claimStatus = await client.claimStatus()
+    }
+
+    func resetClaimNow() {
+        claimNowOutcome = nil
+    }
+
+    /// Claim now: URnetwork claims the relay's coldkey now, at most once in
+    /// the period, and pays the gas.
+    func claimNow() async {
+        guard let claimStatus, claimStatus.claimNowAvailable, !isClaimingNow else {
+            return
+        }
+        isClaimingNow = true
+        claimNowOutcome = await client.claimNow(coldkeySs58: claimStatus.coldkeySs58)
+        isClaimingNow = false
+        await refreshClaimStatus()
     }
 
     /// the v2 accounts a claim pays: every one with something claimable
@@ -208,6 +249,7 @@ final class EarningsViewModel: ObservableObject {
         }
 
         await refreshSubnet()
+        await refreshClaimStatus()
 
         loadedOnce = true
         isLoading = false

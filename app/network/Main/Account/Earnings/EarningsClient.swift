@@ -68,6 +68,11 @@ protocol EarningsClient: AnyObject {
     /// be read (ledger_unavailable), which is never zero
     func ledgerAccounts() async throws -> [SnLedgerAccountInfo]
     func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void)
+    /// what URnetwork's claim relay says of the network's balance; nil when
+    /// the sdk can't ask
+    func claimStatus() async -> SnClaimStatusInfo?
+    /// asks URnetwork to claim a coldkey's balance now
+    func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome
 
     // points history and the Top 200 standing
     func accountEpochs() async throws -> [AccountEpochInfo]
@@ -437,6 +442,66 @@ final class EarningsSdkClient: EarningsClient {
         device.snLedgerClaim(SnLedgerClaimCallbackBridge(onEvent))
     }
 
+    func claimStatus() async -> SnClaimStatusInfo? {
+        guard let device else {
+            return nil
+        }
+        let result: SdkSnClaimStatusResult? = await withCheckedContinuation { continuation in
+            device.snClaimStatus(SnClaimStatusCallback { result, _ in
+                continuation.resume(returning: result)
+            })
+        }
+        guard let result else {
+            return nil
+        }
+        return Self.claimStatus(from: result)
+    }
+
+    /// The relay's answer as the screens read it. An error leaves the balances
+    /// unavailable, never zero.
+    static func claimStatus(from result: SdkSnClaimStatusResult) -> SnClaimStatusInfo {
+        SnClaimStatusInfo(
+            relayState: result.relayState,
+            coldkeySs58: result.coldkeySs58,
+            action: result.action,
+            reason: result.reason,
+            claimableRao: result.claimableRao,
+            valueTaoRao: result.valueTaoRao,
+            pendingRao: result.pendingRao,
+            claimNowAvailable: result.claimNowAvailable,
+            claimNowReason: result.claimNowReason,
+            claimNowNextAtMillis: result.claimNowNextAtMillis,
+            selfClaimAvailable: result.selfClaimAvailable,
+            selfClaimNeedsGas: result.selfClaimNeedsGas,
+            automaticThresholdRao: result.automaticThresholdRao,
+            automaticThresholdTaoRao: result.automaticThresholdTaoRao,
+            transferFloorTaoRao: result.transferFloorTaoRao,
+            claimNowPeriodDays: result.claimNowPeriodDays,
+            unavailable: result.error != nil
+        )
+    }
+
+    func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome {
+        guard let device else {
+            return .failed("local_state_unavailable")
+        }
+        let result: SdkSnClaimNowResult? = await withCheckedContinuation { continuation in
+            device.snClaimNow(coldkeySs58, callback: SnClaimNowCallback { result, _ in
+                continuation.resume(returning: result)
+            })
+        }
+        guard let result else {
+            return .failed("empty_result")
+        }
+        if let error = Self.error(result.error) {
+            return .failed(error.localizedDescription)
+        }
+        if result.requested {
+            return .requested
+        }
+        return .refused(reason: result.reason, nextAtMillis: result.nextAtMillis)
+    }
+
     // MARK: points history and the Top 200 standing
 
     func accountEpochs() async throws -> [AccountEpochInfo] {
@@ -531,6 +596,18 @@ private class AccountEpochsCallback: SdkCallback<SdkAccountEpochsResult, SdkAcco
 
 private class SnLedgerAccountsCallback: SdkCallback<SdkSnLedgerAccountsResult, SdkSnLedgerAccountsCallbackProtocol>, SdkSnLedgerAccountsCallbackProtocol {
     func result(_ result: SdkSnLedgerAccountsResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class SnClaimStatusCallback: SdkCallback<SdkSnClaimStatusResult, SdkSnClaimStatusCallbackProtocol>, SdkSnClaimStatusCallbackProtocol {
+    func result(_ result: SdkSnClaimStatusResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class SnClaimNowCallback: SdkCallback<SdkSnClaimNowResult, SdkSnClaimNowCallbackProtocol>, SdkSnClaimNowCallbackProtocol {
+    func result(_ result: SdkSnClaimNowResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }
@@ -684,4 +761,11 @@ final class EarningsPreviewClient: EarningsClient {
         }
         return topInfo
     }
+}
+
+/// Without a relay, as in previews and the test doubles: nothing to say, and
+/// Claim now can't be asked.
+extension EarningsClient {
+    func claimStatus() async -> SnClaimStatusInfo? { nil }
+    func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome { .failed("unavailable") }
 }

@@ -19,6 +19,11 @@ struct NetworkConsentSheet: View {
     /// the flow's connector, observed for the wallet's progress
     @ObservedObject var connector: BittensorWalletConnector
     let dismiss: () -> Void
+    /// Change wallet's offer of a key on this device, above the wallets (the
+    /// mocks' 3b): nil where the sheet offers wallets only
+    var createKey: (() -> Void)? = nil
+    /// the offer's disclaimer (sdk BittensorFundsDisclaimer*)
+    var createKeyDisclaimer: String = SdkBittensorFundsDisclaimerNone
 
     var body: some View {
         // the manual form shows the whole message, about 2 KB of JSON, with
@@ -44,10 +49,31 @@ struct NetworkConsentSheet: View {
         switch flow.stage {
 
         case .chooser:
-            Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textColor)
-                .fixedSize(horizontal: false, vertical: true)
+            if let createKey {
+                Text("Choose where this network's earnings are paid from the next epoch. Earlier earnings stay where they were paid.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                UrButton(
+                    text: "Create a key on this device",
+                    action: createKey,
+                    accessibilityIdentifier: "earnings.key.createHere"
+                )
+                Text("URnetwork is not a wallet. One tap creates a Bittensor key on this device; back up its recovery phrase afterwards.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                BittensorFundsDisclaimerText(disclaimer: createKeyDisclaimer, boxed: true)
+                Text("Or choose your Bittensor wallet")
+                    .font(themeManager.currentTheme.secondaryBodyFont.weight(.semibold))
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .padding(.top, 8)
+            } else {
+                Text("Sign once with your Bittensor wallet so this network's earnings are paid to it.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             BittensorWalletSignView(
                 connector: connector,
                 onChoose: { walletId in

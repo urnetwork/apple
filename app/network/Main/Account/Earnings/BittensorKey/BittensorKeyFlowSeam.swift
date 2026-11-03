@@ -45,9 +45,14 @@ struct BittensorKeyScreenInfo: Equatable {
     var saveNow = false
     var address: String = ""
     var revealed = false
+    /// while revealed, when the words hide by themselves
+    var revealedUntilMillis: Int64 = 0
     var needsAuthentication = false
     var hiddenByCapture = false
     var confirming: String = SdkBittensorLocalKeyConfirmNone
+    /// the confirmation's button asks for device authentication first:
+    /// deleting a stored key
+    var confirmNeedsAuthentication = false
     var firstWordPosition = 0
     var secondWordPosition = 0
     var wordsRejected = false
@@ -61,6 +66,14 @@ struct BittensorKeyScreenInfo: Equatable {
     /// the disclaimer the screen and its confirmations show (sdk
     /// BittensorFundsDisclaimer*)
     var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
+}
+
+/// The two words as the user types them (sdk BittensorLocalKeyWordCheck):
+/// sdk BittensorLocalKeyWord* for each field, and whether the button can act.
+struct BittensorKeyWordCheckInfo: Equatable {
+    var first: String = SdkBittensorLocalKeyWordEmpty
+    var second: String = SdkBittensorLocalKeyWordEmpty
+    var ready = false
 }
 
 /// What to do about the one reminder of an unsaved key (sdk
@@ -97,10 +110,14 @@ protocol BittensorKeyFlowing: AnyObject {
     func reveal(authenticated: Bool)
     func hide()
     func setCaptureActive(_ active: Bool)
-    func confirmDelete(authenticated: Bool)
-    func confirmKeep(authenticated: Bool)
+    func confirmDelete()
+    func confirmKeep()
     func cancelConfirmation()
-    func submitWords(first: String, second: String)
+    /// synchronous, and changes nothing
+    func checkWords(first: String, second: String) -> BittensorKeyWordCheckInfo
+    /// authenticated: the device's authentication passed, which deleting a
+    /// stored key needs
+    func submitWords(first: String, second: String, authenticated: Bool)
 
     func reminder(currentEpoch: Int64, claimOpenMillis: Int64, epochBlocks: Int64, claimable: Bool) -> BittensorKeyReminderInfo
     func reminderScheduled(atMillis: Int64)
@@ -177,9 +194,11 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
             saveNow: screen.saveNow,
             address: screen.address,
             revealed: screen.revealed,
+            revealedUntilMillis: screen.revealedUntilMillis,
             needsAuthentication: screen.needsAuthentication,
             hiddenByCapture: screen.hiddenByCapture,
             confirming: screen.confirming,
+            confirmNeedsAuthentication: screen.confirmNeedsAuthentication,
             firstWordPosition: screen.firstWordPosition,
             secondWordPosition: screen.secondWordPosition,
             wordsRejected: screen.wordsRejected,
@@ -265,20 +284,27 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
         flow?.setCaptureActive(active)
     }
 
-    func confirmDelete(authenticated: Bool) {
-        flow?.confirmDelete(authenticated)
+    func confirmDelete() {
+        flow?.confirmDelete()
     }
 
-    func confirmKeep(authenticated: Bool) {
-        flow?.confirmKeep(authenticated)
+    func confirmKeep() {
+        flow?.confirmKeep()
     }
 
     func cancelConfirmation() {
         flow?.cancelConfirmation()
     }
 
-    func submitWords(first: String, second: String) {
-        flow?.submitWords(first, secondWord: second)
+    func checkWords(first: String, second: String) -> BittensorKeyWordCheckInfo {
+        guard let check = flow?.checkWords(first, secondWord: second) else {
+            return BittensorKeyWordCheckInfo()
+        }
+        return BittensorKeyWordCheckInfo(first: check.first, second: check.second, ready: check.ready)
+    }
+
+    func submitWords(first: String, second: String, authenticated: Bool) {
+        flow?.submitWords(first, secondWord: second, authenticated: authenticated)
     }
 
     func reminder(currentEpoch: Int64, claimOpenMillis: Int64, epochBlocks: Int64, claimable: Bool) -> BittensorKeyReminderInfo {
@@ -331,10 +357,11 @@ final class BittensorKeyPreviewFlow: BittensorKeyFlowing {
     func reveal(authenticated: Bool) {}
     func hide() {}
     func setCaptureActive(_ active: Bool) {}
-    func confirmDelete(authenticated: Bool) {}
-    func confirmKeep(authenticated: Bool) {}
+    func confirmDelete() {}
+    func confirmKeep() {}
     func cancelConfirmation() {}
-    func submitWords(first: String, second: String) {}
+    func checkWords(first: String, second: String) -> BittensorKeyWordCheckInfo { BittensorKeyWordCheckInfo() }
+    func submitWords(first: String, second: String, authenticated: Bool) {}
     func reminder(currentEpoch: Int64, claimOpenMillis: Int64, epochBlocks: Int64, claimable: Bool) -> BittensorKeyReminderInfo {
         BittensorKeyReminderInfo()
     }

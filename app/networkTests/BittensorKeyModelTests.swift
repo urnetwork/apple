@@ -53,13 +53,21 @@ struct BittensorKeyModelTests {
         #expect(fixture.authenticator.asked == 2)
         #expect(fixture.flow.calls.last == "reveal(false)")
 
-        await model.confirmDelete()
+        // starting a confirmation asks for nothing; deleting a stored key asks
+        // at its button, and only an authenticated answer reaches the flow
+        model.confirmKeep()
+        #expect(fixture.flow.calls.last == "confirmKeep")
+        model.confirmDelete()
+        #expect(fixture.flow.calls.last == "confirmDelete")
+        #expect(fixture.authenticator.asked == 2)
+        fixture.flow.screen = BittensorKeyScreenInfo(open: true, needsAuthentication: true, confirming: SdkBittensorLocalKeyConfirmDelete, confirmNeedsAuthentication: true)
+        model.refresh()
+        await model.submitWords(first: "a", second: "b")
         #expect(fixture.authenticator.asked == 3)
-        #expect(fixture.flow.calls.last == "confirmDelete(false)")
-
-        await model.confirmKeep()
-        #expect(fixture.authenticator.asked == 4)
-        #expect(fixture.flow.calls.last == "confirmKeep(false)")
+        #expect(!fixture.flow.calls.contains { $0.hasPrefix("submitWords") })
+        fixture.authenticator.answer = true
+        await model.submitWords(first: "a", second: "b")
+        #expect(fixture.flow.calls.last == "submitWords(a, b, true)")
     }
 
     // Save now asks for nothing: the phrase signed nothing yet
@@ -68,10 +76,12 @@ struct BittensorKeyModelTests {
         fixture.flow.screen = BittensorKeyScreenInfo(open: true, saveNow: true, needsAuthentication: false)
         let model = make(fixture)
         await model.tapToReveal()
-        await model.confirmDelete()
+        model.confirmDelete()
+        await model.submitWords(first: "a", second: "b")
         #expect(fixture.authenticator.asked == 0)
         #expect(fixture.flow.calls.contains("reveal(false)"))
-        #expect(fixture.flow.calls.contains("confirmDelete(false)"))
+        #expect(fixture.flow.calls.contains("confirmDelete"))
+        #expect(fixture.flow.calls.last == "submitWords(a, b, false)")
     }
 
     // Copy is impossible while hidden: the flow hands out nothing, and the
@@ -177,22 +187,22 @@ struct BittensorKeyModelTests {
         fixture.flow.card = BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateElsewhere, offersSetUp: true, offersSaveFirst: true, replacesPayoutWallet: true)
         let model = make(fixture)
         model.setUpPayouts()
-        #expect(model.pendingReplacement == .makeKey)
+        #expect(model.pendingReplacement == .setUp)
         #expect(fixture.flow.calls.isEmpty)
-        model.replacementConfirmedSetUp()
+        model.replacementConfirmed()
         #expect(fixture.flow.calls == ["setUpPayouts(true)"])
         #expect(model.pendingReplacement == nil)
 
         model.saveFirst()
-        #expect(model.pendingReplacement == .makeKey)
-        model.replacementConfirmedSaveFirst()
+        #expect(model.pendingReplacement == .saveFirst)
+        model.replacementConfirmed()
         #expect(fixture.flow.calls.last == "saveFirst(true)")
 
         fixture.flow.card = BittensorKeyCardInfo(state: SdkBittensorLocalKeyStateSaveLaterNotLinked, offersFinishSetup: true, replacesPayoutWallet: true)
         model.refresh()
         model.finishSetup()
         #expect(model.pendingReplacement == .finishSetup)
-        model.replacementConfirmedFinishSetup()
+        model.replacementConfirmed()
         #expect(fixture.flow.calls.last == "finishSetup(true)")
     }
 

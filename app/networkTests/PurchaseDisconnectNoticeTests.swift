@@ -6,15 +6,26 @@ import Testing
 
 /// The alert before a purchase drops the connection, run for real: each test
 /// presses a button from inside the alert's modal loop, which is the only place
-/// the press can run, so nothing here waits on time. It shows on the screen for
-/// as long as that takes.
+/// a timer on its mode can fire, so nothing here waits on time. It shows on the
+/// screen for as long as that takes.
 @MainActor
 @Suite(.serialized)
 struct PurchaseDisconnectNoticeTests {
 
+    /// Runs `block` in the alert's modal loop, `delay` from when it starts.
+    private static func inTheModalLoop(after delay: TimeInterval = 0, _ block: @escaping @MainActor () -> Void) -> Timer {
+        let timer = Timer(timeInterval: delay, repeats: false) { _ in
+            MainActor.assumeIsolated {
+                block()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .modalPanel)
+        return timer
+    }
+
     private static func answer(pressing button: Int) async -> Bool {
         let alert = PurchaseDisconnectNotice.makeAlert()
-        RunLoop.main.perform(inModes: [.modalPanel]) {
+        _ = inTheModalLoop {
             alert.buttons[button].performClick(nil)
         }
         return await PurchaseDisconnectNotice.answer(alert)
@@ -33,7 +44,7 @@ struct PurchaseDisconnectNoticeTests {
         }
         let alert = PurchaseDisconnectNotice.makeAlert()
         let ran = Ran()
-        RunLoop.main.perform(inModes: [.modalPanel]) {
+        _ = Self.inTheModalLoop {
             Task { @MainActor in
                 ran.value = true
                 alert.buttons[1].performClick(nil)
@@ -41,12 +52,9 @@ struct PurchaseDisconnectNoticeTests {
         }
         // ends the alert if that task never runs, so the test fails rather than
         // waiting with an alert on the screen
-        let bound = Timer(timeInterval: 10, repeats: false) { _ in
-            MainActor.assumeIsolated {
-                _ = alert.buttons[1].performClick(nil)
-            }
+        let bound = Self.inTheModalLoop(after: 10) {
+            alert.buttons[1].performClick(nil)
         }
-        RunLoop.main.add(bound, forMode: .modalPanel)
         defer {
             bound.invalidate()
         }

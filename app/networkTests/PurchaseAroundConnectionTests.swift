@@ -392,8 +392,8 @@ struct PurchaseAroundConnectionTests {
     }
 
     /// A surface gets its store from the factory, so neither store can be bought
-    /// from past the flow. Both refuse here, with no product and no server, after
-    /// the flow's notice and disconnect.
+    /// from past the flow. Neither sells here, the manager with no network and the
+    /// client with no server: both refuse after the flow's notice and disconnect.
     @Test func bothStoresTheFactoryMakesGoThroughTheFlow() async {
         for distribution in [BillingDistribution.appStore, .direct] {
             let flow = Self.flow(status: .connected, rpcUp: true)

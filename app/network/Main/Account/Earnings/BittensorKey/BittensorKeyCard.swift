@@ -259,6 +259,46 @@ struct BittensorKeyStoreUnavailable: View {
     }
 }
 
+/// The owner's disclaimer (apple/BTEASY.md, Wording), in plain view on every
+/// screen of the easy flows: the whole text where the key is in this app's
+/// secure storage, its last sentence alone where it isn't, nothing elsewhere.
+/// The sdk says which (BittensorFundsDisclaimer*), so every app shows the same.
+struct BittensorFundsDisclaimerText: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let disclaimer: String
+
+    var body: some View {
+        if let text = Self.text(disclaimer) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "info.circle")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .accessibilityHidden(true)
+                Text(verbatim: text)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("earnings.key.fundsDisclaimer")
+        }
+    }
+
+    /// The words for the sdk's disclaimer id, nil for none.
+    static func text(_ disclaimer: String) -> String? {
+        switch disclaimer {
+        case SdkBittensorFundsDisclaimerFull:
+            return String(localized: "This key is stored locally in the app secure storage. It is never shared with URnetwork. URnetwork does not touch and is not responsible for any user funds.")
+        case SdkBittensorFundsDisclaimerFundsOnly:
+            return String(localized: "URnetwork does not touch and is not responsible for any user funds.")
+        default:
+            return nil
+        }
+    }
+}
+
 struct BittensorKeyFailureLine: View {
 
     @EnvironmentObject var themeManager: ThemeManager

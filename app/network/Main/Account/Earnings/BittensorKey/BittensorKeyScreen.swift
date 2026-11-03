@@ -116,6 +116,7 @@ struct BittensorKeyScreen: View {
         }
 
         BittensorKeyWording()
+        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer)
 
         if let failure = BittensorKeyText.failure(code: model.screen.failureCode, message: model.screen.failureMessage) {
             Text(verbatim: failure)
@@ -278,6 +279,9 @@ struct BittensorKeyConfirmation: View {
             .font(themeManager.currentTheme.toolbarTitleFont)
             .foregroundColor(themeManager.currentTheme.textColor)
             .fixedSize(horizontal: false, vertical: true)
+
+        // on the delete and the keep confirmation alike
+        BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer)
 
         if !keeps {
             BittensorKeyWording()

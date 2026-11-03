@@ -32,6 +32,10 @@ struct BittensorKeyCardInfo: Equatable {
     var linkGeneration: Int64 = 0
     var failureCode: String = ""
     var failureMessage: String = ""
+    /// the disclaimer the card shows (sdk BittensorFundsDisclaimer*)
+    var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
+    /// the disclaimer the claim cards show: at least its last sentence
+    var claimFundsDisclaimer: String = SdkBittensorFundsDisclaimerFundsOnly
 }
 
 /// What the Key screen shows (sdk BittensorLocalKeyScreen). Holds no secret:
@@ -54,6 +58,9 @@ struct BittensorKeyScreenInfo: Equatable {
     var done = false
     var failureCode: String = ""
     var failureMessage: String = ""
+    /// the disclaimer the screen and its confirmations show (sdk
+    /// BittensorFundsDisclaimer*)
+    var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
 }
 
 /// What to do about the one reminder of an unsaved key (sdk
@@ -98,6 +105,10 @@ protocol BittensorKeyFlowing: AnyObject {
     func reminder(currentEpoch: Int64, claimOpenMillis: Int64, epochBlocks: Int64, claimable: Bool) -> BittensorKeyReminderInfo
     func reminderScheduled(atMillis: Int64)
     func reminderDelivered()
+
+    /// the disclaimer a screen of the easy flows shows, for a sdk
+    /// BittensorFundsDisclaimerPlace*: the seam convert and Top 200 use
+    func fundsDisclaimer(at place: String) -> String
 
     func close()
 }
@@ -151,7 +162,9 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
             busy: card.busy,
             linkGeneration: card.linkGeneration,
             failureCode: card.failureCode,
-            failureMessage: card.failureMessage
+            failureMessage: card.failureMessage,
+            fundsDisclaimer: card.fundsDisclaimer,
+            claimFundsDisclaimer: card.claimFundsDisclaimer
         )
     }
 
@@ -176,7 +189,8 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
             busy: screen.busy,
             done: screen.done,
             failureCode: screen.failureCode,
-            failureMessage: screen.failureMessage
+            failureMessage: screen.failureMessage,
+            fundsDisclaimer: screen.fundsDisclaimer
         )
     }
 
@@ -282,6 +296,10 @@ final class SdkBittensorKeyFlow: NSObject, BittensorKeyFlowing, SdkBittensorLoca
         flow?.reminderDelivered()
     }
 
+    func fundsDisclaimer(at place: String) -> String {
+        flow?.fundsDisclaimer(at: place) ?? SdkBittensorFundsDisclaimerNone
+    }
+
     func close() {
         subscription?.close()
         subscription = nil
@@ -322,5 +340,6 @@ final class BittensorKeyPreviewFlow: BittensorKeyFlowing {
     }
     func reminderScheduled(atMillis: Int64) {}
     func reminderDelivered() {}
+    func fundsDisclaimer(at place: String) -> String { SdkBittensorFundsDisclaimerNone }
     func close() {}
 }

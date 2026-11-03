@@ -214,7 +214,8 @@ struct EarningsView: View {
                             claim: {
                                 viewModel.resetClaimProgress()
                                 presentClaimSheet = true
-                            }
+                            },
+                            fundsDisclaimer: keyModel.card.claimFundsDisclaimer
                         )
                     }
 
@@ -225,7 +226,8 @@ struct EarningsView: View {
                             claim: {
                                 viewModel.resetLedgerClaimProgress()
                                 presentLedgerClaimSheet = true
-                            }
+                            },
+                            fundsDisclaimer: keyModel.card.claimFundsDisclaimer
                         )
                     }
 

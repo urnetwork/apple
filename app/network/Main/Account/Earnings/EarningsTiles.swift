@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import URnetworkSdk
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
@@ -414,6 +415,8 @@ struct UnclaimedAlphaTile: View {
     let totalClaimableRao: Int64
     let claimableEpochs: Int
     let claim: () -> Void
+    /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*)
+    var fundsDisclaimer: String = SdkBittensorFundsDisclaimerFundsOnly
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -432,6 +435,8 @@ struct UnclaimedAlphaTile: View {
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer().frame(height: 8)
             UrButton(text: "Claim", action: claim, enabled: claimableEpochs > 0)
+            BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)
+                .padding(.top, 4)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -452,6 +457,8 @@ struct SnLedgerTile: View {
 
     let presentation: SnLedgerTilePresentation
     let claim: () -> Void
+    /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*)
+    var fundsDisclaimer: String = SdkBittensorFundsDisclaimerFundsOnly
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -470,6 +477,8 @@ struct SnLedgerTile: View {
                 Spacer().frame(height: 8)
                 UrButton(text: "Claim", action: claim, enabled: presentation.claimEnabled)
             }
+            BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)
+                .padding(.top, 4)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -590,6 +599,9 @@ struct NetworkConsentCard: View {
                 if let key, let keyActions {
                     BittensorKeyCreateHereLink(key: key, actions: keyActions)
                 }
+            }
+            if let key {
+                BittensorFundsDisclaimerText(disclaimer: key.fundsDisclaimer)
             }
         }
         .padding()

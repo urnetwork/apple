@@ -413,3 +413,109 @@ func TestBittensorKeyCardComesFromTheFlow(t *testing.T) {
 		t.Error("the nav stack does not give Earnings the sdk's flow")
 	}
 }
+
+// The text of a Swift declaration at an indent, from its line to the first closing brace at that indent.
+func bittensorKeyDeclaration(t *testing.T, source string, indent string, declaration string) string {
+	t.Helper()
+	start := strings.Index(source, "\n"+indent+declaration)
+	if start < 0 {
+		t.Fatalf("no %q", declaration)
+	}
+	end := strings.Index(source[start:], "\n"+indent+"}\n")
+	if end < 0 {
+		t.Fatalf("%q does not close", declaration)
+	}
+	return source[start : start+end]
+}
+
+// The text from the first "{" at or after start to its matching "}".
+func bittensorKeyBlock(t *testing.T, source string, start int) string {
+	t.Helper()
+	if start < 0 {
+		t.Fatal("no such block")
+	}
+	open := strings.Index(source[start:], "{")
+	if open < 0 {
+		t.Fatal("no block")
+	}
+	depth := 0
+	for i := start + open; i < len(source); i++ {
+		switch source[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return source[start+open : i+1]
+			}
+		}
+	}
+	t.Fatal("unbalanced block")
+	return ""
+}
+
+// The owner's disclaimer (BTEASY.md, Wording; 2026-11-03), in plain view on every screen of the easy
+// flows: the payout card, the Key screen and its delete and keep confirmations, and both claim cards. The
+// sdk says which text a screen shows, so the app only draws what the flow's snapshot names. The words are
+// the owner's, verbatim, and the catalog has them in every locale (TestBittensorKeyStringsAreInTheCatalog).
+func TestBittensorFundsDisclaimerShowsOnEveryEasyFlowScreen(t *testing.T) {
+	sources := bittensorKeySources(t)
+	card := sources["BittensorKeyCard.swift"]
+	for _, literal := range []string{
+		`String(localized: "This key is stored locally in the app secure storage. It is never shared with URnetwork. URnetwork does not touch and is not responsible for any user funds.")`,
+		`String(localized: "URnetwork does not touch and is not responsible for any user funds.")`,
+		"case SdkBittensorFundsDisclaimerFull:",
+		"case SdkBittensorFundsDisclaimerFundsOnly:",
+	} {
+		if !strings.Contains(card, literal) {
+			t.Errorf("the disclaimer lost %s", literal)
+		}
+	}
+	// plain text, never behind a link or a disclosure
+	text := bittensorKeyBlock(t, card, strings.Index(card, "struct BittensorFundsDisclaimerText: View"))
+	for _, hidden := range []string{"Link(", "DisclosureGroup", "Button(", ".popover", ".help(", "sheet"} {
+		if strings.Contains(text, hidden) {
+			t.Errorf("the disclaimer is behind %s", hidden)
+		}
+	}
+
+	screen := sources["BittensorKeyScreen.swift"]
+	main := bittensorKeyBlock(t, screen, strings.Index(screen, "    private var mainContent: some View {"))
+	confirmation := bittensorKeyDeclaration(t, screen, "", "struct BittensorKeyConfirmation: View")
+	for name, block := range map[string]string{"the Key screen": main, "the delete and keep confirmations": confirmation} {
+		if !strings.Contains(block, "BittensorFundsDisclaimerText(disclaimer: model.screen.fundsDisclaimer)") {
+			t.Errorf("%s shows no disclaimer", name)
+		}
+	}
+	// one disclaimer before the confirmation splits into delete and keep, so both carry it
+	if at, keeps := strings.Index(confirmation, "BittensorFundsDisclaimerText("), strings.Index(confirmation, "if !keeps {"); at < 0 || keeps < at {
+		t.Error("only one of the confirmations shows the disclaimer")
+	}
+
+	tiles := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsTiles.swift")
+	consentCard := bittensorKeyDeclaration(t, tiles, "", "struct NetworkConsentCard: View")
+	if !strings.Contains(consentCard, "BittensorFundsDisclaimerText(disclaimer: key.fundsDisclaimer)") {
+		t.Error("the payout card shows no disclaimer")
+	}
+	for _, tile := range []string{"struct UnclaimedAlphaTile: View", "struct SnLedgerTile: View"} {
+		if !strings.Contains(bittensorKeyDeclaration(t, tiles, "", tile), "BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)") {
+			t.Errorf("%s shows no disclaimer", tile)
+		}
+	}
+	view := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
+	if got := strings.Count(view, "fundsDisclaimer: keyModel.card.claimFundsDisclaimer"); got != 2 {
+		t.Errorf("%d claim cards take the flow's disclaimer, want both", got)
+	}
+
+	seam := sources["BittensorKeyFlowSeam.swift"]
+	for _, mapping := range []string{
+		"fundsDisclaimer: card.fundsDisclaimer,",
+		"claimFundsDisclaimer: card.claimFundsDisclaimer",
+		"fundsDisclaimer: screen.fundsDisclaimer",
+		"flow?.fundsDisclaimer(at: place)",
+	} {
+		if !strings.Contains(seam, mapping) {
+			t.Errorf("the seam does not carry %s", mapping)
+		}
+	}
+}

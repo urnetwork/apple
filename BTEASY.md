@@ -52,6 +52,11 @@ version is a minimal **convert SN25α to TAO**, which stays on the same key (see
 - Every screen of the easy flows says that URnetwork does not touch and is not responsible for
   any user funds, in the owner's words (see [Wording](#wording)). The sdk names the text each screen
   shows, so every platform shows the same (owner, 2026-11-03).
+- The mocks are approved as the design (owner, 2026-11-03), with these choices confirmed: every
+  string says "this device", never "iPhone"; the two words asked are the same two for a key every
+  time; Keep asks for no Face ID, and Delete asks for it at its button after the words; Save now
+  offers Keep too; a wallet network and a second device share one card. See
+  [As built from the mocks](#as-built-from-the-mocks).
 
 ### Not in scope
 
@@ -111,7 +116,9 @@ There's no screen between the card and the result.
 - **Save the recovery phrase first** (the Save now flow) never writes anything to
   disk. The key exists only in memory. The Key screen opens, and the user taps the
   same button as in the other flow. Only then does the app sign. When consent
-  succeeds, the key is dropped from memory.
+  succeeds, the key is dropped from memory. Or the user picks **Keep it on this
+  device**: after the same two words, the key is written to the Keychain, read back,
+  and only then signs, and it stays for convert and Top 200 with no backup banner.
 
 The one tap is only for a network with no consent. Replacing a payout wallet keeps its
 warning (see [Edge cases](#edge-cases)).
@@ -127,8 +134,13 @@ paid to a key nobody holds.
   Copy while hidden.
 - It hides itself again after 60 s and whenever the app leaves the foreground.
 - One destructive action: **I have saved the key, it's OK to delete it now.**
-- Beside it, for a stored key: **I've saved it. Keep it on this device.** It asks for the same two
-  words, ends the reminders, and keeps the key.
+- Beside it: **I've saved it. Keep it on this device.** It asks for the same two words, ends the
+  reminders, and keeps the key. On Save now it stores the key first (see [The flow](#the-flow)).
+- The words hide before either one asks anything. The two words asked are the same two for a key
+  every time, so a field that says as the user types that its word is wrong can tell nothing but
+  those two words, whatever the number of tries. Keep shows and deletes nothing, so it asks for no
+  device authentication; deleting a stored key asks for it at the Delete key button, after the
+  words.
 - A confirmation before it acts, where the user enters two of the words: URnetwork
   can't get this key back, earnings keep going to this address, and only the recovery
   phrase can move them. If the network
@@ -174,6 +186,26 @@ isn't a secret.
 - **A second device on the same network.** It sees the address, and the message
   "This key is on another device". It can't show the phrase. Creating another key
   there replaces the payout wallet, with the warning above.
+
+### As built from the mocks
+
+The approved mocks (bteasy-mockups, flows 1 to 4) are the design. Where the build differs from a
+frame, it is one of these:
+
+- Every string says "this device", so one string serves iPhone, iPad, Mac and the other apps.
+- What deleting means, the two words and Keep replace the Key screen's content instead of sliding a
+  sheet over it, so the funds disclaimer shows once per screen.
+- A network paid to an outside wallet (3a) and a second device of the network (3d) are one card:
+  nothing tells them apart, since the server doesn't record how a key was made. "Create a new key
+  on this iPhone" moves into Change wallet (3b), as the mocks' note suggests, so the sharp edge of
+  replacing everyone's payout wallet sits behind the replace warning only.
+- A linked key's card keeps a small Change wallet link, which the frames leave out, so a network
+  can still move from the key to a wallet.
+- After Save now, the card reads as after a delete: "This app no longer has the key".
+- The claim sheet shows Claim now as queued, refused, or on its limit's date. It can't show
+  "Claimed by URnetwork" with the transaction (4d), because the relay's status doesn't name a
+  transaction; a claimed balance shows as claimed on the next read.
+- The Key screen's label reads "12 words · address 5F3s…": a key here is always 12 words.
 
 ## Claim relay
 

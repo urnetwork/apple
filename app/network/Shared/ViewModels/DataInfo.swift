@@ -103,7 +103,7 @@ struct OutOfBalanceNotice: Equatable {
     var willReconnect: Bool = false
     /// A Cancel action next to it: a refused start has no Disconnect to stop it.
     var cancel: Bool = false
-    /// "To upgrade, press Disconnect first ...": this build's checkout goes through
+    /// "To upgrade, press Disconnect first, and turn off the kill switch ...": this build's checkout goes through
     /// the tunnel, and the tunnel is holding the traffic.
     var disconnectFirst: Bool = false
 }

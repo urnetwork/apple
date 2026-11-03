@@ -47172,168 +47172,534 @@
       }
     },
     "Claim now is paid by URnetwork, once every %lld days." : {
-      "comment" : "Earnings, the settlement v2 tile, under the Claim now button: URnetwork pays the gas, and the button can be used once in this many days (30). Claim now is the button's label; keep it recognizable as that label.",
+      "comment" : "Earnings, the settlement v2 tile, under the Claim now button: URnetwork pays the gas, and the button can be used once in this many days (30 today; the count selects the plural form). Claim now is the button's label; keep it recognizable as that label.",
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل %lld يومًا."
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل %lld يوم."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل يوم."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل يومين."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل %lld أيام."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل %lld يومًا."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«المطالبة الآن» على حساب URnetwork، مرة كل %lld يوم."
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Vyzvednout hned“ hradí URnetwork, jednou za %lld dní."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "„Vyzvednout hned“ hradí URnetwork, jednou denně."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "„Vyzvednout hned“ hradí URnetwork, jednou za %lld dny."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "„Vyzvednout hned“ hradí URnetwork, jednou za %lld dne."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "„Vyzvednout hned“ hradí URnetwork, jednou za %lld dní."
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Jetzt einlösen“ wird von URnetwork bezahlt, einmal alle %lld Tage."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "„Jetzt einlösen“ wird von URnetwork bezahlt, einmal täglich."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "„Jetzt einlösen“ wird von URnetwork bezahlt, einmal alle %lld Tage."
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Το «Διεκδίκηση τώρα» πληρώνεται από το URnetwork, μία φορά κάθε %lld ημέρες."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Το «Διεκδίκηση τώρα» πληρώνεται από το URnetwork, μία φορά την ημέρα."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Το «Διεκδίκηση τώρα» πληρώνεται από το URnetwork, μία φορά κάθε %lld ημέρες."
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claim now is paid by URnetwork, once every %lld days."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Claim now is paid by URnetwork, once a day."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Claim now is paid by URnetwork, once every %lld days."
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reclamar ahora» lo paga URnetwork, una vez cada %lld días."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Reclamar ahora» lo paga URnetwork, una vez al día."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Reclamar ahora» lo paga URnetwork, una vez cada %lld días."
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Reclamar ahora” lo paga URnetwork, una vez cada %lld días."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Reclamar ahora” lo paga URnetwork, una vez al día."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Reclamar ahora” lo paga URnetwork, una vez cada %lld días."
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Reclamar ahora” lo paga URnetwork, una vez cada %lld días."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Reclamar ahora” lo paga URnetwork, una vez al día."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Reclamar ahora” lo paga URnetwork, una vez cada %lld días."
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« Réclamer maintenant » est payé par URnetwork, une fois tous les %lld jours."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "« Réclamer maintenant » est payé par URnetwork, une fois par jour."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "« Réclamer maintenant » est payé par URnetwork, une fois tous les %lld jours."
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«מימוש עכשיו» משולם על ידי URnetwork, פעם ב-%lld ימים."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» משולם על ידי URnetwork, פעם ביום."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» משולם על ידי URnetwork, פעם ביומיים."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» משולם על ידי URnetwork, פעם ב-%lld ימים."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» משולם על ידי URnetwork, פעם ב-%lld ימים."
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“अभी दावा करें” का भुगतान URnetwork करता है, हर %lld दिन में एक बार।"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“अभी दावा करें” का भुगतान URnetwork करता है, दिन में एक बार।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“अभी दावा करें” का भुगतान URnetwork करता है, हर %lld दिन में एक बार।"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Klaim sekarang” dibayar oleh URnetwork, sekali setiap %lld hari."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Klaim sekarang” dibayar oleh URnetwork, sekali setiap %lld hari."
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Riscatta ora» è pagato da URnetwork, una volta ogni %lld giorni."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Riscatta ora» è pagato da URnetwork, una volta al giorno."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Riscatta ora» è pagato da URnetwork, una volta ogni %lld giorni."
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「今すぐ受け取る」は URnetwork の負担で、%lld 日に 1 回利用できます。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "「今すぐ受け取る」は URnetwork の負担で、%lld 日に 1 回利用できます。"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“지금 받기”는 URnetwork가 비용을 부담하며, %lld일에 한 번 사용할 수 있습니다."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“지금 받기”는 URnetwork가 비용을 부담하며, %lld일에 한 번 사용할 수 있습니다."
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "‘Nu opeisen’ wordt betaald door URnetwork, één keer per %lld dagen."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "‘Nu opeisen’ wordt betaald door URnetwork, één keer per dag."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "‘Nu opeisen’ wordt betaald door URnetwork, één keer per %lld dagen."
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Za „Odbierz teraz” płaci URnetwork, raz na %lld dni."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Za „Odbierz teraz” płaci URnetwork, raz dziennie."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Za „Odbierz teraz” płaci URnetwork, raz na %lld dni."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Za „Odbierz teraz” płaci URnetwork, raz na %lld dni."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Za „Odbierz teraz” płaci URnetwork, raz na %lld dnia."
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reivindicar agora» é pago pelo URnetwork, uma vez a cada %lld dias."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Reivindicar agora» é pago pelo URnetwork, uma vez por dia."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Reivindicar agora» é pago pelo URnetwork, uma vez a cada %lld dias."
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Resgatar agora” é pago pelo URnetwork, uma vez a cada %lld dias."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Resgatar agora” é pago pelo URnetwork, uma vez por dia."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Resgatar agora” é pago pelo URnetwork, uma vez a cada %lld dias."
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reivindicar agora» é pago pelo URnetwork, uma vez a cada %lld dias."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Reivindicar agora» é pago pelo URnetwork, uma vez por dia."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Reivindicar agora» é pago pelo URnetwork, uma vez a cada %lld dias."
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Получить сейчас» оплачивается URnetwork, раз в %lld дн."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Получить сейчас» оплачивается URnetwork, раз в %lld день."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Получить сейчас» оплачивается URnetwork, раз в %lld дня."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Получить сейчас» оплачивается URnetwork, раз в %lld дней."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Получить сейчас» оплачивается URnetwork, раз в %lld дня."
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "”Hämta ut nu” betalas av URnetwork, en gång per %lld dagar."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "”Hämta ut nu” betalas av URnetwork, en gång per dag."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "”Hämta ut nu” betalas av URnetwork, en gång per %lld dagar."
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“รับตอนนี้” ออกค่าใช้จ่ายโดย URnetwork ใช้ได้ %lld วันต่อครั้ง"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“รับตอนนี้” ออกค่าใช้จ่ายโดย URnetwork ใช้ได้ %lld วันต่อครั้ง"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Отримати зараз» оплачується URnetwork, раз на %lld дн."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Отримати зараз» оплачується URnetwork, раз на %lld день."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Отримати зараз» оплачується URnetwork, раз на %lld дні."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Отримати зараз» оплачується URnetwork, раз на %lld днів."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«Отримати зараз» оплачується URnetwork, раз на %lld дня."
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Nhận ngay” do URnetwork chi trả, %lld ngày một lần."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Nhận ngay” do URnetwork chi trả, %lld ngày một lần."
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“立即领取”由 URnetwork 支付费用，每 %lld 天一次。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“立即领取”由 URnetwork 支付费用，每 %lld 天一次。"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「立即領取」由 URnetwork 支付費用，每 %lld 日一次。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "「立即領取」由 URnetwork 支付費用，每 %lld 日一次。"
+              }
+            }
+            }
           }
         }
       }
@@ -144892,168 +145258,534 @@
       }
     },
     "Paid by URnetwork, once every %lld days for each coldkey." : {
-      "comment" : "Earnings claim sheet, under the Claim now button: URnetwork pays the gas, once in this many days (30) for each Bittensor address (coldkey). Keep coldkey as the app writes it elsewhere.",
+      "comment" : "Earnings claim sheet, under the Claim now button: URnetwork pays the gas, once in this many days (30 today; the count selects the plural form) for each Bittensor address (coldkey). Keep coldkey as the app writes it elsewhere.",
       "localizations" : {
         "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "على حساب URnetwork، مرة كل %lld يومًا لكل coldkey."
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "على حساب URnetwork، مرة كل %lld يوم لكل coldkey."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "على حساب URnetwork، مرة كل يوم لكل coldkey."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "على حساب URnetwork، مرة كل يومين لكل coldkey."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "على حساب URnetwork، مرة كل %lld أيام لكل coldkey."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "على حساب URnetwork، مرة كل %lld يومًا لكل coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "على حساب URnetwork، مرة كل %lld يوم لكل coldkey."
+              }
+            }
+            }
           }
         },
         "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hradí URnetwork, jednou za %lld dní pro každý coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hradí URnetwork, jednou denně pro každý coldkey."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hradí URnetwork, jednou za %lld dny pro každý coldkey."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hradí URnetwork, jednou za %lld dne pro každý coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hradí URnetwork, jednou za %lld dní pro každý coldkey."
+              }
+            }
+            }
           }
         },
         "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bezahlt von URnetwork, einmal alle %lld Tage für jeden Coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Bezahlt von URnetwork, einmal täglich für jeden Coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Bezahlt von URnetwork, einmal alle %lld Tage für jeden Coldkey."
+              }
+            }
+            }
           }
         },
         "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Πληρώνεται από το URnetwork, μία φορά κάθε %lld ημέρες για κάθε coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Πληρώνεται από το URnetwork, μία φορά την ημέρα για κάθε coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Πληρώνεται από το URnetwork, μία φορά κάθε %lld ημέρες για κάθε coldkey."
+              }
+            }
+            }
           }
         },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paid by URnetwork, once every %lld days for each coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Paid by URnetwork, once a day for each coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Paid by URnetwork, once every %lld days for each coldkey."
+              }
+            }
+            }
           }
         },
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lo paga URnetwork, una vez cada %lld días por cada coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lo paga URnetwork, una vez al día por cada coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lo paga URnetwork, una vez cada %lld días por cada coldkey."
+              }
+            }
+            }
           }
         },
         "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lo paga URnetwork, una vez cada %lld días por cada coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lo paga URnetwork, una vez al día por cada coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lo paga URnetwork, una vez cada %lld días por cada coldkey."
+              }
+            }
+            }
           }
         },
         "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lo paga URnetwork, una vez cada %lld días por cada coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lo paga URnetwork, una vez al día por cada coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lo paga URnetwork, una vez cada %lld días por cada coldkey."
+              }
+            }
+            }
           }
         },
         "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payé par URnetwork, une fois tous les %lld jours pour chaque coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Payé par URnetwork, une fois par jour pour chaque coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Payé par URnetwork, une fois tous les %lld jours pour chaque coldkey."
+              }
+            }
+            }
           }
         },
         "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "משולם על ידי URnetwork, פעם ב-%lld ימים לכל coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "משולם על ידי URnetwork, פעם ביום לכל coldkey."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "משולם על ידי URnetwork, פעם ביומיים לכל coldkey."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "משולם על ידי URnetwork, פעם ב-%lld ימים לכל coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "משולם על ידי URnetwork, פעם ב-%lld ימים לכל coldkey."
+              }
+            }
+            }
           }
         },
         "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भुगतान URnetwork करता है, हर coldkey के लिए हर %lld दिन में एक बार।"
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "भुगतान URnetwork करता है, हर coldkey के लिए दिन में एक बार।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "भुगतान URnetwork करता है, हर coldkey के लिए हर %lld दिन में एक बार।"
+              }
+            }
+            }
           }
         },
         "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dibayar oleh URnetwork, sekali setiap %lld hari untuk setiap coldkey."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dibayar oleh URnetwork, sekali setiap %lld hari untuk setiap coldkey."
+              }
+            }
+            }
           }
         },
         "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagato da URnetwork, una volta ogni %lld giorni per ogni coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pagato da URnetwork, una volta al giorno per ogni coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pagato da URnetwork, una volta ogni %lld giorni per ogni coldkey."
+              }
+            }
+            }
           }
         },
         "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "URnetwork の負担で、coldkey ごとに %lld 日に 1 回利用できます。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "URnetwork の負担で、coldkey ごとに %lld 日に 1 回利用できます。"
+              }
+            }
+            }
           }
         },
         "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "URnetwork가 비용을 부담하며, coldkey마다 %lld일에 한 번 사용할 수 있습니다."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "URnetwork가 비용을 부담하며, coldkey마다 %lld일에 한 번 사용할 수 있습니다."
+              }
+            }
+            }
           }
         },
         "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Betaald door URnetwork, één keer per %lld dagen per coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Betaald door URnetwork, één keer per dag per coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Betaald door URnetwork, één keer per %lld dagen per coldkey."
+              }
+            }
+            }
           }
         },
         "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Płaci URnetwork, raz na %lld dni dla każdego coldkeya."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Płaci URnetwork, raz dziennie dla każdego coldkeya."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Płaci URnetwork, raz na %lld dni dla każdego coldkeya."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Płaci URnetwork, raz na %lld dni dla każdego coldkeya."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Płaci URnetwork, raz na %lld dnia dla każdego coldkeya."
+              }
+            }
+            }
           }
         },
         "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pago pelo URnetwork, uma vez a cada %lld dias por cada coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pago pelo URnetwork, uma vez por dia por cada coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pago pelo URnetwork, uma vez a cada %lld dias por cada coldkey."
+              }
+            }
+            }
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pago pelo URnetwork, uma vez a cada %lld dias para cada coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pago pelo URnetwork, uma vez por dia para cada coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pago pelo URnetwork, uma vez a cada %lld dias para cada coldkey."
+              }
+            }
+            }
           }
         },
         "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pago pelo URnetwork, uma vez a cada %lld dias por cada coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pago pelo URnetwork, uma vez por dia por cada coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Pago pelo URnetwork, uma vez a cada %lld dias por cada coldkey."
+              }
+            }
+            }
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оплачивается URnetwork, раз в %lld дн. для каждого coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачивается URnetwork, раз в %lld день для каждого coldkey."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачивается URnetwork, раз в %lld дня для каждого coldkey."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачивается URnetwork, раз в %lld дней для каждого coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачивается URnetwork, раз в %lld дня для каждого coldkey."
+              }
+            }
+            }
           }
         },
         "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Betalas av URnetwork, en gång per %lld dagar för varje coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Betalas av URnetwork, en gång per dag för varje coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Betalas av URnetwork, en gång per %lld dagar för varje coldkey."
+              }
+            }
+            }
           }
         },
         "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ออกค่าใช้จ่ายโดย URnetwork ใช้ได้ %lld วันต่อครั้งสำหรับแต่ละ coldkey"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "ออกค่าใช้จ่ายโดย URnetwork ใช้ได้ %lld วันต่อครั้งสำหรับแต่ละ coldkey"
+              }
+            }
+            }
           }
         },
         "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оплачується URnetwork, раз на %lld дн. для кожного coldkey."
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачується URnetwork, раз на %lld день для кожного coldkey."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачується URnetwork, раз на %lld дні для кожного coldkey."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачується URnetwork, раз на %lld днів для кожного coldkey."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Оплачується URnetwork, раз на %lld дня для кожного coldkey."
+              }
+            }
+            }
           }
         },
         "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Do URnetwork chi trả, %lld ngày một lần cho mỗi coldkey."
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Do URnetwork chi trả, %lld ngày một lần cho mỗi coldkey."
+              }
+            }
+            }
           }
         },
         "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "由 URnetwork 支付费用，每个 coldkey 每 %lld 天一次。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "由 URnetwork 支付费用，每个 coldkey 每 %lld 天一次。"
+              }
+            }
+            }
           }
         },
         "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "由 URnetwork 支付費用，每個 coldkey 每 %lld 日一次。"
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "由 URnetwork 支付費用，每個 coldkey 每 %lld 日一次。"
+              }
+            }
+            }
           }
         }
       }
@@ -225175,8 +225907,176 @@
         }
       }
     },
+    "To upgrade, press Disconnect first, and turn off the kill switch if it's on. Payment can't get through until you do." : {
+      "comment" : "Out-of-balance alert, on the apple and android builds whose checkout has to go through the tunnel (the macOS direct download, the Android Play flavor), while the tunnel holds traffic. Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. On these apps a kill switch that is on keeps the tunnel up after a Disconnect and still stops the payment, so the line also says to turn it off. Each translation names Disconnect by its own label (the disconnect key) and the kill switch by the label of its setting (the kill_switch key).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "للترقية، اختر «قطع الاتصال» أولًا، وأوقف «مفتاح القتل» إن كان مفعّلًا. لا يمكن إتمام الدفع قبل ذلك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro přechod na vyšší tarif nejprve zvolte „Odpojení“ a vypněte Kill switch, pokud je zapnutý. Do té doby platba neprojde."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle zum Upgraden zuerst „Trennen“ und schalte den Kill switch aus, falls er an ist. Vorher kommt die Zahlung nicht durch."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Για να αναβαθμίσετε, επιλέξτε πρώτα «Αποσύνδεση» και απενεργοποιήστε το Kill switch, αν είναι ενεργό. Μέχρι τότε η πληρωμή δεν μπορεί να ολοκληρωθεί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To upgrade, press Disconnect first, and turn off the kill switch if it's on. Payment can't get through until you do."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero «Desconectar» y desactiva el Kill switch si está activado. Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero \"Desconectar\" y desactiva el Kill switch si está activado. Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mejorar tu plan, elige primero \"Desconectar\" y desactiva el Kill switch si está activado. Hasta entonces, el pago no podrá completarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour passer à une offre supérieure, choisissez d’abord « Déconnecter » et désactivez le Kill switch s’il est activé. Le paiement ne peut pas aboutir avant cela."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לשדרג, בחר קודם \"התנתק\" וכבה את הקיל סוויץ' אם הוא פועל. עד אז התשלום לא יוכל לעבור."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपग्रेड करने के लिए पहले \"डिस्कनेक्ट करें\" चुनें, और किल स्विच चालू हो तो उसे बंद करें। तब तक भुगतान पूरा नहीं हो पाएगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untuk meningkatkan paket, pilih “Putuskan” terlebih dahulu dan matikan Kill switch jika sedang aktif. Pembayaran tidak dapat diproses sebelum itu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per effettuare l’upgrade, scegli prima «Disconnetti» e disattiva il Kill switch se è attivo. Fino ad allora il pagamento non può andare a buon fine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップグレードするには、先に「切断する」を選択し、キルスイッチがオンの場合はオフにしてください。それまでは支払いを完了できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업그레이드하려면 먼저 '연결 해제'를 선택하고, 킬 스위치가 켜져 있으면 끄세요. 그 전에는 결제를 완료할 수 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies eerst ‘Verbinding verbreken’ om te upgraden en zet de Kill switch uit als die aan staat. Tot die tijd kan de betaling niet doorgaan."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aby przejść na wyższy plan, najpierw wybierz „Rozłącz” i wyłącz Kill switch, jeśli jest włączony. Do tego czasu płatność nie przejdzie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desconectar\" e desative o Kill switch se estiver ativado. Até lá, o pagamento não será concluído."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desconectar\" e desative o Kill switch se estiver ativado. Até lá, o pagamento não será concluído."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para fazer upgrade, escolha primeiro \"Desligar\" e desative o Kill switch se estiver ativado. Até lá, o pagamento não será concluído."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы повысить тариф, сначала выберите «Отключить» и выключите Kill switch, если он включён. До этого оплата не пройдёт."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj först ”Koppla från” för att uppgradera och stäng av Kill switch om den är på. Innan dess går betalningen inte igenom."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หากต้องการอัปเกรด ให้เลือก “ตัดการเชื่อมต่อ” ก่อน และปิดสวิตช์หยุดการเชื่อมต่อหากเปิดอยู่ จนกว่าจะถึงตอนนั้น การชำระเงินจะไม่สำเร็จ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб підвищити тариф, спочатку виберіть «Відключитися» і вимкніть Kill switch, якщо його ввімкнено. Доти оплата не пройде."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để nâng cấp, trước tiên hãy chọn “Ngắt kết nối” và tắt Kill switch nếu đang bật. Cho đến lúc đó, thanh toán sẽ không thể hoàn tất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要升级，请先选择“断开连接”；如果断网保护已开启，请将其关闭。在此之前，付款无法完成。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要升級，請先選擇「斷開連接」；如果斷線開關 (Kill switch) 已開啟，請將其關閉。在此之前，付款無法完成。"
+          }
+        }
+      }
+    },
     "To upgrade, press Disconnect first. Payment can't get through until you do." : {
-      "comment" : "Out-of-balance alert, on the builds whose checkout has to go through the tunnel (Windows, Linux, the Android Play flavor, the macOS direct download), while the tunnel holds or blocks traffic. Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. Each translation names that button by its own label (the disconnect key).",
+      "comment" : "Out-of-balance alert, on the desktop builds whose checkout has to go through the tunnel (Windows, Linux), while the tunnel holds or blocks traffic. Their Disconnect lifts the kill switch too; apple and android say more (insufficient_balance_disconnect_first_kill_switch). Payment cannot reach the store until the user disconnects, and nothing disconnects for them; Disconnect is the button beside this line. Each translation names that button by its own label (the disconnect key).",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

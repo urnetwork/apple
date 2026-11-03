@@ -336,6 +336,11 @@ func TestBittensorKeyCardLeadsAndBackUpFirstOpensTheKey(t *testing.T) {
 	if strings.Count(settings, `Button("Back up first") {`) != 2 || strings.Count(settings, "deepLinkRouter.openEarningsKeyScreen()") != 2 {
 		t.Error("Delete account's warnings have no Back up first")
 	}
+	// the iOS and the macOS warning both call the router, so every build declares it
+	declared := strings.Index(settings, "@EnvironmentObject var deepLinkRouter: DeepLinkRouter")
+	if declared < 0 || bittensorKeyConditionalDepth(settings[:declared]) != 0 {
+		t.Error("SettingsView declares the router Back up first calls for some builds only")
+	}
 	delegate := bittensorKeyRead(t, "app/network/AppDelegate.swift")
 	for _, line := range []string{
 		"if response.notification.request.identifier == BittensorKeyReminderNotice.identifier {",
@@ -849,6 +854,21 @@ func bittensorKeyBlock(t *testing.T, source string, start int) string {
 	}
 	t.Fatal("unbalanced block")
 	return ""
+}
+
+// How many #if blocks of a Swift source are still open at its end.
+func bittensorKeyConditionalDepth(source string) int {
+	depth := 0
+	for _, line := range strings.Split(source, "\n") {
+		line = strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(line, "#if"):
+			depth++
+		case strings.HasPrefix(line, "#endif"):
+			depth--
+		}
+	}
+	return depth
 }
 
 // The owner's disclaimer (BTEASY.md, Wording; 2026-11-03), in plain view on every screen of the easy

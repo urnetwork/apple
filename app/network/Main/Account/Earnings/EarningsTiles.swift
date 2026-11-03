@@ -522,7 +522,7 @@ struct SnLedgerTile: View {
     }
 }
 
-/// The network payout consent, beside the settlement v2 tile: the coldkey
+/// The network payout consent, above the wallet cards: the coldkey
 /// every provider client of the network is paid to, or that there is none,
 /// so earnings are not paid. Sign with wallet and Change wallet open the
 /// consent sheet, and only a session with the network credential is offered

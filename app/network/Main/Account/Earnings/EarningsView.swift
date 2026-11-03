@@ -7,14 +7,15 @@
 //  Connecting a Bittensor coldkey adds the subnet layer: the history rows gain
 //  SN25α, the unclaimed tile appears and claims go straight from this device
 //  to the settlement vault. The settlement v2 balances show in a tile of
-//  their own beside it, with their own claim, and the network payout consent
-//  beside them: the coldkey one signature by the network's owner pays every
-//  provider of the network to. Alpha is not retroactive. USDC
+//  their own beside it, with their own claim. The network payout consent names
+//  the coldkey one signature by the network's owner pays every provider of the
+//  network to. Alpha is not retroactive. USDC
 //  payouts continue to a Solana wallet until the migration to Bittensor is
 //  complete; the wallet options next to the Bittensor call connect it. The
-//  payout card comes first for a network without a consent, since that is one
-//  tap away from earning (apple/BTEASY.md): the SDK's payout key flow behind it
-//  makes the key, and a banner stays while its phrase isn't saved.
+//  payout consent card sits above the wallet cards, since a network without a
+//  consent is one tap away from earning (apple/BTEASY.md): the SDK's payout key
+//  flow behind it makes the key, and a banner stays while its phrase isn't
+//  saved.
 //
 
 import SwiftUI

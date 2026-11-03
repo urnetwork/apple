@@ -7,7 +7,7 @@
 //  (presentationPane, sheetPlacement, overlayFrame):
 //  - every sheet presents through sheetOffTheFold. While the fold divides the
 //    window like a book, the system places the sheet on its pane's side
-//    (presentationPlacement, iOS 27) no wider than the pane
+//    (presentationPlacement, applied from iOS 27.1) no wider than the pane
 //    (presentationSizing). Otherwise nothing is applied, so iPhone, iPad, the
 //    Mac and a flat or closed iPhone Duo present the sheet as they always have.
 //  - an overlay as wide as the window keeps to the same pane
@@ -90,9 +90,12 @@ private struct SheetOffTheFold: ViewModifier {
         content
             .background {
                 #if os(iOS)
-                // presentationPlacement is iOS 27.0; a placement is published
-                // only where the window has a fold, which is iOS 27.1
-                if #available(iOS 27.0, *) {
+                // A placement is published only where the window has a fold,
+                // which is iOS 27.1, so the presentation modifiers are gated on
+                // 27.1 too. Gated on 27.0, an iOS 27.0 beta that lacks
+                // presentationPlacement aborts when any sheet's body resolves
+                // this branch's types (swift_getTypeByMangledNameInContext).
+                if #available(iOS 27.1, *) {
                     if let placement {
                         Color.clear
                             .presentationPlacement(placement.side == .leading ? .leading : .trailing)

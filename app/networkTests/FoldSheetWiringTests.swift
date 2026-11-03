@@ -70,7 +70,8 @@ struct FoldSheetWiringTests {
     }
 
     @Test func aPlacementSetsTheSheetsSide() async throws {
-        guard #available(iOS 27.0, *) else { return }
+        // the app applies a placement from iOS 27.1 (FoldPresentation)
+        guard #available(iOS 27.1, *) else { return }
         let (trailing, trailingWindow) = try await sheetOffTheFold(placement: SheetPlacement(side: .trailing, maxWidth: 423))
         #expect(trailing.preferredPlacement == .trailing)
         close(trailingWindow)

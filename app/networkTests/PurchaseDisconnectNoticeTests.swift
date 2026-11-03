@@ -12,22 +12,22 @@ import Testing
 @Suite(.serialized)
 struct PurchaseDisconnectNoticeTests {
 
-    private static func answer(pressing button: Int) -> Bool {
+    private static func answer(pressing button: Int) async -> Bool {
         let alert = PurchaseDisconnectNotice.makeAlert()
         RunLoop.main.perform(inModes: [.modalPanel]) {
             alert.buttons[button].performClick(nil)
         }
-        return PurchaseDisconnectNotice.answer(alert)
+        return await PurchaseDisconnectNotice.answer(alert)
     }
 
-    @Test func theFirstButtonGoesAheadAndTheOtherDoesNot() {
-        #expect(Self.answer(pressing: 0))
-        #expect(!Self.answer(pressing: 1))
+    @Test func theFirstButtonGoesAheadAndTheOtherDoesNot() async {
+        #expect(await Self.answer(pressing: 0))
+        #expect(await !Self.answer(pressing: 1))
     }
 
     /// The flow asks on the main actor and waits there. Status reports and the
     /// menu bar run on it too: they go on while the alert is up.
-    @Test func theMainActorKeepsRunningWhileTheAlertIsUp() {
+    @Test func theMainActorKeepsRunningWhileTheAlertIsUp() async {
         final class Ran: @unchecked Sendable {
             var value = false
         }
@@ -39,7 +39,18 @@ struct PurchaseDisconnectNoticeTests {
                 alert.buttons[1].performClick(nil)
             }
         }
-        #expect(!PurchaseDisconnectNotice.answer(alert))
+        // ends the alert if that task never runs, so the test fails rather than
+        // waiting with an alert on the screen
+        let bound = Timer(timeInterval: 10, repeats: false) { _ in
+            MainActor.assumeIsolated {
+                _ = alert.buttons[1].performClick(nil)
+            }
+        }
+        RunLoop.main.add(bound, forMode: .modalPanel)
+        defer {
+            bound.invalidate()
+        }
+        #expect(await !PurchaseDisconnectNotice.answer(alert))
         #expect(ran.value)
     }
 

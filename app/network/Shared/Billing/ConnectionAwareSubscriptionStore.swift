@@ -85,17 +85,25 @@ enum PurchaseDisconnectNotice {
 
     static func confirm() async -> Bool {
         #if os(macOS)
-        return answer(makeAlert())
+        return await answer(makeAlert())
         #else
         return true
         #endif
     }
 
     #if os(macOS)
-    /// Waits for a button in the alert's own modal loop, which keeps running
-    /// the app's other main actor work.
-    static func answer(_ alert: NSAlert) -> Bool {
-        alert.runModal() == .alertFirstButtonReturn
+    /// Waits for a button in the alert's own modal loop. The loop starts from
+    /// the run loop and not from this task: a run loop nested in a main queue
+    /// block does not drain the main queue, so the main actor's other work (the
+    /// status reports among it) would wait for the alert.
+    static func answer(_ alert: NSAlert) async -> Bool {
+        await withCheckedContinuation { continuation in
+            RunLoop.main.perform(inModes: [.common]) {
+                MainActor.assumeIsolated {
+                    continuation.resume(returning: alert.runModal() == .alertFirstButtonReturn)
+                }
+            }
+        }
     }
 
     static func makeAlert() -> NSAlert {

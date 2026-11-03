@@ -47,6 +47,8 @@ protocol ProviderStatusControlling: AnyObject {
     func start()
     /// Stops polling; the last snapshot stays readable.
     func stop()
+    /// Polls now, if started.
+    func refresh()
     /// Calls `changed` after every poll, until the subscription is closed.
     func addStatusListener(_ changed: @escaping () -> Void) -> SdkSubProtocol?
     /// The controller's current state, from one status object.
@@ -131,6 +133,16 @@ class ProviderStatusStore: ObservableObject {
         } else {
             controller?.stop()
         }
+    }
+
+    /// Asks for the status now, as the pull to refresh does: the controller
+    /// otherwise waits for its next poll, up to a minute after a failed one. Off
+    /// screen the controller is stopped, and the next showing polls at once.
+    func refresh() {
+        guard visible else {
+            return
+        }
+        controller?.refresh()
     }
 
     /// Opens the controller the first time, then starts it polling.

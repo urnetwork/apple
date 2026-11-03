@@ -186,6 +186,10 @@ struct SnClaimStatusInfo: Equatable {
     var claimNowPeriodDays: Int64 = 0
     /// the balances could not be read: unavailable, never zero
     var unavailable = false
+    /// the sdk's rule for the Settlement v2 tile of a network with no wallet on
+    /// this device (SnClaimStatusResult.ShowsTile): a claimable or pending
+    /// balance, or a claim URnetwork paid in full. Never while unavailable
+    var showsTile = false
 
     /// URnetwork is the one claiming: it is, or it will once a balance or a
     /// new day allows. Otherwise the device's own claim is the way for now.

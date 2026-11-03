@@ -477,7 +477,8 @@ final class EarningsSdkClient: EarningsClient {
             automaticThresholdTaoRao: result.automaticThresholdTaoRao,
             transferFloorTaoRao: result.transferFloorTaoRao,
             claimNowPeriodDays: result.claimNowPeriodDays,
-            unavailable: result.error != nil
+            unavailable: result.error != nil,
+            showsTile: result.showsTile
         )
     }
 

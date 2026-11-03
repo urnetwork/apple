@@ -1,6 +1,7 @@
 # BTEASY: a one-tap Bittensor key for casual miners
 
-Status: plan, not started. Answer the [open questions](#open-questions) first.
+Status: plan, not started. The [questions](#open-questions) are answered, and the build starts
+with its first step.
 Apple first, then the other platforms.
 
 ## Goal
@@ -42,6 +43,9 @@ version is a minimal **convert SN25α to TAO**, which stays on the same key (see
 - URnetwork relays bindings for small fleets, and a miner with no alpha gets a capped top-up
   (questions 15 and 16).
 - The delete confirmation warns that deleting the key also gives up one-tap Top 200.
+- The relay pays for v2 claims only, up to 0.01 TAO a day (question 1).
+- Convert ships as soon as it's ready, with no limit by region (question 2).
+- **Where this plan leaves something open, do what's easiest for the end user** (owner, 2026-11-03).
 
 ### Not in scope
 
@@ -117,8 +121,9 @@ paid to a key nobody holds.
   Copy while hidden.
 - It hides itself again after 60 s and whenever the app leaves the foreground.
 - One destructive action: **I have saved the key, it's OK to delete it now.**
-- A confirmation before it acts: URnetwork can't get this key back, earnings keep
-  going to this address, and only the recovery phrase can move them. If the network
+- A confirmation before it acts, where the user enters two of the words: URnetwork
+  can't get this key back, earnings keep going to this address, and only the recovery
+  phrase can move them. If the network
   hasn't registered for Top 200, it also says that deleting the key gives up the one-tap
   claim, since registering needs this key. After that, claiming takes a wallet holding
   the recovery phrase (see
@@ -196,7 +201,7 @@ value rather than α.
 
 ### What we need to do
 
-1. **Pick the policy** (question 1): v2 only, the threshold, and a spending cap.
+1. **The policy is decided** (question 1): v2 only, the threshold, and a daily cap of 0.01 TAO.
 2. **Create and fund a relayer key.** A dedicated EVM key holding only operating TAO,
    stored in the vault. Funding it, and deploying `STClaimBatcher` if it isn't already
    deployed, are on-chain actions that need the owner's go and a role check first.
@@ -204,7 +209,7 @@ value rather than α.
    handles the relayer key, nonces, one transaction per account and refusals. What's new
    is covering every consented coldkey rather than one miner's accounts, and reading them
    from `st_ledger_v2_account`.
-4. **Cost control:** a daily spending cap, a gas price ceiling, and a stop when a claim's
+4. **Cost control:** the 0.01 TAO daily cap, a gas price ceiling, and a stop when a claim's
    gas jumps, which is what griefing looks like.
 5. **Monitoring:** relayer balance, spend, claims pending and refused, with dashboards and
    alerts that pass the server's coverage tests.
@@ -532,7 +537,8 @@ question 7). The docs get tested, exact steps for importing into Talisman, Nova 
 5. **Claim relay,** in parallel with 2 to 4, since it doesn't depend on them. It must be
    live, or claims shown honestly as pending, before this ships.
 6. **Docs and strings,** App Review notes, TestFlight.
-7. **Convert** (question 2). Ship the rest without waiting for it.
+7. **Convert** (question 2), as soon as it's ready and its testnet proof passes. The rest
+   doesn't wait for it, and it doesn't wait for the rest.
 8. **Port.**
 9. **Top 200,** once binding is open and convert is proven. Its server side covers every
    platform; each platform adds auto-signing and Leave. A `provider` release adds the same for
@@ -568,59 +574,60 @@ its store, Key screen and strings. Store review needs rechecking at each port.
 
 ## Open questions
 
-Each has my recommendation, so "yes to all" is a valid answer.
+All answered as of 2026-11-03. The numbers stay because other sections refer to them.
 
-1. **Relay policy: when do we pay?** At about 0.19 α a claim, relaying small balances costs
+1. **Decided (owner, 2026-11-03): the relay policy below, with a daily cap of 0.01 TAO.** At about 0.19 α a claim, relaying small balances costs
    more than they're worth, and a low threshold has real cost at scale.
    - **Automatic claims:** at sn's 1.9 α default, gas stays at 10% of the claim, but by sn's
      figures an average miner at a 100k population takes about 2.5 years to get there.
    - **On request:** a "Claim now" tap, which we pay for, limited per coldkey.
 
-   **Recommend** v2 only; automatic at about 0.0125 TAO of value (1.9 α at sn's planning price,
+   The policy is v2 only; automatic at about 0.0125 TAO of value (1.9 α at sn's planning price,
    about 3 α today); "Claim now" once balance clears the transfer floor (0.0001 TAO of value),
-   at most once per 30 days per coldkey; and a daily spending cap you set. v2 credit
-   never expires, so waiting costs the miner nothing. What daily cap are you comfortable with?
+   at most once per 30 days per coldkey; and a daily cap of 0.01 TAO on claims. v2 credit never
+   expires, so waiting costs the miner nothing. At about 0.00074 to 0.0008 TAO a claim, the cap pays
+   for about 12 claims a day; past that, claims wait for the next day. Bindings and top-ups are
+   outside this cap (questions 15 and 16).
 
-2. **When does convert ship?** It's separate work from the rest of the key flow. **Recommend**
-   shipping it after the rest.
+2. **Decided (owner, 2026-11-03): convert ships as soon as it's ready, with no limit by region.** It's
+   separate work from the rest of the key flow, so neither waits for the other.
 
-3. **Convert after the key is deleted.** Once deleted, the app can't sign, so convert is gone; the
-   user goes to a wallet or btcli. That means Save now users never get convert. **Recommend** accepting
-   that and saying so on the delete confirmation. Alternatively, a user could keep the key to keep
-   convert, which the Save later flow already allows. Deleting also gives up one-tap Top 200
-   registration, and the delete confirmation says so (decided, owner, 2026-11-02).
+3. **Decided (owner, 2026-11-03): convert ends when the key is deleted.** Once deleted, the app can't sign,
+   so the user goes to a wallet or btcli. That means Save now users never get convert, and the delete
+   confirmation says so. A user can keep the key to keep convert, which the Save later flow already
+   allows. Deleting also gives up one-tap Top 200 registration, and the delete confirmation says so
+   (decided, owner, 2026-11-02).
 
-4. **What does the key sign?** I read "the transaction" as the payout consent, plus convert now.
-   Claims use the relay. Is that what you meant?
+4. **Decided (owner, 2026-11-03): the key signs the payout consent, plus convert.** Claims use the relay.
+   For Top 200 it also signs what the flow's table gives it. The owner's reading is whatever makes
+   this easiest for the end user.
 
 5. **Decided (owner, 2026-11-02): Save later is the default,** as the card's main button,
    with the reminder doing the work. Save now stays one tap away, as a smaller link.
 
-6. **Must the user prove they saved the phrase before deleting?** For example, by
-   entering two of the words. A single tap is simplest, but it's the only moment that
-   stands between a misclick and lost access. **Recommend** the confirmation dialog plus
-   entering two words, on both flows.
+6. **Decided (owner, 2026-11-03): the user proves they saved the phrase before deleting,** with the
+   confirmation dialog plus entering two of the words, on both flows. It's the only moment that
+   stands between a misclick and lost access.
 
-7. **12 or 24 words?** The account seed phrase is 24 words and is a different secret,
-   so users will confuse them. **Recommend** 12, the common default in Bittensor
-   wallets, and always calling this one the "Bittensor recovery phrase" or similar.
+7. **Decided (owner, 2026-11-03): 12 words,** the common default in Bittensor wallets, always called the
+   "Bittensor recovery phrase" or similar. The account seed phrase is 24 words and is a different
+   secret, so users could confuse them.
 
-8. **Device authentication to reveal or delete a stored key?** **Recommend** yes for
-   both, and none for signing during setup or for Save now.
+8. **Decided (owner, 2026-11-03): device authentication to reveal or delete a stored key,** and none for
+   signing during setup or for Save now.
 
-9. **Replace an existing payout wallet?** **Recommend** offering it, with the warning,
-   since some users will be stuck on a wallet that can't sign. Alternatively, offer
-   this only to networks with no consent, which is simpler and avoids mistakes.
+9. **Decided (owner, 2026-11-03): offer replacing an existing payout wallet,** with the warning, since some
+   users will be stuck on a wallet that can't sign.
 
-10. **Reminders while a key is unsaved?** **Recommend** a persistent banner on
-    Earnings, plus one local notification when the first epoch becomes claimable, since
-    that's when the key starts to be worth something. No repeated nagging.
+10. **Decided (owner, 2026-11-03): a persistent banner on Earnings while a key is unsaved,** plus one local
+    notification when the first epoch becomes claimable, since that's when the key starts to be worth
+    something. No repeated nagging.
 
-11. **Who can create a key?** **Recommend** signed-in accounts only, no guests, and
-    only the network owner's session, matching who can sign the consent today.
+11. **Decided (owner, 2026-11-03): signed-in accounts only, no guests, and only the network owner's session,**
+    matching who can sign the consent today.
 
-12. **Both Mac builds.** App Store and direct builds should see the same key, through a
-    shared Keychain access group. **Recommend** yes, if entitlements allow it for both.
+12. **Decided (owner, 2026-11-03): both Mac builds see the same key,** App Store and direct, through a shared
+    Keychain access group, if entitlements allow it for both.
 
 13. **Decided (owner, 2026-11-02): open binding on mainnet,** as its own release, with each
     on-chain step brought to the owner first. Preparation has started.
@@ -631,25 +638,24 @@ Each has my recommendation, so "yes to all" is a valid answer.
 15. **Decided (owner, 2026-11-02): URnetwork relays bindings for small fleets up to a device limit,**
     with larger fleets paying their own. Each bound device is its own transaction, at least every 3
     months. Two mainnet binds read about 263,640 gas each, so 7 devices cost about 0.009 TAO per binding
-    period at 5 gwei, and 200 fleets of 7 about 1.8 TAO. **Still to set: the limit.** Recommend the
-    per-fleet share (7 at a cohort of 1,500), since the server binds no more than that, so every fleet
-    the one tap binds is covered. Funding the relayer is an on-chain step that comes to the owner first.
+    period at 5 gwei, and 200 fleets of 7 about 1.8 TAO. **The limit is the per-fleet share,** 7 at a
+    cohort of 1,500 (owner, 2026-11-03): the server binds no more than that, so every fleet the one tap binds is
+    covered. Funding the relayer is an on-chain step that comes to the owner first.
 
 16. **Decided (owner, 2026-11-02): a capped top-up,** only for networks the app already prompts to
-    claim. **Still to set: the cap and the key that pays it.** Recommend the live burn plus its fee,
-    once per network. Creating and funding that key are on-chain steps that come to the owner first.
+    claim. **The cap is the live burn plus its fee, once per network** (owner, 2026-11-03). Still to set: the key
+    that pays it. Creating and funding that key are on-chain steps that come to the owner first.
 
-17. **Existing wallets: two approvals or one?** The authorization is a message and the registration is a
-    transaction. They could become one approval, a single batched transaction, if devices took the chain's
-    record of the hotkey's owner as the authorization. That needs a chain read on every device and a
-    transport that can send a batch, neither of which exists on the phone today. **Recommend** two
-    approvals in the first version, since it happens once and the device check stays simple, and folding
-    them later if wallets prove able.
+17. **Decided (owner, 2026-11-03): two wallet approvals in the first version,** since it happens once and the
+    device check stays simple. The authorization is a message and the registration is a transaction. They
+    could become one approval, a single batched transaction, if devices took the chain's record of the
+    hotkey's owner as the authorization. That needs a chain read on every device and a transport that can
+    send a batch, neither of which exists on the phone today, so fold them later if wallets prove able.
 
-18. **Headless auto-signing: on by default?** Opt-in would need someone at every host, which is the thing
-    this path removes. The risk is a server bug, breach or stolen account reaching those devices, which
-    the coldkey authorization, the pin and the admin email are there to catch. **Recommend** on by default,
-    with the opt-out flag.
+18. **Decided (owner, 2026-11-03): headless auto-signing is on by default,** with the opt-out flag. Opt-in would
+    need someone at every host, which is the thing this path removes. The risk is a server bug, breach or
+    stolen account reaching those devices, which the coldkey authorization, the pin and the admin email are
+    there to catch.
 
 ## Found while planning
 

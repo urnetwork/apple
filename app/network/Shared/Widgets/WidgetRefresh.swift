@@ -178,27 +178,38 @@ final class WidgetReloadThrottle {
     private let interval: TimeInterval
     private let urgentDelay: TimeInterval
     private let queue: DispatchQueue
+    private let now: () -> Date
+    private let runAfter: (TimeInterval, DispatchWorkItem) -> Void
     private let reload: () -> Void
     private var lastReloadAt: Date?
     private var pending: DispatchWorkItem?
     private var pendingUrgent: DispatchWorkItem?
 
+    /// `now` and `runAfter` are the throttle's clock, called on `queue`: the
+    /// time, and running a work item on `queue` that long from now. They are
+    /// the wall clock unless a test moves time itself.
     init(
         interval: TimeInterval,
         urgentDelay: TimeInterval = 0,
         queue: DispatchQueue = DispatchQueue(label: "network.ur.widget-reload"),
+        now: @escaping () -> Date = { Date() },
+        runAfter: ((TimeInterval, DispatchWorkItem) -> Void)? = nil,
         reload: @escaping () -> Void
     ) {
         self.interval = interval
         self.urgentDelay = urgentDelay
         self.queue = queue
+        self.now = now
+        self.runAfter = runAfter ?? { delay, work in
+            queue.asyncAfter(deadline: .now() + delay, execute: work)
+        }
         self.reload = reload
     }
 
     func request(urgent: Bool = false) {
         queue.async { [weak self] in
             guard let self else { return }
-            let now = Date()
+            let now = self.now()
             if urgent {
                 guard 0 < self.urgentDelay else {
                     self.fire(at: now, routine: false)
@@ -209,10 +220,10 @@ final class WidgetReloadThrottle {
                 let work = DispatchWorkItem { [weak self] in
                     guard let self else { return }
                     self.pendingUrgent = nil
-                    self.fire(at: Date(), routine: false)
+                    self.fire(at: self.now(), routine: false)
                 }
                 self.pendingUrgent = work
-                self.queue.asyncAfter(deadline: .now() + self.urgentDelay, execute: work)
+                self.runAfter(self.urgentDelay, work)
                 return
             }
             let elapsed = self.lastReloadAt.map { now.timeIntervalSince($0) } ?? .infinity
@@ -224,10 +235,10 @@ final class WidgetReloadThrottle {
             let work = DispatchWorkItem { [weak self] in
                 guard let self else { return }
                 self.pending = nil
-                self.fire(at: Date(), routine: true)
+                self.fire(at: self.now(), routine: true)
             }
             self.pending = work
-            self.queue.asyncAfter(deadline: .now() + (self.interval - elapsed), execute: work)
+            self.runAfter(self.interval - elapsed, work)
         }
     }
 

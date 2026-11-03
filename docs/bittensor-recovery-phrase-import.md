@@ -62,8 +62,8 @@ btcli wallet regen-coldkey --wallet-name my-urnetwork-key
 2. Leave out `--mnemonic` so the phrase doesn't go into your shell's history. btcli then
    asks which kind of secret you have: choose **Mnemonic**, and enter the 12 words in
    order, separated by spaces.
-3. Set a password when btcli asks. It protects the key file on this computer. The phrase
-   itself has no password.
+3. If btcli asks for a password, set one. It protects the key file on this computer. The
+   phrase itself has no password, so don't add one anywhere it's offered for the phrase.
 4. Run `btcli wallet list`, and check that the coldkey's address is the one the app showed.
 
 ## If the key holds no TAO

@@ -68107,169 +68107,169 @@
         }
       }
     },
-    "Couldn't read this device's keychain. Unlock your device and try again." : {
-      "comment" : "Earnings screen, the payout card for the network's payouts. The device's secure storage (Apple's Keychain) did not answer, usually because the device is locked.",
+    "Couldn't read this device's secure storage. Unlock your device and try again." : {
+      "comment" : "Earnings screen, the payout card for the network's payouts. The device's secure storage did not answer, usually because the device is locked: Keychain on Apple, Keystore on Android, the credential store on a desktop. The same words on every platform, so name none of them.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذّرت قراءة سلسلة المفاتيح على هذا الجهاز. افتح قفل جهازك وحاول مرة أخرى."
+            "value" : "تعذّرت قراءة التخزين الآمن على هذا الجهاز. افتح قفل جهازك وحاول مرة أخرى."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Klíčenku tohoto zařízení se nepodařilo přečíst. Odemkněte zařízení a zkuste to znovu."
+            "value" : "Zabezpečené úložiště tohoto zařízení se nepodařilo přečíst. Odemkněte zařízení a zkuste to znovu."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Schlüsselbund dieses Geräts konnte nicht gelesen werden. Entsperre dein Gerät und versuche es erneut."
+            "value" : "Der sichere Speicher dieses Geräts konnte nicht gelesen werden. Entsperre dein Gerät und versuche es erneut."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Δεν ήταν δυνατή η ανάγνωση του μπρελόκ αυτής της συσκευής. Ξεκλειδώστε τη συσκευή σας και δοκιμάστε ξανά."
+            "value" : "Δεν ήταν δυνατή η ανάγνωση του ασφαλούς χώρου αποθήκευσης αυτής της συσκευής. Ξεκλειδώστε τη συσκευή σας και δοκιμάστε ξανά."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Couldn't read this device's keychain. Unlock your device and try again."
+            "value" : "Couldn't read this device's secure storage. Unlock your device and try again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo leer el llavero de este dispositivo. Desbloquea tu dispositivo y vuelve a intentarlo."
+            "value" : "No se pudo leer el almacenamiento seguro de este dispositivo. Desbloquea tu dispositivo y vuelve a intentarlo."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo leer el llavero de este dispositivo. Desbloquea tu dispositivo y vuelve a intentarlo."
+            "value" : "No se pudo leer el almacenamiento seguro de este dispositivo. Desbloquea tu dispositivo y vuelve a intentarlo."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo leer el llavero de este dispositivo. Desbloquea tu dispositivo y vuelve a intentarlo."
+            "value" : "No se pudo leer el almacenamiento seguro de este dispositivo. Desbloquea tu dispositivo y vuelve a intentarlo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossible de lire le trousseau de cet appareil. Déverrouillez votre appareil et réessayez."
+            "value" : "Impossible de lire le stockage sécurisé de cet appareil. Déverrouillez votre appareil et réessayez."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "לא ניתן היה לקרוא את צרור המפתחות של המכשיר הזה. בטלו את נעילת המכשיר ונסו שוב."
+            "value" : "לא ניתן היה לקרוא את האחסון המאובטח של המכשיר הזה. בטלו את נעילת המכשיר ונסו שוב."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "इस डिवाइस का कीचेन पढ़ा नहीं जा सका। अपना डिवाइस अनलॉक करें और दोबारा कोशिश करें।"
+            "value" : "इस डिवाइस का सुरक्षित स्टोरेज पढ़ा नहीं जा सका। अपना डिवाइस अनलॉक करें और दोबारा कोशिश करें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tidak dapat membaca rantai kunci perangkat ini. Buka kunci perangkat Anda dan coba lagi."
+            "value" : "Tidak dapat membaca penyimpanan aman perangkat ini. Buka kunci perangkat Anda dan coba lagi."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossibile leggere il portachiavi di questo dispositivo. Sblocca il dispositivo e riprova."
+            "value" : "Impossibile leggere l’archivio sicuro di questo dispositivo. Sblocca il dispositivo e riprova."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このデバイスのキーチェーンを読み取れませんでした。デバイスのロックを解除して、もう一度お試しください。"
+            "value" : "このデバイスの安全なストレージを読み取れませんでした。デバイスのロックを解除して、もう一度お試しください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 기기의 키체인을 읽지 못했습니다. 기기 잠금을 해제하고 다시 시도하세요."
+            "value" : "이 기기의 보안 저장소를 읽지 못했습니다. 기기 잠금을 해제하고 다시 시도하세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "De sleutelhanger van dit apparaat kon niet worden gelezen. Ontgrendel je apparaat en probeer het opnieuw."
+            "value" : "De beveiligde opslag van dit apparaat kon niet worden gelezen. Ontgrendel je apparaat en probeer het opnieuw."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się odczytać pęku kluczy tego urządzenia. Odblokuj urządzenie i spróbuj ponownie."
+            "value" : "Nie udało się odczytać bezpiecznej pamięci tego urządzenia. Odblokuj urządzenie i spróbuj ponownie."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não foi possível ler o porta-chaves deste dispositivo. Desbloqueie o seu dispositivo e tente novamente."
+            "value" : "Não foi possível ler o armazenamento seguro deste dispositivo. Desbloqueie o seu dispositivo e tente novamente."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não foi possível ler o chaveiro deste dispositivo. Desbloqueie seu dispositivo e tente novamente."
+            "value" : "Não foi possível ler o armazenamento seguro deste dispositivo. Desbloqueie seu dispositivo e tente novamente."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não foi possível ler o porta-chaves deste dispositivo. Desbloqueie o seu dispositivo e tente novamente."
+            "value" : "Não foi possível ler o armazenamento seguro deste dispositivo. Desbloqueie o seu dispositivo e tente novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось прочитать связку ключей этого устройства. Разблокируйте устройство и повторите попытку."
+            "value" : "Не удалось прочитать защищённое хранилище этого устройства. Разблокируйте устройство и повторите попытку."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Det gick inte att läsa den här enhetens nyckelring. Lås upp din enhet och försök igen."
+            "value" : "Det gick inte att läsa den här enhetens säkra lagring. Lås upp din enhet och försök igen."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ไม่สามารถอ่านพวงกุญแจของอุปกรณ์นี้ได้ ปลดล็อกอุปกรณ์ของคุณแล้วลองอีกครั้ง"
+            "value" : "ไม่สามารถอ่านพื้นที่จัดเก็บที่ปลอดภัยของอุปกรณ์นี้ได้ ปลดล็อกอุปกรณ์ของคุณแล้วลองอีกครั้ง"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не вдалося прочитати в'язку ключів цього пристрою. Розблокуйте пристрій і спробуйте ще раз."
+            "value" : "Не вдалося прочитати захищене сховище цього пристрою. Розблокуйте пристрій і спробуйте ще раз."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Không thể đọc chuỗi khóa của thiết bị này. Hãy mở khóa thiết bị rồi thử lại."
+            "value" : "Không thể đọc bộ nhớ an toàn của thiết bị này. Hãy mở khóa thiết bị rồi thử lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法读取这台设备的钥匙串。请解锁您的设备，然后重试。"
+            "value" : "无法读取这台设备的安全存储。请解锁您的设备，然后重试。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法讀取這部裝置的鑰匙圈。請解鎖你的裝置，然後再試一次。"
+            "value" : "無法讀取這部裝置的安全儲存空間。請解鎖你的裝置，然後再試一次。"
           }
         }
       }

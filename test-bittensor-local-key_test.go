@@ -621,6 +621,29 @@ func TestBittensorKeySignOutAndAccountDeletion(t *testing.T) {
 	}
 }
 
+// The key's words are every app's, so none names Apple's Keychain: Android,
+// Windows and Linux keep the key elsewhere. A store that can't answer is the
+// device's secure storage, as the funds disclaimer calls it.
+func TestBittensorKeyWordsNameNoPlatformsStore(t *testing.T) {
+	literal := regexp.MustCompile(`(?:Text\(|String\(localized: |UrButton\(\s*text: |text: |line\(|title\(|detail\(|note\(|Button\(|alert\(\s*|confirmationDialog\(\s*)"((?:[^"\\]|\\.)+)"`)
+	seen := 0
+	for name, source := range bittensorKeySources(t) {
+		for _, match := range literal.FindAllStringSubmatch(source, -1) {
+			seen += 1
+			if strings.Contains(strings.ToLower(match[1]), "keychain") {
+				t.Errorf("%s: %q names Apple's Keychain", name, match[1])
+			}
+		}
+	}
+	if seen < 30 {
+		t.Fatalf("CONTROL FAILED: read %d literals", seen)
+	}
+	card := bittensorKeyRead(t, filepath.Join(bittensorKeySourcesDir, "BittensorKeyCard.swift"))
+	if strings.Count(card, `"Couldn't read this device's secure storage. Unlock your device and try again."`) != 2 {
+		t.Error("the card doesn't say secure storage where the store can't answer")
+	}
+}
+
 // The words the plan fixes, spelled as it spells them, and every literal on these
 // screens in the catalog in every locale it ships.
 func TestBittensorKeyStringsAreInTheCatalog(t *testing.T) {

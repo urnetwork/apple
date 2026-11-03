@@ -368,9 +368,11 @@ struct ConnectActions: View {
             }
 
             // this build's checkout goes through the tunnel, so paying has to
-            // wait for the Disconnect below, which nothing presses for the user
+            // wait for the Disconnect below, which nothing presses for the user.
+            // A kill switch that is on keeps the tunnel up after it (route local
+            // off, VPNDesiredState.shouldRun), so the line names that too
             if notice.disconnectFirst {
-                Text("To upgrade, press Disconnect first. Payment can't get through until you do.")
+                Text("To upgrade, press Disconnect first, and turn off the kill switch if it's on. Payment can't get through until you do.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                     .fixedSize(horizontal: false, vertical: true)

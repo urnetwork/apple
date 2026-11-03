@@ -211633,6 +211633,173 @@
         }
       }
     },
+    "This key is stored locally in the app secure storage. It is never shared with URnetwork. URnetwork does not touch and is not responsible for any user funds." : {
+      "comment" : "The owner's disclaimer (2026-11-03), on every screen of the one-tap Bittensor key flows where the key is in this app's secure storage on the device: the payout card, the Key screen with its delete and keep confirmations, the claim card, and later convert and Top 200. Three sentences: the key is kept on the device in the app's own secure storage (use your language's usual words for an app's secure storage), it is never shared with URnetwork, and URnetwork does not touch and is not responsible for any user funds. Keep the meaning exact. The last sentence is also the key bittensor_funds_disclaimer_funds_only and must read exactly the same.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُخزَّن هذا المفتاح محليًا في التخزين الآمن للتطبيق. لا تتم مشاركته مع URnetwork أبدًا. لا يلمس URnetwork أي أموال للمستخدمين ولا يتحمّل أي مسؤولية عنها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento klíč je uložen místně v zabezpečeném úložišti aplikace. Nikdy se nesdílí s URnetwork. URnetwork se nedotýká žádných prostředků uživatelů a nenese za ně odpovědnost."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Schlüssel wird lokal im sicheren Speicher der App gespeichert. Er wird nie mit URnetwork geteilt. URnetwork rührt keine Gelder von Nutzern an und ist für keine davon verantwortlich."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτό το κλειδί αποθηκεύεται τοπικά στον ασφαλή χώρο αποθήκευσης της εφαρμογής. Δεν κοινοποιείται ποτέ στο URnetwork. Το URnetwork δεν αγγίζει κεφάλαια χρηστών και δεν φέρει καμία ευθύνη για αυτά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This key is stored locally in the app secure storage. It is never shared with URnetwork. URnetwork does not touch and is not responsible for any user funds."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta clave se guarda localmente en el almacenamiento seguro de la aplicación. Nunca se comparte con URnetwork. URnetwork no toca los fondos de los usuarios ni se hace responsable de ninguno de ellos."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta clave se guarda localmente en el almacenamiento seguro de la aplicación. Nunca se comparte con URnetwork. URnetwork no toca los fondos de los usuarios ni se hace responsable de ninguno de ellos."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta clave se guarda localmente en el almacenamiento seguro de la aplicación. Nunca se comparte con URnetwork. URnetwork no toca los fondos de los usuarios ni se hace responsable de ninguno de ellos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette clé est stockée localement dans le stockage sécurisé de l’application. Elle n’est jamais partagée avec URnetwork. URnetwork ne touche à aucun fonds des utilisateurs et n’en est pas responsable."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המפתח הזה מאוחסן באופן מקומי באחסון המאובטח של האפליקציה. הוא אף פעם לא משותף עם URnetwork. URnetwork לא נוגע בכספי משתמשים ואינו אחראי לאף אחד מהם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह कुंजी ऐप के सुरक्षित स्टोरेज में स्थानीय रूप से सेव रहती है। इसे कभी भी URnetwork के साथ शेयर नहीं किया जाता। URnetwork उपयोगकर्ताओं के किसी भी फ़ंड को नहीं छूता और उनके लिए ज़िम्मेदार नहीं है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci ini disimpan secara lokal di penyimpanan aman aplikasi. Kunci ini tidak pernah dibagikan kepada URnetwork. URnetwork tidak menyentuh dan tidak bertanggung jawab atas dana pengguna mana pun."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa chiave è salvata localmente nell’archivio sicuro dell’app. Non viene mai condivisa con URnetwork. URnetwork non tocca alcun fondo degli utenti e non ne è responsabile."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このキーは、アプリの安全なストレージにローカルで保存されます。URnetwork と共有されることはありません。URnetwork はユーザーの資金に一切触れず、その責任も負いません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 키는 앱의 보안 저장소에 로컬로 저장됩니다. URnetwork와 절대 공유되지 않습니다. URnetwork는 사용자 자금에 일절 손대지 않으며 이에 대한 책임도 지지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze sleutel wordt lokaal opgeslagen in de beveiligde opslag van de app. Hij wordt nooit gedeeld met URnetwork. URnetwork raakt geen geld van gebruikers aan en is er niet verantwoordelijk voor."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten klucz jest przechowywany lokalnie w bezpiecznej pamięci aplikacji. Nigdy nie jest udostępniany URnetwork. URnetwork nie dotyka żadnych środków użytkowników i nie ponosi za nie odpowiedzialności."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta chave fica guardada localmente no armazenamento seguro da app. Nunca é partilhada com o URnetwork. O URnetwork não toca em quaisquer fundos dos utilizadores nem é responsável por eles."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta chave fica guardada localmente no armazenamento seguro do app. Ela nunca é compartilhada com o URnetwork. O URnetwork não toca em nenhum fundo dos usuários e não é responsável por eles."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta chave fica guardada localmente no armazenamento seguro da app. Nunca é partilhada com o URnetwork. O URnetwork não toca em quaisquer fundos dos utilizadores nem é responsável por eles."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот ключ хранится локально в защищённом хранилище приложения. Он никогда не передаётся URnetwork. URnetwork не прикасается ни к каким средствам пользователей и не несёт за них ответственности."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här nyckeln lagras lokalt i appens säkra lagring. Den delas aldrig med URnetwork. URnetwork rör inga användarmedel och ansvarar inte för dem."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คีย์นี้จัดเก็บไว้ในเครื่อง ในพื้นที่จัดเก็บที่ปลอดภัยของแอป คีย์นี้จะไม่ถูกแชร์กับ URnetwork เลย URnetwork ไม่แตะต้องและไม่รับผิดชอบต่อเงินใด ๆ ของผู้ใช้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей ключ зберігається локально в захищеному сховищі застосунку. Він ніколи не передається URnetwork. URnetwork не торкається жодних коштів користувачів і не несе за них відповідальності."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khóa này được lưu cục bộ trong bộ nhớ an toàn của ứng dụng. Khóa này không bao giờ được chia sẻ với URnetwork. URnetwork không động đến và không chịu trách nhiệm về bất kỳ khoản tiền nào của người dùng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此密钥本地存储在应用的安全存储中。它绝不会与 URnetwork 共享。URnetwork 不会触碰任何用户资金，也不对其承担任何责任。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此金鑰本機儲存在應用程式的安全儲存空間中。它絕不會與 URnetwork 共用。URnetwork 不會觸碰任何用戶資金，亦不對其承擔任何責任。"
+          }
+        }
+      }
+    },
     "This key replaces your payout wallet from the next epoch. Earlier earnings stay on the old wallet." : {
       "comment" : "Earnings screen, a warning before a new key on this device replaces the network's payout wallet.",
       "localizations" : {
@@ -227769,6 +227936,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "URnetwork 會在這部裝置上建立一個 Bittensor 金鑰，並由下一個週期開始將你網絡中每個礦工的收益支付到該金鑰。"
+          }
+        }
+      }
+    },
+    "URnetwork does not touch and is not responsible for any user funds." : {
+      "comment" : "The last sentence of the owner's disclaimer (bittensor_funds_disclaimer) alone, for the screens of the one-tap Bittensor key flows where the key is not stored in this app: a network paid to an outside wallet or a key on another device, a key this app has deleted, and a recovery phrase being saved before anything is stored. Must read exactly as the last sentence of bittensor_funds_disclaimer.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يلمس URnetwork أي أموال للمستخدمين ولا يتحمّل أي مسؤولية عنها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork se nedotýká žádných prostředků uživatelů a nenese za ně odpovědnost."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork rührt keine Gelder von Nutzern an und ist für keine davon verantwortlich."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το URnetwork δεν αγγίζει κεφάλαια χρηστών και δεν φέρει καμία ευθύνη για αυτά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork does not touch and is not responsible for any user funds."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork no toca los fondos de los usuarios ni se hace responsable de ninguno de ellos."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork no toca los fondos de los usuarios ni se hace responsable de ninguno de ellos."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork no toca los fondos de los usuarios ni se hace responsable de ninguno de ellos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork ne touche à aucun fonds des utilisateurs et n’en est pas responsable."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork לא נוגע בכספי משתמשים ואינו אחראי לאף אחד מהם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork उपयोगकर्ताओं के किसी भी फ़ंड को नहीं छूता और उनके लिए ज़िम्मेदार नहीं है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork tidak menyentuh dan tidak bertanggung jawab atas dana pengguna mana pun."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork non tocca alcun fondo degli utenti e non ne è responsabile."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork はユーザーの資金に一切触れず、その責任も負いません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork는 사용자 자금에 일절 손대지 않으며 이에 대한 책임도 지지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork raakt geen geld van gebruikers aan en is er niet verantwoordelijk voor."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork nie dotyka żadnych środków użytkowników i nie ponosi za nie odpowiedzialności."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O URnetwork não toca em quaisquer fundos dos utilizadores nem é responsável por eles."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O URnetwork não toca em nenhum fundo dos usuários e não é responsável por eles."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O URnetwork não toca em quaisquer fundos dos utilizadores nem é responsável por eles."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork не прикасается ни к каким средствам пользователей и не несёт за них ответственности."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork rör inga användarmedel och ansvarar inte för dem."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork ไม่แตะต้องและไม่รับผิดชอบต่อเงินใด ๆ ของผู้ใช้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork не торкається жодних коштів користувачів і не несе за них відповідальності."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork không động đến và không chịu trách nhiệm về bất kỳ khoản tiền nào của người dùng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 不会触碰任何用户资金，也不对其承担任何责任。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URnetwork 不會觸碰任何用戶資金，亦不對其承擔任何責任。"
           }
         }
       }

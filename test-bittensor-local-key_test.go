@@ -490,6 +490,61 @@ func TestBittensorKeyClaimTileFollowsTheSdk(t *testing.T) {
 	}
 }
 
+// The claimed state as the mocks draw it (4d), when the sdk says (ShowsClaimed):
+// the tile keeps the relay's section, which says so and opens the claim sheet;
+// the sheet shows what URnetwork's claim paid and the key it is on, its
+// transaction, when Claim now works again, Done, and the claim sheet's funds-only
+// disclaimer.
+func TestBittensorKeyClaimedStateAsDrawn(t *testing.T) {
+	client := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsClient.swift")
+	for _, line := range []string{"showsClaimed: result.showsClaimed", "claimTxUrl: result.claimTxUrl", "claimAmountRao: result.claimAmountRao"} {
+		if !strings.Contains(client, line) {
+			t.Errorf("the claim status doesn't carry %s", line)
+		}
+	}
+	tiles := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsTiles.swift")
+	if !strings.Contains(tiles, "relay.action != SdkSnClaimActionNone || 0 < relay.claimableRao || relay.showsClaimed {") {
+		t.Error("the tile hides the relay's section in the claimed state")
+	}
+	sheet := bittensorKeyRead(t, "app/network/Main/Account/Earnings/ClaimRelaySheet.swift")
+	section := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelaySection: View {")
+	claimedOnTile := strings.Index(section, "if status.showsClaimed {")
+	if claimedOnTile < 0 || !strings.Contains(section[claimedOnTile:], "Button(action: claimNow) {") || !strings.Contains(section[claimedOnTile:], "SnClaimRelayClaimedText(status: status)") {
+		t.Error("the tile's claimed state doesn't open the claim sheet")
+	}
+	text := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayClaimedText: View {")
+	if !strings.Contains(text, `Text("Claimed by URnetwork. \(SnAlpha.formatAmount(rao: status.claimAmountRao)) SN25α is on your key, \(SnAlpha.shortSs58(status.coldkeySs58)).")`) {
+		t.Error("the claimed sentence is not the mock's, from ClaimAmountRao and ColdkeySs58")
+	}
+	claimed := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayClaimed: View {")
+	for _, line := range []string{"let url = URL(string: status.claimTxUrl)", "openURL(url)", `Text("Transaction")`} {
+		if !strings.Contains(claimed, line) {
+			t.Errorf("the claimed state's transaction link lost %s", line)
+		}
+	}
+	againOn := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayAgainOn: View {")
+	if !strings.Contains(againOn, `Text("Claim now is available again on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")`) {
+		t.Error("the claimed state doesn't say when Claim now works again")
+	}
+	content := sheet[strings.Index(sheet, "private func content(_ status: SnClaimStatusInfo)"):]
+	claimedInSheet := strings.Index(content, "if status.showsClaimed {")
+	if claimedInSheet < 0 {
+		t.Fatal("the claim sheet has no claimed state")
+	}
+	for _, line := range []string{"SnClaimRelayClaimed(status: status)", `UrButton(text: "Done", action: dismiss`, "SnClaimRelayAgainOn(status: status)"} {
+		if !strings.Contains(content[claimedInSheet:], line) {
+			t.Errorf("the claim sheet's claimed state lost %s", line)
+		}
+	}
+	if !strings.Contains(sheet, "BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer, boxed: true)") {
+		t.Error("the claim sheet lost its funds disclaimer")
+	}
+	view := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
+	if !strings.Contains(view, "fundsDisclaimer: keyModel.flow.fundsDisclaimer(at: SdkBittensorFundsDisclaimerPlaceClaimSheet),") {
+		t.Error("the claim sheet's disclaimer is not the sdk's claim_sheet line, the funds-only one")
+	}
+}
+
 // The sdk decides. The app reads what to show from it and makes no key and signs
 // nothing of its own, so the ports get the same rules.
 func TestBittensorKeyDecisionsStayInTheSdk(t *testing.T) {

@@ -478,7 +478,10 @@ final class EarningsSdkClient: EarningsClient {
             transferFloorTaoRao: result.transferFloorTaoRao,
             claimNowPeriodDays: result.claimNowPeriodDays,
             unavailable: result.error != nil,
-            showsTile: result.showsTile
+            showsTile: result.showsTile,
+            showsClaimed: result.showsClaimed,
+            claimTxUrl: result.claimTxUrl,
+            claimAmountRao: result.claimAmountRao
         )
     }
 

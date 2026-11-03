@@ -105,7 +105,8 @@ struct EarningsView: View {
                         },
                         payoutLine: viewModel.payoutLine(
                             nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
-                            formatTime: { SnPayoutLine.formatTime($0) }
+                            formatTime: { SnPayoutLine.formatTime($0) },
+                            localKeyPaid: keyModel.card.state == SdkBittensorLocalKeyStateSaveLaterLinked
                         ),
                         claim: {
                             viewModel.resetClaimProgress()
@@ -170,6 +171,7 @@ struct EarningsView: View {
 
                     BittensorWalletCard(
                         wallet: viewModel.wallet,
+                        localKey: BittensorWalletCardLocalKey(card: keyModel.card),
                         shortAddress: viewModel.client.shortSs58,
                         connect: {
                             connectFlow.reset()
@@ -214,11 +216,13 @@ struct EarningsView: View {
                             claim: {
                                 viewModel.resetClaimProgress()
                                 presentClaimSheet = true
-                            }
+                            },
+                            fundsDisclaimer: keyModel.card.claimFundsDisclaimer
                         )
                     }
 
-                    // settlement v2, separate from the v1 claims above
+                    // settlement v2, separate from the v1 claims above; the tile
+                    // above, always there with it, carries the disclaimer once
                     if viewModel.hasWallet, let ledgerTile = viewModel.ledgerTile {
                         SnLedgerTile(
                             presentation: ledgerTile,

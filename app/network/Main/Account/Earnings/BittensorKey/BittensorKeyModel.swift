@@ -252,15 +252,19 @@ final class BittensorKeyModel: ObservableObject {
         }
     }
 
-    /// I have saved the key, it's OK to delete it now.
+    /// I have saved the key, it's OK to delete it now. The words hide first,
+    /// so none can be read behind the device's authentication or the check.
     func confirmDelete() async {
+        hide()
         let authenticated = await authenticatedIfNeeded()
         flow.confirmDelete(authenticated: authenticated)
         refresh()
     }
 
-    /// I've saved it, keep it on this device.
+    /// I've saved it, keep it on this device. The words hide first, as for
+    /// the delete.
     func confirmKeep() async {
+        hide()
         let authenticated = await authenticatedIfNeeded()
         flow.confirmKeep(authenticated: authenticated)
         refresh()

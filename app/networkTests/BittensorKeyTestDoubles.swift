@@ -10,6 +10,7 @@
 
 import Foundation
 import Security
+import URnetworkSdk
 @testable import URnetwork
 
 /// The Keychain's behaviour for generic passwords: an item is found by its
@@ -156,6 +157,10 @@ final class FakeBittensorKeyFlow: BittensorKeyFlowing {
     }
     func reminderScheduled(atMillis: Int64) { calls.append("reminderScheduled(\(atMillis))") }
     func reminderDelivered() { calls.append("reminderDelivered") }
+    func fundsDisclaimer(at place: String) -> String {
+        calls.append("fundsDisclaimer(\(place))")
+        return SdkBittensorFundsDisclaimerNone
+    }
     func close() { calls.append("close") }
 }
 

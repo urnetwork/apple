@@ -160,10 +160,14 @@ final class EarningsViewModel: ObservableObject {
     /// How and when the provider is paid, for the foot of the points card;
     /// nil until the wallet read settles (a failed read with no cached wallet
     /// says nothing about the coldkey).
-    func payoutLine(nowMillis: Int64, formatTime: (Int64) -> String) -> SnPayoutLine? {
-        SnPayoutLine.of(
-            walletKnown: loadedOnce && (hasWallet || !walletLoadFailed),
-            hasColdkey: hasWallet,
+    /// `localKeyPaid`: the network's consent pays the payout key on this
+    /// device, a coldkey before the wallet read lists it, so there is no
+    /// coldkey left to set.
+    func payoutLine(nowMillis: Int64, formatTime: (Int64) -> String, localKeyPaid: Bool = false) -> SnPayoutLine? {
+        let hasColdkey = hasWallet || localKeyPaid
+        return SnPayoutLine.of(
+            walletKnown: loadedOnce && (hasColdkey || !walletLoadFailed),
+            hasColdkey: hasColdkey,
             totalClaimableRao: totalClaimableRao,
             schedule: schedule,
             nowMillis: nowMillis,

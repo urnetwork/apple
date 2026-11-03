@@ -137,6 +137,26 @@ struct CantReachUrnetworkTests {
         #expect(isCantReachUrnetworkError(URLError(.timedOut)))
     }
 
+    // an api call that no route answered fails with this text, which names none
+    // of its causes (connect HttpRequestExhaustedError): what a mainland China
+    // sign-in reports when the default DoH servers are blocked
+    @Test func attemptsExhaustedIsCantReach() {
+        #expect(isCantReachUrnetworkError(goError("http request attempts exhausted")))
+    }
+
+    // the other texts Go's http client gives for a failed round trip, which
+    // Windows and Linux already treat as can't-reach
+    @Test func goTransportFailuresAreCantReach() {
+        #expect(isCantReachUrnetworkError(goError("http request failed: unexpected status")))
+        #expect(isCantReachUrnetworkError(goError("server misbehaving")))
+        #expect(isCantReachUrnetworkError(goError("connect: host is unreachable")))
+        #expect(isCantReachUrnetworkError(goError("net/http: TLS handshake timeout")))
+    }
+
+    @Test func aStatusAnswerAboutAttemptsIsNot() {
+        #expect(!isCantReachUrnetworkError(goError("429 Too Many Requests: http request attempts exhausted")))
+    }
+
     @Test func anAnswerFromThePlatformIsNot() {
         #expect(!isCantReachUrnetworkError(goError("401 Unauthorized: invalid jwt")))
         #expect(!isCantReachUrnetworkError(goError("400 Bad Request: bad user auth")))

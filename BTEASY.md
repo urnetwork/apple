@@ -57,6 +57,9 @@ version is a minimal **convert SN25α to TAO**, which stays on the same key (see
   time; Keep asks for no Face ID, and Delete asks for it at its button after the words; Save now
   offers Keep too; a wallet network and a second device share one card. See
   [As built from the mocks](#as-built-from-the-mocks).
+- A Top 200 claim that waits on this device gets one local notification for when it can go on,
+  since the hotkey lives here and registering, publishing and signing wait for the app (owner,
+  2026-11-04). See [When the claim needs this device](#when-the-claim-needs-this-device).
 
 ### Not in scope
 
@@ -358,6 +361,26 @@ A miner with too little gets a capped top-up from us instead (question 16), so a
 stuck waiting for alpha. At today's burn that costs less than relaying the claim that would fund
 it, and all 200 seats come to about 0.1 TAO in burns.
 
+### When the claim needs this device
+
+Steps 1, 2, 4 and 6 run on the key holder's device, so each waits until the app runs. A miner who
+taps and closes the app could wait days, and bindings signed after an epoch starts wait for the
+next one. So the app keeps one local notification for when the claim can next go on with this
+device (owner, 2026-11-04). The sdk names the moment in `SnFleetClaimState.RemindAtMillis`, so
+every platform posts it at the same time:
+
+| While the claim waits for | The notification comes |
+|---|---|
+| The register window to open | When it opens |
+| A top-up or a conversion to land, a burn spike to pass, or the wallet to register the hotkey | An hour later, or six hours before the window closes if that's sooner |
+| The server to choose the devices, after registering | 12 hours later, the time the server gives the network's devices to ask, or six hours before the next epoch starts if that's sooner |
+| Anything this device can't move: a tap or a wallet's approval, funds, the oracle's mirror, the other devices, a failure, or a finished claim | Never, and one already posted is taken back |
+
+Each pass of Tap or Advance names the moment again, so the notification replaces the one posted
+before, and opening the app moves the claim itself. Refresh only reads and names none. Renewals
+don't remind yet, because the claim's status doesn't say when its bindings end; a renewal goes out
+the next time the app runs in its epoch.
+
 ### What has to hold
 
 - **No device gets the hotkey's private key.** The contract checks a client signature and a
@@ -600,8 +623,9 @@ question 7). The docs get tested, exact steps for importing into Talisman, Nova 
    doesn't wait for it, and it doesn't wait for the rest.
 8. **Port.**
 9. **Top 200,** once binding is open and convert is proven. Its server side covers every
-   platform; each platform adds auto-signing and Leave. A `provider` release adds the same for
-   headless miners, without which fleets aren't covered, and the existing-wallet path follows.
+   platform; each platform adds auto-signing, Leave and the claim's one notification. A `provider`
+   release adds auto-signing and Leave for headless miners, without which fleets aren't covered,
+   and the existing-wallet path follows.
 
 ### Tests
 

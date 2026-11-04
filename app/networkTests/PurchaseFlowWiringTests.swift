@@ -4,7 +4,7 @@
 //
 //  A surface that sells Pro buys through the store makeSubscriptionStore makes
 //  and leaves the connection to it (ConnectionAwareSubscriptionStore), so a new
-//  surface gets the macOS disconnect notice by buying at all. Each surface used
+//  surface gets the Mac App Store's disconnect notice by buying at all. Each surface used
 //  to carry its own copy of the disconnect and the restore. The factory's
 //  `connection` parameter holds that at compile time for the store it makes;
 //  this holds the rest: no copy comes back, and nothing buys from a store

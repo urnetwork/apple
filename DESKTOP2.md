@@ -198,7 +198,8 @@ done — see additions 6/7.)
 - Menu-bar extra (status + Connect/Disconnect/Show/Quit) and "Quit URnetwork".
 - "Launch at startup" setting.
 - Inline provider-list side panel + toolbar toggle (vs the iOS modal sheet).
-- Disconnect/reconnect around in-app purchase.
+- Disconnect/reconnect around an App Store purchase (the Mac App Store build;
+  the direct download buys with the connection as it is).
 
 ## Excluded by decision
 

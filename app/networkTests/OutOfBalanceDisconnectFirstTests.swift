@@ -3,10 +3,11 @@
 //  networkTests
 //
 //  A held tunnel stops a checkout that has to go through it. Where that is the
-//  build's checkout (the direct-download Mac: a page in a web view or the browser)
-//  the out-of-balance alert says to disconnect first, beside the Disconnect it
-//  names, and nothing disconnects for the user. Every input is passed in; the
-//  sources are read for what only a view or the other build can show.
+//  build's checkout (the direct-download Mac: a page in a web view or the browser,
+//  bought with the connection as it is) the out-of-balance alert says to disconnect
+//  first, beside the Disconnect it names, and nothing disconnects for the user.
+//  Every input is passed in; the sources are read for what only a view or the
+//  other build can show.
 //
 
 import Foundation
@@ -45,6 +46,20 @@ struct OutOfBalanceDisconnectFirstTests {
         // iOS: the App Store purchase runs in system daemons, outside the tunnel.
         // The Mac App Store: the purchase flow disconnects around the store itself.
         #expect(!BillingDistribution.appStore.checkoutRidesTunnel)
+    }
+
+    /// The direct download's purchase keeps the connection
+    /// (BillingDistribution.purchaseDropsConnection), so a tunnel holding the
+    /// traffic stays in its page's way until the user's own Disconnect, which
+    /// this line asks for. The Mac App Store build drops the connection for its
+    /// store instead, and its alert does not say it.
+    @Test func theLineIsForTheBuildWhosePurchaseKeepsTheConnection() {
+        #expect(BillingDistribution.direct.checkoutRidesTunnel)
+        #expect(!BillingDistribution.direct.purchaseDropsConnection)
+        #if os(macOS)
+        #expect(!BillingDistribution.appStore.checkoutRidesTunnel)
+        #expect(BillingDistribution.appStore.purchaseDropsConnection)
+        #endif
     }
 
     @Test func theBuildFlagPicksTheDistribution() {

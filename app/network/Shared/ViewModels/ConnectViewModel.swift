@@ -207,13 +207,10 @@ class ConnectViewModel: ObservableObject {
     // a disconnect or sign out cancels it
     private(set) var startConnectTask: Task<Void, Never>?
 
-    // a store's purchase goes with the connection dropped: macOS only (the A6
-    // note on AppStoreSubscriptionManager.purchase); replaced in tests
-    #if os(macOS)
-    var purchaseDropsConnection = true
-    #else
-    var purchaseDropsConnection = false
-    #endif
+    // a store's purchase goes with the connection dropped: on the Mac App Store
+    // build only (BillingDistribution.purchaseDropsConnection, and the A6 note on
+    // AppStoreSubscriptionManager.purchase); replaced in tests
+    var purchaseDropsConnection = BillingDistribution.current.purchaseDropsConnection
     // asks the user before a purchase drops the connection; replaced in tests
     var confirmPurchaseDisconnect: () async -> Bool = { await PurchaseDisconnectNotice.confirm() }
     // a purchase is under way (purchaseAroundConnection)
@@ -711,8 +708,8 @@ class ConnectViewModel: ObservableObject {
     }
 
     /**
-     * Reconnects a connection the app itself dropped (the macOS purchase flow
-     * disconnects around the store): the user never left it, so it is not a
+     * Reconnects a connection the app itself dropped (the Mac App Store purchase
+     * flow disconnects around the store): the user never left it, so it is not a
      * start. Only on `device`, the view model's device when the connection
      * was dropped: an account that changed meanwhile (signed out, and maybe
      * in again, while the store was open) never asked for it, and connecting
@@ -729,11 +726,15 @@ class ConnectViewModel: ObservableObject {
 
     /**
      * Runs a store's purchase with the connection out of its way: the Mac App
-     * Store's client honors the tunnel's default route, so macOS disconnects
-     * around the purchase and reconnects after it, for this device only. iOS
-     * App Store traffic does not ride the tunnel (the A6 note on
-     * AppStoreSubscriptionManager.purchase). Every surface's purchase comes
-     * through here (ConnectionAwareSubscriptionStore).
+     * Store's client honors the tunnel's default route, so the Mac App Store
+     * build disconnects around the purchase and reconnects after it, for this
+     * device only. Every other build buys with the connection as it is
+     * (BillingDistribution.purchaseDropsConnection): iOS App Store traffic does
+     * not ride the tunnel (the A6 note on AppStoreSubscriptionManager.purchase),
+     * and the direct download's page loads after the purchase call returns, so
+     * a disconnect around the call would be over before the page asked for
+     * anything. Every surface's purchase comes through here
+     * (ConnectionAwareSubscriptionStore).
      *
      * The user is told before the connection drops, and may keep it and not
      * buy. The notice and the disconnect are for a connection the user requested
@@ -928,7 +929,7 @@ class ConnectViewModel: ObservableObject {
     }
 
     /// Returns once every command made so far has run and its status was
-    /// applied. Sign out and the macOS purchase flow wait on it, as they did
+    /// applied. Sign out and the Mac App Store purchase flow wait on it, as they did
     /// on the disconnect itself when it ran on the main actor, and so does
     /// every macOS quit, for at most its cap (QuitSequence).
     func connectCommandsSettled() async {

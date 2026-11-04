@@ -448,8 +448,12 @@ class DeviceManager: ObservableObject {
         }
     }
     
+    // the kill switch is route local off; the settings toggle and a Mac App
+    // Store purchase (ConnectViewModel.killSwitchOn) read it. The device's load
+    // sets it from the saved setting, which the device already has
     @Published var routeLocal: Bool = true {
         didSet {
+            guard !isLoadingFromDevice else { return }
             setRouteLocalInternal(routeLocal)
         }
     }
@@ -1622,6 +1626,9 @@ extension DeviceManager {
         device.setBlockerEnabled(blockerEnabled)
         withDeviceStateLoad {
             self.blockerEnabled = blockerEnabled
+            // the kill switch toggle showed off after every launch, the saved
+            // setting aside
+            self.routeLocal = routeLocal
         }
 
         if (performanceProfile != nil) {

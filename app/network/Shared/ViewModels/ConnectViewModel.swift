@@ -213,6 +213,12 @@ class ConnectViewModel: ObservableObject {
     var purchaseDropsConnection = BillingDistribution.current.purchaseDropsConnection
     // asks the user before a purchase drops the connection; replaced in tests
     var confirmPurchaseDisconnect: () async -> Bool = { await PurchaseDisconnectNotice.confirm() }
+    // whether the kill switch is on (route local off): NetworkApp reads the
+    // setting the settings toggle writes (DeviceManager.routeLocal); replaced in
+    // tests
+    var killSwitchOn: @MainActor () -> Bool = { false }
+    // tells the user a purchase needs the kill switch off; replaced in tests
+    var tellPurchaseNeedsKillSwitchOff: () async -> Void = { await PurchaseKillSwitchNotice.show() }
     // a purchase is under way (purchaseAroundConnection)
     private var purchaseAroundConnectionRunning = false
 
@@ -743,6 +749,13 @@ class ConnectViewModel: ObservableObject {
      * starts a connection nobody asked for, past the start gate, with public
      * providing on under Auto (the sdk's Connect).
      *
+     * With the kill switch on, the store can't be reached, before or after the
+     * disconnect: the kill switch keeps the tunnel up with no connection
+     * (VPNDesiredState.shouldRun) and the sdk drops what it captures then. So
+     * the user is told to turn it off, and nothing is dropped or bought. That
+     * holds while a tunnel is there or coming: with none running and no
+     * connection requested, nothing stands in the store's way.
+     *
      * One at a time: a second tap's restore would bring the tunnel back under
      * the store the first one opened. The notice waits on the user, so what it
      * was about is read again after it: a disconnect made meanwhile stands, and
@@ -759,6 +772,10 @@ class ConnectViewModel: ObservableObject {
         purchaseAroundConnectionRunning = true
         defer {
             purchaseAroundConnectionRunning = false
+        }
+        if killSwitchOn() && (connectRequested || tunnelConnected) {
+            await tellPurchaseNeedsKillSwitchOff()
+            return
         }
         let purchaseDevice = device
         if connectRequested {

@@ -30146,6 +30146,173 @@
         }
       }
     },
+    "App Store purchases need the VPN disconnected, and while it's disconnected, the kill switch blocks your internet traffic. Turn off the kill switch, then try again. You can turn it back on afterward." : {
+      "comment" : "Mac App Store alert body under purchase_kill_switch_notice_title. In \"while it's disconnected\", \"it\" is the VPN; in \"turn it back on\", \"it\" is the kill switch, which the user may turn back on after the purchase. Keep App Store and VPN as they are. Name the kill switch by the label of its setting (the kill_switch key).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تتطلب عمليات الشراء من App Store قطع اتصال VPN، وأثناء قطعه يحظر «مفتاح القتل» حركة الإنترنت لديك. أوقف «مفتاح القتل»، ثم حاول مرة أخرى. يمكنك تشغيله من جديد بعد ذلك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nákupy v App Store vyžadují odpojenou VPN a Kill switch během odpojení blokuje váš internetový provoz. Vypněte Kill switch a zkuste to znovu. Potom ho můžete znovu zapnout."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käufe im App Store brauchen ein getrenntes VPN, und solange es getrennt ist, blockiert der Kill switch deinen Internetverkehr. Schalte den Kill switch aus und versuche es dann erneut. Danach kannst du ihn wieder einschalten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι αγορές από το App Store χρειάζονται αποσυνδεδεμένο VPN, και όσο είναι αποσυνδεδεμένο, το Kill switch μπλοκάρει την κίνηση του διαδικτύου σας. Απενεργοποιήστε το Kill switch και δοκιμάστε ξανά. Μπορείτε να το ενεργοποιήσετε ξανά μετά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store purchases need the VPN disconnected, and while it's disconnected, the kill switch blocks your internet traffic. Turn off the kill switch, then try again. You can turn it back on afterward."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las compras en el App Store requieren que la VPN esté desconectada, y mientras lo está, el Kill switch bloquea tu tráfico de internet. Desactiva el Kill switch y vuelve a intentarlo. Después puedes volver a activarlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las compras en el App Store requieren que la VPN esté desconectada, y mientras lo está, el Kill switch bloquea tu tráfico de internet. Desactiva el Kill switch y vuelve a intentarlo. Después puedes volver a activarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las compras en el App Store requieren que la VPN esté desconectada, y mientras lo está, el Kill switch bloquea tu tráfico de internet. Desactiva el Kill switch y vuelve a intentarlo. Después puedes volver a activarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les achats sur l’App Store nécessitent que le VPN soit déconnecté, et tant qu’il l’est, le Kill switch bloque votre trafic Internet. Désactivez le Kill switch, puis réessayez. Vous pourrez le réactiver ensuite."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "רכישות ב-App Store דורשות שה-VPN יהיה מנותק, ובזמן שהוא מנותק, הקיל סוויץ' חוסם את תעבורת האינטרנט שלכם. כבו את הקיל סוויץ' ונסו שוב. אפשר להפעיל אותו מחדש לאחר מכן."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store से खरीदारी के लिए VPN का डिस्कनेक्ट होना ज़रूरी है, और डिस्कनेक्ट रहने के दौरान किल स्विच आपका इंटरनेट ट्रैफ़िक ब्लॉक करता है। किल स्विच बंद करें, फिर दोबारा कोशिश करें। बाद में आप इसे फिर से चालू कर सकते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembelian di App Store memerlukan VPN dalam keadaan terputus, dan selama terputus, Kill switch memblokir lalu lintas internet Anda. Matikan Kill switch, lalu coba lagi. Anda dapat menyalakannya kembali setelahnya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gli acquisti su App Store richiedono che la VPN sia disconnessa e, finché lo è, il Kill switch blocca il tuo traffico Internet. Disattiva il Kill switch, poi riprova. Potrai riattivarlo in seguito."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Storeでの購入にはVPNの切断が必要ですが、切断中はキルスイッチがインターネット通信をブロックします。キルスイッチをオフにしてから、もう一度お試しください。購入後に再びオンにできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store에서 구매하려면 VPN 연결을 해제해야 하며, 연결이 해제된 동안에는 킬 스위치가 인터넷 트래픽을 차단합니다. 킬 스위치를 끈 다음 다시 시도하세요. 이후에 다시 켤 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voor aankopen in de App Store moet de VPN-verbinding verbroken zijn, en zolang dat zo is, blokkeert de Kill switch je internetverkeer. Zet de Kill switch uit en probeer het opnieuw. Daarna kun je hem weer aanzetten."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakupy w App Store wymagają rozłączenia VPN, a gdy VPN jest rozłączony, Kill switch blokuje Twój ruch internetowy. Wyłącz Kill switch i spróbuj ponownie. Później możesz go z powrotem włączyć."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compras na App Store exigem a VPN desconectada e, enquanto ela estiver desconectada, o Kill switch bloqueia seu tráfego de internet. Desative o Kill switch e tente novamente. Depois, você pode ativá-lo de novo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compras na App Store exigem a VPN desconectada e, enquanto ela estiver desconectada, o Kill switch bloqueia seu tráfego de internet. Desative o Kill switch e tente novamente. Depois, você pode ativá-lo de novo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As compras na App Store exigem a VPN desligada e, enquanto estiver desligada, o Kill switch bloqueia o seu tráfego de internet. Desative o Kill switch e tente novamente. Depois, pode voltar a ativá-lo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для покупок в App Store VPN должен быть отключён, а пока он отключён, Kill switch блокирует ваш интернет-трафик. Выключите Kill switch и повторите попытку. После этого его можно снова включить."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Köp i App Store kräver att VPN är frånkopplat, och medan det är frånkopplat blockerar Kill switch din internettrafik. Stäng av Kill switch och försök igen. Du kan slå på den igen efteråt."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การซื้อใน App Store ต้องตัดการเชื่อมต่อ VPN และระหว่างที่ตัดการเชื่อมต่ออยู่ สวิตช์หยุดการเชื่อมต่อจะบล็อกทราฟฟิกอินเทอร์เน็ตของคุณ ปิดสวิตช์หยุดการเชื่อมต่อ แล้วลองอีกครั้ง คุณเปิดอีกครั้งได้ภายหลัง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для покупок в App Store VPN має бути відключено, а поки його відключено, Kill switch блокує ваш інтернет-трафік. Вимкніть Kill switch і спробуйте ще раз. Потім його можна знову ввімкнути."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao dịch mua trên App Store cần ngắt kết nối VPN, và trong lúc ngắt kết nối, Kill switch sẽ chặn lưu lượng internet của bạn. Hãy tắt Kill switch rồi thử lại. Sau đó, bạn có thể bật lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App Store 购买需要断开 VPN，而断开期间，断网保护会阻止你的互联网流量。请关闭断网保护，然后重试。之后你可以再将其打开。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App Store 購買需要斷開 VPN，而斷開期間，斷線開關 (Kill switch) 會阻擋你的互聯網流量。請關閉斷線開關 (Kill switch)，然後再試一次。之後你可以再將其開啟。"
+          }
+        }
+      }
+    },
     "Apple" : {
       "comment" : "A method of adding a sign-in method.",
       "isCommentAutoGenerated" : true,
@@ -79502,7 +79669,7 @@
       }
     },
     "Disconnect the VPN for this purchase?" : {
-      "comment" : "macOS alert title, shown when the user starts a purchase while a VPN connection is requested, before the app disconnects the VPN for the purchase. The alert's buttons are Disconnect and Cancel.",
+      "comment" : "Mac App Store build's alert title, shown when the user starts a purchase while a VPN connection is requested and the kill switch is off, before the app disconnects the VPN for the purchase. The alert's buttons are Disconnect and Cancel. With the kill switch on, purchase_kill_switch_notice_title shows instead.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -232185,6 +232352,173 @@
         }
       }
     },
+    "Turn off the kill switch to buy" : {
+      "comment" : "Mac App Store build's alert title, shown in place of purchase_disconnect_notice_title when the user starts a purchase while the kill switch is on. An App Store purchase there needs the VPN disconnected, and with the kill switch on the internet traffic is blocked while the VPN is disconnected, so nothing is bought until the user turns the kill switch off. The alert's one button is Got it. Name the kill switch by the label of its setting (the kill_switch key).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أوقف «مفتاح القتل» لإتمام الشراء"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro nákup vypněte Kill switch"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schalte zum Kaufen den Kill switch aus"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απενεργοποιήστε το Kill switch για να αγοράσετε"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off the kill switch to buy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactiva el Kill switch para comprar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactiva el Kill switch para comprar"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactiva el Kill switch para comprar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivez le Kill switch pour acheter"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כבו את הקיל סוויץ' כדי לקנות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खरीदने के लिए किल स्विच बंद करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matikan Kill switch untuk membeli"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattiva il Kill switch per acquistare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "購入するにはキルスイッチをオフにしてください"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "구매하려면 킬 스위치를 끄세요"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zet de Kill switch uit om te kopen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyłącz Kill switch, aby kupić"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desative o Kill switch para comprar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desative o Kill switch para comprar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desative o Kill switch para comprar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключите Kill switch, чтобы совершить покупку"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stäng av Kill switch för att köpa"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปิดสวิตช์หยุดการเชื่อมต่อเพื่อซื้อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вимкніть Kill switch, щоб здійснити покупку"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt Kill switch để mua"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭断网保护后再购买"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉斷線開關 (Kill switch) 後再購買"
+          }
+        }
+      }
+    },
     "Turn on providing to be ranked." : {
       "comment" : "Protocol leaderboard (Leaderboard > Protocol): own-status card, why the network is not measurable: none of its devices is providing. Shown instead of a claim prompt.",
       "localizations" : {
@@ -240712,7 +241046,7 @@
       }
     },
     "URnetwork reconnects it afterward. Until it does, your internet traffic won't go through the VPN." : {
-      "comment" : "macOS alert body under purchase_disconnect_notice_title. The app reconnects the VPN by itself after the purchase; \"it\" is the VPN. Until then the user's internet traffic does not go through the VPN.",
+      "comment" : "Mac App Store alert body under purchase_disconnect_notice_title. The app reconnects the VPN by itself after the purchase; \"it\" is the VPN. Until then the user's internet traffic does not go through the VPN: the kill switch is off whenever this alert shows.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

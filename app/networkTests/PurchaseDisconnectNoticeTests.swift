@@ -4,10 +4,11 @@ import Foundation
 import Testing
 @testable import URnetwork
 
-/// The alert before a purchase drops the connection, run for real: each test
-/// presses a button from inside the alert's modal loop, which is the only place
-/// a timer on its mode can fire, so nothing here waits on time. It shows on the
-/// screen for as long as that takes.
+/// The alert before a purchase drops the connection, and the one in its place
+/// while the kill switch is on, run for real: each test presses a button from
+/// inside the alert's modal loop, which is the only place a timer on its mode can
+/// fire, so nothing here waits on time. It shows on the screen for as long as
+/// that takes.
 @MainActor
 @Suite(.serialized)
 struct PurchaseDisconnectNoticeTests {
@@ -68,10 +69,32 @@ struct PurchaseDisconnectNoticeTests {
         #expect(alert.buttons.last?.keyEquivalent == "\u{1b}")
     }
 
+    /// True with the kill switch off, the only time it shows: with it on the
+    /// traffic is blocked instead, and the kill switch alert shows.
     @Test func itSaysWhatHappensToTheConnectionAndTheTraffic() {
         let alert = PurchaseDisconnectNotice.makeAlert()
         #expect(alert.messageText == String(localized: "Disconnect the VPN for this purchase?"))
         #expect(alert.informativeText == String(localized: "URnetwork reconnects it afterward. Until it does, your internet traffic won't go through the VPN."))
+    }
+
+    // MARK: the kill switch alert
+
+    /// It says to turn the kill switch off, and why: the purchase needs the VPN
+    /// disconnected, and the kill switch blocks the traffic while it is.
+    @Test func theKillSwitchAlertSaysToTurnItOff() {
+        let alert = PurchaseKillSwitchNotice.makeAlert()
+        #expect(alert.messageText == String(localized: "Turn off the kill switch to buy"))
+        #expect(alert.informativeText == String(localized: "App Store purchases need the VPN disconnected, and while it's disconnected, the kill switch blocks your internet traffic. Turn off the kill switch, then try again. You can turn it back on afterward."))
+    }
+
+    /// One button, which ends it: there is nothing to go ahead with.
+    @Test func theKillSwitchAlertHasOneButton() async {
+        let alert = PurchaseKillSwitchNotice.makeAlert()
+        #expect(alert.buttons.map(\.title) == [String(localized: "Got it")])
+        _ = Self.inTheModalLoop {
+            alert.buttons[0].performClick(nil)
+        }
+        #expect(await PurchaseDisconnectNotice.answer(alert))
     }
 }
 #endif

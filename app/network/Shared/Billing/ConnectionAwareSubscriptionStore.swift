@@ -118,3 +118,29 @@ enum PurchaseDisconnectNotice {
     }
     #endif
 }
+
+/// What the user is told in place of the notice above while the kill switch is
+/// on. A purchase needs the connection dropped (purchaseDropsConnection), and
+/// the kill switch keeps the tunnel up after the disconnect, dropping what it
+/// captures with no connection: the store still can't be reached, and the
+/// traffic is blocked rather than going around the VPN. So it says to turn the
+/// kill switch off and try again. Its one button buys nothing.
+@MainActor
+enum PurchaseKillSwitchNotice {
+
+    static func show() async {
+        #if os(macOS)
+        _ = await PurchaseDisconnectNotice.answer(makeAlert())
+        #endif
+    }
+
+    #if os(macOS)
+    static func makeAlert() -> NSAlert {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Turn off the kill switch to buy")
+        alert.informativeText = String(localized: "App Store purchases need the VPN disconnected, and while it's disconnected, the kill switch blocks your internet traffic. Turn off the kill switch, then try again. You can turn it back on afterward.")
+        alert.addButton(withTitle: String(localized: "Got it"))
+        return alert
+    }
+    #endif
+}

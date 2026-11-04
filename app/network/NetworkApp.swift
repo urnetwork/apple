@@ -345,6 +345,12 @@ struct NetworkApp: App {
             TransportDelayActivityAppDriver.shared.signedOut()
             #endif
         }
+        // a Mac App Store purchase can't go through with the kill switch on
+        // (ConnectViewModel.purchaseAroundConnection): it reads the setting
+        // the settings toggle writes
+        connectViewModel.killSwitchOn = { [weak deviceManager] in
+            deviceManager?.routeLocal == false
+        }
         #if os(macOS)
         // every quit waits for its queued commands (QuitSequence)
         appDelegate.connectViewModel = connectViewModel

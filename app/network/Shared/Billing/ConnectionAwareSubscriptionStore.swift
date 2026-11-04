@@ -79,7 +79,8 @@ final class ConnectionAwareSubscriptionStore: SubscriptionStore {
 }
 
 /// What the user is told before a purchase drops the connection. Its first
-/// button goes ahead; only macOS ever drops one (purchaseDropsConnection).
+/// button goes ahead; only the Mac App Store build ever drops one
+/// (BillingDistribution.purchaseDropsConnection).
 @MainActor
 enum PurchaseDisconnectNotice {
 

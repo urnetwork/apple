@@ -111,7 +111,7 @@ The only genuinely iPad-adaptive screen is login (`LoginInitialView.swift:52-95`
 2. Dead guest cover (see corrections above) — iOS-side fix; nothing to port.
 3. "Allow providing on cellular" absent on macOS — N/A by design.
 
-**macOS extras (superset, intended):** menu-bar extra (4-state icon), Cmd-Q intercept/hide-to-tray, launch-at-login, Account command menu, disconnect-before-purchase, side provider table, refresh toolbar buttons.
+**macOS extras (superset, intended):** menu-bar extra (4-state icon), Cmd-Q intercept/hide-to-tray, launch-at-login, Account command menu, disconnect-before-purchase (Mac App Store build), side provider table, refresh toolbar buttons.
 
 ## 5. Windows vs macOS
 

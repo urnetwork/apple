@@ -253,7 +253,7 @@ final class InsufficientBalanceContractReaction {
 /// left: a location change or reconnect while a connect is requested, the
 /// system restarting the tunnel (on demand after a network change, sleep,
 /// boot, a provider restart), the app relaunching into its saved connect
-/// location, or reconnecting after the macOS purchase flow dropped it.
+/// location, or reconnecting after the Mac App Store purchase flow dropped it.
 enum ConnectAttempt: Equatable {
     case start
     case alreadyConnected

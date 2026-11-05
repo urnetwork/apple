@@ -280,6 +280,7 @@ private final class DeviceLogoutOwner {
     let localState: SdkAsyncLocalState?
     let device: SdkDeviceRemote?
     let vpnManager: VPNManager?
+    var serverSignOutCompleted = false
     var profilesCompleted = false
     var profilesSucceeded = false
     var localStateCompleted = false
@@ -294,10 +295,25 @@ private final class DeviceLogoutOwner {
 }
 
 /// Only external cleanup is replaceable; owner admission and finalization stay live.
+///
+/// The server half of a sign-out, and of a sign-in abandoned after the server
+/// created its client, runs while the API still holds the network credential
+/// (setByJwt(nil) clears it). The server does not deactivate a client when its
+/// session is revoked, so a client left behind counts toward the network's
+/// active top-level clients until the idle reap. Each server effect returns
+/// whether it started; one that started calls its completion once, on the main
+/// queue, by `serverCleanupBound` at the latest. The defaults start nothing, so
+/// an injected set keeps the local-only order.
 struct DeviceLogoutEffects {
     let clearTunnelCredential: @MainActor () -> Void
     let removeProfiles: @MainActor (VPNManager?, @escaping (Error?) -> Void) -> Void
     let clearLocalState: @MainActor (SdkAsyncLocalState, SdkCommitCallbackProtocol) -> Void
+    // the sdk's sign-out: removes this device's client, revokes the session
+    var signOutSession: @MainActor (SdkApi?, TimeInterval, @escaping () -> Void) -> Bool = { _, _, _ in false }
+    // removes the client an abandoned sign-in created
+    var removeAbandonedClient: @MainActor (SdkApi, SdkId, TimeInterval, @escaping () -> Void) -> Bool = { _, _, _, _ in false }
+    // past the sdk's own 2 s bound, so an unanswered call cannot hold the local half
+    var serverCleanupBound: TimeInterval = 4
 
     static var live: DeviceLogoutEffects {
         DeviceLogoutEffects(
@@ -309,8 +325,56 @@ struct DeviceLogoutEffects {
                     VPNManager.clearTunnelLocalStateAndRemoveAllVpnProfiles(completion: completion)
                 }
             },
-            clearLocalState: { state, callback in state.logout(callback) }
+            clearLocalState: { state, callback in state.logout(callback) },
+            signOutSession: { api, bound, completion in
+                guard let api else { return false }
+                api.signOut(ServerCleanupCallback(bound: bound, completion: completion))
+                return true
+            },
+            removeAbandonedClient: { api, clientId, bound, completion in
+                let args = SdkRemoveNetworkClientArgs()
+                args.clientId = clientId
+                api.removeNetworkClient(args, callback: ServerCleanupCallback(bound: bound, completion: completion))
+                return true
+            }
         )
+    }
+}
+
+/// One server cleanup's answer, delivered once on the main queue: the sdk's
+/// result, or the bound when the sdk never answers (offline, or a recovered
+/// panic), so the local half of a sign-out always runs.
+final class ServerCleanupCallback: NSObject, SdkSessionSignOutCallbackProtocol, SdkRemoveNetworkClientCallbackProtocol {
+    // read and written only on the main queue
+    private var completed = false
+    private let completion: () -> Void
+
+    init(bound: TimeInterval, completion: @escaping () -> Void) {
+        self.completion = completion
+        super.init()
+        DispatchQueue.main.asyncAfter(deadline: .now() + bound) { self.complete() }
+    }
+
+    func result(_ p0: SdkSessionSignOutResult?, p1: Error?) {
+        if let p1 {
+            print("[logout] server sign-out: \(p1.localizedDescription)")
+        } else if let p0 {
+            print("[logout] server sign-out: revocation confirmed \(p0.revocationConfirmed), credential cleared \(p0.credentialCleared)")
+        }
+        DispatchQueue.main.async { self.complete() }
+    }
+
+    func result(_ result: SdkRemoveNetworkClientResult?, err: Error?) {
+        if let message = err?.localizedDescription ?? result?.error?.message {
+            print("[authenticateNetworkClient] abandoned client not removed: \(message)")
+        }
+        DispatchQueue.main.async { self.complete() }
+    }
+
+    private func complete() {
+        guard !completed else { return }
+        completed = true
+        completion()
     }
 }
 
@@ -2053,9 +2117,11 @@ extension DeviceManager {
         api.setByJwt(jwt)
         accepted?()
 
+        // the client the server created, until this sign-in commits it
+        var createdClientId: SdkId?
         do {
             let deviceSpecs = getDeviceSpecs()
-            let clientJwt: String = try await withCheckedThrowingContinuation { continuation in
+            let (clientJwt, clientId): (String, SdkId?) = try await withCheckedThrowingContinuation { continuation in
                 let authArgs = SdkAuthNetworkClientArgs()
                 authArgs.deviceDescription = deviceDescription
                 authArgs.deviceSpec = deviceSpecs
@@ -2066,7 +2132,7 @@ extension DeviceManager {
                     } else if let resultError = result?.error {
                         continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
                     } else if let clientJwt = result?.byClientJwt, !clientJwt.isEmpty {
-                        continuation.resume(returning: clientJwt)
+                        continuation.resume(returning: (clientJwt, result?.clientId))
                     } else {
                         continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Auth network client returned no client JWT"]))
                     }
@@ -2077,6 +2143,7 @@ extension DeviceManager {
                     api.authNetworkClient(authArgs, callback: callback)
                 }
             }
+            createdClientId = clientId
 
             guard ownsNetworkClientAuthentication(owner) else { throw CancellationError() }
             // Commit and construct on this admitted actor turn. An async storage
@@ -2089,8 +2156,30 @@ extension DeviceManager {
             networkClientAuthenticationOwner = nil
             return .success(())
         } catch {
+            // before the rollback clears the network credential the removal needs
+            if let createdClientId {
+                await removeAbandonedNetworkClient(createdClientId, api: owner.api)
+            }
             rollbackFailedNetworkClientAuthentication(owner)
             return .failure(error)
+        }
+    }
+
+    /**
+     * Removes the client of a sign-in abandoned after the server created it:
+     * replaced, signed out during the request, or its device failed to start.
+     * Nothing else names that client, so the device's sign-out cannot remove
+     * it. Best effort, within the server cleanup bound.
+     */
+    private func removeAbandonedNetworkClient(_ clientId: SdkId, api: SdkApi) async {
+        let effects = logoutEffects
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            let started = effects.removeAbandonedClient(api, clientId, effects.serverCleanupBound) {
+                continuation.resume()
+            }
+            if !started {
+                continuation.resume()
+            }
         }
     }
 
@@ -2151,6 +2240,22 @@ extension DeviceManager {
 
     func logout() {
         guard beginLogout(), let owner = logoutOwner else { return }
+        // The server half first, while the API still holds the network
+        // credential that setByJwt(nil) clears: the sdk removes this device's
+        // client and revokes the session. Sign out has already disconnected
+        // (ConnectViewModel.signOut); an unanswered sign-out ends at the bound.
+        let dispatch = authCallbackDispatch
+        let started = logoutEffects.signOutSession(owner.api, logoutEffects.serverCleanupBound) {
+            dispatch { self.completeLogoutServerSignOut(owner) }
+        }
+        if !started {
+            completeLogoutServerSignOut(owner)
+        }
+    }
+
+    private func completeLogoutServerSignOut(_ owner: DeviceLogoutOwner) {
+        guard logoutOwner === owner, !owner.serverSignOutCompleted else { return }
+        owner.serverSignOutCompleted = true
         owner.api?.setByJwt(nil)
         guard startupMode.allowsVPNProfileSystemAccess else {
             completeLogoutProfiles(owner, error: nil)

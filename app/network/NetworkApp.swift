@@ -609,13 +609,14 @@ struct NetworkApp: App {
                 .onChange(of: deviceManager.isPro) { isPro in
                     // the plan is Pro now, as after a purchase from the
                     // client limit prompt: a device the limit holds off dials
-                    // again at once instead of waiting out the hold. Only a
-                    // hold that offered the upgrade: isPro also turns true
-                    // when a Pro account's app starts, and no plan lifts a
-                    // hold at the Pro limit, so that retry would only be
-                    // refused again
+                    // again at once instead of waiting out the hold, past the
+                    // backoff of any retries refused before the purchase (the
+                    // change retry). Only a hold that offered the upgrade:
+                    // isPro also turns true when a Pro account's app starts,
+                    // and no plan lifts a hold at the Pro limit, so that retry
+                    // would only be refused again
                     if isPro, connectViewModel.clientLimitHoldOfferedUpgrade {
-                        connectViewModel.retryClientLimit()
+                        connectViewModel.retryClientLimitAfterChange()
                     }
                 }
                 .onChange(of: scenePhase) { phase in

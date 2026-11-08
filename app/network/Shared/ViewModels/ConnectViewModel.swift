@@ -1249,6 +1249,18 @@ extension ConnectViewModel {
             work.run()
         }
     }
+
+    /// Dials again at once after a change that raised the limit: the plan
+    /// turned Pro after a purchase from the prompt. Unlike Retry, the sdk
+    /// starts its retry floor over (Device.retryClientLimitAfterChange), so
+    /// earlier refused retries never keep a paid plan waiting out the hold.
+    func retryClientLimitAfterChange() {
+        guard let device else { return }
+        let work = ClientLimitRetryAfterChangeWork(device: device)
+        connectCommandQueue.async {
+            work.run()
+        }
+    }
 }
 
 /// The device's client limit read, handed from the main actor to the command
@@ -1268,6 +1280,16 @@ private struct ClientLimitRetryWork: @unchecked Sendable {
 
     func run() {
         _ = device.retryClientLimit()
+    }
+}
+
+/// The device's retry after a change that raised the limit, handed to the
+/// command queue as ClientLimitRetryWork is.
+private struct ClientLimitRetryAfterChangeWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() {
+        _ = device.retryClientLimitAfterChange()
     }
 }
 

@@ -913,9 +913,13 @@ class VPNManager: ObservableObject {
                 providerCount: Int(windowStatus.providerStateAdded)
             )
         }
-        // the hold is the extension's, read live through the rpc checked above
+        // the hold is the extension's, read live through the rpc. Checked
+        // again after the read, as the balance read is: with the rpc gone,
+        // DeviceRemote answers its last readout, which can be a hold already
+        // over, and only a live read may keep the audit off the tunnel
         let clientLimitHeld = requiresProvider
             && device.getClientLimitStatus()?.status == SdkClientLimitStatusExceeded
+            && device.getConnected()
         return TunnelHealthSnapshot(
             connectionState: connectionState,
             rpcConnected: true,

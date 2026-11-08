@@ -151,6 +151,14 @@ class ConnectViewModel: ObservableObject {
      * (ClientLimitNotice). Nil otherwise.
      */
     @Published private(set) var clientLimitHold: ClientLimitHold? = nil
+    /**
+     * The hold in force offered the upgrade at some point: set when a hold
+     * offering it shows, cleared when the hold ends. A purchase refreshes the
+     * client's plan, which turns the hold's prompt to remove_client, maybe
+     * before the app reads the plan as Pro; the plan turning Pro still ends
+     * that hold (NetworkApp).
+     */
+    private(set) var clientLimitHoldOfferedUpgrade = false
 
     /**
      * Upgrade prompts
@@ -395,6 +403,7 @@ class ConnectViewModel: ObservableObject {
         // and its client limit hold, with its notice
         self.clientLimitStatus = nil
         self.clientLimitHold = nil
+        self.clientLimitHoldOfferedUpgrade = false
         if let action = self.clientLimitNoticeTracker?.reset() {
             ClientLimitNotice.apply(action, offersUpgrade: true)
         }
@@ -1215,6 +1224,13 @@ extension ConnectViewModel {
             : nil
         if clientLimitHold != hold {
             clientLimitHold = hold
+        }
+        if let hold {
+            if hold.offersUpgrade {
+                clientLimitHoldOfferedUpgrade = true
+            }
+        } else {
+            clientLimitHoldOfferedUpgrade = false
         }
         if let action = clientLimitNoticeTracker?.update(clientLimitStatus, connectRequested: connectRequested) {
             ClientLimitNotice.apply(action, offersUpgrade: hold?.offersUpgrade ?? true)

@@ -136,6 +136,8 @@ struct ConnectActions: View {
     // again at once
     var clientLimitHold: ClientLimitHold? = nil
     var retryClientLimit: () -> Void = {}
+    // the device list, where removing a device frees a slot for this one
+    var openManageDevices: () -> Void = {}
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -503,7 +505,9 @@ struct ConnectActions: View {
     /**
      * The client limit hold's notice: the title, what to do for the plan
      * (ClientLimitNotice.body), Get Pro when UR Pro lifts the limit (the same
-     * upgrade sheet as everywhere), and Retry.
+     * upgrade sheet as everywhere), Manage devices, where removing a device
+     * frees a slot for this one (beside Get Pro on a free plan, alone on
+     * Pro), and Retry. The buttons wrap when a row doesn't fit.
      */
     @ViewBuilder
     private func clientLimitNotice(_ hold: ClientLimitHold) -> some View {
@@ -518,23 +522,57 @@ struct ConnectActions: View {
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("acceptance.clientLimit.notice")
 
-        HStack {
-            if hold.offersUpgrade {
-                UrButton(
-                    text: "Get Pro",
-                    action: openUpgradeSheet,
-                    style: .outlineSecondary,
-                    accessibilityIdentifier: "acceptance.clientLimit.upgrade"
-                )
+        // one row when it fits; else Get Pro and Manage devices, with Retry
+        // under them; else one under another
+        ViewThatFits(in: .horizontal) {
+            HStack {
+                clientLimitUpgradeButton(hold)
+                clientLimitManageDevicesButton
+                clientLimitRetryButton
             }
+            VStack {
+                HStack {
+                    clientLimitUpgradeButton(hold)
+                    clientLimitManageDevicesButton
+                }
+                clientLimitRetryButton
+            }
+            VStack {
+                clientLimitUpgradeButton(hold)
+                clientLimitManageDevicesButton
+                clientLimitRetryButton
+            }
+        }
+    }
 
+    @ViewBuilder
+    private func clientLimitUpgradeButton(_ hold: ClientLimitHold) -> some View {
+        if hold.offersUpgrade {
             UrButton(
-                text: "Retry",
-                action: retryClientLimit,
+                text: "Get Pro",
+                action: openUpgradeSheet,
                 style: .outlineSecondary,
-                accessibilityIdentifier: "acceptance.clientLimit.retry"
+                accessibilityIdentifier: "acceptance.clientLimit.upgrade"
             )
         }
+    }
+
+    private var clientLimitManageDevicesButton: some View {
+        UrButton(
+            text: "Manage devices",
+            action: openManageDevices,
+            style: .outlineSecondary,
+            accessibilityIdentifier: "acceptance.clientLimit.manageDevices"
+        )
+    }
+
+    private var clientLimitRetryButton: some View {
+        UrButton(
+            text: "Retry",
+            action: retryClientLimit,
+            style: .outlineSecondary,
+            accessibilityIdentifier: "acceptance.clientLimit.retry"
+        )
     }
 
     /**

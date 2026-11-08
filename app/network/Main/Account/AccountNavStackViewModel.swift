@@ -27,6 +27,8 @@ enum AccountNavigationPath: Hashable {
     case sessions
     case apiKeys
     case settings
+    /// Settings › Manage devices: the network's devices, to free a slot
+    case manageDevices
     case earnings
     /// Earnings › Top 200 › Sign fleet binding, with the app link that opened it, if any
     case top200Sign(Top200SignDestination?)

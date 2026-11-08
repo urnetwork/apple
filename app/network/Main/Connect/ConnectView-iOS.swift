@@ -594,7 +594,9 @@ struct ConnectView_iOS: View {
             openStatsSheet: { sheet in
                 presentedStatsSheet = sheet
             },
-            part: part
+            part: part,
+            clientLimitHold: connectViewModel.clientLimitHold,
+            retryClientLimit: connectViewModel.retryClientLimit
         )
     }
 

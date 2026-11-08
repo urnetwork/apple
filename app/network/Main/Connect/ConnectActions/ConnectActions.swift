@@ -131,6 +131,11 @@ struct ConnectActions: View {
     let openStatsSheet: (ConnectStatsSheet) -> Void
     // which part of the drawer this host shows
     var part: ConnectActionsPart = .drawer
+    // the platform holds the device off for its network's client limit while
+    // a connection is requested (ClientLimitNotice), and Retry, which dials
+    // again at once
+    var clientLimitHold: ClientLimitHold? = nil
+    var retryClientLimit: () -> Void = {}
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -408,7 +413,17 @@ struct ConnectActions: View {
             /**
              * sufficient balance
              */
-         
+
+            /**
+             * The platform holds the device off for its network's client
+             * limit: what to do, with Get Pro on a free plan and Retry, which
+             * dials again at once. Above the fold, so the collapsed drawer
+             * shows it; Disconnect below stays the way out.
+             */
+            if let clientLimitHold {
+                clientLimitNotice(clientLimitHold)
+            }
+
             /**
              * A paying account refused at a data limit: nothing to buy, and
              * Disconnect below stays the way out
@@ -482,6 +497,43 @@ struct ConnectActions: View {
                 )
                 .connectActionsFold()
             }
+        }
+    }
+
+    /**
+     * The client limit hold's notice: the title, what to do for the plan
+     * (ClientLimitNotice.body), Get Pro when UR Pro lifts the limit (the same
+     * upgrade sheet as everywhere), and Retry.
+     */
+    @ViewBuilder
+    private func clientLimitNotice(_ hold: ClientLimitHold) -> some View {
+        Text(ClientLimitNotice.title)
+            .font(themeManager.currentTheme.bodyFont)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("acceptance.clientLimit.title")
+
+        Text(ClientLimitNotice.body(offersUpgrade: hold.offersUpgrade))
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("acceptance.clientLimit.notice")
+
+        HStack {
+            if hold.offersUpgrade {
+                UrButton(
+                    text: "Get Pro",
+                    action: openUpgradeSheet,
+                    style: .outlineSecondary,
+                    accessibilityIdentifier: "acceptance.clientLimit.upgrade"
+                )
+            }
+
+            UrButton(
+                text: "Retry",
+                action: retryClientLimit,
+                style: .outlineSecondary,
+                accessibilityIdentifier: "acceptance.clientLimit.retry"
+            )
         }
     }
 

@@ -244,7 +244,13 @@ struct ContentView: View {
         })
         guard request.isCurrent else { return }
         if case .failure(let error) = result, !(error is CancellationError) {
-            snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
+            if let clientLimit = error as? NetworkClientLimitError {
+                // the network's client limit refused the sign-in: say what to
+                // do, not that creating the network failed
+                snackbarManager.showSnackbar(message: ClientLimitNotice.body(offersUpgrade: clientLimit.offersUpgrade))
+            } else {
+                snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
+            }
         }
     }
     

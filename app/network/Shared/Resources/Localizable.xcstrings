@@ -78499,6 +78499,173 @@
         }
       }
     },
+    "Device limit reached" : {
+      "comment" : "Title of the in-app notice and of the local notification shown while the platform holds this device off because the account network already has its plan's most devices connected at once (the concurrent client limit). The device does not connect until a slot frees, the user upgrades, or the hold ends; the user's traffic stays in the tunnel. Short, like a heading.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم بلوغ الحد الأقصى للأجهزة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosažen limit zařízení"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerätelimit erreicht"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συμπληρώθηκε το όριο συσκευών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device limit reached"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite de dispositivos alcanzado"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se alcanzó el límite de dispositivos"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se alcanzó el límite de dispositivos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite d’appareils atteinte"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגעת למגבלת המכשירים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डिवाइस की सीमा पूरी हो गई"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batas perangkat tercapai"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite di dispositivi raggiunto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバイスの上限に達しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 한도에 도달했습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparaatlimiet bereikt"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osiągnięto limit urządzeń"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de dispositivos atingido"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de dispositivos atingido"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de dispositivos atingido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Достигнут лимит устройств"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhetsgränsen har nåtts"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ถึงขีดจำกัดจำนวนอุปกรณ์แล้ว"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Досягнуто ліміту пристроїв"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã đạt giới hạn thiết bị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达到设备数量上限"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已達到裝置數量上限"
+          }
+        }
+      }
+    },
     "Device name" : {
       "comment" : "Used in Main/Account/Settings/SettingsView.swift.",
       "localizations" : {
@@ -264558,6 +264725,173 @@
         }
       }
     },
+    "Your free plan connects a limited number of devices at once. Upgrade to UR Pro to connect more, or disconnect URnetwork on another device." : {
+      "comment" : "Body under client_limit_reached, in the app and in the local notification, for an account on the free plan: it already has as many devices connected at once as the free plan allows, so this device cannot connect. UR Pro allows more; Get Pro is the button beside it. Also shown when a sign-in on a new device is refused for the same limit. Keep UR Pro and URnetwork as they are.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تتيح خطتك المجانية توصيل عدد محدود من الأجهزة في الوقت نفسه. قم بالترقية إلى UR Pro لتوصيل المزيد، أو افصل URnetwork على جهاز آخر."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš bezplatný tarif umožňuje připojit najednou jen omezený počet zařízení. Přejděte na UR Pro a připojte jich víc, nebo odpojte URnetwork na jiném zařízení."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein kostenloser Tarif verbindet nur eine begrenzte Anzahl von Geräten gleichzeitig. Upgrade auf UR Pro, um mehr zu verbinden, oder trenne URnetwork auf einem anderen Gerät."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το δωρεάν πρόγραμμά σας συνδέει περιορισμένο αριθμό συσκευών ταυτόχρονα. Αναβαθμίστε σε UR Pro για να συνδέσετε περισσότερες ή αποσυνδέστε το URnetwork σε άλλη συσκευή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free plan connects a limited number of devices at once. Upgrade to UR Pro to connect more, or disconnect URnetwork on another device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan gratuito conecta un número limitado de dispositivos a la vez. Pásate a UR Pro para conectar más o desconecta URnetwork en otro dispositivo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan gratuito conecta una cantidad limitada de dispositivos a la vez. Mejora a UR Pro para conectar más o desconecta URnetwork en otro dispositivo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan gratuito conecta una cantidad limitada de dispositivos a la vez. Mejora a UR Pro para conectar más o desconecta URnetwork en otro dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre offre gratuite connecte un nombre limité d’appareils à la fois. Passez à UR Pro pour en connecter davantage, ou déconnectez URnetwork sur un autre appareil."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התוכנית החינמית שלך מחברת מספר מוגבל של מכשירים בו־זמנית. שדרג ל-UR Pro כדי לחבר עוד, או נתק את URnetwork במכשיר אחר."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका मुफ़्त प्लान एक साथ सीमित संख्या में डिवाइस कनेक्ट करता है। और डिवाइस कनेक्ट करने के लिए UR Pro में अपग्रेड करें, या किसी दूसरे डिवाइस पर URnetwork डिस्कनेक्ट करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paket gratis Anda menghubungkan perangkat dalam jumlah terbatas sekaligus. Tingkatkan ke UR Pro untuk menghubungkan lebih banyak, atau putuskan URnetwork di perangkat lain."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo piano gratuito collega un numero limitato di dispositivi alla volta. Passa a UR Pro per collegarne di più, oppure disconnetti URnetwork su un altro dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料プランで同時に接続できるデバイスの数には上限があります。さらに接続するには UR Pro にアップグレードするか、別のデバイスで URnetwork を切断してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무료 요금제는 동시에 연결할 수 있는 기기 수가 제한됩니다. 더 많이 연결하려면 UR Pro로 업그레이드하거나 다른 기기에서 URnetwork 연결을 해제하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je gratis abonnement verbindt een beperkt aantal apparaten tegelijk. Upgrade naar UR Pro om er meer te verbinden, of verbreek URnetwork op een ander apparaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój darmowy plan łączy jednocześnie ograniczoną liczbę urządzeń. Przejdź na UR Pro, aby połączyć więcej, albo rozłącz URnetwork na innym urządzeniu."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu plano gratuito conecta um número limitado de dispositivos ao mesmo tempo. Faça upgrade para o UR Pro para conectar mais ou desconecte o URnetwork em outro dispositivo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu plano gratuito conecta um número limitado de dispositivos ao mesmo tempo. Faça upgrade para o UR Pro para conectar mais ou desconecte o URnetwork em outro dispositivo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu plano gratuito liga um número limitado de dispositivos ao mesmo tempo. Faça upgrade para o UR Pro para ligar mais, ou desligue o URnetwork noutro dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бесплатный тариф позволяет подключать одновременно ограниченное число устройств. Перейдите на UR Pro, чтобы подключить больше, или отключите URnetwork на другом устройстве."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din kostnadsfria plan ansluter ett begränsat antal enheter samtidigt. Uppgradera till UR Pro för att ansluta fler, eller koppla från URnetwork på en annan enhet."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แพ็กเกจฟรีของคุณเชื่อมต่ออุปกรณ์พร้อมกันได้ในจำนวนจำกัด อัปเกรดเป็น UR Pro เพื่อเชื่อมต่อเพิ่ม หรือยกเลิกการเชื่อมต่อ URnetwork บนอุปกรณ์เครื่องอื่น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Безкоштовний тариф дозволяє підключати одночасно обмежену кількість пристроїв. Перейдіть на UR Pro, щоб підключити більше, або від’єднайте URnetwork на іншому пристрої."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gói miễn phí của bạn chỉ kết nối được một số thiết bị nhất định cùng lúc. Nâng cấp lên UR Pro để kết nối thêm, hoặc ngắt kết nối URnetwork trên một thiết bị khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费套餐可同时连接的设备数量有限。升级到 UR Pro 以连接更多设备，或在另一台设备上断开 URnetwork。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免費計劃可同時連接的裝置數量有限。升級至 UR Pro 以連接更多裝置，或在另一部裝置上中斷 URnetwork。"
+          }
+        }
+      }
+    },
     "Your friend gets +%lld GiB/day for life" : {
       "comment" : "Referral perk bullet on the introduction referral screen (the referred side). The referral grant is per day (pro.yml referral.period: 24h).",
       "localizations" : {
@@ -266560,6 +266894,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你已付費的一年 Pro 已結束。請在 %@ 前續訂以保留 Pro。"
+          }
+        }
+      }
+    },
+    "Your plan's limit of devices connected at once is reached. Sign out of URnetwork on a device you no longer use, then try again." : {
+      "comment" : "Body under client_limit_reached, in the app and in the local notification, for a UR Pro account: it already has as many devices connected at once as its plan allows, the highest plan, so no upgrade helps. Signing out on another device frees its slot; Retry is the button beside it. Also shown when a sign-in on a new device is refused for the same limit. Keep URnetwork as it is.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بلغت خطتك الحد الأقصى للأجهزة المتصلة في الوقت نفسه. سجّل الخروج من URnetwork على جهاز لم تعد تستخدمه، ثم حاول مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš tarif dosáhl limitu zařízení připojených najednou. Odhlaste se z URnetwork na zařízení, které už nepoužíváte, a zkuste to znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Tarif hat sein Limit für gleichzeitig verbundene Geräte erreicht. Melde dich auf einem Gerät, das du nicht mehr nutzt, von URnetwork ab und versuche es dann erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το πρόγραμμά σας έφτασε το όριο συσκευών που συνδέονται ταυτόχρονα. Αποσυνδεθείτε από το URnetwork σε μια συσκευή που δεν χρησιμοποιείτε πια και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan's limit of devices connected at once is reached. Sign out of URnetwork on a device you no longer use, then try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan alcanzó el límite de dispositivos conectados a la vez. Cierra sesión en URnetwork en un dispositivo que ya no uses y vuelve a intentarlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan alcanzó el límite de dispositivos conectados a la vez. Cierra sesión en URnetwork en un dispositivo que ya no uses y vuelve a intentarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan alcanzó el límite de dispositivos conectados a la vez. Cierra sesión en URnetwork en un dispositivo que ya no uses y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre offre a atteint sa limite d’appareils connectés simultanément. Déconnectez-vous d’URnetwork sur un appareil que vous n’utilisez plus, puis réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התוכנית שלך הגיעה למגבלת המכשירים המחוברים בו־זמנית. התנתק מ-URnetwork במכשיר שאינך משתמש בו עוד, ואז נסה שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके प्लान में एक साथ कनेक्ट डिवाइस की सीमा पूरी हो गई है। जिस डिवाइस का अब इस्तेमाल नहीं करते, उस पर URnetwork से साइन आउट करें, फिर दोबारा कोशिश करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paket Anda sudah mencapai batas perangkat yang terhubung sekaligus. Keluar dari URnetwork di perangkat yang tidak lagi Anda gunakan, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo piano ha raggiunto il limite di dispositivi collegati contemporaneamente. Esci da URnetwork su un dispositivo che non usi più, poi riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プランで同時に接続できるデバイスの上限に達しました。使っていないデバイスで URnetwork からサインアウトしてから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요금제의 동시 연결 기기 한도에 도달했습니다. 더 이상 사용하지 않는 기기에서 URnetwork에서 로그아웃한 다음 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je abonnement heeft de limiet voor tegelijk verbonden apparaten bereikt. Meld je af bij URnetwork op een apparaat dat je niet meer gebruikt en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój plan osiągnął limit urządzeń połączonych jednocześnie. Wyloguj się z URnetwork na urządzeniu, którego już nie używasz, i spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu plano atingiu o limite de dispositivos conectados ao mesmo tempo. Saia do URnetwork em um dispositivo que você não usa mais e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu plano atingiu o limite de dispositivos conectados ao mesmo tempo. Saia do URnetwork em um dispositivo que você não usa mais e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu plano atingiu o limite de dispositivos ligados ao mesmo tempo. Termine a sessão no URnetwork num dispositivo que já não utiliza e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш тариф достиг лимита одновременно подключённых устройств. Выйдите из URnetwork на устройстве, которым больше не пользуетесь, и попробуйте снова."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din plan har nått gränsen för enheter som är anslutna samtidigt. Logga ut från URnetwork på en enhet du inte längre använder och försök igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แพ็กเกจของคุณถึงขีดจำกัดจำนวนอุปกรณ์ที่เชื่อมต่อพร้อมกันแล้ว ออกจากระบบ URnetwork บนอุปกรณ์ที่คุณไม่ได้ใช้แล้ว แล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш тариф досяг ліміту одночасно підключених пристроїв. Вийдіть з URnetwork на пристрої, яким більше не користуєтеся, і спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gói của bạn đã đạt giới hạn số thiết bị kết nối cùng lúc. Đăng xuất URnetwork trên một thiết bị bạn không còn dùng, rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的套餐已达到可同时连接的设备数量上限。请在不再使用的设备上退出 URnetwork，然后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的計劃已達到可同時連接的裝置數量上限。請在不再使用的裝置上登出 URnetwork，然後再試一次。"
           }
         }
       }

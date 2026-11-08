@@ -181,6 +181,14 @@ struct VPNOutOfBalanceHold: Equatable {
 /// its SDK tunnel runs, and it holds the traffic. An extension with no provider
 /// reports reasserting, so that counts here too. The other readings still decide:
 /// an extension that stopped answering is restarted whatever the balance.
+///
+/// `outOfBalanceHeld` also carries the platform's client limit hold (the
+/// VPNManager snapshot's clientLimitHeld): the platform holds the device off for
+/// its network's concurrent client limit, so forming a window cannot work either,
+/// and a restart would bring up a new device that dials the platform at once,
+/// past the hold, every recovery deadline: a retry storm against the limit, with
+/// traffic out of the tunnel while it runs. The user is told what to do instead
+/// (ClientLimitNotice).
 func vpnTunnelHealthIsSatisfied(
     expectedStarted: Bool,
     connectionState: VPNTunnelConnectionState,

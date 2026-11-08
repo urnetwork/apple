@@ -606,6 +606,15 @@ struct NetworkApp: App {
                     )
                     #endif
                 }
+                .onChange(of: deviceManager.isPro) { isPro in
+                    // the plan is Pro now, as after a purchase from the
+                    // client limit prompt: a device the limit holds off dials
+                    // again at once instead of waiting out the hold (a no-op
+                    // with no hold)
+                    if isPro {
+                        connectViewModel.retryClientLimit()
+                    }
+                }
                 .onChange(of: scenePhase) { phase in
                     setPresentationActive(phase == .active)
                     // the slow internet Live Activity starts from the app

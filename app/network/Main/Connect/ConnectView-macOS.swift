@@ -190,7 +190,9 @@ import URnetworkSdk
                                 dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
                                 openStatsSheet: { sheet in
                                     presentedStatsSheet = sheet
-                                }
+                                },
+                                clientLimitHold: connectViewModel.clientLimitHold,
+                                retryClientLimit: connectViewModel.retryClientLimit
                             )
                             
                         }

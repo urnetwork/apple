@@ -45,6 +45,13 @@ struct ContentView: View {
     
     @State var welcomeAnimationComplete: Bool = true
     @State var introductionComplete: Bool = true
+
+    // a sign-in the network's client limit refused: the notice, then the
+    // device list, where a removal runs the sign-in again
+    @State private var signInDeviceLimit: SignInDeviceLimit? = nil
+    @State private var signInManageDevices: SignInDeviceLimit? = nil
+    // why the last retry of that sign-in failed, above the list
+    @State private var signInRetryMessage: String? = nil
     
     var body: some View {
         ZStack {
@@ -179,6 +186,50 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .modifier(BittensorKeySignOutAlert())
+        // the client limit refused the sign-in: what to do, and the device
+        // list. No Get Pro here: the purchase needs a signed-in device, and
+        // the server signs the apps in and holds a free plan at connect,
+        // where the connect notice offers it.
+        .alert(
+            ClientLimitNotice.title,
+            isPresented: Binding(
+                get: { signInDeviceLimit != nil },
+                set: { presented in
+                    if !presented {
+                        signInDeviceLimit = nil
+                    }
+                }
+            ),
+            presenting: signInDeviceLimit
+        ) { limit in
+            Button("Manage devices") {
+                signInDeviceLimit = nil
+                signInRetryMessage = nil
+                signInManageDevices = limit
+            }
+            .accessibilityIdentifier("acceptance.clientLimit.signIn.manageDevices")
+            Button("Cancel", role: .cancel) {
+                signInDeviceLimit = nil
+            }
+        } message: { limit in
+            Text(verbatim: ClientLimitNotice.body(offersUpgrade: limit.offersUpgrade))
+        }
+        .sheetOffTheFold(item: $signInManageDevices) { limit in
+            ManageDevicesSheet(
+                store: ManageDevicesStore.forSignIn(
+                    api: limit.api,
+                    networkJwt: limit.login.jwt,
+                    retry: {
+                        retrySignIn(limit)
+                    }
+                ),
+                message: signInRetryMessage ?? ClientLimitNotice.body(offersUpgrade: limit.offersUpgrade),
+                dismiss: {
+                    signInManageDevices = nil
+                }
+            )
+            .environmentObject(themeManager)
+        }
         .environmentObject(deviceManager)
         .background(themeManager.currentTheme.backgroundColor)
         .environmentObject(snackbarManager)
@@ -244,10 +295,65 @@ struct ContentView: View {
         })
         guard request.isCurrent else { return }
         if case .failure(let error) = result, !(error is CancellationError) {
-            snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
+            if let clientLimit = error as? NetworkClientLimitError {
+                // the network's client limit refused the sign-in: say what to
+                // do, not that creating the network failed, and offer the
+                // device list
+                signInDeviceLimit = SignInDeviceLimit(
+                    login: login,
+                    api: request.api,
+                    offersUpgrade: clientLimit.offersUpgrade
+                )
+            } else {
+                snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
+            }
+        }
+    }
+
+    /**
+     * A removal in the device list freed a slot: the refused sign-in again,
+     * with the same login, as a new request (a request registers once) of the
+     * login view now shown. The refused attempt was accepted before the
+     * server refused it, which retired its login view's origin, so the
+     * retry starts from the current one. Success leaves the list for the
+     * app; another refusal keeps it open, saying why.
+     */
+    private func retrySignIn(_ limit: SignInDeviceLimit) {
+        guard let request = deviceManager.beginNetworkLoginRequest(origin: deviceManager.networkLoginOrigin) else {
+            return
+        }
+        Task {
+            let result = await deviceManager.authenticateNetworkClient(limit.login, request: request, accepted: {
+                self.welcomeAnimationComplete = false
+                self.introductionComplete = !limit.login.newNetwork
+            })
+            guard request.isCurrent else { return }
+            switch result {
+            case .success:
+                signInManageDevices = nil
+                signInRetryMessage = nil
+            case .failure(let error):
+                if error is CancellationError {
+                    return
+                }
+                if let clientLimit = error as? NetworkClientLimitError {
+                    signInRetryMessage = ClientLimitNotice.body(offersUpgrade: clientLimit.offersUpgrade)
+                } else {
+                    signInRetryMessage = String(localized: "There was an error creating your network. Please try again later.")
+                }
+            }
         }
     }
     
+}
+
+/// A sign-in the network's client limit refused, with what runs it again: its
+/// login (the network's sign-in token), and the api it signs in on.
+private struct SignInDeviceLimit: Identifiable {
+    let id = UUID()
+    let login: NetworkLogin
+    let api: SdkApi
+    let offersUpgrade: Bool
 }
 //
 //#Preview {

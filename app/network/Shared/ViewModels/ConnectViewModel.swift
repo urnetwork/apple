@@ -144,7 +144,22 @@ class ConnectViewModel: ObservableObject {
      * Contract status
      */
     @Published private(set) var contractStatus: SdkContractStatus? = nil
-    
+
+    /**
+     * The platform holds the device off for its network's client limit while
+     * a connection is requested: the connect views show what to do
+     * (ClientLimitNotice). Nil otherwise.
+     */
+    @Published private(set) var clientLimitHold: ClientLimitHold? = nil
+    /**
+     * The hold in force offered the upgrade at some point: set when a hold
+     * offering it shows, cleared when the hold ends. A purchase refreshes the
+     * client's plan, which turns the hold's prompt to remove_client, maybe
+     * before the app reads the plan as Pro; the plan turning Pro still ends
+     * that hold (NetworkApp).
+     */
+    private(set) var clientLimitHoldOfferedUpgrade = false
+
     /**
      * Upgrade prompts
      */
@@ -171,6 +186,7 @@ class ConnectViewModel: ObservableObject {
     private var selectedLocationListenerSub: SdkSubProtocol?
     private var tunnelListenerSub: SdkSubProtocol?
     private var contractListenerSub: SdkSubProtocol?
+    private var clientLimitListenerSub: SdkSubProtocol?
     private var connectLocationStateSub: SdkSubProtocol?
     // the device listeners' generation: closeListeners advances it, so a
     // report or a read for a retired listener changes nothing
@@ -178,6 +194,7 @@ class ConnectViewModel: ObservableObject {
     // reports applied, per value: a read made before one of them is older
     // than it and is dropped
     private var tunnelRevision = 0
+    private var clientLimitRevision = 0
     private var backgroundLocationRevision = 0
     private var contractStatusGeneration = 0
     private var contractStatusRevision = 0
@@ -274,6 +291,11 @@ class ConnectViewModel: ObservableObject {
         notice: { action in InsufficientBalanceNotice.apply(action) }
     )
 
+    // the device's last client limit status, as read or reported, and the
+    // sdk's decision of its notification (ClientLimitNotice)
+    private var clientLimitStatus: SdkClientLimitStatus? = nil
+    private let clientLimitNoticeTracker = SdkNewClientLimitNoticeTracker()
+
     // a connect insufficient balance blocked, retried by itself once the
     // balance is back (BalanceRecovery): a start the gate refused, with the
     // location the user asked for (nil: the best available provider), or the
@@ -319,6 +341,11 @@ class ConnectViewModel: ObservableObject {
         // the listener only reports changes: a balance that was already
         // insufficient must show the gate and its notice now
         self.updateContractStatus()
+
+        // and a hold the tunnel started while the app was not in front shows
+        // its prompt now
+        self.clientLimitListenerSub = device.add(makeClientLimitStatusListener())
+        self.refreshClientLimitStatus()
     }
 
     /**
@@ -373,6 +400,13 @@ class ConnectViewModel: ObservableObject {
         self.isPresentedUpgradeSheet = false
         // a signed out account's episode is over: withdraw its notice
         self.insufficientBalanceReaction.reset()
+        // and its client limit hold, with its notice
+        self.clientLimitStatus = nil
+        self.clientLimitHold = nil
+        self.clientLimitHoldOfferedUpgrade = false
+        if let action = self.clientLimitNoticeTracker?.reset() {
+            ClientLimitNotice.apply(action, offersUpgrade: true)
+        }
         self.dataLimitGate = DataLimitGate()
         self.dataLimitReached = false
         // and a connect it asked for must not start later
@@ -392,13 +426,14 @@ class ConnectViewModel: ObservableObject {
         selectedLocationListenerSub?.close()
         // the device's take its state lock: closed on the command queue, and
         // their reports until then change nothing (deviceListenerGeneration)
-        closeOnCommandQueue([tunnelListenerSub, contractListenerSub, connectLocationStateSub])
+        closeOnCommandQueue([tunnelListenerSub, contractListenerSub, clientLimitListenerSub, connectLocationStateSub])
 
         gridListenerSub = nil
         connectionStatusListenerSub = nil
         selectedLocationListenerSub = nil
         tunnelListenerSub = nil
         contractListenerSub = nil
+        clientLimitListenerSub = nil
         connectLocationStateSub = nil
     }
 
@@ -976,6 +1011,8 @@ class ConnectViewModel: ObservableObject {
     /// Publishes what the connect views show: connecting while a start waits
     /// on its balance, else the requested status. Only on a change.
     private func publishConnectionStatus() {
+        // the client limit prompt and its notice follow the request
+        evaluateClientLimit()
         let status: ConnectionStatus? = startConnectTask != nil ? .destinationSet : requestedConnectionStatus
         // a tap's state is connecting, whatever the location
         let fromLocation = startConnectTask == nil
@@ -1135,6 +1172,124 @@ extension ConnectViewModel {
         return a.insufficientBalance == b.insufficientBalance
             && a.noPermission == b.noPermission
             && a.premium == b.premium
+    }
+}
+
+// MARK: Client limit
+extension ConnectViewModel {
+    /// Reads the device's client limit status on the command queue, as every
+    /// device read here goes: the getter takes the device's state lock, which
+    /// a held command keeps through its rpc. A report applied after the read
+    /// was made, or a setup, suspend or reset, drops it.
+    func refreshClientLimitStatus() {
+        guard let device else { return }
+        let generation = deviceListenerGeneration
+        let revision = clientLimitRevision
+        let read = ClientLimitStatusReadWork(device: device)
+        connectCommandQueue.async { [weak self] in
+            let status = read.run()
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation, self.clientLimitRevision == revision else {
+                    return
+                }
+                self.applyClientLimitStatus(status)
+            }
+        }
+    }
+
+    func makeClientLimitStatusListener() -> ClientLimitStatusChangeListener {
+        let generation = deviceListenerGeneration
+        return ClientLimitStatusChangeListener { [weak self] status in
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation else { return }
+                self.clientLimitRevision += 1
+                self.applyClientLimitStatus(status)
+            }
+        }
+    }
+
+    private func applyClientLimitStatus(_ status: SdkClientLimitStatus?) {
+        clientLimitStatus = status
+        evaluateClientLimit()
+    }
+
+    /// The prompt shows, and the sdk decides the notification, while the
+    /// device is held and a connection is requested (ClientLimitNoticeTracker).
+    /// The user's traffic is held in the tunnel until they act: nothing here
+    /// disconnects, and Disconnect stays offered.
+    private func evaluateClientLimit() {
+        let held = clientLimitStatus?.status == SdkClientLimitStatusExceeded
+        let hold: ClientLimitHold? = held && connectRequested
+            ? ClientLimitHold(prompt: clientLimitStatus?.prompt ?? "")
+            : nil
+        if clientLimitHold != hold {
+            clientLimitHold = hold
+        }
+        if let hold {
+            if hold.offersUpgrade {
+                clientLimitHoldOfferedUpgrade = true
+            }
+        } else {
+            clientLimitHoldOfferedUpgrade = false
+        }
+        if let action = clientLimitNoticeTracker?.update(clientLimitStatus, connectRequested: connectRequested) {
+            ClientLimitNotice.apply(action, offersUpgrade: hold?.offersUpgrade ?? true)
+        }
+    }
+
+    /// Dials again at once instead of waiting out the hold, once the user has
+    /// acted on the prompt: Retry, or a purchase that made the plan Pro. The
+    /// sdk ends at most one hold per interval and none with no hold in force,
+    /// so a repeated tap cannot storm the limit; a refusal starts a new hold
+    /// and the prompt shows again.
+    func retryClientLimit() {
+        guard let device else { return }
+        let work = ClientLimitRetryWork(device: device)
+        connectCommandQueue.async {
+            work.run()
+        }
+    }
+
+    /// Dials again at once after a change that raised the limit: the plan
+    /// turned Pro after a purchase from the prompt. Unlike Retry, the sdk
+    /// starts its retry floor over (Device.retryClientLimitAfterChange), so
+    /// earlier refused retries never keep a paid plan waiting out the hold.
+    func retryClientLimitAfterChange() {
+        guard let device else { return }
+        let work = ClientLimitRetryAfterChangeWork(device: device)
+        connectCommandQueue.async {
+            work.run()
+        }
+    }
+}
+
+/// The device's client limit read, handed from the main actor to the command
+/// queue. Unchecked: the device is a gomobile proxy that may be called from
+/// any thread, and nothing here changes after the hand off.
+private struct ClientLimitStatusReadWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() -> SdkClientLimitStatus? {
+        device.getClientLimitStatus()
+    }
+}
+
+/// The device's client limit retry, handed to the command queue like the read.
+private struct ClientLimitRetryWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() {
+        _ = device.retryClientLimit()
+    }
+}
+
+/// The device's retry after a change that raised the limit, handed to the
+/// command queue as ClientLimitRetryWork is.
+private struct ClientLimitRetryAfterChangeWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+
+    func run() {
+        _ = device.retryClientLimitAfterChange()
     }
 }
 

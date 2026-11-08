@@ -2076,6 +2076,17 @@ private class AuthNetworkClientCallback: SdkCallback<SdkAuthNetworkClientResult,
     }
 }
 
+/// A sign-in the server refused for the network's client limit: no client was
+/// created. Its description says what to do, upgrade on a free plan or free a
+/// slot on Pro (ClientLimitNotice), instead of the generic sign-in error.
+struct NetworkClientLimitError: LocalizedError {
+    let offersUpgrade: Bool
+
+    var errorDescription: String? {
+        ClientLimitNotice.body(offersUpgrade: offersUpgrade)
+    }
+}
+
 // MARK: login/logout
 @MainActor
 extension DeviceManager {
@@ -2130,7 +2141,17 @@ extension DeviceManager {
                     if let error {
                         continuation.resume(throwing: error)
                     } else if let resultError = result?.error {
-                        continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                        // the sdk decides what a client limit refusal offers
+                        // (ClientLimitStatus.prompt); every other refusal
+                        // keeps the server's message
+                        switch resultError.clientLimitPrompt {
+                        case SdkClientLimitPromptUpgrade, SdkClientLimitPromptRemoveClient:
+                            continuation.resume(throwing: NetworkClientLimitError(
+                                offersUpgrade: resultError.clientLimitPrompt == SdkClientLimitPromptUpgrade
+                            ))
+                        default:
+                            continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                        }
                     } else if let clientJwt = result?.byClientJwt, !clientJwt.isEmpty {
                         continuation.resume(returning: (clientJwt, result?.clientId))
                     } else {

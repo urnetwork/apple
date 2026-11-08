@@ -270,6 +270,25 @@ struct SettingsForm_iOS: View {
                         .truncationMode(.middle)
                 }
 
+                /**
+                 * Manage devices: the network's devices and hosted proxies,
+                 * each removable to free a slot of the plan
+                 */
+                HStack {
+                    Text("Manage devices")
+                        .font(themeManager.currentTheme.bodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.manageDevices)
+                }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("acceptance.settings.manageDevices")
+
             }
 
             Section("Connections") {

@@ -356,6 +356,29 @@ struct SettingsForm_macOS: View {
                                 .truncationMode(.middle)
                         }
 
+                        Spacer().frame(height: 16)
+                        Divider()
+                        Spacer().frame(height: 16)
+
+                        /**
+                         * Manage devices: the network's devices and hosted
+                         * proxies, each removable to free a slot of the plan
+                         */
+                        HStack {
+                            Text("Manage devices")
+                                .font(themeManager.currentTheme.bodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            navigate(.manageDevices)
+                        }
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityIdentifier("acceptance.settings.manageDevices")
+
                     }
                     .padding()
                     .background(themeManager.currentTheme.tintedBackgroundBase)

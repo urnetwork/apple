@@ -828,6 +828,12 @@ class VPNManager: ObservableObject {
         var windowTargetSize = 0
         var windowFailed = false
         var outOfBalanceHeld = false
+        // the platform holds the device off for its network's client limit
+        // (ClientLimitStatus): like out of balance, an empty provider window
+        // is what the account is meant to have, and a restart would only dial
+        // the platform again under a new device, through its hold, and let
+        // traffic out while the tunnel is down
+        var clientLimitHeld = false
 
         func satisfies(expectedStarted: Bool) -> Bool {
             vpnTunnelHealthIsSatisfied(
@@ -837,7 +843,7 @@ class VPNManager: ObservableObject {
                 sdkTunnelStarted: sdkTunnelStarted,
                 requiresProvider: requiresProvider,
                 providerCount: providerCount,
-                outOfBalanceHeld: outOfBalanceHeld
+                outOfBalanceHeld: outOfBalanceHeld || clientLimitHeld
             )
         }
 
@@ -853,7 +859,7 @@ class VPNManager: ObservableObject {
         }
 
         var description: String {
-            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount) target=\(windowTargetSize) failed=\(windowFailed) outOfBalance=\(outOfBalanceHeld)"
+            "status=\(connectionState) rpc=\(rpcConnected) sdkStarted=\(sdkTunnelStarted) requiresProvider=\(requiresProvider) providers=\(providerCount) target=\(windowTargetSize) failed=\(windowFailed) outOfBalance=\(outOfBalanceHeld) clientLimit=\(clientLimitHeld)"
         }
     }
 
@@ -907,6 +913,13 @@ class VPNManager: ObservableObject {
                 providerCount: Int(windowStatus.providerStateAdded)
             )
         }
+        // the hold is the extension's, read live through the rpc. Checked
+        // again after the read, as the balance read is: with the rpc gone,
+        // DeviceRemote answers its last readout, which can be a hold already
+        // over, and only a live read may keep the audit off the tunnel
+        let clientLimitHeld = requiresProvider
+            && device.getClientLimitStatus()?.status == SdkClientLimitStatusExceeded
+            && device.getConnected()
         return TunnelHealthSnapshot(
             connectionState: connectionState,
             rpcConnected: true,
@@ -915,7 +928,8 @@ class VPNManager: ObservableObject {
             providerCount: Int(windowStatus?.providerStateAdded ?? 0),
             windowTargetSize: Int(windowStatus?.targetSize ?? 0),
             windowFailed: windowStatus?.failed ?? false,
-            outOfBalanceHeld: outOfBalanceHold.held
+            outOfBalanceHeld: outOfBalanceHold.held,
+            clientLimitHeld: clientLimitHeld
         )
     }
 

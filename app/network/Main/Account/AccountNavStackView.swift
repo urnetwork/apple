@@ -279,6 +279,15 @@ struct AccountNavStackView: View {
                 .navigationTitle("VLESS")
                 .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
 
+        case .manageDevices:
+
+            // the network's devices and hosted proxies, each removable to
+            // free a slot of the plan's devices connected at once; the sdk
+            // controller is this device's (ManageDevicesStore)
+            ManageDevicesView(store: ManageDevicesStore.forDevice(device))
+                .navigationTitle("Manage devices")
+                .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+
         case .blockedLocations:
 
             BlockedLocationsView(

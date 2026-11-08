@@ -66,6 +66,8 @@ import URnetworkSdk
         // the one Referrals screen, presented from the drawer's referral row
         @State private var isPresentedReferrals = false
         @State private var isPresentedDataInfo = false
+        // the device list, presented from the client limit notice
+        @State private var isPresentedManageDevices = false
 
         init(
             api: SdkApi,
@@ -190,6 +192,11 @@ import URnetworkSdk
                                 dailyBalanceByteCount: subscriptionBalanceViewModel.startBalanceByteCount,
                                 openStatsSheet: { sheet in
                                     presentedStatsSheet = sheet
+                                },
+                                clientLimitHold: connectViewModel.clientLimitHold,
+                                retryClientLimit: connectViewModel.retryClientLimit,
+                                openManageDevices: {
+                                    isPresentedManageDevices = true
                                 }
                             )
                             
@@ -331,6 +338,24 @@ import URnetworkSdk
             }
             // "About your data", from the usage bar and the out-of-balance notice
             .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
+            // the device list, from the client limit notice: removing a
+            // device frees a slot, and the sdk ends this device's hold
+            .sheetOffTheFold(isPresented: $isPresentedManageDevices) {
+                if let device = deviceManager.device {
+                    ManageDevicesSheet(
+                        store: ManageDevicesStore.forDevice(device),
+                        dismiss: { isPresentedManageDevices = false }
+                    )
+                    .environmentObject(themeManager)
+                }
+            }
+            // the hold ended (a removal or Get Pro admitted the device, or the
+            // connection request ended): back to the connect screen
+            .onChange(of: connectViewModel.clientLimitHold) { hold in
+                if hold == nil {
+                    isPresentedManageDevices = false
+                }
+            }
             // upgrade subscription
             .sheetOffTheFold(isPresented: $connectViewModel.isPresentedUpgradeSheet) {
                 // a legacy guest adds a sign-in method to this network

@@ -599,6 +599,14 @@ class DnsSettingsStore: ObservableObject {
         return DnsSettings(custom)
     }
 
+    /// The saved id a personal preset's id field starts on when it opens
+    /// (`GetDnsPresetPersonalIdForEdit`, ADBLOCK3RD decision 21): the id in
+    /// force while the settings select that preset, else empty. The field
+    /// is the one place it shows; the summaries say "your profile" (D5).
+    func personalIdForEdit(presetId: String) -> String {
+        SdkGetDnsPresetPersonalIdForEdit(sdkSettings, presetId)
+    }
+
     /**
      * Writes the settings to the app's own local state.
      *

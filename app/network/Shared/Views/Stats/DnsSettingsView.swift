@@ -575,8 +575,9 @@ struct DnsSettingsView: View {
      * A personal preset's id field (ADBLOCK3RD D3): the id, or the dashboard
      * url or Private DNS hostname that holds it, which the sdk reads the id
      * out of and checks (D4). Opened on the preset in force, it shows the id
-     * saved, as android and windows do; the summaries never show it, they say
-     * "your profile" (D5).
+     * saved, as the sdk gives it for this field alone
+     * (`GetDnsPresetPersonalIdForEdit`, decision 21); the summaries never
+     * show it, they say "your profile" (D5).
      */
     private func personalIdEntry(_ pick: DnsPickRow) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -878,11 +879,10 @@ struct DnsSettingsView: View {
         if pick.personalIdRequired {
             if personalIdPresetId == pick.presetId {
                 closePersonalIdEntry()
-            } else if summary?.presetId == pick.presetId {
-                // the preset in force: its field starts on the id saved
-                openPersonalIdEntry(pick.presetId, input: dnsSettingsStore.settings?.presetPersonalId ?? "")
             } else {
-                openPersonalIdEntry(pick.presetId, input: "")
+                // the preset in force starts on the id saved, any other
+                // empty: the sdk's to say (decision 21)
+                openPersonalIdEntry(pick.presetId, input: dnsSettingsStore.personalIdForEdit(presetId: pick.presetId))
             }
             return
         }

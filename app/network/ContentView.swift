@@ -117,7 +117,10 @@ struct ContentView: View {
                             welcomeAnimationComplete: $welcomeAnimationComplete,
                             networkId: networkId,
                             introductionComplete: $introductionComplete,
-                            isPro: deviceManager.isPro
+                            isPro: deviceManager.isPro,
+                            subscriptionPlanLoaded: { serverIsPro in
+                                deviceManager.subscriptionBalanceLoaded(serverIsPro: serverIsPro)
+                            }
                         )
                         .opacity(opacity)
 

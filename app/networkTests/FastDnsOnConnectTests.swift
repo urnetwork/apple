@@ -67,7 +67,7 @@ struct FastDnsOnConnectTests {
 
     @Test func aBlankFormHasFastDnsOff() {
         #expect(!DnsSettings().fastDnsOnConnectEnabled)
-        #expect(!DnsSettings().toSdk().enableFallback)
+        #expect(DnsSettings().toCustomSdk(base: nil)?.enableFallback == false)
     }
 
     @Test func theToggleFollowsTheSdkFallbackBothWays() {
@@ -78,8 +78,22 @@ struct FastDnsOnConnectTests {
 
             let settings = DnsSettings(sdkSettings)
             #expect(settings.fastDnsOnConnectEnabled == enabled)
-            #expect(settings.toSdk().enableFallback == enabled)
+            #expect(settings.toCustomSdk(base: sdkSettings)?.enableFallback == enabled)
         }
+    }
+
+    /// The dns screen's toggle sets Fast DNS on connect from the device's
+    /// settings (`DnsResolverSettingsWithFallback`), and a pick keeps it
+    /// (`DnsResolverSettingsWithPreset`): neither changes the other.
+    @Test func theToggleKeepsTheSelectionAndAPickKeepsTheToggle() throws {
+        let defaults = try #require(SdkGetDefaultDnsResolverSettings())
+
+        let fast = try #require(SdkDnsResolverSettingsWithFallback(defaults, true))
+        #expect(DnsSettings(fast).fastDnsOnConnectEnabled)
+        #expect(fast.presetId == SdkDnsPresetIdDefault)
+
+        let picked = try #require(SdkDnsResolverSettingsWithPreset(fast, SdkDnsPresetIdDefault, ""))
+        #expect(DnsSettings(picked).fastDnsOnConnectEnabled)
     }
 
     /// A mirror exactly as an older build wrote it: the whole settings object
@@ -107,7 +121,7 @@ struct FastDnsOnConnectTests {
             var settings = DnsSettings()
             settings.enableRemoteDoh = true
             settings.enableFallback = true
-            try localState.setDnsResolverSettings(settings.toSdk())
+            try localState.setDnsResolverSettings(settings.toCustomSdk(base: nil))
 
             let read = try #require(localState.getDnsResolverSettings())
             #expect(DnsSettings(read).fastDnsOnConnectEnabled)

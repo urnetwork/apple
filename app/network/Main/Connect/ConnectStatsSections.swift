@@ -170,11 +170,15 @@ struct ConnectStatsSections: View {
             cardHeader("Custom DNS")
 
             // a nudge when the applied dns settings differ from the recommended
-            // ones (regional recommendation, or the safe defaults)
+            // ones (regional recommendation, or the safe defaults), a dropped
+            // preset's notice, and a failing preset's status
             DnsRecommendationPill()
 
             if let settings = dnsSettingsStore.settings {
                 VStack(spacing: 8) {
+                    // what the settings select: "DNS: AdGuard DNS · Ad blocking"
+                    DnsSelectionLine()
+                        .frame(minHeight: dnsStatusRowHeight)
                     dnsStatusRow("DNS over HTTPS", enabled: settings.dohEnabled)
                     dnsStatusRow("Unencrypted DNS", enabled: settings.unencryptedDnsEnabled)
                     dnsStatusRow("Local DNS", enabled: settings.localDnsEnabled)
@@ -182,11 +186,12 @@ struct ConnectStatsSections: View {
                 }
             } else {
                 // the settings arrive once the device attaches (the store
-                // publishes nil until then); reserve the four rows at their
-                // final height so the drawer's content does not grow when
-                // they land (mmm/DESIGNSTYLE.md "Placeholders, not pop-in")
+                // publishes nil until then); reserve the selection line and
+                // the four rows at their final height so the drawer's content
+                // does not grow when they land (mmm/DESIGNSTYLE.md
+                // "Placeholders, not pop-in")
                 VStack(spacing: 8) {
-                    ForEach(0..<4, id: \.self) { _ in
+                    ForEach(0..<5, id: \.self) { _ in
                         dnsStatusRowSkeleton()
                     }
                 }
@@ -197,16 +202,22 @@ struct ConnectStatsSections: View {
     }
 
     /**
-     * Ad and tracker blocker toggle. The device applies it immediately
-     * and persists it to local settings.
+     * URnetwork's own ad and tracker blocker toggle. The device applies it
+     * immediately and persists it to local settings. Labeled as URnetwork's,
+     * since "Block ads and trackers" now heads the dns providers that block
+     * them (connect ADBLOCK3RD F1 item 6): both can be on.
      */
     private var blockerCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 6) {
             UrSwitchToggle(isOn: $deviceManager.blockerEnabled) {
-                Text("Block ads and trackers")
+                Text("URnetwork ad blocker")
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
             }
+            Text("URnetwork's own blocker. It works with any DNS choice and checks each name first.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -300,60 +311,105 @@ private extension View {
 }
 
 /**
- * A pill shown atop the Custom DNS card when the applied dns settings differ from
- * the recommended ones: the connected country's regional recommendation (with the
- * country color) when it has one, otherwise the safe defaults. Nothing is shown
- * when the applied settings already match. Extracted like SplitRuleCountLabel so
- * its connectViewModel / dnsSettingsStore subscriptions don't re-render the charts.
+ * Pills shown atop the Custom DNS card, as the sdk describes the applied dns
+ * settings (`DescribeDnsResolverSettings`, `DescribeDnsResolverStatus`):
+ * - the notice of a stored preset this release no longer offers, which
+ *   URnetwork's dns replaces (connect ADBLOCK3RD A7);
+ * - the status of a selected preset that is failing (C8);
+ * - the nudge when the settings differ from the recommended ones: the
+ *   connected country's regional recommendation (with the country color)
+ *   when it has one, otherwise the safe defaults. Never while a preset is
+ *   selected, an explicit choice whose problems show as its status (F2).
+ * Nothing is shown when none applies. Extracted like SplitRuleCountLabel so
+ * its connectViewModel / dnsSettingsStore subscriptions don't re-render the
+ * charts.
  */
 private struct DnsRecommendationPill: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var dnsSettingsStore: DnsSettingsStore
     @EnvironmentObject var connectViewModel: ConnectViewModel
 
-    /// the pill message and, for a regional recommendation, the country code whose
-    /// color dots the pill; nil when the applied settings already match
-    private var recommendation: (message: LocalizedStringKey, countryCode: String?)? {
-        guard let current = dnsSettingsStore.settings else {
-            return nil
+    /// the pills' messages, each with the country code whose color dots it
+    /// (the regional recommendation's), in the order they show
+    private var pills: [(message: Text, countryCode: String?)] {
+        let exitCountryCode = connectViewModel.selectedProvider?.countryCode
+        guard let summary = dnsSettingsStore.selectionSummary(exitCountryCode: exitCountryCode) else {
+            return []
         }
-        // a connected country with a known-better regional recommendation takes precedence
-        if let code = connectViewModel.selectedProvider?.countryCode,
-           let sdkRecommended = SdkGetRecommendedDnsResolverSettings(code) {
-            if current != DnsSettings(sdkRecommended) {
-                let name = connectViewModel.selectedProvider?.country ?? code.uppercased()
-                let message: LocalizedStringKey = "There are unapplied recommended settings for \(name)"
-                return (message, code)
+        var pills: [(message: Text, countryCode: String?)] = []
+        if summary.dropped {
+            if summary.droppedProviderName.isEmpty {
+                // an id this release never knew has no name: the generic copy
+                pills.append((message: Text("This preset isn't available. Choose another one."), countryCode: nil))
+            } else {
+                pills.append((message: Text("\(summary.droppedProviderName) is no longer available. You're using URnetwork DNS, so lookups aren't filtered."), countryCode: nil))
             }
-            // already on the regional recommendation
-            return nil
         }
-        // otherwise nudge toward the safe defaults when they aren't applied
-        if let sdkDefault = SdkGetDefaultDnsResolverSettings(), current != DnsSettings(sdkDefault) {
-            let message: LocalizedStringKey = "The default safe settings are not applied"
-            return (message, nil)
+        if let status = dnsSettingsStore.statusSummary, status.showUseDefault,
+           let line = dnsStatusText(status.statusKey, provider: status.providerName) {
+            pills.append((message: Text(line), countryCode: nil))
         }
-        return nil
+        let countryCode = summary.pillCountryCode
+        let country = connectViewModel.selectedProvider?.country ?? countryCode.uppercased()
+        if let message = dnsPillText(summary.pillKey, country: country) {
+            pills.append((message: Text(message), countryCode: countryCode.isEmpty ? nil : countryCode))
+        }
+        return pills
     }
 
     var body: some View {
-        if let recommendation {
-            HStack(spacing: 6) {
-                if let code = recommendation.countryCode {
-                    Circle()
-                        .fill(Color(hex: SdkGetColorHex(code)))
-                        .frame(width: 8, height: 8)
+        let pills = self.pills
+        if !pills.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(pills.indices, id: \.self) { i in
+                    pill(pills[i].message, countryCode: pills[i].countryCode)
                 }
-                Text(recommendation.message)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Capsule().fill(Color.urCoral.opacity(0.15)))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, 8)
+        }
+    }
+
+    private func pill(_ message: Text, countryCode: String?) -> some View {
+        HStack(spacing: 6) {
+            if let countryCode {
+                Circle()
+                    .fill(Color(hex: SdkGetColorHex(countryCode)))
+                    .frame(width: 8, height: 8)
+            }
+            message
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(Color.urCoral.opacity(0.15)))
+    }
+}
+
+/**
+ * What the applied dns settings select, as the summary row reads
+ * (`DescribeDnsResolverSettings`, connect ADBLOCK3RD F1): "DNS: URnetwork",
+ * "DNS: AdGuard DNS · Ad blocking", "DNS: NextDNS · your profile",
+ * "DNS: Custom". Its own view for the same reason as DnsRecommendationPill.
+ */
+private struct DnsSelectionLine: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var dnsSettingsStore: DnsSettingsStore
+    @EnvironmentObject var connectViewModel: ConnectViewModel
+
+    var body: some View {
+        let summary = dnsSettingsStore.selectionSummary(exitCountryCode: connectViewModel.selectedProvider?.countryCode)
+        HStack(spacing: 8) {
+            if let summary, let text = dnsSummaryText(summary.summaryKey, provider: summary.providerName) {
+                Text(text)
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            Spacer(minLength: 0)
         }
     }
 }
@@ -411,6 +467,12 @@ private struct SplitRuleCountLabel: View {
 struct ConnectStatsSheets: ViewModifier {
 
     @Binding var presentedStatsSheet: ConnectStatsSheet?
+    // opens the location picker, for the dns sheet's "Change location"
+    var openLocations: () -> Void = {}
+    // the dns sheet asked for the location picker: it opens once the sheet
+    // is dismissed, since a presentation made while another one dismisses
+    // can be dropped
+    @State var opensLocationsOnDismiss = false
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -426,7 +488,12 @@ struct ConnectStatsSheets: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheetOffTheFold(item: $presentedStatsSheet) { sheet in
+            .sheetOffTheFold(item: $presentedStatsSheet, onDismiss: {
+                if opensLocationsOnDismiss {
+                    opensLocationsOnDismiss = false
+                    openLocations()
+                }
+            }) { sheet in
                 Group {
                     switch sheet {
                     case .clientContracts:
@@ -480,7 +547,11 @@ struct ConnectStatsSheets: ViewModifier {
         let dnsView = DnsSettingsView(
             settings: dnsSettingsStore.settings,
             connectedCountryCode: connectViewModel.selectedProvider?.countryCode,
-            connectedCountryName: connectViewModel.selectedProvider?.country
+            connectedCountryName: connectViewModel.selectedProvider?.country,
+            changeLocation: {
+                opensLocationsOnDismiss = true
+                presentedStatsSheet = nil
+            }
         )
         #if os(macOS)
         dnsView.frame(minWidth: 480, minHeight: 540)

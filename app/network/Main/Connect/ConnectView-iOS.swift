@@ -233,8 +233,12 @@ struct ConnectView_iOS: View {
                         idealHeight: min(SplitLayout.locationPopoverMaxHeight, geometry.size.height)
                     )
             }
-            // statistics and dns detail sheets (store subscription isolated in the modifier)
-            .modifier(ConnectStatsSheets(presentedStatsSheet: $presentedStatsSheet))
+            // statistics and dns detail sheets (store subscription isolated in the modifier);
+            // the dns sheet's "Change location" opens the location picker
+            .modifier(ConnectStatsSheets(
+                presentedStatsSheet: $presentedStatsSheet,
+                openLocations: { providerListSheetViewModel.isPresented = true }
+            ))
         // a Home Screen widget tap: provider details or client contracts
         .onReceive(deepLinkRouter.$pending) { _ in
             presentWidgetDestination()

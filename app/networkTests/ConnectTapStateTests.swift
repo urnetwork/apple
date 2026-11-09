@@ -965,8 +965,8 @@ struct ConnectTapStateTests {
             stateLock.withLock { dnsResolverSettingsValue = dnsResolverSettings }
         }
 
-        // the dns resolver status listener reports a change; the getter
-        // answers no status, and the blocked count none
+        // the dns resolver status listener reports a change; the getters
+        // answer the status and the blocked count set here
         override func add(_ listener: SdkDnsResolverStatusChangeListenerProtocol?) -> SdkSubProtocol? {
             addStoreListener("DnsResolverStatusChangeListener") {
                 listener?.dnsResolverStatusChanged(nil)
@@ -975,17 +975,23 @@ struct ConnectTapStateTests {
 
         override func getDnsResolverStatus() -> SdkDnsResolverStatus? {
             record("getDnsResolverStatus")
-            return nil
+            let status = stateLock.withLock { dnsResolverStatusValue }
+            heldRead("getDnsResolverStatus")
+            return status
         }
 
         override func getDnsBlockedCount() -> Int64 {
             record("getDnsBlockedCount")
-            return 0
+            let count = stateLock.withLock { dnsBlockedCountValue }
+            heldRead("getDnsBlockedCount")
+            return count
         }
 
         // MARK: what the stores read
 
         private var dnsResolverSettingsValue: SdkDnsResolverSettings?
+        private var dnsResolverStatusValue: SdkDnsResolverStatus?
+        private var dnsBlockedCountValue: Int64 = 0
         private var transportSettingsValue: SdkTransportSettings?
         private var providerTransportSettingsValue: SdkTransportSettings?
         private var remoteConnectedValue = false
@@ -998,6 +1004,19 @@ struct ConnectTapStateTests {
         var dnsResolverSettings: SdkDnsResolverSettings? {
             get { stateLock.withLock { dnsResolverSettingsValue } }
             set { stateLock.withLock { dnsResolverSettingsValue = newValue } }
+        }
+
+        /// The dns resolver status the device answers, nil for none.
+        var dnsResolverStatus: SdkDnsResolverStatus? {
+            get { stateLock.withLock { dnsResolverStatusValue } }
+            set { stateLock.withLock { dnsResolverStatusValue = newValue } }
+        }
+
+        /// The blocked-lookups count the device answers. A device the rpc
+        /// cannot reach answers zero.
+        var dnsBlockedCount: Int64 {
+            get { stateLock.withLock { dnsBlockedCountValue } }
+            set { stateLock.withLock { dnsBlockedCountValue = newValue } }
         }
 
         /// Whether its rpc to the extension is up (GetRemoteConnected).

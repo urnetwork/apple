@@ -185,6 +185,41 @@ private class DnsResolverStatusListener: NSObject, SdkDnsResolverStatusChangeLis
 }
 
 /**
+ * This connection's blocked-lookups count as the dns screen shows it
+ * (connect ADBLOCK3RD I3), nil while there is none to show: not read yet,
+ * the device unreachable, or read for another selection. An object of its
+ * own, apart from DnsSettingsStore's published values, so the screen's
+ * re-reads render only the count and not every view observing the store
+ * (the connect drawer's charts among them).
+ */
+final class DnsBlockedCount: ObservableObject {
+    @Published private(set) var value: Int64? = nil
+
+    /// Publishes only a change.
+    func update(_ value: Int64?) {
+        if self.value != value {
+            self.value = value
+        }
+    }
+}
+
+/// The repeating timer of the blocked count's re-reads: a Timer on the main
+/// run loop in the app, one the test fires in tests.
+protocol DnsBlockedCountTimer: AnyObject {
+    func invalidate()
+}
+
+extension Timer: DnsBlockedCountTimer {}
+
+/// The app's blocked count timer: repeating, on the run loop of the main
+/// actor that schedules it.
+func scheduledDnsBlockedCountTimer(_ interval: TimeInterval, _ fire: @escaping () -> Void) -> DnsBlockedCountTimer {
+    Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+        fire()
+    }
+}
+
+/**
  * Publishes the device dns resolver settings and applies edits.
  *
  * The device persists the settings in its own local state, but in the network
@@ -201,10 +236,18 @@ private class DnsResolverStatusListener: NSObject, SdkDnsResolverStatusChangeLis
  * lists. Each starts from the sdk settings last read back, or last pushed,
  * through the sdk's helpers, never from a fresh sdk object, so the selection
  * and every field this app does not model survive it (E3). The store also
- * publishes the device's dns resolver status and, while the dns screen shows
- * it, this connection's blocked-lookups count (C5, C6, I3). What the screen
- * shows of them is the sdk's to describe (`DescribeDnsResolverSettings`,
+ * publishes the device's dns resolver status, only when it changes, and,
+ * while the dns screen shows it, this connection's blocked-lookups count in
+ * an object of its own (DnsBlockedCount) (C5, C6, I3). What the screen shows
+ * of them is the sdk's to describe (`DescribeDnsResolverSettings`,
  * `DescribeDnsResolverStatus`).
+ *
+ * A count belongs to one selection on one connection (I3): the device starts
+ * it over when the selection changes and at each connect. The store takes a
+ * count only for the selection in force, starts it at zero with a new
+ * selection, drops a read made for the one before (`blockedCountRevision`),
+ * and shows none while the device cannot be reached, which reads zero and
+ * answers its last status.
  */
 @MainActor
 class DnsSettingsStore: ObservableObject {
@@ -215,12 +258,11 @@ class DnsSettingsStore: ObservableObject {
 
     @Published private(set) var settings: DnsSettings? = nil
     /// The device's dns resolver status (ADBLOCK3RD C5, C6), nil until the
-    /// first read lands.
+    /// first read lands. Published only when it changes.
     @Published private(set) var status: SdkDnsResolverStatus? = nil
-    /// This connection's blocked-lookups count (I3), as last read: with the
-    /// status, and while the dns screen shows it every
-    /// `blockedCountRefreshInterval`.
-    @Published private(set) var blockedCount: Int64 = 0
+    /// This connection's blocked-lookups count (I3), not published by the
+    /// store: only the count's own view observes it.
+    let blockedCount = DnsBlockedCount()
 
     private var device: SdkDeviceRemote?
     // the sdk settings `settings` projects, read back from the device or just
@@ -244,10 +286,20 @@ class DnsSettingsStore: ObservableObject {
     // the dns screen shows the blocked count, and a read of it is queued
     private var blockedCountShown = false
     private var blockedCountReadQueued = false
-    private var blockedCountTimer: Timer?
+    private var blockedCountTimer: DnsBlockedCountTimer?
+    private let makeBlockedCountTimer: (TimeInterval, @escaping () -> Void) -> DnsBlockedCountTimer
+    // advanced when the selection changes and by every reset: a count read
+    // before it is another selection's, or another device's
+    private var blockedCountRevision = 0
 
-    init(deviceWorkQueue: DispatchQueue = newDeviceWorkQueue()) {
+    /// `makeBlockedCountTimer` schedules the count's re-reads: the app's
+    /// repeating Timer, or one a test fires.
+    init(
+        deviceWorkQueue: DispatchQueue = newDeviceWorkQueue(),
+        makeBlockedCountTimer: @escaping (TimeInterval, @escaping () -> Void) -> DnsBlockedCountTimer = scheduledDnsBlockedCountTimer
+    ) {
         self.deviceWorkQueue = deviceWorkQueue
+        self.makeBlockedCountTimer = makeBlockedCountTimer
     }
 
     func setup(_ device: SdkDeviceRemote, localState: SdkLocalState?) {
@@ -313,7 +365,8 @@ class DnsSettingsStore: ObservableObject {
         settings = nil
         sdkSettings = nil
         status = nil
-        blockedCount = 0
+        blockedCount.update(nil)
+        blockedCountRevision += 1
         // the dns screen's visibility stays: the next setup reads again
         blockedCountReadQueued = false
         blockedCountTimer?.invalidate()
@@ -368,8 +421,14 @@ class DnsSettingsStore: ObservableObject {
 
     private func apply(_ answer: DnsSettingsRead, afterEdit: Bool) {
         if let sdkSettings = answer.settings {
+            selectionChanging(to: sdkSettings)
             self.sdkSettings = sdkSettings
-            settings = DnsSettings(sdkSettings)
+            // published only when it changes: the connect drawer observes
+            // the store
+            let read = DnsSettings(sdkSettings)
+            if settings != read {
+                settings = read
+            }
             if afterEdit || answer.connected {
                 persist(sdkSettings)
             }
@@ -380,19 +439,42 @@ class DnsSettingsStore: ObservableObject {
     }
 
     /**
+     * The settings in force become `newSettings`. With another selection (the
+     * preset or its personal id), the device starts the blocked count over
+     * (ADBLOCK3RD I3): so does the store, from zero while it has a count,
+     * and a count read for the selection before is dropped.
+     */
+    private func selectionChanging(to newSettings: SdkDnsResolverSettings) {
+        guard let sdkSettings else {
+            return
+        }
+        if newSettings.presetId == sdkSettings.presetId && newSettings.presetPersonalId == sdkSettings.presetPersonalId {
+            return
+        }
+        blockedCountRevision += 1
+        if blockedCount.value != nil {
+            blockedCount.update(0)
+        }
+    }
+
+    /**
      * Re-reads the device's dns resolver status on the device work queue, as
      * `update` reads the settings: GetDnsResolverStatus is an rpc under the
-     * device's state lock. The status carries the blocked count as it was
-     * read. With the rpc down the device answers the last status it read,
-     * which describes the selection it was read for: a status of another
-     * selection than the settings reads as unknown
-     * (`DescribeDnsResolverStatus`).
+     * device's state lock. A status that does not change is not published
+     * again.
+     *
+     * The status carries the blocked count as it was read, which the store
+     * takes only for the selection in force and from a device that answered:
+     * with the rpc down the device answers the last status it read, of a
+     * connection that may be over. A status of another selection than the
+     * settings reads as unknown (`DescribeDnsResolverStatus`).
      */
     private func updateStatus() {
         guard let device = self.device, let read = statusReads.request() else {
             return
         }
         let generation = self.generation
+        let revision = blockedCountRevision
         let work = DnsResolverStatusReadWork(device: device)
         readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] answer in
             guard let self, self.generation == generation else {
@@ -400,9 +482,14 @@ class DnsSettingsStore: ObservableObject {
             }
             let landed = self.statusReads.landed(read)
             if landed.applies {
-                self.status = answer.status
-                if let status = answer.status {
-                    self.blockedCount = status.blockedCount
+                if !Self.sameStatus(self.status, answer.status) {
+                    self.status = answer.status
+                }
+                if !answer.connected {
+                    self.blockedCount.update(nil)
+                } else if let status = answer.status, self.blockedCountRevision == revision,
+                          status.presetId == self.sdkSettings?.presetId {
+                    self.blockedCount.update(status.blockedCount)
                 }
             }
             if landed.again {
@@ -411,9 +498,25 @@ class DnsSettingsStore: ObservableObject {
         }
     }
 
-    /// The dns screen shows the blocked count (`true`) or not: while it does,
-    /// the count is read now and every `blockedCountRefreshInterval`. Only
-    /// while the store has a device (DeviceStores).
+    /// Whether two reads of the status say the same: its state, its
+    /// verification, the selection it describes and since when. The blocked
+    /// count it carries is not part of it.
+    private static func sameStatus(_ a: SdkDnsResolverStatus?, _ b: SdkDnsResolverStatus?) -> Bool {
+        guard let a, let b else {
+            return a == nil && b == nil
+        }
+        return a.state == b.state &&
+            a.verification == b.verification &&
+            a.presetId == b.presetId &&
+            a.sinceTime == b.sinceTime
+    }
+
+    /**
+     * The dns screen shows the blocked count (`true`) or not: while it does,
+     * the count is read now and every `blockedCountRefreshInterval`, only
+     * while the store has a device (DeviceStores). One caller drives it, the
+     * screen as a whole, so it is one flag.
+     */
     func setBlockedCountShown(_ shown: Bool) {
         guard blockedCountShown != shown else {
             return
@@ -435,7 +538,7 @@ class DnsSettingsStore: ObservableObject {
         guard blockedCountTimer == nil else {
             return
         }
-        blockedCountTimer = Timer.scheduledTimer(withTimeInterval: Self.blockedCountRefreshInterval, repeats: true) { [weak self] _ in
+        blockedCountTimer = makeBlockedCountTimer(Self.blockedCountRefreshInterval) { [weak self] in
             DispatchQueue.main.async {
                 self?.readBlockedCount()
             }
@@ -443,21 +546,25 @@ class DnsSettingsStore: ObservableObject {
     }
 
     /// Reads the count on the device work queue, one read at a time:
-    /// GetDnsBlockedCount is an rpc under the device's state lock, and reads
-    /// zero while the device cannot be reached.
+    /// GetDnsBlockedCount is an rpc under the device's state lock. A device
+    /// that cannot be reached reads zero, so the store shows no count then,
+    /// rather than a count of nothing.
     private func readBlockedCount() {
         guard let device, !blockedCountReadQueued else {
             return
         }
         blockedCountReadQueued = true
         let generation = self.generation
+        let revision = blockedCountRevision
         let work = DnsBlockedCountReadWork(device: device)
-        readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] count in
+        readOnDeviceWorkQueue(deviceWorkQueue, work.run) { [weak self] answer in
             guard let self, self.generation == generation else {
                 return
             }
             self.blockedCountReadQueued = false
-            self.blockedCount = count
+            if self.blockedCountRevision == revision {
+                self.blockedCount.update(answer.connected ? answer.count : nil)
+            }
         }
     }
 
@@ -587,13 +694,15 @@ class DnsSettingsStore: ObservableObject {
      * reports. A read queued before the edit is dropped (DeviceReads), so
      * what the edit replaced never shows again. Until the read-back lands,
      * the next edit starts from this one. The setter gets a copy of its own
-     * (`CopyDnsResolverSettings`).
+     * (`CopyDnsResolverSettings`). Another selection starts the blocked count
+     * over (`selectionChanging`).
      */
     private func push(_ newSettings: SdkDnsResolverSettings) {
         guard let device = self.device else {
             return
         }
         reads.edited()
+        selectionChanging(to: newSettings)
         sdkSettings = newSettings
         settings = DnsSettings(newSettings)
         let work = DnsSettingsEditWork(device: device, settings: SdkCopyDnsResolverSettings(newSettings) ?? newSettings)
@@ -636,26 +745,34 @@ private struct DnsSettingsRead {
     let connected: Bool
 }
 
-/// The device's dns resolver status, read on the device work queue.
-/// Unchecked, as DnsSettingsReadWork.
+/// The device's dns resolver status and its rpc, read on the device work
+/// queue. Unchecked, as DnsSettingsReadWork.
 private struct DnsResolverStatusReadWork: @unchecked Sendable {
     let device: SdkDeviceRemote
 
     func run() -> DnsResolverStatusRead {
-        DnsResolverStatusRead(status: device.getDnsResolverStatus())
+        let status = device.getDnsResolverStatus()
+        return DnsResolverStatusRead(status: status, connected: device.getConnected())
     }
 }
 
 private struct DnsResolverStatusRead {
     let status: SdkDnsResolverStatus?
+    let connected: Bool
 }
 
-/// This connection's blocked-lookups count, read on the device work queue.
-/// Unchecked, as DnsSettingsReadWork.
+/// This connection's blocked-lookups count and the device's rpc, read on the
+/// device work queue. Unchecked, as DnsSettingsReadWork.
 private struct DnsBlockedCountReadWork: @unchecked Sendable {
     let device: SdkDeviceRemote
 
-    func run() -> Int64 {
-        device.getDnsBlockedCount()
+    func run() -> DnsBlockedCountRead {
+        let count = device.getDnsBlockedCount()
+        return DnsBlockedCountRead(count: count, connected: device.getConnected())
     }
+}
+
+private struct DnsBlockedCountRead {
+    let count: Int64
+    let connected: Bool
 }

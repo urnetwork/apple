@@ -141,6 +141,61 @@ struct DeviceStoreDeviceCallTests {
         return settings
     }
 
+    /// The dns store's blocked count timers, which the test fires: the store
+    /// makes one with each start of its re-reads.
+    final class ManualTimers {
+        final class ManualTimer: DnsBlockedCountTimer {
+            let fire: () -> Void
+            private(set) var invalidated = false
+
+            init(_ fire: @escaping () -> Void) {
+                self.fire = fire
+            }
+
+            func invalidate() {
+                invalidated = true
+            }
+        }
+
+        private(set) var made: [ManualTimer] = []
+
+        func make(_ interval: TimeInterval, _ fire: @escaping () -> Void) -> DnsBlockedCountTimer {
+            let timer = ManualTimer(fire)
+            made.append(timer)
+            return timer
+        }
+
+        /// the timers not invalidated
+        var live: [ManualTimer] {
+            made.filter { !$0.invalidated }
+        }
+    }
+
+    /// A dns resolver status of the selection `presetId`, answering, with the
+    /// blocked count it was read with.
+    nonisolated private static func status(presetId: String, blockedCount: Int64) -> SdkDnsResolverStatus {
+        let status = SdkDnsResolverStatus()
+        status.state = SdkDnsResolverStateOk
+        status.verification = SdkDnsResolverVerificationNone
+        status.presetId = presetId
+        status.blockedCount = blockedCount
+        return status
+    }
+
+    /// A one-tap preset of the catalog, read through the sdk: these tests do
+    /// not name the catalog's presets.
+    nonisolated private static func oneTapPresetId() -> String? {
+        guard let picks = SdkGetDnsPicks("") else {
+            return nil
+        }
+        for i in 0..<picks.len() {
+            if let pick = picks.get(i), pick.kind == SdkDnsPickKindPreset, pick.preset?.personalIdRequired == false {
+                return pick.presetId
+            }
+        }
+        return nil
+    }
+
     /// A site split rule routing `host` locally.
     nonisolated private static func rule(_ host: String) -> SdkBlockActionOverride {
         let override = SdkBlockActionOverride()
@@ -446,6 +501,269 @@ struct DeviceStoreDeviceCallTests {
         #expect(applied.presetId == SdkDnsPresetIdDefault)
         #expect(applied.enableFallback)
         #expect(applied.dnsUpgradeMaskAddress == "198.51.100.53")
+        store.reset()
+        await work.run()
+    }
+
+    /// The dns screen's Fast DNS on connect toggle applies at once from the
+    /// device's settings (`DnsResolverSettingsWithFallback`): the selection
+    /// and the fields the app does not model stay, and the setter runs on the
+    /// device work queue.
+    @Test func fastDnsOnConnectAppliesFromTheDevicesSettings() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let defaults = try #require(SdkGetDefaultDnsResolverSettings())
+        defaults.dnsUpgradeMaskAddress = "198.51.100.53"
+        device.dnsResolverSettings = defaults
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+        #expect(store.settings?.fastDnsOnConnectEnabled == false)
+
+        work.hold()
+        device.forgetMainThreadCalls()
+        store.setFastDnsOnConnect(true)
+        #expect(device.mainThreadCalls == [])
+        #expect(store.settings?.fastDnsOnConnectEnabled == true)
+        #expect(store.settings?.presetId == SdkDnsPresetIdDefault)
+
+        await work.settle()
+        #expect(device.callCount("setDnsResolverSettings") == 1)
+        let applied = try #require(device.dnsResolverSettings)
+        #expect(applied.enableFallback)
+        #expect(applied.presetId == SdkDnsPresetIdDefault)
+        #expect(applied.dnsUpgradeMaskAddress == "198.51.100.53")
+        store.reset()
+        await work.run()
+    }
+
+    /// Update in the custom editor while a preset is in force saves custom
+    /// settings (connect ADBLOCK3RD E2): the editor starts from the preset's
+    /// lists as custom settings (`DnsResolverSettingsAsCustom`), the save
+    /// clears the selection, and the fields the app does not model stay.
+    @Test func aCustomUpdateWhileAPresetIsInForceSavesCustomSettings() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let presetId = try #require(Self.oneTapPresetId())
+        let preset = try #require(SdkDnsResolverSettingsWithPreset(SdkGetDefaultDnsResolverSettings(), presetId, ""))
+        preset.dnsUpgradeMaskAddress = "198.51.100.53"
+        device.dnsResolverSettings = preset
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+        let original = try #require(store.settings)
+        #expect(original.presetId == presetId)
+
+        var draft = try #require(store.customDraft())
+        #expect(draft.presetId.isEmpty)
+        #expect(draft.remoteDohUrlsIpv4 == original.remoteDohUrlsIpv4)
+        draft.enableRemoteDns = true
+        draft.remoteDnsIpv4 = ["192.0.2.1"]
+        #expect(store.apply(draft, original: original))
+        await work.settle()
+
+        #expect(device.callCount("setDnsResolverSettings") == 1)
+        let applied = try #require(device.dnsResolverSettings)
+        #expect(applied.presetId.isEmpty)
+        #expect(DnsSettings(applied).remoteDnsIpv4 == ["192.0.2.1"])
+        #expect(DnsSettings(applied).remoteDohUrlsIpv4 == original.remoteDohUrlsIpv4)
+        #expect(applied.dnsUpgradeMaskAddress == "198.51.100.53")
+        #expect(store.settings?.presetId.isEmpty == true)
+        store.reset()
+        await work.run()
+    }
+
+    // MARK: the dns resolver status and the blocked count
+
+    /// The status and the blocked count are rpcs under the device's state
+    /// lock, like the settings: a report, the dns screen showing the count,
+    /// and the count's timer read them on the device work queue, never on
+    /// the main actor.
+    @Test func theDnsStatusAndBlockedCountReadsMakeNoDeviceCallOnTheMainThread() async throws {
+        let work = HeldDeviceWork()
+        let timers = ManualTimers()
+        let device = FakeDevice(location: nil)
+        device.dnsResolverSettings = try #require(SdkGetDefaultDnsResolverSettings())
+        device.dnsResolverStatus = Self.status(presetId: SdkDnsPresetIdDefault, blockedCount: 5)
+        device.dnsBlockedCount = 5
+        device.remoteConnected = true
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue, makeBlockedCountTimer: timers.make)
+        store.setup(device, localState: nil)
+        device.forgetMainThreadCalls()
+
+        device.storeListeners.reportAll()
+        store.setBlockedCountShown(true)
+        let timer = try #require(timers.live.first)
+        timer.fire()
+        await Self.mainQueueDrained()
+        #expect(device.mainThreadCalls == [])
+        #expect(store.status == nil)
+        #expect(store.blockedCount.value == nil)
+
+        await work.settle()
+        #expect(device.mainThreadCalls == [])
+        #expect(device.callCount("getDnsResolverStatus") >= 1)
+        #expect(device.callCount("getDnsBlockedCount") >= 1)
+        #expect(store.status?.presetId == SdkDnsPresetIdDefault)
+        #expect(store.blockedCount.value == 5)
+        store.setBlockedCountShown(false)
+        store.reset()
+        await work.run()
+    }
+
+    /// The dns screen as a whole drives the count's re-reads
+    /// (setBlockedCountShown): its timer runs while the screen shows the
+    /// count and the store has a device, and stops when the screen stops
+    /// showing it or the store resets. A screen still showing it starts it
+    /// again with the next setup.
+    @Test func theBlockedCountTimerStopsWhenHiddenOrReset() async throws {
+        let work = HeldDeviceWork()
+        let timers = ManualTimers()
+        let device = FakeDevice(location: nil)
+        device.dnsResolverSettings = try #require(SdkGetDefaultDnsResolverSettings())
+        device.remoteConnected = true
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue, makeBlockedCountTimer: timers.make)
+        store.setup(device, localState: nil)
+        await work.settle()
+        #expect(timers.made.isEmpty)
+
+        store.setBlockedCountShown(true)
+        #expect(timers.live.count == 1)
+        store.setBlockedCountShown(true)
+        #expect(timers.made.count == 1)
+        store.setBlockedCountShown(false)
+        #expect(timers.live.isEmpty)
+
+        store.setBlockedCountShown(true)
+        #expect(timers.live.count == 1)
+        store.reset()
+        #expect(timers.live.isEmpty)
+
+        store.setup(device, localState: nil)
+        #expect(timers.live.count == 1)
+        store.setBlockedCountShown(false)
+        #expect(timers.live.isEmpty)
+        store.reset()
+        await work.settle()
+    }
+
+    /// The status carries the count of the selection it describes. One of
+    /// another selection, as the device's status can be right after a pick,
+    /// is not this selection's count (connect ADBLOCK3RD I3).
+    @Test func aStatusCountOfAnotherSelectionIsNotShown() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        device.dnsResolverSettings = try #require(SdkGetDefaultDnsResolverSettings())
+        device.dnsResolverStatus = Self.status(presetId: "preset.example", blockedCount: 9)
+        device.remoteConnected = true
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+        #expect(store.status?.presetId == "preset.example")
+        #expect(store.blockedCount.value == nil)
+
+        device.dnsResolverStatus = Self.status(presetId: SdkDnsPresetIdDefault, blockedCount: 2)
+        device.storeListeners.reportAll()
+        await work.settle()
+        #expect(store.blockedCount.value == 2)
+        store.reset()
+        await work.run()
+    }
+
+    /// The device starts the count over when the selection changes: so does
+    /// the store, from zero, and a re-read in flight as the user picks
+    /// another selection is the previous selection's count, dropped.
+    @Test func aBlockedCountReadBeforeASelectionChangeIsDropped() async throws {
+        let work = HeldDeviceWork()
+        let timers = ManualTimers()
+        let device = FakeDevice(location: nil)
+        device.dnsResolverSettings = Self.dns(servers: 1).toCustomSdk(base: nil)
+        device.dnsBlockedCount = 4
+        device.remoteConnected = true
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue, makeBlockedCountTimer: timers.make)
+        store.setup(device, localState: nil)
+        store.setBlockedCountShown(true)
+        await work.settle()
+        #expect(store.blockedCount.value == 4)
+
+        device.dnsBlockedCount = 9
+        device.holdNextRead("getDnsBlockedCount")
+        let timer = try #require(timers.live.first)
+        timer.fire()
+        await Self.mainQueueDrained()
+        await device.waitUntilReadHeld()
+        #expect(store.select(presetId: SdkDnsPresetIdDefault))
+        #expect(store.blockedCount.value == 0)
+
+        device.releaseRead()
+        await work.settle()
+        #expect(store.blockedCount.value == 0)
+        store.setBlockedCountShown(false)
+        store.reset()
+        await work.run()
+    }
+
+    /// A status or a count read queued before a reset lands in a retired
+    /// generation and shows nothing.
+    @Test func aDnsStatusOrCountReadThatAResetRetiredShowsNothing() async throws {
+        let work = HeldDeviceWork()
+        let timers = ManualTimers()
+        let device = FakeDevice(location: nil)
+        device.dnsResolverSettings = try #require(SdkGetDefaultDnsResolverSettings())
+        device.dnsResolverStatus = Self.status(presetId: SdkDnsPresetIdDefault, blockedCount: 7)
+        device.dnsBlockedCount = 7
+        device.remoteConnected = true
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue, makeBlockedCountTimer: timers.make)
+        store.setup(device, localState: nil)
+        store.setBlockedCountShown(true)
+        store.reset()
+
+        await work.settle()
+        #expect(device.callCount("getDnsResolverStatus") == 1)
+        #expect(device.callCount("getDnsBlockedCount") == 1)
+        #expect(store.status == nil)
+        #expect(store.blockedCount.value == nil)
+        store.setBlockedCountShown(false)
+    }
+
+    /// A device the rpc cannot reach reads a count of zero and answers its
+    /// last status, of a connection that may be over: no count shows then,
+    /// rather than a stale one or a count of nothing. It shows again once
+    /// the device answers.
+    @Test func noBlockedCountShowsWhileTheDeviceIsUnreachable() async throws {
+        let work = HeldDeviceWork()
+        let timers = ManualTimers()
+        let device = FakeDevice(location: nil)
+        device.dnsResolverSettings = try #require(SdkGetDefaultDnsResolverSettings())
+        device.dnsResolverStatus = Self.status(presetId: SdkDnsPresetIdDefault, blockedCount: 3)
+        device.dnsBlockedCount = 3
+        device.remoteConnected = true
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue, makeBlockedCountTimer: timers.make)
+        store.setup(device, localState: nil)
+        store.setBlockedCountShown(true)
+        await work.settle()
+        #expect(store.blockedCount.value == 3)
+
+        device.remoteConnected = false
+        device.dnsBlockedCount = 0
+        let timer = try #require(timers.live.first)
+        timer.fire()
+        await Self.mainQueueDrained()
+        await work.settle()
+        #expect(store.blockedCount.value == nil)
+
+        // the remote's cached status still carries the count it was read with
+        device.storeListeners.reportAll()
+        await work.settle()
+        #expect(store.blockedCount.value == nil)
+
+        device.remoteConnected = true
+        device.dnsBlockedCount = 1
+        timer.fire()
+        await Self.mainQueueDrained()
+        await work.settle()
+        #expect(store.blockedCount.value == 1)
+        store.setBlockedCountShown(false)
         store.reset()
         await work.run()
     }

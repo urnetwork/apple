@@ -106,6 +106,70 @@ struct DnsPickSection: Identifiable {
 }
 
 /**
+ * What the dns screen reads from the sdk once: the picks for the exit's
+ * country and the suggested regional servers. Neither changes while the
+ * screen shows (the catalog is built into the sdk), while the sheet's
+ * presenter makes the view again on every publish of the store it observes:
+ * held as the screen's state object, they are read when it opens.
+ */
+final class DnsPickerContent: ObservableObject {
+    let pickSections: [DnsPickSection]
+    let regionalServers: [RegionalDnsSuggestion]
+
+    init(exitCountryCode: String?) {
+        pickSections = DnsPickSection.sections(SdkGetDnsPicks(exitCountryCode))
+        regionalServers = Self.loadRegionalServers()
+    }
+
+    private static func loadRegionalServers() -> [RegionalDnsSuggestion] {
+        guard let list = SdkGetRegionalDnsServers() else {
+            return []
+        }
+        var servers: [RegionalDnsSuggestion] = []
+        servers.reserveCapacity(list.len())
+        for i in 0..<list.len() {
+            if let server = list.get(i) {
+                servers.append(
+                    RegionalDnsSuggestion(
+                        countryCode: server.countryCode,
+                        name: server.name,
+                        ipv4: server.ipv4
+                    )
+                )
+            }
+        }
+        return servers
+    }
+}
+
+/**
+ * The selected filtering preset's blocked lookups on this connection, and
+ * that the figure is a floor (ADBLOCK3RD I3). It observes the count itself,
+ * so a re-read renders only this line. Nothing shows while there is no count
+ * (DnsBlockedCount).
+ */
+private struct DnsBlockedCountLine: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject var blockedCount: DnsBlockedCount
+    let provider: String
+
+    var body: some View {
+        if let count = blockedCount.value {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(Int(count)) lookups blocked by \(provider) this connection")
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("Some blocks aren't counted, so the real number may be higher.")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+/**
  * The device's traffic dns (connect ADBLOCK3RD F1, F2): who answers the
  * lookups made through the tunnel.
  *
@@ -151,11 +215,11 @@ struct DnsSettingsView: View {
     @State private var personalIdPresetId: String? = nil
     @State private var personalIdInput = ""
     @State private var personalIdErrorId: String? = nil
+    // the picks and the suggested servers, read from the sdk once
+    @StateObject private var content: DnsPickerContent
 
     private let connectedCountryCode: String?
     private let connectedCountryName: String?
-    private let regionalServers: [RegionalDnsSuggestion]
-    private let pickSections: [DnsPickSection]
     // dismisses the screen and opens the location picker, for a preset that
     // fails or does not filter from this exit
     private let changeLocation: (() -> Void)?
@@ -168,11 +232,21 @@ struct DnsSettingsView: View {
     ) {
         let countryCode = connectedCountryCode?.lowercased()
         _seed = State(initialValue: SettingsEditorSeed(settings))
+        // made once, when the screen opens (StateObject's autoclosure)
+        _content = StateObject(wrappedValue: DnsPickerContent(exitCountryCode: countryCode))
         self.connectedCountryCode = countryCode
         self.connectedCountryName = connectedCountryName
-        self.regionalServers = Self.loadRegionalServers()
-        self.pickSections = DnsPickSection.sections(SdkGetDnsPicks(countryCode))
         self.changeLocation = changeLocation
+    }
+
+    private var pickSections: [DnsPickSection] {
+        content.pickSections
+    }
+
+    // the screen's blocked count is read while a filtering preset is
+    // selected (DescribeDnsResolverStatus's ShowBlockedCount)
+    private var showsBlockedCount: Bool {
+        dnsSettingsStore.statusSummary?.showBlockedCount == true
     }
 
     private var customEditable: Bool {
@@ -195,7 +269,7 @@ struct DnsSettingsView: View {
      * suggestions for the connected country first
      */
     private var suggestedServers: [RegionalDnsSuggestion] {
-        regionalServers.sorted { a, b in
+        content.regionalServers.sorted { a, b in
             let aMatch = a.countryCode == connectedCountryCode
             let bMatch = b.countryCode == connectedCountryCode
             if aMatch != bMatch {
@@ -206,26 +280,6 @@ struct DnsSettingsView: View {
             }
             return a.name < b.name
         }
-    }
-
-    private static func loadRegionalServers() -> [RegionalDnsSuggestion] {
-        guard let list = SdkGetRegionalDnsServers() else {
-            return []
-        }
-        var servers: [RegionalDnsSuggestion] = []
-        servers.reserveCapacity(list.len())
-        for i in 0..<list.len() {
-            if let server = list.get(i) {
-                servers.append(
-                    RegionalDnsSuggestion(
-                        countryCode: server.countryCode,
-                        name: server.name,
-                        ipv4: server.ipv4
-                    )
-                )
-            }
-        }
-        return servers
     }
 
     var body: some View {
@@ -321,6 +375,16 @@ struct DnsSettingsView: View {
             if customSelected {
                 openCustomEditor()
             }
+            // the blocked count is read while the screen shows it, driven
+            // here, by the screen as a whole: a selected row's own appearance
+            // overlaps the next one's when the selection moves
+            dnsSettingsStore.setBlockedCountShown(showsBlockedCount)
+        }
+        .onDisappear {
+            dnsSettingsStore.setBlockedCountShown(false)
+        }
+        .onChange(of: showsBlockedCount) { shown in
+            dnsSettingsStore.setBlockedCountShown(shown)
         }
         .onChange(of: dnsSettingsStore.settings) { settings in
             if seed.storeChanged(settings) != nil {
@@ -501,28 +565,18 @@ struct DnsSettingsView: View {
         }
 
         if status.showBlockedCount {
-            // counted on the device only, for this connection, and a floor
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(Int(dnsSettingsStore.blockedCount)) lookups blocked by \(status.providerName) this connection")
-                    .font(themeManager.currentTheme.bodyFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                    .fixedSize(horizontal: false, vertical: true)
-                noteText(Text("Some blocks aren't counted, so the real number may be higher."))
-            }
-            .onAppear {
-                dnsSettingsStore.setBlockedCountShown(true)
-            }
-            .onDisappear {
-                dnsSettingsStore.setBlockedCountShown(false)
-            }
+            // counted on the device only, for this connection, and a floor;
+            // the screen as a whole drives its re-reads (setBlockedCountShown)
+            DnsBlockedCountLine(blockedCount: dnsSettingsStore.blockedCount, provider: status.providerName)
         }
     }
 
     /**
      * A personal preset's id field (ADBLOCK3RD D3): the id, or the dashboard
      * url or Private DNS hostname that holds it, which the sdk reads the id
-     * out of and checks (D4). The field never shows the id saved: the screen
-     * says "your profile" (D5).
+     * out of and checks (D4). Opened on the preset in force, it shows the id
+     * saved, as android and windows do; the summaries never show it, they say
+     * "your profile" (D5).
      */
     private func personalIdEntry(_ pick: DnsPickRow) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -824,8 +878,11 @@ struct DnsSettingsView: View {
         if pick.personalIdRequired {
             if personalIdPresetId == pick.presetId {
                 closePersonalIdEntry()
+            } else if summary?.presetId == pick.presetId {
+                // the preset in force: its field starts on the id saved
+                openPersonalIdEntry(pick.presetId, input: dnsSettingsStore.settings?.presetPersonalId ?? "")
             } else {
-                openPersonalIdEntry(pick.presetId)
+                openPersonalIdEntry(pick.presetId, input: "")
             }
             return
         }
@@ -890,9 +947,9 @@ struct DnsSettingsView: View {
         }
     }
 
-    private func openPersonalIdEntry(_ presetId: String) {
+    private func openPersonalIdEntry(_ presetId: String, input: String) {
         personalIdPresetId = presetId
-        personalIdInput = ""
+        personalIdInput = input
         personalIdErrorId = nil
     }
 

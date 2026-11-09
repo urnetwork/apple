@@ -24,8 +24,8 @@ struct DnsSettings: Equatable {
     /// the selection: "default" (URnetwork's dns), a preset id,
     /// "regional-<cc>", or empty for custom settings, the lists below
     var presetId: String = ""
-    /// a personal preset's configuration id, else empty. Never shown or
-    /// logged (ADBLOCK3RD D5)
+    /// a personal preset's configuration id, else empty. Never logged, and
+    /// the summary says "your profile" in its place (ADBLOCK3RD D5)
     var presetPersonalId: String = ""
 
     var enableRemoteDoh: Bool = false

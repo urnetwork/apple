@@ -70,6 +70,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
     @Published private(set) var isGuest: Bool = false
     
     private let refreshJwt: () -> Void
+    /// Reports a loaded balance's Pro to the sdk's decision (DeviceManager's
+    /// SubscriptionProTracker), which answers whether to refresh the jwt now.
+    private let planLoaded: (Bool) -> Bool
     private var isPro: Bool
 
     // the last balance published for the Home Screen dashboard, so the
@@ -144,10 +147,12 @@ class SubscriptionBalanceViewModel: ObservableObject {
         urApiService: UrApiServiceProtocol,
         isPro: Bool,
         refreshJwt: @escaping () -> Void,
+        planLoaded: @escaping (Bool) -> Bool = { _ in false },
         purchaseConfirmation: PurchaseConfirming
     ) {
         self.urApiService = urApiService
         self.refreshJwt = refreshJwt
+        self.planLoaded = planLoaded
         self.isPro = isPro
         self.purchaseConfirmation = purchaseConfirmation
         purchaseConfirmation.setForeground(active)
@@ -360,7 +365,13 @@ class SubscriptionBalanceViewModel: ObservableObject {
                 WidgetRefresh.reloadDashboard()
             }
 
-            if serverIsPro != self.isPro {
+            // The sdk decides Pro and the refresh (SubscriptionProTracker, in
+            // DeviceManager): Pro is the server's from here on, and a claim
+            // that disagrees asks for one refresh per stored jwt. The refresh
+            // renews the client token and leaves the stored jwt, and its
+            // claim, as it was, so asking whenever the two disagreed
+            // refreshed on every poll (support inbox 8211).
+            if planLoaded(serverIsPro) {
                 refreshJwt()
             }
             

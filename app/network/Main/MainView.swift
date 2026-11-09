@@ -47,7 +47,10 @@ struct MainView: View {
         welcomeAnimationComplete: Binding<Bool>,
         networkId: SdkId?,
         introductionComplete: Binding<Bool>,
-        isPro: Bool
+        isPro: Bool,
+        // a loaded balance's Pro, to the sdk's decision (DeviceManager
+        // subscriptionBalanceLoaded); answers whether to refresh the jwt
+        subscriptionPlanLoaded: @escaping (Bool) -> Bool = { _ in false }
     ) {
         self.api = api
         self.logout = logout
@@ -68,6 +71,7 @@ struct MainView: View {
                         print("error refreshing token: \(error)")
                     }
                 },
+                planLoaded: subscriptionPlanLoaded,
                 purchaseConfirmation: SdkPurchaseConfirmation(api: api)
             )
             

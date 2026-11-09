@@ -768,9 +768,33 @@ class DeviceManager: ObservableObject {
         }
     }
     
+    /**
+     * The plan state, as the sdk decides it (SubscriptionProTracker): the
+     * stored jwt's `pro` claim until a balance loads, then the server's
+     * answer (subscriptionBalanceLoaded). The claim goes stale on an upgrade
+     * and a lapse until the stored jwt renews, and a jwt refresh renews only
+     * the client token: taking Pro from the claim kept an upgraded network
+     * showing free, its purchase unconfirmed, and refreshing the jwt on every
+     * balance poll (support inbox 8211).
+     */
     @Published private(set) var isPro: Bool = false
     private func setIsPro(_ value: Bool) {
-        self.isPro = value
+        if self.isPro != value {
+            self.isPro = value
+        }
+    }
+    private let proTracker: SdkSubscriptionProTracker? = SdkNewSubscriptionProTracker()
+
+    /**
+     * A balance loaded; `serverIsPro` is whether it carries a current
+     * subscription. Pro is the server's from here on. Returns whether to
+     * refresh the jwt now: its claim disagrees and no refresh was asked for
+     * this stored jwt yet (one per stored jwt).
+     */
+    func subscriptionBalanceLoaded(serverIsPro: Bool) -> Bool {
+        let refreshJwt = proTracker?.balanceLoaded(serverIsPro) ?? false
+        setIsPro(proTracker?.getIsPro() ?? serverIsPro)
+        return refreshJwt
     }
     
     private var deviceProvideSub: SdkSubProtocol?
@@ -1030,14 +1054,19 @@ class DeviceManager: ObservableObject {
     private func updateParsedJwt() {
         guard let localState = networkSpace?.getAsyncLocalState()?.getLocalState() else {
             parsedJwt = nil
+            proTracker?.reset()
             return
         }
         
         do {
             parsedJwt = try localState.parseByJwt()
-            setIsPro(parsedJwt?.pro ?? false)
+            // the claim counts only until a balance loads: the stored jwt a
+            // refresh leaves as it was never moves Pro back (isPro)
+            proTracker?.setJwt(localState.getByJwt())
+            setIsPro(proTracker?.getIsPro() ?? (parsedJwt?.pro ?? false))
         } catch {
             parsedJwt = nil
+            proTracker?.reset()
         }
     }
     

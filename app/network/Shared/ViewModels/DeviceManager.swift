@@ -1752,13 +1752,29 @@ extension DeviceManager {
         // a real value and are seeded as one. Above setDevice for the same
         // reason as the rules.
         if let dnsResolverSettings = localState.getDnsResolverSettings() {
-            device.setDnsResolverSettings(dnsResolverSettings)
+            device.setDnsResolverSettings(Self.dnsResolverSettingsSeed(dnsResolverSettings))
         }
 
         self.setDevice(device: device)
         return true
     }
-    
+
+    /// The mirrored dns resolver settings as the next device takes them. A
+    /// selection seeds with the lists this release derives for it
+    /// (`DnsResolverSettingsWithPreset`, connect ADBLOCK3RD A6, E4): the
+    /// mirror holds the lists of the release that wrote it, and the device's
+    /// setter takes URnetwork's default or a regional pick given other lists
+    /// than its own as a custom edit, which would stop it following later
+    /// default changes. Custom settings, and a selection this release does not
+    /// offer, which the device applies as URnetwork's dns with its notice
+    /// (A7), seed as mirrored.
+    private static func dnsResolverSettingsSeed(_ mirrored: SdkDnsResolverSettings) -> SdkDnsResolverSettings {
+        if mirrored.presetId.isEmpty {
+            return mirrored
+        }
+        return SdkDnsResolverSettingsWithPreset(mirrored, mirrored.presetId, mirrored.presetPersonalId) ?? mirrored
+    }
+
     
     private func getAppVersion() -> String? {
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {

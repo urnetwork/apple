@@ -212,7 +212,7 @@ struct DeviceStoreDeviceCallTests {
         let work = HeldDeviceWork()
         let device = FakeDevice(location: nil)
         let settings = Self.dns(servers: 1)
-        device.dnsResolverSettings = settings.toSdk()
+        device.dnsResolverSettings = settings.toCustomSdk(base: nil)
         device.remoteConnected = true
         let localState = FakeLocalState()
         let store = DnsSettingsStore(deviceWorkQueue: work.queue)
@@ -244,7 +244,7 @@ struct DeviceStoreDeviceCallTests {
         let device = FakeDevice(location: nil)
         let before = Self.dns(servers: 1)
         let edited = Self.dns(servers: 2)
-        device.dnsResolverSettings = before.toSdk()
+        device.dnsResolverSettings = before.toCustomSdk(base: nil)
         device.remoteConnected = true
         let localState = FakeLocalState()
         let store = DnsSettingsStore(deviceWorkQueue: work.queue)
@@ -278,7 +278,7 @@ struct DeviceStoreDeviceCallTests {
     @Test func aDnsReadThatAResetRetiredMirrorsNothing() async throws {
         let work = HeldDeviceWork()
         let device = FakeDevice(location: nil)
-        device.dnsResolverSettings = Self.dns(servers: 1).toSdk()
+        device.dnsResolverSettings = Self.dns(servers: 1).toCustomSdk(base: nil)
         device.remoteConnected = true
         let localState = FakeLocalState()
         let store = DnsSettingsStore(deviceWorkQueue: work.queue)
@@ -366,7 +366,7 @@ struct DeviceStoreDeviceCallTests {
         let device = FakeDevice(location: nil)
         let before = Self.dns(servers: 1)
         let edited = Self.dns(servers: 2)
-        device.dnsResolverSettings = before.toSdk()
+        device.dnsResolverSettings = before.toCustomSdk(base: nil)
         let localState = FakeLocalState()
         let store = DnsSettingsStore(deviceWorkQueue: work.queue)
         store.setup(device, localState: localState)
@@ -386,6 +386,66 @@ struct DeviceStoreDeviceCallTests {
         #expect(device.callCount("setDnsResolverSettings") == 1)
         #expect(store.settings == edited)
         #expect(localState.dnsSettingsWrites == [edited])
+        store.reset()
+        await work.run()
+    }
+
+    /// Update in the dns editor built a fresh sdk object from its draft, so
+    /// the device's settings lost every field the draft does not model
+    /// (connect ADBLOCK3RD E3): the upgrade mask, and with the presets any
+    /// field a later sdk adds. The edit now starts from the device's
+    /// settings as custom settings (`DnsResolverSettingsAsCustom`).
+    @Test func aDnsEditKeepsTheFieldsTheEditorDoesNotModel() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let before = Self.dns(servers: 1)
+        let edited = Self.dns(servers: 2)
+        let sdkBefore = try #require(before.toCustomSdk(base: nil))
+        sdkBefore.dnsUpgradeMaskAddress = "198.51.100.53"
+        device.dnsResolverSettings = sdkBefore
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+        #expect(store.settings == before)
+
+        #expect(store.apply(edited, original: before))
+        await work.settle()
+        #expect(device.callCount("setDnsResolverSettings") == 1)
+        #expect(device.dnsResolverSettings?.dnsUpgradeMaskAddress == "198.51.100.53")
+        #expect(store.settings == edited)
+        store.reset()
+        await work.run()
+    }
+
+    /// A pick applies in one tap (connect ADBLOCK3RD G1), from the device's
+    /// settings (`DnsResolverSettingsWithPreset`): the selection changes,
+    /// and Fast DNS on connect and the fields the app does not model stay.
+    /// Its setter runs on the device work queue, as an edit's does.
+    @Test func aDnsPickKeepsFastDnsAndTheFieldsTheAppDoesNotModel() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        var before = Self.dns(servers: 1)
+        before.enableFallback = true
+        let sdkBefore = try #require(before.toCustomSdk(base: nil))
+        sdkBefore.dnsUpgradeMaskAddress = "198.51.100.53"
+        device.dnsResolverSettings = sdkBefore
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: nil)
+        await work.settle()
+        #expect(store.settings == before)
+
+        work.hold()
+        device.forgetMainThreadCalls()
+        #expect(store.select(presetId: SdkDnsPresetIdDefault))
+        #expect(device.mainThreadCalls == [])
+        #expect(store.settings?.presetId == SdkDnsPresetIdDefault)
+
+        await work.settle()
+        #expect(device.callCount("setDnsResolverSettings") == 1)
+        let applied = try #require(device.dnsResolverSettings)
+        #expect(applied.presetId == SdkDnsPresetIdDefault)
+        #expect(applied.enableFallback)
+        #expect(applied.dnsUpgradeMaskAddress == "198.51.100.53")
         store.reset()
         await work.run()
     }
@@ -484,7 +544,7 @@ struct DeviceStoreDeviceCallTests {
         let work = HeldDeviceWork()
         let device = FakeDevice(location: nil)
         let settings = Self.dns(servers: 1)
-        device.dnsResolverSettings = settings.toSdk()
+        device.dnsResolverSettings = settings.toCustomSdk(base: nil)
         let store = DnsSettingsStore(deviceWorkQueue: work.queue)
         store.setup(device, localState: nil)
         #expect(store.settings == nil)
@@ -506,7 +566,7 @@ struct DeviceStoreDeviceCallTests {
         let work = HeldDeviceWork()
         let device = FakeDevice(location: nil)
         let before = Self.dns(servers: 1)
-        device.dnsResolverSettings = before.toSdk()
+        device.dnsResolverSettings = before.toCustomSdk(base: nil)
         let store = DnsSettingsStore(deviceWorkQueue: work.queue)
         store.setup(device, localState: nil)
         await work.settle()

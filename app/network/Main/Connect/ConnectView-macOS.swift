@@ -316,8 +316,12 @@ import URnetworkSdk
                 }
             }
 
-            // statistics and dns detail sheets (store subscription isolated in the modifier)
-            .modifier(ConnectStatsSheets(presentedStatsSheet: $presentedStatsSheet))
+            // statistics and dns detail sheets (store subscription isolated in the modifier);
+            // the dns sheet's "Change location" shows the location table
+            .modifier(ConnectStatsSheets(
+                presentedStatsSheet: $presentedStatsSheet,
+                openLocations: { isProviderTableVisible = true }
+            ))
             // a Home Screen widget tap: provider details or client contracts
             .onReceive(deepLinkRouter.$pending) { _ in
                 presentWidgetDestination()

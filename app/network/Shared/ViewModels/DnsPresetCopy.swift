@@ -342,7 +342,7 @@ func dnsPresetErrorMessage(_ errorId: String) -> LocalizedStringResource {
     case DnsPresetKey.errorPersonalIdRequired:
         return "Enter your profile ID."
     case DnsPresetKey.errorPersonalIdOtherProvider:
-        return "This address belongs to another provider. Choose that provider instead."
+        return "This address belongs to another adblock provider. Choose that adblock provider instead."
     case DnsPresetKey.errorPersonalIdNotAccepted:
         return "This preset doesn't use a profile ID."
     default:

@@ -3191,7 +3191,7 @@
       }
     },
     "%@ is no longer available. You're using URnetwork DNS, so lookups aren't filtered." : {
-      "comment" : "DNS settings and connect drawer: notice after an app update removed the DNS provider the person had selected. The app switched to URnetwork's own DNS, which doesn't filter. {provider} is the removed provider's name, inserted as is.",
+      "comment" : "DNS settings and connect drawer: notice after an app update removed the adblock provider the person had selected. The app switched to URnetwork's own DNS, which doesn't filter. {provider} is the removed adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3525,7 +3525,7 @@
       }
     },
     "%@ isn't answering" : {
-      "comment" : "DNS settings and connect drawer: status line when a family, malware-blocking or personal DNS provider isn't answering. To keep its filtering, URnetwork doesn't switch to other DNS, so sites may not load until the provider answers or the person picks \"Use URnetwork DNS\". {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings and connect drawer: status line when an adblock provider's family, malware-blocking or personal pick isn't answering. To keep its filtering, URnetwork doesn't switch to other DNS, so sites may not load until the adblock provider answers or the person picks \"Use URnetwork DNS\". {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3692,7 +3692,7 @@
       }
     },
     "%@ isn't answering. Using URnetwork DNS." : {
-      "comment" : "DNS settings and connect drawer: status line when a DNS provider from \"No filtering\" isn't answering, so URnetwork's own DNS answers until it does. {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings and connect drawer: status line when an adblock provider from \"No filtering\" isn't answering, so URnetwork's own DNS answers until it does. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3859,7 +3859,7 @@
       }
     },
     "%@ isn't filtering from this location" : {
-      "comment" : "DNS settings: result of the check the app runs after a filtering DNS provider is chosen: the provider answered a name it normally blocks with a real address, so it isn't filtering from the current exit location. {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings: result of the check the app runs after a filtering adblock provider is chosen: the adblock provider answered a name it normally blocks with a real address, so it isn't filtering from the current exit location. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15358,7 +15358,7 @@
       }
     },
     "%lld lookups blocked by %@ this connection" : {
-      "comment" : "DNS settings: how many DNS lookups the selected filtering provider has blocked since the device connected. Counted on the device only and reset at each connect. {count} is the number, {provider} the provider's name, inserted as is.",
+      "comment" : "DNS settings: how many DNS lookups the selected adblock provider has blocked since the device connected. Counted on the device only and reset at each connect. {count} is the number, {provider} the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "variations" : {
@@ -26677,7 +26677,7 @@
       }
     },
     "Ad blocking paused: %@ isn't answering" : {
-      "comment" : "DNS settings and connect drawer: status line when an ad-blocking DNS provider isn't answering from the current exit, so URnetwork's own DNS answers for now and ads aren't blocked. It switches back on its own when the provider answers. {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings and connect drawer: status line when an adblock provider that blocks ads isn't answering from the current exit, so URnetwork's own DNS answers for now and ads aren't blocked. It switches back on its own when the adblock provider answers. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -40544,7 +40544,7 @@
       }
     },
     "Block ads and trackers" : {
-      "comment" : "DNS settings: heading of the group of DNS providers that block ads and trackers (AdGuard DNS, Control D, DNS4EU), beside \"Block malware\" and \"Family\". Screens that haven't moved to dns_builtin_blocker_label also label URnetwork's own blocker's toggle with it, so it reads both as a heading and as an action.",
+      "comment" : "DNS settings: heading of the group of adblock providers that block ads and trackers (AdGuard DNS, Control D, DNS4EU), beside \"Block malware\" and \"Family\". Screens that haven't moved to dns_builtin_blocker_label also label URnetwork's own blocker's toggle with it, so it reads both as a heading and as an action.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -40711,7 +40711,7 @@
       }
     },
     "Block malware" : {
-      "comment" : "DNS settings, provider picker: heading of the group of DNS providers that block malware and phishing but not ads (Cloudflare, DNS4EU, Quad9). It sits below \"Block ads and trackers\" and reads like it.",
+      "comment" : "DNS settings, adblock provider picker: heading of the group of adblock providers that block malware and phishing but not ads (Cloudflare, DNS4EU, Quad9). It sits below \"Block ads and trackers\" and reads like it.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42048,7 +42048,7 @@
       }
     },
     "Blocks ads, trackers and adult sites, and turns on safe search" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks. Used for AdGuard DNS Family in \"Family\": it also forces safe search on search engines. The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks. Used for AdGuard DNS Family in \"Family\": it also forces safe search on search engines. The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42215,7 +42215,7 @@
       }
     },
     "Blocks ads, trackers and malware" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks. Used for Control D in \"Block ads and trackers\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks. Used for Control D in \"Block ads and trackers\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42382,7 +42382,7 @@
       }
     },
     "Blocks ads, trackers and phishing" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks. Used for AdGuard DNS in \"Block ads and trackers\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks. Used for AdGuard DNS in \"Block ads and trackers\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42549,7 +42549,7 @@
       }
     },
     "Blocks ads, trackers, malware and phishing" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks. Used for DNS4EU in \"Block ads and trackers\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks. Used for DNS4EU in \"Block ads and trackers\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42716,7 +42716,7 @@
       }
     },
     "Blocks ads, trackers, malware, adult sites and drugs" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks. Used for Control D Family in \"Family\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks. Used for Control D Family in \"Family\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42883,7 +42883,7 @@
       }
     },
     "Blocks ads, trackers, malware, adult sites, gambling, drugs and violence" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks. Used for DNS4EU's child protection with ad blocking in \"Family\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks. Used for DNS4EU's child protection with ad blocking in \"Family\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -43050,7 +43050,7 @@
       }
     },
     "Blocks malware and adult sites, not ads" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks, and that it doesn't block ads. Used for Cloudflare Family in \"Family\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks, and that it doesn't block ads. Used for Cloudflare Family in \"Family\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -43217,7 +43217,7 @@
       }
     },
     "Blocks malware and phishing, not ads" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks, and that it doesn't block ads. Used for DNS4EU and Quad9 in \"Block malware\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks, and that it doesn't block ads. Used for DNS4EU and Quad9 in \"Block malware\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -43384,7 +43384,7 @@
       }
     },
     "Blocks malware, adult sites, gambling, drugs and violence, not ads" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks, and that it doesn't block ads. Used for DNS4EU's child protection in \"Family\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks, and that it doesn't block ads. Used for DNS4EU's child protection in \"Family\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -43551,7 +43551,7 @@
       }
     },
     "Blocks malware, not ads" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name that says what it blocks, and that it doesn't block ads. Used for Cloudflare in \"Block malware\". The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name that says what it blocks, and that it doesn't block ads. Used for Cloudflare in \"Block malware\". The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -43718,7 +43718,7 @@
       }
     },
     "Blocks nothing" : {
-      "comment" : "DNS settings, provider picker: the line under a DNS provider's name in \"No filtering\" (AdGuard DNS, Cloudflare, Control D): the provider resolves every name and blocks nothing. The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under an adblock provider's name in \"No filtering\" (AdGuard DNS, Cloudflare, Control D): the adblock provider resolves every name and blocks nothing. The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -43885,7 +43885,7 @@
       }
     },
     "Blocks only what courts order it to block" : {
-      "comment" : "DNS settings, provider picker: the line under DNS4EU in \"No filtering\". It does no protective filtering, but the domains courts order blocked stay blocked on every DNS4EU resolver. The provider's name is shown above it, not in this string.",
+      "comment" : "DNS settings, adblock provider picker: the line under DNS4EU in \"No filtering\". It does no protective filtering, but the domains courts order blocked stay blocked on every DNS4EU resolver. The adblock provider's name is shown above it, not in this string.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47871,7 +47871,7 @@
       }
     },
     "Change location" : {
-      "comment" : "DNS settings and connect drawer: button beside a DNS provider status that opens the location picker, since a provider can be blocked or unreachable from some exit locations.",
+      "comment" : "DNS settings and connect drawer: button beside an adblock provider's status that opens the location picker, since an adblock provider can be blocked or unreachable from some exit locations.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -50042,7 +50042,7 @@
       }
     },
     "Choose another preset" : {
-      "comment" : "DNS settings: button on the notice of a removed DNS provider that opens the provider list. \"Preset\" means one of the DNS providers listed on the screen.",
+      "comment" : "DNS settings: button on the notice of a removed adblock provider that opens the adblock provider list. \"Preset\" means one of the adblock providers listed on the screen.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -78696,7 +78696,7 @@
       }
     },
     "Custom" : {
-      "comment" : "DNS settings, provider picker: the pick that opens the advanced editor, where the person enters their own DNS over HTTPS URLs and DNS servers. Other strings send the reader to this pick by name (\"Enter it yourself under Custom\"), so they use the same word.",
+      "comment" : "DNS settings, adblock provider picker: the pick that opens the advanced editor, where the person enters their own DNS over HTTPS URLs and DNS servers. Other strings send the reader to this pick by name (\"Enter it yourself under Custom\"), so they use the same word.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -87552,7 +87552,7 @@
       }
     },
     "DNS: %@" : {
-      "comment" : "DNS settings: status line while the selected DNS provider answers normally. {provider} is the provider's name (for example AdGuard DNS), inserted as is.",
+      "comment" : "DNS settings: status line while the selected adblock provider answers normally. {provider} is the adblock provider's name (for example AdGuard DNS), inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -87719,7 +87719,7 @@
       }
     },
     "DNS: %@ · Ad blocking" : {
-      "comment" : "Connect drawer, DNS card: summary row while a DNS provider from \"Block ads and trackers\" is selected. {provider} is the provider's name, inserted as is.",
+      "comment" : "Connect drawer, DNS card: summary row while an adblock provider from \"Block ads and trackers\" is selected. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -87886,7 +87886,7 @@
       }
     },
     "DNS: %@ · Family filter" : {
-      "comment" : "Connect drawer, DNS card: summary row while a DNS provider from \"Family\" is selected. {provider} is the provider's name, inserted as is.",
+      "comment" : "Connect drawer, DNS card: summary row while an adblock provider from \"Family\" is selected. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -88053,7 +88053,7 @@
       }
     },
     "DNS: %@ · Malware blocking" : {
-      "comment" : "Connect drawer, DNS card: summary row while a DNS provider from \"Block malware\" is selected. {provider} is the provider's name, inserted as is.",
+      "comment" : "Connect drawer, DNS card: summary row while an adblock provider from \"Block malware\" is selected. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -88220,7 +88220,7 @@
       }
     },
     "DNS: %@ · No filtering" : {
-      "comment" : "Connect drawer, DNS card: summary row while a DNS provider from \"No filtering\" is selected. {provider} is the provider's name, inserted as is.",
+      "comment" : "Connect drawer, DNS card: summary row while an adblock provider from \"No filtering\" is selected. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -88387,7 +88387,7 @@
       }
     },
     "DNS: %@ · your profile" : {
-      "comment" : "Connect drawer, DNS card: summary row while a provider from \"Use my account\" is selected. The profile ID itself is never shown. {provider} is the provider's name, inserted as is.",
+      "comment" : "Connect drawer, DNS card: summary row while an adblock provider from \"Use my account\" is selected. The profile ID itself is never shown. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -94068,7 +94068,7 @@
       }
     },
     "Encrypted DNS through the tunnel, with no filtering" : {
-      "comment" : "DNS settings, provider picker: the line under \"URnetwork (default)\" that says what it does: names are resolved over encrypted DNS inside the VPN tunnel, and nothing is blocked.",
+      "comment" : "DNS settings, adblock provider picker: the line under \"URnetwork (default)\" that says what it does: names are resolved over encrypted DNS inside the VPN tunnel, and nothing is blocked.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -96908,7 +96908,7 @@
       }
     },
     "Enter it yourself under Custom" : {
-      "comment" : "DNS settings: button on the notice of a removed DNS provider that opens the Custom editor, where the person can enter the provider's addresses themselves. It names the \"Custom\" pick, so it uses that pick's exact word.",
+      "comment" : "DNS settings: button on the notice of a removed adblock provider that opens the Custom editor, where the person can enter the adblock provider's addresses themselves. It names the \"Custom\" pick, so it uses that pick's exact word.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -106292,7 +106292,7 @@
       }
     },
     "Family" : {
-      "comment" : "DNS settings, provider picker: heading of the group of family DNS providers, which block adult sites and similar content (some of them also block ads).",
+      "comment" : "DNS settings, adblock provider picker: heading of the group of the adblock providers' family filters, which block adult sites and similar content (some of them also block ads).",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -113640,7 +113640,7 @@
       }
     },
     "Help" : {
-      "comment" : "DNS settings: link under the selected DNS provider, beside \"Privacy policy\", that opens the provider's help page.",
+      "comment" : "DNS settings: link under the selected adblock provider, beside \"Privacy policy\", that opens the adblock provider's help page.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -122027,7 +122027,7 @@
       }
     },
     "In %@, keep the block response at zero IP (0.0.0.0, the default) or NXDOMAIN. REFUSED and other responses look like an outage." : {
-      "comment" : "DNS settings, Use my account: help about the provider's block response setting. URnetwork treats a REFUSED answer as a failing provider, so blocks must be answered with zero IP (0.0.0.0, the providers' default) or NXDOMAIN. 0.0.0.0, NXDOMAIN and REFUSED are technical values: keep them as they are. {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings, Use my account: help about the adblock provider's block response setting. URnetwork treats a REFUSED answer as a failing adblock provider, so blocks must be answered with zero IP (0.0.0.0, the adblock providers' default) or NXDOMAIN. 0.0.0.0, NXDOMAIN and REFUSED are technical values: keep them as they are. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -127041,7 +127041,7 @@
       }
     },
     "Jurisdiction: %@" : {
-      "comment" : "DNS settings, provider picker: which country's law the DNS provider operates under. {jurisdiction} comes from the app's provider catalog in English (for example Cyprus or Switzerland) and is inserted as is.",
+      "comment" : "DNS settings, adblock provider picker: which country's law the adblock provider operates under. {jurisdiction} comes from the app's adblock provider catalog in English (for example Cyprus or Switzerland) and is inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -145113,7 +145113,7 @@
       }
     },
     "No filtering" : {
-      "comment" : "DNS settings, provider picker: heading of the group of other DNS providers that resolve every name and block nothing.",
+      "comment" : "DNS settings, adblock provider picker: heading of the group of the adblock providers' picks that resolve every name and block nothing.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -145614,7 +145614,7 @@
       }
     },
     "No need to link an IP address in your dashboard: through URnetwork, your lookups come from an address that isn't yours. Your ID is enough." : {
-      "comment" : "DNS settings, Use my account: provider dashboards suggest linking your IP address to your account. Through URnetwork, lookups come from the VPN exit's address, which belongs to someone else, so the app uses only the ID and doesn't offer linking.",
+      "comment" : "DNS settings, Use my account: adblock provider dashboards suggest linking your IP address to your account. Through URnetwork, lookups come from the VPN exit's address, which belongs to someone else, so the app uses only the ID and doesn't offer linking.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -154636,7 +154636,7 @@
       }
     },
     "Open your %@ dashboard" : {
-      "comment" : "DNS settings, Use my account: link that opens the provider's dashboard, for example under \"Saved, but we can't confirm this profile\". {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings, Use my account: link that opens the adblock provider's dashboard, for example under \"Saved, but we can't confirm this profile\". {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -167544,7 +167544,7 @@
       }
     },
     "Privacy policy" : {
-      "comment" : "DNS settings: link under the selected DNS provider that opens the provider's privacy policy.",
+      "comment" : "DNS settings: link under the selected adblock provider that opens the adblock provider's privacy policy.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -169882,7 +169882,7 @@
       }
     },
     "Profile ID or DNS address" : {
-      "comment" : "DNS settings, Use my account: label of the field where the person enters the ID of their profile at the DNS provider, or pastes the DNS address the provider's dashboard shows (a DNS over HTTPS URL or a Private DNS hostname).",
+      "comment" : "DNS settings, Use my account: label of the field where the person enters the ID of their profile at the adblock provider, or pastes the DNS address the adblock provider's dashboard shows (a DNS over HTTPS URL or a Private DNS hostname).",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -182932,7 +182932,7 @@
       }
     },
     "Regional (%@), unencrypted" : {
-      "comment" : "DNS settings, provider picker: the last pick, shown only while the exit's country has a recommended set of plain DNS servers that work better there. It is never selected automatically. {country} is the exit country's name, inserted as is. Unencrypted means the DNS lookups are sent without encryption.",
+      "comment" : "DNS settings, adblock provider picker: the last pick, shown only while the exit's country has a recommended set of plain DNS servers that work better there. It is never selected automatically. {country} is the exit country's name, inserted as is. Unencrypted means the DNS lookups are sent without encryption.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -192257,7 +192257,7 @@
       }
     },
     "Saved, but we can't confirm this profile. If the ID is wrong, %@ answers without filtering." : {
-      "comment" : "DNS settings, Use my account: shown after a profile ID is saved and the provider answers normally. A wrong ID or a used-up free plan also answers normally, just without filtering, so the app can't confirm the profile. {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings, Use my account: shown after a profile ID is saved and the adblock provider answers normally. A wrong ID or a used-up free plan also answers normally, just without filtering, so the app can't confirm the profile. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -210161,7 +210161,7 @@
       "shouldTranslate" : false
     },
     "Some blocks aren't counted, so the real number may be higher." : {
-      "comment" : "DNS settings: note under the blocked lookups count. Some ways a provider answers a block can't be recognized, so the count is a minimum.",
+      "comment" : "DNS settings: note under the blocked lookups count. Some ways an adblock provider answers a block can't be recognized, so the count is a minimum.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -228772,169 +228772,169 @@
         }
       }
     },
-    "This address belongs to another provider. Choose that provider instead." : {
-      "comment" : "DNS settings, Use my account: error id the sdk returns when the pasted DNS address or hostname belongs to another DNS provider in the list.",
+    "This address belongs to another adblock provider. Choose that adblock provider instead." : {
+      "comment" : "DNS settings, Use my account: error id the sdk returns when the pasted DNS address or hostname belongs to another adblock provider in the list. \"Adblock provider\" is what the app calls these DNS companies (AdGuard, Control D, Quad9, Cloudflare, DNS4EU, NextDNS): say it in full both times, never with the word the app uses for URnetwork's providers, which are the bandwidth providers.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "هذا العنوان يخص مزوّد DNS آخر. اختر ذلك المزوّد بدلًا منه."
+            "value" : "هذا العنوان يخص موفّر حظر إعلانات آخر. اختر موفّر حظر الإعلانات ذلك بدلًا منه."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tato adresa patří jinému poskytovateli DNS. Vyberte místo toho jeho."
+            "value" : "Tato adresa patří jiné službě blokování reklam. Vyberte místo toho tu službu blokování reklam."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diese Adresse gehört zu einem anderen DNS-Anbieter. Wähle stattdessen diesen Anbieter."
+            "value" : "Diese Adresse gehört zu einem anderen Adblock-Anbieter. Wähle stattdessen diesen Adblock-Anbieter."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Αυτή η διεύθυνση ανήκει σε άλλον πάροχο DNS. Επιλέξτε καλύτερα εκείνον τον πάροχο."
+            "value" : "Αυτή η διεύθυνση ανήκει σε άλλον πάροχο αποκλεισμού διαφημίσεων. Επιλέξτε καλύτερα εκείνον τον πάροχο αποκλεισμού διαφημίσεων."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This address belongs to another provider. Choose that provider instead."
+            "value" : "This address belongs to another adblock provider. Choose that adblock provider instead."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esta dirección pertenece a otro proveedor de DNS. Elige ese proveedor."
+            "value" : "Esta dirección pertenece a otro proveedor de bloqueo de anuncios. Elige ese proveedor de bloqueo de anuncios."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esta dirección pertenece a otro proveedor de DNS. Elige ese proveedor."
+            "value" : "Esta dirección pertenece a otro proveedor de bloqueo de anuncios. Elige ese proveedor de bloqueo de anuncios."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esta dirección pertenece a otro proveedor de DNS. Elige ese proveedor."
+            "value" : "Esta dirección pertenece a otro proveedor de bloqueo de anuncios. Elige ese proveedor de bloqueo de anuncios."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette adresse appartient à un autre fournisseur DNS. Choisissez plutôt ce fournisseur."
+            "value" : "Cette adresse appartient à un autre fournisseur de blocage des publicités. Choisissez plutôt ce fournisseur de blocage des publicités."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הכתובת הזו שייכת לספק DNS אחר. בחרו בספק הזה במקום."
+            "value" : "הכתובת הזו שייכת לספק חסימת פרסומות אחר. בחרו בספק חסימת הפרסומות הזה במקום."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "यह पता किसी दूसरे DNS प्रदाता का है। इसके बजाय वह प्रदाता चुनें।"
+            "value" : "यह पता किसी दूसरे विज्ञापन ब्लॉकिंग प्रदाता का है। इसके बजाय वह विज्ञापन ब्लॉकिंग प्रदाता चुनें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alamat ini milik penyedia DNS lain. Pilih penyedia tersebut."
+            "value" : "Alamat ini milik penyedia pemblokiran iklan lain. Pilih penyedia pemblokiran iklan tersebut."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Questo indirizzo appartiene a un altro provider DNS. Scegli invece quel provider."
+            "value" : "Questo indirizzo appartiene a un altro provider di blocco della pubblicità. Scegli invece quel provider di blocco della pubblicità."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このアドレスは別のDNSプロバイダーのものです。そのプロバイダーを選択してください。"
+            "value" : "このアドレスは別の広告ブロックサービスのものです。その広告ブロックサービスを選択してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 주소는 다른 DNS 제공업체의 것입니다. 해당 제공업체를 선택하세요."
+            "value" : "이 주소는 다른 광고 차단 서비스의 것입니다. 해당 광고 차단 서비스를 선택하세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dit adres hoort bij een andere DNS-aanbieder. Kies die aanbieder."
+            "value" : "Dit adres hoort bij een andere adblockaanbieder. Kies die adblockaanbieder."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ten adres należy do innego dostawcy DNS. Wybierz tamtego dostawcę."
+            "value" : "Ten adres należy do innego dostawcy blokowania reklam. Wybierz tamtego dostawcę blokowania reklam."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este endereço pertence a outro fornecedor de DNS. Escolha esse fornecedor."
+            "value" : "Este endereço pertence a outro fornecedor de bloqueio de anúncios. Escolha esse fornecedor de bloqueio de anúncios."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este endereço pertence a outro provedor de DNS. Escolha esse provedor."
+            "value" : "Este endereço pertence a outro provedor de bloqueio de anúncios. Escolha esse provedor de bloqueio de anúncios."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este endereço pertence a outro fornecedor de DNS. Escolha esse fornecedor."
+            "value" : "Este endereço pertence a outro fornecedor de bloqueio de anúncios. Escolha esse fornecedor de bloqueio de anúncios."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Этот адрес принадлежит другому DNS-провайдеру. Выберите этого провайдера."
+            "value" : "Этот адрес принадлежит другому сервису блокировки рекламы. Выберите тот сервис блокировки рекламы."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Den här adressen hör till en annan DNS-leverantör. Välj den leverantören i stället."
+            "value" : "Den här adressen hör till en annan annonsblockeringsleverantör. Välj den annonsblockeringsleverantören i stället."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ที่อยู่นี้เป็นของผู้ให้บริการ DNS รายอื่น โปรดเลือกผู้ให้บริการรายนั้นแทน"
+            "value" : "ที่อยู่นี้เป็นของผู้ให้บริการบล็อกโฆษณารายอื่น โปรดเลือกผู้ให้บริการบล็อกโฆษณารายนั้นแทน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ця адреса належить іншому DNS-провайдеру. Виберіть цього провайдера."
+            "value" : "Ця адреса належить іншому сервісу блокування реклами. Виберіть той сервіс блокування реклами."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Địa chỉ này thuộc về nhà cung cấp DNS khác. Hãy chọn nhà cung cấp đó."
+            "value" : "Địa chỉ này thuộc về nhà cung cấp chặn quảng cáo khác. Hãy chọn nhà cung cấp chặn quảng cáo đó."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此地址属于其他 DNS 提供商。请改为选择该提供商。"
+            "value" : "此地址属于其他广告拦截服务商。请改为选择该广告拦截服务商。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此位址屬於其他 DNS 供應商。請改為選擇該供應商。"
+            "value" : "此位址屬於其他廣告攔截服務商。請改為選擇該廣告攔截服務商。"
           }
         }
       }
@@ -232114,7 +232114,7 @@
       }
     },
     "This ID isn't in the right format." : {
-      "comment" : "DNS settings, Use my account: error id the sdk returns when the profile ID doesn't have the provider's format. The provider's own format line is shown with it.",
+      "comment" : "DNS settings, Use my account: error id the sdk returns when the profile ID doesn't have the adblock provider's format. The adblock provider's own format line is shown with it.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -234119,7 +234119,7 @@
       }
     },
     "This preset doesn't use a profile ID." : {
-      "comment" : "DNS settings: error id the sdk returns when a profile ID is given for a DNS preset that doesn't take one. \"Preset\" means one of the DNS providers listed on the screen.",
+      "comment" : "DNS settings: error id the sdk returns when a profile ID is given for a DNS preset that doesn't take one. \"Preset\" means one of the adblock providers listed on the screen.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -234286,7 +234286,7 @@
       }
     },
     "This preset isn't available. Choose another one." : {
-      "comment" : "DNS settings: error id the sdk returns when a DNS preset is no longer in the app's catalog. \"Preset\" means one of the DNS providers listed on the screen.",
+      "comment" : "DNS settings: error id the sdk returns when a DNS preset is no longer in the app's catalog. \"Preset\" means one of the adblock providers listed on the screen.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -238132,12 +238132,12 @@
       }
     },
     "To keep filtering on, URnetwork doesn't switch DNS for you. Sites may not load until it answers." : {
-      "comment" : "DNS settings: line under \"… isn't answering\" for a family, malware-blocking or personal DNS provider. \"it\" is the DNS provider named in that line.",
+      "comment" : "DNS settings: line under \"… isn't answering\" for an adblock provider's family, malware-blocking or personal pick. \"it\" is the adblock provider named in that line.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "للإبقاء على التصفية، لا يبدّل URnetwork خادم DNS تلقائيًا. قد لا يتم تحميل المواقع حتى يستجيب المزوّد."
+            "value" : "للإبقاء على التصفية، لا يبدّل URnetwork خادم DNS تلقائيًا. قد لا يتم تحميل المواقع حتى يستجيب موفّر حظر الإعلانات."
           }
         },
         "cs" : {
@@ -238149,13 +238149,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Damit die Filterung aktiv bleibt, wechselt URnetwork das DNS nicht von selbst. Bis der Anbieter antwortet, laden Seiten eventuell nicht."
+            "value" : "Damit die Filterung aktiv bleibt, wechselt URnetwork das DNS nicht von selbst. Bis der Adblock-Anbieter antwortet, laden Seiten eventuell nicht."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Για να μείνει ενεργό το φιλτράρισμα, το URnetwork δεν αλλάζει DNS από μόνο του. Οι ιστότοποι μπορεί να μη φορτώνουν μέχρι να απαντήσει ο πάροχος."
+            "value" : "Για να μείνει ενεργό το φιλτράρισμα, το URnetwork δεν αλλάζει DNS από μόνο του. Οι ιστότοποι μπορεί να μη φορτώνουν μέχρι να απαντήσει ο πάροχος αποκλεισμού διαφημίσεων."
           }
         },
         "en" : {
@@ -238167,91 +238167,91 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para mantener el filtrado, URnetwork no cambia de DNS por su cuenta. Puede que los sitios no carguen hasta que el proveedor responda."
+            "value" : "Para mantener el filtrado, URnetwork no cambia de DNS por su cuenta. Puede que los sitios no carguen hasta que el proveedor de bloqueo de anuncios responda."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para mantener el filtrado, URnetwork no cambia de DNS por su cuenta. Puede que los sitios no carguen hasta que el proveedor responda."
+            "value" : "Para mantener el filtrado, URnetwork no cambia de DNS por su cuenta. Puede que los sitios no carguen hasta que el proveedor de bloqueo de anuncios responda."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para mantener el filtrado, URnetwork no cambia de DNS por su cuenta. Puede que los sitios no carguen hasta que el proveedor responda."
+            "value" : "Para mantener el filtrado, URnetwork no cambia de DNS por su cuenta. Puede que los sitios no carguen hasta que el proveedor de bloqueo de anuncios responda."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour garder le filtrage actif, URnetwork ne change pas de DNS de lui-même. Les sites peuvent ne pas se charger tant que le fournisseur ne répond pas."
+            "value" : "Pour garder le filtrage actif, URnetwork ne change pas de DNS de lui-même. Les sites peuvent ne pas se charger tant que le fournisseur de blocage des publicités ne répond pas."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כדי לשמור על הסינון, URnetwork לא מחליף DNS בעצמו. ייתכן שאתרים לא ייטענו עד שהספק יענה."
+            "value" : "כדי לשמור על הסינון, URnetwork לא מחליף DNS בעצמו. ייתכן שאתרים לא ייטענו עד שספק חסימת הפרסומות יענה."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "फ़िल्टरिंग चालू रखने के लिए URnetwork अपने-आप DNS नहीं बदलता। प्रदाता के जवाब देने तक साइटें शायद लोड न हों।"
+            "value" : "फ़िल्टरिंग चालू रखने के लिए URnetwork अपने-आप DNS नहीं बदलता। विज्ञापन ब्लॉकिंग प्रदाता के जवाब देने तक साइटें शायद लोड न हों।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Agar pemfilteran tetap aktif, URnetwork tidak mengganti DNS secara otomatis. Situs mungkin tidak dapat dimuat sampai penyedia itu merespons."
+            "value" : "Agar pemfilteran tetap aktif, URnetwork tidak mengganti DNS secara otomatis. Situs mungkin tidak dapat dimuat sampai penyedia pemblokiran iklan itu merespons."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Per mantenere attivo il filtro, URnetwork non cambia DNS da solo. I siti potrebbero non caricarsi finché il provider non risponde."
+            "value" : "Per mantenere attivo il filtro, URnetwork non cambia DNS da solo. I siti potrebbero non caricarsi finché il provider di blocco della pubblicità non risponde."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "フィルタリングを維持するため、URnetworkはDNSを自動で切り替えません。プロバイダーが応答するまでサイトが読み込めない場合があります。"
+            "value" : "フィルタリングを維持するため、URnetworkはDNSを自動で切り替えません。広告ブロックサービスが応答するまでサイトが読み込めない場合があります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "필터링을 유지하기 위해 URnetwork는 DNS를 자동으로 바꾸지 않습니다. 제공업체가 응답할 때까지 사이트가 로드되지 않을 수 있습니다."
+            "value" : "필터링을 유지하기 위해 URnetwork는 DNS를 자동으로 바꾸지 않습니다. 광고 차단 서비스가 응답할 때까지 사이트가 로드되지 않을 수 있습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Om de filtering aan te houden, schakelt URnetwork niet zelf over op andere DNS. Sites laden mogelijk niet tot de aanbieder weer reageert."
+            "value" : "Om de filtering aan te houden, schakelt URnetwork niet zelf over op andere DNS. Sites laden mogelijk niet tot de adblockaanbieder weer reageert."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aby filtrowanie pozostało włączone, URnetwork nie zmienia DNS samodzielnie. Strony mogą się nie ładować, dopóki dostawca nie odpowie."
+            "value" : "Aby filtrowanie pozostało włączone, URnetwork nie zmienia DNS samodzielnie. Strony mogą się nie ładować, dopóki dostawca blokowania reklam nie odpowie."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para manter a filtragem, a URnetwork não muda de DNS por si. Os sites podem não carregar até o fornecedor responder."
+            "value" : "Para manter a filtragem, a URnetwork não muda de DNS por si. Os sites podem não carregar até o fornecedor de bloqueio de anúncios responder."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para manter a filtragem, a URnetwork não troca de DNS sozinha. Os sites podem não carregar até o provedor responder."
+            "value" : "Para manter a filtragem, a URnetwork não troca de DNS sozinha. Os sites podem não carregar até o provedor de bloqueio de anúncios responder."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para manter a filtragem, a URnetwork não muda de DNS por si. Os sites podem não carregar até o fornecedor responder."
+            "value" : "Para manter a filtragem, a URnetwork não muda de DNS por si. Os sites podem não carregar até o fornecedor de bloqueio de anúncios responder."
           }
         },
         "ru" : {
@@ -238263,13 +238263,13 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "För att filtreringen ska vara kvar byter URnetwork inte DNS på egen hand. Webbplatser kanske inte laddas förrän leverantören svarar."
+            "value" : "För att filtreringen ska vara kvar byter URnetwork inte DNS på egen hand. Webbplatser kanske inte laddas förrän annonsblockeringsleverantören svarar."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "เพื่อให้การกรองยังทำงานอยู่ URnetwork จะไม่เปลี่ยน DNS ให้เอง เว็บไซต์อาจโหลดไม่ได้จนกว่าผู้ให้บริการจะตอบสนอง"
+            "value" : "เพื่อให้การกรองยังทำงานอยู่ URnetwork จะไม่เปลี่ยน DNS ให้เอง เว็บไซต์อาจโหลดไม่ได้จนกว่าผู้ให้บริการบล็อกโฆษณาจะตอบสนอง"
           }
         },
         "uk" : {
@@ -238281,7 +238281,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Để giữ tính năng lọc, URnetwork không tự đổi DNS. Các trang web có thể không tải được cho đến khi nhà cung cấp phản hồi."
+            "value" : "Để giữ tính năng lọc, URnetwork không tự đổi DNS. Các trang web có thể không tải được cho đến khi nhà cung cấp chặn quảng cáo phản hồi."
           }
         },
         "zh-Hans" : {
@@ -250596,7 +250596,7 @@
       "shouldTranslate" : false
     },
     "URnetwork (default)" : {
-      "comment" : "DNS settings, provider picker: the first pick, URnetwork's own encrypted DNS through the tunnel, which every app uses by default. URnetwork is the product name.",
+      "comment" : "DNS settings, adblock provider picker: the first pick, URnetwork's own encrypted DNS through the tunnel, which every app uses by default. URnetwork is the product name.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -250763,7 +250763,7 @@
       }
     },
     "URnetwork ad blocker" : {
-      "comment" : "Connect drawer and DNS settings: label of the toggle for URnetwork's own ad and tracker blocker, which works on the device beside any DNS choice. It is named as URnetwork's own so it isn't mistaken for the DNS providers in \"Block ads and trackers\".",
+      "comment" : "Connect drawer and DNS settings: label of the toggle for URnetwork's own ad and tracker blocker, which works on the device beside any DNS choice. It is named as URnetwork's own so it isn't mistaken for the adblock providers in \"Block ads and trackers\".",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -255778,7 +255778,7 @@
       }
     },
     "URnetwork's own blocker. It works with any DNS choice and checks each name first." : {
-      "comment" : "Connect drawer and DNS settings: line under the URnetwork ad blocker toggle. It can stay on with any DNS choice, a provider that blocks ads included, and it checks each name before the DNS provider is asked.",
+      "comment" : "Connect drawer and DNS settings: line under the URnetwork ad blocker toggle. It can stay on with any DNS choice, an adblock provider that blocks ads included, and it checks each name before the chosen DNS is asked.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -257994,7 +257994,7 @@
       }
     },
     "Use my account" : {
-      "comment" : "DNS settings, provider picker: heading of the group for people with their own account at a DNS provider (AdGuard DNS, Control D, NextDNS). Choosing one asks for the account's profile ID, so the provider applies the person's own filters.",
+      "comment" : "DNS settings, adblock provider picker: heading of the group for people with their own account at an adblock provider (AdGuard DNS, Control D, NextDNS). Choosing one asks for the account's profile ID, so the adblock provider applies the person's own filters.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -258663,7 +258663,7 @@
       }
     },
     "Use URnetwork DNS" : {
-      "comment" : "DNS settings and connect drawer: button beside a DNS provider status that isn't answering. It switches back to URnetwork's own DNS, the default, in one tap.",
+      "comment" : "DNS settings and connect drawer: button beside the status of an adblock provider that isn't answering. It switches back to URnetwork's own DNS, the default, in one tap.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -259832,7 +259832,7 @@
       }
     },
     "Uses the filters you set up in your %@ account" : {
-      "comment" : "DNS settings, provider picker: the line under each provider in \"Use my account\". {provider} is the provider's name (AdGuard DNS, Control D or NextDNS), inserted as is.",
+      "comment" : "DNS settings, adblock provider picker: the line under each adblock provider in \"Use my account\". {provider} is the adblock provider's name (AdGuard DNS, Control D or NextDNS), inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -260669,12 +260669,12 @@
       }
     },
     "Using URnetwork DNS until it answers. Ad blocking comes back on its own." : {
-      "comment" : "DNS settings: line under \"Ad blocking paused: … isn't answering\". \"it\" is the ad-blocking DNS provider named in that line.",
+      "comment" : "DNS settings: line under \"Ad blocking paused: … isn't answering\". \"it\" is the adblock provider named in that line.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يتم استخدام DNS الخاص بـ URnetwork حتى يستجيب المزوّد. وسيعود حظر الإعلانات تلقائيًا."
+            "value" : "يتم استخدام DNS الخاص بـ URnetwork حتى يستجيب موفّر حظر الإعلانات. وسيعود حظر الإعلانات تلقائيًا."
           }
         },
         "cs" : {
@@ -260686,13 +260686,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bis der Anbieter wieder antwortet, wird URnetwork-DNS verwendet. Die Werbeblockierung startet danach von selbst wieder."
+            "value" : "Bis der Adblock-Anbieter wieder antwortet, wird URnetwork-DNS verwendet. Die Werbeblockierung startet danach von selbst wieder."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Χρησιμοποιείται το DNS του URnetwork μέχρι να απαντήσει ο πάροχος. Ο αποκλεισμός διαφημίσεων θα επανέλθει αυτόματα."
+            "value" : "Χρησιμοποιείται το DNS του URnetwork μέχρι να απαντήσει ο πάροχος αποκλεισμού διαφημίσεων. Ο αποκλεισμός διαφημίσεων θα επανέλθει αυτόματα."
           }
         },
         "en" : {
@@ -260704,67 +260704,67 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se usa el DNS de URnetwork hasta que el proveedor responda. El bloqueo de anuncios vuelve solo."
+            "value" : "Se usa el DNS de URnetwork hasta que el proveedor de bloqueo de anuncios responda. El bloqueo de anuncios vuelve solo."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se usa el DNS de URnetwork hasta que el proveedor responda. El bloqueo de anuncios vuelve solo."
+            "value" : "Se usa el DNS de URnetwork hasta que el proveedor de bloqueo de anuncios responda. El bloqueo de anuncios vuelve solo."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se usa el DNS de URnetwork hasta que el proveedor responda. El bloqueo de anuncios vuelve solo."
+            "value" : "Se usa el DNS de URnetwork hasta que el proveedor de bloqueo de anuncios responda. El bloqueo de anuncios vuelve solo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le DNS d'URnetwork prend le relais jusqu'à ce que le fournisseur réponde. Le blocage des publicités reprendra tout seul."
+            "value" : "Le DNS d'URnetwork prend le relais jusqu'à ce que le fournisseur de blocage des publicités réponde. Le blocage des publicités reprendra tout seul."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "נעשה שימוש ב-DNS של URnetwork עד שהספק יענה. חסימת הפרסומות תחזור מעצמה."
+            "value" : "נעשה שימוש ב-DNS של URnetwork עד שספק חסימת הפרסומות יענה. חסימת הפרסומות תחזור מעצמה."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "प्रदाता के जवाब देने तक URnetwork DNS इस्तेमाल हो रहा है। विज्ञापन ब्लॉकिंग अपने-आप फिर शुरू हो जाएगी।"
+            "value" : "विज्ञापन ब्लॉकिंग प्रदाता के जवाब देने तक URnetwork DNS इस्तेमाल हो रहा है। विज्ञापन ब्लॉकिंग अपने-आप फिर शुरू हो जाएगी।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Menggunakan DNS URnetwork sampai penyedia itu merespons. Pemblokiran iklan akan aktif lagi dengan sendirinya."
+            "value" : "Menggunakan DNS URnetwork sampai penyedia pemblokiran iklan itu merespons. Pemblokiran iklan akan aktif lagi dengan sendirinya."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Viene usato il DNS di URnetwork finché il provider non risponde. Il blocco della pubblicità riprende da solo."
+            "value" : "Viene usato il DNS di URnetwork finché il provider di blocco della pubblicità non risponde. Il blocco della pubblicità riprende da solo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロバイダーが応答するまでURnetworkのDNSを使用します。広告ブロックは自動的に再開されます。"
+            "value" : "広告ブロックサービスが応答するまでURnetworkのDNSを使用します。広告ブロックは自動的に再開されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "제공업체가 응답할 때까지 URnetwork DNS를 사용합니다. 광고 차단은 자동으로 다시 시작됩니다."
+            "value" : "광고 차단 서비스가 응답할 때까지 URnetwork DNS를 사용합니다. 광고 차단은 자동으로 다시 시작됩니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tot de aanbieder weer reageert, wordt URnetwork-DNS gebruikt. Advertentieblokkering gaat daarna vanzelf weer aan."
+            "value" : "Tot de adblockaanbieder weer reageert, wordt URnetwork-DNS gebruikt. Advertentieblokkering gaat daarna vanzelf weer aan."
           }
         },
         "pl" : {
@@ -260776,19 +260776,19 @@
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A usar o DNS da URnetwork até o fornecedor responder. O bloqueio de anúncios volta sozinho."
+            "value" : "A usar o DNS da URnetwork até o fornecedor de bloqueio de anúncios responder. O bloqueio de anúncios volta sozinho."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usando o DNS da URnetwork até o provedor responder. O bloqueio de anúncios volta sozinho."
+            "value" : "Usando o DNS da URnetwork até o provedor de bloqueio de anúncios responder. O bloqueio de anúncios volta sozinho."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A usar o DNS da URnetwork até o fornecedor responder. O bloqueio de anúncios volta sozinho."
+            "value" : "A usar o DNS da URnetwork até o fornecedor de bloqueio de anúncios responder. O bloqueio de anúncios volta sozinho."
           }
         },
         "ru" : {
@@ -260800,13 +260800,13 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetworks DNS används tills leverantören svarar. Annonsblockeringen kommer tillbaka av sig själv."
+            "value" : "URnetworks DNS används tills annonsblockeringsleverantören svarar. Annonsblockeringen kommer tillbaka av sig själv."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ใช้ DNS ของ URnetwork จนกว่าผู้ให้บริการจะตอบสนอง การบล็อกโฆษณาจะกลับมาเองโดยอัตโนมัติ"
+            "value" : "ใช้ DNS ของ URnetwork จนกว่าผู้ให้บริการบล็อกโฆษณาจะตอบสนอง การบล็อกโฆษณาจะกลับมาเองโดยอัตโนมัติ"
           }
         },
         "uk" : {
@@ -260818,7 +260818,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang dùng DNS của URnetwork cho đến khi nhà cung cấp phản hồi. Tính năng chặn quảng cáo sẽ tự bật lại."
+            "value" : "Đang dùng DNS của URnetwork cho đến khi nhà cung cấp chặn quảng cáo phản hồi. Tính năng chặn quảng cáo sẽ tự bật lại."
           }
         },
         "zh-Hans" : {
@@ -269371,7 +269371,7 @@
       }
     },
     "While connecting, lookups use URnetwork DNS, so %@ doesn't filter them." : {
-      "comment" : "DNS settings: note beside the \"Fast DNS on connect\" toggle while a DNS provider is selected. While the tunnel connects, lookups go to URnetwork's own DNS, so the provider never sees the person's own address, but those lookups aren't filtered. {provider} is the provider's name, inserted as is.",
+      "comment" : "DNS settings: note beside the \"Fast DNS on connect\" toggle while an adblock provider is selected. While the tunnel connects, lookups go to URnetwork's own DNS, so the adblock provider never sees the person's own address, but those lookups aren't filtered. {provider} is the adblock provider's name, inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -277787,7 +277787,7 @@
       }
     },
     "Your DNS lookups go to %@ through the tunnel, so it never sees your IP address. Its privacy policy applies." : {
-      "comment" : "DNS settings: disclosure under the selected DNS provider, above the Privacy policy and Help links. The provider receives the names looked up while connected, from the VPN exit's address, never the person's own IP address. {provider} is the provider's name (for example AdGuard DNS), inserted as is.",
+      "comment" : "DNS settings: disclosure under the selected adblock provider, above the Privacy policy and Help links. The adblock provider receives the names looked up while connected, from the VPN exit's address, never the person's own IP address. {provider} is the adblock provider's name (for example AdGuard DNS), inserted as is.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -277804,7 +277804,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine DNS-Abfragen gehen durch den Tunnel an %@, daher sieht der Anbieter nie deine IP-Adresse. Es gilt seine Datenschutzerklärung."
+            "value" : "Deine DNS-Abfragen gehen durch den Tunnel an %@, daher sieht der Adblock-Anbieter nie deine IP-Adresse. Es gilt seine Datenschutzerklärung."
           }
         },
         "el" : {
@@ -277858,7 +277858,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pencarian DNS Anda dikirim ke %@ melalui terowongan, sehingga penyedia itu tidak pernah melihat alamat IP Anda. Kebijakan privasinya berlaku."
+            "value" : "Pencarian DNS Anda dikirim ke %@ melalui terowongan, sehingga penyedia pemblokiran iklan itu tidak pernah melihat alamat IP Anda. Kebijakan privasinya berlaku."
           }
         },
         "it" : {
@@ -277882,13 +277882,13 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je DNS-opzoekingen gaan via de tunnel naar %@, dus die ziet nooit je IP-adres. Het privacybeleid van die aanbieder is van toepassing."
+            "value" : "Je DNS-opzoekingen gaan via de tunnel naar %@, dus die ziet nooit je IP-adres. Het privacybeleid van die adblockaanbieder is van toepassing."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Twoje zapytania DNS trafiają przez tunel do %@, więc ten dostawca nigdy nie widzi Twojego adresu IP. Obowiązuje jego polityka prywatności."
+            "value" : "Twoje zapytania DNS trafiają przez tunel do %@, więc ten dostawca blokowania reklam nigdy nie widzi Twojego adresu IP. Obowiązuje jego polityka prywatności."
           }
         },
         "pt" : {
@@ -277918,13 +277918,13 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dina DNS-uppslag går genom tunneln till %@, så leverantören ser aldrig din IP-adress. Leverantörens integritetspolicy gäller."
+            "value" : "Dina DNS-uppslag går genom tunneln till %@, så annonsblockeringsleverantören ser aldrig din IP-adress. Dess integritetspolicy gäller."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "การค้นหา DNS ของคุณส่งไปยัง %@ ผ่านอุโมงค์ จึงไม่เห็นที่อยู่ IP ของคุณ และใช้นโยบายความเป็นส่วนตัวของผู้ให้บริการนี้"
+            "value" : "การค้นหา DNS ของคุณส่งไปยัง %@ ผ่านอุโมงค์ จึงไม่เห็นที่อยู่ IP ของคุณ และใช้นโยบายความเป็นส่วนตัวของผู้ให้บริการบล็อกโฆษณานี้"
           }
         },
         "uk" : {
@@ -277936,7 +277936,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Các truy vấn DNS của bạn đi qua đường hầm đến %@, nên nhà cung cấp này không bao giờ thấy địa chỉ IP của bạn. Chính sách quyền riêng tư của họ được áp dụng."
+            "value" : "Các truy vấn DNS của bạn đi qua đường hầm đến %@, nên nhà cung cấp chặn quảng cáo này không bao giờ thấy địa chỉ IP của bạn. Chính sách quyền riêng tư của họ được áp dụng."
           }
         },
         "zh-Hans" : {
@@ -280965,7 +280965,7 @@
       }
     },
     "Your own DNS over HTTPS URLs and DNS servers" : {
-      "comment" : "DNS settings, provider picker: the line under \"Custom\" that says what it holds.",
+      "comment" : "DNS settings, adblock provider picker: the line under \"Custom\" that says what it holds.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

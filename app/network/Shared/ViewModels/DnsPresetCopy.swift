@@ -18,6 +18,12 @@ import Foundation
  * with the store. A provider's name, operator and jurisdiction are never
  * translated (G2): they reach a message only as its argument.
  *
+ * Each preset has a name of its own (owner, 2026-11-09): a key the sdk gives
+ * with the adblock provider's short name, "AdGuard Family"
+ * (`dnsPresetName`). The lines that name the selected preset take that name
+ * as their provider; the lines that name the adblock provider (the
+ * disclosure, the personal id field, the verification line) take its name.
+ *
  * Only words live here. Which line shows, for which provider, is the sdk's
  * (app logic lives in the sdk, owner 2026-11-03). An id this build does not
  * know shows nothing rather than the id.
@@ -32,6 +38,16 @@ enum DnsPresetKey {
     static let groupFamily = "dns_group_family"
     static let groupMyAccount = "dns_group_my_account"
     static let groupNoFiltering = "dns_group_no_filtering"
+
+    // a preset's name (DnsPreset.NameKey, and the summary's and the
+    // status's NameKey and DroppedNameKey)
+    static let nameAdBlocking = "dns_preset_name_ad_blocking"
+    static let nameMalwareBlocking = "dns_preset_name_malware_blocking"
+    static let nameFamily = "dns_preset_name_family"
+    static let nameChild = "dns_preset_name_child"
+    static let nameChildAds = "dns_preset_name_child_ads"
+    static let nameNoFiltering = "dns_preset_name_no_filtering"
+    static let namePersonal = "dns_preset_name_personal"
 
     // the labels of the picks that are not presets (DnsPick.LabelKey)
     static let providerDefault = "dns_provider_default"
@@ -56,13 +72,11 @@ enum DnsPresetKey {
     static let presetCopyCourtOrders = "dns_preset_copy_court_orders"
     static let presetCopyPersonal = "dns_preset_copy_personal"
 
-    // the summary row (DnsSelectionSummary.SummaryKey)
+    // the summary row (DnsSelectionSummary.SummaryKey); a selected preset's
+    // is "DNS: <its name>", the text and so the key of the status line of a
+    // preset that answers
     static let summaryDefault = "dns_summary_default"
-    static let summaryAdBlocking = "dns_summary_ad_blocking"
-    static let summaryMalwareBlocking = "dns_summary_malware_blocking"
-    static let summaryFamily = "dns_summary_family"
-    static let summaryNoFiltering = "dns_summary_no_filtering"
-    static let summaryPersonal = "dns_summary_personal"
+    static let summaryPreset = "dns_status_provider"
     static let summaryCustom = "dns_summary_custom"
     static let summaryCustomUnencrypted = "dns_summary_custom_unencrypted"
     static let summaryRegional = "dns_summary_regional"
@@ -135,9 +149,36 @@ func dnsGroupHeading(_ groupKey: String) -> LocalizedStringResource? {
     }
 }
 
+/// A preset's name (DnsPreset.NameKey with NameProvider): the adblock
+/// provider's short name, as it is, and what the preset does, "AdGuard
+/// Family" (owner, 2026-11-09). A key this build does not know shows the
+/// adblock provider's name alone.
+func dnsPresetName(_ nameKey: String, provider: String) -> String {
+    let name: LocalizedStringResource
+    switch nameKey {
+    case DnsPresetKey.nameAdBlocking:
+        name = "\(provider) Ad Blocking"
+    case DnsPresetKey.nameMalwareBlocking:
+        name = "\(provider) Malware Blocking"
+    case DnsPresetKey.nameFamily:
+        name = "\(provider) Family"
+    case DnsPresetKey.nameChild:
+        name = "\(provider) Child"
+    case DnsPresetKey.nameChildAds:
+        name = "\(provider) Child, no ads"
+    case DnsPresetKey.nameNoFiltering:
+        name = "\(provider) No Filtering"
+    case DnsPresetKey.namePersonal:
+        name = "\(provider) Personal"
+    default:
+        return provider
+    }
+    return String(localized: name)
+}
+
 /// The label of a pick that is not a preset (DnsPick.LabelKey). A preset
-/// pick shows its provider's name instead. `country` names a regional pick's
-/// country.
+/// pick shows its name instead (`dnsPresetName`). `country` names a regional
+/// pick's country.
 func dnsPickLabel(_ labelKey: String, country: String) -> LocalizedStringResource? {
     switch labelKey {
     case DnsPresetKey.providerDefault:
@@ -194,21 +235,13 @@ func dnsPickCopy(_ copyKey: String, provider: String, country: String) -> Locali
 }
 
 /// The summary row of the settings in force (DnsSelectionSummary.SummaryKey),
-/// with the selected preset's provider.
+/// with the selected preset's name (`dnsPresetName`).
 func dnsSummaryText(_ summaryKey: String, provider: String) -> LocalizedStringResource? {
     switch summaryKey {
     case DnsPresetKey.summaryDefault:
         return "DNS: URnetwork"
-    case DnsPresetKey.summaryAdBlocking:
-        return "DNS: \(provider) · Ad blocking"
-    case DnsPresetKey.summaryMalwareBlocking:
-        return "DNS: \(provider) · Malware blocking"
-    case DnsPresetKey.summaryFamily:
-        return "DNS: \(provider) · Family filter"
-    case DnsPresetKey.summaryNoFiltering:
-        return "DNS: \(provider) · No filtering"
-    case DnsPresetKey.summaryPersonal:
-        return "DNS: \(provider) · your profile"
+    case DnsPresetKey.summaryPreset:
+        return "DNS: \(provider)"
     case DnsPresetKey.summaryCustom:
         return "DNS: Custom"
     case DnsPresetKey.summaryCustomUnencrypted:
@@ -234,7 +267,8 @@ func dnsPillText(_ pillKey: String, country: String) -> LocalizedStringResource?
     }
 }
 
-/// The status line of the selected preset (DnsStatusSummary.StatusKey).
+/// The status line of the selected preset (DnsStatusSummary.StatusKey), with
+/// its name (`dnsPresetName`).
 func dnsStatusText(_ statusKey: String, provider: String) -> LocalizedStringResource? {
     switch statusKey {
     case DnsPresetKey.statusProvider:
@@ -263,7 +297,8 @@ func dnsStatusDetailText(_ statusDetailKey: String) -> LocalizedStringResource? 
 }
 
 /// What verification found out about the selected preset
-/// (DnsStatusSummary.VerificationKey).
+/// (DnsStatusSummary.VerificationKey), with its adblock provider's name
+/// (DnsStatusSummary.ProviderName).
 func dnsVerificationText(_ verificationKey: String, provider: String) -> LocalizedStringResource? {
     switch verificationKey {
     case DnsPresetKey.verifyNotFiltering:

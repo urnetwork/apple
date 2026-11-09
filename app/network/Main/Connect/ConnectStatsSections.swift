@@ -338,15 +338,17 @@ private struct DnsRecommendationPill: View {
         }
         var pills: [(message: Text, countryCode: String?)] = []
         if summary.dropped {
-            if summary.droppedProviderName.isEmpty {
+            if summary.droppedNameKey.isEmpty {
                 // an id this release never knew has no name: the generic copy
                 pills.append((message: Text("This preset isn't available. Choose another one."), countryCode: nil))
             } else {
-                pills.append((message: Text("\(summary.droppedProviderName) is no longer available. You're using URnetwork DNS, so lookups aren't filtered."), countryCode: nil))
+                // named as it showed
+                let droppedName = dnsPresetName(summary.droppedNameKey, provider: summary.droppedNameProvider)
+                pills.append((message: Text("\(droppedName) is no longer available. You're using URnetwork DNS, so lookups aren't filtered."), countryCode: nil))
             }
         }
         if let status = dnsSettingsStore.statusSummary, status.showUseDefault,
-           let line = dnsStatusText(status.statusKey, provider: status.providerName) {
+           let line = dnsStatusText(status.statusKey, provider: dnsPresetName(status.nameKey, provider: status.nameProvider)) {
             pills.append((message: Text(line), countryCode: nil))
         }
         let countryCode = summary.pillCountryCode
@@ -391,8 +393,9 @@ private struct DnsRecommendationPill: View {
 /**
  * What the applied dns settings select, as the summary row reads
  * (`DescribeDnsResolverSettings`, connect ADBLOCK3RD F1): "DNS: URnetwork",
- * "DNS: AdGuard DNS · Ad blocking", "DNS: NextDNS · your profile",
- * "DNS: Custom". Its own view for the same reason as DnsRecommendationPill.
+ * "DNS: AdGuard Ad Blocking", "DNS: NextDNS Personal", "DNS: Custom", a
+ * preset by its name. Its own view for the same reason as
+ * DnsRecommendationPill.
  */
 private struct DnsSelectionLine: View {
     @EnvironmentObject var themeManager: ThemeManager
@@ -402,7 +405,7 @@ private struct DnsSelectionLine: View {
     var body: some View {
         let summary = dnsSettingsStore.selectionSummary(exitCountryCode: connectViewModel.selectedProvider?.countryCode)
         HStack(spacing: 8) {
-            if let summary, let text = dnsSummaryText(summary.summaryKey, provider: summary.providerName) {
+            if let summary, let text = dnsSummaryText(summary.summaryKey, provider: dnsPresetName(summary.nameKey, provider: summary.nameProvider)) {
                 Text(text)
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)

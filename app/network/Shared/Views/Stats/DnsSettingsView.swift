@@ -22,9 +22,9 @@ struct RegionalDnsSuggestion: Identifiable {
 
 /**
  * One row of the dns picker, as the sdk lists it (`GetDnsPicks`): the values
- * the row shows, copied out of the sdk's pick. A preset pick carries its
- * provider and catalog values; the default, custom and regional picks leave
- * them empty.
+ * the row shows, copied out of the sdk's pick. A preset pick carries its name,
+ * its provider and catalog values; the default, custom and regional picks
+ * leave them empty.
  */
 struct DnsPickRow: Identifiable {
     let kind: String
@@ -35,6 +35,12 @@ struct DnsPickRow: Identifiable {
     let labelKey: String
     let copyKey: String
     let countryCode: String
+    // the preset's name, its key with the adblock provider's short name
+    // (`dnsPresetName`)
+    let nameKey: String
+    let nameProvider: String
+    // the adblock provider's name, for the lines that name it rather than
+    // the preset
     let providerName: String
     let jurisdiction: String
     let privacyUrl: String
@@ -57,6 +63,8 @@ struct DnsPickRow: Identifiable {
         copyKey = pick.copyKey
         countryCode = pick.countryCode
         let preset = pick.preset
+        nameKey = preset?.nameKey ?? ""
+        nameProvider = preset?.nameProvider ?? ""
         providerName = preset?.providerName ?? ""
         jurisdiction = preset?.jurisdiction ?? ""
         privacyUrl = preset?.privacyUrl ?? ""
@@ -314,7 +322,7 @@ struct DnsSettingsView: View {
                     // pick may be far down the list, or, for a regional pick
                     // of another exit country, not listed
                     Section {
-                        if let summary, let text = dnsSummaryText(summary.summaryKey, provider: summary.providerName) {
+                        if let summary, let text = dnsSummaryText(summary.summaryKey, provider: dnsPresetName(summary.nameKey, provider: summary.nameProvider)) {
                             Text(text)
                                 .font(themeManager.currentTheme.bodyFont)
                                 .foregroundColor(themeManager.currentTheme.textColor)
@@ -489,9 +497,10 @@ struct DnsSettingsView: View {
                     .frame(width: 10, height: 10)
             }
 
-            if !pick.providerName.isEmpty {
-                // a provider's name is never translated (ADBLOCK3RD G2)
-                Text(verbatim: pick.providerName)
+            if !pick.nameKey.isEmpty {
+                // the preset's name: its purpose translated, the adblock
+                // provider's name as it is (ADBLOCK3RD G2)
+                Text(verbatim: dnsPresetName(pick.nameKey, provider: pick.nameProvider))
             } else if let label = dnsPickLabel(pick.labelKey, country: countryName(pick.countryCode)) {
                 Text(label)
             }
@@ -516,11 +525,14 @@ struct DnsSettingsView: View {
      * The selected preset's status line, with the line under it and the
      * actions of a failing preset, what verification found, and the blocked
      * lookups of a filtering preset (ADBLOCK3RD C6, C8, I3), as the sdk
-     * describes them (`DescribeDnsResolverStatus`).
+     * describes them (`DescribeDnsResolverStatus`). The status line and the
+     * count name the preset; verification names its adblock provider.
      */
     @ViewBuilder
     private func statusLines(_ status: SdkDnsStatusSummary) -> some View {
-        if let line = dnsStatusText(status.statusKey, provider: status.providerName) {
+        let presetName = dnsPresetName(status.nameKey, provider: status.nameProvider)
+
+        if let line = dnsStatusText(status.statusKey, provider: presetName) {
             HStack(alignment: .top, spacing: 6) {
                 if status.showUseDefault {
                     // the preset is failing: it fell back or fails closed
@@ -567,7 +579,7 @@ struct DnsSettingsView: View {
         if status.showBlockedCount {
             // counted on the device only, for this connection, and a floor;
             // the screen as a whole drives its re-reads (setBlockedCountShown)
-            DnsBlockedCountLine(blockedCount: dnsSettingsStore.blockedCount, provider: status.providerName)
+            DnsBlockedCountLine(blockedCount: dnsSettingsStore.blockedCount, provider: presetName)
         }
     }
 
@@ -577,7 +589,7 @@ struct DnsSettingsView: View {
      * out of and checks (D4). Opened on the preset in force, it shows the id
      * saved, as the sdk gives it for this field alone
      * (`GetDnsPresetPersonalIdForEdit`, decision 21); the summaries never
-     * show it, they say "your profile" (D5).
+     * show it, they name the preset, "NextDNS Personal" (D5).
      */
     private func personalIdEntry(_ pick: DnsPickRow) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -685,13 +697,14 @@ struct DnsSettingsView: View {
         }
     }
 
-    /// The notice names the dropped preset's provider. An id this release
+    /// The notice names the dropped preset as it showed. An id this release
     /// never knew, as after a downgrade, has no name: the generic copy.
     private func droppedText(_ summary: SdkDnsSelectionSummary) -> Text {
-        if summary.droppedProviderName.isEmpty {
+        if summary.droppedNameKey.isEmpty {
             return Text("This preset isn't available. Choose another one.")
         }
-        return Text("\(summary.droppedProviderName) is no longer available. You're using URnetwork DNS, so lookups aren't filtered.")
+        let droppedName = dnsPresetName(summary.droppedNameKey, provider: summary.droppedNameProvider)
+        return Text("\(droppedName) is no longer available. You're using URnetwork DNS, so lookups aren't filtered.")
     }
 
     // MARK: the settings under the picks
@@ -710,7 +723,8 @@ struct DnsSettingsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(FastDnsOnConnectCopy.description)
                 if let summary, summary.kind == SdkDnsPickKindPreset {
-                    Text("While connecting, lookups use URnetwork DNS, so \(summary.providerName) doesn't filter them.")
+                    let presetName = dnsPresetName(summary.nameKey, provider: summary.nameProvider)
+                    Text("While connecting, lookups use URnetwork DNS, so \(presetName) doesn't filter them.")
                 }
             }
             .font(themeManager.currentTheme.secondaryBodyFont)

@@ -110640,7 +110640,7 @@
       }
     },
     "Free" : {
-      "comment" : "Display name for the paid plan. The WIRE value stays \"supporter\" (subscription_type / current_subscription.plan) because already-shipped app versions parse that string; only what the user reads changes.",
+      "comment" : "Name of the free plan: the plan shown when the network has no Pro subscription, on the account, settings and Connect screens of the apps and ur.io. Free as in no cost, not as in freedom.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -110795,7 +110795,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自由"
+            "value" : "免费"
           }
         },
         "zh-HK" : {
@@ -166062,7 +166062,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Planen"
+            "value" : "Plan"
           }
         },
         "el" : {
@@ -166194,7 +166194,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kế hoạch"
+            "value" : "Gói"
           }
         },
         "zh-Hans" : {

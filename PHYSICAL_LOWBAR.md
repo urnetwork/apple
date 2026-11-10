@@ -30,8 +30,9 @@ changed during the sample.
 
 Build and install a Debug app on the physical device, establish the intended
 provider connection, then disconnect USB and use wireless CoreDevice access for
-the measurement. Put only synthetic, credential-free URLs and privacy-safe
-labels in a suite file:
+the measurement. Put only synthetic, credential-free https URLs and
+privacy-safe labels in a suite file. The app keeps App Transport Security's
+defaults, so the driver and the collector refuse an http page:
 
 ```json
 [

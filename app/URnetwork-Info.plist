@@ -66,11 +66,12 @@
 	<array>
 		<string>$(UR_TUNNEL_PROVIDER_BUNDLE_ID)</string>
 	</array>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
+	<!-- No NSAppTransportSecurity: App Transport Security keeps its defaults
+	     (https, TLS 1.2+, forward secrecy) for every URLSession and WKWebView
+	     load. Those loads are all https (the ur.io checkout pages, the
+	     updater's GitHub releases, Google sign-in); the api, DoH and tunnel
+	     traffic runs in the sdk's Go networking, which ATS does not cover.
+	     test-app-transport-security_test.go keeps every target this way. -->
 	<key>SMAppService</key>
 	<dict>
 		<key>LaunchHelperBundleIdentifier</key>

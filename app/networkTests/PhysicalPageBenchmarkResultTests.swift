@@ -256,7 +256,7 @@ struct PhysicalPageBenchmarkSuiteTests {
             json: """
             [
               {"url":"https://example.com/one","label":"first"},
-              {"url":"http://example.net/two","label":"second"}
+              {"url":"https://example.net/two","label":"second"}
             ]
             """
         ))
@@ -267,10 +267,22 @@ struct PhysicalPageBenchmarkSuiteTests {
                 label: "first"
             ),
             PhysicalPageBenchmarkRequest(
-                urlString: "http://example.net/two",
+                urlString: "https://example.net/two",
                 label: "second"
             ),
         ])
+    }
+
+    // the web view keeps App Transport Security's defaults, which refuse a
+    // cleartext page: one http page turns the whole suite away
+    @Test func cleartextSuiteUrlIsRejected() {
+        #expect(PhysicalPageBenchmarkSuite.requests(
+            json: #"[{"url":"https://example.com/one","label":"first"},{"url":"http://example.net/two","label":"second"}]"#
+        ) == nil)
+        #expect(PhysicalPageBenchmarkSuite.isPageURL(URL(string: "https://example.com/")!))
+        #expect(PhysicalPageBenchmarkSuite.isPageURL(URL(string: "HTTPS://example.com/")!))
+        #expect(!PhysicalPageBenchmarkSuite.isPageURL(URL(string: "http://example.com/")!))
+        #expect(!PhysicalPageBenchmarkSuite.isPageURL(URL(string: "file:///tmp/page")!))
     }
 
     @Test func emptySuiteIsRejected() {

@@ -176,6 +176,13 @@ struct PhysicalPageBenchmarkRequest: Decodable, Equatable {
 }
 
 enum PhysicalPageBenchmarkSuite {
+    /// A page the benchmark may load: https only. The web view runs under
+    /// App Transport Security's defaults, which refuse a cleartext page, so
+    /// an http url is turned away here instead of failing mid-campaign.
+    static func isPageURL(_ url: URL) -> Bool {
+        url.scheme?.lowercased() == "https"
+    }
+
     static func requests(json: String) -> [PhysicalPageBenchmarkRequest]? {
         guard let data = json.data(using: .utf8),
               let decoded = try? JSONDecoder().decode(
@@ -188,8 +195,7 @@ enum PhysicalPageBenchmarkSuite {
         for request in decoded {
             guard !request.label.isEmpty,
                   let url = URL(string: request.urlString),
-                  let scheme = url.scheme,
-                  ["http", "https"].contains(scheme.lowercased()) else {
+                  isPageURL(url) else {
                 return nil
             }
         }
@@ -1031,9 +1037,8 @@ enum PhysicalPeerTestDriver {
             } else {
                 guard let benchmarkUrl,
                       let url = URL(string: benchmarkUrl),
-                      let scheme = url.scheme,
-                      ["http", "https"].contains(scheme.lowercased()) else {
-                    NSLog("[PhysicalPeerTest] benchmark missing valid http(s) url")
+                      PhysicalPageBenchmarkSuite.isPageURL(url) else {
+                    NSLog("[PhysicalPeerTest] benchmark missing valid https url")
                     return
                 }
                 requests = [

@@ -188,6 +188,20 @@ test("suite parser requires bounded, unique, privacy-safe page metadata", () => 
   ), /unique/);
 });
 
+test("suite parser refuses a cleartext page the app's web view would refuse", () => {
+  // App Transport Security keeps its defaults in the app: no http page loads
+  assert.throws(() => parseSuite(
+    '[{"url":"http://example.com/","label":"web"}]',
+  ), /credential-free https URLs/);
+  assert.throws(() => parseSuite(
+    '[{"url":"https://example.com/1","label":"web-1"},' +
+      '{"url":"http://example.com/2","label":"web-2"}]',
+  ), /credential-free https URLs/);
+  assert.deepEqual(parseSuite(
+    '[{"url":"HTTPS://example.com/1","label":"web-1"}]',
+  ), [{ url: "https://example.com/1", label: "web-1" }]);
+});
+
 test("chunk parser reassembles out-of-order Unicode and observes cleanup", () => {
   const value = benchmark();
   value.label = "web-1";

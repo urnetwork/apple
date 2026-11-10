@@ -197,9 +197,11 @@ export function parseSuite(json) {
     } catch {
       throw new Error("every suite page needs a valid URL");
     }
-    if (!["http:", "https:"].includes(url.protocol) ||
+    // https only: the app's web view keeps App Transport Security's
+    // defaults, which refuse a cleartext page
+    if (url.protocol !== "https:" ||
         url.username || url.password || item.url.length > 2_048) {
-      throw new Error("suite URLs must be credential-free http(s) URLs");
+      throw new Error("suite URLs must be credential-free https URLs");
     }
     return { url: url.href, label: item.label };
   });

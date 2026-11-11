@@ -6,8 +6,10 @@
 //  proxies, this device first, each other one removable after a confirmation.
 //  Removing one frees its slot of the plan's devices connected at once, and
 //  the sdk then adds this device again (ManageDevicesStore). Pushed from
-//  Settings, and in a sheet (ManageDevicesSheet) from the client limit notice
-//  and from a sign-in the limit refused.
+//  Settings, and in a sheet (ManageDevicesSheet) from the client limit notice,
+//  the Pro features notice and a sign-in the limit refused. While the
+//  network's hosted proxies hold SOCKS or WireGuard without Pro, the list
+//  says so above its rows (ProFeaturesPrompt).
 //
 
 import SwiftUI
@@ -20,10 +22,15 @@ struct ManageDevicesView: View {
     @StateObject private var store: ManageDevicesStore
     /// why the list opened, above it; nil from Settings
     private let message: String?
+    /// the Pro features notice's Get Pro: the app's upgrade sheet. Nil for a
+    /// sign-in the limit refused, which has no Get Pro: the purchase needs a
+    /// signed-in device (ContentView)
+    private let openUpgrade: (() -> Void)?
 
-    init(store: @escaping @autoclosure () -> ManageDevicesStore, message: String? = nil) {
+    init(store: @escaping @autoclosure () -> ManageDevicesStore, message: String? = nil, openUpgrade: (() -> Void)? = nil) {
         _store = StateObject(wrappedValue: store())
         self.message = message
+        self.openUpgrade = openUpgrade
     }
 
     var body: some View {
@@ -98,6 +105,15 @@ struct ManageDevicesView: View {
                 .listRowBackground(Color.clear)
             }
 
+            // the network's hosted proxies hold SOCKS or WireGuard without
+            // Pro: said here as long as that lasts, whatever the user did
+            // with the main screen's notice
+            if let prompt = state.proFeaturesPrompt {
+                Section {
+                    proFeaturesNotice(prompt)
+                }
+            }
+
             if store.connecting {
                 Section {
                     HStack(spacing: 8) {
@@ -164,6 +180,31 @@ struct ManageDevicesView: View {
         #endif
         .scrollContentBackground(.hidden)
         .background(themeManager.currentTheme.backgroundColor)
+    }
+
+    /// The main screen's Pro features words, with its Get Pro where the app
+    /// can sell Pro, and no close: the list says it while it holds.
+    private func proFeaturesNotice(_ prompt: ProFeaturesPrompt) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(prompt.title)
+                .font(themeManager.currentTheme.bodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .accessibilityIdentifier("acceptance.manageDevices.proFeatures.title")
+            Text(prompt.body)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                .accessibilityIdentifier("acceptance.manageDevices.proFeatures.notice")
+            if let openUpgrade {
+                UrButton(
+                    text: "Get Pro",
+                    action: openUpgrade,
+                    style: .outlineSecondary,
+                    accessibilityIdentifier: "acceptance.manageDevices.proFeatures.upgrade"
+                )
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.vertical, 4)
     }
 
     private func loadFailed() -> some View {
@@ -273,25 +314,27 @@ enum ManageDevicesLabels {
     }
 }
 
-/// The device list in a sheet: from the client limit notice, and from a
-/// sign-in the limit refused.
+/// The device list in a sheet: from the client limit notice and the Pro
+/// features notice, and from a sign-in the limit refused.
 struct ManageDevicesSheet: View {
 
     @EnvironmentObject var themeManager: ThemeManager
 
     private let makeStore: () -> ManageDevicesStore
     private let message: String?
+    private let openUpgrade: (() -> Void)?
     private let dismiss: () -> Void
 
-    init(store: @escaping @autoclosure () -> ManageDevicesStore, message: String? = nil, dismiss: @escaping () -> Void) {
+    init(store: @escaping @autoclosure () -> ManageDevicesStore, message: String? = nil, openUpgrade: (() -> Void)? = nil, dismiss: @escaping () -> Void) {
         self.makeStore = store
         self.message = message
+        self.openUpgrade = openUpgrade
         self.dismiss = dismiss
     }
 
     var body: some View {
         NavigationStack {
-            ManageDevicesView(store: makeStore(), message: message)
+            ManageDevicesView(store: makeStore(), message: message, openUpgrade: openUpgrade)
                 .navigationTitle("Manage devices")
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)

@@ -4,16 +4,17 @@
 //
 //  The device list ("Manage devices"): the network's devices and hosted
 //  proxies, each removable, so a user at the client limit frees a slot for
-//  this device. Opened from the client limit notice, from a sign-in the limit
-//  refused, and from Settings.
+//  this device. Opened from the client limit notice and the Pro features
+//  notice, from a sign-in the limit refused, and from Settings.
 //
 //  The sdk's ManageDevicesViewController decides everything: what the list
 //  holds and its order, the network credential every request carries (never a
-//  client token), and adding this device again after a removal (it ends the
-//  device's client limit hold, or calls the sign-in's retry). This store only
-//  mirrors the controller's snapshots into value types on the main actor,
-//  forwards the screen's intents, and holds the confirmation a removal waits
-//  for.
+//  client token), adding this device again after a removal (it ends the
+//  device's client limit hold, or calls the sign-in's retry), and the
+//  network's Pro features in use, read from the same proxies
+//  (pro_features_status.go). This store only mirrors the controller's
+//  snapshots into value types on the main actor, forwards the screen's
+//  intents, and holds the confirmation a removal waits for.
 //
 
 import Foundation
@@ -49,6 +50,9 @@ struct ManageDevicesState: Equatable {
     var errorId: String = ""
     /// the removals that freed a slot and added this device again
     var addRetryCount: Int = 0
+    /// the network's hosted proxies hold SOCKS or WireGuard without Pro: what
+    /// the list says above its rows; nil for nothing, and before the first load
+    var proFeaturesPrompt: ProFeaturesPrompt? = nil
 
     var signInRequired: Bool {
         errorId == SdkManageDevicesErrorSignInRequired
@@ -279,5 +283,6 @@ extension ManageDevicesState {
         removingClientId = snapshot.removingClientId?.idStr
         errorId = snapshot.errorId
         addRetryCount = snapshot.addRetryCount
+        proFeaturesPrompt = ProFeaturesPrompt(snapshot.proFeatures?.prompt ?? "")
     }
 }

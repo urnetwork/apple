@@ -184,7 +184,8 @@ struct MainNavigationSplitView: View {
                     providerCountries: providerListStore.providerCountries,
                     networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
                     fetchNetworkReliability: networkReliabilityStore.getNetworkReliability,
-                    isPro: isPro
+                    isPro: isPro,
+                    openUpgradeSheet: openUpgradeSheet
                 )
             case .leaderboard:
                 LeaderboardView(api: urApiService)
@@ -283,8 +284,7 @@ struct MainNavigationSplitView: View {
                 if offerOnItsOwn {
                     presentOnboardingOffer = true
                 } else {
-                    selectedTab = .connect
-                    connectViewModel.isPresentedUpgradeSheet = true
+                    openUpgradeSheet()
                 }
             case .feedback(let rating, let reason, let token):
                 selectedTab = .support
@@ -380,6 +380,14 @@ struct MainNavigationSplitView: View {
             )
             referralLinkViewModel.clearCelebration()
         }
+    }
+
+    /// The connect screen's upgrade sheet, from another section: the connect
+    /// screen, where the sheet presents, with the sheet. An email's offer link
+    /// without an offer, and the Account device list's Get Pro.
+    private func openUpgradeSheet() {
+        selectedTab = .connect
+        connectViewModel.isPresentedUpgradeSheet = true
     }
 
     /// What a click on the Connect sidebar item does: select the tab. The

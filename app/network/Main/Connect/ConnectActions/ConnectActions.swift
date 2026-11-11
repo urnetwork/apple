@@ -136,8 +136,14 @@ struct ConnectActions: View {
     // again at once
     var clientLimitHold: ClientLimitHold? = nil
     var retryClientLimit: () -> Void = {}
-    // the device list, where removing a device frees a slot for this one
+    // the device list, where removing a device frees a slot for this one,
+    // and which lists the network's hosted proxies
     var openManageDevices: () -> Void = {}
+    // the network's hosted proxies hold SOCKS or WireGuard, which are part of
+    // Pro, and it has no Pro (ProFeaturesNoticeStore): the notice, with the
+    // client limit notice's Get Pro and Manage devices, and its close
+    var proFeaturesPrompt: ProFeaturesPrompt? = nil
+    var dismissProFeatures: () -> Void = {}
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -411,6 +417,16 @@ struct ConnectActions: View {
             }
             .connectActionsFold()
 
+            /**
+             * The network's hosted proxies hold SOCKS or WireGuard without
+             * Pro: under the balance's notice and its buttons, which stay
+             * together, so in the collapsed phone drawer it is below the
+             * fold until the balance is back
+             */
+            if let proFeaturesPrompt {
+                proFeaturesNotice(proFeaturesPrompt)
+            }
+
         } else {
             /**
              * sufficient balance
@@ -424,6 +440,16 @@ struct ConnectActions: View {
              */
             if let clientLimitHold {
                 clientLimitNotice(clientLimitHold)
+            }
+
+            /**
+             * The network's hosted proxies hold SOCKS or WireGuard without
+             * Pro: under the client limit's notice, which is about this
+             * connection, and above the fold too. It holds nothing back:
+             * the buttons below stay as they are.
+             */
+            if let proFeaturesPrompt {
+                proFeaturesNotice(proFeaturesPrompt)
             }
 
             /**
@@ -572,6 +598,76 @@ struct ConnectActions: View {
             action: retryClientLimit,
             style: .outlineSecondary,
             accessibilityIdentifier: "acceptance.clientLimit.retry"
+        )
+    }
+
+    /**
+     * The Pro features notice (ProFeaturesPrompt): the network's hosted
+     * proxies hold SOCKS or WireGuard, which are part of Pro, and it has no
+     * Pro. Before enforcement an upgrade keeps them working; after, they
+     * stopped, and an upgrade turns them back on. Get Pro opens the client
+     * limit notice's upgrade sheet, which leaves the provide mode as it is,
+     * and Manage devices the same device list, where a proxy can be removed.
+     * The close withdraws the notice until its prompt changes (the sdk
+     * decides); the device list still says it. Nothing here disconnects or
+     * holds back a connection. The buttons wrap when the row doesn't fit.
+     */
+    @ViewBuilder
+    private func proFeaturesNotice(_ prompt: ProFeaturesPrompt) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(prompt.title)
+                .font(themeManager.currentTheme.bodyFont)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("acceptance.proFeatures.title")
+
+            Spacer(minLength: 8)
+
+            Button(action: dismissProFeatures) {
+                Image(systemName: "xmark")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .padding(4)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(String(localized: "Close"))
+            .accessibilityLabel("Close")
+            .accessibilityIdentifier("acceptance.proFeatures.close")
+        }
+
+        Text(prompt.body)
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("acceptance.proFeatures.notice")
+
+        // one row when it fits; else one under the other
+        ViewThatFits(in: .horizontal) {
+            HStack {
+                proFeaturesUpgradeButton
+                proFeaturesManageDevicesButton
+            }
+            VStack {
+                proFeaturesUpgradeButton
+                proFeaturesManageDevicesButton
+            }
+        }
+    }
+
+    private var proFeaturesUpgradeButton: some View {
+        UrButton(
+            text: "Get Pro",
+            action: openUpgradeSheet,
+            style: .outlineSecondary,
+            accessibilityIdentifier: "acceptance.proFeatures.upgrade"
+        )
+    }
+
+    private var proFeaturesManageDevicesButton: some View {
+        UrButton(
+            text: "Manage devices",
+            action: openManageDevices,
+            style: .outlineSecondary,
+            accessibilityIdentifier: "acceptance.proFeatures.manageDevices"
         )
     }
 

@@ -173,14 +173,17 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
 
 // Only the provider extender status and setting cross this seam (EXTENDER.md
 // N2, N7), with the lag.dev measurements setting that rides on the role
-// (lag.dev/PLAN.md C4). The normal source is the SDK remote; tests keep the
-// registered callback and record the writes without starting RPC.
+// (lag.dev/PLAN.md C4) and the router port mapping setting (EXTENDER.md S8).
+// The normal source is the SDK remote; tests keep the registered callback and
+// record the writes without starting RPC.
 protocol ExtenderProvideSource: AnyObject {
     func readExtenderProvideStatus() -> ExtenderProvideStatusModel
     func readProvideExtender() -> Bool
     func writeProvideExtender(_ provideExtender: Bool)
     func readMeasurementsEnabled() -> Bool
     func writeMeasurementsEnabled(_ measurementsEnabled: Bool)
+    func readProvideExtenderPortMapping() -> Bool
+    func writeProvideExtenderPortMapping(_ portMapping: Bool)
     func observeExtenderProvideStatus(
         _ callback: @escaping @Sendable (ExtenderProvideStatusModel) -> Void
     ) -> () -> Void
@@ -205,6 +208,14 @@ extension SdkDeviceRemote: ExtenderProvideSource {
 
     func writeMeasurementsEnabled(_ measurementsEnabled: Bool) {
         setMeasurementsEnabled(measurementsEnabled)
+    }
+
+    func readProvideExtenderPortMapping() -> Bool {
+        getProvideExtenderPortMapping()
+    }
+
+    func writeProvideExtenderPortMapping(_ portMapping: Bool) {
+        setProvideExtenderPortMapping(portMapping)
     }
 
     func observeExtenderProvideStatus(
@@ -595,6 +606,22 @@ class DeviceManager: ObservableObject {
         }
     }
 
+    /// The router port mapping setting (EXTENDER.md S8), the switch under the
+    /// speed tests switch: whether the role asks the router, by UPnP, NAT-PMP
+    /// or PCP, to forward its ports to this device, which opens them on the
+    /// router. Read and written as the provider extender setting is, through
+    /// the device, which stores it and applies it at once, and only while the
+    /// role is supported. Off before any read, as the sdk's default for every
+    /// app (owner, 2026-11-11).
+    @Published var extenderPortMapping: Bool = false {
+        didSet {
+            guard DeviceSettingWritePolicy.shouldPropagate(
+                isLoadingFromDevice: isLoadingFromDevice
+            ) else { return }
+            handleExtenderPortMappingUpdate(extenderPortMapping)
+        }
+    }
+
     /// The Extender row's local repaint after a toggle, standing until the
     /// next pushed status replaces it (N7).
     @Published private(set) var extenderProvideGuess: ExtenderProvideDisplay? = nil
@@ -910,6 +937,15 @@ class DeviceManager: ObservableObject {
         source.writeMeasurementsEnabled(measurementsEnabled)
     }
 
+    private func handleExtenderPortMappingUpdate(_ portMapping: Bool) {
+        // the switch shows beside the Extender row, so only while the device
+        // reports the role supported; a setting it cannot take is never written
+        guard extenderProvideStatus.supported, let source = extenderProvideSource else {
+            return
+        }
+        source.writeProvideExtenderPortMapping(portMapping)
+    }
+
     /// One status from the source (N7), with the setting read beside it only
     /// while the status reports the role supported: a hidden row reads no
     /// setting, and the switch keeps its value meanwhile.
@@ -920,7 +956,8 @@ class DeviceManager: ObservableObject {
         applyExtenderProvideStatus(
             status,
             provideExtender: status.supported ? source.readProvideExtender() : nil,
-            measurementsEnabled: status.supported ? source.readMeasurementsEnabled() : nil
+            measurementsEnabled: status.supported ? source.readMeasurementsEnabled() : nil,
+            extenderPortMapping: status.supported ? source.readProvideExtenderPortMapping() : nil
         )
     }
 
@@ -930,7 +967,8 @@ class DeviceManager: ObservableObject {
     private func applyExtenderProvideStatus(
         _ status: ExtenderProvideStatusModel,
         provideExtender: Bool?,
-        measurementsEnabled: Bool?
+        measurementsEnabled: Bool?,
+        extenderPortMapping: Bool? = nil
     ) {
         if extenderProvideGuess != nil {
             extenderProvideGuess = nil
@@ -946,6 +984,11 @@ class DeviceManager: ObservableObject {
         if let measurementsEnabled, self.measurementsEnabled != measurementsEnabled {
             withDeviceStateLoad {
                 self.measurementsEnabled = measurementsEnabled
+            }
+        }
+        if let extenderPortMapping, self.extenderPortMapping != extenderPortMapping {
+            withDeviceStateLoad {
+                self.extenderPortMapping = extenderPortMapping
             }
         }
     }
@@ -1979,7 +2022,12 @@ extension DeviceManager {
         closeExtenderProvideStatusListener?()
         closeExtenderProvideStatusListener = nil
         extenderProvideSource = nil
-        applyExtenderProvideStatus(.unsupported, provideExtender: true, measurementsEnabled: true)
+        applyExtenderProvideStatus(
+            .unsupported,
+            provideExtender: true,
+            measurementsEnabled: true,
+            extenderPortMapping: false
+        )
     }
 
     private func cleanupDeviceAuthListeners() {

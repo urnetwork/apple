@@ -446,6 +446,10 @@ struct SettingsForm_macOS: View {
                             // the lag.dev speed tests switch rides on the role
                             Spacer().frame(height: 12)
                             ExtenderMeasurementsRow()
+                            // and so does the router port mapping, off by
+                            // default (EXTENDER.md S8)
+                            Spacer().frame(height: 12)
+                            ExtenderPortMappingRow()
                         }
                         
                         Spacer().frame(height: 16)

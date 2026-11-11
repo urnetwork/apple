@@ -44,12 +44,21 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
     private(set) var measurements: Bool
     private(set) var measurementsWrites: [Bool] = []
     private(set) var measurementsReads = 0
+    private(set) var portMapping: Bool
+    private(set) var portMappingWrites: [Bool] = []
+    private(set) var portMappingReads = 0
     private var callback: (@Sendable (ExtenderProvideStatusModel) -> Void)?
 
-    init(status: ExtenderProvideStatusModel, setting: Bool, measurements: Bool = true) {
+    init(
+        status: ExtenderProvideStatusModel,
+        setting: Bool,
+        measurements: Bool = true,
+        portMapping: Bool = false
+    ) {
         self.status = status
         self.setting = setting
         self.measurements = measurements
+        self.portMapping = portMapping
     }
 
     func readExtenderProvideStatus() -> ExtenderProvideStatusModel { status }
@@ -74,6 +83,16 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
         measurements = measurementsEnabled
     }
 
+    func readProvideExtenderPortMapping() -> Bool {
+        portMappingReads += 1
+        return portMapping
+    }
+
+    func writeProvideExtenderPortMapping(_ portMapping: Bool) {
+        portMappingWrites.append(portMapping)
+        self.portMapping = portMapping
+    }
+
     func observeExtenderProvideStatus(
         _ callback: @escaping @Sendable (ExtenderProvideStatusModel) -> Void
     ) -> () -> Void {
@@ -82,11 +101,19 @@ private final class ExtenderProvideTestingSource: ExtenderProvideSource {
     }
 
     // the device changes and the listener fires, as the sdk pushes it
-    func push(_ status: ExtenderProvideStatusModel, setting: Bool, measurements: Bool? = nil) {
+    func push(
+        _ status: ExtenderProvideStatusModel,
+        setting: Bool,
+        measurements: Bool? = nil,
+        portMapping: Bool? = nil
+    ) {
         self.status = status
         self.setting = setting
         if let measurements {
             self.measurements = measurements
+        }
+        if let portMapping {
+            self.portMapping = portMapping
         }
         callback?(status)
     }
@@ -295,5 +322,63 @@ struct ExtenderProvideSettingTests {
         #expect(source.measurementsWrites.isEmpty)
         manager.measurementsEnabled = false
         #expect(source.measurementsWrites.isEmpty)
+    }
+    // EXTENDER.md S8: the router port mapping switch is off until the device
+    // says otherwise, goes through the device at once, and its seed read is
+    // not written back
+    @Test func thePortMappingSwitchIsOffAndWritesTheSettingThroughTheDevice() {
+        #expect(!manager.extenderPortMapping)
+        let source = ExtenderProvideTestingSource(status: Self.active, setting: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(!manager.extenderPortMapping)
+        #expect(source.portMappingReads == 1)
+        #expect(source.portMappingWrites.isEmpty)
+
+        manager.extenderPortMapping = true
+
+        #expect(source.portMappingWrites == [true])
+        // the other settings are untouched
+        #expect(source.writes.isEmpty)
+        #expect(source.measurementsWrites.isEmpty)
+    }
+
+    @Test func thePortMappingSettingIsNeitherReadNorWrittenWhileTheRoleIsUnsupported() {
+        let source = ExtenderProvideTestingSource(status: .unsupported, setting: true, portMapping: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(source.portMappingReads == 0)
+        #expect(!manager.extenderPortMapping)
+
+        manager.extenderPortMapping = true
+        manager.extenderPortMapping = false
+
+        #expect(source.portMappingWrites.isEmpty)
+        #expect(source.portMappingReads == 0)
+    }
+
+    // the miner or another writer on the same device turned it on: the switch
+    // follows the setting read beside the next status, and nothing is written
+    // back
+    @Test func aPushedStatusMovesThePortMappingSwitchWithoutWritingIt() {
+        let source = ExtenderProvideTestingSource(status: Self.active, setting: true)
+        manager.setupExtenderProvide(source: source)
+
+        source.push(Self.active, setting: true, portMapping: true)
+        #expect(dispatcher.deliver() == 1)
+
+        #expect(manager.extenderPortMapping)
+        #expect(source.portMappingWrites.isEmpty)
+    }
+
+    @Test func theResetTurnsThePortMappingSwitchBackOffWithoutWriting() {
+        let source = ExtenderProvideTestingSource(status: Self.active, setting: true, portMapping: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.extenderPortMapping)
+
+        manager.resetExtenderProvide()
+
+        #expect(!manager.extenderPortMapping)
+        #expect(source.portMappingWrites.isEmpty)
+        manager.extenderPortMapping = true
+        #expect(source.portMappingWrites.isEmpty)
     }
 }

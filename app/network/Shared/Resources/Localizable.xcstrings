@@ -35848,7 +35848,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "验证码"
+            "value" : "授权码"
           }
         },
         "zh-HK" : {
@@ -36016,7 +36016,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "验证码 \n\n%1$@...%2$@"
+            "value" : "授权码 \n\n%1$@...%2$@"
           }
         },
         "zh-HK" : {
@@ -36183,7 +36183,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建验证码"
+            "value" : "创建授权码"
           }
         },
         "zh-HK" : {
@@ -36350,7 +36350,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "验证码登录"
+            "value" : "授权码登录"
           }
         },
         "zh-HK" : {
@@ -36517,7 +36517,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "验证码"
+            "value" : "授权码"
           }
         },
         "zh-HK" : {
@@ -71168,7 +71168,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制验证码"
+            "value" : "复制授权码"
           }
         },
         "zh-HK" : {
@@ -79521,7 +79521,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建的验证码将在5分钟后失效"
+            "value" : "创建的授权码将在5分钟后失效"
           }
         },
         "zh-HK" : {
@@ -100581,7 +100581,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入您的一次性验证码"
+            "value" : "输入您的一次性授权码"
           }
         },
         "zh-HK" : {
@@ -137919,7 +137919,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用验证码登录"
+            "value" : "使用授权码登录"
           }
         },
         "zh-HK" : {
@@ -231954,7 +231954,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "验证您的验证码时出错。请重试或生成新的验证码。"
+            "value" : "验证您的授权码时出错。请重试或生成新的授权码。"
           }
         },
         "zh-HK" : {

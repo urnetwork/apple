@@ -536,7 +536,7 @@ func TestBittensorKeyClaimedStateAsDrawn(t *testing.T) {
 		}
 	}
 	againOn := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayAgainOn: View {")
-	if !strings.Contains(againOn, `Text("Claim now is available again on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")`) {
+	if !strings.Contains(againOn, `Text("Your next Claim now opens on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")`) {
 		t.Error("the claimed state doesn't say when Claim now works again")
 	}
 	content := sheet[strings.Index(sheet, "private func content(_ status: SnClaimStatusInfo)"):]
@@ -555,6 +555,52 @@ func TestBittensorKeyClaimedStateAsDrawn(t *testing.T) {
 	view := bittensorKeyRead(t, "app/network/Main/Account/Earnings/EarningsView.swift")
 	if !strings.Contains(view, "fundsDisclaimer: keyModel.flow.fundsDisclaimer(at: SdkBittensorFundsDisclaimerPlaceClaimSheet),") {
 		t.Error("the claim sheet's disclaimer is not the sdk's claim_sheet line, the funds-only one")
+	}
+}
+
+// Claim now queued (4c) says what the relay does, as the owner decided on
+// 2026-11-11 (BTEASY.md, Claim now and the daily cap): taps go out ahead of
+// the automatic claims, the oldest first, as each day's budget allows, and the
+// coldkey's limit starts when this claim goes through, not at the tap. The
+// tile's note, the sheet after the tap and a tap the server finds already
+// queued all say it, with the relay's period; a spent budget says when it
+// renews and promises no day; and the limit's date reads as the same limit.
+// Before, the note said "within today's budget" beside a line saying the claim
+// waits for the next day, and nothing said when the 30 days start.
+func TestBittensorKeyClaimNowQueuedSaysWhatHappens(t *testing.T) {
+	sheet := bittensorKeyRead(t, "app/network/Main/Account/Earnings/ClaimRelaySheet.swift")
+	queued := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimNowQueuedText: View {")
+	for _, line := range []string{
+		`Text("Claim now is queued. It goes out ahead of automatic claims, in the order requests came in, as each day's budget allows.")`,
+		"if 0 < status.claimNowPeriodDays {",
+		`Text("Your next Claim now opens \(status.claimNowPeriodDays) days after this claim goes through.")`,
+	} {
+		if !strings.Contains(queued, line) {
+			t.Errorf("the queued note lost %s", line)
+		}
+	}
+	note := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimNowNote: View {")
+	if !strings.Contains(note, "case SdkSnClaimNowReasonRequested:\n                    SnClaimNowQueuedText(status: status)") {
+		t.Error("the tile's note for a queued tap is not the queued note")
+	}
+	if !strings.Contains(note, `Text("Your next Claim now opens on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")`) {
+		t.Error("the limit's date doesn't read as the queued note's limit")
+	}
+	content := sheet[strings.Index(sheet, "private func claimNowContent(_ status: SnClaimStatusInfo)"):]
+	if !strings.Contains(content, "case .requested:\n            SnClaimNowQueuedText(status: status)") {
+		t.Error("the sheet's answer to the tap is not the queued note")
+	}
+	if !strings.Contains(content, "claimNowPeriodDays: status.claimNowPeriodDays)") {
+		t.Error("a tap the server finds queued loses the relay's period")
+	}
+	reason := bittensorKeyDeclaration(t, sheet, "", "struct SnClaimRelayReason: View {")
+	if !strings.Contains(reason, `title("Today's claim budget is used up, so this waits. The budget renews each day at 00:00 UTC. Nothing is lost: this credit never expires.")`) {
+		t.Error("a spent budget doesn't say when it renews")
+	}
+	for _, promise := range []string{"within today's budget", "waits for the next day"} {
+		if strings.Contains(sheet, promise) {
+			t.Errorf("the claim screens still promise %q", promise)
+		}
 	}
 }
 
@@ -781,6 +827,7 @@ func TestBittensorKeyStringsAreInTheCatalog(t *testing.T) {
 	for _, key := range []string{
 		"Claim now is paid by URnetwork, once every %lld days.",
 		"Paid by URnetwork, once every %lld days for each coldkey.",
+		"Your next Claim now opens %lld days after this claim goes through.",
 	} {
 		for locale := range locales {
 			plural := catalog.Strings[key].Localizations[locale].Variations.Plural

@@ -96,7 +96,8 @@ enum CryptoPayCopy {
     }
 
     /// One of a coin's lines (the SDK's CryptoAssetLinesFor: the network line,
-    /// the network-only warning, the no-payment-link note) by its string id in
+    /// the network-only warning, the no-payment-link note, and Bitcoin's
+    /// confirmation note and awaiting-confirmation line) by its string id in
     /// the localizations store, or the SDK's English for an id this app has no
     /// string for; nil for a line the coin does not have. The catalog has one
     /// entry per English text, so each id reads the entry of its English.
@@ -132,6 +133,12 @@ enum CryptoPayCopy {
             return String(localized: "Send only SOL on the Solana network to this address. Tokens, including USDC, won't be credited.")
         case "crypto_invoice_tao_no_payment_link":
             return String(localized: "TAO has no payment link, so this QR code holds only the address. Enter the exact amount in your wallet.")
+        case "crypto_invoice_bitcoin_confirmation_time":
+            // the server sees a Bitcoin payment only once it is mined, and
+            // credits one sent in time at the quote's price (mmm/BTCPAY.md §16.8)
+            return String(localized: "Bitcoin payments can take up to 3 hours to confirm. A payment sent before the quote expires is credited at this price.")
+        case "crypto_invoice_bitcoin_awaiting_confirmation":
+            return String(localized: "This quote expired. A payment you sent before it expired is credited at this price once it confirms, which can take up to 3 hours. If you didn't send one, pay another way.")
         default:
             return line.english.isEmpty ? nil : line.english
         }

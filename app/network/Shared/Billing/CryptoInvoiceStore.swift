@@ -264,8 +264,9 @@ final class CryptoInvoiceStore: ObservableObject {
         }
     }
 
-    /// "Pay another way": the invoice is dropped (or, once money arrived, only
-    /// hidden: the SDK keeps it) and the row goes back to Card.
+    /// "Pay another way": the invoice is dropped (or, once money arrived, or
+    /// while a payment sent within the quote may still confirm, only hidden:
+    /// the SDK keeps it) and the row goes back to Card.
     func payAnotherWay() {
         let snapshot = controller.state
         if snapshot.isAwaitingPayment, let method = PaymentMethod(asset: snapshot.asset), !snapshot.intentId.isEmpty {

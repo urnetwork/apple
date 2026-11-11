@@ -283,6 +283,37 @@ struct CryptoPaymentSdkTests {
         #expect(CryptoPayLine(key: "", english: "x") == nil)
     }
 
+    // Bitcoin's confirmation grace (mmm/BTCPAY.md §16.8): its note with the
+    // countdown and its line in place of the expired copy are the SDK's, and
+    // no other coin has either.
+    @Test func bitcoinsConfirmationLinesAreTheSdks() {
+        let btc = catalog.lines(asset: "btc")
+        #expect(btc.confirmationNote == CryptoPayLine(
+            key: "crypto_invoice_bitcoin_confirmation_time",
+            english: "Bitcoin payments can take up to 3 hours to confirm. A payment sent before the quote expires is credited at this price."
+        ))
+        #expect(btc.awaitingConfirmationNote == CryptoPayLine(
+            key: "crypto_invoice_bitcoin_awaiting_confirmation",
+            english: "This quote expired. A payment you sent before it expired is credited at this price once it confirms, which can take up to 3 hours. If you didn't send one, pay another way."
+        ))
+        for asset in ["usdc_solana", "zec", "xmr", "tao", "eth", "sol", "card"] {
+            let lines = catalog.lines(asset: asset)
+            #expect(lines.confirmationNote == nil, "\(asset)")
+            #expect(lines.awaitingConfirmationNote == nil, "\(asset)")
+        }
+
+        // the invoice shows the SDK's lines: the note while payable, the
+        // awaiting line, with no Refresh quote, while the SDK says so
+        var invoice = CryptoPaymentRulesTests.openBtc()
+        #expect(CryptoInvoiceDisplay(invoice, catalog: catalog).confirmationNote == btc.confirmationNote)
+        invoice.secondsLeft = 0
+        invoice.awaitingConfirmation = true
+        let awaiting = CryptoInvoiceDisplay(invoice, catalog: catalog)
+        #expect(awaiting.countdown == .awaitingConfirmation)
+        #expect(awaiting.awaitingConfirmationNote == btc.awaitingConfirmationNote)
+        #expect(awaiting.refresh == .hidden)
+    }
+
     // The memo and the steps are the SDK's rules.
     @Test func theMemoAndTheStepsAreTheSdks() {
         #expect(catalog.showsMemo(asset: "usdc_solana", memo: "8XrefMemo"))
@@ -392,6 +423,7 @@ struct CryptoPaymentSdkTests {
         state.rateUsd = 1
         state.expiresAt = "2026-10-20T18:30:00Z"
         state.secondsLeft = 3599
+        state.awaitingConfirmation = true
         state.status = "seen"
         state.reviewReason = "extra"
         state.received = "10"
@@ -421,6 +453,7 @@ struct CryptoPaymentSdkTests {
         expected.rateUsd = 1
         expected.expiresAt = "2026-10-20T18:30:00Z"
         expected.secondsLeft = 3599
+        expected.awaitingConfirmation = true
         expected.status = "seen"
         expected.reviewReason = "extra"
         expected.received = "10"

@@ -95,7 +95,14 @@ struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
         case "tao":
             return CryptoAssetLines(networkLine: line("crypto_network_tao"), networkWarning: line("crypto_invoice_tao_network_only"), noPaymentLinkNote: line("crypto_invoice_tao_no_payment_link"))
         case "btc":
-            return CryptoAssetLines(networkLine: line("crypto_network_bitcoin"), networkWarning: line("crypto_invoice_bitcoin_network_only"), noPaymentLinkNote: nil)
+            // and the lines of its confirmation grace (mmm/BTCPAY.md §16.8)
+            return CryptoAssetLines(
+                networkLine: line("crypto_network_bitcoin"),
+                networkWarning: line("crypto_invoice_bitcoin_network_only"),
+                noPaymentLinkNote: nil,
+                confirmationNote: line("crypto_invoice_bitcoin_confirmation_time"),
+                awaitingConfirmationNote: line("crypto_invoice_bitcoin_awaiting_confirmation")
+            )
         case "eth":
             return CryptoAssetLines(networkLine: line("crypto_network_eth"), networkWarning: line("crypto_invoice_eth_network_only"), noPaymentLinkNote: nil)
         case "sol":
@@ -167,6 +174,26 @@ struct CryptoPaymentRulesTests {
     }
 
     static let catalog = FakeCryptoPaymentCatalog(passingUris: [xmrUri])
+
+    static let btcAddress = "bc1q0wd209cv5k9pd9mhk7nspacywcj038xxdhnt5u"
+    static let btcUri = "bitcoin:\(btcAddress)?amount=0.00054622&label=URnetwork&message=URnetwork%20Pro%20yearly"
+
+    /// A Bitcoin invoice as the SDK shows it right after the server quoted it
+    /// ($40 at $73,596.90, as the SDK's tests quote it).
+    static func openBtc(secondsLeft: Int = 1799) -> CryptoInvoiceSnapshot {
+        var snapshot = openXmr(secondsLeft: secondsLeft)
+        snapshot.asset = "btc"
+        snapshot.ticker = "BTC"
+        snapshot.address = btcAddress
+        snapshot.amount = "0.00054622"
+        snapshot.amountAtomic = "54622"
+        snapshot.uri = btcUri
+        snapshot.qrText = btcUri
+        snapshot.rateUsd = 73596.90
+        return snapshot
+    }
+
+    static let btcCatalog = FakeCryptoPaymentCatalog(passingUris: [btcUri])
 
     /// The SDK's tabs (CryptoPaymentTabs) for a balance that lists `listed`,
     /// with no unavailable list: none without a coin; else USDC on Solana,
@@ -756,6 +783,141 @@ struct CryptoPaymentRulesTests {
         var snapshot = Self.openXmr()
         snapshot.ticker = ""
         #expect(CryptoInvoiceDisplay(snapshot, catalog: Self.catalog).amount == "0.072387 XMR")
+    }
+
+    // MARK: the invoice: Bitcoin's confirmation grace
+
+    // The server sees a Bitcoin payment only once it is mined, and credits one
+    // sent within the quote at its price while it is mined within 3 hours of
+    // the expiry (mmm/BTCPAY.md §16.8). The countdown still ends at the
+    // quote's expiry, the time to send by, and says so in the SDK's line.
+    @Test func aBitcoinQuoteSaysWithItsCountdownHowLongAPaymentCanTakeToConfirm() {
+        let display = CryptoInvoiceDisplay(Self.openBtc(), catalog: Self.btcCatalog)
+        #expect(display.countdown == .running("29:59"))
+        #expect(display.confirmationNote?.key == "crypto_invoice_bitcoin_confirmation_time")
+        #expect(display.awaitingConfirmationNote == nil)
+        // payable as every coin's quote is
+        #expect(display.amount == "0.00054622 BTC")
+        #expect(display.paymentUri == Self.btcUri)
+        #expect(display.qrText == Self.btcUri)
+        #expect(display.address == Self.btcAddress)
+        #expect(display.networkWarning?.key == "crypto_invoice_bitcoin_network_only")
+        #expect(display.refresh == .available)
+        #expect(display.showsPayAnotherWay)
+
+        // no other coin has the note
+        for asset in ["usdc_solana", "zec", "xmr", "tao", "eth", "sol"] {
+            var snapshot = Self.openXmr()
+            snapshot.asset = asset
+            let other = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
+            #expect(other.countdown == .running("29:59"), "\(asset)")
+            #expect(other.confirmationNote == nil, "\(asset)")
+        }
+
+        // only with the countdown: not once the quote ran out, nor once money arrived
+        var expired = Self.openBtc(secondsLeft: 0)
+        expired.status = "expired"
+        var seen = Self.openBtc(secondsLeft: 900)
+        seen.status = "seen"
+        seen.remaining = "0.00010000"
+        var confirming = Self.openBtc()
+        confirming.status = "confirming"
+        for snapshot in [Self.openBtc(secondsLeft: 0), expired, seen, confirming] {
+            #expect(CryptoInvoiceDisplay(snapshot, catalog: Self.btcCatalog).confirmationNote == nil, "\(snapshot.status) \(snapshot.secondsLeft)")
+        }
+    }
+
+    // Past the quote's expiry the server keeps a Bitcoin invoice pending
+    // through the grace and refuses a requote in it. While the SDK says
+    // AwaitingConfirmation the coin's awaiting line stands in place of the
+    // expired copy: no Refresh quote, nothing to pay, and another way stays.
+    @Test func aBitcoinQuoteAwaitingConfirmationShowsItsAwaitingLineAndNoRefresh() {
+        var snapshot = Self.openBtc(secondsLeft: 0)
+        snapshot.awaitingConfirmation = true
+        let display = CryptoInvoiceDisplay(snapshot, catalog: Self.btcCatalog)
+        #expect(display.countdown == .awaitingConfirmation)
+        #expect(display.awaitingConfirmationNote?.key == "crypto_invoice_bitcoin_awaiting_confirmation")
+        #expect(display.confirmationNote == nil)
+        #expect(display.refresh == .hidden)
+        // as once expired: a stale amount must not be paid
+        #expect(display.amount == nil)
+        #expect(display.amountValue == nil)
+        #expect(display.paymentUri == nil)
+        #expect(display.qrText == nil)
+        #expect(display.address == nil)
+        #expect(display.memo == nil)
+        // the payment is waited for, as while pending
+        #expect(display.networkLine?.key == "crypto_network_bitcoin")
+        #expect(display.steps.map(\.step) == [.waiting, .seen, .confirming(count: 0, required: 1), .paid])
+        #expect(display.steps.map(\.progress) == [.current, .upcoming, .upcoming, .upcoming])
+        #expect(display.currentStep == .waiting)
+        #expect(display.showsPayAnotherWay)
+        #expect(!display.isPaid)
+        #expect(!display.isFailed)
+        #expect(!display.inReview)
+        #expect(!display.isAwaitingStatus)
+
+        // a requote in flight as the quote ended shows no Refresh quote either
+        snapshot.refreshing = true
+        #expect(CryptoInvoiceDisplay(snapshot, catalog: Self.btcCatalog).refresh == .hidden)
+    }
+
+    // Once the grace is over the SDK no longer says AwaitingConfirmation and
+    // the server's next poll says expired: an expired quote, refreshed as
+    // before. A payment mined short in the grace asks for the rest, as before.
+    @Test func pastTheGraceABitcoinQuoteIsExpiredAsBefore() {
+        let graceOver = Self.openBtc(secondsLeft: 0)
+        var serverExpired = Self.openBtc(secondsLeft: 0)
+        serverExpired.status = "expired"
+        for snapshot in [graceOver, serverExpired] {
+            let display = CryptoInvoiceDisplay(snapshot, catalog: Self.btcCatalog)
+            #expect(display.countdown == .expired, "\(snapshot.status)")
+            #expect(display.awaitingConfirmationNote == nil, "\(snapshot.status)")
+            #expect(display.refresh == .available, "\(snapshot.status)")
+            #expect(display.showsPayAnotherWay, "\(snapshot.status)")
+            #expect(display.amount == nil, "\(snapshot.status)")
+            #expect(display.qrText == nil, "\(snapshot.status)")
+        }
+
+        var seen = Self.openBtc(secondsLeft: 0)
+        seen.status = "seen"
+        seen.remaining = "0.00010000"
+        let seenDisplay = CryptoInvoiceDisplay(seen, catalog: Self.btcCatalog)
+        #expect(seenDisplay.countdown == nil)
+        #expect(seenDisplay.remaining == "0.00010000 BTC")
+        #expect(seenDisplay.address == Self.btcAddress)
+        #expect(seenDisplay.refresh == .hidden)
+        #expect(!seenDisplay.showsPayAnotherWay)
+    }
+
+    // The awaiting line needs a pending quote with no time left, as the SDK
+    // says it; then the SDK's flag decides, never the coin: one without the
+    // line shows none, and still no Refresh quote, which the SDK would not ask.
+    @Test func theAwaitingLineNeedsAPendingQuoteThatRanOut() {
+        var payable = Self.openBtc()
+        payable.awaitingConfirmation = true
+        let payableDisplay = CryptoInvoiceDisplay(payable, catalog: Self.btcCatalog)
+        #expect(payableDisplay.countdown == .running("29:59"))
+        #expect(payableDisplay.awaitingConfirmationNote == nil)
+        #expect(payableDisplay.refresh == .available)
+        #expect(payableDisplay.amount == "0.00054622 BTC")
+
+        var expired = Self.openBtc(secondsLeft: 0)
+        expired.status = "expired"
+        expired.awaitingConfirmation = true
+        let expiredDisplay = CryptoInvoiceDisplay(expired, catalog: Self.btcCatalog)
+        #expect(expiredDisplay.countdown == .expired)
+        #expect(expiredDisplay.awaitingConfirmationNote == nil)
+        #expect(expiredDisplay.refresh == .available)
+
+        var withoutLine = Self.openXmr(secondsLeft: 0)
+        withoutLine.awaitingConfirmation = true
+        let withoutLineDisplay = CryptoInvoiceDisplay(withoutLine, catalog: Self.catalog)
+        #expect(withoutLineDisplay.countdown == .awaitingConfirmation)
+        #expect(withoutLineDisplay.awaitingConfirmationNote == nil)
+        #expect(withoutLineDisplay.refresh == .hidden)
+        #expect(withoutLineDisplay.showsPayAnotherWay)
+        #expect(withoutLineDisplay.amount == nil)
     }
 
     // MARK: the snapshot

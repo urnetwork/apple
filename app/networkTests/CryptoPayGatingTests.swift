@@ -255,6 +255,8 @@ struct CryptoPayGatingTests {
         ("Quote expires in %@", #""Quote expires in \(time)""#),
         ("Refresh quote", nil),
         ("This quote expired. Refresh it for a new amount.", nil),
+        ("Bitcoin payments can take up to 3 hours to confirm. A payment sent before the quote expires is credited at this price.", nil),
+        ("This quote expired. A payment you sent before it expired is credited at this price once it confirms, which can take up to 3 hours. If you didn't send one, pay another way.", nil),
         ("%@ more to send", #""\(remaining) more to send""#),
         ("Waiting for your payment", nil),
         ("Payment seen", nil),

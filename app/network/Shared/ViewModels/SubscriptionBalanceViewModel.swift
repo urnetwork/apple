@@ -269,10 +269,12 @@ class SubscriptionBalanceViewModel: ObservableObject {
         }
     }
 
-    /// Reads the crypto payment tabs, the crypto term and the current store's
-    /// family off a balance result (an older server sends none).
+    /// Reads the crypto payment tabs (over the coins payable now and the ones
+    /// the server cannot quote now, which stay greyed), the crypto term and the
+    /// current store's family off a balance result (an older server sends
+    /// none).
     func applyCryptoPayments(_ result: SdkSubscriptionBalanceResult) {
-        let tabs = CryptoPaymentSdk.tabsByPlan(result.cryptoAssets)
+        let tabs = CryptoPaymentSdk.tabsByPlan(result.cryptoAssets, result.cryptoUnavailableAssets)
         if tabs != cryptoPaymentTabs { cryptoPaymentTabs = tabs }
         let term = CryptoPaymentSdk.term(result.cryptoTerm)
         if term != cryptoTerm { cryptoTerm = term }

@@ -6,10 +6,11 @@
 //  rendered from the SDK's CryptoInvoiceState through CryptoInvoiceDisplay, top
 //  to bottom: the network line, the QR of the SDK's QR text with "Open in
 //  wallet" (only for a URI the SDK's check passes), the exact amount and the
-//  address with Copy, the memo (USDC and SOL) and the coin's network-only
-//  warning, the countdown with "Refresh quote", the status steps, the wallets
-//  that work (and the shielded-address note for Zcash), "Pay another way" and
-//  Close.
+//  address with Copy, the memo (when the SDK shows one: only USDC's) and the
+//  coin's network-only warning, the countdown with "Refresh quote", the status
+//  steps, the wallets that work (and the shielded-address note for Zcash),
+//  "Pay another way" and Close. The network line, the warning and TAO's note
+//  are the SDK's (CryptoAssetLinesFor), looked up by CryptoPayCopy.line.
 //
 //  A coin without a payment link (TAO) has no "Open in wallet": its QR code
 //  holds the address alone, with a note that says so, and "Send exactly this
@@ -29,64 +30,6 @@
 
 import AppKit
 import SwiftUI
-
-extension CryptoInvoiceDisplay.Network {
-
-    /// The invoice's first line, also under each coin of the More coins list.
-    var title: String {
-        switch self {
-        case .usdcOnSolana:
-            return String(localized: "USDC on Solana")
-        case .zcashShielded:
-            return String(localized: "Zcash, shielded")
-        case .monero:
-            return String(localized: "Monero")
-        case .bittensor:
-            return String(localized: "Bittensor network")
-        case .bitcoin:
-            return String(localized: "Bitcoin network")
-        case .ethereum:
-            return String(localized: "Ethereum mainnet")
-        case .solana:
-            return String(localized: "Solana (native SOL)")
-        }
-    }
-}
-
-extension PaymentMethod {
-
-    /// The coin's network-only warning, shown with the address: a transfer on
-    /// another network, or of another token, is not credited. Nil for Zcash and
-    /// Monero, which have none, and for Card.
-    var networkWarning: String? {
-        switch self {
-        case .usdcSolana:
-            // USDC exists on many chains: a transfer on the wrong one is lost
-            return String(localized: "Send USDC on the Solana network only. USDC sent on any other network will not arrive.")
-        case .tao:
-            return String(localized: "Send only TAO on the Bittensor network to this address. TAO sent on any other network won't be credited.")
-        case .btc:
-            return String(localized: "Send only Bitcoin on the Bitcoin network to this address. Bitcoin sent on any other network won't be credited.")
-        case .eth:
-            return String(localized: "Send only ETH on Ethereum mainnet to this address. Tokens and ETH on other networks, such as Base or Arbitrum, won't be credited.")
-        case .sol:
-            return String(localized: "Send only SOL on the Solana network to this address. Tokens, including USDC, won't be credited.")
-        case .card, .zec, .xmr:
-            return nil
-        }
-    }
-
-    /// Why a coin without a payment link has no "Open in wallet", and what its
-    /// QR code holds: TAO's note. Nil for any other method.
-    var noPaymentLinkNote: String? {
-        switch self {
-        case .tao:
-            return String(localized: "TAO has no payment link, so this QR code holds only the address. Enter the exact amount in your wallet.")
-        default:
-            return nil
-        }
-    }
-}
 
 extension CryptoInvoiceDisplay.Step {
 
@@ -155,8 +98,8 @@ struct CryptoInvoiceView: View {
     private func header(_ display: CryptoInvoiceDisplay) -> some View {
         HStack {
             Group {
-                if let network = display.network {
-                    Text(network.title)
+                if let network = CryptoPayCopy.line(display.networkLine) {
+                    Text(verbatim: network)
                 } else {
                     Text("Get Pro")
                 }
@@ -244,7 +187,7 @@ struct CryptoInvoiceView: View {
 
             Spacer().frame(height: 12)
 
-            if display.hasNoPaymentLink, let note = display.method?.noPaymentLinkNote {
+            if display.hasNoPaymentLink, let note = CryptoPayCopy.line(display.noPaymentLinkNote) {
                 Text(verbatim: note)
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
@@ -323,7 +266,7 @@ struct CryptoInvoiceView: View {
 
         // scanning the QR picks the network; a transfer sent by hand from an
         // exchange does not
-        if display.address != nil, let warning = display.method?.networkWarning {
+        if display.address != nil, let warning = CryptoPayCopy.line(display.networkWarning) {
             Text(verbatim: warning)
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)

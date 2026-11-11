@@ -161,6 +161,31 @@ struct CryptoInvoiceStoreTests {
         #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr", "tao", "btc")).selected == .btc)
     }
 
+    // A tap on a tab chooses the SDK's CryptoPaymentTabCoin (the fake's
+    // twin) from the coin last chosen in that tab and the remembered method:
+    // More coins gets Bitcoin back after a tap on USDC in between, where the
+    // row once fell back to its first coin.
+    @Test func aTapOnATabChoosesTheCoinLastChosenThere() {
+        controller.paymentMethod = "usdc_solana"
+        let store = makeStore()
+        let tabs = CryptoPaymentRulesTests.tabs("usdc_solana", "xmr", "tao", "btc", "eth")
+        // nothing chosen in More coins yet, and the remembered method is USDC: its first coin
+        #expect(store.methodRow(tabs: tabs).tabChoices["more_coins"] == .tao)
+        #expect(store.methodRow(tabs: tabs).tabChoices["usdc_solana"] == .usdcSolana)
+        // a greyed tab chooses nothing
+        #expect(store.methodRow(tabs: tabs).tabChoices["zec"] == nil)
+        store.choose(.btc)
+        store.choose(.usdcSolana)
+        #expect(store.lastTabCoins == ["more_coins": "btc", "usdc_solana": "usdc_solana"])
+        #expect(store.methodRow(tabs: tabs).tabChoices["more_coins"] == .btc)
+        // the coin chosen there cannot be paid with now: the first that can
+        #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("usdc_solana", "tao")).tabChoices["more_coins"] == .tao)
+        // a fresh store has only the remembered method: ETH, chosen last
+        store.choose(.eth)
+        let fresh = makeStore()
+        #expect(fresh.methodRow(tabs: tabs).tabChoices["more_coins"] == .eth)
+    }
+
     @Test func aPickIsRememberedOnTheDevice() {
         let store = makeStore()
         store.choose(.xmr)

@@ -106,6 +106,11 @@ final class CryptoInvoiceStore: ObservableObject {
     private let catalog: CryptoPaymentCatalog
     private let recordEvent: @MainActor (CryptoPurchaseEvent) -> Void
 
+    /// The coin last chosen in each tab, by tab id, while the store lives: what
+    /// a tap on the tab chooses first (the SDK's CryptoPaymentTabCoin), so More
+    /// coins gets back the coin chosen there after a tap on another tab.
+    @Published private(set) var lastTabCoins: [String: String] = [:]
+
     /// Counted, so a view that appears before the one it replaces disappears
     /// keeps the controller running.
     private var viewers: [Viewer: Int] = [:]
@@ -135,15 +140,25 @@ final class CryptoInvoiceStore: ObservableObject {
 
     /// The row for a surface with `tabs` (the SDK's CryptoPaymentTabs for the
     /// plan a coin would buy there). The remembered method is selected while
-    /// it can be paid with, and selects its tab (the SDK's CryptoPaymentTabId).
+    /// it can be paid with, and selects its tab (the SDK's CryptoPaymentTabId);
+    /// a tap on a tab chooses the SDK's CryptoPaymentTabCoin, from the coin
+    /// last chosen in the tab and the remembered method.
     func methodRow(tabs: [CryptoPayTab]) -> PaymentMethodRowState {
         let methods = PaymentMethodRules.methods(tabs)
         let selected = PaymentMethodRules.selected(remembered: rememberedMethod, methods: methods)
+        var tabChoices: [String: PaymentMethod] = [:]
+        for tab in tabs {
+            let asset = catalog.tabCoin(tab, lastChosen: lastTabCoins[tab.id] ?? "", remembered: rememberedMethod)
+            if let method = PaymentMethod(asset: asset) {
+                tabChoices[tab.id] = method
+            }
+        }
         return PaymentMethodRowState(
             tabs: tabs,
             methods: methods,
             selected: selected,
             selectedTabId: selected.asset.map { catalog.tabId(asset: $0) } ?? "",
+            tabChoices: tabChoices,
             selectedUnavailable: unavailableMethods.contains(selected),
             allowsMonthly: allowsMonthly(selected)
         )
@@ -154,12 +169,19 @@ final class CryptoInvoiceStore: ObservableObject {
         catalog.allowsPlan(method: method.rawValue, plan: PaymentMethodRules.planMonthly)
     }
 
-    /// A pick on the row, remembered on this device.
+    /// A pick on the row, remembered on this device, and a coin as the one
+    /// chosen in its tab.
     func choose(_ method: PaymentMethod) {
         controller.setPaymentMethod(method.rawValue)
         let remembered = controller.paymentMethod
         if rememberedMethod != remembered {
             rememberedMethod = remembered
+        }
+        if let asset = method.asset {
+            let tabId = catalog.tabId(asset: asset)
+            if !tabId.isEmpty, lastTabCoins[tabId] != asset {
+                lastTabCoins[tabId] = asset
+            }
         }
         if refusal != nil {
             refusal = nil

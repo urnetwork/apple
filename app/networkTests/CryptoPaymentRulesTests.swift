@@ -18,14 +18,10 @@ import Testing
 struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
     /// The URIs CheckCryptoPaymentUri passes; any other fails.
     var passingUris: Set<String> = []
+    /// CryptoWalletSuggestions: TAO's alone (the owner, 2026-11-11); every
+    /// other coin names none.
     var wallets: [String: [String]] = [
-        "xmr": ["Cake", "Feather", "Monerujo", "Stack", "Unstoppable"],
-        "zec": ["Zodl", "Cake", "Zingo", "Zkool", "Vizor"],
-        "usdc_solana": ["Phantom", "Solflare"],
-        "sol": ["Phantom", "Solflare"],
         "tao": ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"],
-        "btc": ["Sparrow", "BlueWallet", "Electrum", "Ledger", "Trezor"],
-        "eth": ["MetaMask", "Rabby", "Coinbase Wallet", "Ledger", "Trezor"],
     ]
 
     func checkPaymentUri(asset: String, uri: String, address: String) -> Bool {
@@ -301,7 +297,8 @@ struct CryptoPaymentRulesTests {
         #expect(display.refresh == .available)
         #expect(display.steps.map(\.step) == [.waiting, .seen, .confirming(count: 0, required: 1), .paid])
         #expect(display.steps.map(\.progress) == [.current, .upcoming, .upcoming, .upcoming])
-        #expect(display.wallets == ["Cake", "Feather", "Monerujo", "Stack", "Unstoppable"])
+        // Monero names no wallets (the SDK names TAO's alone): no such line
+        #expect(display.wallets.isEmpty)
         #expect(!display.showsZcashExchangeNote)
         #expect(display.showsPayAnotherWay)
         #expect(!display.isPaid)
@@ -583,7 +580,8 @@ struct CryptoPaymentRulesTests {
         #expect(display.countdown == .running("60:00"))
         // USDC reports only pending, paid and expired
         #expect(display.steps.map(\.step) == [.waiting, .paid])
-        #expect(display.wallets == ["Phantom", "Solflare"])
+        // USDC names no wallets either: no such line
+        #expect(display.wallets.isEmpty)
         #expect(!display.showsZcashExchangeNote)
     }
 
@@ -666,6 +664,7 @@ struct CryptoPaymentRulesTests {
         #expect(display.address == address)
         #expect(display.memo == nil)
         #expect(display.countdown == .running("29:59"))
+        // the one coin the SDK names wallets for
         #expect(display.wallets == ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"])
         #expect(display.steps.map(\.step) == [.waiting, .seen, .confirming(count: 0, required: 1), .paid])
 
@@ -684,6 +683,12 @@ struct CryptoPaymentRulesTests {
         #expect(seenDisplay.qrText == nil)
         #expect(seenDisplay.address == address)
         #expect(seenDisplay.remaining == "0.023457 TAO")
+        // confirming or in review: nothing more to send, so no wallets either
+        for status in ["confirming", "review"] {
+            var settled = snapshot
+            settled.status = status
+            #expect(CryptoInvoiceDisplay(settled, catalog: Self.catalog).wallets.isEmpty, "\(status)")
+        }
     }
 
     @Test func theNewCoinsNameTheirNetworksWithTheSdksLines() {
@@ -742,7 +747,8 @@ struct CryptoPaymentRulesTests {
         #expect(display.networkLine?.key == "crypto_network_zcash")
         #expect(display.networkWarning == nil)
         #expect(display.showsZcashExchangeNote)
-        #expect(display.wallets == ["Zodl", "Cake", "Zingo", "Zkool", "Vizor"])
+        // Zcash names no wallets (the SDK names TAO's alone): no such line
+        #expect(display.wallets.isEmpty)
         #expect(display.amount == "0.072387 ZEC")
     }
 

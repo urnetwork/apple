@@ -3,7 +3,7 @@
 //  URnetwork
 //
 //  The router port mapping switch, under the speed tests switch of the
-//  Connections card (EXTENDER.md S8). macOS only; iOS runs no role.
+//  Connections card (EXTENDER.md S10). macOS only; iOS runs no role.
 //
 
 #if os(macOS)

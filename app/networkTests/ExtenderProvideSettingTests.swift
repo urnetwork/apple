@@ -323,7 +323,7 @@ struct ExtenderProvideSettingTests {
         manager.measurementsEnabled = false
         #expect(source.measurementsWrites.isEmpty)
     }
-    // EXTENDER.md S8: the router port mapping switch is off until the device
+    // EXTENDER.md S10: the router port mapping switch is off until the device
     // says otherwise, goes through the device at once, and its seed read is
     // not written back
     @Test func thePortMappingSwitchIsOffAndWritesTheSettingThroughTheDevice() {

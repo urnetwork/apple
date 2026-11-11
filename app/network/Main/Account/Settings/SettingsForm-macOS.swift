@@ -447,7 +447,7 @@ struct SettingsForm_macOS: View {
                             Spacer().frame(height: 12)
                             ExtenderMeasurementsRow()
                             // and so does the router port mapping, off by
-                            // default (EXTENDER.md S8)
+                            // default (EXTENDER.md S10)
                             Spacer().frame(height: 12)
                             ExtenderPortMappingRow()
                         }

@@ -173,7 +173,7 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
 
 // Only the provider extender status and setting cross this seam (EXTENDER.md
 // N2, N7), with the lag.dev measurements setting that rides on the role
-// (lag.dev/PLAN.md C4) and the router port mapping setting (EXTENDER.md S8).
+// (lag.dev/PLAN.md C4) and the router port mapping setting (EXTENDER.md S10).
 // The normal source is the SDK remote; tests keep the registered callback and
 // record the writes without starting RPC.
 protocol ExtenderProvideSource: AnyObject {
@@ -606,7 +606,7 @@ class DeviceManager: ObservableObject {
         }
     }
 
-    /// The router port mapping setting (EXTENDER.md S8), the switch under the
+    /// The router port mapping setting (EXTENDER.md S10), the switch under the
     /// speed tests switch: whether the role asks the router, by UPnP, NAT-PMP
     /// or PCP, to forward its ports to this device, which opens them on the
     /// router. Read and written as the provider extender setting is, through

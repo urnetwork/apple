@@ -2,13 +2,19 @@
 //  CryptoInvoiceView.swift
 //  URnetwork
 //
-//  The crypto invoice (mmm/ZCASH-CONTRACT.md §6.2), rendered from the SDK's
-//  CryptoInvoiceState through CryptoInvoiceDisplay, top to bottom: the network
-//  line, the QR of the server's URI (only when the SDK's URI check passes)
-//  with "Open in wallet", the exact amount and the address with Copy (USDC
-//  also the memo and the network warning), the countdown with "Refresh
-//  quote", the status steps, the wallets that work (and the shielded-address
-//  note for Zcash), "Pay another way" and Close.
+//  The crypto invoice (mmm/ZCASH-CONTRACT.md §6.2, mmm/BTCPAY.md §17.6),
+//  rendered from the SDK's CryptoInvoiceState through CryptoInvoiceDisplay, top
+//  to bottom: the network line, the QR of the SDK's QR text with "Open in
+//  wallet" (only for a URI the SDK's check passes), the exact amount and the
+//  address with Copy, the memo (USDC and SOL) and the coin's network-only
+//  warning, the countdown with "Refresh quote", the status steps, the wallets
+//  that work (and the shielded-address note for Zcash), "Pay another way" and
+//  Close.
+//
+//  A coin without a payment link (TAO) has no "Open in wallet": its QR code
+//  holds the address alone, with a note that says so, and "Send exactly this
+//  amount to this address." stands in its place, over the amount and the
+//  address with their own "Copy amount" and "Copy address".
 //
 //  It swaps in over the billing surface that opened it, like the Stripe
 //  checkout page, so closing the surface keeps the invoice (the account
@@ -26,7 +32,7 @@ import SwiftUI
 
 extension CryptoInvoiceDisplay.Network {
 
-    /// The invoice's first line.
+    /// The invoice's first line, also under each coin of the More coins list.
     var title: String {
         switch self {
         case .usdcOnSolana:
@@ -35,6 +41,49 @@ extension CryptoInvoiceDisplay.Network {
             return String(localized: "Zcash, shielded")
         case .monero:
             return String(localized: "Monero")
+        case .bittensor:
+            return String(localized: "Bittensor network")
+        case .bitcoin:
+            return String(localized: "Bitcoin network")
+        case .ethereum:
+            return String(localized: "Ethereum mainnet")
+        case .solana:
+            return String(localized: "Solana (native SOL)")
+        }
+    }
+}
+
+extension PaymentMethod {
+
+    /// The coin's network-only warning, shown with the address: a transfer on
+    /// another network, or of another token, is not credited. Nil for Zcash and
+    /// Monero, which have none, and for Card.
+    var networkWarning: String? {
+        switch self {
+        case .usdcSolana:
+            // USDC exists on many chains: a transfer on the wrong one is lost
+            return String(localized: "Send USDC on the Solana network only. USDC sent on any other network will not arrive.")
+        case .tao:
+            return String(localized: "Send only TAO on the Bittensor network to this address. TAO sent on any other network won't be credited.")
+        case .btc:
+            return String(localized: "Send only Bitcoin on the Bitcoin network to this address. Bitcoin sent on any other network won't be credited.")
+        case .eth:
+            return String(localized: "Send only ETH on Ethereum mainnet to this address. Tokens and ETH on other networks, such as Base or Arbitrum, won't be credited.")
+        case .sol:
+            return String(localized: "Send only SOL on the Solana network to this address. Tokens, including USDC, won't be credited.")
+        case .card, .zec, .xmr:
+            return nil
+        }
+    }
+
+    /// Why a coin without a payment link has no "Open in wallet", and what its
+    /// QR code holds: TAO's note. Nil for any other method.
+    var noPaymentLinkNote: String? {
+        switch self {
+        case .tao:
+            return String(localized: "TAO has no payment link, so this QR code holds only the address. Enter the exact amount in your wallet.")
+        default:
+            return nil
         }
     }
 }
@@ -184,16 +233,28 @@ struct CryptoInvoiceView: View {
             Spacer().frame(height: 16)
         }
 
-        // the server's URI, which the SDK checked pays this address
-        if let uri = display.paymentUri {
+        // the SDK's QR text: the server's URI, which the SDK checked pays this
+        // address, or for a coin without a payment link the address alone
+        if let text = display.qrText {
             HStack {
                 Spacer()
-                CryptoPaymentQrCode(uri: uri, size: 200)
+                CryptoPaymentQrCode(text: text, size: 200)
                 Spacer()
             }
 
             Spacer().frame(height: 12)
 
+            if display.hasNoPaymentLink, let note = display.method?.noPaymentLinkNote {
+                Text(verbatim: note)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer().frame(height: 12)
+            }
+        }
+
+        if let uri = display.paymentUri {
             UrButton(
                 text: "Open in wallet",
                 action: {
@@ -209,8 +270,26 @@ struct CryptoInvoiceView: View {
             Spacer().frame(height: 20)
         }
 
+        // where "Open in wallet" would be: the amount and the address go into
+        // the wallet by hand
+        if display.hasNoPaymentLink, display.amount != nil {
+            Text("Send exactly this amount to this address.")
+                .font(themeManager.currentTheme.bodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer().frame(height: 16)
+        }
+
         if let amount = display.amount, let value = display.amountValue {
-            copyField(title: Text("Send exactly"), value: amount, copyValue: value, field: .amount, monospaced: false)
+            copyField(
+                title: Text("Send exactly"),
+                value: amount,
+                copyValue: value,
+                field: .amount,
+                monospaced: false,
+                copyTitle: display.hasNoPaymentLink ? Text("Copy amount") : Text("Copy")
+            )
         }
 
         // short of the amount: the rest, to the same address, with Copy
@@ -228,16 +307,24 @@ struct CryptoInvoiceView: View {
         }
 
         if let address = display.address {
-            copyField(title: Text("To this address"), value: address, copyValue: address, field: .address, monospaced: true)
+            copyField(
+                title: Text("To this address"),
+                value: address,
+                copyValue: address,
+                field: .address,
+                monospaced: true,
+                copyTitle: display.hasNoPaymentLink ? Text("Copy address") : Text("Copy")
+            )
         }
 
         if let memo = display.memo {
             copyField(title: Text("Memo, if you send by hand"), value: memo, copyValue: memo, field: .memo, monospaced: true)
         }
 
-        // USDC exists on many chains: a transfer on the wrong one is lost
-        if display.showsUsdcNetworkWarning {
-            Text("Send USDC on the Solana network only. USDC sent on any other network will not arrive.")
+        // scanning the QR picks the network; a transfer sent by hand from an
+        // exchange does not
+        if display.address != nil, let warning = display.method?.networkWarning {
+            Text(verbatim: warning)
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .fixedSize(horizontal: false, vertical: true)
@@ -278,7 +365,9 @@ struct CryptoInvoiceView: View {
 
     // MARK: rows
 
-    private func copyField(title: Text, value: String, copyValue: String, field: CopiedField, monospaced: Bool) -> some View {
+    /// A labelled value with its copy button (`copyTitle`: Copy, or "Copy
+    /// amount" and "Copy address" on an invoice that has both).
+    private func copyField(title: Text, value: String, copyValue: String, field: CopiedField, monospaced: Bool, copyTitle: Text = Text("Copy")) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             title
                 .font(themeManager.currentTheme.secondaryBodyFont)
@@ -292,14 +381,14 @@ struct CryptoInvoiceView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                copyButton(copyValue, field: field)
+                copyButton(copyValue, field: field, title: copyTitle)
             }
         }
         .padding(.bottom, 16)
     }
 
-    /// Copy, which reads "Copied" for a moment after a tap.
-    private func copyButton(_ value: String, field: CopiedField) -> some View {
+    /// `title` (Copy), which reads "Copied" for a moment after a tap.
+    private func copyButton(_ value: String, field: CopiedField, title: Text = Text("Copy")) -> some View {
         Button(action: {
             copyToPasteboard(value)
             copied = field
@@ -313,7 +402,7 @@ struct CryptoInvoiceView: View {
                 Text("Copied")
                     .font(themeManager.currentTheme.secondaryBodyFont)
             } else {
-                Text("Copy")
+                title
                     .font(themeManager.currentTheme.secondaryBodyFont)
             }
         }
@@ -446,14 +535,14 @@ struct CryptoInvoiceView: View {
     }
 }
 
-/// The payment URI as a QR code, one pixel per module and never smoothed, on
-/// a white quiet zone.
+/// The invoice's QR text (the payment URI, or a TAO address) as a QR code, one
+/// pixel per module and never smoothed, on a white quiet zone.
 struct CryptoPaymentQrCode: View {
 
-    let uri: String
+    let text: String
     let size: CGFloat
 
-    // generated once per URI, not on every body evaluation
+    // generated once per text, not on every body evaluation
     @State private var image: CGImage? = nil
 
     var body: some View {
@@ -475,10 +564,10 @@ struct CryptoPaymentQrCode: View {
         // the amount and the address rows carry the same payment as text
         .accessibilityHidden(true)
         .onAppear {
-            image = cryptoPaymentQrImage(uri)
+            image = cryptoPaymentQrImage(text)
         }
-        .onChange(of: uri) { uri in
-            image = cryptoPaymentQrImage(uri)
+        .onChange(of: text) { text in
+            image = cryptoPaymentQrImage(text)
         }
     }
 }

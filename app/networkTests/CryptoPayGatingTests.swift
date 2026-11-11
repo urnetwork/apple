@@ -220,15 +220,32 @@ struct CryptoPayGatingTests {
     private static let copy: [(key: String, call: String?)] = [
         ("Pay with", nil),
         ("Card", nil),
-        ("USDC", nil),
         ("Zcash", nil),
         ("Monero", nil),
+        ("TAO", nil),
+        ("Bitcoin", nil),
+        ("ETH", nil),
+        ("SOL", nil),
+        ("More coins", nil),
+        ("More coins: %@", #""More coins: \(ListFormatter.localizedString(byJoining: coins))""#),
         ("Monthly is card only", nil),
         ("Temporarily unavailable", nil),
         ("Pay with %@", #""Pay with \(method.title)""#),
         ("A one-time payment for a year of Pro. It doesn't renew, and there's no free trial.", nil),
         ("USDC on Solana", nil),
         ("Zcash, shielded", nil),
+        ("Bittensor network", nil),
+        ("Bitcoin network", nil),
+        ("Ethereum mainnet", nil),
+        ("Solana (native SOL)", nil),
+        ("Send only TAO on the Bittensor network to this address. TAO sent on any other network won't be credited.", nil),
+        ("Send only Bitcoin on the Bitcoin network to this address. Bitcoin sent on any other network won't be credited.", nil),
+        ("Send only ETH on Ethereum mainnet to this address. Tokens and ETH on other networks, such as Base or Arbitrum, won't be credited.", nil),
+        ("Send only SOL on the Solana network to this address. Tokens, including USDC, won't be credited.", nil),
+        ("Send exactly this amount to this address.", nil),
+        ("Copy address", nil),
+        ("Copy amount", nil),
+        ("TAO has no payment link, so this QR code holds only the address. Enter the exact amount in your wallet.", nil),
         ("Send exactly", nil),
         ("To this address", nil),
         ("Memo, if you send by hand", nil),
@@ -257,7 +274,7 @@ struct CryptoPayGatingTests {
     ]
 
     /// Product names the store keeps untranslated.
-    private static let untranslated: Set<String> = ["USDC", "Zcash", "Monero"]
+    private static let untranslated: Set<String> = ["Zcash", "Monero", "TAO", "Bitcoin", "ETH", "SOL"]
 
     @Test func everyCryptoStringIsALiveCatalogEntryAndTranslated() throws {
         let strings = try Self.catalogStrings()

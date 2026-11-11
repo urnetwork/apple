@@ -17,8 +17,8 @@ import URnetworkSdk
 
 // MARK: - the SDK's pure helpers
 
-/// The SDK's CheckCryptoPaymentUri, CryptoAssetTicker, CryptoWalletSuggestions
-/// and PaymentMethodAllowsPlan.
+/// The SDK's CheckCryptoPaymentUri, CryptoAssetTicker, CryptoWalletSuggestions,
+/// PaymentMethodAllowsPlan, CryptoPaymentUriScheme and CryptoPaymentTabId.
 struct SdkCryptoPaymentCatalog: CryptoPaymentCatalog {
 
     func checkPaymentUri(asset: String, uri: String, address: String) -> Bool {
@@ -36,6 +36,49 @@ struct SdkCryptoPaymentCatalog: CryptoPaymentCatalog {
     func allowsPlan(method: String, plan: String) -> Bool {
         SdkPaymentMethodAllowsPlan(method, plan)
     }
+
+    func uriScheme(asset: String) -> String {
+        SdkCryptoPaymentUriScheme(asset)
+    }
+
+    func tabId(asset: String) -> String {
+        SdkCryptoPaymentTabId(asset)
+    }
+}
+
+extension PaymentMethod {
+
+    /// The store the offer and purchase events name (CONTRACT §6.1): Stripe
+    /// for Card, the coin's market otherwise (the SDK's CryptoAssetMarket:
+    /// solana, zcash, monero, bittensor, bitcoin, ethereum).
+    var eventStore: String {
+        guard let asset else {
+            return SdkEventStoreStripe
+        }
+        return SdkCryptoAssetMarket(asset)
+    }
+
+    /// The purchase events' product: Pro for Card, and for a coin its year of
+    /// Pro by its ticker (the SDK's CryptoAssetTicker), as Android names them:
+    /// pro_yearly_usdc, pro_yearly_zec, pro_yearly_xmr, pro_yearly_tao,
+    /// pro_yearly_btc, pro_yearly_eth, pro_yearly_sol.
+    var eventProduct: String {
+        guard let asset else {
+            return "pro"
+        }
+        return "pro_yearly_" + SdkCryptoAssetTicker(asset).lowercased()
+    }
+
+    /// A coin's label in English and its string id in the shared localizations
+    /// (the SDK's CryptoAssetLabel and CryptoAssetLabelKey), which the views
+    /// look the name up by; "" for Card, whose name is the row's own.
+    var sdkLabel: String {
+        asset.map { SdkCryptoAssetLabel($0) } ?? ""
+    }
+
+    var sdkLabelKey: String {
+        asset.map { SdkCryptoAssetLabelKey($0) } ?? ""
+    }
 }
 
 enum CryptoPaymentSdk {
@@ -44,16 +87,74 @@ enum CryptoPaymentSdk {
     /// welcome offer.
     static let plans = [PaymentMethodRules.planYearly, PaymentMethodRules.planYearlyOnboarding]
 
-    /// The SDK's PaymentMethods for each plan a coin can buy, from the
-    /// balance's crypto_assets (CONTRACT §2.2): `card` first, then each listed
-    /// coin that sells the plan. No assets (an older server, or every coin
-    /// switched off) lists Card alone.
-    static func methodsByPlan(_ assets: SdkCryptoPaymentAssetList?) -> [String: [String]] {
-        var methods: [String: [String]] = [:]
+    /// The SDK's coin tabs (CryptoPaymentTabs) for each plan a coin can buy,
+    /// from the balance's crypto_assets (CONTRACT §2.2), which names only the
+    /// coins payable now, so there is no list of unavailable ones: USDC on
+    /// Solana, Zcash, Monero and More coins, each coin with whether it sells
+    /// the plan. No assets (an older server, or every coin switched off), or
+    /// no coin that sells the plan, lists no tab: Card alone, no row.
+    static func tabsByPlan(_ assets: SdkCryptoPaymentAssetList?) -> [String: [CryptoPayTab]] {
+        var byPlan: [String: [CryptoPayTab]] = [:]
         for plan in plans {
-            methods[plan] = strings(SdkPaymentMethods(assets, stringList([plan])))
+            byPlan[plan] = tabs(SdkCryptoPaymentTabs(assets, nil, stringList([plan])))
         }
-        return methods
+        return byPlan
+    }
+
+    /// The asset catalog image of a coin's mark (the SDK's CryptoIconKey*:
+    /// coin_tao is coin.tao, a template image), nil for a mark this app does
+    /// not bundle: USDC, Zcash and Monero have none, and their tabs show their
+    /// names alone.
+    static func markImageName(_ iconKey: String) -> String? {
+        switch iconKey {
+        case SdkCryptoIconKeyTao:
+            return "coin.tao"
+        case SdkCryptoIconKeyBtc:
+            return "coin.btc"
+        case SdkCryptoIconKeyEth:
+            return "coin.eth"
+        case SdkCryptoIconKeySol:
+            return "coin.sol"
+        default:
+            return nil
+        }
+    }
+
+    /// The SDK's tabs as plain values, in their order.
+    static func tabs(_ list: SdkCryptoPaymentTabList?) -> [CryptoPayTab] {
+        guard let list else {
+            return []
+        }
+        var tabs: [CryptoPayTab] = []
+        for i in 0..<list.len() {
+            guard let tab = list.get(i) else {
+                continue
+            }
+            var coins: [CryptoPayCoin] = []
+            if let coinList = tab.coins {
+                for j in 0..<coinList.len() {
+                    guard let coin = coinList.get(j) else {
+                        continue
+                    }
+                    coins.append(CryptoPayCoin(
+                        asset: coin.asset,
+                        label: coin.label,
+                        labelKey: coin.labelKey,
+                        iconKey: coin.iconKey,
+                        available: coin.available
+                    ))
+                }
+            }
+            tabs.append(CryptoPayTab(
+                id: tab.id_,
+                label: tab.label,
+                labelKey: tab.labelKey,
+                iconKeys: strings(tab.iconKeys),
+                coins: coins,
+                available: tab.available
+            ))
+        }
+        return tabs
     }
 
     /// The balance's crypto_term, when the server sent one.
@@ -117,6 +218,7 @@ extension CryptoInvoiceSnapshot {
         amountAtomic = state.amountAtomic
         ticker = state.ticker
         uri = state.uri
+        qrText = state.qrText
         memo = state.memo
         priceUsd = state.priceUsd
         rateUsd = state.rateUsd

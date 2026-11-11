@@ -129,14 +129,36 @@ struct CryptoInvoiceStoreTests {
         controller.paymentMethod = "zec"
         let store = makeStore()
         #expect(store.rememberedMethod == "zec")
-        let row = store.methodRow(listed: ["card", "usdc_solana", "zec"])
+        let row = store.methodRow(tabs: CryptoPaymentRulesTests.tabs("usdc_solana", "zec"))
         #expect(row.methods == [.card, .usdcSolana, .zec])
         #expect(row.selected == .zec)
+        #expect(row.selectedTabId == "zec")
         #expect(row.isShown)
         // the server stopped listing it: Card, and no row with Card alone
-        let cardOnly = store.methodRow(listed: ["card"])
+        let cardOnly = store.methodRow(tabs: CryptoPaymentRulesTests.tabs())
         #expect(cardOnly.selected == .card)
+        #expect(cardOnly.selectedTabId == "")
         #expect(!cardOnly.isShown)
+        // listed no longer while others are: its tab stays, greyed, and Card is selected
+        let greyed = store.methodRow(tabs: CryptoPaymentRulesTests.tabs("usdc_solana"))
+        #expect(greyed.selected == .card)
+        #expect(greyed.tabs.map(\.id) == ["usdc_solana", "zec", "xmr"])
+        #expect(greyed.tabs.map(\.available) == [true, false, false])
+    }
+
+    @Test func aRememberedCoinOfMoreCoinsSelectsThatTab() {
+        // the SDK's CryptoPaymentTabId (the fake's twin): TAO sits in More coins
+        controller.paymentMethod = "tao"
+        let store = makeStore()
+        let row = store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr", "tao", "btc"))
+        #expect(row.selected == .tao)
+        #expect(row.selectedTabId == "more_coins")
+        #expect(row.methods == [.card, .xmr, .tao, .btc])
+        #expect(!row.allowsMonthly)
+        // a pick in its list is remembered like any other
+        store.choose(.btc)
+        #expect(controller.calls == ["setPaymentMethod:btc"])
+        #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr", "tao", "btc")).selected == .btc)
     }
 
     @Test func aPickIsRememberedOnTheDevice() {
@@ -144,16 +166,16 @@ struct CryptoInvoiceStoreTests {
         store.choose(.xmr)
         #expect(controller.calls == ["setPaymentMethod:xmr"])
         #expect(store.rememberedMethod == "xmr")
-        #expect(store.methodRow(listed: ["card", "xmr"]).selected == .xmr)
+        #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr")).selected == .xmr)
     }
 
     @Test func monthlyIsCardOnly() {
         let store = makeStore()
-        #expect(store.methodRow(listed: ["card", "xmr"]).allowsMonthly)
+        #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr")).allowsMonthly)
         store.choose(.xmr)
-        #expect(!store.methodRow(listed: ["card", "xmr"]).allowsMonthly)
+        #expect(!store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr")).allowsMonthly)
         store.choose(.card)
-        #expect(store.methodRow(listed: ["card", "xmr"]).allowsMonthly)
+        #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr")).allowsMonthly)
     }
 
     // MARK: starting
@@ -204,7 +226,7 @@ struct CryptoInvoiceStoreTests {
         #expect(store.unavailableMethods == [.xmr])
         #expect(store.refusal == nil)
         #expect(log.events == [CryptoPurchaseEvent(kind: .failed(errorClass: "asset_unavailable"), method: .xmr, plan: "yearly", priceUsd: -1)])
-        let row = store.methodRow(listed: ["card", "xmr"])
+        let row = store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr"))
         #expect(row.selected == .xmr)
         #expect(row.selectedUnavailable)
 
@@ -213,7 +235,7 @@ struct CryptoInvoiceStoreTests {
         #expect(store.unavailableMethods.isEmpty)
         #expect(store.isPresented)
         controller.emit(Self.open())
-        #expect(!store.methodRow(listed: ["card", "xmr"]).selectedUnavailable)
+        #expect(!store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr")).selectedUnavailable)
     }
 
     @Test func aGuestRefusalOpensTheAddSignInSheetInsteadOfAnError() {
@@ -340,7 +362,7 @@ struct CryptoInvoiceStoreTests {
         #expect(controller.calls == ["dismiss", "setPaymentMethod:card"])
         #expect(!store.isPresented)
         #expect(store.rememberedMethod == "card")
-        #expect(store.methodRow(listed: ["card", "xmr"]).selected == .card)
+        #expect(store.methodRow(tabs: CryptoPaymentRulesTests.tabs("xmr")).selected == .card)
         #expect(!store.hasInvoiceInProgress)
         #expect(log.events.last == CryptoPurchaseEvent(kind: .cancelled, method: .xmr, plan: "yearly", priceUsd: 40))
     }

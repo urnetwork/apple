@@ -133,14 +133,17 @@ final class CryptoInvoiceStore: ObservableObject {
 
     // MARK: the method row
 
-    /// The row for a surface that lists `listed` (the SDK's PaymentMethods for
-    /// the plan a coin would buy there).
-    func methodRow(listed: [String]) -> PaymentMethodRowState {
-        let methods = PaymentMethodRules.methods(listed)
+    /// The row for a surface with `tabs` (the SDK's CryptoPaymentTabs for the
+    /// plan a coin would buy there). The remembered method is selected while
+    /// it can be paid with, and selects its tab (the SDK's CryptoPaymentTabId).
+    func methodRow(tabs: [CryptoPayTab]) -> PaymentMethodRowState {
+        let methods = PaymentMethodRules.methods(tabs)
         let selected = PaymentMethodRules.selected(remembered: rememberedMethod, methods: methods)
         return PaymentMethodRowState(
+            tabs: tabs,
             methods: methods,
             selected: selected,
+            selectedTabId: selected.asset.map { catalog.tabId(asset: $0) } ?? "",
             selectedUnavailable: unavailableMethods.contains(selected),
             allowsMonthly: allowsMonthly(selected)
         )

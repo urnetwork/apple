@@ -24,6 +24,8 @@ struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
         "usdc_solana": ["Phantom", "Solflare"],
         "sol": ["Phantom", "Solflare"],
         "tao": ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"],
+        "btc": ["Sparrow", "BlueWallet", "Electrum", "Ledger", "Trezor"],
+        "eth": ["MetaMask", "Rabby", "Coinbase Wallet", "Ledger", "Trezor"],
     ]
 
     func checkPaymentUri(asset: String, uri: String, address: String) -> Bool {
@@ -68,6 +70,75 @@ struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
         case "usdc_solana", "zec", "xmr": return asset
         case "tao", "btc", "eth", "sol": return "more_coins"
         default: return ""
+        }
+    }
+
+    // the SDK's CryptoPaymentTabCoin, as its vectors pin it
+    func tabCoin(_ tab: CryptoPayTab, lastChosen: String, remembered: String) -> String {
+        let choosable = tab.coins.filter { $0.available && !ticker(asset: $0.asset).isEmpty }.map(\.asset)
+        if choosable.contains(lastChosen) {
+            return lastChosen
+        }
+        if choosable.contains(remembered) {
+            return remembered
+        }
+        return choosable.first ?? ""
+    }
+
+    func lines(asset: String) -> CryptoAssetLines {
+        func line(_ key: String) -> CryptoPayLine? {
+            CryptoPayLine(key: key, english: key)
+        }
+        switch asset {
+        case "usdc_solana":
+            return CryptoAssetLines(networkLine: line("crypto_network_usdc"), networkWarning: line("usdc_solana_network_only"), noPaymentLinkNote: nil)
+        case "zec":
+            return CryptoAssetLines(networkLine: line("crypto_network_zcash"), networkWarning: nil, noPaymentLinkNote: nil)
+        case "xmr":
+            return CryptoAssetLines(networkLine: line("crypto_network_monero"), networkWarning: nil, noPaymentLinkNote: nil)
+        case "tao":
+            return CryptoAssetLines(networkLine: line("crypto_network_tao"), networkWarning: line("crypto_invoice_tao_network_only"), noPaymentLinkNote: line("crypto_invoice_tao_no_payment_link"))
+        case "btc":
+            return CryptoAssetLines(networkLine: line("crypto_network_bitcoin"), networkWarning: line("crypto_invoice_bitcoin_network_only"), noPaymentLinkNote: nil)
+        case "eth":
+            return CryptoAssetLines(networkLine: line("crypto_network_eth"), networkWarning: line("crypto_invoice_eth_network_only"), noPaymentLinkNote: nil)
+        case "sol":
+            return CryptoAssetLines(networkLine: line("crypto_network_sol"), networkWarning: line("crypto_invoice_sol_network_only"), noPaymentLinkNote: nil)
+        default:
+            return .none
+        }
+    }
+
+    // the SDK's CryptoPaymentShowsMemo: a memo the server sent, for a coin it knows
+    func showsMemo(asset: String, memo: String) -> Bool {
+        !ticker(asset: asset).isEmpty && !memo.isEmpty
+    }
+
+    // the SDK's CryptoPaymentSteps, as its vectors pin it
+    func steps(asset: String, status: String, confirmations: Int, confirmationsRequired: Int) -> [CryptoPaymentStepValue] {
+        guard !ticker(asset: asset).isEmpty else {
+            return []
+        }
+        var statuses = ["pending", "paid"]
+        if asset != "usdc_solana" {
+            statuses = ["pending", "seen"] + (0 < confirmationsRequired ? ["confirming"] : []) + ["paid"]
+        }
+        let current: Int
+        switch status {
+        case "pending", "expired":
+            current = 0
+        case "seen", "confirming", "paid":
+            current = statuses.firstIndex(of: status) ?? statuses.count - 2
+        default:
+            return []
+        }
+        return statuses.enumerated().map { index, stepStatus in
+            let progress = status == "paid" || index < current ? "done" : index == current ? "current" : "upcoming"
+            guard stepStatus == "confirming" else {
+                return CryptoPaymentStepValue(status: stepStatus, progress: progress)
+            }
+            let count = progress == "done" ? confirmationsRequired : progress == "current" ? min(max(confirmations, 0), confirmationsRequired) : 0
+            return CryptoPaymentStepValue(status: stepStatus, progress: progress, confirmations: count, confirmationsRequired: confirmationsRequired)
         }
     }
 }
@@ -149,22 +220,6 @@ struct CryptoPaymentRulesTests {
         #expect(!PaymentMethodRowState.card.isShown)
     }
 
-    @Test func aPickOfATabChoosesItsCoin() throws {
-        let tabs = Self.tabs("usdc_solana", "zec", "xmr", "btc", "sol")
-        let more = try #require(tabs.first(where: { $0.id == "more_coins" }))
-        // More coins picks its first coin that can be paid with: TAO is greyed here
-        #expect(PaymentMethodRules.choice(more, selected: .card) == .btc)
-        #expect(PaymentMethodRules.choice(more, selected: .xmr) == .btc)
-        // the selected coin stays selected while it sits in the tab
-        #expect(PaymentMethodRules.choice(more, selected: .sol) == .sol)
-        // a greyed coin is never the pick
-        #expect(PaymentMethodRules.choice(more, selected: .tao) == .btc)
-        // a tab of one coin picks that coin
-        #expect(PaymentMethodRules.choice(tabs[1], selected: .card) == .zec)
-        // a tab none of whose coins can be paid with picks nothing
-        #expect(PaymentMethodRules.choice(Self.tabs("btc")[2], selected: .card) == nil)
-    }
-
     @Test func theRememberedMethodIsSelectedOnlyWhileTheRowListsIt() {
         let methods: [PaymentMethod] = [.card, .usdcSolana, .xmr]
         #expect(PaymentMethodRules.selected(remembered: "xmr", methods: methods) == .xmr)
@@ -231,7 +286,10 @@ struct CryptoPaymentRulesTests {
 
     @Test func anOpenQuoteShowsTheNetworkTheQrTheAmountAndTheAddress() {
         let display = CryptoInvoiceDisplay(Self.openXmr(), catalog: Self.catalog)
-        #expect(display.network == .monero)
+        // the SDK's line for the coin, by its key; Monero has no network warning
+        #expect(display.networkLine?.key == "crypto_network_monero")
+        #expect(display.networkWarning == nil)
+        #expect(display.noPaymentLinkNote == nil)
         #expect(display.paymentUri == Self.xmrUri)
         #expect(display.qrText == Self.xmrUri)
         #expect(!display.hasNoPaymentLink)
@@ -338,7 +396,7 @@ struct CryptoPaymentRulesTests {
         snapshot.status = ""
         let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
         #expect(display.isAwaitingStatus)
-        #expect(display.network == .monero)
+        #expect(display.networkLine?.key == "crypto_network_monero")
         #expect(display.paymentUri == nil)
         #expect(display.amount == nil)
         #expect(display.address == nil)
@@ -458,7 +516,7 @@ struct CryptoPaymentRulesTests {
         snapshot.reviewReason = "underpaid"
         let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
         #expect(display.inReview)
-        #expect(display.network == .monero)
+        #expect(display.networkLine?.key == "crypto_network_monero")
         #expect(display.paymentUri == nil)
         #expect(display.amount == nil)
         #expect(display.address == nil)
@@ -495,7 +553,7 @@ struct CryptoPaymentRulesTests {
         snapshot.asset = "zec"
         let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
         #expect(display.isStarting)
-        #expect(display.network == .zcashShielded)
+        #expect(display.networkLine?.key == "crypto_network_zcash")
         #expect(display.steps.isEmpty)
         #expect(!display.showsPayAnotherWay)
     }
@@ -514,11 +572,12 @@ struct CryptoPaymentRulesTests {
         snapshot.qrText = uri
         snapshot.memo = "8XrefMemo"
         let display = CryptoInvoiceDisplay(snapshot, catalog: FakeCryptoPaymentCatalog(passingUris: [uri]))
-        #expect(display.network == .usdcOnSolana)
+        #expect(display.networkLine?.key == "crypto_network_usdc")
         #expect(display.method == .usdcSolana)
         #expect(display.amount == "40.000123 USDC")
         #expect(display.memo == "8XrefMemo")
-        // the network-only warning shows with the address (PaymentMethod.networkWarning)
+        // the network-only warning shows with the address (the SDK's line)
+        #expect(display.networkWarning?.key == "usdc_solana_network_only")
         #expect(display.address == address)
         #expect(display.qrText == uri)
         #expect(display.countdown == .running("60:00"))
@@ -528,13 +587,40 @@ struct CryptoPaymentRulesTests {
         #expect(!display.showsZcashExchangeNote)
     }
 
-    @Test func aMemoOnAnotherCoinIsIgnored() {
-        var snapshot = Self.openXmr()
-        snapshot.memo = "stray"
-        #expect(CryptoInvoiceDisplay(snapshot, catalog: Self.catalog).memo == nil)
+    /// The SDK's rule only, never the coin: a catalog that says no hides even
+    /// USDC's memo, and no memo, no row.
+    struct NoMemoCatalog: CryptoPaymentCatalog {
+        var base = FakeCryptoPaymentCatalog(passingUris: [CryptoPaymentRulesTests.xmrUri])
+        func checkPaymentUri(asset: String, uri: String, address: String) -> Bool { base.checkPaymentUri(asset: asset, uri: uri, address: address) }
+        func ticker(asset: String) -> String { base.ticker(asset: asset) }
+        func walletSuggestions(asset: String) -> [String] { base.walletSuggestions(asset: asset) }
+        func allowsPlan(method: String, plan: String) -> Bool { base.allowsPlan(method: method, plan: plan) }
+        func uriScheme(asset: String) -> String { base.uriScheme(asset: asset) }
+        func tabId(asset: String) -> String { base.tabId(asset: asset) }
+        func tabCoin(_ tab: CryptoPayTab, lastChosen: String, remembered: String) -> String {
+            base.tabCoin(tab, lastChosen: lastChosen, remembered: remembered)
+        }
+        func lines(asset: String) -> CryptoAssetLines { base.lines(asset: asset) }
+        func showsMemo(asset: String, memo: String) -> Bool { false }
+        func steps(asset: String, status: String, confirmations: Int, confirmationsRequired: Int) -> [CryptoPaymentStepValue] {
+            base.steps(asset: asset, status: status, confirmations: confirmations, confirmationsRequired: confirmationsRequired)
+        }
     }
 
-    @Test func aSolInvoiceCarriesItsMemoAsUsdcDoes() {
+    @Test func theMemoShowsWhenTheSdkSaysSo() {
+        var snapshot = Self.openXmr()
+        snapshot.asset = "usdc_solana"
+        snapshot.memo = "8XrefMemo"
+        #expect(CryptoInvoiceDisplay(snapshot, catalog: NoMemoCatalog()).memo == nil)
+        var none = Self.openXmr()
+        none.memo = ""
+        #expect(CryptoInvoiceDisplay(none, catalog: Self.catalog).memo == nil)
+    }
+
+    // the server sends "memo": "" for SOL (its own deposit address names the
+    // invoice), and the SDK shows a memo only when there is one: the invoice
+    // used to show a memo row for SOL as for USDC
+    @Test func aSolInvoiceShowsNoMemo() {
         let address = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
         let uri = "solana:\(address)?amount=0.204517&reference=8X&label=URnetwork"
         var snapshot = Self.openXmr(secondsLeft: 1800)
@@ -544,10 +630,11 @@ struct CryptoPaymentRulesTests {
         snapshot.amount = "0.204517"
         snapshot.uri = uri
         snapshot.qrText = uri
-        snapshot.memo = "8XrefMemo"
+        snapshot.memo = ""
         let display = CryptoInvoiceDisplay(snapshot, catalog: FakeCryptoPaymentCatalog(passingUris: [uri]))
-        #expect(display.network == .solana)
-        #expect(display.memo == "8XrefMemo")
+        #expect(display.networkLine?.key == "crypto_network_sol")
+        #expect(display.networkWarning?.key == "crypto_invoice_sol_network_only")
+        #expect(display.memo == nil)
         #expect(display.paymentUri == uri)
         #expect(display.qrText == uri)
         #expect(!display.hasNoPaymentLink)
@@ -568,7 +655,9 @@ struct CryptoPaymentRulesTests {
         snapshot.qrText = address
         let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
         #expect(display.method == .tao)
-        #expect(display.network == .bittensor)
+        #expect(display.networkLine?.key == "crypto_network_tao")
+        #expect(display.networkWarning?.key == "crypto_invoice_tao_network_only")
+        #expect(display.noPaymentLinkNote?.key == "crypto_invoice_tao_no_payment_link")
         #expect(display.hasNoPaymentLink)
         #expect(display.paymentUri == nil)
         #expect(display.qrText == address)
@@ -597,12 +686,18 @@ struct CryptoPaymentRulesTests {
         #expect(seenDisplay.remaining == "0.023457 TAO")
     }
 
-    @Test func theNewCoinsNameTheirNetworks() {
-        #expect(CryptoInvoiceDisplay.networkLine(for: .tao) == .bittensor)
-        #expect(CryptoInvoiceDisplay.networkLine(for: .btc) == .bitcoin)
-        #expect(CryptoInvoiceDisplay.networkLine(for: .eth) == .ethereum)
-        #expect(CryptoInvoiceDisplay.networkLine(for: .sol) == .solana)
-        #expect(CryptoInvoiceDisplay.networkLine(for: .card) == nil)
+    @Test func theNewCoinsNameTheirNetworksWithTheSdksLines() {
+        for (asset, key) in [("tao", "crypto_network_tao"), ("btc", "crypto_network_bitcoin"), ("eth", "crypto_network_eth"), ("sol", "crypto_network_sol")] {
+            var snapshot = Self.openXmr()
+            snapshot.asset = asset
+            #expect(CryptoInvoiceDisplay(snapshot, catalog: Self.catalog).networkLine?.key == key, "\(asset)")
+        }
+        // not a coin: no line at all, and the invoice is titled Get Pro
+        var card = Self.openXmr()
+        card.asset = "card"
+        #expect(CryptoInvoiceDisplay(card, catalog: Self.catalog).networkLine == nil)
+        // an empty key is no line
+        #expect(CryptoPayLine(key: "", english: "anything") == nil)
         // Bitcoin and ETH have payment uris
         for asset in ["btc", "eth"] {
             var snapshot = Self.openXmr()
@@ -611,12 +706,41 @@ struct CryptoPaymentRulesTests {
         }
     }
 
+    // SOL and TAO, which the server sees only once final, usually go from
+    // pending straight to paid: every step they skipped is drawn done, as the
+    // SDK draws it
+    @Test func aPaymentThatSkippedStepsShowsThemDone() {
+        var snapshot = Self.openXmr()
+        snapshot.asset = "sol"
+        snapshot.phaseName = "paid"
+        snapshot.status = "paid"
+        snapshot.confirmations = 0
+        snapshot.confirmationsRequired = 1
+        let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
+        #expect(display.steps.map(\.step) == [.waiting, .seen, .confirming(count: 1, required: 1), .paid])
+        #expect(display.steps.allSatisfy { $0.progress == .done })
+    }
+
+    @Test func theSdksStepsBecomeRows() {
+        let rows = CryptoInvoiceDisplay.stepRows([
+            CryptoPaymentStepValue(status: "pending", progress: "done"),
+            CryptoPaymentStepValue(status: "seen", progress: "current"),
+            CryptoPaymentStepValue(status: "confirming", progress: "upcoming", confirmations: 0, confirmationsRequired: 10),
+            CryptoPaymentStepValue(status: "paid", progress: "upcoming"),
+            // a step this app does not know is left out
+            CryptoPaymentStepValue(status: "refunded", progress: "upcoming"),
+        ])
+        #expect(rows.map(\.step) == [.waiting, .seen, .confirming(count: 0, required: 10), .paid])
+        #expect(rows.map(\.progress) == [.done, .current, .upcoming, .upcoming])
+    }
+
     @Test func zcashNamesTheShieldedNetworkAndWarnsAboutExchanges() {
         var snapshot = Self.openXmr()
         snapshot.asset = "zec"
         snapshot.ticker = "ZEC"
         let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
-        #expect(display.network == .zcashShielded)
+        #expect(display.networkLine?.key == "crypto_network_zcash")
+        #expect(display.networkWarning == nil)
         #expect(display.showsZcashExchangeNote)
         #expect(display.wallets == ["Zodl", "Cake", "Zingo", "Zkool", "Vizor"])
         #expect(display.amount == "0.072387 ZEC")

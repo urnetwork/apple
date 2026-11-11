@@ -11,9 +11,11 @@
 //  test host is the App Store app). The views and every crypto string compile
 //  only under DIRECT_DOWNLOAD (Shared/Views/CryptoPay). The SDK owns the coin
 //  tabs (their order, labels, marks and availability), the tab a method sits
-//  in, the URI check and the QR code's text, the tickers, markets and URI
-//  schemes, the wallet names and the invoice state machine
-//  (CryptoPaymentSdk.swift); nothing here re-derives them.
+//  in and the coin a tap on a tab chooses, each coin's lines (network line,
+//  network-only warning, no-payment-link note), the URI check and the QR
+//  code's text, when the memo shows, the status steps, the tickers, markets,
+//  event products and URI schemes, the wallet names and the invoice state
+//  machine (CryptoPaymentSdk.swift); nothing here re-derives them.
 //
 
 import CoreImage
@@ -124,15 +126,6 @@ enum PaymentMethodRules {
         return method
     }
 
-    /// What a pick of `tab` chooses: the `selected` coin while it sits in the
-    /// tab, else the tab's first coin that can be paid with now (TAO first in
-    /// More coins); nil for a tab none of whose coins can be, which cannot be
-    /// chosen.
-    static func choice(_ tab: CryptoPayTab, selected: PaymentMethod) -> PaymentMethod? {
-        let coins = tab.coins.filter { $0.available }.compactMap { PaymentMethod(asset: $0.asset) }
-        return coins.first { $0 == selected } ?? coins.first
-    }
-
     /// The plan a coin buys on a plan surface: the welcome offer while one is
     /// active (the card path keeps its own trial and coupon), else yearly.
     /// No coin sells monthly (decision 6).
@@ -169,6 +162,11 @@ struct PaymentMethodRowState: Equatable {
     /// The tab the selected method sits in (the SDK's CryptoPaymentTabId): ""
     /// for Card.
     var selectedTabId: String
+    /// What a tap on each tab chooses, by tab id (the SDK's
+    /// CryptoPaymentTabCoin: the coin last chosen in the tab, else the
+    /// remembered method's, else its first that can be paid with); a tab none
+    /// of whose coins can be paid with has none, and cannot be chosen.
+    var tabChoices: [String: PaymentMethod]
     /// The selected coin's last start failed with asset_unavailable: the row
     /// says "Temporarily unavailable" under it and the coin stays selectable.
     var selectedUnavailable: Bool
@@ -185,6 +183,7 @@ struct PaymentMethodRowState: Equatable {
         methods: [.card],
         selected: .card,
         selectedTabId: "",
+        tabChoices: [:],
         selectedUnavailable: false,
         allowsMonthly: true
     )
@@ -295,7 +294,57 @@ enum CryptoPaymentStatus {
     static let unknown = "unknown"
 }
 
+/// How the SDK draws one of an invoice's status steps (its
+/// CryptoPaymentStepDone, CryptoPaymentStepCurrent, CryptoPaymentStepUpcoming).
+enum CryptoPaymentStepProgress {
+    static let done = "done"
+    static let current = "current"
+    static let upcoming = "upcoming"
+}
+
 // MARK: - what the invoice shows
+
+/// One of a coin's lines on its invoice (the SDK's CryptoAssetLinesFor): its
+/// string id in the shared localizations, which the views look the line up by,
+/// and the SDK's English, shown for an id this app has no string for.
+struct CryptoPayLine: Equatable {
+    var key: String
+    var english: String
+
+    /// A line the coin has; nil for an empty id, a line it does not have.
+    init?(key: String, english: String) {
+        guard !key.isEmpty else {
+            return nil
+        }
+        self.key = key
+        self.english = english
+    }
+}
+
+/// A coin's lines (the SDK's CryptoAssetLinesFor), each nil for a line the
+/// coin does not have: the network it is sent on (the invoice's first line,
+/// and the line under the coin in the More coins list), the network-only
+/// warning shown with the address (none for Zcash and Monero), and the note
+/// under the QR code of a coin without a payment link (TAO's).
+struct CryptoAssetLines: Equatable {
+    var networkLine: CryptoPayLine?
+    var networkWarning: CryptoPayLine?
+    var noPaymentLinkNote: CryptoPayLine?
+
+    static let none = CryptoAssetLines(networkLine: nil, networkWarning: nil, noPaymentLinkNote: nil)
+}
+
+/// One of an invoice's status steps as the SDK draws it (CryptoPaymentSteps).
+struct CryptoPaymentStepValue: Equatable {
+    /// The status the step stands for: pending, seen, confirming or paid.
+    var status: String
+    /// done, current or upcoming (the SDK's CryptoPaymentStep*): a step the
+    /// payment skipped is done, and once paid every step is.
+    var progress: String
+    /// The confirming step's "Confirming: n of N"; 0 for the others.
+    var confirmations: Int = 0
+    var confirmationsRequired: Int = 0
+}
 
 /// The SDK's pure helpers an invoice is drawn with (CONTRACT §4.3), behind a
 /// protocol so the display decisions are tested without the SDK.
@@ -315,24 +364,26 @@ protocol CryptoPaymentCatalog {
     /// CryptoPaymentTabId: the tab a coin sits in (its own asset, or "More
     /// coins" for TAO, Bitcoin, ETH and SOL); "" for Card.
     func tabId(asset: String) -> String
+    /// CryptoPaymentTabCoin: what a tap on `tab` chooses: `lastChosen` (the
+    /// coin last chosen in the tab) while it can be paid with now, else
+    /// `remembered` while it is one of the tab's payable coins, else the tab's
+    /// first payable coin; "" for a tab with none.
+    func tabCoin(_ tab: CryptoPayTab, lastChosen: String, remembered: String) -> String
+    /// CryptoAssetLinesFor: the coin's network line, network-only warning and
+    /// no-payment-link note.
+    func lines(asset: String) -> CryptoAssetLines
+    /// CryptoPaymentShowsMemo: a memo shows only when the server sent one
+    /// (only USDC's has one; SOL's is "").
+    func showsMemo(asset: String, memo: String) -> Bool
+    /// CryptoPaymentSteps: the status steps at `status`, two for USDC and
+    /// four for the other coins, a step the payment skipped drawn done; none
+    /// for a status without steps.
+    func steps(asset: String, status: String, confirmations: Int, confirmationsRequired: Int) -> [CryptoPaymentStepValue]
 }
 
 /// What the invoice view shows for a snapshot, top to bottom (CONTRACT §6.2).
 /// The view turns each decision into its copy.
 struct CryptoInvoiceDisplay: Equatable {
-
-    /// The invoice's first line, the network the coin is sent on: "USDC on
-    /// Solana", "Zcash, shielded", "Monero", "Bittensor network", "Bitcoin
-    /// network", "Ethereum mainnet", "Solana (native SOL)".
-    enum Network: Equatable {
-        case usdcOnSolana
-        case zcashShielded
-        case monero
-        case bittensor
-        case bitcoin
-        case ethereum
-        case solana
-    }
 
     enum Countdown: Equatable {
         /// "Quote expires in m:ss".
@@ -370,7 +421,16 @@ struct CryptoInvoiceDisplay: Equatable {
     /// The invoice is being created (StartInvoice in flight).
     var isStarting: Bool = false
     var method: PaymentMethod? = nil
-    var network: Network? = nil
+    /// The invoice's first line, the network the coin is sent on (the SDK's
+    /// line: "USDC on Solana", "Zcash, shielded", "Monero", "Bittensor
+    /// network", "Bitcoin network", "Ethereum mainnet", "Solana (native SOL)").
+    var networkLine: CryptoPayLine? = nil
+    /// With the address: only this coin, sent on this network, is credited
+    /// (the SDK's line); none for Zcash and Monero.
+    var networkWarning: CryptoPayLine? = nil
+    /// Under the QR code of a coin without a payment link (TAO): it holds the
+    /// address alone (the SDK's note).
+    var noPaymentLinkNote: CryptoPayLine? = nil
     /// The server's payment URI for "Open in wallet": only while payable, and
     /// when the SDK's check passed (an empty uri shows none: TAO has none).
     var paymentUri: String? = nil
@@ -391,7 +451,9 @@ struct CryptoInvoiceDisplay: Equatable {
     /// "To this address", with Copy, and the coin's network-only warning
     /// beside it.
     var address: String? = nil
-    /// USDC and SOL only: the reference memo for a transfer sent by hand.
+    /// The reference memo for a transfer sent by hand, when the SDK shows it
+    /// (CryptoPaymentShowsMemo: only a memo the server sent, which only USDC
+    /// has).
     var memo: String? = nil
     var countdown: Countdown? = nil
     var refresh: Refresh = .hidden
@@ -425,7 +487,10 @@ struct CryptoInvoiceDisplay: Equatable {
     init(_ snapshot: CryptoInvoiceSnapshot, catalog: CryptoPaymentCatalog) {
         let method = PaymentMethod(asset: snapshot.asset)
         self.method = method
-        network = method.flatMap(Self.networkLine(for:))
+        let lines = method == nil ? CryptoAssetLines.none : catalog.lines(asset: snapshot.asset)
+        networkLine = lines.networkLine
+        networkWarning = lines.networkWarning
+        noPaymentLinkNote = lines.noPaymentLinkNote
         hasNoPaymentLink = method != nil && catalog.uriScheme(asset: snapshot.asset).isEmpty
         isPaid = snapshot.isPaid
         unavailable = snapshot.errorCode == CryptoPurchaseErrorCode.assetUnavailable
@@ -453,7 +518,12 @@ struct CryptoInvoiceDisplay: Equatable {
             return
         }
 
-        steps = Self.steps(snapshot)
+        steps = Self.stepRows(catalog.steps(
+            asset: snapshot.asset,
+            status: snapshot.status,
+            confirmations: snapshot.confirmations,
+            confirmationsRequired: snapshot.confirmationsRequired
+        ))
         if isPaid || status == CryptoPaymentStatus.confirming {
             // the payment arrived: nothing more to send
             return
@@ -491,8 +561,8 @@ struct CryptoInvoiceDisplay: Equatable {
                snapshot.qrText == address || (snapshot.qrText == snapshot.uri && paymentUri != nil) {
                 qrText = snapshot.qrText
             }
-            // the coins on Solana carry a memo for a transfer sent by hand
-            if method == .usdcSolana || method == .sol, address != nil, !snapshot.memo.isEmpty {
+            // a memo for a transfer sent by hand, when the server sent one
+            if address != nil, catalog.showsMemo(asset: snapshot.asset, memo: snapshot.memo) {
                 memo = snapshot.memo
             }
         case CryptoPaymentStatus.pending, CryptoPaymentStatus.expired:
@@ -521,54 +591,32 @@ struct CryptoInvoiceDisplay: Equatable {
         steps.first { $0.progress == .current }?.step ?? (isPaid ? .paid : nil)
     }
 
-    static func networkLine(for method: PaymentMethod) -> Network? {
-        switch method {
-        case .card:
-            return nil
-        case .usdcSolana:
-            return .usdcOnSolana
-        case .zec:
-            return .zcashShielded
-        case .xmr:
-            return .monero
-        case .tao:
-            return .bittensor
-        case .btc:
-            return .bitcoin
-        case .eth:
-            return .ethereum
-        case .sol:
-            return .solana
-        }
-    }
-
-    /// The steps for the snapshot's status. USDC reports only pending, paid
-    /// and expired (CONTRACT §2.5), so its steps are waiting → paid.
-    static func steps(_ snapshot: CryptoInvoiceSnapshot) -> [StepRow] {
-        let confirming = Step.confirming(count: snapshot.confirmations, required: snapshot.confirmationsRequired)
-        let all: [Step] = PaymentMethod(asset: snapshot.asset) == .usdcSolana
-            ? [.waiting, .paid]
-            : [.waiting, .seen, confirming, .paid]
-        let current: Int
-        if snapshot.isPaid {
-            current = all.count - 1
-        } else {
-            switch snapshot.status {
+    /// The SDK's steps (CryptoPaymentSteps) as rows: USDC's waiting → paid,
+    /// the other coins' waiting → seen → confirming n of N → paid, each done,
+    /// current or upcoming as the SDK draws it (a step the payment skipped is
+    /// done). A step this app does not know is left out.
+    static func stepRows(_ steps: [CryptoPaymentStepValue]) -> [StepRow] {
+        steps.compactMap { (value: CryptoPaymentStepValue) -> StepRow? in
+            let step: Step
+            switch value.status {
+            case CryptoPaymentStatus.pending:
+                step = .waiting
             case CryptoPaymentStatus.seen:
-                current = 1
+                step = .seen
             case CryptoPaymentStatus.confirming:
-                current = all.count == 4 ? 2 : 0
+                step = .confirming(count: value.confirmations, required: value.confirmationsRequired)
+            case CryptoPaymentStatus.paid:
+                step = .paid
             default:
-                current = 0
+                return nil
             }
-        }
-        return all.enumerated().map { index, step in
             let progress: StepProgress
-            if index < current || (snapshot.isPaid && index == current) {
+            switch value.progress {
+            case CryptoPaymentStepProgress.done:
                 progress = .done
-            } else if index == current {
+            case CryptoPaymentStepProgress.current:
                 progress = .current
-            } else {
+            default:
                 progress = .upcoming
             }
             return StepRow(step: step, progress: progress)

@@ -94,6 +94,48 @@ enum CryptoPayCopy {
     static func moreCoinsAccessibilityLabel(_ coins: [String]) -> String {
         String(localized: "More coins: \(ListFormatter.localizedString(byJoining: coins))")
     }
+
+    /// One of a coin's lines (the SDK's CryptoAssetLinesFor: the network line,
+    /// the network-only warning, the no-payment-link note) by its string id in
+    /// the localizations store, or the SDK's English for an id this app has no
+    /// string for; nil for a line the coin does not have. The catalog has one
+    /// entry per English text, so each id reads the entry of its English.
+    static func line(_ line: CryptoPayLine?) -> String? {
+        guard let line else {
+            return nil
+        }
+        switch line.key {
+        case "crypto_network_usdc":
+            return String(localized: "USDC on Solana")
+        case "crypto_network_zcash":
+            return String(localized: "Zcash, shielded")
+        case "crypto_network_monero":
+            return String(localized: "Monero")
+        case "crypto_network_tao":
+            return String(localized: "Bittensor network")
+        case "crypto_network_bitcoin":
+            return String(localized: "Bitcoin network")
+        case "crypto_network_eth":
+            return String(localized: "Ethereum mainnet")
+        case "crypto_network_sol":
+            return String(localized: "Solana (native SOL)")
+        case "usdc_solana_network_only":
+            // USDC exists on many chains: a transfer on the wrong one is lost
+            return String(localized: "Send USDC on the Solana network only. USDC sent on any other network will not arrive.")
+        case "crypto_invoice_tao_network_only":
+            return String(localized: "Send only TAO on the Bittensor network to this address. TAO sent on any other network won't be credited.")
+        case "crypto_invoice_bitcoin_network_only":
+            return String(localized: "Send only Bitcoin on the Bitcoin network to this address. Bitcoin sent on any other network won't be credited.")
+        case "crypto_invoice_eth_network_only":
+            return String(localized: "Send only ETH on Ethereum mainnet to this address. Tokens and ETH on other networks, such as Base or Arbitrum, won't be credited.")
+        case "crypto_invoice_sol_network_only":
+            return String(localized: "Send only SOL on the Solana network to this address. Tokens, including USDC, won't be credited.")
+        case "crypto_invoice_tao_no_payment_link":
+            return String(localized: "TAO has no payment link, so this QR code holds only the address. Enter the exact amount in your wallet.")
+        default:
+            return line.english.isEmpty ? nil : line.english
+        }
+    }
 }
 
 /// Card, then the SDK's coin tabs: USDC on Solana, Zcash, Monero and More
@@ -101,7 +143,10 @@ enum CryptoPayCopy {
 /// space between them, never one badge. The tabs wrap where the surface is
 /// narrow. A tab of several coins (More coins) opens their list under the
 /// row, each coin with the network it is sent on. The selected method's tab
-/// is the SDK's CryptoPaymentTabId of it (`row.selectedTabId`, "" for Card).
+/// is the SDK's CryptoPaymentTabId of it (`row.selectedTabId`, "" for Card),
+/// and a tap on a tab chooses the SDK's CryptoPaymentTabCoin
+/// (`row.tabChoices`: the coin last chosen in the tab, else the remembered
+/// method's, else its first that can be paid with).
 ///
 /// A tab or a coin that cannot be paid with now stays in its place, its name
 /// greyed with "Temporarily unavailable", and cannot be chosen; its marks are
@@ -154,7 +199,7 @@ struct PaymentMethodRowView: View {
             isAvailable: tab.available,
             accessibilityText: 1 < tab.coins.count ? CryptoPayCopy.moreCoinsAccessibilityLabel(coinNames) : nil,
             action: {
-                if let method = PaymentMethodRules.choice(tab, selected: row.selected) {
+                if let method = row.tabChoices[tab.id] {
                     choose(method)
                 }
             }
@@ -267,10 +312,10 @@ private struct CoinChoiceRow: View {
     let isSelected: Bool
     let choose: (PaymentMethod) -> Void
 
-    /// The network line ("Bittensor network"), or the coin's name for a coin
-    /// this app has no line for.
+    /// The network line ("Bittensor network", the SDK's), or the coin's name
+    /// for a coin with no line.
     private var network: String {
-        PaymentMethod(asset: coin.asset).flatMap(CryptoInvoiceDisplay.networkLine(for:))?.title
+        CryptoPayCopy.line(CryptoPaymentSdk.lines(coin.asset).networkLine)
             ?? CryptoPayCopy.label(key: coin.labelKey, english: coin.label)
     }
 

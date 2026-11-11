@@ -18,7 +18,9 @@ import URnetworkSdk
 // MARK: - the SDK's pure helpers
 
 /// The SDK's CheckCryptoPaymentUri, CryptoAssetTicker, CryptoWalletSuggestions,
-/// PaymentMethodAllowsPlan, CryptoPaymentUriScheme and CryptoPaymentTabId.
+/// PaymentMethodAllowsPlan, CryptoPaymentUriScheme, CryptoPaymentTabId,
+/// CryptoPaymentTabCoin, CryptoAssetLinesFor, CryptoPaymentShowsMemo and
+/// CryptoPaymentSteps.
 struct SdkCryptoPaymentCatalog: CryptoPaymentCatalog {
 
     func checkPaymentUri(asset: String, uri: String, address: String) -> Bool {
@@ -44,6 +46,32 @@ struct SdkCryptoPaymentCatalog: CryptoPaymentCatalog {
     func tabId(asset: String) -> String {
         SdkCryptoPaymentTabId(asset)
     }
+
+    func tabCoin(_ tab: CryptoPayTab, lastChosen: String, remembered: String) -> String {
+        SdkCryptoPaymentTabCoin(CryptoPaymentSdk.sdkTab(tab), lastChosen, remembered)
+    }
+
+    func lines(asset: String) -> CryptoAssetLines {
+        CryptoPaymentSdk.lines(asset)
+    }
+
+    func showsMemo(asset: String, memo: String) -> Bool {
+        SdkCryptoPaymentShowsMemo(asset, memo)
+    }
+
+    func steps(asset: String, status: String, confirmations: Int, confirmationsRequired: Int) -> [CryptoPaymentStepValue] {
+        guard let list = SdkCryptoPaymentSteps(asset, status, confirmations, confirmationsRequired) else {
+            return []
+        }
+        return (0..<list.len()).compactMap { list.get($0) }.map { step in
+            CryptoPaymentStepValue(
+                status: step.status,
+                progress: step.progress,
+                confirmations: step.confirmations,
+                confirmationsRequired: step.confirmationsRequired
+            )
+        }
+    }
 }
 
 extension PaymentMethod {
@@ -59,14 +87,14 @@ extension PaymentMethod {
     }
 
     /// The purchase events' product: Pro for Card, and for a coin its year of
-    /// Pro by its ticker (the SDK's CryptoAssetTicker), as Android names them:
+    /// Pro, the SDK's CryptoPaymentEventProduct (pro_yearly_<ticker>:
     /// pro_yearly_usdc, pro_yearly_zec, pro_yearly_xmr, pro_yearly_tao,
-    /// pro_yearly_btc, pro_yearly_eth, pro_yearly_sol.
+    /// pro_yearly_btc, pro_yearly_eth, pro_yearly_sol), as every app names it.
     var eventProduct: String {
         guard let asset else {
             return "pro"
         }
-        return "pro_yearly_" + SdkCryptoAssetTicker(asset).lowercased()
+        return SdkCryptoPaymentEventProduct(asset)
     }
 
     /// A coin's label in English and its string id in the shared localizations
@@ -88,17 +116,48 @@ enum CryptoPaymentSdk {
     static let plans = [PaymentMethodRules.planYearly, PaymentMethodRules.planYearlyOnboarding]
 
     /// The SDK's coin tabs (CryptoPaymentTabs) for each plan a coin can buy,
-    /// from the balance's crypto_assets (CONTRACT §2.2), which names only the
-    /// coins payable now, so there is no list of unavailable ones: USDC on
+    /// from the balance's crypto_assets (CONTRACT §2.2), the coins payable
+    /// now, and its crypto_unavailable_assets, the coins it cannot quote now,
+    /// which stay in their place greyed ("Temporarily unavailable"): USDC on
     /// Solana, Zcash, Monero and More coins, each coin with whether it sells
-    /// the plan. No assets (an older server, or every coin switched off), or
-    /// no coin that sells the plan, lists no tab: Card alone, no row.
-    static func tabsByPlan(_ assets: SdkCryptoPaymentAssetList?) -> [String: [CryptoPayTab]] {
+    /// the plan. No coin of either list (an older server, or every coin
+    /// switched off), or none that sells the plan, lists no tab: Card alone,
+    /// no row.
+    static func tabsByPlan(_ assets: SdkCryptoPaymentAssetList?, _ unavailableAssets: SdkCryptoPaymentAssetList?) -> [String: [CryptoPayTab]] {
         var byPlan: [String: [CryptoPayTab]] = [:]
         for plan in plans {
-            byPlan[plan] = tabs(SdkCryptoPaymentTabs(assets, nil, stringList([plan])))
+            byPlan[plan] = tabs(SdkCryptoPaymentTabs(assets, unavailableAssets, stringList([plan])))
         }
         return byPlan
+    }
+
+    /// A tab as the SDK reads it (CryptoPaymentTabCoin): its id and its coins,
+    /// each with whether it can be paid with now.
+    static func sdkTab(_ tab: CryptoPayTab) -> SdkCryptoPaymentTab {
+        let sdkTab = SdkCryptoPaymentTab()
+        sdkTab.id_ = tab.id
+        let coins = SdkNewCryptoPaymentCoinList()
+        for coin in tab.coins {
+            let sdkCoin = SdkCryptoPaymentCoin()
+            sdkCoin.asset = coin.asset
+            sdkCoin.available = coin.available
+            coins?.add(sdkCoin)
+        }
+        sdkTab.coins = coins
+        return sdkTab
+    }
+
+    /// A coin's lines (the SDK's CryptoAssetLinesFor), each with its string id
+    /// and English; none for a line the coin does not have.
+    static func lines(_ asset: String) -> CryptoAssetLines {
+        guard let lines = SdkCryptoAssetLinesFor(asset) else {
+            return .none
+        }
+        return CryptoAssetLines(
+            networkLine: CryptoPayLine(key: lines.networkLineKey, english: lines.networkLine),
+            networkWarning: CryptoPayLine(key: lines.networkWarningKey, english: lines.networkWarning),
+            noPaymentLinkNote: CryptoPayLine(key: lines.noPaymentLinkNoteKey, english: lines.noPaymentLinkNote)
+        )
     }
 
     /// The asset catalog image of a coin's mark (the SDK's CryptoIconKey*:

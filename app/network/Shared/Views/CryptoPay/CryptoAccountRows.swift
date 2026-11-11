@@ -36,11 +36,12 @@ struct CryptoPaymentInProgressRow: View {
 
                     // the network, and where the payment is
                     HStack(spacing: 6) {
-                        if let network = display.network {
-                            Text(network.title)
+                        let network = CryptoPayCopy.line(display.networkLine)
+                        if let network {
+                            Text(verbatim: network)
                         }
                         if !display.inReview, let step = display.currentStep {
-                            if display.network != nil {
+                            if network != nil {
                                 Text(verbatim: "·")
                             }
                             Text(step.title)

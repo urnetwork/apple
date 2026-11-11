@@ -171,9 +171,9 @@ struct CryptoPaymentSdkTests {
         #expect(catalog.walletSuggestions(asset: "usdc_solana") == ["Phantom", "Solflare"])
         #expect(catalog.walletSuggestions(asset: "sol") == ["Phantom", "Solflare"])
         #expect(catalog.walletSuggestions(asset: "tao") == ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"])
-        // most wallets send Bitcoin and ETH: no line
-        #expect(catalog.walletSuggestions(asset: "btc").isEmpty)
-        #expect(catalog.walletSuggestions(asset: "eth").isEmpty)
+        // Bitcoin's and ETH's own lists (the owner's, 2026-11-11): their invoices show the line too
+        #expect(catalog.walletSuggestions(asset: "btc") == ["Sparrow", "BlueWallet", "Electrum", "Ledger", "Trezor"])
+        #expect(catalog.walletSuggestions(asset: "eth") == ["MetaMask", "Rabby", "Coinbase Wallet", "Ledger", "Trezor"])
         #expect(catalog.walletSuggestions(asset: "card").isEmpty)
         #expect(!catalog.allowsPlan(method: "xmr", plan: "monthly"))
         #expect(!catalog.allowsPlan(method: "tao", plan: "monthly"))
@@ -207,7 +207,7 @@ struct CryptoPaymentSdkTests {
             Self.asset("xmr", plans: ["yearly", "monthly"]),
             Self.asset("usdc_solana", plans: ["yearly", "yearly_onboarding"], items: ["data_1tib"]),
             Self.asset("tao", plans: ["yearly"]),
-        ]))
+        ]), nil)
         let yearly = try #require(tabs["yearly"])
         // USDC on Solana, Zcash and Monero always, then More coins while one of its coins is listed
         #expect(yearly.map(\.id) == ["usdc_solana", "zec", "xmr", SdkCryptoPaymentTabMoreCoins])
@@ -225,9 +225,85 @@ struct CryptoPaymentSdkTests {
         #expect(onboarding.map(\.id) == ["usdc_solana", "zec", "xmr"])
         #expect(PaymentMethodRules.methods(onboarding) == [.card, .usdcSolana])
         // no assets (an older server, every coin off): no tab, Card alone, no row
-        let none = CryptoPaymentSdk.tabsByPlan(nil)
+        let none = CryptoPaymentSdk.tabsByPlan(nil, nil)
         #expect(none["yearly"] == [])
         #expect(PaymentMethodRules.methods(none["yearly"] ?? []) == [.card])
+    }
+
+    // The balance's crypto_unavailable_assets keep a coin the server cannot
+    // quote now in its place, greyed, and More coins there with all four of
+    // its coins greyed, where the balance's coins alone dropped them.
+    @Test func theBalancesUnavailableCoinsStayGreyed() throws {
+        let unavailable = Self.assets(["tao", "btc", "eth", "sol"].map { Self.asset($0, plans: ["yearly"]) })
+        let tabs = CryptoPaymentSdk.tabsByPlan(Self.assets([Self.asset("usdc_solana", plans: ["yearly"])]), unavailable)
+        let yearly = try #require(tabs["yearly"])
+        #expect(yearly.map(\.id) == ["usdc_solana", "zec", "xmr", SdkCryptoPaymentTabMoreCoins])
+        let more = yearly[3]
+        #expect(!more.available)
+        #expect(more.coins.map(\.available) == [false, false, false, false])
+        #expect(more.iconKeys == [SdkCryptoIconKeyTao, SdkCryptoIconKeyBtc, SdkCryptoIconKeyEth, SdkCryptoIconKeySol])
+        #expect(PaymentMethodRules.methods(yearly) == [.card, .usdcSolana])
+        // without the second list More coins vanishes, as it did
+        #expect(CryptoPaymentSdk.tabsByPlan(Self.assets([Self.asset("usdc_solana", plans: ["yearly"])]), nil)["yearly"]?.map(\.id) == ["usdc_solana", "zec", "xmr"])
+
+        let result = SdkSubscriptionBalanceResult()
+        result.cryptoAssets = Self.assets([Self.asset("usdc_solana", plans: ["yearly"])])
+        result.cryptoUnavailableAssets = unavailable
+        let viewModel = makeViewModel()
+        viewModel.applyCryptoPayments(result)
+        #expect(viewModel.cryptoPaymentTabs(offerActive: false).map(\.id) == ["usdc_solana", "zec", "xmr", SdkCryptoPaymentTabMoreCoins])
+    }
+
+    // The coin a tap on a tab chooses is the SDK's CryptoPaymentTabCoin.
+    @Test func aTapOnATabIsTheSdksChoice() throws {
+        let tabs = CryptoPaymentSdk.tabs(SdkCryptoPaymentTabs(
+            Self.assets(["tao", "btc", "eth"].map { Self.asset($0, plans: ["yearly"]) }),
+            nil,
+            CryptoPaymentSdk.stringList(["yearly"])
+        ))
+        let more = try #require(tabs.first { $0.id == SdkCryptoPaymentTabMoreCoins })
+        #expect(catalog.tabCoin(more, lastChosen: "btc", remembered: "eth") == "btc")
+        #expect(catalog.tabCoin(more, lastChosen: "", remembered: "eth") == "eth")
+        // SOL is greyed, and USDC sits in another tab: the first coin that can be paid with
+        #expect(catalog.tabCoin(more, lastChosen: "sol", remembered: "usdc_solana") == "tao")
+        let zec = try #require(tabs.first { $0.id == "zec" })
+        #expect(catalog.tabCoin(zec, lastChosen: "zec", remembered: "zec") == "")
+    }
+
+    // Each coin's lines are the SDK's, a key with its English.
+    @Test func theLinesAreTheSdks() {
+        let tao = catalog.lines(asset: "tao")
+        #expect(tao.networkLine == CryptoPayLine(key: "crypto_network_tao", english: "Bittensor network"))
+        #expect(tao.networkWarning?.key == "crypto_invoice_tao_network_only")
+        #expect(tao.noPaymentLinkNote?.key == "crypto_invoice_tao_no_payment_link")
+        #expect(catalog.lines(asset: "usdc_solana").networkWarning?.key == "usdc_solana_network_only")
+        // Zcash and Monero have no network warning, and only TAO a note
+        #expect(catalog.lines(asset: "zec").networkWarning == nil)
+        #expect(catalog.lines(asset: "xmr").networkWarning == nil)
+        #expect(catalog.lines(asset: "sol").noPaymentLinkNote == nil)
+        #expect(catalog.lines(asset: "card") == .none)
+        // the view's own string for each key is the SDK's English in the catalog's language
+        #expect(CryptoPayLine(key: "", english: "x") == nil)
+    }
+
+    // The memo and the steps are the SDK's rules.
+    @Test func theMemoAndTheStepsAreTheSdks() {
+        #expect(catalog.showsMemo(asset: "usdc_solana", memo: "8XrefMemo"))
+        // the server sends SOL no memo
+        #expect(!catalog.showsMemo(asset: "sol", memo: ""))
+        #expect(!catalog.showsMemo(asset: "card", memo: "x"))
+        // SOL from pending straight to paid: every step done, confirming at its full count
+        #expect(catalog.steps(asset: "sol", status: "paid", confirmations: 0, confirmationsRequired: 1) == [
+            CryptoPaymentStepValue(status: "pending", progress: SdkCryptoPaymentStepDone),
+            CryptoPaymentStepValue(status: "seen", progress: SdkCryptoPaymentStepDone),
+            CryptoPaymentStepValue(status: "confirming", progress: SdkCryptoPaymentStepDone, confirmations: 1, confirmationsRequired: 1),
+            CryptoPaymentStepValue(status: "paid", progress: SdkCryptoPaymentStepDone),
+        ])
+        #expect(catalog.steps(asset: "usdc_solana", status: "pending", confirmations: 0, confirmationsRequired: 1).map(\.status) == ["pending", "paid"])
+        #expect(catalog.steps(asset: "btc", status: "review", confirmations: 0, confirmationsRequired: 1).isEmpty)
+        #expect(CryptoPaymentStepProgress.done == SdkCryptoPaymentStepDone)
+        #expect(CryptoPaymentStepProgress.current == SdkCryptoPaymentStepCurrent)
+        #expect(CryptoPaymentStepProgress.upcoming == SdkCryptoPaymentStepUpcoming)
     }
 
     private func makeViewModel() -> SubscriptionBalanceViewModel {

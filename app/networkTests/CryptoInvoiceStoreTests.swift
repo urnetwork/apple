@@ -186,6 +186,22 @@ struct CryptoInvoiceStoreTests {
         #expect(fresh.methodRow(tabs: tabs).tabChoices["more_coins"] == .eth)
     }
 
+    // The coin remembered on the device counts as the one chosen in its tab,
+    // as a pick does: remembered SOL, a tap on Zcash, then a tap on More
+    // coins gets SOL back, where it once fell back to TAO, its first coin.
+    @Test func theRememberedCoinCountsAsChosenInItsTab() {
+        controller.paymentMethod = "sol"
+        let store = makeStore()
+        #expect(store.lastTabCoins == ["more_coins": "sol"])
+        let tabs = CryptoPaymentRulesTests.tabs("usdc_solana", "zec", "tao", "sol")
+        store.choose(.zec)
+        #expect(store.rememberedMethod == "zec")
+        #expect(store.methodRow(tabs: tabs).tabChoices["more_coins"] == .sol)
+        // Card remembered: nothing counts as chosen yet
+        controller.paymentMethod = "card"
+        #expect(makeStore().lastTabCoins.isEmpty)
+    }
+
     @Test func aPickIsRememberedOnTheDevice() {
         let store = makeStore()
         store.choose(.xmr)

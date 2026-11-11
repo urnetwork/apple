@@ -53887,173 +53887,6 @@
         }
       }
     },
-    "Claim now is available again on %@." : {
-      "comment" : "Earnings, the settlement v2 tile and the claim sheet: Claim now was used for this address, and works again from this date. The placeholder is a date, as Dec 3.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ستتوفر «المطالبة الآن» مجددًا في %@."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Vyzvednout hned“ bude znovu k dispozici %@."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Jetzt einlösen“ ist am %@ wieder verfügbar."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Το «Διεκδίκηση τώρα» θα είναι ξανά διαθέσιμο στις %@."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claim now is available again on %@."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reclamar ahora» vuelve a estar disponible el %@."
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Reclamar ahora” vuelve a estar disponible el %@."
-          }
-        },
-        "es-MX" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Reclamar ahora” vuelve a estar disponible el %@."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« Réclamer maintenant » sera de nouveau disponible le %@."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«מימוש עכשיו» יהיה זמין שוב ב-%@."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“अभी दावा करें” %@ को फिर से उपलब्ध होगा।"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Klaim sekarang” tersedia lagi pada %@."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Riscatta ora» sarà di nuovo disponibile il %@."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「今すぐ受け取る」は %@ に再び利用できるようになります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“지금 받기”는 %@에 다시 사용할 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "‘Nu opeisen’ is weer beschikbaar op %@."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Odbierz teraz” będzie znowu dostępne %@."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reivindicar agora» volta a estar disponível a %@."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Resgatar agora” estará disponível novamente em %@."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reivindicar agora» volta a estar disponível a %@."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Получить сейчас» снова будет доступно %@."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "”Hämta ut nu” är tillgängligt igen den %@."
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“รับตอนนี้” จะใช้ได้อีกครั้งในวันที่ %@"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Отримати зараз» знову буде доступно %@."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Nhận ngay” sẽ khả dụng trở lại vào %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“立即领取”将于 %@ 再次可用。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「立即領取」將於 %@ 再次可用。"
-          }
-        }
-      }
-    },
     "Claim now is paid by URnetwork, once every %lld days." : {
       "comment" : "Earnings, the settlement v2 tile, under the Claim now button: URnetwork pays the gas, and the button can be used once in this many days (30 today; the count selects the plural form). Claim now is the button's label; keep it recognizable as that label.",
       "localizations" : {
@@ -54587,169 +54420,169 @@
         }
       }
     },
-    "Claim now is queued. URnetwork sends it first, within today's budget." : {
-      "comment" : "Earnings, the settlement v2 tile and the claim sheet, after the user tapped Claim now: the claim is in line and goes out before the automatic ones, as long as the day's gas budget lasts.",
+    "Claim now is queued. It goes out ahead of automatic claims, in the order requests came in, as each day's budget allows." : {
+      "comment" : "Earnings, the settlement v2 tile and the claim sheet, after the user tapped Claim now: the claim is in line. URnetwork sends tapped claims before its automatic ones, the oldest request first, as far as each day's gas budget reaches, so it can go out today or on a later day. Say nothing that promises a day. Claim now is the button's label; keep it recognizable as that label.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«المطالبة الآن» في قائمة الانتظار. سيرسلها URnetwork أولًا، ضمن ميزانية اليوم."
+            "value" : "«المطالبة الآن» في قائمة الانتظار. تُرسَل قبل المطالبات التلقائية، حسب ترتيب وصول الطلبات، ضمن ميزانية كل يوم."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "„Vyzvednout hned“ je ve frontě. URnetwork ho odešle jako první, v rámci dnešního rozpočtu."
+            "value" : "„Vyzvednout hned“ je ve frontě. Odešle se před automatickým vyzvedáváním, v pořadí, v jakém žádosti přišly, v rámci rozpočtu každého dne."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "„Jetzt einlösen“ ist in der Warteschlange. URnetwork sendet es zuerst, im Rahmen des heutigen Budgets."
+            "value" : "„Jetzt einlösen“ ist in der Warteschlange. Es wird vor den automatischen Einlösungen gesendet, in der Reihenfolge der Anfragen, soweit das Budget des jeweiligen Tages reicht."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Το «Διεκδίκηση τώρα» είναι στην ουρά. Το URnetwork θα το στείλει πρώτο, εντός του σημερινού προϋπολογισμού."
+            "value" : "Το «Διεκδίκηση τώρα» είναι στην ουρά. Θα σταλεί πριν από τις αυτόματες διεκδικήσεις, με τη σειρά που ήρθαν τα αιτήματα, εντός του προϋπολογισμού κάθε ημέρας."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Claim now is queued. URnetwork sends it first, within today's budget."
+            "value" : "Claim now is queued. It goes out ahead of automatic claims, in the order requests came in, as each day's budget allows."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Reclamar ahora» está en cola. URnetwork lo envía primero, dentro del presupuesto de hoy."
+            "value" : "«Reclamar ahora» está en cola. Se envía antes que las reclamaciones automáticas, en el orden en que llegaron las solicitudes, según lo permita el presupuesto de cada día."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Reclamar ahora” está en cola. URnetwork lo envía primero, dentro del presupuesto de hoy."
+            "value" : "“Reclamar ahora” está en cola. Se envía antes que las reclamaciones automáticas, en el orden en que llegaron las solicitudes, según lo permita el presupuesto de cada día."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Reclamar ahora” está en cola. URnetwork lo envía primero, dentro del presupuesto de hoy."
+            "value" : "“Reclamar ahora” está en cola. Se envía antes que las reclamaciones automáticas, en el orden en que llegaron las solicitudes, según lo permita el presupuesto de cada día."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "« Réclamer maintenant » est en file d’attente. URnetwork l’envoie en premier, dans la limite du budget du jour."
+            "value" : "« Réclamer maintenant » est en file d’attente. La réclamation part avant les réclamations automatiques, dans l’ordre d’arrivée des demandes, dans la limite du budget de chaque jour."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«מימוש עכשיו» נמצא בתור. URnetwork ישלח אותו ראשון, במסגרת התקציב של היום."
+            "value" : "«מימוש עכשיו» נמצא בתור. הוא יישלח לפני המימושים האוטומטיים, לפי סדר הגעת הבקשות, במסגרת התקציב של כל יום."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“अभी दावा करें” कतार में है। URnetwork इसे आज के बजट के भीतर सबसे पहले भेजता है।"
+            "value" : "“अभी दावा करें” कतार में है। इसे स्वचालित दावों से पहले, अनुरोध आने के क्रम में, हर दिन के बजट के भीतर भेजा जाता है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Klaim sekarang” sudah masuk antrean. URnetwork mengirimnya lebih dulu, dalam batas anggaran hari ini."
+            "value" : "“Klaim sekarang” sudah masuk antrean. Klaim ini dikirim sebelum klaim otomatis, sesuai urutan masuknya permintaan, dalam batas anggaran setiap hari."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Riscatta ora» è in coda. URnetwork lo invia per primo, nei limiti del budget di oggi."
+            "value" : "«Riscatta ora» è in coda. Parte prima dei riscatti automatici, nell’ordine in cui sono arrivate le richieste, nei limiti del budget di ogni giorno."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「今すぐ受け取る」は順番待ちです。URnetwork が本日の予算の範囲内で優先して送信します。"
+            "value" : "「今すぐ受け取る」は順番待ちです。自動受け取りより先に、リクエストを受け付けた順に、各日の予算の範囲内で送信されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“지금 받기”가 대기열에 있습니다. URnetwork가 오늘 예산 범위 안에서 먼저 보냅니다."
+            "value" : "“지금 받기”가 대기열에 있습니다. 자동 받기보다 먼저, 요청이 들어온 순서대로, 날마다 예산이 허용하는 만큼 보내집니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‘Nu opeisen’ staat in de wachtrij. URnetwork verstuurt het als eerste, binnen het budget van vandaag."
+            "value" : "‘Nu opeisen’ staat in de wachtrij. Het wordt vóór de automatische claims verstuurd, in de volgorde waarin de verzoeken binnenkwamen, voor zover het budget van elke dag het toelaat."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "„Odbierz teraz” jest w kolejce. URnetwork wyśle to jako pierwsze, w ramach dzisiejszego budżetu."
+            "value" : "„Odbierz teraz” jest w kolejce. Zostanie wysłane przed automatycznymi odbiorami, w kolejności zgłoszeń, w ramach budżetu każdego dnia."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Reivindicar agora» está na fila. O URnetwork envia-o primeiro, dentro do orçamento de hoje."
+            "value" : "«Reivindicar agora» está na fila. É enviado antes das reivindicações automáticas, pela ordem de chegada dos pedidos, dentro do orçamento de cada dia."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Resgatar agora” está na fila. O URnetwork o envia primeiro, dentro do orçamento de hoje."
+            "value" : "“Resgatar agora” está na fila. Ele é enviado antes dos resgates automáticos, na ordem em que os pedidos chegaram, dentro do orçamento de cada dia."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Reivindicar agora» está na fila. O URnetwork envia-o primeiro, dentro do orçamento de hoje."
+            "value" : "«Reivindicar agora» está na fila. É enviado antes das reivindicações automáticas, pela ordem de chegada dos pedidos, dentro do orçamento de cada dia."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Получить сейчас» в очереди. URnetwork отправит этот запрос первым, в пределах сегодняшнего бюджета."
+            "value" : "«Получить сейчас» в очереди. Этот запрос будет отправлен раньше автоматических, в порядке поступления запросов, в пределах бюджета каждого дня."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "”Hämta ut nu” står i kö. URnetwork skickar det först, inom dagens budget."
+            "value" : "”Hämta ut nu” står i kö. Det skickas före de automatiska uttagen, i den ordning förfrågningarna kom in, så långt varje dags budget räcker."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“รับตอนนี้” อยู่ในคิวแล้ว URnetwork จะส่งรายการนี้ก่อน ภายในงบประมาณของวันนี้"
+            "value" : "“รับตอนนี้” อยู่ในคิวแล้ว รายการนี้จะถูกส่งก่อนการรับอัตโนมัติ ตามลำดับคำขอที่เข้ามา ภายในงบประมาณของแต่ละวัน"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Отримати зараз» у черзі. URnetwork надішле цей запит першим, у межах сьогоднішнього бюджету."
+            "value" : "«Отримати зараз» у черзі. Цей запит буде надіслано раніше за автоматичні, у порядку надходження запитів, у межах бюджету кожного дня."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Nhận ngay” đã vào hàng chờ. URnetwork sẽ gửi yêu cầu này trước, trong phạm vi ngân sách hôm nay."
+            "value" : "“Nhận ngay” đã vào hàng chờ. Yêu cầu này được gửi trước các lần nhận tự động, theo thứ tự yêu cầu đến, trong phạm vi ngân sách của mỗi ngày."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“立即领取”已排队。URnetwork 会在今日预算内优先发送。"
+            "value" : "“立即领取”已排队。它排在自动领取之前，按请求到达的先后顺序，在每天的预算允许时发送。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「立即領取」已排隊。URnetwork 會在今日預算內優先傳送。"
+            "value" : "「立即領取」已排隊。它排在自動領取之前，按請求到達的先後次序，在每日的預算容許時傳送。"
           }
         }
       }
@@ -242998,169 +242831,169 @@
         }
       }
     },
-    "Today's claim budget is used up, so this waits for the next day. Nothing is lost: this credit never expires." : {
-      "comment" : "Earnings, the settlement v2 tile and the claim sheet: URnetwork's daily budget for paying claim gas is spent, so the claim waits for the next day (UTC).",
+    "Today's claim budget is used up, so this waits. The budget renews each day at 00:00 UTC. Nothing is lost: this credit never expires." : {
+      "comment" : "Earnings, the settlement v2 tile and the claim sheet: URnetwork's daily budget for paying claim gas is spent, so the claim waits. The budget renews every day at 00:00 UTC, and a waiting claim goes out once a day's budget reaches it, which can be later than the next day. Say nothing that promises a day, and keep 00:00 and UTC.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "نفدت ميزانية المطالبات لهذا اليوم، لذا سينتظر هذا حتى اليوم التالي. لا يضيع شيء: هذا الرصيد لا تنتهي صلاحيته أبدًا."
+            "value" : "نفدت ميزانية المطالبات لهذا اليوم، لذا ينتظر هذا. تتجدد الميزانية كل يوم عند الساعة 00:00 بتوقيت UTC. لا يضيع شيء: هذا الرصيد لا تنتهي صلاحيته أبدًا."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dnešní rozpočet na vyzvedávání je vyčerpaný, takže to počká do dalšího dne. Nic se neztratí: tento kredit nikdy nevyprší."
+            "value" : "Dnešní rozpočet na vyzvedávání je vyčerpaný, takže to počká. Rozpočet se obnovuje každý den v 00:00 UTC. Nic se neztratí: tento kredit nikdy nevyprší."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das heutige Einlösebudget ist aufgebraucht, daher wartet das bis zum nächsten Tag. Nichts geht verloren: Dieses Guthaben verfällt nie."
+            "value" : "Das heutige Einlösebudget ist aufgebraucht, daher wartet das. Das Budget erneuert sich jeden Tag um 00:00 UTC. Nichts geht verloren: Dieses Guthaben verfällt nie."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ο σημερινός προϋπολογισμός διεκδικήσεων εξαντλήθηκε, οπότε αυτό θα περιμένει την επόμενη ημέρα. Δεν χάνεται τίποτα: αυτή η πίστωση δεν λήγει ποτέ."
+            "value" : "Ο σημερινός προϋπολογισμός διεκδικήσεων εξαντλήθηκε, οπότε αυτό περιμένει. Ο προϋπολογισμός ανανεώνεται κάθε μέρα στις 00:00 UTC. Δεν χάνεται τίποτα: αυτή η πίστωση δεν λήγει ποτέ."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Today's claim budget is used up, so this waits for the next day. Nothing is lost: this credit never expires."
+            "value" : "Today's claim budget is used up, so this waits. The budget renews each day at 00:00 UTC. Nothing is lost: this credit never expires."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El presupuesto de reclamaciones de hoy se ha agotado, así que esto esperará al día siguiente. No se pierde nada: este saldo nunca caduca."
+            "value" : "El presupuesto de reclamaciones de hoy se ha agotado, así que esto espera. El presupuesto se renueva cada día a las 00:00 UTC. No se pierde nada: este saldo nunca caduca."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El presupuesto de reclamaciones de hoy se agotó, así que esto esperará al día siguiente. No se pierde nada: este saldo nunca vence."
+            "value" : "El presupuesto de reclamaciones de hoy se agotó, así que esto espera. El presupuesto se renueva cada día a las 00:00 UTC. No se pierde nada: este saldo nunca vence."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El presupuesto de reclamaciones de hoy se agotó, así que esto esperará al día siguiente. No se pierde nada: este saldo nunca vence."
+            "value" : "El presupuesto de reclamaciones de hoy se agotó, así que esto espera. El presupuesto se renueva cada día a las 00:00 UTC. No se pierde nada: este saldo nunca vence."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le budget de réclamations du jour est épuisé, donc cela attendra le lendemain. Rien n’est perdu : ce crédit n’expire jamais."
+            "value" : "Le budget de réclamations du jour est épuisé, donc cela attend. Le budget se renouvelle chaque jour à 00:00 UTC. Rien n’est perdu : ce crédit n’expire jamais."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "תקציב המימושים של היום נוצל במלואו, ולכן זה ימתין ליום הבא. שום דבר לא הולך לאיבוד: תוקף הזיכוי הזה לעולם לא פג."
+            "value" : "תקציב המימושים של היום נוצל במלואו, ולכן זה ממתין. התקציב מתחדש בכל יום בשעה 00:00 UTC. שום דבר לא הולך לאיבוד: תוקף הזיכוי הזה לעולם לא פג."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "दावों के लिए आज का बजट खत्म हो गया है, इसलिए यह अगले दिन तक प्रतीक्षा करेगा। कुछ भी खोया नहीं जाता: यह क्रेडिट कभी समाप्त नहीं होता।"
+            "value" : "दावों के लिए आज का बजट खत्म हो गया है, इसलिए यह प्रतीक्षा करेगा। बजट हर दिन 00:00 UTC पर नया होता है। कुछ भी खोया नहीं जाता: यह क्रेडिट कभी समाप्त नहीं होता।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anggaran klaim hari ini sudah habis, jadi ini menunggu hari berikutnya. Tidak ada yang hilang: saldo ini tidak pernah kedaluwarsa."
+            "value" : "Anggaran klaim hari ini sudah habis, jadi ini menunggu. Anggaran diperbarui setiap hari pukul 00:00 UTC. Tidak ada yang hilang: saldo ini tidak pernah kedaluwarsa."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Il budget per i riscatti di oggi è esaurito, quindi questo attende il giorno successivo. Non si perde nulla: questo credito non scade mai."
+            "value" : "Il budget per i riscatti di oggi è esaurito, quindi questo attende. Il budget si rinnova ogni giorno alle 00:00 UTC. Non si perde nulla: questo credito non scade mai."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本日の受け取り予算が尽きたため、翌日まで待機します。失われるものはありません。この残高に有効期限はありません。"
+            "value" : "本日の受け取り予算が尽きたため、待機します。予算は毎日 00:00 UTC に更新されます。失われるものはありません。この残高に有効期限はありません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "오늘의 받기 예산이 소진되어 다음 날까지 기다립니다. 잃는 것은 없습니다. 이 잔액은 절대 만료되지 않습니다."
+            "value" : "오늘의 받기 예산이 소진되어 기다립니다. 예산은 매일 00:00 UTC에 새로 채워집니다. 잃는 것은 없습니다. 이 잔액은 절대 만료되지 않습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Het claimbudget van vandaag is op, dus dit wacht tot de volgende dag. Er gaat niets verloren: dit tegoed verloopt nooit."
+            "value" : "Het claimbudget van vandaag is op, dus dit wacht. Het budget wordt elke dag om 00:00 UTC vernieuwd. Er gaat niets verloren: dit tegoed verloopt nooit."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dzisiejszy budżet na odbiory się wyczerpał, więc to poczeka do następnego dnia. Nic nie przepada: te środki nigdy nie wygasają."
+            "value" : "Dzisiejszy budżet na odbiory się wyczerpał, więc to poczeka. Budżet odnawia się codziennie o 00:00 UTC. Nic nie przepada: te środki nigdy nie wygasają."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O orçamento de reivindicações de hoje esgotou-se, por isso isto fica à espera do dia seguinte. Nada se perde: este saldo nunca expira."
+            "value" : "O orçamento de reivindicações de hoje esgotou-se, por isso isto fica à espera. O orçamento renova-se todos os dias às 00:00 UTC. Nada se perde: este saldo nunca expira."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O orçamento de resgates de hoje se esgotou, então isso aguarda o dia seguinte. Nada se perde: este saldo nunca expira."
+            "value" : "O orçamento de resgates de hoje se esgotou, então isso aguarda. O orçamento se renova todos os dias às 00:00 UTC. Nada se perde: este saldo nunca expira."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O orçamento de reivindicações de hoje esgotou-se, por isso isto fica à espera do dia seguinte. Nada se perde: este saldo nunca expira."
+            "value" : "O orçamento de reivindicações de hoje esgotou-se, por isso isto fica à espera. O orçamento renova-se todos os dias às 00:00 UTC. Nada se perde: este saldo nunca expira."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Бюджет на получение на сегодня исчерпан, поэтому это подождёт до следующего дня. Ничего не теряется: у этого начисления нет срока действия."
+            "value" : "Бюджет на получение на сегодня исчерпан, поэтому это подождёт. Бюджет обновляется каждый день в 00:00 UTC. Ничего не теряется: у этого начисления нет срока действия."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dagens uttagsbudget är förbrukad, så det här väntar till nästa dag. Inget går förlorat: det här tillgodohavandet löper aldrig ut."
+            "value" : "Dagens uttagsbudget är förbrukad, så det här väntar. Budgeten förnyas varje dag kl. 00:00 UTC. Inget går förlorat: det här tillgodohavandet löper aldrig ut."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "งบประมาณสำหรับการรับของวันนี้หมดแล้ว รายการนี้จึงรอถึงวันถัดไป ไม่มีอะไรสูญหาย ยอดนี้ไม่มีวันหมดอายุ"
+            "value" : "งบประมาณสำหรับการรับของวันนี้หมดแล้ว รายการนี้จึงต้องรอ งบประมาณจะเริ่มใหม่ทุกวันเวลา 00:00 UTC ไม่มีอะไรสูญหาย ยอดนี้ไม่มีวันหมดอายุ"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Бюджет на отримання на сьогодні вичерпано, тож це зачекає до наступного дня. Нічого не втрачається: це нарахування не має строку дії."
+            "value" : "Бюджет на отримання на сьогодні вичерпано, тож це зачекає. Бюджет оновлюється щодня о 00:00 UTC. Нічого не втрачається: це нарахування не має строку дії."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ngân sách cho việc nhận hôm nay đã hết, nên khoản này sẽ chờ đến ngày hôm sau. Không mất gì cả: khoản này không bao giờ hết hạn."
+            "value" : "Ngân sách cho việc nhận hôm nay đã hết, nên khoản này phải chờ. Ngân sách được làm mới mỗi ngày lúc 00:00 UTC. Không mất gì cả: khoản này không bao giờ hết hạn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今日的领取预算已用完，因此将等到次日。不会有任何损失：这笔余额永不过期。"
+            "value" : "今日的领取预算已用完，因此需要等待。预算每天在 UTC 时间 00:00 重置。不会有任何损失：这笔余额永不过期。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今日的領取預算已用完，因此將等到翌日。不會有任何損失：這筆餘額永不過期。"
+            "value" : "今日的領取預算已用完，因此需要等待。預算每日在 UTC 時間 00:00 重置。不會有任何損失：這筆餘額永不過期。"
           }
         }
       }
@@ -284488,6 +284321,706 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的新 API 金鑰"
+          }
+        }
+      }
+    },
+    "Your next Claim now opens %lld days after this claim goes through." : {
+      "comment" : "Earnings, the settlement v2 tile and the claim sheet, under the queued Claim now: the Claim now limit (once in this many days, 30 today; the count selects the plural form) starts when URnetwork's claim of this balance is paid, not at the tap, so the next Claim now opens this many days after this claim goes through. Claim now is the button's label; keep it recognizable as that label.",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى بعد %lld يوم من إتمام هذه المطالبة."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى بعد يوم واحد من إتمام هذه المطالبة."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى بعد يومين من إتمام هذه المطالبة."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى بعد %lld أيام من إتمام هذه المطالبة."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى بعد %lld يومًا من إتمام هذه المطالبة."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى بعد %lld يوم من إتمام هذه المطالبة."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Další „Vyzvednout hned“ bude k dispozici den poté, co tento nárok projde."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Další „Vyzvednout hned“ bude k dispozici %lld dny poté, co tento nárok projde."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Další „Vyzvednout hned“ bude k dispozici %lld dne poté, co tento nárok projde."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Další „Vyzvednout hned“ bude k dispozici %lld dní poté, co tento nárok projde."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dein nächstes „Jetzt einlösen“ ist einen Tag nach Abschluss dieser Einlösung möglich."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dein nächstes „Jetzt einlösen“ ist %lld Tage nach Abschluss dieser Einlösung möglich."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Το επόμενο «Διεκδίκηση τώρα» θα είναι διαθέσιμο μία ημέρα αφού ολοκληρωθεί αυτή η διεκδίκηση."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Το επόμενο «Διεκδίκηση τώρα» θα είναι διαθέσιμο %lld ημέρες αφού ολοκληρωθεί αυτή η διεκδίκηση."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Your next Claim now opens a day after this claim goes through."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Your next Claim now opens %lld days after this claim goes through."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tu próximo «Reclamar ahora» estará disponible un día después de que se complete esta reclamación."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tu próximo «Reclamar ahora» estará disponible %lld días después de que se complete esta reclamación."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tu próximo “Reclamar ahora” estará disponible un día después de que se complete esta reclamación."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tu próximo “Reclamar ahora” estará disponible %lld días después de que se complete esta reclamación."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tu próximo “Reclamar ahora” estará disponible un día después de que se complete esta reclamación."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Tu próximo “Reclamar ahora” estará disponible %lld días después de que se complete esta reclamación."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Votre prochain « Réclamer maintenant » sera disponible un jour après l’aboutissement de cette réclamation."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Votre prochain « Réclamer maintenant » sera disponible %lld jours après l’aboutissement de cette réclamation."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» הבא יהיה זמין יום אחד אחרי שהמימוש הזה יושלם."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» הבא יהיה זמין יומיים אחרי שהמימוש הזה יושלם."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» הבא יהיה זמין %lld ימים אחרי שהמימוש הזה יושלם."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "«מימוש עכשיו» הבא יהיה זמין %lld ימים אחרי שהמימוש הזה יושלם."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "अगला “अभी दावा करें” इस दावे के पूरा होने के एक दिन बाद उपलब्ध होगा।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "अगला “अभी दावा करें” इस दावे के पूरा होने के %lld दिन बाद उपलब्ध होगा।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“Klaim sekarang” berikutnya tersedia %lld hari setelah klaim ini berhasil."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Il prossimo «Riscatta ora» sarà disponibile un giorno dopo che questo riscatto sarà andato a buon fine."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Il prossimo «Riscatta ora» sarà disponibile %lld giorni dopo che questo riscatto sarà andato a buon fine."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "次の「今すぐ受け取る」は、この受け取りが完了してから %lld 日後に利用できます。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "다음 “지금 받기”는 이번 받기가 완료된 뒤 %lld일 후에 사용할 수 있습니다."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Je kunt ‘Nu opeisen’ weer gebruiken een dag nadat deze claim is gelukt."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Je kunt ‘Nu opeisen’ weer gebruiken %lld dagen nadat deze claim is gelukt."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Następne „Odbierz teraz” będzie dostępne dzień po tym, jak ten odbiór się powiedzie."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Następne „Odbierz teraz” będzie dostępne %lld dni po tym, jak ten odbiór się powiedzie."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Następne „Odbierz teraz” będzie dostępne %lld dni po tym, jak ten odbiór się powiedzie."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Następne „Odbierz teraz” będzie dostępne %lld dnia po tym, jak ten odbiór się powiedzie."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "O próximo «Reivindicar agora» fica disponível um dia depois de esta reivindicação ser concluída."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "O próximo «Reivindicar agora» fica disponível %lld dias depois de esta reivindicação ser concluída."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "O próximo “Resgatar agora” fica disponível um dia depois que este resgate for concluído."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "O próximo “Resgatar agora” fica disponível %lld dias depois que este resgate for concluído."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "O próximo «Reivindicar agora» fica disponível um dia depois de esta reivindicação ser concluída."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "O próximo «Reivindicar agora» fica disponível %lld dias depois de esta reivindicação ser concluída."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Следующее «Получить сейчас» будет доступно через %lld день после того, как этот запрос пройдёт."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Следующее «Получить сейчас» будет доступно через %lld дня после того, как этот запрос пройдёт."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Следующее «Получить сейчас» будет доступно через %lld дней после того, как этот запрос пройдёт."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Следующее «Получить сейчас» будет доступно через %lld дня после того, как этот запрос пройдёт."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ditt nästa ”Hämta ut nu” går att använda en dag efter att det här uttaget har gått igenom."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ditt nästa ”Hämta ut nu” går att använda %lld dagar efter att det här uttaget har gått igenom."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "“รับตอนนี้” ครั้งถัดไปจะใช้ได้ %lld วันหลังจากการรับครั้งนี้สำเร็จ"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Наступне «Отримати зараз» буде доступне через %lld день після того, як цей запит пройде."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Наступне «Отримати зараз» буде доступне через %lld дні після того, як цей запит пройде."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Наступне «Отримати зараз» буде доступне через %lld днів після того, як цей запит пройде."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Наступне «Отримати зараз» буде доступне через %lld дня після того, як цей запит пройде."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Lần “Nhận ngay” tiếp theo sẽ khả dụng %lld ngày sau khi yêu cầu nhận này thành công."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "下一次“立即领取”将在本次领取完成 %lld 天后可用。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "下一次「立即領取」將在今次領取完成 %lld 日後可用。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "Your next Claim now opens on %@." : {
+      "comment" : "Earnings, the settlement v2 tile and the claim sheet: a Claim now for this address went through, so the next one opens on this date, 30 days after that claim went through (the limit the queued note names). The placeholder is a date, as Dec 3. Claim now is the button's label; keep it recognizable as that label.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يمكنك استخدام «المطالبة الآن» مرة أخرى في %@."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Další „Vyzvednout hned“ bude k dispozici %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein nächstes „Jetzt einlösen“ ist ab dem %@ möglich."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το επόμενο «Διεκδίκηση τώρα» θα είναι διαθέσιμο στις %@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next Claim now opens on %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu próximo «Reclamar ahora» estará disponible el %@."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu próximo “Reclamar ahora” estará disponible el %@."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu próximo “Reclamar ahora” estará disponible el %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre prochain « Réclamer maintenant » sera disponible le %@."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«מימוש עכשיו» הבא יהיה זמין ב-%@."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अगला “अभी दावा करें” %@ को उपलब्ध होगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Klaim sekarang” berikutnya tersedia pada %@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il prossimo «Riscatta ora» sarà disponibile il %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次の「今すぐ受け取る」は %@ に利用できるようになります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음 “지금 받기”는 %@에 사용할 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt ‘Nu opeisen’ weer gebruiken op %@."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Następne „Odbierz teraz” będzie dostępne %@."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O próximo «Reivindicar agora» fica disponível a %@."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O próximo “Resgatar agora” fica disponível em %@."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O próximo «Reivindicar agora» fica disponível a %@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Следующее «Получить сейчас» будет доступно %@."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt nästa ”Hämta ut nu” går att använda den %@."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“รับตอนนี้” ครั้งถัดไปจะใช้ได้ในวันที่ %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наступне «Отримати зараз» буде доступне %@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lần “Nhận ngay” tiếp theo sẽ khả dụng vào %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一次“立即领取”将于 %@ 可用。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一次「立即領取」將於 %@ 可用。"
           }
         }
       }

@@ -60,6 +60,9 @@ version is a minimal **convert SN25α to TAO**, which stays on the same key (see
 - A Top 200 claim that waits on this device gets one local notification for when it can go on,
   since the hotkey lives here and registering, publishing and signing wait for the app (owner,
   2026-11-04). See [When the claim needs this device](#when-the-claim-needs-this-device).
+- A Claim now tap queued behind the day's budget keeps the relay's behaviour, and the screens say it
+  plainly: its 30 days start when the claim goes through, not at the tap, and nothing promises a
+  day (owner, 2026-11-11). See [Claim now and the daily cap](#claim-now-and-the-daily-cap).
 
 ### Not in scope
 
@@ -205,7 +208,9 @@ frame, it is one of these:
 - A linked key's card keeps a small Change wallet link, which the frames leave out, so a network
   can still move from the key to a wallet.
 - After Save now, the card reads as after a delete: "This app no longer has the key".
-- The claim sheet shows Claim now as queued, refused, or on its limit's date. It can't show
+- The claim sheet shows Claim now as queued, refused, or on its limit's date. Queued and the
+  limit's date say the same limit in the same words (owner, 2026-11-11; see
+  [Claim now and the daily cap](#claim-now-and-the-daily-cap)). It can't show
   "Claimed by URnetwork" with the transaction (4d), because the relay's status doesn't name a
   transaction; a claimed balance shows as claimed on the next read.
 - The Key screen's label reads "12 words · address 5F3s…": a key here is always 12 words.
@@ -262,6 +267,63 @@ value rather than α.
 7. **Rehearse on testnet,** including griefing and a low relayer balance.
 
 Steps 2 to 5 live in server and sn, and work for every platform at once.
+
+### Claim now and the daily cap
+
+**Decided (owner, 2026-11-11): keep the relay's behaviour, and make the screens say it plainly.**
+The mocks left open whether a Claim now that waits for the day's budget uses its 30 days at the
+tap or when it goes through (the mocks' notes, "Claim now against the daily cap"). It's when it
+goes through. This is what the server does (server `controller/sn_claim_relay.go`,
+`controller/sn_claim_relay_api.go` and `model/sn_claim_relay_model.go`, as of main `cd9c1c90a`):
+
+- **The tap queues; it doesn't count.** A tap the api accepts adds the coldkey to a Redis queue
+  scored by the tap's time, and a coldkey already queued keeps its place
+  (`sn_claim_relay_api.go:432`, `sn_claim_relay_model.go:123`). Nothing is used up then. A
+  spent budget doesn't refuse the tap: `cap_reached` is a state in which claims still move
+  (`sn_claim_relay_api.go:59`, `:242`).
+- **The 30 days start when the claim goes through.** The relay finishes a request when its
+  claim's transaction is final and the receipt shows it paid (`sn_claim_relay.go:772-775`). Only
+  then does it start the coldkey's limit, a Redis key with a 30-day lifetime from that moment
+  (`sn_claim_relay_api.go:450-451`, `sn_claim_relay_model.go:170-173`). While the tap waits, the
+  api says `requested` and names no limit date (`sn_claim_relay_api.go:225`); once the limit runs,
+  it says `limit` and its end (`:219`, `:227`).
+- **Only a claim URnetwork wouldn't have sent by itself counts.** The limit starts only for a
+  balance under the automatic threshold when it's sent (`sn_claim_relay.go:671`, `:775`). A tap
+  on a larger balance only moves it ahead and uses nothing. A request that ends with nothing sent
+  uses nothing either: the balance was paid some other way, fell under the transfer floor, or its
+  coldkey was banned (`:589-599`, `:662-666`). So 30 days is the most a paid tap blocks, never
+  more. Two rare paths also leave the limit unset: a claim whose outcome only becomes final after
+  its pass, which the next pass then finds paid (`:539`, `:595`), and a lost Redis key.
+- **When it goes through.** The budget is 0.01 TAO a UTC day (`sn_claim_relay.go:119`), counted
+  from 00:00 UTC (`:387-389`, `:495`). Each pass, every 5 minutes while idle (`:106`), takes Claim
+  now requests first, oldest tap first, then automatic claims, largest first (`:575-624`). A pass
+  whose next claim doesn't fit what's left of the day stops as `cap_reached` (`:524-525`, `:703`).
+  A queued tap therefore goes out on the first pass of the first UTC day whose budget reaches it.
+  That is usually right after 00:00 UTC, but not always: at about 0.0008 TAO a claim the cap pays
+  for about 12 a day, so with more taps queued ahead than a day's budget covers, it waits another
+  day, and so on. No day is guaranteed. A pause (gas price over the ceiling, a low relayer balance,
+  the griefing stop) holds every claim, and a refused claim waits an hour, or the next UTC day if
+  it reverted.
+- **If the next day's cap is spent too,** the request stays in the queue with its place, and it
+  still hasn't used its 30 days. v2 credit never expires, so waiting costs nothing. The queue's
+  Redis key lives 60 days past its newest tap (`sn_claim_relay_model.go:34`); a queue that lapses
+  only means tapping again, with nothing used up.
+
+So the queued state says what happens and when the next one opens, and promises no day. The
+limit's date reads as the same limit:
+
+| State | Words (store key) |
+|---|---|
+| Queued, under Claim now and after the tap | "Claim now is queued. It goes out ahead of automatic claims, in the order requests came in, as each day's budget allows." (`sn_claim_relay_requested`) |
+| Queued, the second line, with the relay's period | "Your next Claim now opens 30 days after this claim goes through." (`sn_claim_relay_requested_period`, a plural of `ClaimNowPeriodDays`; no period, no line) |
+| The day's budget is spent | "Today's claim budget is used up, so this waits. The budget renews each day at 00:00 UTC. Nothing is lost: this credit never expires." (`sn_claim_relay_cap`) |
+| On the limit's date, and in the claimed state | "Your next Claim now opens on {date}." (`sn_claim_relay_again_on`) |
+
+"Opens 30 days after" is the most a tap can block. A tap on a balance due anyway opens sooner,
+which the words don't promise. Before this, the queued note said "URnetwork sends it first, within
+today's budget" beside "this waits for the next day", and no screen said when the 30 days start.
+The sdk passes the reasons through unchanged (sdk `sn_claim_relay.go`); the apps and ur.io word
+them from the store.
 
 ## Convert SN25α to TAO
 
@@ -669,8 +731,10 @@ All answered as of 2026-11-03. The numbers stay because other sections refer to 
    about 3 α today); "Claim now" once balance clears the transfer floor (0.0001 TAO of value),
    at most once per 30 days per coldkey; and a daily cap of 0.01 TAO on claims. v2 credit never
    expires, so waiting costs the miner nothing. At about 0.00074 to 0.0008 TAO a claim, the cap pays
-   for about 12 claims a day; past that, claims wait for the next day. Bindings and top-ups are
-   outside this cap (questions 15 and 16).
+   for about 12 claims a day; past that, claims wait for a later UTC day, Claim now taps first in
+   the order they came in, and a tap's 30 days start only when its claim goes through (owner,
+   2026-11-11; see [Claim now and the daily cap](#claim-now-and-the-daily-cap)). Bindings and
+   top-ups are outside this cap (questions 15 and 16).
 
 2. **Decided (owner, 2026-11-03): convert ships as soon as it's ready, with no limit by region.** It's
    separate work from the rest of the key flow, so neither waits for the other.

@@ -119,7 +119,9 @@ struct SnClaimRelayReason: View {
             case SdkSnClaimReasonQueued:
                 title("URnetwork claims this soon.")
             case SdkSnClaimReasonCapReached:
-                title("Today's claim budget is used up, so this waits for the next day. Nothing is lost: this credit never expires.")
+                // the budget renews at 00:00 UTC, and a claim goes out once a
+                // day's budget reaches it: no day is promised
+                title("Today's claim budget is used up, so this waits. The budget renews each day at 00:00 UTC. Nothing is lost: this credit never expires.")
             case SdkSnClaimReasonRefused:
                 title("The last claim didn't go through. URnetwork tries again later.")
             case SdkSnClaimReasonRelayNotRunning:
@@ -175,10 +177,10 @@ struct SnClaimNowNote: View {
                         Text("Claim now needs a balance worth at least \(SnAlpha.formatTaoAmount(rao: status.transferFloorTaoRao)) TAO.")
                     }
                 case SdkSnClaimNowReasonRequested:
-                    Text("Claim now is queued. URnetwork sends it first, within today's budget.")
+                    SnClaimNowQueuedText(status: status)
                 case SdkSnClaimNowReasonLimit:
                     if 0 < status.claimNowNextAtMillis {
-                        Text("Claim now is available again on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")
+                        Text("Your next Claim now opens on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")
                     }
                 default:
                     EmptyView()
@@ -192,6 +194,28 @@ struct SnClaimNowNote: View {
 
     static func date(_ millis: Int64) -> String {
         Date(timeIntervalSince1970: TimeInterval(millis) / 1000).formatted(date: .abbreviated, time: .omitted)
+    }
+}
+
+/// Claim now queued (the mocks' 4c), as the relay runs it (owner, 2026-11-11;
+/// BTEASY.md, Claim now and the daily cap): taps go out ahead of the automatic
+/// claims, the oldest first, as each day's budget allows, so no day is
+/// promised; and the coldkey's limit starts when URnetwork pays this claim,
+/// not at the tap, so the next Claim now opens the relay's period after it
+/// goes through. No period, no second line.
+struct SnClaimNowQueuedText: View {
+
+    let status: SnClaimStatusInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Claim now is queued. It goes out ahead of automatic claims, in the order requests came in, as each day's budget allows.")
+                .fixedSize(horizontal: false, vertical: true)
+            if 0 < status.claimNowPeriodDays {
+                Text("Your next Claim now opens \(status.claimNowPeriodDays) days after this claim goes through.")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 }
 
@@ -286,7 +310,7 @@ struct SnClaimRelayAgainOn: View {
 
     var body: some View {
         if 0 < status.claimNowNextAtMillis {
-            Text("Claim now is available again on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")
+            Text("Your next Claim now opens on \(SnClaimNowNote.date(status.claimNowNextAtMillis)).")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .fixedSize(horizontal: false, vertical: true)
@@ -382,14 +406,14 @@ struct ClaimRelaySheet: View {
     private func claimNowContent(_ status: SnClaimStatusInfo) -> some View {
         switch viewModel.claimNowOutcome {
         case .requested:
-            Text("Claim now is queued. URnetwork sends it first, within today's budget.")
+            SnClaimNowQueuedText(status: status)
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
-                .fixedSize(horizontal: false, vertical: true)
             UrButton(text: "Queued", action: {}, enabled: false, accessibilityIdentifier: "earnings.claimRelay.queued")
         case .refused(let reason, let nextAtMillis):
+            // a tap already queued reads as queued, with the relay's period
             SnClaimNowNote(
-                status: SnClaimStatusInfo(claimNowReason: reason, claimNowNextAtMillis: nextAtMillis, transferFloorTaoRao: status.transferFloorTaoRao),
+                status: SnClaimStatusInfo(claimNowReason: reason, claimNowNextAtMillis: nextAtMillis, transferFloorTaoRao: status.transferFloorTaoRao, claimNowPeriodDays: status.claimNowPeriodDays),
                 eachColdkey: true
             )
         case .failed(let message):

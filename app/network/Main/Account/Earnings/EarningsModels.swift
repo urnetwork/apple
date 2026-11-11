@@ -207,7 +207,9 @@ struct SnClaimStatusInfo: Equatable {
 
 /// The answer to a Claim now tap.
 enum SnClaimNowOutcome: Equatable {
-    /// URnetwork sends it first, within the day's budget
+    /// queued: URnetwork sends it ahead of its automatic claims, the oldest
+    /// request first, as each day's budget allows; the coldkey's limit starts
+    /// only once this claim goes through
     case requested
     /// not taken: sdk SnClaimNowReason* or SnClaimReason*, and when the
     /// coldkey's limit ends for a tap the limit refused

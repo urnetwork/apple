@@ -15,6 +15,9 @@ struct AccountNavStackView: View {
     @StateObject private var viewModel: ViewModel = ViewModel()
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
+    // the main screen's notice of the network's Pro features in use, read
+    // again when the device list closes
+    @EnvironmentObject var proFeaturesNoticeStore: ProFeaturesNoticeStore
     // a regular-width window shows the list beside the chosen screen
     @Environment(\.isRegularWidth) private var isRegularWidth
     
@@ -34,6 +37,9 @@ struct AccountNavStackView: View {
     let networkReliabilityWindow: SdkReliabilityWindow?
     let fetchNetworkReliability: () async -> Void
     let isPro: Bool
+    // Get Pro on an Account screen (the device list's Pro features notice):
+    // the connect screen's upgrade sheet
+    let openUpgradeSheet: () -> Void
     
     init(
         api: SdkApi,
@@ -45,7 +51,8 @@ struct AccountNavStackView: View {
         providerCountries: [SdkConnectLocation],
         networkReliabilityWindow: SdkReliabilityWindow?,
         fetchNetworkReliability: @escaping () async -> Void,
-        isPro: Bool
+        isPro: Bool,
+        openUpgradeSheet: @escaping () -> Void
     ) {
         self.api = api
         _accountPreferencesViewModel = StateObject.init(wrappedValue: AccountPreferencesViewModel(
@@ -70,6 +77,7 @@ struct AccountNavStackView: View {
         self.networkReliabilityWindow = networkReliabilityWindow
         self.fetchNetworkReliability = fetchNetworkReliability
         self.isPro = isPro
+        self.openUpgradeSheet = openUpgradeSheet
     }
     
     var body: some View {
@@ -283,10 +291,15 @@ struct AccountNavStackView: View {
 
             // the network's devices and hosted proxies, each removable to
             // free a slot of the plan's devices connected at once; the sdk
-            // controller is this device's (ManageDevicesStore)
-            ManageDevicesView(store: ManageDevicesStore.forDevice(device))
+            // controller is this device's (ManageDevicesStore). Once it goes
+            // the main screen's Pro features notice is read again, as a
+            // removal can take the last SOCKS or WireGuard proxy
+            ManageDevicesView(store: ManageDevicesStore.forDevice(device), openUpgrade: openUpgradeSheet)
                 .navigationTitle("Manage devices")
                 .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+                .onDisappear {
+                    proFeaturesNoticeStore.refresh()
+                }
 
         case .blockedLocations:
 

@@ -297,6 +297,10 @@ struct NetworkApp: App {
     #endif
     // what providing does on battery, and the power state (P077)
     @StateObject var providePowerStore = ProvidePowerStore()
+    // the main screen's notice of the network's Pro features in use (SOCKS
+    // and WireGuard proxies without Pro): one sdk controller per sign-in,
+    // following the device, window shown or not
+    @StateObject var proFeaturesNoticeStore = ProFeaturesNoticeStore()
     // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
     @StateObject var deepLinkRouter = DeepLinkRouter()
 
@@ -496,6 +500,9 @@ struct NetworkApp: App {
             deviceManager.applicationDidBecomeActive()
             providePowerStore.applicationDidBecomeActive()
             updateConnectViewModel(deviceManager.device)
+            // in front again: the proxies may have changed meanwhile (ur.io,
+            // another device), and the plan with them
+            proFeaturesNoticeStore.refresh()
         case .suspend:
             deviceManager.applicationDidBecomeInactive()
             // inactive now: suspends, or resets with no device
@@ -566,6 +573,7 @@ struct NetworkApp: App {
                 .environmentObject(transportDelayStore)
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
+                .environmentObject(proFeaturesNoticeStore)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 // the payout key's reminder, tapped: the Key screen
                 .onReceive(BittensorKeyReminderTaps.shared.$pending) { pending in
@@ -598,6 +606,9 @@ struct NetworkApp: App {
                 .background(themeManager.currentTheme.backgroundColor)
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
+                    // a sign-in opens the Pro features notice's controller,
+                    // a sign out closes it
+                    proFeaturesNoticeStore.follow(api: deviceManager.api, device: device)
                     #if DEBUG
                     PhysicalPeerTestDriver.runIfRequested(
                         deviceManager: deviceManager,
@@ -618,6 +629,9 @@ struct NetworkApp: App {
                     if isPro, connectViewModel.clientLimitHoldOfferedUpgrade {
                         connectViewModel.retryClientLimitAfterChange()
                     }
+                    // and the Pro features notice reads the plan again: the
+                    // server's, live, decides whether it stays
+                    proFeaturesNoticeStore.refresh()
                 }
                 .onChange(of: scenePhase) { phase in
                     setPresentationActive(phase == .active)
@@ -672,6 +686,7 @@ struct NetworkApp: App {
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environmentObject(splitTunnelProxyController)
+                .environmentObject(proFeaturesNoticeStore)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 // the payout key's reminder, tapped: the Key screen
                 .onReceive(BittensorKeyReminderTaps.shared.$pending) { pending in
@@ -732,6 +747,14 @@ struct NetworkApp: App {
                 .onReceive(deviceManager.$device) { device in
                     updateConnectViewModel(device)
                     updateMenuBarTransportDelay(device)
+                    // a sign-in opens the Pro features notice's controller,
+                    // a sign out closes it
+                    proFeaturesNoticeStore.follow(api: deviceManager.api, device: device)
+                }
+                .onChange(of: deviceManager.isPro) { _ in
+                    // the Pro features notice reads the plan again: the
+                    // server's, live, decides whether it stays
+                    proFeaturesNoticeStore.refresh()
                 }
                 .onChange(of: scenePhase) { phase in
                     setMacPresentationActive(sceneActive: phase == .active)

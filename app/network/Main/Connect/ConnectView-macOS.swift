@@ -32,6 +32,8 @@ import URnetworkSdk
 
         @EnvironmentObject var connectViewModel: ConnectViewModel
         @EnvironmentObject var deepLinkRouter: DeepLinkRouter
+        // the network's hosted proxies hold SOCKS or WireGuard without Pro
+        @EnvironmentObject var proFeaturesNoticeStore: ProFeaturesNoticeStore
 
         @State var isLoading: Bool = false
 
@@ -66,8 +68,10 @@ import URnetworkSdk
         // the one Referrals screen, presented from the drawer's referral row
         @State private var isPresentedReferrals = false
         @State private var isPresentedDataInfo = false
-        // the device list, presented from the client limit notice
+        // the device list, presented from the client limit notice and the Pro
+        // features notice, and whether its Get Pro asked for the upgrade sheet
         @State private var isPresentedManageDevices = false
+        @State private var opensUpgradeAfterManageDevices = false
 
         init(
             api: SdkApi,
@@ -197,7 +201,9 @@ import URnetworkSdk
                                 retryClientLimit: connectViewModel.retryClientLimit,
                                 openManageDevices: {
                                     isPresentedManageDevices = true
-                                }
+                                },
+                                proFeaturesPrompt: proFeaturesNoticeStore.mainPrompt,
+                                dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice
                             )
                             
                         }
@@ -342,12 +348,26 @@ import URnetworkSdk
             }
             // "About your data", from the usage bar and the out-of-balance notice
             .dataInfoSheet(isPresented: $isPresentedDataInfo, isPro: isPro)
-            // the device list, from the client limit notice: removing a
-            // device frees a slot, and the sdk ends this device's hold
-            .sheetOffTheFold(isPresented: $isPresentedManageDevices) {
+            // the device list, from the client limit notice and the Pro
+            // features notice: removing a device frees a slot, and the sdk
+            // ends this device's hold. Once it closes the Pro features are
+            // read again, as a removal can take the last SOCKS or WireGuard
+            // proxy, and its Get Pro opens the upgrade sheet then: a
+            // presentation made while another one dismisses can be dropped
+            .sheetOffTheFold(isPresented: $isPresentedManageDevices, onDismiss: {
+                proFeaturesNoticeStore.refresh()
+                if opensUpgradeAfterManageDevices {
+                    opensUpgradeAfterManageDevices = false
+                    connectViewModel.isPresentedUpgradeSheet = true
+                }
+            }) {
                 if let device = deviceManager.device {
                     ManageDevicesSheet(
                         store: ManageDevicesStore.forDevice(device),
+                        openUpgrade: {
+                            opensUpgradeAfterManageDevices = true
+                            isPresentedManageDevices = false
+                        },
                         dismiss: { isPresentedManageDevices = false }
                     )
                     .environmentObject(themeManager)

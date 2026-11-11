@@ -141,7 +141,8 @@ struct MainTabView: View {
                 providerCountries: providerListStore.providerCountries,
                 networkReliabilityWindow: networkReliabilityStore.reliabilityWindow,
                 fetchNetworkReliability: networkReliabilityStore.getNetworkReliability,
-                isPro: isPro
+                isPro: isPro,
+                openUpgradeSheet: openUpgradeSheet
             )
             .background(themeManager.currentTheme.backgroundColor)
             .tabItem {
@@ -342,13 +343,20 @@ struct MainTabView: View {
                 presentOnboardingOffer = true
             } else {
                 // no active offer: the regular upgrade sheet
-                selectedTab = 0
-                connectViewModel.isPresentedUpgradeSheet = true
+                openUpgradeSheet()
             }
         case .feedback(let rating, let reason, let token):
             selectedTab = 3
             deepLinkRouter.prefillFeedback(FeedbackPrefill(rating: rating, reason: reason, token: token))
         }
+    }
+
+    /// The connect screen's upgrade sheet, from another tab: the connect tab,
+    /// where the sheet presents, with the sheet. An email's offer link without
+    /// an offer, and the Account device list's Get Pro.
+    private func openUpgradeSheet() {
+        selectedTab = 0
+        connectViewModel.isPresentedUpgradeSheet = true
     }
 
     /// What a tap on the Connect tab item does: select the tab, and when it

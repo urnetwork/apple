@@ -36,6 +36,17 @@ struct AppClientInfoTests {
         #endif
     }
 
+    /// The distribution is what tells the server the App Store Mac from the
+    /// direct-download Mac, which send the same device type and version.
+    @Test func theDistributionIsTheBuilds() {
+        #expect(AppClientInfo.distribution(.appStore) == "app_store")
+        #expect(AppClientInfo.distribution(.direct) == "mac_direct")
+        #expect(AppClientInfo.buildDistribution == AppClientInfo.distribution(BillingDistribution.current))
+        #if !DIRECT_DOWNLOAD
+        #expect(AppClientInfo.buildDistribution == "app_store")
+        #endif
+    }
+
     @Test func everyNetworkSpaceTheManagerActivatesReportsThisApp() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
             "client-info-test-" + UUID().uuidString,
@@ -65,11 +76,13 @@ struct AppClientInfoTests {
         #expect(info.deviceType == AppClientInfo.deviceType)
         #expect(info.appVersion == AppClientInfo.bundleAppVersion)
         #expect(!info.appVersion.isEmpty)
+        #expect(info.distribution == AppClientInfo.buildDistribution)
 
         // a replaced space (another network server) gets it too
         manager.setActiveNetworkSpace(second)
         #expect(second.getApi()?.getClientInfo()?.deviceType == AppClientInfo.deviceType)
         #expect(second.getApi()?.getClientInfo()?.appVersion == AppClientInfo.bundleAppVersion)
+        #expect(second.getApi()?.getClientInfo()?.distribution == AppClientInfo.buildDistribution)
         #expect(manager.api?.getClientInfo()?.deviceType == AppClientInfo.deviceType)
     }
 }

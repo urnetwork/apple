@@ -166,15 +166,12 @@ struct CryptoPaymentSdkTests {
         #expect(catalog.ticker(asset: "btc") == "BTC")
         #expect(catalog.ticker(asset: "eth") == "ETH")
         #expect(catalog.ticker(asset: "sol") == "SOL")
-        #expect(catalog.walletSuggestions(asset: "xmr") == ["Cake", "Feather", "Monerujo", "Stack", "Unstoppable"])
-        #expect(catalog.walletSuggestions(asset: "zec") == ["Zodl", "Cake", "Zingo", "Zkool", "Vizor"])
-        #expect(catalog.walletSuggestions(asset: "usdc_solana") == ["Phantom", "Solflare"])
-        #expect(catalog.walletSuggestions(asset: "sol") == ["Phantom", "Solflare"])
+        // only TAO's invoice names wallets (the owner, 2026-11-11): every
+        // other coin's names none, so it shows no wallets line
         #expect(catalog.walletSuggestions(asset: "tao") == ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"])
-        // Bitcoin's and ETH's own lists (the owner's, 2026-11-11): their invoices show the line too
-        #expect(catalog.walletSuggestions(asset: "btc") == ["Sparrow", "BlueWallet", "Electrum", "Ledger", "Trezor"])
-        #expect(catalog.walletSuggestions(asset: "eth") == ["MetaMask", "Rabby", "Coinbase Wallet", "Ledger", "Trezor"])
-        #expect(catalog.walletSuggestions(asset: "card").isEmpty)
+        for asset in ["usdc_solana", "zec", "xmr", "btc", "eth", "sol", "card"] {
+            #expect(catalog.walletSuggestions(asset: asset).isEmpty, "\(asset)")
+        }
         #expect(!catalog.allowsPlan(method: "xmr", plan: "monthly"))
         #expect(!catalog.allowsPlan(method: "tao", plan: "monthly"))
         #expect(catalog.allowsPlan(method: "xmr", plan: "yearly"))

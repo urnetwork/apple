@@ -24661,7 +24661,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统将生成一个新的助记词并关联到你的帐户。"
+            "value" : "系统将生成一个新的助记词并关联到你的账户。"
           }
         },
         "zh-HK" : {
@@ -25829,7 +25829,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "如果你无法访问帐户，助记词可以帮你恢复。"
+            "value" : "如果你无法访问账户，助记词可以帮你恢复。"
           }
         },
         "zh-HK" : {
@@ -25995,7 +25995,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "如果你无法访问帐户，助记词可以帮你恢复。请妥善保管。"
+            "value" : "如果你无法访问账户，助记词可以帮你恢复。请妥善保管。"
           }
         },
         "zh-HK" : {
@@ -26663,7 +26663,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "帐户"
+            "value" : "账户"
           }
         },
         "zh-HK" : {
@@ -35180,7 +35180,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您确定要删除您的帐户吗？"
+            "value" : "您确定要删除您的账户吗？"
           }
         },
         "zh-HK" : {
@@ -36183,7 +36183,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建认证码"
+            "value" : "创建验证码"
           }
         },
         "zh-HK" : {
@@ -78518,7 +78518,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建帐户"
+            "value" : "创建账户"
           }
         },
         "zh-HK" : {
@@ -79187,7 +79187,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建即时帐户"
+            "value" : "创建即时账户"
           }
         },
         "zh-HK" : {
@@ -79521,7 +79521,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建的认证码将在5分钟后失效"
+            "value" : "创建的验证码将在5分钟后失效"
           }
         },
         "zh-HK" : {
@@ -125381,7 +125381,7 @@
       }
     },
     "Insufficient balance" : {
-      "comment" : "Call to action",
+      "comment" : "Shown on the Connect screen when the account's data balance has run out: a balance of data, not of money.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -125506,7 +125506,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Недостаточно средств"
+            "value" : "Недостаточный баланс данных"
           }
         },
         "sv" : {
@@ -125524,7 +125524,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Недостатньо коштів"
+            "value" : "Недостатній баланс даних"
           }
         },
         "vi" : {
@@ -135073,7 +135073,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关联另一种登录帐户的方式。"
+            "value" : "关联另一种登录账户的方式。"
           }
         },
         "zh-HK" : {
@@ -147118,7 +147118,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无需邮箱、电话或密码。你的帐户由助记词保护。"
+            "value" : "无需邮箱、电话或密码。你的账户由助记词保护。"
           }
         },
         "zh-HK" : {
@@ -196100,7 +196100,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保护你的帐户"
+            "value" : "保护你的账户"
           }
         },
         "zh-HK" : {
@@ -231954,7 +231954,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "验证您的认证码时出错。请重试或生成新的认证码。"
+            "value" : "验证您的验证码时出错。请重试或生成新的验证码。"
           }
         },
         "zh-HK" : {
@@ -274433,7 +274433,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请抄写下来并存放在安全的地方。一旦丢失，你将无法再访问你的帐户。"
+            "value" : "请抄写下来并存放在安全的地方。一旦丢失，你将无法再访问你的账户。"
           }
         },
         "zh-HK" : {

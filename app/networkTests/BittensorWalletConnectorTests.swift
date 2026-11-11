@@ -466,7 +466,7 @@ struct BittensorWalletConnectorTests {
         func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?) { ([], 0, nil) }
         func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void) {}
         func ledgerChain() -> SnLedgerChainInfo { .unconfigured }
-        func ledgerAccounts() async throws -> [SnLedgerAccountInfo] { [] }
+        func ledgerAccounts() async throws -> SnLedgerAccountsInfo { SnLedgerAccountsInfo(accounts: []) }
         func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {}
         func accountEpochs() async throws -> [AccountEpochInfo] { [] }
         func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }

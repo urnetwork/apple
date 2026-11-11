@@ -9,6 +9,9 @@
 //  reads "No payout published" now. The count counts the claimable epochs,
 //  so it says so instead of "finalized epochs".
 //
+//  Capture the flag (sn/CAPTURETHEFLAG.md §10): each settlement v2 pool's
+//  name, "Pool 1" as before, "Provider pool" and "Capture the flag".
+//
 //  Reads the app's English and German strings, as the catalog builds them,
 //  and drives the view model with canned claims; no device or chain.
 //  SnClaimCatalogTests checks the catalog itself.
@@ -61,6 +64,17 @@ struct SnClaimTextTests {
     @Test func theCountUnderTheUnclaimedTotalSaysClaimableEpochs() throws {
         #expect(SnClaimText.claimableEpochs(2, bundle: try Self.strings("en")) == "Claimable epochs: 2")
         #expect(SnClaimText.claimableEpochs(2, bundle: try Self.strings("de")) == "Einlösbare Epochen: 2")
+    }
+
+    @Test func eachPoolIsNamedInTheAppsLanguage() throws {
+        let en = try Self.strings("en")
+        let de = try Self.strings("de")
+        // before capture the flag, as it has read
+        #expect(SnLedgerPoolName.pool(noId: 1).text(bundle: en) == "Pool 1")
+        #expect(SnLedgerPoolName.providerPool.text(bundle: en) == "Provider pool")
+        #expect(SnLedgerPoolName.captureTheFlag.text(bundle: en) == "Capture the flag")
+        #expect(SnLedgerPoolName.providerPool.text(bundle: de) == "Anbieter-Pool")
+        #expect(SnLedgerPoolName.captureTheFlag.text(bundle: de) == "Capture the Flag")
     }
 
     @Test func theCountIsTheClaimableEpochs() async throws {

@@ -122,6 +122,19 @@ struct SnLedgerAccountKey: Hashable {
     let index: Int64
 }
 
+/// What a settlement v2 pool pays for (sdk SnLedgerPoolKind*): the operator's
+/// pool, or its capture the flag pool (sn/CAPTURETHEFLAG.md §10), which pays
+/// each epoch's draw winners. The sdk reads an entry from a server that
+/// predates kinds, and a kind it does not know, as a pool.
+enum SnLedgerPoolKind: Equatable {
+    case pool
+    case ctf
+
+    init(sdkKind: String) {
+        self = sdkKind == SdkSnLedgerPoolKindCtf ? .ctf : .pool
+    }
+}
+
 /// The coldkey's settlement v2 account in one operator pool, from the SDK's
 /// SnLedgerAccount (the operator's GET /sn/ledger/account). Amounts are rao.
 /// The balance is cumulative and never expires.
@@ -140,6 +153,8 @@ struct SnLedgerAccountInfo: Identifiable, Equatable {
     /// pendingRao as its cumulative
     let pending: Bool
     let pendingRao: Int64
+    /// what the pool pays for; a pool for a server that predates kinds
+    var kind: SnLedgerPoolKind = .pool
 
     var id: SnLedgerAccountKey {
         SnLedgerAccountKey(noId: noId, index: index)
@@ -153,6 +168,31 @@ struct SnLedgerAccountInfo: Identifiable, Equatable {
         }
         return pendingRao - finalizedRao
     }
+}
+
+/// A pool whose ledger the operator could not read just now (sdk
+/// SnLedgerUnavailablePool): whether the coldkey has an account there is
+/// unknown, so its row says so in place of the balances, never 0, and the
+/// other pools show as usual.
+struct SnLedgerUnavailablePool: Equatable {
+    /// the pool's STSettlementVault2
+    let vault: String
+    let noId: Int64
+    var kind: SnLedgerPoolKind = .pool
+
+    /// the key the sdk's claim reports the pool's failure under: its noId,
+    /// and index 0, since its account's index is unknown
+    var id: SnLedgerAccountKey {
+        SnLedgerAccountKey(noId: noId, index: 0)
+    }
+}
+
+/// A settlement v2 ledger read (sdk SnLedgerAccountsResult): the coldkey's
+/// accounts, one per pool, and the pools that could not be read just now. A
+/// server that predates capture the flag names none of the latter.
+struct SnLedgerAccountsInfo: Equatable {
+    var accounts: [SnLedgerAccountInfo]
+    var unavailablePools: [SnLedgerUnavailablePool] = []
 }
 
 /// What the v2 claim needs from the SDK's chain settings.
@@ -183,6 +223,9 @@ struct SnClaimStatusInfo: Equatable {
     /// in rao of TAO
     var automaticThresholdTaoRao: Int64 = 0
     var transferFloorTaoRao: Int64 = 0
+    /// the transfer floor in rao of α at the relay's last price, 0 without
+    /// one: a capture the flag balance under it waits (sdk TransferFloorRao)
+    var transferFloorRao: Int64 = 0
     var claimNowPeriodDays: Int64 = 0
     /// the balances could not be read: unavailable, never zero
     var unavailable = false
@@ -197,11 +240,41 @@ struct SnClaimStatusInfo: Equatable {
     var claimTxUrl: String = ""
     /// what that claim paid, in rao of α (sdk ClaimAmountRao)
     var claimAmountRao: Int64 = 0
+    /// each of the network's accounts, one per coldkey and pool, including a
+    /// wallet's it replaced, whose balance URnetwork keeps claiming (sdk
+    /// Accounts); the top level is the primary coldkey's accounts together
+    var accounts: [SnClaimRelayAccountInfo] = []
+    /// the pools whose ledger could not be read just now (sdk
+    /// UnavailablePools): the top level leaves them out
+    var unavailablePools: [SnLedgerUnavailablePool] = []
 
     /// URnetwork is the one claiming: it is, or it will once a balance or a
     /// new day allows. Otherwise the device's own claim is the way for now.
     var relayClaims: Bool {
         reason != SdkSnClaimReasonRelayNotRunning && reason != SdkSnClaimReasonRelayPaused
+    }
+}
+
+/// One of the network's accounts as URnetwork's claim relay sees it (sdk
+/// SnClaimRelayAccount): a coldkey's account in one pool. Amounts are rao of
+/// α.
+struct SnClaimRelayAccountInfo: Equatable {
+    var coldkeySs58: String = ""
+    var noId: Int64 = 0
+    var kind: SnLedgerPoolKind = .pool
+    var claimableRao: Int64 = 0
+    /// the account's latest claim when URnetwork sent it: the transaction, its
+    /// page on the explorer ("" without one) and what it paid; "" and 0 for a
+    /// claim anyone else sent, or none
+    var claimTxHash: String = ""
+    var claimTxUrl: String = ""
+    var claimAmountRao: Int64 = 0
+
+    /// URnetwork's claim is the account's latest and nothing is claimable
+    /// since: the sdk's ShowsClaimed rule, which it decides for the top level
+    /// only, applied to the account
+    var showsClaimed: Bool {
+        !claimTxHash.isEmpty && claimableRao <= 0
     }
 }
 

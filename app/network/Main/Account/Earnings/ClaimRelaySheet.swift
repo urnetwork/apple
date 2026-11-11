@@ -8,7 +8,9 @@
 //  the automatic threshold, and on Claim now, at most once in a period for
 //  each coldkey. Small amounts wait and say why. The device's own claim with
 //  its gas key stays as the fallback. The sdk decides all of it
-//  (SnClaimStatus); these views only word it.
+//  (SnClaimStatus); these views only word it. Beside capture the flag
+//  (sn/CAPTURETHEFLAG.md §10) the claim sheet lists each pool's account, and
+//  Claim now, which keeps its label, claims them all.
 //
 
 import SwiftUI
@@ -265,6 +267,8 @@ struct SnClaimRelayClaimed: View {
     @Environment(\.openURL) private var openURL
 
     let status: SnClaimStatusInfo
+    /// the claim's transaction shows here, not under the pools' rows
+    var linksTransaction = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -274,7 +278,7 @@ struct SnClaimRelayClaimed: View {
                     .accessibilityHidden(true)
                 SnClaimRelayClaimedText(status: status)
             }
-            if !status.claimTxUrl.isEmpty, let url = URL(string: status.claimTxUrl) {
+            if linksTransaction, !status.claimTxUrl.isEmpty, let url = URL(string: status.claimTxUrl) {
                 Button(action: {
                     openURL(url)
                 }) {
@@ -297,6 +301,84 @@ struct SnClaimRelayClaimed: View {
                 .stroke(Color.urGreen.opacity(0.6), lineWidth: 1)
         )
         .accessibilityIdentifier("earnings.claimRelay.claimed")
+    }
+}
+
+/// The claim sheet's pool rows (SnClaimRelayRow.rows): each account with what
+/// it holds to claim, Pending or Below the claim minimum, or what URnetwork's
+/// claim paid, Claimed, with that claim's transaction under it; and each pool
+/// that could not be read, unavailable right now in place of an amount.
+struct SnClaimRelayRows: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.openURL) private var openURL
+
+    let rows: [SnClaimRelayRow]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(rows) { row in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(verbatim: title(row))
+                            .font(themeManager.currentTheme.bodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        Spacer()
+                        if row.status == .unavailable {
+                            Text("Unavailable right now")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        } else {
+                            Text(verbatim: SnAlpha.format(rao: row.amountRao))
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textColor)
+                            LedgerClaimStatusPill(status: pill(row.status))
+                        }
+                    }
+                    if let txUrl = row.txUrl {
+                        Button(action: {
+                            openURL(txUrl)
+                        }) {
+                            HStack(spacing: 4) {
+                                Text("Transaction")
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 11, weight: .bold))
+                            }
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.vertical, 12)
+                if row.id != rows.last?.id {
+                    Divider()
+                }
+            }
+        }
+        .padding(.horizontal)
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .cornerRadius(12)
+        .accessibilityIdentifier("earnings.claimRelay.pools")
+    }
+
+    /// the pool, and its coldkey where the rows span more than one
+    private func title(_ row: SnClaimRelayRow) -> String {
+        let name = row.name.text()
+        return row.coldkeySs58.isEmpty ? name : "\(name) · \(SnAlpha.shortSs58(row.coldkeySs58))"
+    }
+
+    private func pill(_ status: SnClaimRelayRow.Status) -> SnLedgerClaimStatus {
+        switch status {
+        case .pending:
+            return .pending
+        case .underFloor:
+            return .underFloor
+        case .claimed:
+            return .claimed
+        case .unavailable:
+            return .unavailable
+        }
     }
 }
 
@@ -385,12 +467,18 @@ struct ClaimRelaySheet: View {
                 .foregroundColor(themeManager.currentTheme.textColor)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        // each pool's account beside capture the flag: Claim now claims them all
+        let rows = SnClaimRelayRow.rows(status)
+        if !rows.isEmpty {
+            SnClaimRelayRows(rows: rows)
+        }
         SnClaimRelaySection(status: status, claimNow: {}, selfClaim: selfClaim, inSheet: true)
 
         if status.showsClaimed {
             // the claimed state (the mocks' 4d): URnetwork claimed it all and paid
-            // the gas; a tap that queued it has landed
-            SnClaimRelayClaimed(status: status)
+            // the gas; a tap that queued it has landed. Its transaction is under
+            // the rows when they link it
+            SnClaimRelayClaimed(status: status, linksTransaction: !rows.contains { $0.txUrl != nil })
             UrButton(text: "Done", action: dismiss, accessibilityIdentifier: "earnings.claimRelay.done")
             SnClaimRelayAgainOn(status: status)
         } else {

@@ -501,7 +501,10 @@ struct UnclaimedAlphaTile: View {
 /// is the headline, then what was earned (the finalized cumulative) and
 /// paid, and what a committed root adds while it awaits finalization. A
 /// ledger that cannot be read says "Unavailable", never 0. Claim opens the
-/// v2 claim dialog once v2 claims are configured.
+/// v2 claim dialog once v2 claims are configured. A capture the flag account
+/// is a row of its own, named, under the provider pool's; a pool that could
+/// not be read says so in its row; and while both accounts are claimable the
+/// device's claim is "Claim both".
 struct SnLedgerTile: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -527,15 +530,19 @@ struct SnLedgerTile: View {
                 Text("Unavailable")
                     .font(themeManager.currentTheme.titleCondensedFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
-            case .accounts(let accounts):
-                ForEach(accounts) { account in
-                    accountBalances(account)
+            case .pools(let rows):
+                ForEach(rows) { row in
+                    poolBalances(row)
                 }
-            case .claimable(let rao):
+            case .claimable(let rao, let unavailablePools):
                 amount(rao)
                 Text("Claimable")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
+                // the total leaves them out
+                ForEach(unavailablePools) { row in
+                    poolBalances(row, named: true)
+                }
             }
             // the relay's section while it has something to say: a balance it
             // claims or waits on, or a claim it paid in full (the claimed state)
@@ -544,7 +551,7 @@ struct SnLedgerTile: View {
                 SnClaimRelaySection(status: relay, claimNow: claimNow, selfClaim: selfClaim, inSheet: false)
             } else if presentation.showsClaim {
                 Spacer().frame(height: 8)
-                UrButton(text: "Claim", action: claim, enabled: presentation.claimEnabled)
+                UrButton(text: presentation.claimsBoth ? "Claim both" : "Claim", action: claim, enabled: presentation.claimEnabled)
             }
             BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)
                 .padding(.top, 4)
@@ -567,14 +574,29 @@ struct SnLedgerTile: View {
         }
     }
 
+    /// One pool's row: its name where the tile names its pools, then the
+    /// account's balances, or "Unavailable right now" in their place, never
+    /// 0, for a pool that could not be read.
     @ViewBuilder
-    private func accountBalances(_ account: SnLedgerAccountInfo) -> some View {
-        if presentation.showsPools {
-            Text("Pool \(account.noId)")
+    private func poolBalances(_ row: SnLedgerPoolRow, named: Bool = false) -> some View {
+        if named || presentation.showsPools {
+            Text(verbatim: row.name.text())
                 .font(themeManager.currentTheme.bodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
                 .padding(.top, 8)
         }
+        switch row.balance {
+        case .account(let account):
+            accountBalances(account, underFloor: row.underFloor)
+        case .unavailable:
+            Text("Unavailable right now")
+                .font(themeManager.currentTheme.titleCondensedFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+        }
+    }
+
+    @ViewBuilder
+    private func accountBalances(_ account: SnLedgerAccountInfo, underFloor: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(verbatim: SnAlpha.formatAmount(rao: account.claimableRao))
                 .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
@@ -584,9 +606,16 @@ struct SnLedgerTile: View {
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer()
         }
-        Text("Claimable")
-            .font(themeManager.currentTheme.secondaryBodyFont)
-            .foregroundColor(themeManager.currentTheme.textMutedColor)
+        HStack(spacing: 8) {
+            Text("Claimable")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+            // no claim can move it yet: it waits in the vault until it is
+            // worth the transfer floor
+            if underFloor {
+                SnClaimRelayPill(text: "Below the claim minimum")
+            }
+        }
         Spacer().frame(height: 8)
         HStack {
             column("Earned", account.finalizedRao)

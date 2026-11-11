@@ -5,8 +5,9 @@
 //  State of the points-first Earnings screen. Points come from the account
 //  points store; this holds the subnet layer, which only carries data once a
 //  Bittensor coldkey is attached: the wallet, the epoch history rows, the
-//  vault claims, the settlement v2 accounts and their claim, the gas key
-//  balance and the network's Top 200 standing on the Protocol leaderboard.
+//  vault claims, the settlement v2 accounts (the pool's and the capture the
+//  flag pool's) and their claim, the gas key balance and the network's Top
+//  200 standing on the Protocol leaderboard.
 //
 
 import Foundation
@@ -30,6 +31,10 @@ final class EarningsViewModel: ObservableObject {
         /// failure
         case alreadyClaimed
         case failed(message: String)
+        /// the claim could not read the account's pool (ledger_unavailable
+        /// naming the pool) and claimed the others: unavailable, not a
+        /// failure
+        case unavailable
     }
 
     @Published private(set) var wallet: SnWalletInfo?
@@ -132,7 +137,25 @@ final class EarningsViewModel: ObservableObject {
 
     /// the Settlement v2 tile, or nil for none
     var ledgerTile: SnLedgerTilePresentation? {
-        SnLedgerTilePresentation.of(load: ledger, claimConfigured: ledgerChain.claimConfigured, isClaiming: isLedgerClaiming)
+        SnLedgerTilePresentation.of(
+            load: ledger,
+            claimConfigured: ledgerChain.claimConfigured,
+            isClaiming: isLedgerClaiming,
+            transferFloorRao: ledgerTransferFloorRao
+        )
+    }
+
+    /// the relay's transfer floor in rao of α, 0 while it gives none
+    var ledgerTransferFloorRao: Int64 {
+        guard let claimStatus, !claimStatus.unavailable else {
+            return 0
+        }
+        return claimStatus.transferFloorRao
+    }
+
+    /// the latest ledger read's pools: their names and the floor
+    var ledgerPools: SnLedgerPools {
+        SnLedgerPools(accounts: ledger.accounts, unavailablePools: ledger.unavailablePools, transferFloorRao: ledgerTransferFloorRao)
     }
 
     /// The Settlement v2 tile with the relay: the device's wallet's ledger as
@@ -146,7 +169,12 @@ final class EarningsViewModel: ObservableObject {
         guard let claimStatus, claimStatus.showsTile else {
             return nil
         }
-        return SnLedgerTilePresentation(balances: .claimable(claimStatus.claimableRao), showsClaim: false, claimEnabled: false, showsPools: false)
+        return SnLedgerTilePresentation(
+            balances: .claimable(claimStatus.claimableRao, unavailablePools: claimStatus.unavailablePoolRows),
+            showsClaim: false,
+            claimEnabled: false,
+            showsPools: false
+        )
     }
 
     /// Reads what the relay says, after the wallet and the ledger.
@@ -170,9 +198,17 @@ final class EarningsViewModel: ObservableObject {
         await refreshClaimStatus()
     }
 
-    /// the v2 accounts a claim pays: every one with something claimable
+    /// the v2 accounts a claim pays: every one with something claimable,
+    /// but a capture the flag balance under the transfer floor
     var ledgerClaimableAccounts: [SnLedgerAccountInfo] {
-        ledger.accounts.filter { $0.claimableRao > 0 }
+        let pools = ledgerPools
+        return ledger.accounts.filter(pools.claimable)
+    }
+
+    /// the claim claims the pool account and the capture the flag account
+    /// together: its button says "Claim both"
+    var ledgerClaimsBoth: Bool {
+        ledgerPools.claimsBoth(ledgerClaimableAccounts)
     }
 
     /// what a v2 claim pays in all, saturating rather than trapping on an
@@ -184,8 +220,14 @@ final class EarningsViewModel: ObservableObject {
         }
     }
 
+    /// One claim's reserve, however many accounts the claim pays: with two or
+    /// more the SDK sends one STClaimBatcher transaction, whose limit adds
+    /// about 150,000 gas a claim to one claim's 2.6M, and with a gas key that
+    /// cannot pay for the batch it claims them one at a time, each within the
+    /// reserve, as the sdk's SelfClaimNeedsGas counts one claim. A claim the
+    /// gas key cannot pay fails needs_gas, which shows the top-up.
     var ledgerGasNeededTao: Double {
-        Self.ledgerGasTaoPerClaim * Double(max(1, ledgerClaimableAccounts.count))
+        Self.ledgerGasTaoPerClaim
     }
 
     /// the gas key cannot cover the v2 claims, or a v2 claim just failed
@@ -276,7 +318,7 @@ final class EarningsViewModel: ObservableObject {
         ledgerChain = client.ledgerChain()
         async let balanceTask: Double? = try? client.gasBalanceTao()
         async let claimsTask: (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?)? = try? client.claims()
-        async let ledgerTask: [SnLedgerAccountInfo]? = try? client.ledgerAccounts()
+        async let ledgerTask: SnLedgerAccountsInfo? = try? client.ledgerAccounts()
         let (balance, claimsResult, ledgerResult) = await (balanceTask, claimsTask, ledgerTask)
         gasTao = balance
         if let claimsResult {
@@ -285,9 +327,10 @@ final class EarningsViewModel: ObservableObject {
             schedule = claimsResult.schedule
         }
         // the latest read decides: a failed read is unavailable even after a
-        // good one, so no claim is offered on balances that could not be read
+        // good one, so no claim is offered on balances that could not be read;
+        // a pool that could not be read is unavailable on its own
         if let ledgerResult {
-            ledger = .loaded(ledgerResult)
+            ledger = .loaded(ledgerResult.accounts, unavailablePools: ledgerResult.unavailablePools)
         } else {
             ledger = .unavailable
         }
@@ -359,8 +402,10 @@ final class EarningsViewModel: ObservableObject {
 
     // MARK: settlement v2 claims
 
-    /// Claims every v2 account with something claimable: the SDK sends one
-    /// claim per pool to STSettlementVault2 from the gas key.
+    /// Claims every v2 account with something claimable, the pool's and the
+    /// capture the flag pool's alike: the SDK sends one claim to
+    /// STSettlementVault2 from the gas key, or, for two or more, one
+    /// STClaimBatcher transaction that claims them all.
     func claimLedger() {
         let accounts = ledgerClaimableAccounts
         guard !isLedgerClaiming, ledgerChain.claimConfigured, !accounts.isEmpty else {
@@ -379,9 +424,12 @@ final class EarningsViewModel: ObservableObject {
         ledgerClaimProgress = [:]
     }
 
-    /// each account's line in the v2 claim sheet
+    /// each account's line in the v2 claim sheet, then each pool that could
+    /// not be read
     var ledgerClaimRows: [SnLedgerClaimRow] {
-        ledger.accounts.map { SnLedgerClaimRow.of($0, progress: ledgerClaimProgress[$0.id], chain: ledgerChain) }
+        let pools = ledgerPools
+        return ledger.accounts.map { SnLedgerClaimRow.of($0, progress: ledgerClaimProgress[$0.id], chain: ledgerChain, pools: pools) }
+            + ledger.unavailablePools.map { SnLedgerClaimRow.of($0, pools: pools) }
     }
 
     var ledgerClaimFailures: [(key: SnLedgerAccountKey, failure: SnLedgerClaimFailure)] {
@@ -405,10 +453,19 @@ final class EarningsViewModel: ObservableObject {
         case .confirmed(let noId, let index, let txHash, let amountRao):
             ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .confirmed(txHash: txHash, amountRao: amountRao)
         case .failed(let noId, let index, let message):
-            // already_claimed: another sender claimed it first, which is
-            // success; the refresh after Done shows the account paid
-            if SnLedgerClaimFailure.code(of: message) == SnLedgerClaimFailure.alreadyClaimedCode {
+            let code = SnLedgerClaimFailure.code(of: message)
+            if code == SnLedgerClaimFailure.alreadyClaimedCode {
+                // another sender claimed it first, which is success; the
+                // refresh after Done shows the account paid
                 ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .alreadyClaimed
+            } else if code == SnLedgerClaimFailure.ledgerUnavailableCode, noId != 0, index == 0 {
+                // the claim could not read this pool, whose account index it
+                // does not know, and claimed the others: the pool, and the
+                // account this sheet queued in it, are unavailable right now
+                let keys = ledgerClaimProgress.keys.filter { $0.noId == noId } + [SnLedgerAccountKey(noId: noId, index: index)]
+                for key in keys {
+                    ledgerClaimProgress[key] = .unavailable
+                }
             } else {
                 ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .failed(message: message)
             }

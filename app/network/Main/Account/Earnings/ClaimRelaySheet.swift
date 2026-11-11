@@ -304,18 +304,35 @@ struct SnClaimRelayClaimed: View {
     }
 }
 
-/// The claim sheet's pool rows (SnClaimRelayRow.rows): each account with what
-/// it holds to claim, Pending or Below the claim minimum, or what URnetwork's
+/// The pool rows of the relay's answer: each account with what it holds to
+/// claim, Pending, or Below the claim minimum under it, or what URnetwork's
 /// claim paid, Claimed, with that claim's transaction under it; and each pool
-/// that could not be read, unavailable right now in place of an amount.
+/// that could not be read, unavailable right now in place of an amount. In
+/// the claim sheet (SnClaimRelayRow.rows) they sit in a box of their own with
+/// their pills; on the tile (SnClaimRelayRow.tileRows) they sit bare under its
+/// total, whose relay section says Pending.
 struct SnClaimRelayRows: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.openURL) private var openURL
 
     let rows: [SnClaimRelayRow]
+    var inSheet = true
 
     var body: some View {
+        if inSheet {
+            list
+                .padding(.horizontal)
+                .background(themeManager.currentTheme.tintedBackgroundBase)
+                .cornerRadius(12)
+                .accessibilityIdentifier("earnings.claimRelay.pools")
+        } else {
+            list
+                .accessibilityIdentifier("earnings.claimRelay.tilePools")
+        }
+    }
+
+    private var list: some View {
         VStack(spacing: 0) {
             ForEach(rows) { row in
                 VStack(alignment: .leading, spacing: 4) {
@@ -332,8 +349,14 @@ struct SnClaimRelayRows: View {
                             Text(verbatim: SnAlpha.format(rao: row.amountRao))
                                 .font(themeManager.currentTheme.secondaryBodyFont)
                                 .foregroundColor(themeManager.currentTheme.textColor)
-                            LedgerClaimStatusPill(status: pill(row.status))
+                            if inSheet, let pill = pill(row.status) {
+                                LedgerClaimStatusPill(status: pill)
+                            }
                         }
+                    }
+                    // a line, not a pill: it is long in many languages
+                    if row.status == .underFloor {
+                        LedgerUnderFloorLine()
                     }
                     if let txUrl = row.txUrl {
                         Button(action: {
@@ -350,16 +373,12 @@ struct SnClaimRelayRows: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.vertical, 12)
-                if row.id != rows.last?.id {
+                .padding(.vertical, inSheet ? 12 : 4)
+                if inSheet, row.id != rows.last?.id {
                     Divider()
                 }
             }
         }
-        .padding(.horizontal)
-        .background(themeManager.currentTheme.tintedBackgroundBase)
-        .cornerRadius(12)
-        .accessibilityIdentifier("earnings.claimRelay.pools")
     }
 
     /// the pool, and its coldkey where the rows span more than one
@@ -368,16 +387,15 @@ struct SnClaimRelayRows: View {
         return row.coldkeySs58.isEmpty ? name : "\(name) · \(SnAlpha.shortSs58(row.coldkeySs58))"
     }
 
-    private func pill(_ status: SnClaimRelayRow.Status) -> SnLedgerClaimStatus {
+    /// the pill beside the amount; the floor is a line under it instead
+    private func pill(_ status: SnClaimRelayRow.Status) -> SnLedgerClaimStatus? {
         switch status {
         case .pending:
             return .pending
-        case .underFloor:
-            return .underFloor
         case .claimed:
             return .claimed
-        case .unavailable:
-            return .unavailable
+        case .underFloor, .unavailable:
+            return nil
         }
     }
 }

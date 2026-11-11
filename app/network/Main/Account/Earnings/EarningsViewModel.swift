@@ -31,6 +31,10 @@ final class EarningsViewModel: ObservableObject {
         /// failure
         case alreadyClaimed
         case failed(message: String)
+        /// the chain refused it as under the transfer floor (not_claimable:
+        /// AmountTooLow), by capture the flag's rules: it waits, below the
+        /// claim minimum, and it is no failure
+        case underFloor
         /// the claim could not read the account's pool (ledger_unavailable
         /// naming the pool) and claimed the others: unavailable, not a
         /// failure
@@ -82,6 +86,9 @@ final class EarningsViewModel: ObservableObject {
     let client: EarningsClient
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
+    /// the read of the capture the flag win, which runs beside the refresh
+    /// and never holds it up (the sdk waits up to a minute for the route)
+    private var ctfWinRead: Task<Void, Never>?
 
     /// the per-claim gas reserve in TAO, which the top-up asks for and Claim
     /// waits for: the SDK sends a v1 claim only when the gas key holds its
@@ -174,7 +181,7 @@ final class EarningsViewModel: ObservableObject {
             return nil
         }
         return SnLedgerTilePresentation(
-            balances: .claimable(claimStatus.claimableRao, unavailablePools: claimStatus.unavailablePoolRows),
+            balances: .claimable(claimStatus.tileClaimableRao, rows: SnClaimRelayRow.tileRows(claimStatus)),
             showsClaim: false,
             claimEnabled: false,
             showsPools: false
@@ -245,6 +252,12 @@ final class EarningsViewModel: ObservableObject {
         ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas && !isLedgerClaiming
     }
 
+    /// the v2 claim sheet has no amount to show, never 0: the ledger could not
+    /// be read, or it read no account and could not read a pool
+    var ledgerClaimUnavailable: Bool {
+        ledger == .unavailable || (ledger.accounts.isEmpty && !ledger.unavailablePools.isEmpty)
+    }
+
     /// How and when the provider is paid, for the foot of the points card;
     /// nil until the wallet read settles (a failed read with no cached wallet
     /// says nothing about the coldkey).
@@ -272,13 +285,12 @@ final class EarningsViewModel: ObservableObject {
         // `try?` flattens an optional result, so a failed wallet read would
         // read as "none"; earningsAttempt keeps the failure distinct
         let client = client
+        refreshCtfWin()
         async let walletTask = earningsAttempt { try await client.fetchWallet() }
         async let epochsTask = earningsAttempt { try await client.accountEpochs() }
         async let topTask = earningsAttempt { try await client.topMe() }
-        async let ctfWinTask = client.ctfLatestWin()
 
-        let (walletResult, epochsResult, topResult, ctfWinResult) = await (walletTask, epochsTask, topTask, ctfWinTask)
-        ctfWin = ctfWinResult
+        let (walletResult, epochsResult, topResult) = await (walletTask, epochsTask, topTask)
         if let walletResult {
             wallet = walletResult
             walletLoadFailed = false
@@ -302,6 +314,20 @@ final class EarningsViewModel: ObservableObject {
 
         loadedOnce = true
         isLoading = false
+    }
+
+    /// Reads the capture the flag win beside the refresh, one read at a time;
+    /// the line follows the latest read.
+    private func refreshCtfWin() {
+        guard ctfWinRead == nil else {
+            return
+        }
+        let client = client
+        ctfWinRead = Task { [weak self] in
+            let win = await client.ctfLatestWin()
+            self?.ctfWin = win
+            self?.ctfWinRead = nil
+        }
     }
 
     /// The layer that only exists with a wallet: gas key, balance, claims,
@@ -472,6 +498,11 @@ final class EarningsViewModel: ObservableObject {
                 for key in keys {
                     ledgerClaimProgress[key] = .unavailable
                 }
+            } else if SnLedgerClaimFailure.underFloor(message), ledgerPools.ctfRules {
+                // the sdk claims every account with something to claim, and
+                // the chain refuses one under the floor: by capture the flag's
+                // rules it waits, as the sheet said, and is no failure
+                ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .underFloor
             } else {
                 ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .failed(message: message)
             }

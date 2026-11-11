@@ -537,14 +537,18 @@ struct SnLedgerTile: View {
                 ForEach(rows) { row in
                     poolBalances(row)
                 }
-            case .claimable(let rao, let unavailablePools):
-                amount(rao)
-                Text("Claimable")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                // the total leaves them out
-                ForEach(unavailablePools) { row in
-                    poolBalances(row, named: true)
+            case .claimable(let rao, let rows):
+                // no total while the relay could read no account, never 0
+                if let rao {
+                    amount(rao)
+                    Text("Claimable")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                // the pools the total adds up, and the ones it leaves out
+                if !rows.isEmpty {
+                    SnClaimRelayRows(rows: rows, inSheet: false)
+                        .padding(.top, 4)
                 }
             }
             if let ctfWin {
@@ -585,8 +589,8 @@ struct SnLedgerTile: View {
     /// account's balances, or "Unavailable right now" in their place, never
     /// 0, for a pool that could not be read.
     @ViewBuilder
-    private func poolBalances(_ row: SnLedgerPoolRow, named: Bool = false) -> some View {
-        if named || presentation.showsPools {
+    private func poolBalances(_ row: SnLedgerPoolRow) -> some View {
+        if presentation.showsPools {
             Text(verbatim: row.name.text())
                 .font(themeManager.currentTheme.bodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
@@ -613,15 +617,13 @@ struct SnLedgerTile: View {
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer()
         }
-        HStack(spacing: 8) {
-            Text("Claimable")
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-            // no claim can move it yet: it waits in the vault until it is
-            // worth the transfer floor
-            if underFloor {
-                SnClaimRelayPill(text: "Below the claim minimum")
-            }
+        Text("Claimable")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+        // no claim can move it yet: it waits in the vault until it is worth
+        // the transfer floor
+        if underFloor {
+            LedgerUnderFloorLine()
         }
         Spacer().frame(height: 8)
         HStack {

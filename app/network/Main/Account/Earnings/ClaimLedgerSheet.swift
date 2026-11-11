@@ -22,9 +22,10 @@ struct ClaimLedgerSheet: View {
     @ObservedObject var viewModel: EarningsViewModel
     let dismiss: () -> Void
 
-    /// the ledger could not be read again: no amount, never 0
+    /// the ledger could not be read again, or nothing in it could: no amount,
+    /// never 0
     private var unavailable: Bool {
-        viewModel.ledger == .unavailable
+        viewModel.ledgerClaimUnavailable
     }
 
     private var amountText: String {
@@ -132,8 +133,14 @@ struct ClaimLedgerSheet: View {
                     Text(verbatim: viewModel.client.formatAlpha(rao: row.amountRao))
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
-                    LedgerClaimStatusPill(status: row.status)
+                    if row.status != .underFloor {
+                        LedgerClaimStatusPill(status: row.status)
+                    }
                 }
+            }
+            // a line, not a pill: it is long in many languages
+            if row.status == .underFloor {
+                LedgerUnderFloorLine()
             }
             if let explorerUrl = row.explorerUrl {
                 Button(action: {
@@ -165,6 +172,20 @@ struct ClaimLedgerSheet: View {
         case .message(let message):
             return Text(verbatim: message)
         }
+    }
+}
+
+/// "Below the claim minimum", under a pool's row: no claim can move its
+/// balance until it is worth the transfer floor; it waits in the vault.
+struct LedgerUnderFloorLine: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        Text("Below the claim minimum")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

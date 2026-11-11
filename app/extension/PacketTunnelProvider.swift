@@ -607,16 +607,22 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let deviceAppVersion = "\(appVersionString)-\(buildNumber)"
 
         // The tunnel's api calls and connect auth are uses of the signed-in
-        // session too, so they report the device type and version the app
-        // reports (AppClientInfo in the app target); Account > Sessions shows
-        // them with the session's last use. Set before a device is built on
-        // the space.
+        // session too, so they report the device type, version and
+        // distribution the app reports (AppClientInfo in the app target);
+        // Account > Sessions shows the first two with the session's last use.
+        // Only the system extension of the direct-download build defines
+        // DIRECT_DOWNLOAD. Set before a device is built on the space.
         #if os(macOS)
         let clientInfoDeviceType = "macos"
         #else
         let clientInfoDeviceType = "ios"
         #endif
-        networkSpace.getApi()?.setClientInfo(SdkNewClientInfo(clientInfoDeviceType, deviceAppVersion))
+        #if DIRECT_DOWNLOAD
+        let clientInfoDistribution = SdkClientDistributionMacDirect
+        #else
+        let clientInfoDistribution = SdkClientDistributionAppStore
+        #endif
+        networkSpace.getApi()?.setClientInfo(SdkNewClientInfoWithDistribution(clientInfoDeviceType, deviceAppVersion, clientInfoDistribution))
 
         // Conditional reset returns the exact keys it preserved under its
         // auth/storage lock. A failed ordinary read cannot become fresh keys.

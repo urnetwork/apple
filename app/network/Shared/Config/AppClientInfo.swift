@@ -2,11 +2,14 @@
 //  AppClientInfo.swift
 //  URnetwork
 //
-//  The device type and app version this app reports with its api calls (the
-//  SDK sends them as X-UR-ClientInfo and in the connect auth). The server
-//  keeps them with each session's last use, which Account > Sessions shows,
-//  e.g. "iOS · 2026.10.8-1066894190". They are advisory presentation data,
-//  not a device identity.
+//  The device type, app version and distribution this app reports with its
+//  api calls (the SDK sends them as X-UR-ClientInfo and in the connect auth).
+//  The server keeps the device type and version with each session's last use,
+//  which Account > Sessions shows, e.g. "iOS · 2026.10.8-1066894190". They are
+//  advisory presentation data, not a device identity. The distribution tells
+//  the server who bills this build: the App Store builds and the
+//  direct-download DMG send the same device type and version, and the
+//  onboarding emails' billing copy and offers follow it.
 //
 //  Set on every api the app creates or replaces: each network space owns one
 //  api, so DeviceManager sets it whenever its network space changes. The
@@ -25,6 +28,23 @@ enum AppClientInfo {
         #else
         return "ios"
         #endif
+    }
+
+    /// The build's distribution (the SDK's ClientDistribution values): the
+    /// App Store builds, iOS and the Mac App Store, or the direct-download Mac
+    /// build, as BillingDistribution reads the DIRECT_DOWNLOAD flag.
+    static func distribution(_ billing: BillingDistribution) -> String {
+        switch billing {
+        case .appStore:
+            return SdkClientDistributionAppStore
+        case .direct:
+            return SdkClientDistributionMacDirect
+        }
+    }
+
+    /// This build's distribution.
+    static var buildDistribution: String {
+        distribution(BillingDistribution.current)
     }
 
     /**
@@ -53,8 +73,9 @@ enum AppClientInfo {
         )
     }
 
-    /// Reports this app's device type and version with every call `api` makes.
+    /// Reports this app's device type, version and distribution with every
+    /// call `api` makes.
     static func apply(to api: SdkApi?) {
-        api?.setClientInfo(SdkNewClientInfo(deviceType, bundleAppVersion))
+        api?.setClientInfo(SdkNewClientInfoWithDistribution(deviceType, bundleAppVersion, buildDistribution))
     }
 }

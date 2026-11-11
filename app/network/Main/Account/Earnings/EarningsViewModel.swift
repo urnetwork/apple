@@ -75,6 +75,10 @@ final class EarningsViewModel: ObservableObject {
     @Published private(set) var claimNowOutcome: SnClaimNowOutcome?
     @Published private(set) var isClaimingNow = false
 
+    /// the capture the flag slot this device won last, for the line under the
+    /// Settlement v2 balances; nil for none, or when it could not be read
+    @Published private(set) var ctfWin: SnCtfWinInfo?
+
     let client: EarningsClient
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
@@ -271,8 +275,10 @@ final class EarningsViewModel: ObservableObject {
         async let walletTask = earningsAttempt { try await client.fetchWallet() }
         async let epochsTask = earningsAttempt { try await client.accountEpochs() }
         async let topTask = earningsAttempt { try await client.topMe() }
+        async let ctfWinTask = client.ctfLatestWin()
 
-        let (walletResult, epochsResult, topResult) = await (walletTask, epochsTask, topTask)
+        let (walletResult, epochsResult, topResult, ctfWinResult) = await (walletTask, epochsTask, topTask, ctfWinTask)
+        ctfWin = ctfWinResult
         if let walletResult {
             wallet = walletResult
             walletLoadFailed = false

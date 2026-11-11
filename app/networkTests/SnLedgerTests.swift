@@ -963,6 +963,44 @@ struct SnLedgerTests {
         #expect(status.claimableRao == 3_241_000_000)
     }
 
+    // §10 (optional line): the slot this device won last, from GET
+    // /sn/ctf/client; an answer that could not be read draws no line, and
+    // neither does a role this build does not know
+    @Test func theSdkWinReadGivesTheLatestWin() throws {
+        let win = SdkSnCtfWin()
+        win.role = SdkSnCtfRoleExtender
+        win.country = "la"
+        win.epoch = 9
+        let result = SdkSnCtfClientResult()
+        result.latestWin = win
+        #expect(EarningsSdkClient.ctfLatestWin(from: result) == SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "la"))
+        #expect(EarningsSdkClient.ctfLatestWin(from: SdkSnCtfClientResult()) == nil)
+        result.error = Self.snError(code: "unauthorized", message: "a network JWT cannot read a client's draw")
+        #expect(EarningsSdkClient.ctfLatestWin(from: result) == nil)
+
+        #expect(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is")?.role == .provider)
+        #expect(SnCtfWinInfo(role: "observer", country: "is") == nil)
+        #expect(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "") == nil)
+    }
+
+    // §10 (optional line): the refresh reads the win beside the ledger, and
+    // a later read without one draws no line
+    @Test func theRefreshReadsTheLatestWin() async throws {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account(), Self.ctfAccount()]
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is"))
+        client.ctfWinAnswer = win
+        let viewModel = EarningsViewModel(client: client)
+
+        await viewModel.refresh()
+        #expect(viewModel.ctfWin == win)
+
+        client.ctfWinAnswer = nil
+        await viewModel.refresh()
+        #expect(viewModel.ctfWin == nil)
+    }
+
     // MARK: localization
 
     /// the strings the v2 tile and dialog add
@@ -1021,8 +1059,8 @@ struct SnLedgerTests {
 
 /// A scripted EarningsClient for the v2 layer: a connected coldkey, the
 /// ledger's current answer (nil: it cannot be read) and the pools it could
-/// not read, the relay's answer, and a v2 claim the test drives event by
-/// event, as the SDK reports it.
+/// not read, the relay's answer, the latest capture the flag win, and a v2
+/// claim the test drives event by event, as the SDK reports it.
 private final class FakeLedgerClient: EarningsClient {
 
     var wallet: SnWalletInfo? = SnWalletInfo(coldkeySs58: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", clientId: "", setAtMillis: 0)
@@ -1030,6 +1068,7 @@ private final class FakeLedgerClient: EarningsClient {
     var ledgerAnswer: [SnLedgerAccountInfo]? = []
     var unavailablePools: [SnLedgerUnavailablePool] = []
     var relayAnswer: SnClaimStatusInfo?
+    var ctfWinAnswer: SnCtfWinInfo?
     private(set) var ledgerReads = 0
     var gasTao: Double = 1
     var v1Claims: [SnEpochClaimInfo] = []
@@ -1079,6 +1118,7 @@ private final class FakeLedgerClient: EarningsClient {
         onClaimEvent = onEvent
     }
     func claimStatus() async -> SnClaimStatusInfo? { relayAnswer }
+    func ctfLatestWin() async -> SnCtfWinInfo? { ctfWinAnswer }
     func accountEpochs() async throws -> [AccountEpochInfo] { [] }
     func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }
 }

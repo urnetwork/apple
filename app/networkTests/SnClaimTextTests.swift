@@ -10,7 +10,9 @@
 //  so it says so instead of "finalized epochs".
 //
 //  Capture the flag (sn/CAPTURETHEFLAG.md §10): each settlement v2 pool's
-//  name, "Pool 1" as before, "Provider pool" and "Capture the flag".
+//  name, "Pool 1" as before, "Provider pool" and "Capture the flag", and the
+//  line naming the slot this device won, with its country in the strings'
+//  language.
 //
 //  Reads the app's English and German strings, as the catalog builds them,
 //  and drives the view model with canned claims; no device or chain.
@@ -75,6 +77,14 @@ struct SnClaimTextTests {
         #expect(SnLedgerPoolName.captureTheFlag.text(bundle: en) == "Capture the flag")
         #expect(SnLedgerPoolName.providerPool.text(bundle: de) == "Anbieter-Pool")
         #expect(SnLedgerPoolName.captureTheFlag.text(bundle: de) == "Capture the Flag")
+    }
+
+    @Test func theWonLineNamesASlotOfTheCountryInTheStringsLanguage() throws {
+        let provider = try #require(SnCtfWinInfo(role: "provider", country: "is"))
+        let extender = try #require(SnCtfWinInfo(role: "extender", country: "la"))
+        #expect(provider.text(locale: Locale(identifier: "en"), bundle: try Self.strings("en")) == "You won one of the Iceland provider slots")
+        #expect(extender.text(locale: Locale(identifier: "en"), bundle: try Self.strings("en")) == "You won one of the Laos extender slots")
+        #expect(provider.text(locale: Locale(identifier: "de"), bundle: try Self.strings("de")) == "Island: Du hast einen der Anbieter-Plätze gewonnen")
     }
 
     @Test func theCountIsTheClaimableEpochs() async throws {

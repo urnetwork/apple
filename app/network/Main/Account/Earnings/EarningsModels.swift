@@ -278,6 +278,53 @@ struct SnClaimRelayAccountInfo: Equatable {
     }
 }
 
+/// The capture the flag slot this device won last (sdk
+/// SnCtfClientResult.LatestWin, from GET /sn/ctf/client): one of the up to
+/// five slots of its country and role in an epoch's draw.
+struct SnCtfWinInfo: Equatable {
+
+    enum Role: Equatable {
+        case provider
+        case extender
+    }
+
+    let role: Role
+    /// lowercase ISO 3166-1 alpha-2
+    let country: String
+
+    /// nil for a role this build does not know, or no country
+    init?(role: String, country: String) {
+        switch role {
+        case SdkSnCtfRoleProvider:
+            self.role = .provider
+        case SdkSnCtfRoleExtender:
+            self.role = .extender
+        default:
+            return nil
+        }
+        guard !country.isEmpty else {
+            return nil
+        }
+        self.country = country
+    }
+
+    /// "You won one of the Iceland provider slots": a slot, never the flag,
+    /// which a country's draw holds only once all ten of its slots are won.
+    /// The country is named in `locale`'s language (the app's: its
+    /// localization), and `bundle` is the catalog to read (nil: the app's).
+    func text(locale: Locale? = nil, bundle: Bundle? = nil) -> String {
+        let locale = locale ?? Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en")
+        let code = country.uppercased()
+        let name = locale.localizedString(forRegionCode: code) ?? code
+        switch role {
+        case .provider:
+            return String(localized: "You won one of the \(name) provider slots", bundle: bundle)
+        case .extender:
+            return String(localized: "You won one of the \(name) extender slots", bundle: bundle)
+        }
+    }
+}
+
 /// The answer to a Claim now tap.
 enum SnClaimNowOutcome: Equatable {
     /// queued: URnetwork sends it ahead of its automatic claims, the oldest

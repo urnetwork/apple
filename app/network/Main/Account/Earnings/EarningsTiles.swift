@@ -521,6 +521,9 @@ struct SnLedgerTile: View {
     /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*), when this
     /// is the first claim tile on Earnings
     var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
+    /// the capture the flag slot this device won last, for its line; nil for
+    /// none, or when the draw's answer could not be read
+    var ctfWin: SnCtfWinInfo? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -543,6 +546,10 @@ struct SnLedgerTile: View {
                 ForEach(unavailablePools) { row in
                     poolBalances(row, named: true)
                 }
+            }
+            if let ctfWin {
+                SnCtfWinLine(win: ctfWin)
+                    .padding(.top, 8)
             }
             // the relay's section while it has something to say: a balance it
             // claims or waits on, or a claim it paid in full (the claimed state)
@@ -638,6 +645,30 @@ struct SnLedgerTile: View {
                 .font(themeManager.currentTheme.titleCondensedFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
         }
+    }
+}
+
+/// The capture the flag line under the Settlement v2 balances: the slot this
+/// device won last (GET /sn/ctf/client).
+struct SnCtfWinLine: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let win: SnCtfWinInfo
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "flag.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(themeManager.currentTheme.accentColor)
+                .accessibilityHidden(true)
+            Text(verbatim: win.text())
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("earnings.ctf.won")
     }
 }
 

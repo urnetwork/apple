@@ -108,7 +108,10 @@ final class CryptoInvoiceStore: ObservableObject {
 
     /// The coin last chosen in each tab, by tab id, while the store lives: what
     /// a tap on the tab chooses first (the SDK's CryptoPaymentTabCoin), so More
-    /// coins gets back the coin chosen there after a tap on another tab.
+    /// coins gets back the coin chosen there after a tap on another tab. The
+    /// remembered method the row opens on counts as chosen in its tab, as every
+    /// pick does: remembered SOL, a tap on Zcash, then More coins is SOL again,
+    /// not its first coin (the same on every platform).
     @Published private(set) var lastTabCoins: [String: String] = [:]
 
     /// Counted, so a view that appears before the one it replaces disappears
@@ -131,6 +134,7 @@ final class CryptoInvoiceStore: ObservableObject {
         self.recordEvent = recordEvent
         rememberedMethod = controller.paymentMethod
         snapshot = controller.state
+        noteTabCoin(rememberedMethod)
         controller.onChange = { [weak self] in
             self?.refresh()
         }
@@ -177,14 +181,21 @@ final class CryptoInvoiceStore: ObservableObject {
         if rememberedMethod != remembered {
             rememberedMethod = remembered
         }
-        if let asset = method.asset {
-            let tabId = catalog.tabId(asset: asset)
-            if !tabId.isEmpty, lastTabCoins[tabId] != asset {
-                lastTabCoins[tabId] = asset
-            }
-        }
+        noteTabCoin(method.rawValue)
         if refusal != nil {
             refusal = nil
+        }
+    }
+
+    /// `method`, when a coin, is now the coin chosen last in its tab; Card and
+    /// a method this app does not know change nothing.
+    private func noteTabCoin(_ method: String) {
+        guard let asset = PaymentMethod(rawValue: method)?.asset else {
+            return
+        }
+        let tabId = catalog.tabId(asset: asset)
+        if !tabId.isEmpty, lastTabCoins[tabId] != asset {
+            lastTabCoins[tabId] = asset
         }
     }
 

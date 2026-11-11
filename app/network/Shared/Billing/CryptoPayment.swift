@@ -3,14 +3,17 @@
 //  URnetwork
 //
 //  The direct-download build's crypto payments (mmm/ZCASH-CONTRACT.md §4.3–§6,
-//  mmm ZCASH.md §0.1/§0.3): the method row's rules and what an invoice shows,
-//  decided from plain values so they are unit tested.
+//  mmm ZCASH.md §0.1/§0.3, the coin tabs of mmm/BTCPAY.md §17.6): the method
+//  row's rules and what an invoice shows, decided from plain values so they
+//  are unit tested.
 //
 //  Pure: no SwiftUI and no strings, so it compiles in both builds (the unit
 //  test host is the App Store app). The views and every crypto string compile
-//  only under DIRECT_DOWNLOAD (Shared/Views/CryptoPay). The SDK owns the
-//  methods list, the URI check, the tickers, the wallet names and the invoice
-//  state machine (CryptoPaymentSdk.swift); nothing here re-derives them.
+//  only under DIRECT_DOWNLOAD (Shared/Views/CryptoPay). The SDK owns the coin
+//  tabs (their order, labels, marks and availability), the tab a method sits
+//  in, the URI check and the QR code's text, the tickers, markets and URI
+//  schemes, the wallet names and the invoice state machine
+//  (CryptoPaymentSdk.swift); nothing here re-derives them.
 //
 
 import CoreImage
@@ -21,14 +24,19 @@ import Foundation
 
 /// A way to pay on the method row (CONTRACT §1 "method"): Card (Stripe), or a
 /// coin, named by the asset it pays in. The raw values are the SDK's
-/// (PaymentMethodCard, CryptoAsset*).
-enum PaymentMethod: String, CaseIterable, Hashable {
+/// (PaymentMethodCard, CryptoAsset*). The row's order is the SDK's tabs'
+/// (CryptoPaymentTabs), never this list's.
+enum PaymentMethod: String, Hashable {
     case card
     case usdcSolana = "usdc_solana"
     case zec
     case xmr
-
-    // CaseIterable's order is the row's: Card · USDC · Zcash · Monero
+    /// TAO, on Bittensor
+    case tao
+    case btc
+    case eth
+    /// native SOL
+    case sol
 
     var isCoin: Bool {
         self != .card
@@ -46,36 +54,40 @@ enum PaymentMethod: String, CaseIterable, Hashable {
         }
         self = method
     }
+}
 
-    /// The store the offer and purchase events name (CONTRACT §6.1): Stripe
-    /// for Card, the coin's market otherwise. The SDK's EventStore* values.
-    var eventStore: String {
-        switch self {
-        case .card:
-            return "stripe"
-        case .usdcSolana:
-            return "solana"
-        case .zec:
-            return "zcash"
-        case .xmr:
-            return "monero"
-        }
-    }
+/// A coin of the payment widget, the SDK's CryptoPaymentCoin as plain values.
+/// An unavailable coin stays in its place and cannot be chosen: its label is
+/// greyed, with "Temporarily unavailable" beside it, and its mark is never
+/// dimmed (Solana's and Bittensor's marks are shown only at full contrast).
+struct CryptoPayCoin: Equatable, Hashable {
+    /// One of the SDK's CryptoAsset* values.
+    var asset: String
+    /// In English (the SDK's Label), shown when the app has no string for `labelKey`.
+    var label: String
+    /// The label's string id in the shared localizations.
+    var labelKey: String
+    /// The coin's mark, one of the SDK's CryptoIconKey* values.
+    var iconKey: String
+    /// Payable now, for one of the surface's items.
+    var available: Bool
+}
 
-    /// The purchase events' product for a coin's year of Pro, as Android names
-    /// the USDC one (`pro_yearly_usdc`).
-    var eventProduct: String {
-        switch self {
-        case .card:
-            return "pro"
-        case .usdcSolana:
-            return "pro_yearly_usdc"
-        case .zec:
-            return "pro_yearly_zec"
-        case .xmr:
-            return "pro_yearly_xmr"
-        }
-    }
+/// A tab of the coin selector, the SDK's CryptoPaymentTab as plain values: a
+/// tab of one coin (its id is the coin's asset), or "More coins"
+/// (CryptoPaymentTabMoreCoins), which shows its coins' marks as separate marks
+/// with space between them and opens a list of its coins.
+struct CryptoPayTab: Equatable, Hashable {
+    var id: String
+    /// In English (the SDK's Label), shown when the app has no string for `labelKey`.
+    var label: String
+    var labelKey: String
+    /// The marks the tab shows, in order, each at full contrast.
+    var iconKeys: [String]
+    /// Its coins, in order: one, or TAO, Bitcoin, ETH and SOL.
+    var coins: [CryptoPayCoin]
+    /// One of its coins can be paid with now; a tab with none is greyed and cannot be chosen.
+    var available: Bool
 }
 
 /// The method row's rules (CONTRACT §6.1).
@@ -86,28 +98,39 @@ enum PaymentMethodRules {
     static let planYearlyOnboarding = "yearly_onboarding"
     static let planMonthly = "monthly"
 
-    /// The methods a row lists, from the SDK's PaymentMethods for the item the
-    /// coin would buy: Card first, then the coins this app knows, in the row's
-    /// order. A method the SDK names that this app does not know is left out.
-    static func methods(_ listed: [String]) -> [PaymentMethod] {
-        let known = Set(listed.compactMap(PaymentMethod.init(rawValue:)))
-        return PaymentMethod.allCases.filter { $0 == .card || known.contains($0) }
+    /// The methods that can be chosen on a row with `tabs` (the SDK's
+    /// CryptoPaymentTabs for the item the coin would buy): Card first, then
+    /// each coin that can be paid with now, in the tabs' order. A coin this
+    /// app does not know is left out.
+    static func methods(_ tabs: [CryptoPayTab]) -> [PaymentMethod] {
+        let coins: [PaymentMethod] = tabs.flatMap { $0.coins }.filter { $0.available }.compactMap { PaymentMethod(asset: $0.asset) }
+        return [PaymentMethod.card] + coins
     }
 
-    /// The row shows only when the server lists a coin; with Card alone the
-    /// surface looks exactly as it did before crypto.
-    static func showsRow(_ methods: [PaymentMethod]) -> Bool {
-        methods.contains { $0.isCoin }
+    /// The row shows only when the server lists a coin (the SDK lists no tab
+    /// otherwise); with Card alone the surface looks exactly as it did before
+    /// crypto.
+    static func showsRow(_ tabs: [CryptoPayTab]) -> Bool {
+        !tabs.isEmpty
     }
 
-    /// The selected method: the one remembered on this device when the row
-    /// lists it, else Card (a remembered coin the server stopped listing falls
-    /// back to Card).
+    /// The selected method: the one remembered on this device while it can be
+    /// chosen, else Card (a remembered coin the server stopped listing, or one
+    /// that is greyed out, falls back to Card).
     static func selected(remembered: String, methods: [PaymentMethod]) -> PaymentMethod {
         guard let method = PaymentMethod(rawValue: remembered), methods.contains(method) else {
             return .card
         }
         return method
+    }
+
+    /// What a pick of `tab` chooses: the `selected` coin while it sits in the
+    /// tab, else the tab's first coin that can be paid with now (TAO first in
+    /// More coins); nil for a tab none of whose coins can be, which cannot be
+    /// chosen.
+    static func choice(_ tab: CryptoPayTab, selected: PaymentMethod) -> PaymentMethod? {
+        let coins = tab.coins.filter { $0.available }.compactMap { PaymentMethod(asset: $0.asset) }
+        return coins.first { $0 == selected } ?? coins.first
     }
 
     /// The plan a coin buys on a plan surface: the welcome offer while one is
@@ -137,9 +160,15 @@ enum PaymentMethodRules {
 
 /// One surface's method row as its views render it.
 struct PaymentMethodRowState: Equatable {
-    /// Card first, then the listed coins.
+    /// The SDK's coin tabs after Card: USDC on Solana, Zcash, Monero and More
+    /// coins; none when no coin is listed.
+    var tabs: [CryptoPayTab]
+    /// Card first, then the coins that can be chosen now.
     var methods: [PaymentMethod]
     var selected: PaymentMethod
+    /// The tab the selected method sits in (the SDK's CryptoPaymentTabId): ""
+    /// for Card.
+    var selectedTabId: String
     /// The selected coin's last start failed with asset_unavailable: the row
     /// says "Temporarily unavailable" under it and the coin stays selectable.
     var selectedUnavailable: Bool
@@ -147,11 +176,18 @@ struct PaymentMethodRowState: Equatable {
     var allowsMonthly: Bool
 
     var isShown: Bool {
-        PaymentMethodRules.showsRow(methods)
+        PaymentMethodRules.showsRow(tabs)
     }
 
     /// Card, as every surface was before crypto.
-    static let card = PaymentMethodRowState(methods: [.card], selected: .card, selectedUnavailable: false, allowsMonthly: true)
+    static let card = PaymentMethodRowState(
+        tabs: [],
+        methods: [.card],
+        selected: .card,
+        selectedTabId: "",
+        selectedUnavailable: false,
+        allowsMonthly: true
+    )
 }
 
 // MARK: - purchase errors
@@ -201,6 +237,9 @@ struct CryptoInvoiceSnapshot: Equatable {
     var amountAtomic: String = ""
     var ticker: String = ""
     var uri: String = ""
+    /// What the QR code encodes (the SDK's CryptoPaymentQrText): `uri`, or for
+    /// TAO the address alone; "" for no QR code.
+    var qrText: String = ""
     var memo: String = ""
     var priceUsd: Double = 0
     var rateUsd: Double = 0
@@ -264,23 +303,35 @@ protocol CryptoPaymentCatalog {
     /// CheckCryptoPaymentUri: the scheme matches the asset and the URI pays
     /// exactly `address`. A URI that fails is neither shown nor opened.
     func checkPaymentUri(asset: String, uri: String, address: String) -> Bool
-    /// CryptoAssetTicker: USDC, ZEC, XMR.
+    /// CryptoAssetTicker: USDC, ZEC, XMR, TAO, BTC, ETH, SOL.
     func ticker(asset: String) -> String
     /// CryptoWalletSuggestions: the wallets that can pay the asset.
     func walletSuggestions(asset: String) -> [String]
     /// PaymentMethodAllowsPlan: false only for a coin with monthly.
     func allowsPlan(method: String, plan: String) -> Bool
+    /// CryptoPaymentUriScheme: the scheme of the coin's payment URI, "" for a
+    /// coin without one (TAO), whose invoice is paid by hand.
+    func uriScheme(asset: String) -> String
+    /// CryptoPaymentTabId: the tab a coin sits in (its own asset, or "More
+    /// coins" for TAO, Bitcoin, ETH and SOL); "" for Card.
+    func tabId(asset: String) -> String
 }
 
 /// What the invoice view shows for a snapshot, top to bottom (CONTRACT §6.2).
 /// The view turns each decision into its copy.
 struct CryptoInvoiceDisplay: Equatable {
 
-    /// The invoice's first line: "USDC on Solana", "Zcash, shielded", "Monero".
+    /// The invoice's first line, the network the coin is sent on: "USDC on
+    /// Solana", "Zcash, shielded", "Monero", "Bittensor network", "Bitcoin
+    /// network", "Ethereum mainnet", "Solana (native SOL)".
     enum Network: Equatable {
         case usdcOnSolana
         case zcashShielded
         case monero
+        case bittensor
+        case bitcoin
+        case ethereum
+        case solana
     }
 
     enum Countdown: Equatable {
@@ -320,19 +371,28 @@ struct CryptoInvoiceDisplay: Equatable {
     var isStarting: Bool = false
     var method: PaymentMethod? = nil
     var network: Network? = nil
-    /// The server's payment URI for the QR and "Open in wallet": only while
-    /// payable, and when the SDK's check passed (an empty uri shows none).
+    /// The server's payment URI for "Open in wallet": only while payable, and
+    /// when the SDK's check passed (an empty uri shows none: TAO has none).
     var paymentUri: String? = nil
+    /// What the QR code shows while payable (the SDK's QrText): the payment
+    /// URI that passed the check, or for a coin without one (TAO) the address
+    /// alone; never anything but what the screen shows.
+    var qrText: String? = nil
+    /// A coin without a payment link (TAO, the SDK's CryptoPaymentUriScheme
+    /// is empty): "Send exactly this amount to this address." stands where
+    /// Open in wallet would, the amount and the address have their own Copy
+    /// amount and Copy address, and a note says the QR code holds the address
+    /// alone.
+    var hasNoPaymentLink: Bool = false
     /// "Send exactly": the amount with its ticker ("0.072387 XMR"), and the
     /// bare amount Copy copies.
     var amount: String? = nil
     var amountValue: String? = nil
-    /// "To this address", with Copy.
+    /// "To this address", with Copy, and the coin's network-only warning
+    /// beside it.
     var address: String? = nil
-    /// USDC only: the reference memo for a transfer sent by hand.
+    /// USDC and SOL only: the reference memo for a transfer sent by hand.
     var memo: String? = nil
-    /// USDC only: the existing "Send USDC on the Solana network only" warning.
-    var showsUsdcNetworkWarning: Bool = false
     var countdown: Countdown? = nil
     var refresh: Refresh = .hidden
     var steps: [StepRow] = []
@@ -366,6 +426,7 @@ struct CryptoInvoiceDisplay: Equatable {
         let method = PaymentMethod(asset: snapshot.asset)
         self.method = method
         network = method.flatMap(Self.networkLine(for:))
+        hasNoPaymentLink = method != nil && catalog.uriScheme(asset: snapshot.asset).isEmpty
         isPaid = snapshot.isPaid
         unavailable = snapshot.errorCode == CryptoPurchaseErrorCode.assetUnavailable
 
@@ -423,7 +484,15 @@ struct CryptoInvoiceDisplay: Equatable {
                catalog.checkPaymentUri(asset: snapshot.asset, uri: snapshot.uri, address: address) {
                 paymentUri = snapshot.uri
             }
-            if method == .usdcSolana, address != nil, !snapshot.memo.isEmpty {
+            // the code never pays anything but what the screen shows: the uri
+            // that passed the check, or the address itself (a coin without a
+            // payment uri)
+            if let address, !snapshot.qrText.isEmpty,
+               snapshot.qrText == address || (snapshot.qrText == snapshot.uri && paymentUri != nil) {
+                qrText = snapshot.qrText
+            }
+            // the coins on Solana carry a memo for a transfer sent by hand
+            if method == .usdcSolana || method == .sol, address != nil, !snapshot.memo.isEmpty {
                 memo = snapshot.memo
             }
         case CryptoPaymentStatus.pending, CryptoPaymentStatus.expired:
@@ -443,7 +512,6 @@ struct CryptoInvoiceDisplay: Equatable {
             return
         }
 
-        showsUsdcNetworkWarning = method == .usdcSolana && self.address != nil
         wallets = catalog.walletSuggestions(asset: snapshot.asset)
         showsZcashExchangeNote = method == .zec
     }
@@ -463,6 +531,14 @@ struct CryptoInvoiceDisplay: Equatable {
             return .zcashShielded
         case .xmr:
             return .monero
+        case .tao:
+            return .bittensor
+        case .btc:
+            return .bitcoin
+        case .eth:
+            return .ethereum
+        case .sol:
+            return .solana
         }
     }
 
@@ -560,17 +636,19 @@ func parseRfc3339(_ text: String) -> Date? {
 // MARK: - the subscription's store
 
 /// Whether the current subscription is a one-time crypto year (the SDK's
-/// ClassifySubscriptionStore family "crypto": solana, monero, zcash), which
-/// does not renew and has nothing to manage in the Stripe portal.
+/// ClassifySubscriptionStore family "crypto": every coin's market, solana,
+/// zcash, monero, bittensor, bitcoin and ethereum), which does not renew and
+/// has nothing to manage in the Stripe portal.
 func subscriptionStoreIsCrypto(_ storeClass: String) -> Bool {
     storeClass == "crypto"
 }
 
 // MARK: - the QR code
 
-/// The QR code of a payment URI, one pixel per module (the view scales it
-/// without smoothing). Nil for an empty URI or one the generator refuses.
-/// The URI is the server's, shown only after the SDK's check passed.
+/// The QR code of an invoice's QR text, one pixel per module (the view scales
+/// it without smoothing): the server's payment URI, shown only after the
+/// SDK's check passed, or for a coin without one (TAO) the address alone.
+/// Nil for an empty text or one the generator refuses.
 func cryptoPaymentQrImage(_ uri: String) -> CGImage? {
     guard !uri.isEmpty, let data = uri.data(using: .utf8) else {
         return nil

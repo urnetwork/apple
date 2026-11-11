@@ -119,7 +119,7 @@ struct UpgradeSubscriptionSheet: View {
     private var methodRow: PaymentMethodRowState {
         #if DIRECT_DOWNLOAD
         return cryptoInvoiceStore.methodRow(
-            listed: subscriptionBalanceViewModel.cryptoPaymentMethods(offerActive: presentation.offer != nil)
+            tabs: subscriptionBalanceViewModel.cryptoPaymentTabs(offerActive: presentation.offer != nil)
         )
         #else
         return .card

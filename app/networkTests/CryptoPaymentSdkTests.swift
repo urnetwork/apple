@@ -5,9 +5,10 @@
 //  The direct-download build's crypto payments against the real SDK
 //  (mmm/ZCASH-CONTRACT.md §4.2–§4.4): the Swift values match the SDK's
 //  constants, the URI gate is the SDK's CheckCryptoPaymentUri with its
-//  arguments in the right order, the method row's lists come from the SDK's
-//  PaymentMethods over the balance's crypto_assets, the balance's crypto_term
-//  and store family are read, and the invoice state maps field for field.
+//  arguments in the right order, the method row's tabs come from the SDK's
+//  CryptoPaymentTabs over the balance's crypto_assets, the events name the
+//  SDK's markets, the balance's crypto_term and store family are read, and
+//  the invoice state maps field for field.
 //  No network: the SDK's pure helpers and gomobile values only.
 //
 
@@ -31,13 +32,64 @@ struct CryptoPaymentSdkTests {
         #expect(PaymentMethod.usdcSolana.rawValue == SdkCryptoAssetUsdcSolana)
         #expect(PaymentMethod.zec.rawValue == SdkCryptoAssetZec)
         #expect(PaymentMethod.xmr.rawValue == SdkCryptoAssetXmr)
+        #expect(PaymentMethod.tao.rawValue == SdkCryptoAssetTao)
+        #expect(PaymentMethod.btc.rawValue == SdkCryptoAssetBtc)
+        #expect(PaymentMethod.eth.rawValue == SdkCryptoAssetEth)
+        #expect(PaymentMethod.sol.rawValue == SdkCryptoAssetSol)
+        #expect(PaymentMethodRules.planYearly == SdkPlanYearly)
+        #expect(PaymentMethodRules.planYearlyOnboarding == SdkPlanYearlyOnboarding)
+        #expect(PaymentMethodRules.planMonthly == SdkPlanMonthly)
+    }
+
+    @Test func theEventsNameTheCoinsMarketAndItsYearOfPro() {
+        // the store is the coin's market, the SDK's CryptoAssetMarket
         #expect(PaymentMethod.card.eventStore == SdkEventStoreStripe)
         #expect(PaymentMethod.usdcSolana.eventStore == SdkEventStoreSolana)
         #expect(PaymentMethod.zec.eventStore == SdkEventStoreZcash)
         #expect(PaymentMethod.xmr.eventStore == SdkEventStoreMonero)
-        #expect(PaymentMethodRules.planYearly == SdkPlanYearly)
-        #expect(PaymentMethodRules.planYearlyOnboarding == SdkPlanYearlyOnboarding)
-        #expect(PaymentMethodRules.planMonthly == SdkPlanMonthly)
+        #expect(PaymentMethod.tao.eventStore == SdkEventStoreBittensor)
+        #expect(PaymentMethod.btc.eventStore == SdkEventStoreBitcoin)
+        #expect(PaymentMethod.eth.eventStore == SdkEventStoreEthereum)
+        #expect(PaymentMethod.sol.eventStore == SdkEventStoreSolana)
+        #expect(PaymentMethod.card.eventStore == "stripe")
+        #expect(PaymentMethod.tao.eventStore == "bittensor")
+        // the product, by the coin's ticker, as Android names them
+        #expect(PaymentMethod.card.eventProduct == "pro")
+        #expect(PaymentMethod.usdcSolana.eventProduct == "pro_yearly_usdc")
+        #expect(PaymentMethod.zec.eventProduct == "pro_yearly_zec")
+        #expect(PaymentMethod.xmr.eventProduct == "pro_yearly_xmr")
+        #expect(PaymentMethod.tao.eventProduct == "pro_yearly_tao")
+        #expect(PaymentMethod.btc.eventProduct == "pro_yearly_btc")
+        #expect(PaymentMethod.eth.eventProduct == "pro_yearly_eth")
+        #expect(PaymentMethod.sol.eventProduct == "pro_yearly_sol")
+    }
+
+    @Test func theLabelsTabsSchemesAndMarksAreTheSdks() {
+        // a coin's name is looked up by the SDK's key, with its English as the fallback
+        #expect(PaymentMethod.usdcSolana.sdkLabelKey == "pay_method_usdc_solana")
+        #expect(PaymentMethod.usdcSolana.sdkLabel == "USDC on Solana")
+        #expect(PaymentMethod.tao.sdkLabelKey == "pay_method_tao")
+        #expect(PaymentMethod.btc.sdkLabelKey == "pay_method_bitcoin")
+        #expect(PaymentMethod.btc.sdkLabel == "Bitcoin")
+        #expect(PaymentMethod.eth.sdkLabelKey == "pay_method_eth")
+        #expect(PaymentMethod.sol.sdkLabelKey == "pay_method_sol")
+        #expect(PaymentMethod.card.sdkLabelKey == "")
+        // the tab a coin sits in, and its payment uri scheme
+        #expect(catalog.tabId(asset: "xmr") == "xmr")
+        for asset in ["tao", "btc", "eth", "sol"] {
+            #expect(catalog.tabId(asset: asset) == SdkCryptoPaymentTabMoreCoins, "\(asset)")
+        }
+        #expect(catalog.tabId(asset: "card") == "")
+        #expect(catalog.uriScheme(asset: "tao") == "")
+        #expect(catalog.uriScheme(asset: "btc") == "bitcoin")
+        #expect(catalog.uriScheme(asset: "eth") == "ethereum")
+        #expect(catalog.uriScheme(asset: "sol") == "solana")
+        // the asset catalog's marks, for the SDK's icon keys
+        #expect(CryptoPaymentSdk.markImageName(SdkCryptoIconKeyTao) == "coin.tao")
+        #expect(CryptoPaymentSdk.markImageName(SdkCryptoIconKeyBtc) == "coin.btc")
+        #expect(CryptoPaymentSdk.markImageName(SdkCryptoIconKeyEth) == "coin.eth")
+        #expect(CryptoPaymentSdk.markImageName(SdkCryptoIconKeySol) == "coin.sol")
+        #expect(CryptoPaymentSdk.markImageName(SdkCryptoIconKeyUsdc) == nil)
     }
 
     @Test func theStatesAndCodesAreTheSdks() {
@@ -88,15 +140,43 @@ struct CryptoPaymentSdkTests {
         #expect(CryptoInvoiceDisplay(wrongScheme, catalog: catalog).paymentUri == nil)
     }
 
+    @Test func aTaoInvoiceHasNoPaymentLinkAndItsQrCodeIsTheAddress() {
+        let address = "5FixtureBittensorColdkeyForTheAppTestsOnlyNotAWallet"
+        #expect(SdkCryptoPaymentQrText("tao", "", address) == address)
+        var tao = CryptoPaymentRulesTests.openXmr()
+        tao.asset = "tao"
+        tao.ticker = "TAO"
+        tao.address = address
+        tao.uri = ""
+        tao.qrText = SdkCryptoPaymentQrText("tao", "", address)
+        let display = CryptoInvoiceDisplay(tao, catalog: catalog)
+        #expect(display.hasNoPaymentLink)
+        #expect(display.qrText == address)
+        #expect(display.paymentUri == nil)
+        // a coin with a payment uri draws its uri, once the SDK passes it
+        #expect(SdkCryptoPaymentQrText("xmr", CryptoPaymentRulesTests.xmrUri, Self.xmrAddress) == CryptoPaymentRulesTests.xmrUri)
+        #expect(!CryptoInvoiceDisplay(CryptoPaymentRulesTests.openXmr(), catalog: catalog).hasNoPaymentLink)
+    }
+
     @Test func theTickersWalletsAndMonthlyRuleAreTheSdks() {
         #expect(catalog.ticker(asset: "usdc_solana") == "USDC")
         #expect(catalog.ticker(asset: "zec") == "ZEC")
         #expect(catalog.ticker(asset: "xmr") == "XMR")
+        #expect(catalog.ticker(asset: "tao") == "TAO")
+        #expect(catalog.ticker(asset: "btc") == "BTC")
+        #expect(catalog.ticker(asset: "eth") == "ETH")
+        #expect(catalog.ticker(asset: "sol") == "SOL")
         #expect(catalog.walletSuggestions(asset: "xmr") == ["Cake", "Feather", "Monerujo", "Stack", "Unstoppable"])
         #expect(catalog.walletSuggestions(asset: "zec") == ["Zodl", "Cake", "Zingo", "Zkool", "Vizor"])
         #expect(catalog.walletSuggestions(asset: "usdc_solana") == ["Phantom", "Solflare"])
+        #expect(catalog.walletSuggestions(asset: "sol") == ["Phantom", "Solflare"])
+        #expect(catalog.walletSuggestions(asset: "tao") == ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"])
+        // most wallets send Bitcoin and ETH: no line
+        #expect(catalog.walletSuggestions(asset: "btc").isEmpty)
+        #expect(catalog.walletSuggestions(asset: "eth").isEmpty)
         #expect(catalog.walletSuggestions(asset: "card").isEmpty)
         #expect(!catalog.allowsPlan(method: "xmr", plan: "monthly"))
+        #expect(!catalog.allowsPlan(method: "tao", plan: "monthly"))
         #expect(catalog.allowsPlan(method: "xmr", plan: "yearly"))
         #expect(catalog.allowsPlan(method: "card", plan: "monthly"))
     }
@@ -121,17 +201,32 @@ struct CryptoPaymentSdkTests {
         return list
     }
 
-    @Test func theMethodsComeFromTheSdkPerPlanACoinBuys() {
-        let methods = CryptoPaymentSdk.methodsByPlan(Self.assets([
+    @Test func theTabsComeFromTheSdkPerPlanACoinBuys() throws {
+        let tabs = CryptoPaymentSdk.tabsByPlan(Self.assets([
             // the server's order means nothing; monthly is never sold
             Self.asset("xmr", plans: ["yearly", "monthly"]),
             Self.asset("usdc_solana", plans: ["yearly", "yearly_onboarding"], items: ["data_1tib"]),
+            Self.asset("tao", plans: ["yearly"]),
         ]))
-        #expect(methods["yearly"] == ["card", "usdc_solana", "xmr"])
-        #expect(methods["yearly_onboarding"] == ["card", "usdc_solana"])
-        // no assets (an older server, every coin off): Card alone, no row
-        let none = CryptoPaymentSdk.methodsByPlan(nil)
-        #expect(none["yearly"] == ["card"])
+        let yearly = try #require(tabs["yearly"])
+        // USDC on Solana, Zcash and Monero always, then More coins while one of its coins is listed
+        #expect(yearly.map(\.id) == ["usdc_solana", "zec", "xmr", SdkCryptoPaymentTabMoreCoins])
+        #expect(yearly.map(\.available) == [true, false, true, true])
+        #expect(yearly[0].labelKey == "pay_method_usdc_solana")
+        #expect(yearly[0].label == "USDC on Solana")
+        let more = yearly[3]
+        #expect(more.labelKey == "pay_method_more_coins")
+        #expect(more.iconKeys == [SdkCryptoIconKeyTao, SdkCryptoIconKeyBtc, SdkCryptoIconKeyEth, SdkCryptoIconKeySol])
+        #expect(more.coins.map(\.asset) == ["tao", "btc", "eth", "sol"])
+        #expect(more.coins.map(\.available) == [true, false, false, false])
+        #expect(PaymentMethodRules.methods(yearly) == [.card, .usdcSolana, .xmr, .tao])
+        // the welcome offer's year: only USDC sells it, and More coins is not there
+        let onboarding = try #require(tabs["yearly_onboarding"])
+        #expect(onboarding.map(\.id) == ["usdc_solana", "zec", "xmr"])
+        #expect(PaymentMethodRules.methods(onboarding) == [.card, .usdcSolana])
+        // no assets (an older server, every coin off): no tab, Card alone, no row
+        let none = CryptoPaymentSdk.tabsByPlan(nil)
+        #expect(none["yearly"] == [])
         #expect(PaymentMethodRules.methods(none["yearly"] ?? []) == [.card])
     }
 
@@ -162,8 +257,8 @@ struct CryptoPaymentSdkTests {
 
         let viewModel = makeViewModel()
         viewModel.applyCryptoPayments(result)
-        #expect(viewModel.cryptoPaymentMethods(offerActive: false) == ["card", "zec", "xmr"])
-        #expect(viewModel.cryptoPaymentMethods(offerActive: true) == ["card", "zec"])
+        #expect(PaymentMethodRules.methods(viewModel.cryptoPaymentTabs(offerActive: false)) == [.card, .zec, .xmr])
+        #expect(PaymentMethodRules.methods(viewModel.cryptoPaymentTabs(offerActive: true)) == [.card, .zec])
         let parsed = try #require(viewModel.cryptoTerm)
         #expect(parsed == CryptoTerm(market: "monero", termEndTime: "2027-10-20T18:00:00Z", graceEndTime: "2027-11-19T18:00:00Z"))
         #expect(parsed.graceEnd == parseRfc3339("2027-11-19T18:00:00Z"))
@@ -171,7 +266,7 @@ struct CryptoPaymentSdkTests {
 
         // the next balance without them clears them
         viewModel.applyCryptoPayments(SdkSubscriptionBalanceResult())
-        #expect(viewModel.cryptoPaymentMethods(offerActive: false) == ["card"])
+        #expect(viewModel.cryptoPaymentTabs(offerActive: false).isEmpty)
         #expect(viewModel.cryptoTerm == nil)
         #expect(viewModel.currentSubscriptionStoreClass == "")
     }
@@ -218,6 +313,7 @@ struct CryptoPaymentSdkTests {
         state.amountAtomic = "29000123"
         state.ticker = "USDC"
         state.uri = "solana:7xKX?amount=29.000123"
+        state.qrText = "solana:7xKX?amount=29.000123"
         state.memo = "8Xref"
         state.priceUsd = 29
         state.rateUsd = 1
@@ -246,6 +342,7 @@ struct CryptoPaymentSdkTests {
         expected.amountAtomic = "29000123"
         expected.ticker = "USDC"
         expected.uri = "solana:7xKX?amount=29.000123"
+        expected.qrText = "solana:7xKX?amount=29.000123"
         expected.memo = "8Xref"
         expected.priceUsd = 29
         expected.rateUsd = 1

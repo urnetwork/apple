@@ -22,6 +22,8 @@ struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
         "xmr": ["Cake", "Feather", "Monerujo", "Stack", "Unstoppable"],
         "zec": ["Zodl", "Cake", "Zingo", "Zkool", "Vizor"],
         "usdc_solana": ["Phantom", "Solflare"],
+        "sol": ["Phantom", "Solflare"],
+        "tao": ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"],
     ]
 
     func checkPaymentUri(asset: String, uri: String, address: String) -> Bool {
@@ -33,6 +35,10 @@ struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
         case "usdc_solana": return "USDC"
         case "zec": return "ZEC"
         case "xmr": return "XMR"
+        case "tao": return "TAO"
+        case "btc": return "BTC"
+        case "eth": return "ETH"
+        case "sol": return "SOL"
         default: return ""
         }
     }
@@ -43,6 +49,26 @@ struct FakeCryptoPaymentCatalog: CryptoPaymentCatalog {
 
     func allowsPlan(method: String, plan: String) -> Bool {
         !(method != "card" && plan == "monthly")
+    }
+
+    func uriScheme(asset: String) -> String {
+        switch asset {
+        case "usdc_solana", "sol": return "solana"
+        case "zec": return "zcash"
+        case "xmr": return "monero"
+        case "btc": return "bitcoin"
+        case "eth": return "ethereum"
+        // TAO has no payment uri
+        default: return ""
+        }
+    }
+
+    func tabId(asset: String) -> String {
+        switch asset {
+        case "usdc_solana", "zec", "xmr": return asset
+        case "tao", "btc", "eth", "sol": return "more_coins"
+        default: return ""
+        }
     }
 }
 
@@ -63,6 +89,8 @@ struct CryptoPaymentRulesTests {
         snapshot.amountAtomic = "72387000000"
         snapshot.ticker = "XMR"
         snapshot.uri = xmrUri
+        // the SDK's CryptoPaymentQrText: the uri, which passes its check
+        snapshot.qrText = xmrUri
         snapshot.priceUsd = 40
         snapshot.expiresAt = "2026-10-20T18:30:00Z"
         snapshot.secondsLeft = secondsLeft
@@ -73,19 +101,68 @@ struct CryptoPaymentRulesTests {
 
     static let catalog = FakeCryptoPaymentCatalog(passingUris: [xmrUri])
 
+    /// The SDK's tabs (CryptoPaymentTabs) for a balance that lists `listed`,
+    /// with no unavailable list: none without a coin; else USDC on Solana,
+    /// Zcash and Monero, each greyed when not listed, and More coins while one
+    /// of its coins is listed (CryptoPaymentSdkTests runs the real ones).
+    static func tabs(_ listed: String...) -> [CryptoPayTab] {
+        guard !listed.isEmpty else {
+            return []
+        }
+        func tab(_ id: String, _ assets: [String]) -> CryptoPayTab {
+            let coins = assets.map { CryptoPayCoin(asset: $0, label: $0, labelKey: "", iconKey: "", available: listed.contains($0)) }
+            return CryptoPayTab(id: id, label: id, labelKey: "", iconKeys: [], coins: coins, available: coins.contains { $0.available })
+        }
+        let more = ["tao", "btc", "eth", "sol"]
+        var tabs = [tab("usdc_solana", ["usdc_solana"]), tab("zec", ["zec"]), tab("xmr", ["xmr"])]
+        if more.contains(where: { listed.contains($0) }) {
+            tabs.append(tab("more_coins", more))
+        }
+        return tabs
+    }
+
     // MARK: the method row
 
-    @Test func theRowListsCardThenTheKnownCoinsInTheContractsOrder() {
-        // the SDK orders them; an unknown method is left out, card is always first
-        #expect(PaymentMethodRules.methods(["card", "xmr", "usdc_solana", "zec"]) == [.card, .usdcSolana, .zec, .xmr])
-        #expect(PaymentMethodRules.methods(["card", "xmr", "doge"]) == [.card, .xmr])
-        #expect(PaymentMethodRules.methods([]) == [.card])
+    @Test func theRowsMethodsAreCardThenThePayableCoinsInTheTabsOrder() {
+        // the SDK orders them; a greyed coin is left out, card is always first
+        #expect(PaymentMethodRules.methods(Self.tabs("xmr", "usdc_solana", "zec")) == [.card, .usdcSolana, .zec, .xmr])
+        #expect(PaymentMethodRules.methods(Self.tabs("xmr", "sol", "tao")) == [.card, .xmr, .tao, .sol])
+        #expect(PaymentMethodRules.methods(Self.tabs("btc", "eth")) == [.card, .btc, .eth])
+        #expect(PaymentMethodRules.methods(Self.tabs()) == [.card])
+        // a coin this app does not know is left out
+        let unknown = CryptoPayTab(
+            id: "doge",
+            label: "Doge",
+            labelKey: "",
+            iconKeys: [],
+            coins: [CryptoPayCoin(asset: "doge", label: "Doge", labelKey: "", iconKey: "", available: true)],
+            available: true
+        )
+        #expect(PaymentMethodRules.methods(Self.tabs("xmr") + [unknown]) == [.card, .xmr])
     }
 
     @Test func withNoCoinListedTheRowIsNotShown() {
-        #expect(!PaymentMethodRules.showsRow([.card]))
-        #expect(PaymentMethodRules.showsRow([.card, .xmr]))
+        #expect(!PaymentMethodRules.showsRow([]))
+        #expect(!PaymentMethodRules.showsRow(Self.tabs()))
+        #expect(PaymentMethodRules.showsRow(Self.tabs("xmr")))
+        #expect(PaymentMethodRules.showsRow(Self.tabs("tao")))
         #expect(!PaymentMethodRowState.card.isShown)
+    }
+
+    @Test func aPickOfATabChoosesItsCoin() throws {
+        let tabs = Self.tabs("usdc_solana", "zec", "xmr", "btc", "sol")
+        let more = try #require(tabs.first(where: { $0.id == "more_coins" }))
+        // More coins picks its first coin that can be paid with: TAO is greyed here
+        #expect(PaymentMethodRules.choice(more, selected: .card) == .btc)
+        #expect(PaymentMethodRules.choice(more, selected: .xmr) == .btc)
+        // the selected coin stays selected while it sits in the tab
+        #expect(PaymentMethodRules.choice(more, selected: .sol) == .sol)
+        // a greyed coin is never the pick
+        #expect(PaymentMethodRules.choice(more, selected: .tao) == .btc)
+        // a tab of one coin picks that coin
+        #expect(PaymentMethodRules.choice(tabs[1], selected: .card) == .zec)
+        // a tab none of whose coins can be paid with picks nothing
+        #expect(PaymentMethodRules.choice(Self.tabs("btc")[2], selected: .card) == nil)
     }
 
     @Test func theRememberedMethodIsSelectedOnlyWhileTheRowListsIt() {
@@ -109,11 +186,9 @@ struct CryptoPaymentRulesTests {
         #expect(PaymentMethodRules.coinPlan(offerActive: false) == "yearly")
     }
 
-    @Test func theEventsNameTheMethodsStoreAndAPlanTheSchemaKnows() {
-        #expect(PaymentMethod.card.eventStore == "stripe")
-        #expect(PaymentMethod.usdcSolana.eventStore == "solana")
-        #expect(PaymentMethod.zec.eventStore == "zcash")
-        #expect(PaymentMethod.xmr.eventStore == "monero")
+    // the events' store is the coin's market, the SDK's CryptoAssetMarket
+    // (CryptoPaymentSdkTests)
+    @Test func theEventsNameAPlanTheSchemaKnows() {
         // the event schema's plans are yearly and monthly
         #expect(PaymentMethodRules.eventPlan("yearly_onboarding") == "yearly")
         #expect(PaymentMethodRules.eventPlan("yearly") == "yearly")
@@ -123,6 +198,10 @@ struct CryptoPaymentRulesTests {
     @Test func aMethodIsACoinByItsAsset() {
         #expect(PaymentMethod(asset: "xmr") == .xmr)
         #expect(PaymentMethod(asset: "usdc_solana") == .usdcSolana)
+        #expect(PaymentMethod(asset: "tao") == .tao)
+        #expect(PaymentMethod(asset: "btc") == .btc)
+        #expect(PaymentMethod(asset: "eth") == .eth)
+        #expect(PaymentMethod(asset: "sol") == .sol)
         #expect(PaymentMethod(asset: "card") == nil)
         #expect(PaymentMethod(asset: "") == nil)
         #expect(PaymentMethod.card.asset == nil)
@@ -154,11 +233,12 @@ struct CryptoPaymentRulesTests {
         let display = CryptoInvoiceDisplay(Self.openXmr(), catalog: Self.catalog)
         #expect(display.network == .monero)
         #expect(display.paymentUri == Self.xmrUri)
+        #expect(display.qrText == Self.xmrUri)
+        #expect(!display.hasNoPaymentLink)
         #expect(display.amount == "0.072387 XMR")
         #expect(display.amountValue == "0.072387")
         #expect(display.address == Self.xmrAddress)
         #expect(display.memo == nil)
-        #expect(!display.showsUsdcNetworkWarning)
         #expect(display.countdown == .running("29:59"))
         #expect(display.refresh == .available)
         #expect(display.steps.map(\.step) == [.waiting, .seen, .confirming(count: 0, required: 1), .paid])
@@ -174,6 +254,7 @@ struct CryptoPaymentRulesTests {
         // the uri pays somewhere other than the address on screen
         let display = CryptoInvoiceDisplay(Self.openXmr(), catalog: FakeCryptoPaymentCatalog())
         #expect(display.paymentUri == nil)
+        #expect(display.qrText == nil)
         // the amount and the address still show, to send by hand
         #expect(display.amount == "0.072387 XMR")
         #expect(display.address == Self.xmrAddress)
@@ -186,9 +267,26 @@ struct CryptoPaymentRulesTests {
         snapshot.uri = ""
         let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
         #expect(display.paymentUri == nil)
+        // a QR text left over from the uri is not drawn either
+        #expect(display.qrText == nil)
         #expect(display.amount == "0.072387 XMR")
         #expect(display.address == Self.xmrAddress)
         #expect(display.countdown == .running("29:59"))
+    }
+
+    @Test func theQrCodeShowsOnlyTheCheckedUriOrTheAddressOnScreen() {
+        // a QR text that is neither (the SDK never hands one out) shows no code
+        var elsewhere = Self.openXmr()
+        elsewhere.qrText = "monero:SomewhereElse"
+        #expect(CryptoInvoiceDisplay(elsewhere, catalog: Self.catalog).qrText == nil)
+        var none = Self.openXmr()
+        none.qrText = ""
+        #expect(CryptoInvoiceDisplay(none, catalog: Self.catalog).qrText == nil)
+        // no code once nothing is payable
+        var seen = Self.openXmr()
+        seen.status = "seen"
+        seen.remaining = "0.01"
+        #expect(CryptoInvoiceDisplay(seen, catalog: Self.catalog).qrText == nil)
     }
 
     @Test func theCountdownReadsMinutesAndSeconds() {
@@ -280,6 +378,7 @@ struct CryptoPaymentRulesTests {
             let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
             #expect((display.amount != nil) == payable, "\(status) \(secondsLeft)")
             #expect((display.paymentUri != nil) == payable, "\(status) \(secondsLeft)")
+            #expect((display.qrText != nil) == payable, "\(status) \(secondsLeft)")
             #expect((display.countdown.map { if case .running = $0 { return true } else { return false } } ?? false) == payable, "\(status) \(secondsLeft)")
         }
     }
@@ -403,7 +502,7 @@ struct CryptoPaymentRulesTests {
 
     // MARK: the invoice: per coin
 
-    @Test func usdcShowsItsMemoAndTheNetworkWarningAndStepsWaitingToPaid() {
+    @Test func usdcShowsItsMemoTheAddressForItsNetworkWarningAndStepsWaitingToPaid() {
         let address = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
         let uri = "solana:\(address)?amount=40.000123&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=8X&label=URnetwork&message=URnetwork%20Pro%20yearly"
         var snapshot = Self.openXmr(secondsLeft: 3600)
@@ -412,12 +511,16 @@ struct CryptoPaymentRulesTests {
         snapshot.address = address
         snapshot.amount = "40.000123"
         snapshot.uri = uri
+        snapshot.qrText = uri
         snapshot.memo = "8XrefMemo"
         let display = CryptoInvoiceDisplay(snapshot, catalog: FakeCryptoPaymentCatalog(passingUris: [uri]))
         #expect(display.network == .usdcOnSolana)
+        #expect(display.method == .usdcSolana)
         #expect(display.amount == "40.000123 USDC")
         #expect(display.memo == "8XrefMemo")
-        #expect(display.showsUsdcNetworkWarning)
+        // the network-only warning shows with the address (PaymentMethod.networkWarning)
+        #expect(display.address == address)
+        #expect(display.qrText == uri)
         #expect(display.countdown == .running("60:00"))
         // USDC reports only pending, paid and expired
         #expect(display.steps.map(\.step) == [.waiting, .paid])
@@ -429,6 +532,83 @@ struct CryptoPaymentRulesTests {
         var snapshot = Self.openXmr()
         snapshot.memo = "stray"
         #expect(CryptoInvoiceDisplay(snapshot, catalog: Self.catalog).memo == nil)
+    }
+
+    @Test func aSolInvoiceCarriesItsMemoAsUsdcDoes() {
+        let address = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+        let uri = "solana:\(address)?amount=0.204517&reference=8X&label=URnetwork"
+        var snapshot = Self.openXmr(secondsLeft: 1800)
+        snapshot.asset = "sol"
+        snapshot.ticker = "SOL"
+        snapshot.address = address
+        snapshot.amount = "0.204517"
+        snapshot.uri = uri
+        snapshot.qrText = uri
+        snapshot.memo = "8XrefMemo"
+        let display = CryptoInvoiceDisplay(snapshot, catalog: FakeCryptoPaymentCatalog(passingUris: [uri]))
+        #expect(display.network == .solana)
+        #expect(display.memo == "8XrefMemo")
+        #expect(display.paymentUri == uri)
+        #expect(display.qrText == uri)
+        #expect(!display.hasNoPaymentLink)
+        #expect(display.amount == "0.204517 SOL")
+    }
+
+    // TAO has no payment uri (mmm/BTCPAY.md §17.6): a QR code of the address
+    // alone, no Open in wallet, and the amount and the address sent by hand
+    @Test func aTaoInvoiceShowsTheAddressAsItsQrCodeAndNoOpenInWallet() {
+        let address = "5FixtureBittensorColdkeyForTheAppTestsOnlyNotAWallet"
+        var snapshot = Self.openXmr()
+        snapshot.asset = "tao"
+        snapshot.ticker = "TAO"
+        snapshot.address = address
+        snapshot.amount = "0.123457"
+        snapshot.uri = ""
+        // the SDK's CryptoPaymentQrText for a coin without a payment uri
+        snapshot.qrText = address
+        let display = CryptoInvoiceDisplay(snapshot, catalog: Self.catalog)
+        #expect(display.method == .tao)
+        #expect(display.network == .bittensor)
+        #expect(display.hasNoPaymentLink)
+        #expect(display.paymentUri == nil)
+        #expect(display.qrText == address)
+        #expect(display.amount == "0.123457 TAO")
+        #expect(display.amountValue == "0.123457")
+        #expect(display.address == address)
+        #expect(display.memo == nil)
+        #expect(display.countdown == .running("29:59"))
+        #expect(display.wallets == ["btcli", "Talisman", "Nova", "SubWallet", "Polkadot.js", "Ledger", "Tangem"])
+        #expect(display.steps.map(\.step) == [.waiting, .seen, .confirming(count: 0, required: 1), .paid])
+
+        // the quote ran out: no amount, and no code of the address either
+        var expired = snapshot
+        expired.status = "expired"
+        expired.secondsLeft = 0
+        let expiredDisplay = CryptoInvoiceDisplay(expired, catalog: Self.catalog)
+        #expect(expiredDisplay.qrText == nil)
+        #expect(expiredDisplay.amount == nil)
+        // part of it arrived: the address stays for the rest
+        var seen = snapshot
+        seen.status = "seen"
+        seen.remaining = "0.023457"
+        let seenDisplay = CryptoInvoiceDisplay(seen, catalog: Self.catalog)
+        #expect(seenDisplay.qrText == nil)
+        #expect(seenDisplay.address == address)
+        #expect(seenDisplay.remaining == "0.023457 TAO")
+    }
+
+    @Test func theNewCoinsNameTheirNetworks() {
+        #expect(CryptoInvoiceDisplay.networkLine(for: .tao) == .bittensor)
+        #expect(CryptoInvoiceDisplay.networkLine(for: .btc) == .bitcoin)
+        #expect(CryptoInvoiceDisplay.networkLine(for: .eth) == .ethereum)
+        #expect(CryptoInvoiceDisplay.networkLine(for: .sol) == .solana)
+        #expect(CryptoInvoiceDisplay.networkLine(for: .card) == nil)
+        // Bitcoin and ETH have payment uris
+        for asset in ["btc", "eth"] {
+            var snapshot = Self.openXmr()
+            snapshot.asset = asset
+            #expect(!CryptoInvoiceDisplay(snapshot, catalog: Self.catalog).hasNoPaymentLink, "\(asset)")
+        }
     }
 
     @Test func zcashNamesTheShieldedNetworkAndWarnsAboutExchanges() {

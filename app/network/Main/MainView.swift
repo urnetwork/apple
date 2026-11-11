@@ -24,8 +24,9 @@ struct MainView: View {
     /// The direct-download build's Stripe billing (idle on the App Store build; see BillingDistribution).
     @StateObject private var stripeSubscriptionStore: StripeSubscriptionStore
     #if DIRECT_DOWNLOAD
-    /// The direct-download build's crypto invoice (Card · USDC · Zcash ·
-    /// Monero; see CryptoInvoiceStore). The App Store builds have none.
+    /// The direct-download build's crypto invoice (Card, then the coin tabs:
+    /// USDC on Solana, Zcash, Monero and More coins; see CryptoInvoiceStore).
+    /// The App Store builds have none.
     @StateObject private var cryptoInvoiceStore: CryptoInvoiceStore
     #endif
     @StateObject private var providerListStore: ProviderListStore

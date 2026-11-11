@@ -54,8 +54,9 @@ func storeYearlyTrialDays(for yearly: Product?) async -> Int? {
 /// the same before, during and after the store answers (see PlanPresentation); a tap on a plan
 /// whose product is missing is the caller's to report.
 ///
-/// The direct-download build adds the method row (Card · USDC · Zcash · Monero, crypto-pay
-/// CONTRACT §6.1) directly above the button when the server lists a coin: a coin greys monthly
+/// The direct-download build adds the method row (Card, then the coin tabs USDC on Solana, Zcash,
+/// Monero and More coins, crypto-pay CONTRACT §6.1 and mmm/BTCPAY.md §17.6) directly above the
+/// button when the server lists a coin: a coin greys monthly
 /// out ("Monthly is card only") and moves the selection to yearly, and the button and its fine
 /// print follow the method. The caller's `purchase` reads the method to pay with it.
 struct SubscriptionPlanPicker: View {

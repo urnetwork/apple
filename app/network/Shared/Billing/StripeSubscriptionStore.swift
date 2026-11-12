@@ -16,8 +16,13 @@
 //       urnetwork://checkout?status=complete|errorCode= (complete from
 //       Stripe's onComplete, in place);
 //    3. the hosted checkout URL in the default browser.
-//  Paid in any of them, the server only believes the Stripe webhook, so the
-//  caller's onSuccess starts the same confirmation poll StoreKit uses.
+//  Paid in any of them, the store reports the payment to the server by the id
+//  its stage started with (the pay sheet's subscription id, the checkout
+//  session id) through the sdk's ReportStripePurchase, so the plan does not
+//  wait for Stripe's webhook, and the caller's onSuccess starts the same
+//  confirmation poll StoreKit uses. The hosted page is reported as the
+//  browser opens it, since its return may never reach the app: the sdk asks
+//  again while the server answers pending.
 //  Manage/cancel is the Stripe customer portal, opened in the browser.
 //
 
@@ -85,6 +90,12 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// A page that failed to load falls back once per stage.
     private var loadFallbackTried: Bool = false
     private var isLoadingPrices: Bool = false
+    /// The attempt's open stage, by the id its server answer named: what a
+    /// confirmed return reports when the return names no session.
+    private var purchaseId: StripePurchaseId?
+    /// Reports the sdk is still asking about, or that the server answered
+    /// for good: a second return for one of them reports nothing more.
+    private var reportedPurchaseIds: Set<StripePurchaseId> = []
 
     init(client: StripeBillingClient, openExternal: ((URL) -> Bool)? = nil) {
         self.client = client
@@ -173,6 +184,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         restoreResultMessage = nil
         checkout = nil
         openedInBrowser = nil
+        purchaseId = nil
         outcomeEmitted = false
         loadFallbackTried = false
         onPurchaseSuccess = onSuccess
@@ -184,6 +196,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             guard attempt == self.attempt else { return }
             if let secret = StripeCheckoutLinks.intentClientSecret(setup: sheet.setupIntentClientSecret, payment: sheet.paymentIntentClientSecret),
                let url = StripeCheckoutLinks.paySheetURL(clientSecret: secret, publishableKey: sheet.publishableKey, plan: eventPlan) {
+                purchaseId = sheet.subscriptionId.isEmpty ? nil : .subscription(sheet.subscriptionId)
                 checkout = StripeCheckoutRequest(id: attempt, stage: .paySheet, url: url)
                 return
             }
@@ -214,6 +227,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             guard attempt == self.attempt else { return }
             if let url = StripeCheckoutLinks.embeddedCheckoutURL(clientSecret: session.clientSecret) {
                 loadFallbackTried = false
+                purchaseId = session.sessionId.isEmpty ? nil : .session(session.sessionId)
                 checkout = StripeCheckoutRequest(id: attempt, stage: .embedded, url: url)
                 return
             }
@@ -228,10 +242,11 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         await openHostedCheckout(attempt: attempt)
     }
 
-    /// 3. hosted checkout in the default browser, then the confirmation poll
-    /// so Pro flips the moment the webhook lands. Its refusal is the one the
-    /// sheet shows (the earlier stages fall through to the next), in this
-    /// app's words for the server's code (CheckoutRefusal).
+    /// 3. hosted checkout in the default browser, reported as it opens, then
+    /// the confirmation poll so Pro flips the moment the server credits it.
+    /// Its refusal is the one the sheet shows (the earlier stages fall
+    /// through to the next), in this app's words for the server's code
+    /// (CheckoutRefusal).
     private func openHostedCheckout(attempt: Int) async {
         do {
             let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeHosted, redirectOnCompletion: "", storefrontCountry: nil)
@@ -242,6 +257,10 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             }
             checkout = nil
             openedInBrowser = url
+            purchaseId = session.sessionId.isEmpty ? nil : .session(session.sessionId)
+            // the browser's return may never reach the app: report now, and
+            // the sdk asks again while the checkout is still open
+            reportPurchase(purchaseId)
             purchaseConfirmingTitle = String(localized: "Finish in your browser.")
             purchaseConfirmingMessage = String(localized: "Complete your purchase in the browser. Your plan updates here automatically once payment is confirmed.")
             purchaseSuccess = true
@@ -280,14 +299,20 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
 
     /// The page navigated to a urnetwork:// return (from the web view or the
     /// browser via NetworkApp.onOpenURL). True when it confirmed a purchase:
-    /// the caller starts the confirmation poll.
+    /// the store has reported it, and the caller starts the confirmation poll.
     @discardableResult
     func handle(_ link: BillingDeepLink) -> Bool {
         if link.isConfirmed {
             // paid — in the web view, or in the browser handing control back —
-            // the server only believes the Stripe webhook, so bridge the gap
-            // with the confirmation poll exactly like hosted
+            // report it so the server credits it now rather than when Stripe's
+            // webhook lands, and confirm with the poll exactly like hosted
             if isPurchasing || checkout != nil || openedInBrowser != nil {
+                var paidId = purchaseId
+                if case .checkoutComplete(let sessionId?) = link {
+                    // the return names the session it completed
+                    paidId = .session(sessionId)
+                }
+                reportPurchase(paidId)
                 if !outcomeEmitted {
                     outcomeEmitted = true
                     ClientEvents.shared.purchaseCompleted(store: storeName, product: eventProduct, plan: eventPlan, trial: false, price: eventPrice, currency: eventCurrency)
@@ -350,6 +375,26 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         attempt += 1
         checkout = nil
         isPurchasing = false
+    }
+
+    /// Hands a card payment to the sdk, which reports it to the server and
+    /// asks again while it is pending (Api.ReportStripePurchase). The
+    /// confirmation poll still decides when the plan shows Pro. A report that
+    /// ends without a final answer frees its id, so a later return for the
+    /// same payment reports it again.
+    private func reportPurchase(_ purchaseId: StripePurchaseId?) {
+        guard let purchaseId, !reportedPurchaseIds.contains(purchaseId) else {
+            return
+        }
+        reportedPurchaseIds.insert(purchaseId)
+        client.reportStripePurchase(purchaseId) { [weak self] status in
+            Task { @MainActor in
+                print("[StripeSubscriptionStore] purchase report: \(status ?? "no answer")")
+                if !SdkIsPurchaseReportTerminal(status) {
+                    self?.reportedPurchaseIds.remove(purchaseId)
+                }
+            }
+        }
     }
 
     /// The server refused the purchase because the network is a legacy guest

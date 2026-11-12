@@ -330,8 +330,8 @@ struct MainNavigationSplitView: View {
             selectedTab = .leaderboard
         }
         // a Stripe checkout handing control back from the browser (the
-        // direct-download build's hosted fallback): the server only believes
-        // the Stripe webhook, so a confirmed return starts the confirmation poll
+        // direct-download build's hosted fallback): the store reports a
+        // confirmed return to the server, and it starts the confirmation poll
         .onReceive(deepLinkRouter.$pendingBilling) { link in
             guard link != nil, let link = deepLinkRouter.consumeBilling() else { return }
             guard BillingDistribution.current == .direct else { return }

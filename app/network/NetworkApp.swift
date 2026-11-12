@@ -344,6 +344,18 @@ struct NetworkApp: App {
             wrappedValue: TransportDelayStore(deviceWorkQueue: connectViewModel.connectCommandQueue)
         )
         #endif
+        // one earnings session for the signed-in account, which every window
+        // shares: a sign-in's device gets a fresh one, a sign-out ends it
+        let earningsSessions = EarningsSessions()
+        _earningsSessions = StateObject(wrappedValue: earningsSessions)
+        earningsSessions.follow(deviceManager.$device) { [weak deviceManager] (device: SdkDeviceRemote) in
+            let api = deviceManager?.api
+            return EarningsSession(client: EarningsSdkClient(
+                api: api,
+                urApiService: UrApiService(apiProvider: { api }),
+                device: device
+            ))
+        }
         appDelegate.deviceManager = deviceManager
         // every logout, the server's included, stops the account connecting
         deviceManager.logoutStarted = { [weak connectViewModel] device in
@@ -363,19 +375,6 @@ struct NetworkApp: App {
         // every quit waits for its queued commands (QuitSequence)
         appDelegate.connectViewModel = connectViewModel
         #endif
-
-        // one earnings session for the signed-in account, which every window
-        // shares: a sign-in's device gets a fresh one, a sign-out ends it
-        let earningsSessions = EarningsSessions()
-        _earningsSessions = StateObject(wrappedValue: earningsSessions)
-        earningsSessions.follow(deviceManager.$device) { [weak deviceManager] (device: SdkDeviceRemote) in
-            let api = deviceManager?.api
-            return EarningsSession(client: EarningsSdkClient(
-                api: api,
-                urApiService: UrApiService(apiProvider: { api }),
-                device: device
-            ))
-        }
 
         /**
          * Start the StoreKit transaction listener at PROCESS launch, per

@@ -290,6 +290,33 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     /// the claim transaction on the explorer, once sent
     let explorerUrl: URL?
 
+    /// What the line has left for the sheet's figure, the claim's total
+    /// (EarningsViewModel.ledgerClaimTotalKnown), as Windows' claim dialog
+    /// counts its rows.
+    enum Left: Equatable {
+        /// an amount a claim moves: above the floor, not paid yet
+        case moves
+        /// nothing: claimed, or nothing to claim
+        case nothing
+        /// something no figure says: under the floor, in a pool that could
+        /// not be read, or an amount not known yet
+        case noFigure
+    }
+
+    var left: Left {
+        switch status {
+        case .claimed:
+            return .nothing
+        case .underFloor, .unavailable:
+            return .noFigure
+        case .unclaimed, .pending, .sent, .failed:
+            guard let amountRao else {
+                return .noFigure
+            }
+            return amountRao > 0 ? .moves : .nothing
+        }
+    }
+
     /// a pool the ledger read could not read, under the key the claim
     /// reports it by
     static func of(_ pool: SnLedgerUnavailablePool, pools: SnLedgerPools) -> SnLedgerClaimRow {

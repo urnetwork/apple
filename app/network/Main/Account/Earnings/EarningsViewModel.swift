@@ -54,6 +54,17 @@ final class EarningsViewModel: ObservableObject {
                 return false
             }
         }
+
+        /// the claim sent nothing for the account: still queued, or the sdk
+        /// held it back (needs_gas, under the floor, its pool unavailable)
+        var unsent: Bool {
+            switch self {
+            case .queued, .needsGas, .underFloor, .unavailable:
+                return true
+            case .sent, .confirmed, .alreadyClaimed, .failed:
+                return false
+            }
+        }
     }
 
     @Published private(set) var wallet: SnWalletInfo?
@@ -107,6 +118,18 @@ final class EarningsViewModel: ObservableObject {
     private var ctfWinsRead: Task<Void, Never>?
     /// a read was asked for while one ran
     private var ctfWinsReadAgain = false
+    /// the reads of the wins after the last paying claim's Done
+    /// (readCtfWinsAfterClaim)
+    private var ctfWinsAfterClaim: Task<Void, Never>?
+    /// waits between those reads: Task.sleep, or the tests' clock
+    private let sleep: (Duration) async throws -> Void
+
+    /// When the wins are read again after a claim that paid an account, after
+    /// its Done, beside the read at Done (every app's schedule). The SDK's
+    /// Done comes once the claim is in a block, but the server says a win is
+    /// claimed only once vault2's claimed at the finalized head covers the
+    /// claim, so the read at Done can still list a win the claim paid.
+    static let ctfWinsReadsAfterClaim: [Duration] = [.seconds(30), .seconds(60), .seconds(120)]
 
     /// the per-claim gas reserve in TAO, which the top-up asks for and Claim
     /// waits for: the SDK sends a v1 claim only when the gas key holds its
@@ -121,8 +144,12 @@ final class EarningsViewModel: ObservableObject {
     /// at 5 gwei
     static let ledgerGasTaoPerClaim = 0.02
 
-    init(client: EarningsClient) {
+    init(
+        client: EarningsClient,
+        sleep: @escaping (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+    ) {
         self.client = client
+        self.sleep = sleep
         self.wallet = client.cachedWallet()
         self.gasKey = client.gasKey()
         walletSubscription = client.observeWallet { [weak self] wallet in
@@ -280,6 +307,16 @@ final class EarningsViewModel: ObservableObject {
         ledger == .unavailable || (ledger.accounts.isEmpty && !ledger.unavailablePools.isEmpty)
     }
 
+    /// The v2 claim sheet's figure is a total to show: a line holds an amount
+    /// above the floor a claim moves, or no line holds anything left, a true
+    /// 0. While what is left is all under the floor, in a pool that could not
+    /// be read or of an amount not known yet, the lines say why and the sheet
+    /// shows no figure, never 0 (Windows' and Android's claim dialogs).
+    var ledgerClaimTotalKnown: Bool {
+        let left = ledgerClaimRows.map(\.left)
+        return left.contains(.moves) || !left.contains(.noFigure)
+    }
+
     /// How and when the provider is paid, for the foot of the points card;
     /// nil until the wallet read settles (a failed read with no cached wallet
     /// says nothing about the coldkey).
@@ -356,6 +393,35 @@ final class EarningsViewModel: ObservableObject {
             self.ctfWinsRead = nil
             if self.ctfWinsReadAgain {
                 self.ctfWinsReadAgain = false
+                self.refreshCtfWins()
+            }
+        }
+    }
+
+    /// After a claim that paid an account, the wins are read again at each of
+    /// ctfWinsReadsAfterClaim after its Done, beside the read at Done: a win
+    /// the claim paid reads claimed only once the finalized head covers the
+    /// claim. Each read replaces the lines. The next paying claim's Done
+    /// starts the reads over; one that paid nothing leaves them be. They end
+    /// with this view model, which lives as long as the signed-in account's
+    /// screens, so a sign-out ends them; while it lives they run with
+    /// Earnings off screen too, since a later visit does not read the wins
+    /// again.
+    private func readCtfWinsAfterClaim() {
+        ctfWinsAfterClaim?.cancel()
+        let sleep = sleep
+        ctfWinsAfterClaim = Task { [weak self] in
+            var afterDone = Duration.zero
+            for at in Self.ctfWinsReadsAfterClaim {
+                do {
+                    try await sleep(at - afterDone)
+                } catch {
+                    return
+                }
+                afterDone = at
+                guard !Task.isCancelled, let self else {
+                    return
+                }
                 self.refreshCtfWins()
             }
         }
@@ -556,16 +622,18 @@ final class EarningsViewModel: ObservableObject {
                 ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .needsGas
             } else if code == SnLedgerClaimFailure.ledgerUnavailableCode, noId != 0, index == 0 {
                 // the claim could not read this pool, whose account index it
-                // does not know, and claimed the others: the pool, and an
-                // account this sheet queued in it, are unavailable right now;
-                // one the claim already sent keeps its state (Android's and
-                // Linux's rule)
-                var keys = ledgerClaimProgress.filter { $0.key.noId == noId && $0.value == .queued }.map(\.key)
+                // does not know, and claimed the others: the pool, and each
+                // account of it the sheet listed or the claim reported that
+                // the claim sent nothing for, whatever its index and under
+                // the floor too, are unavailable right now; one the claim
+                // sent keeps its state (Android's, Linux's and Windows' rule)
                 let poolKey = SnLedgerAccountKey(noId: noId, index: index)
-                if ledgerClaimProgress[poolKey] == nil {
-                    keys.append(poolKey)
-                }
-                for key in keys {
+                let keys = Set(
+                    ledger.accounts.filter { $0.noId == noId }.map(\.id)
+                        + ledgerClaimProgress.keys.filter { $0.noId == noId }
+                        + [poolKey]
+                )
+                for key in keys where ledgerClaimProgress[key]?.unsent ?? true {
                     ledgerClaimProgress[key] = .unavailable
                 }
             } else if SnLedgerClaimFailure.underFloor(message) {
@@ -581,9 +649,11 @@ final class EarningsViewModel: ObservableObject {
             // an account the SDK did not claim is not left pending
             ledgerClaimProgress = ledgerClaimProgress.filter { $0.value != .queued }
             // a win whose award this claim, or another sender's, paid is no
-            // longer unclaimed
+            // longer unclaimed: the wins are read now, and again after it, as
+            // the server reads the claim only once the finalized head covers it
             if ledgerClaimProgress.values.contains(where: \.paid) {
                 refreshCtfWins()
+                readCtfWinsAfterClaim()
             }
             Task { [weak self] in
                 await self?.refreshSubnet()

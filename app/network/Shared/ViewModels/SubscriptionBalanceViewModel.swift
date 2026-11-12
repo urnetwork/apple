@@ -68,7 +68,10 @@ class SubscriptionBalanceViewModel: ObservableObject {
      * is read from the live auth methods. See GuestAccount.isGuest.
      */
     @Published private(set) var isGuest: Bool = false
-    
+    /// A balance read succeeded this session, so `isGuest` is the server's
+    /// answer and not the default (GuestAccount.isGuestKnown).
+    @Published private(set) var isGuestKnown: Bool = false
+
     private let refreshJwt: () -> Void
     /// Reports a loaded balance's Pro to the sdk's decision (DeviceManager's
     /// SubscriptionProTracker), which answers whether to refresh the jwt now.
@@ -336,7 +339,10 @@ class SubscriptionBalanceViewModel: ObservableObject {
             self.usedBalanceByteCount = Int(result.startBalanceByteCount) - self.availableByteCount - self.pendingByteCount
             self.startBalanceByteCount = Int(result.startBalanceByteCount)
             self.isGuest = result.guest
-            
+            if !self.isGuestKnown {
+                self.isGuestKnown = true
+            }
+
             // The server is the source of truth for Pro, and `currentSubscription` is
             // non-nil exactly when the network is Pro. The jwt's `pro` claim is baked
             // in when the token is issued, so it goes stale on BOTH an upgrade and a

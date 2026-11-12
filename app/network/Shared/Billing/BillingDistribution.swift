@@ -40,6 +40,15 @@ enum BillingDistribution: Equatable {
     /// AppStoreSubscriptionManager.purchase).
     var checkoutRidesTunnel: Bool { self == .direct }
 
+    /// Whether the server refuses this build's checkout for a legacy guest
+    /// network, so a checkout may open before the app has read whether the
+    /// network is one (GuestAccount.purchaseEntry). The direct download's
+    /// Stripe and crypto checkouts start on the server, which answers
+    /// guest_sign_in_required, and the add-sign-in sheet opens. The App Store
+    /// charges first and tags the purchase with the network, and the server
+    /// hears of it only after.
+    var checkoutRefusesGuests: Bool { self == .direct }
+
     /// Whether a purchase drops the connection for the store, after a notice
     /// (ConnectViewModel.purchaseAroundConnection): only the Mac App Store build's,
     /// whose store client honors the tunnel's default route (the A6 note on

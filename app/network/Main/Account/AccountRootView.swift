@@ -652,65 +652,72 @@ struct AccountRootView: View {
         }
         #endif
         .sheetOffTheFold(isPresented: $viewModel.isPresentedUpgradeSheet) {
-            // the plans, the purchase and the per-attempt state come from the
-            // build's SubscriptionStore: StoreKit here is exactly the
-            // AppStoreSubscriptionManager path it always was; the
-            // direct-download macOS build sells through Stripe
-            let subscriptionStore = self.subscriptionStore
-            UpgradeSubscriptionSheet(
-                monthlyProduct: subscriptionManager.monthlySubscription,
-                yearlyProduct: subscriptionManager.yearlySubscription,
-                yearlyTrialDays: subscriptionManager.yearlyTrialDays,
-                purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
-                presentationOverride: subscriptionStore.presentation(
-                    tier: subscriptionBalanceViewModel.priceTier,
-                    offer: subscriptionBalanceViewModel.onboardingOffer,
-                    storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
-                ),
-                purchasePlan: { plan in
+            // a legacy guest adds a sign-in method to this network first: a
+            // plan bought on a guest network is stranded. The gate covers
+            // every way in (Get Pro; on the direct download the crypto renew,
+            // the invoice in progress and a paid invoice) and a checkout the
+            // server refuses for a guest
+            GuestPurchaseGate(urApiService: urApiService) {
+                // the plans, the purchase and the per-attempt state come from the
+                // build's SubscriptionStore: StoreKit here is exactly the
+                // AppStoreSubscriptionManager path it always was; the
+                // direct-download macOS build sells through Stripe
+                let subscriptionStore = self.subscriptionStore
+                UpgradeSubscriptionSheet(
+                    monthlyProduct: subscriptionManager.monthlySubscription,
+                    yearlyProduct: subscriptionManager.yearlySubscription,
+                    yearlyTrialDays: subscriptionManager.yearlyTrialDays,
+                    purchaseUnavailable: { subscriptionManager.reportProductsUnavailable() },
+                    presentationOverride: subscriptionStore.presentation(
+                        tier: subscriptionBalanceViewModel.priceTier,
+                        offer: subscriptionBalanceViewModel.onboardingOffer,
+                        storefrontCountryName: subscriptionBalanceViewModel.storefrontCountryName
+                    ),
+                    purchasePlan: { plan in
 
-                    Task {
-                        // errors render inline via purchaseError
-                        await subscriptionStore.purchase(
-                            plan: plan,
-                            onSuccess: {
-                                subscriptionBalanceViewModel.startPolling()
-                                // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
-                            }
-                        )
-                    }
-
-                },
-                checkout: subscriptionStore.checkoutView,
-                isPurchasing: subscriptionStore.isPurchasing,
-                purchaseSuccess: subscriptionStore.purchaseSuccess,
-                purchaseConfirmed: deviceManager.isPro,
-                purchasePending: subscriptionStore.purchasePending,
-                purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
-                purchaseError: subscriptionStore.purchaseError,
-                productsLoadFailed: subscriptionStore.plansLoadFailed,
-                retryFetchProducts: {
-                    subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)
-                },
-                restorePurchases: {
-                    Task {
-                        if await subscriptionStore.restorePurchases() == .restored {
-                            subscriptionBalanceViewModel.startPolling()
+                        Task {
+                            // errors render inline via purchaseError
+                            await subscriptionStore.purchase(
+                                plan: plan,
+                                onSuccess: {
+                                    subscriptionBalanceViewModel.startPolling()
+                                    // subscriptionBalanceViewModel.setCurrentPlan(.supporter)
+                                }
+                            )
                         }
+
+                    },
+                    checkout: subscriptionStore.checkoutView,
+                    isPurchasing: subscriptionStore.isPurchasing,
+                    purchaseSuccess: subscriptionStore.purchaseSuccess,
+                    purchaseConfirmed: deviceManager.isPro,
+                    purchasePending: subscriptionStore.purchasePending,
+                    purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
+                    purchaseError: subscriptionStore.purchaseError,
+                    productsLoadFailed: subscriptionStore.plansLoadFailed,
+                    retryFetchProducts: {
+                        subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)
+                    },
+                    restorePurchases: {
+                        Task {
+                            if await subscriptionStore.restorePurchases() == .restored {
+                                subscriptionBalanceViewModel.startPolling()
+                            }
+                        }
+                    },
+                    isRestoringPurchases: subscriptionStore.isRestoringPurchases,
+                    restoreMessage: subscriptionStore.restoreResultMessage,
+                    purchaseConfirmingTitle: subscriptionStore.purchaseConfirmingTitle,
+                    purchaseConfirmingMessage: subscriptionStore.purchaseConfirmingMessage,
+                    dismiss: {
+                        viewModel.isPresentedUpgradeSheet = false
+                        // the purchase flags describe one attempt; letting them
+                        // survive is what showed "You're premium." to a user who
+                        // had not actually completed a purchase
+                        subscriptionStore.resetPurchaseState()
                     }
-                },
-                isRestoringPurchases: subscriptionStore.isRestoringPurchases,
-                restoreMessage: subscriptionStore.restoreResultMessage,
-                purchaseConfirmingTitle: subscriptionStore.purchaseConfirmingTitle,
-                purchaseConfirmingMessage: subscriptionStore.purchaseConfirmingMessage,
-                dismiss: {
-                    viewModel.isPresentedUpgradeSheet = false
-                    // the purchase flags describe ONE attempt; letting them
-                    // survive is what showed "You're premium." to a user who
-                    // had not actually completed a purchase
-                    subscriptionStore.resetPurchaseState()
-                }
-            )
+                )
+            }
             .environmentObject(themeManager)
         }
         #if os(iOS)

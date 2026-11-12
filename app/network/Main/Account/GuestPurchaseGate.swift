@@ -65,6 +65,13 @@ struct GuestConversionSheet: View {
  * sign-in method. A plan bought on a guest network is stranded there, since
  * nothing can sign back in to it.
  *
+ * The gate reads the server's guest status again as it opens (a balance
+ * read), and follows it while it shows: a balance that reports a guest, or a
+ * checkout the server refused as one (MainView's serverRefusedGuestPurchase),
+ * swaps the checkout for the conversion. A refreshed guest reads as an
+ * account until the balance answers, so the App Store checkout waits for that
+ * answer, with a retry when the read fails (`purchaseEntry`).
+ *
  * The conversion is presented over the gate, not as its content: the
  * add-sign-in sheet dismisses itself when it is done, and as the content it
  * closed the whole purchase sheet, so the user had to open the upgrade again.
@@ -91,11 +98,19 @@ struct GuestPurchaseGate<Checkout: View>: View {
     @State private var isPresentedConversion = false
 
     var body: some View {
-        let isGuest = GuestAccount.isGuest(
-            guestModeClaim: deviceManager.parsedJwt?.guestMode,
-            serverGuest: subscriptionBalanceViewModel.isGuest
+        let guestModeClaim = deviceManager.parsedJwt?.guestMode
+        let entry = GuestAccount.purchaseEntry(
+            isGuest: GuestAccount.isGuest(
+                guestModeClaim: guestModeClaim,
+                serverGuest: subscriptionBalanceViewModel.isGuest
+            ),
+            guestKnown: GuestAccount.isGuestKnown(
+                guestModeClaim: guestModeClaim,
+                serverAnswered: subscriptionBalanceViewModel.isGuestKnown
+            ),
+            checkoutRefusesGuests: BillingDistribution.current.checkoutRefusesGuests,
+            signInMethodAdded: signInMethodAdded
         )
-        let entry = GuestAccount.purchaseEntry(isGuest: isGuest, signInMethodAdded: signInMethodAdded)
         Group {
             switch entry {
             case .checkout:
@@ -103,9 +118,14 @@ struct GuestPurchaseGate<Checkout: View>: View {
             case .addSignInMethod:
                 // under the conversion until it closes
                 themeManager.currentTheme.backgroundColor.ignoresSafeArea()
+            case .checkingGuest:
+                guestCheck
             }
         }
         .onAppear {
+            // the guest status from the network's live sign-in methods, not
+            // whatever the last balance read said
+            recheckGuest()
             if entry == .addSignInMethod {
                 isPresentedConversion = true
             }
@@ -134,5 +154,51 @@ struct GuestPurchaseGate<Checkout: View>: View {
             .environmentObject(subscriptionBalanceViewModel)
             .environmentObject(connectWalletProviderViewModel)
         }
+    }
+
+    /// Reads the balance again, and with it the server's guest status.
+    private func recheckGuest() {
+        Task {
+            await subscriptionBalanceViewModel.fetchSubscriptionBalance()
+        }
+    }
+
+    /// Stands in for the checkout until the balance answers: a spinner while
+    /// it loads, a retry when it failed. On macOS the close the checkout
+    /// would carry is here too.
+    private var guestCheck: some View {
+        VStack(spacing: 0) {
+            #if os(macOS)
+            HStack {
+                Spacer()
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Close"))
+            }
+            #endif
+
+            Spacer()
+
+            if subscriptionBalanceViewModel.errorFetchingSubscriptionBalance && !subscriptionBalanceViewModel.isLoading {
+                SectionLoadFailedView(retry: {
+                    recheckGuest()
+                })
+            } else {
+                ProgressView()
+            }
+
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #if os(macOS)
+        .frame(minWidth: 420, minHeight: 320)
+        #endif
+        .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
     }
 }

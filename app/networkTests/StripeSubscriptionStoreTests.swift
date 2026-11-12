@@ -15,6 +15,9 @@ struct StripeSubscriptionStoreTests {
         var hosted: Result<StripeCheckoutSessionResponse, Error> = .failure(StripeBillingError.unavailable)
         var portal: Result<URL, Error> = .failure(StripeBillingError.unavailable)
         var calls: [String] = []
+        /// The payments reported, in order, and each report's answer to give.
+        var reports: [StripePurchaseId] = []
+        var reportDones: [(String?) -> Void] = []
 
         func prices(storefrontCountry: String?) async throws -> StripePlanPrices {
             calls.append("prices")
@@ -34,6 +37,11 @@ struct StripeSubscriptionStoreTests {
         func customerPortalURL() async throws -> URL {
             calls.append("portal")
             return try portal.get()
+        }
+
+        func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (String?) -> Void) {
+            reports.append(purchaseId)
+            reportDones.append(done)
         }
     }
 
@@ -463,6 +471,113 @@ struct StripeSubscriptionStoreTests {
         await #expect(throws: StripeBillingError.server("no customer")) {
             try await store.customerPortalURL()
         }
+    }
+
+    // MARK: reporting the payment
+
+    /// A card payment credited Pro only when Stripe's webhook landed: the
+    /// store dropped the id each stage started with and never told the
+    /// server it had paid (support inbox 7247). Paid in the pay sheet, it
+    /// reports the sheet's subscription before the poll starts.
+    @Test @MainActor func thePaySheetsPaymentIsReportedByItsSubscription() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_secret", publishableKey: "pk_1", subscriptionId: "sub_test_1"))
+        let store = Self.store(client)
+        var reportsAtPoll: [StripePurchaseId] = []
+        await store.purchase(plan: .yearly, onSuccess: { reportsAtPoll = client.reports })
+        // nothing is paid yet
+        #expect(client.reports.isEmpty)
+
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        #expect(client.reports == [.subscription("sub_test_1")])
+        #expect(reportsAtPoll == [.subscription("sub_test_1")])
+    }
+
+    @Test @MainActor func theEmbeddedCheckoutsPaymentIsReportedByItsSession() async {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.server("no sheet"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(client.reports.isEmpty)
+
+        // a return that names no session reports the stage's own
+        #expect(store.handle(.checkoutComplete(sessionId: nil)))
+        #expect(client.reports == [.session("cs_test_1")])
+    }
+
+    @Test @MainActor func aReturnReportsTheSessionItNames() async {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.server("no sheet"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(store.handle(.checkoutComplete(sessionId: "cs_test_2")))
+        #expect(client.reports == [.session("cs_test_2")])
+    }
+
+    /// A pay sheet that cannot load falls back to the embedded checkout, which
+    /// is then what is paid: its session is reported, not the sheet's
+    /// subscription.
+    @Test @MainActor func aFallbackReportsTheStageThatWasPaid() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk", subscriptionId: "sub_test_1"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.handleLoadFailed()
+        await Self.settle()
+        #expect(store.checkout?.stage == .embedded)
+
+        store.handle(.checkoutComplete(sessionId: nil))
+        #expect(client.reports == [.session("cs_test_1")])
+    }
+
+    /// The browser's return may never reach the app, so the hosted page is
+    /// reported as it opens; the sdk asks again while the checkout is open.
+    /// Its return reports nothing more while that report runs.
+    @Test @MainActor func theHostedPageIsReportedAsTheBrowserOpensIt() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(client.reports == [.session("cs_test_1")])
+        #expect(polled == 1)
+
+        #expect(store.handle(.checkoutComplete(sessionId: "cs_test_1")))
+        #expect(client.reports == [.session("cs_test_1")])
+        #expect(polled == 2)
+    }
+
+    /// A report the sdk gave up on (still pending after its attempts) frees
+    /// the payment, so the browser's later return reports it again; one the
+    /// server answered for good does not.
+    @Test @MainActor func aReturnReportsAgainOnlyAfterAReportGaveUp() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        client.reportDones[0](SdkPurchaseReportStatusPending)
+        await Self.settle()
+        store.handle(.checkoutComplete(sessionId: "cs_test_1"))
+        #expect(client.reports == [.session("cs_test_1"), .session("cs_test_1")])
+
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_2", sessionId: "cs_test_2"))
+        await store.purchase(plan: .yearly, onSuccess: {})
+        client.reportDones[2](SdkPurchaseReportStatusCredited)
+        await Self.settle()
+        store.handle(.checkoutComplete(sessionId: "cs_test_2"))
+        #expect(client.reports == [.session("cs_test_1"), .session("cs_test_1"), .session("cs_test_2")])
+    }
+
+    /// A return with no purchase open (a link from anywhere) reports nothing.
+    @Test @MainActor func aReturnWithNothingOpenReportsNothing() async {
+        let client = FakeClient()
+        let store = Self.store(client)
+        #expect(store.handle(.checkoutComplete(sessionId: "cs_test_1")))
+        #expect(store.handle(.payDone))
+        #expect(client.reports.isEmpty)
     }
 
     /// Lets a fallback the store queued on the main actor run.

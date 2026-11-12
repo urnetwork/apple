@@ -2,9 +2,9 @@
 //  StripeBillingClient.swift
 //  URnetwork
 //
-//  The four server calls the Stripe purchase and manage flows make, as
-//  async functions over the SDK's gomobile callbacks, behind a protocol so
-//  StripeSubscriptionStore's flow is unit tested with a fake.
+//  The server calls the Stripe purchase and manage flows make, over the
+//  SDK's gomobile callbacks, behind a protocol so StripeSubscriptionStore's
+//  flow is unit tested with a fake.
 //
 
 import Foundation
@@ -15,13 +15,26 @@ struct StripePaymentSheetResponse: Equatable {
     var paymentIntentClientSecret: String = ""
     var publishableKey: String = ""
     var trialDays: Int = 0
+    /// The subscription the sheet pays (sub_...), which reports the payment.
+    var subscriptionId: String = ""
     var errorMessage: String? = nil
 }
 
 struct StripeCheckoutSessionResponse: Equatable {
     var clientSecret: String = ""
     var checkoutUrl: String = ""
+    /// The checkout session (cs_...), which reports the payment.
+    var sessionId: String = ""
     var errorMessage: String? = nil
+}
+
+/// The id a card purchase started with, which reports it once paid
+/// (Api.ReportStripePurchase takes exactly one).
+enum StripePurchaseId: Hashable {
+    /// A checkout session (cs_...), embedded or hosted.
+    case session(String)
+    /// The pay sheet's subscription (sub_...).
+    case subscription(String)
 }
 
 enum StripeBillingError: LocalizedError, Equatable {
@@ -62,6 +75,12 @@ protocol StripeBillingClient {
     /// leave it unset.
     func checkoutSession(itemId: String, uiMode: String, redirectOnCompletion: String, storefrontCountry: String?) async throws -> StripeCheckoutSessionResponse
     func customerPortalURL() async throws -> URL
+    /// Tells the server a card payment finished, so it credits the plan
+    /// without waiting for Stripe's webhook. Returns at once: the sdk asks
+    /// again while the server answers pending (about 21 minutes), then calls
+    /// `done` once, on any thread, with the last status
+    /// (SdkPurchaseReportStatus*), nil when no attempt was answered.
+    func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (String?) -> Void)
 }
 
 /// The client over the SDK api. A nil api (no network space yet) fails every call.
@@ -111,7 +130,8 @@ final class SdkStripeBillingClient: StripeBillingClient {
             setupIntentClientSecret: result.setupIntentClientSecret,
             paymentIntentClientSecret: result.paymentIntentClientSecret,
             publishableKey: result.publishableKey,
-            trialDays: result.trialDays
+            trialDays: result.trialDays,
+            subscriptionId: result.subscriptionId
         )
     }
 
@@ -134,7 +154,7 @@ final class SdkStripeBillingClient: StripeBillingClient {
         if let error = result.error {
             throw StripeBillingError.refused(code: error.code, message: error.message)
         }
-        return StripeCheckoutSessionResponse(clientSecret: result.clientSecret, checkoutUrl: result.checkoutUrl)
+        return StripeCheckoutSessionResponse(clientSecret: result.clientSecret, checkoutUrl: result.checkoutUrl, sessionId: result.sessionId)
     }
 
     func customerPortalURL() async throws -> URL {
@@ -155,6 +175,23 @@ final class SdkStripeBillingClient: StripeBillingClient {
             throw StripeBillingError.unavailable
         }
         return url
+    }
+
+    func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (String?) -> Void) {
+        guard let api else {
+            done(nil)
+            return
+        }
+        let args = SdkVerifyStripeCheckoutArgs()
+        switch purchaseId {
+        case .session(let sessionId):
+            args.sessionId = sessionId
+        case .subscription(let subscriptionId):
+            args.subscriptionId = subscriptionId
+        }
+        api.reportStripePurchase(args, callback: StripePurchaseReportCallback { result, err in
+            done(err == nil ? result?.status : nil)
+        })
     }
 }
 
@@ -182,4 +219,10 @@ private final class StripeCustomerPortalCallback: NSObject, SdkStripeCreateCusto
     let handler: (SdkStripeCreateCustomerPortalResult?, Error?) -> Void
     init(_ handler: @escaping (SdkStripeCreateCustomerPortalResult?, Error?) -> Void) { self.handler = handler }
     func result(_ result: SdkStripeCreateCustomerPortalResult?, err: Error?) { handler(result, err) }
+}
+
+private final class StripePurchaseReportCallback: NSObject, SdkVerifyStripeCheckoutCallbackProtocol {
+    let handler: (SdkVerifyStorePurchaseResult?, Error?) -> Void
+    init(_ handler: @escaping (SdkVerifyStorePurchaseResult?, Error?) -> Void) { self.handler = handler }
+    func result(_ result: SdkVerifyStorePurchaseResult?, err: Error?) { handler(result, err) }
 }

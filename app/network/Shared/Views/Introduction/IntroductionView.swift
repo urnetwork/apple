@@ -153,11 +153,7 @@ struct IntroductionView: View {
     /// year while the offer shows; `offerCtaRecorded` when the offer page
     /// already recorded the tap.
     private func payWithCoin(_ method: PaymentMethod, offerCtaRecorded: Bool) {
-        let isGuest = GuestAccount.isGuest(
-            guestModeClaim: deviceManager.parsedJwt?.guestMode,
-            serverGuest: subscriptionBalanceViewModel.isGuest
-        )
-        if GuestAccount.purchaseEntry(isGuest: isGuest) == .addSignInMethod {
+        if purchaseEntry != .checkout {
             openGuestConversion()
             return
         }
@@ -207,11 +203,7 @@ struct IntroductionView: View {
     /// only believes the store's webhook. Errors render inline through the
     /// store's purchaseError.
     private func start(_ purchase: OnboardingPurchase) {
-        let isGuest = GuestAccount.isGuest(
-            guestModeClaim: deviceManager.parsedJwt?.guestMode,
-            serverGuest: subscriptionBalanceViewModel.isGuest
-        )
-        if GuestAccount.purchaseEntry(isGuest: isGuest) == .addSignInMethod {
+        if purchaseEntry != .checkout {
             openGuestConversion()
             return
         }
@@ -230,8 +222,27 @@ struct IntroductionView: View {
         }
     }
 
-    /// A legacy guest adds a sign-in method to this network first: the
-    /// upgrade sheet opens the conversion (GuestPurchaseGate).
+    /// Where the plan step's purchase leads (GuestAccount.purchaseEntry), by
+    /// the rule the upgrade sheet's GuestPurchaseGate follows.
+    private var purchaseEntry: GuestAccount.PurchaseEntry {
+        let guestModeClaim = deviceManager.parsedJwt?.guestMode
+        return GuestAccount.purchaseEntry(
+            isGuest: GuestAccount.isGuest(
+                guestModeClaim: guestModeClaim,
+                serverGuest: subscriptionBalanceViewModel.isGuest
+            ),
+            guestKnown: GuestAccount.isGuestKnown(
+                guestModeClaim: guestModeClaim,
+                serverAnswered: subscriptionBalanceViewModel.isGuestKnown
+            ),
+            checkoutRefusesGuests: BillingDistribution.current.checkoutRefusesGuests
+        )
+    }
+
+    /// A legacy guest adds a sign-in method to this network first, and an
+    /// App Store purchase whose guest status is not known yet waits for it:
+    /// the upgrade sheet's gate opens the conversion or the checkout
+    /// (GuestPurchaseGate).
     private func openGuestConversion() {
         close()
         connectViewModel.isPresentedUpgradeSheet = true

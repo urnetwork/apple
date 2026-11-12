@@ -322,6 +322,15 @@ struct NetworkApp: App {
         // test runs. UI tests launch the app as a process of its own, without
         // the variable, and keep the normal startup.
         let hostsUnitTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        #if canImport(MetricKit)
+        // why the app's earlier processes ended, in the logs "send feedback
+        // with logs" uploads (AppExitDiagnostics, support 8190): after the log
+        // directory is configured above, since the sdk writes into it, and not
+        // under hosted unit tests, which point it elsewhere
+        if startupMode.allowsStartupInitialization && !hostsUnitTests {
+            AppExitDiagnostics.shared.start()
+        }
+        #endif
         let deviceManager = DeviceManager(startupMode: startupMode, automaticallyInitialize: !hostsUnitTests)
         _deviceManager = StateObject(wrappedValue: deviceManager)
         let connectViewModel = ConnectViewModel()

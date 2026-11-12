@@ -19,7 +19,8 @@ import Foundation
  * network, its plan and its balance stay. Nothing logs out.
  *
  * Until a sign-in method exists, a guest is not sold a plan: every purchase
- * entry opens the conversion instead (see `purchaseEntry`).
+ * entry opens the conversion instead, and an App Store purchase waits until
+ * the server has said whether the network is a guest (see `purchaseEntry`).
  */
 enum GuestAccount {
 
@@ -39,21 +40,54 @@ enum GuestAccount {
         (guestModeClaim ?? false) || serverGuest
     }
 
+    /**
+     * Whether `isGuest` is an answer: the jwt's `guest_mode` claim says guest,
+     * or the server answered the balance this session (`serverAnswered`), so
+     * its `guest` was read from the live auth methods. Until then a refreshed
+     * legacy guest has no claim and reads as an account; a balance read that
+     * keeps failing leaves it unknown for good.
+     */
+    static func isGuestKnown(guestModeClaim: Bool?, serverAnswered: Bool) -> Bool {
+        (guestModeClaim ?? false) || serverAnswered
+    }
+
     enum PurchaseEntry: Equatable {
         /// the plans and the store checkout
         case checkout
         /// the in-place conversion: add a sign-in method to this network first
         case addSignInMethod
+        /// nothing to buy until the server says whether the network is a guest
+        case checkingGuest
     }
 
     /**
      * Where a purchase entry (upgrade sheet, welcome offer, intro plan step)
-     * leads. `signInMethodAdded`: the conversion opened from this entry added a
-     * sign-in method, so the entry continues to its checkout without waiting for
-     * the re-signed jwt and the refetched balance to stop reporting a guest.
+     * leads. A guest is sent to the conversion. While the guest status is
+     * unknown (`guestKnown`, see isGuestKnown) the entry waits, unless the
+     * server refuses this build's checkout for a guest
+     * (`checkoutRefusesGuests`, BillingDistribution): the App Store would
+     * charge a refreshed guest that still reads as an account, for a network
+     * nothing signs back in to. `signInMethodAdded`: the conversion opened
+     * from this entry added a sign-in method, so the entry continues to its
+     * checkout without waiting for the re-signed jwt and the refetched balance
+     * to stop reporting a guest.
      */
-    static func purchaseEntry(isGuest: Bool, signInMethodAdded: Bool = false) -> PurchaseEntry {
-        isGuest && !signInMethodAdded ? .addSignInMethod : .checkout
+    static func purchaseEntry(
+        isGuest: Bool,
+        guestKnown: Bool,
+        checkoutRefusesGuests: Bool,
+        signInMethodAdded: Bool = false
+    ) -> PurchaseEntry {
+        if signInMethodAdded {
+            return .checkout
+        }
+        if isGuest {
+            return .addSignInMethod
+        }
+        if !guestKnown && !checkoutRefusesGuests {
+            return .checkingGuest
+        }
+        return .checkout
     }
 
     enum ConversionClose: Equatable {

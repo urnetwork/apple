@@ -135,13 +135,23 @@ struct GuestPurchaseRefusalTests {
             refreshJwt: {},
             purchaseConfirmation: IdleConfirmation()
         )
-        // a refreshed guest: no claim, and the balance has not said so yet
-        #expect(GuestAccount.purchaseEntry(isGuest: GuestAccount.isGuest(guestModeClaim: false, serverGuest: viewModel.isGuest)) == .checkout)
+        // a refreshed guest: no claim, and the balance has not said so yet.
+        // The refusal comes from a Stripe or crypto checkout, which may open
+        // before the guest status is known
+        let entry = {
+            GuestAccount.purchaseEntry(
+                isGuest: GuestAccount.isGuest(guestModeClaim: false, serverGuest: viewModel.isGuest),
+                guestKnown: GuestAccount.isGuestKnown(guestModeClaim: false, serverAnswered: viewModel.isGuestKnown),
+                checkoutRefusesGuests: BillingDistribution.direct.checkoutRefusesGuests
+            )
+        }
+        #expect(!viewModel.isGuestKnown)
+        #expect(entry() == .checkout)
 
         viewModel.serverRefusedGuestPurchase()
 
         #expect(viewModel.isGuest)
-        #expect(GuestAccount.purchaseEntry(isGuest: GuestAccount.isGuest(guestModeClaim: false, serverGuest: viewModel.isGuest)) == .addSignInMethod)
+        #expect(entry() == .addSignInMethod)
     }
 
     // …/apple/app/networkTests/GuestPurchaseRefusalTests.swift -> …/apple/app

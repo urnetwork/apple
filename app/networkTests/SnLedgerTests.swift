@@ -2069,6 +2069,19 @@ struct SnLedgerTests {
         await Self.settle { viewModel.ctfWins == [laos] }
         #expect(viewModel.ctfWins == [laos])
 
+        // among client answers, the newest read's shows: an older read's late
+        // answer never puts back a line a newer one took away
+        var openOld: AsyncStream<Void>.Continuation?
+        client.ctfWinGate = AsyncStream { openOld = $0 }
+        client.ctfWinsAnswers = [[iceland, laos], []]
+        await viewModel.refresh()
+        await viewModel.refresh()
+        await Self.settle { client.ctfWinsReads == 5 && viewModel.ctfWins.isEmpty }
+        #expect(viewModel.ctfWins.isEmpty)
+        openOld?.yield()
+        await Self.settle { false }
+        #expect(viewModel.ctfWins.isEmpty)
+
         // a network read that is slow, and the next read whose network read
         // failed and whose client token answered: the client answer shows
         // first, then the network answer beats it
@@ -2078,7 +2091,7 @@ struct SnLedgerTests {
         client.ctfWinsAnswers = [[iceland, laos], [iceland]]
         await viewModel.refresh()
         await viewModel.refresh()
-        await Self.settle { client.ctfWinsReads == 5 && viewModel.ctfWins == [iceland] }
+        await Self.settle { client.ctfWinsReads == 7 && viewModel.ctfWins == [iceland] }
         #expect(viewModel.ctfWins == [iceland])
         openSlow?.yield()
         await Self.settle { viewModel.ctfWins == [iceland, laos] }
@@ -2086,7 +2099,7 @@ struct SnLedgerTests {
         // and no client answer replaces its lines since
         client.ctfWinsAnswer = []
         await viewModel.refresh()
-        await Self.settle { client.ctfWinsReads == 6 }
+        await Self.settle { client.ctfWinsReads == 8 }
         await Self.settle { false }
         #expect(viewModel.ctfWins == [iceland, laos])
     }
@@ -2361,6 +2374,177 @@ struct SnLedgerTests {
         #expect(viewModel.ledgerClaimFigureRao == 0)
     }
 
+    // the figure is fixed at the press until Done (every app, 2026-11-12): an
+    // account the sdk then sends nothing for says so on its own line,
+    // claimable with the gas card's top-up, and the figure and Claim both
+    // stay what Claim named
+    @Test func anAccountShortOfGasLeavesTheFigureAsClaimNamedIt() async {
+        let (client, viewModel) = await Self.loaded([Self.account(), Self.ctfAccount()])
+        viewModel.claimLedger()
+        #expect(viewModel.ledgerClaimsBoth)
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xone", amountRao: 3_241_000_000))
+        client.emit(.failed(noId: Self.ctfNoId, index: 7, message: "needs_gas: the gas key cannot pay for the claim"))
+        await Self.settle { viewModel.ledgerClaimProgress[Self.ctfKey] == .needsGas }
+        #expect(viewModel.ledgerClaimFigureRao == 3_241_000_000 + 144_076_980)
+        #expect(viewModel.ledgerClaimTotalKnown)
+        #expect(viewModel.ledgerClaimsBoth)
+        #expect(viewModel.ledgerClaimRows.first { $0.id == Self.ctfKey }?.status == .unclaimed)
+        #expect(viewModel.ledgerNeedsGas)
+    }
+
+    // a line of a claim in flight keeps the amount Claim found, as Windows'
+    // rows do, whatever a read since says: on macOS the view model built on
+    // coming back to Account reads the ledger again, and an account just paid
+    // reads 0 there, or a pool it could not read lists none
+    @Test func aLineDuringAClaimKeepsWhatClaimFound() async {
+        let (client, viewModel) = await Self.loaded([Self.account(), Self.ctfAccount()])
+        viewModel.claimLedger()
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xbatch"))
+        await Self.settle { viewModel.ledgerClaimProgress[Self.key] == .sent(txHash: "0xbatch") }
+
+        client.ledgerAnswer = [Self.paid]
+        client.unavailablePools = [Self.ctfUnavailable]
+        await viewModel.refreshSubnet()
+        let rows = viewModel.ledgerClaimRows
+        #expect(rows.first { $0.id == Self.key }?.amountRao == 3_241_000_000)
+        #expect(rows.first { $0.id == Self.key }?.status == .sent)
+        #expect(rows.first { $0.id == Self.ctfKey }?.amountRao == 144_076_980)
+        #expect(rows.first { $0.id == Self.ctfKey }?.status == .pending)
+        #expect(!rows.contains { $0.amountRao == 0 })
+    }
+
+    // the gas key sends one claim at a time: the sdk reads its pending nonce
+    // as it signs, with no lock across a v1 and a v2 claim, so neither kind
+    // starts while the other is in flight, and each sheet's Claim waits, as on
+    // Linux and Windows
+    @Test func aV1AndAV2ClaimNeverRunAtOnce() async {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account()]
+        client.v1Claims = [
+            SnEpochClaimInfo(epoch: 7, shareBps: 100, amountRao: 1_000_000_000, status: .claimable, claimOpenBlock: 0, expiryBlock: 0, txHash: ""),
+        ]
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        #expect(viewModel.claimEnabled)
+        #expect(viewModel.ledgerClaimEnabled)
+
+        // a v2 claim in flight: no v1 claim
+        viewModel.claimLedger()
+        #expect(!viewModel.claimEnabled)
+        viewModel.claimAll()
+        #expect(client.v1ClaimCalls == 0)
+        #expect(!viewModel.isClaiming)
+        client.emit(.done)
+        await Self.settle { !viewModel.isLedgerClaiming && viewModel.claimEnabled }
+        #expect(viewModel.claimEnabled)
+
+        // a v1 claim in flight: no v2 claim
+        viewModel.claimAll()
+        #expect(client.v1ClaimCalls == 1)
+        #expect(!viewModel.ledgerClaimEnabled)
+        viewModel.claimLedger()
+        #expect(client.claimCalls == 1)
+        #expect(!viewModel.isLedgerClaiming)
+        client.emitV1(.done)
+        await Self.settle { !viewModel.isClaiming && viewModel.ledgerClaimEnabled }
+        #expect(viewModel.ledgerClaimEnabled)
+    }
+
+    // the v1 sheet's figure during its claim is what the claim moves, the
+    // epochs it sends as Claim found them, fixed until Done whatever a read
+    // since says (as on Android and Linux)
+    @Test func theV1FigureDuringAClaimIsWhatItMoves() async {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        func claim(_ epoch: Int64, _ rao: Int64, _ status: SnClaimStatus) -> SnEpochClaimInfo {
+            SnEpochClaimInfo(epoch: epoch, shareBps: 100, amountRao: rao, status: status, claimOpenBlock: 0, expiryBlock: 0, txHash: "")
+        }
+        client.v1Claims = [claim(7, 1_000_000_000, .claimable), claim(9, 500_000_000, .claimable), claim(5, 2_000_000_000, .claimed)]
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        #expect(viewModel.claimFigureRao == 1_500_000_000)
+
+        viewModel.claimAll()
+        client.v1Claims = [claim(7, 1_000_000_000, .claimed), claim(9, 500_000_000, .claimed), claim(5, 2_000_000_000, .claimed)]
+        await viewModel.refreshSubnet()
+        #expect(viewModel.totalClaimableRao == 0)
+        #expect(viewModel.claimFigureRao == 1_500_000_000)
+
+        client.emitV1(.done)
+        await Self.settle { !viewModel.isClaiming }
+        #expect(viewModel.claimFigureRao == viewModel.totalClaimableRao)
+    }
+
+    // the v1 tile's Claim opens a v1 claim in flight whatever the last read
+    // says, and its sheet lists the epochs Claim listed, as on Linux and
+    // Windows: a read since changes none of them, and on macOS the view model
+    // built on coming back to Account shows them though its claims read fails
+    @Test func aV1ClaimInFlightOpensWithTheEpochsClaimListed() async {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        func claim(_ epoch: Int64, _ rao: Int64, _ status: SnClaimStatus) -> SnEpochClaimInfo {
+            SnEpochClaimInfo(epoch: epoch, shareBps: 100, amountRao: rao, status: status, claimOpenBlock: 0, expiryBlock: 0, txHash: "")
+        }
+        let listed = [claim(9, 500_000_000, .claimable), claim(7, 1_000_000_000, .claimable), claim(5, 2_000_000_000, .claimed)]
+        client.v1Claims = listed
+        let session = EarningsSession(client: client)
+        do {
+            let first = EarningsViewModel(session: session)
+            await first.refresh()
+            #expect(first.claimTileEnabled)
+            #expect(first.claimSheetClaims == listed)
+            first.claimAll()
+            #expect(first.isClaiming)
+            // a read since: epoch 9 claimed on chain
+            client.v1Claims = [claim(9, 500_000_000, .claimed), claim(7, 1_000_000_000, .claimable), claim(5, 2_000_000_000, .claimed)]
+            await first.refreshSubnet()
+            #expect(first.claims != listed)
+            #expect(first.claimSheetClaims == listed)
+        }
+        client.emitV1(.confirmed(epoch: 9, txHash: "0x9", amountRao: 500_000_000))
+        await Self.settle { session.claimProgress[9] == .confirmed(txHash: "0x9", amountRao: 500_000_000) }
+
+        client.v1ClaimsFail = true
+        let second = EarningsViewModel(session: session)
+        await second.refresh()
+        #expect(second.claims.isEmpty)
+        #expect(second.claimTileEnabled)
+        #expect(second.claimSheetClaims == listed)
+        #expect(second.claimFigureRao == 1_500_000_000)
+        #expect(!second.claimEnabled)
+
+        client.emitV1(.done)
+        await Self.settle { !second.isClaiming }
+        #expect(!second.claimTileEnabled)
+        #expect(second.claimSheetClaims.isEmpty)
+        #expect(session.claimListed.isEmpty)
+        #expect(session.claimMovingRao == 0)
+    }
+
+    // a claim's Done reads the subnet again in the view model on screen, the
+    // one built last, alone: one an earlier visit left behind costs no reads
+    @Test func onlyTheViewModelOnScreenReadsAgainAtADone() async {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account()]
+        let session = EarningsSession(client: client)
+        let earlier = EarningsViewModel(session: session)
+        await earlier.refresh()
+        let current = EarningsViewModel(session: session)
+        await current.refresh()
+        #expect(session.screen === current)
+
+        current.claimLedger()
+        let reads = client.ledgerReads
+        client.ledgerAnswer = [Self.paid]
+        client.emit(.done)
+        await Self.settle { current.ledger == .loaded([Self.paid]) }
+        await Self.settle { false }
+        #expect(client.ledgerReads == reads + 1)
+        #expect(earlier.ledger == .loaded([Self.account()]))
+    }
+
     // MARK: localization
 
     /// the strings the v2 tile and dialog add
@@ -2445,6 +2629,8 @@ private final class FakeLedgerClient: EarningsClient {
     private(set) var ledgerReads = 0
     var gasTao: Double = 1
     var v1Claims: [SnEpochClaimInfo] = []
+    /// the claims read fails
+    var v1ClaimsFail = false
     private(set) var v1ClaimCalls = 0
     private(set) var claimCalls = 0
     private var onClaimEvent: ((SnLedgerClaimEvent) -> Void)?
@@ -2479,7 +2665,10 @@ private final class FakeLedgerClient: EarningsClient {
     }
     func gasBalanceTao() async throws -> Double { gasTao }
     func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?) {
-        (v1Claims, v1Claims.filter { $0.status == .claimable }.reduce(0) { $0 + $1.amountRao }, nil)
+        if v1ClaimsFail {
+            throw Unsupported()
+        }
+        return (v1Claims, v1Claims.filter { $0.status == .claimable }.reduce(0) { $0 + $1.amountRao }, nil)
     }
     func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void) {
         v1ClaimCalls += 1

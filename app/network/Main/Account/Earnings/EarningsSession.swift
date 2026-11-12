@@ -42,6 +42,13 @@ final class EarningsSession: ObservableObject {
 
     @Published private(set) var claimProgress: [Int64: EarningsViewModel.ClaimRowState] = [:]
     @Published private(set) var isClaiming = false
+    /// what the v1 claim in flight moves: the epochs it sends, as Claim found
+    /// them; the v1 sheet's figure until Done
+    @Published private(set) var claimMovingRao: Int64 = 0
+    /// the epochs' claims the v1 sheet listed when Claim was pressed, which a
+    /// sheet opened during the claim lists whatever a read since says, or a
+    /// read that failed (as on Linux and Windows); none between claims
+    @Published private(set) var claimListed: [SnEpochClaimInfo] = []
 
     // MARK: the settlement v2 claim
 
@@ -88,6 +95,10 @@ final class EarningsSession: ObservableObject {
 
     /// each claim's Done, for the view models that live
     let claimDone = PassthroughSubject<EarningsClaimDone, Never>()
+    /// the Account screens' view model built last, the one on screen: only it
+    /// reads the subnet again at a claim's Done, so a view model an earlier
+    /// visit left behind costs no reads
+    weak var screen: EarningsViewModel?
 
     init(
         client: EarningsClient,
@@ -97,13 +108,30 @@ final class EarningsSession: ObservableObject {
         self.sleep = sleep
     }
 
+    /// A claim of either kind is in flight. The gas key sends one claim at a
+    /// time: the sdk reads its pending nonce as it signs, with no lock across
+    /// a v1 and a v2 claim, so two at once could take the same nonce. Neither
+    /// kind starts while one is in flight, as on Linux.
+    var isAnyClaiming: Bool {
+        isClaiming || isLedgerClaiming
+    }
+
     // MARK: the v1 claim
 
-    func claim(epochs: [Int64]) {
-        guard !isClaiming, !epochs.isEmpty else {
+    /// The v1 claim of `epochs`, of the claims the sheet `listed`: it moves
+    /// those epochs' amounts as Claim found them. Nothing while a claim of
+    /// either kind is in flight (isAnyClaiming).
+    func claim(epochs: [Int64], listed: [SnEpochClaimInfo]) {
+        guard !isAnyClaiming, !epochs.isEmpty else {
             return
         }
+        let amounts = Dictionary(listed.map { ($0.epoch, $0.amountRao) }, uniquingKeysWith: { first, _ in first })
         isClaiming = true
+        claimMovingRao = epochs.reduce(Int64(0)) { total, epoch in
+            let (sum, overflow) = total.addingReportingOverflow(amounts[epoch] ?? 0)
+            return overflow ? Int64.max : sum
+        }
+        claimListed = listed
         claimProgress = Dictionary(uniqueKeysWithValues: epochs.map { ($0, EarningsViewModel.ClaimRowState.queued) })
         client.claim(epochs: epochs) { [weak self] event in
             Task { @MainActor [weak self] in
@@ -131,6 +159,8 @@ final class EarningsSession: ObservableObject {
             claimProgress[epoch] = .failed(message: message)
         case .done:
             isClaiming = false
+            claimMovingRao = 0
+            claimListed = []
             claimDone.send(.claim)
         }
     }
@@ -141,10 +171,11 @@ final class EarningsSession: ObservableObject {
     /// pool's and the capture the flag pool's alike, as the session's claim:
     /// the SDK sends one claim to STSettlementVault2 from the gas key, or, for
     /// two or more, one STClaimBatcher transaction that claims them all.
-    /// `listed` is every account the sheet listed. Nothing while a claim is
-    /// in flight: the gas key sends one at a time.
+    /// `listed` is every account the sheet listed. Nothing while a claim of
+    /// either kind is in flight: the gas key sends one at a time
+    /// (isAnyClaiming).
     func claimLedger(sends accounts: [SnLedgerAccountInfo], listed: [SnLedgerAccountInfo]) {
-        guard !isLedgerClaiming, !accounts.isEmpty else {
+        guard !isAnyClaiming, !accounts.isEmpty else {
             return
         }
         isLedgerClaiming = true

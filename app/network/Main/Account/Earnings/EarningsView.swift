@@ -200,6 +200,7 @@ struct EarningsView: View {
                         UnclaimedAlphaTile(
                             totalClaimableRao: viewModel.totalClaimableRao,
                             claimableEpochs: viewModel.claimableClaims.count,
+                            claimEnabled: viewModel.claimTileEnabled,
                             claim: {
                                 viewModel.resetClaimProgress()
                                 presentClaimSheet = true
@@ -256,6 +257,20 @@ struct EarningsView: View {
         .onDisappear {
             // a scroll the tile never showed for is not kept for a later visit
             deepLinkRouter.cancelEarningsTop200Scroll()
+            // The callbacks onAppear installs hold this view, and with it the
+            // models that hold them and the view model: they go with the
+            // visit, as the next visit installs them again. Kept, they would
+            // keep the view model, and the signed-in session it reads its
+            // claims from, past leaving Account on macOS and past a sign-out.
+            // The sheets they serve are this view's own, so it is on screen
+            // while any of those is up; a consent read still out when it goes
+            // is read again by the next visit (.task).
+            consentFlow.onStatusRead = { _, _ in }
+            keyModel.onLinked = {}
+            connectFlow.onConnected = { _ in }
+            consentFlow.onSigned = {}
+            solanaFlow.openWallet = { _ in false }
+            solanaFlow.onConnected = { _ in }
         }
         .refreshable {
             await refresh()

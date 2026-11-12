@@ -464,6 +464,9 @@ struct UnclaimedAlphaTile: View {
 
     let totalClaimableRao: Int64
     let claimableEpochs: Int
+    /// something claimable, or a claim in flight, which Claim opens
+    /// (EarningsViewModel.claimTileEnabled)
+    let claimEnabled: Bool
     let claim: () -> Void
     /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*): Earnings
     /// shows it once, here only while the payout card has none
@@ -485,7 +488,7 @@ struct UnclaimedAlphaTile: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             Spacer().frame(height: 8)
-            UrButton(text: "Claim", action: claim, enabled: claimableEpochs > 0)
+            UrButton(text: "Claim", action: claim, enabled: claimEnabled)
             BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)
                 .padding(.top, 4)
         }

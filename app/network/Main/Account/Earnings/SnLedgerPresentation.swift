@@ -364,15 +364,18 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     /// An account the claim reports that the sheet's read did not list: its
     /// pool could not be read then, and the claim's own read found it. It
     /// takes that pool's line (Android's, Linux's and Windows' rule), with no
-    /// figure until vault2 confirms what it paid.
+    /// figure until vault2 confirms what it paid. `sentRao`: the amount Claim
+    /// found for an account the claim sends that a read since did not list
+    /// (EarningsViewModel.ledgerClaimRows), which is its figure.
     static func found(
         _ key: SnLedgerAccountKey,
         kind: SnLedgerPoolKind,
         progress: EarningsViewModel.LedgerClaimRowState,
         chain: SnLedgerChainInfo,
-        pools: SnLedgerPools
+        pools: SnLedgerPools,
+        sentRao: Int64? = nil
     ) -> SnLedgerClaimRow {
-        of(id: key, name: pools.name(kind: kind, noId: key.noId), claimableRao: nil, progress: progress, chain: chain)
+        of(id: key, name: pools.name(kind: kind, noId: key.noId), claimableRao: sentRao, progress: progress, chain: chain)
     }
 
     private static func of(

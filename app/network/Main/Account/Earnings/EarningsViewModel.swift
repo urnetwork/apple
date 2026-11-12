@@ -178,12 +178,16 @@ final class EarningsViewModel: ObservableObject {
             self?.objectWillChange.send()
         }
         // a claim's Done, whichever view model started it: the subnet as the
-        // chain now has it
+        // chain now has it, read by the view model on screen alone
         sessionClaimsDone = session.claimDone.sink { [weak self] _ in
+            guard let self, self.session.screen === self else {
+                return
+            }
             Task { [weak self] in
                 await self?.refreshSubnet()
             }
         }
+        session.screen = self
     }
 
     /// A view model with a session of its own, as previews and tests have.
@@ -316,9 +320,11 @@ final class EarningsViewModel: ObservableObject {
     /// it is what a claim pays (ledgerClaimableRao). During a claim it is what
     /// the claim moves (owner, 2026-11-12): the accounts it sends whose
     /// amount is known and above the floor, as Claim found them
-    /// (EarningsSession.ledgerClaimSends), which no event and no read since
-    /// changes. So it is never 0, and never counts an account under the floor
-    /// or of an amount not known.
+    /// (EarningsSession.ledgerClaimSends), fixed until Done as on Android,
+    /// Linux and Windows. No read since changes it and no account the claim
+    /// confirms takes from it, so it never reads 0; an account the SDK then
+    /// sends nothing for says so on its own line (needs_gas: claimable, with
+    /// the gas card's top-up).
     var ledgerClaimFigureRao: Int64 {
         isLedgerClaiming ? Self.total(session.ledgerClaimSends) : ledgerClaimableRao
     }
@@ -346,9 +352,16 @@ final class EarningsViewModel: ObservableObject {
         (gasTao ?? 0) < ledgerGasNeededTao || ledgerClaimProgress.values.contains(.needsGas)
     }
 
-    /// the v2 claim sheet's Claim
+    /// the v2 claim sheet's Claim, which waits for a claim of either kind in
+    /// flight: the gas key sends one at a time (EarningsSession.isAnyClaiming)
     var ledgerClaimEnabled: Bool {
-        ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas && !isLedgerClaiming
+        ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas && !session.isAnyClaiming
+    }
+
+    /// the v1 claim sheet's Claim: something claimable, gas, and no claim of
+    /// either kind in flight (EarningsSession.isAnyClaiming)
+    var claimEnabled: Bool {
+        !claimableClaims.isEmpty && !needsGas && !session.isAnyClaiming
     }
 
     /// the v2 claim sheet has no amount to show, never 0: the ledger could not
@@ -359,15 +372,15 @@ final class EarningsViewModel: ObservableObject {
     }
 
     /// The v2 claim sheet's figure (ledgerClaimFigureRao) is a total to show.
-    /// During a claim it always is: the claim moves something. Between claims:
-    /// a line holds an amount above the floor a claim moves, or no line holds
+    /// During a claim always: a claim sends something. Between claims: a line
+    /// holds an amount above the floor a claim moves, or no line holds
     /// anything left, a true 0. While what is left is all under the floor, in
     /// a pool that could not be read or of an amount not known yet, the lines
     /// say why and the sheet shows no figure, never 0 (Windows' and Android's
     /// claim dialogs).
     var ledgerClaimTotalKnown: Bool {
         if isLedgerClaiming {
-            return true
+            return ledgerClaimFigureRao > 0
         }
         let left = ledgerClaimRowsLeft
         return left.contains(.moves) || !left.contains(.noFigure)
@@ -494,9 +507,33 @@ final class EarningsViewModel: ObservableObject {
     }
 
     /// The v1 claim, the session's (EarningsSession): its events and its Done
-    /// land whatever screen is up, and none starts while one is in flight.
+    /// land whatever screen is up, and none starts while a claim of either
+    /// kind is in flight. What it moves is what the claims read gives `epochs`.
     func claim(epochs: [Int64]) {
-        session.claim(epochs: epochs)
+        session.claim(epochs: epochs, listed: claims)
+    }
+
+    /// The v1 sheet's epochs: the claims read's, and during a claim the ones
+    /// the sheet listed when Claim was pressed (EarningsSession.claimListed),
+    /// which a read since never changes or empties, as Linux's and Windows'
+    /// sheets keep the claim's own rows.
+    var claimSheetClaims: [SnEpochClaimInfo] {
+        isClaiming ? session.claimListed : claims
+    }
+
+    /// The v1 tile's Claim: something claimable, or a claim in flight, which
+    /// it opens whatever the last read says (as the v2 tile's does, and the
+    /// other apps' v1 Claim).
+    var claimTileEnabled: Bool {
+        !claimableClaims.isEmpty || isClaiming
+    }
+
+    /// The v1 claim sheet's figure, which its Claim names too: what is
+    /// unclaimed, and during a claim what the claim moves, the epochs it sends
+    /// as Claim found them, fixed until Done (owner, 2026-11-12, as on
+    /// Android and Linux), so a read since never makes it 0.
+    var claimFigureRao: Int64 {
+        isClaiming ? session.claimMovingRao : totalClaimableRao
     }
 
     /// The v1 sheet starts over, but for a claim in flight, whose progress a
@@ -545,7 +582,13 @@ final class EarningsViewModel: ObservableObject {
     /// Linux's and Windows' claim rows do: an account its own read found in a
     /// pool the sheet's read could not read takes that pool's line, and a pool
     /// it could not read that the sheet's read did not list gets a line.
+    /// During a claim an account it sends shows the amount Claim found, as
+    /// Windows' rows do, whatever a read since says (on macOS the view model
+    /// built on coming back to Account reads the ledger again).
     var ledgerClaimRows: [SnLedgerClaimRow] {
+        let sends = isLedgerClaiming
+            ? Dictionary(session.ledgerClaimSends.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            : [:]
         let listed = Set(ledger.accounts.map(\.id))
         let listedNoIds = Set(ledger.accounts.map(\.noId))
         let unavailableNoIds = Set(ledger.unavailablePools.map(\.noId))
@@ -567,12 +610,14 @@ final class EarningsViewModel: ObservableObject {
             unavailablePools: ledger.unavailablePools + reported,
             transferFloorRao: ledgerTransferFloorRao
         )
-        let extraRows = extra.map { SnLedgerClaimRow.found($0.key, kind: $0.kind, progress: $0.state, chain: ledgerChain, pools: pools) }
+        let extraRows = extra.map {
+            SnLedgerClaimRow.found($0.key, kind: $0.kind, progress: $0.state, chain: ledgerChain, pools: pools, sentRao: sends[$0.key]?.claimableRao)
+        }
         let unavailableRows = ledger.unavailablePools.flatMap { pool in
             let taken = extraRows.filter { $0.id.noId == pool.noId }
             return taken.isEmpty ? [SnLedgerClaimRow.of(pool, pools: pools)] : taken
         }
-        return ledger.accounts.map { SnLedgerClaimRow.of($0, progress: ledgerClaimProgress[$0.id], chain: ledgerChain, pools: pools) }
+        return ledger.accounts.map { SnLedgerClaimRow.of(sends[$0.id] ?? $0, progress: ledgerClaimProgress[$0.id], chain: ledgerChain, pools: pools) }
             + unavailableRows
             + extraRows.filter { !unavailableNoIds.contains($0.id.noId) }
     }

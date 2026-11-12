@@ -77,6 +77,9 @@ struct UpgradeSubscriptionSheet: View {
     /// when the free data refreshes and offers Wait for refresh, which
     /// dismisses it (upgradeShowsFreeRefresh).
     var showsFreeRefresh: Bool = false
+    /// The signed-in network's name: the success view says which account the
+    /// plan is on.
+    let networkName: String?
     var dismiss: () -> Void
 
     @State var selectedPaymentOption: PaymentOption = .yearly
@@ -165,6 +168,7 @@ struct UpgradeSubscriptionSheet: View {
                     restoreMessage: restoreMessage,
                     confirmingTitle: purchaseConfirmingTitle,
                     confirmingMessage: confirmingMessage,
+                    networkName: networkName,
                     dismiss: close
                 )
                 .transition(.opacity)

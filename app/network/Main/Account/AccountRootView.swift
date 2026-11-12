@@ -174,6 +174,15 @@ struct AccountRootView: View {
                             }
                             
                         }
+
+                        // the account the plan is on: customers with several
+                        // accounts read the plan of one and had paid on another
+                        let planAccountName = SdkPlanAccountName(networkName, isGuest)
+                        if !planAccountName.isEmpty {
+                            Text("Account: \(planAccountName)")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        }
                             
                         /**
                          * An App Store subscription can only be changed or cancelled
@@ -703,6 +712,7 @@ struct AccountRootView: View {
                 restoreMessage: subscriptionStore.restoreResultMessage,
                 purchaseConfirmingTitle: subscriptionStore.purchaseConfirmingTitle,
                 purchaseConfirmingMessage: subscriptionStore.purchaseConfirmingMessage,
+                networkName: networkName,
                 dismiss: {
                     viewModel.isPresentedUpgradeSheet = false
                     // the purchase flags describe ONE attempt; letting them

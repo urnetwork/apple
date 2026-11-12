@@ -780,6 +780,17 @@ struct ConnectActions: View {
                 
             }
                 
+            // the account the plan is on, as on the Account screen
+            let planAccountName = SdkPlanAccountName(
+                deviceManager.parsedJwt?.networkName,
+                deviceManager.parsedJwt?.guestMode ?? false
+            )
+            if !planAccountName.isEmpty {
+                Text("Account: \(planAccountName)")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            }
+
             // a renewal whose payment did not go through, while
             // the store retries it, as on the account plan card
             if paymentPastDue != nil {

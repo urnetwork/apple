@@ -145,6 +145,7 @@ struct OnboardingOfferSheet: View {
                     restoreMessage: subscriptionStore.restoreResultMessage,
                     confirmingTitle: subscriptionStore.purchaseConfirmingTitle,
                     confirmingMessage: confirmingMessage,
+                    networkName: deviceManager.parsedJwt?.networkName,
                     dismiss: close
                 )
                 .transition(.opacity)

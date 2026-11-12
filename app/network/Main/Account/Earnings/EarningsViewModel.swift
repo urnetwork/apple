@@ -7,9 +7,12 @@
 //  Bittensor coldkey is attached: the wallet, the epoch history rows, the
 //  vault claims, the settlement v2 accounts (the pool's and the capture the
 //  flag pool's) and their claim, the gas key balance and the network's Top
-//  200 standing on the Protocol leaderboard.
+//  200 standing on the Protocol leaderboard. The claims in flight and
+//  capture the flag's won lines are the signed-in session's (EarningsSession),
+//  which outlives this view model where the Account screens do not.
 //
 
+import Combine
 import Foundation
 
 @MainActor
@@ -88,15 +91,26 @@ final class EarningsViewModel: ObservableObject {
     /// "no wallet connected"
     @Published private(set) var walletLoadFailed = false
 
-    @Published private(set) var claimProgress: [Int64: ClaimRowState] = [:]
-    @Published private(set) var isClaiming = false
+    /// the v1 claim's progress, the session's (EarningsSession)
+    var claimProgress: [Int64: ClaimRowState] {
+        session.claimProgress
+    }
+    var isClaiming: Bool {
+        session.isClaiming
+    }
 
     /// the settlement v2 accounts from the latest ledger read
     @Published private(set) var ledger: SnLedgerLoad = .loading
     /// vault2 and the explorer link from the SDK's chain settings
     @Published private(set) var ledgerChain: SnLedgerChainInfo = .unconfigured
-    @Published private(set) var ledgerClaimProgress: [SnLedgerAccountKey: LedgerClaimRowState] = [:]
-    @Published private(set) var isLedgerClaiming = false
+    /// the v2 claim's progress, the session's (EarningsSession): a claim in
+    /// flight is the signed-in session's, never this view model's
+    var ledgerClaimProgress: [SnLedgerAccountKey: LedgerClaimRowState] {
+        session.ledgerClaimProgress
+    }
+    var isLedgerClaiming: Bool {
+        session.isLedgerClaiming
+    }
 
     /// what URnetwork's claim relay says of the network's v2 balance; nil
     /// until read, or with no sdk to ask
@@ -107,32 +121,30 @@ final class EarningsViewModel: ObservableObject {
 
     /// every capture the flag slot the network's clients won whose award is
     /// not claimed yet, newest first, for a line each under the Settlement v2
-    /// balances, as the last good read gave them: a read that failed keeps
-    /// them (every app, 2026-11-12), and none show until the first read with
-    /// the signed-in account's screens answers
-    @Published private(set) var ctfWins: [SnCtfWinInfo] = []
+    /// balances, as the session's last good read gave them (EarningsSession):
+    /// a read that failed keeps them (every app, 2026-11-12), a client answer
+    /// never replaces a network answer's, and none show until the session's
+    /// first read answers
+    var ctfWins: [SnCtfWinInfo] {
+        session.ctfWins
+    }
 
+    /// the signed-in session's claims and won lines
+    let session: EarningsSession
     let client: EarningsClient
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
-    /// the reads of the capture the flag wins started so far, and the newest
-    /// whose good answer the lines show: the reads run beside the refresh and
-    /// never hold it up (the sdk waits up to a minute for the route), they
-    /// overlap, and their answers land in any order
-    private var ctfWinsReadsStarted = 0
-    private var ctfWinsReadShown = 0
-    /// the reads of the wins after the last paying claim's Done
-    /// (readCtfWinsAfterClaim)
-    private var ctfWinsAfterClaim: Task<Void, Never>?
-    /// waits between those reads: Task.sleep, or the tests' clock
-    private let sleep: (Duration) async throws -> Void
+    /// the session's changes, which this view model's screens draw
+    private var sessionChanges: AnyCancellable?
+    /// the session's claims' Done
+    private var sessionClaimsDone: AnyCancellable?
 
     /// When the wins are read again after a claim that paid an account, after
-    /// its Done, beside the read at Done (every app's schedule). The SDK's
-    /// Done comes once the claim is in a block, but the server says a win is
-    /// claimed only once vault2's claimed at the finalized head covers the
-    /// claim, so the read at Done can still list a win the claim paid.
-    static let ctfWinsReadsAfterClaim: [Duration] = [.seconds(30), .seconds(60), .seconds(120)]
+    /// its Done (EarningsSession.ctfWinsReadsAfterClaim, every app's
+    /// schedule).
+    static var ctfWinsReadsAfterClaim: [Duration] {
+        EarningsSession.ctfWinsReadsAfterClaim
+    }
 
     /// the per-claim gas reserve in TAO, which the top-up asks for and Claim
     /// waits for: the SDK sends a v1 claim only when the gas key holds its
@@ -147,12 +159,12 @@ final class EarningsViewModel: ObservableObject {
     /// at 5 gwei
     static let ledgerGasTaoPerClaim = 0.02
 
-    init(
-        client: EarningsClient,
-        sleep: @escaping (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
-    ) {
+    /// The Account screens' view model on the signed-in session's claims and
+    /// won lines, and its client.
+    init(session: EarningsSession) {
+        self.session = session
+        let client = session.client
         self.client = client
-        self.sleep = sleep
         self.wallet = client.cachedWallet()
         self.gasKey = client.gasKey()
         walletSubscription = client.observeWallet { [weak self] wallet in
@@ -162,6 +174,28 @@ final class EarningsViewModel: ObservableObject {
                 await self.refreshSubnet()
             }
         }
+        sessionChanges = session.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+        // a claim's Done, whichever view model started it: the subnet as the
+        // chain now has it, read by the view model on screen alone
+        sessionClaimsDone = session.claimDone.sink { [weak self] _ in
+            guard let self, self.session.screen === self else {
+                return
+            }
+            Task { [weak self] in
+                await self?.refreshSubnet()
+            }
+        }
+        session.screen = self
+    }
+
+    /// A view model with a session of its own, as previews and tests have.
+    convenience init(
+        client: EarningsClient,
+        sleep: @escaping (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+    ) {
+        self.init(session: EarningsSession(client: client, sleep: sleep))
     }
 
     var hasWallet: Bool {
@@ -194,12 +228,13 @@ final class EarningsViewModel: ObservableObject {
         Top200TilePresentation.of(top)
     }
 
-    /// the Settlement v2 tile, or nil for none
+    /// the Settlement v2 tile, or nil for none; its Claim opens the claim in
+    /// flight while there is one
     var ledgerTile: SnLedgerTilePresentation? {
         SnLedgerTilePresentation.of(
             load: ledger,
             claimConfigured: ledgerChain.claimConfigured,
-            isClaiming: isLedgerClaiming,
+            claimInFlight: isLedgerClaiming,
             transferFloorRao: ledgerTransferFloorRao
         )
     }
@@ -269,15 +304,33 @@ final class EarningsViewModel: ObservableObject {
     }
 
     /// the claim claims the pool account and the capture the flag account
-    /// together: its button says "Claim both"
+    /// together: its button says "Claim both"; during a claim, whether the
+    /// claim sends exactly those two
     var ledgerClaimsBoth: Bool {
-        ledgerPools.claimsBoth(ledgerClaimableAccounts)
+        ledgerPools.claimsBoth(isLedgerClaiming ? session.ledgerClaimSends : ledgerClaimableAccounts)
     }
 
     /// what a v2 claim pays in all, saturating rather than trapping on an
     /// absurd ledger answer
     var ledgerClaimableRao: Int64 {
-        ledgerClaimableAccounts.reduce(0) { total, account in
+        Self.total(ledgerClaimableAccounts)
+    }
+
+    /// The v2 claim sheet's figure, which its Claim names too. Between claims
+    /// it is what a claim pays (ledgerClaimableRao). During a claim it is what
+    /// the claim moves (owner, 2026-11-12): the accounts it sends whose
+    /// amount is known and above the floor, as Claim found them
+    /// (EarningsSession.ledgerClaimSends), fixed until Done as on Android,
+    /// Linux and Windows. No read since changes it and no account the claim
+    /// confirms takes from it, so it never reads 0; an account the SDK then
+    /// sends nothing for says so on its own line (needs_gas: claimable, with
+    /// the gas card's top-up).
+    var ledgerClaimFigureRao: Int64 {
+        isLedgerClaiming ? Self.total(session.ledgerClaimSends) : ledgerClaimableRao
+    }
+
+    private static func total(_ accounts: [SnLedgerAccountInfo]) -> Int64 {
+        accounts.reduce(0) { total, account in
             let (sum, overflow) = total.addingReportingOverflow(account.claimableRao)
             return overflow ? Int64.max : sum
         }
@@ -299,23 +352,36 @@ final class EarningsViewModel: ObservableObject {
         (gasTao ?? 0) < ledgerGasNeededTao || ledgerClaimProgress.values.contains(.needsGas)
     }
 
-    /// the v2 claim sheet's Claim
+    /// the v2 claim sheet's Claim, which waits for a claim of either kind in
+    /// flight: the gas key sends one at a time (EarningsSession.isAnyClaiming)
     var ledgerClaimEnabled: Bool {
-        ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas && !isLedgerClaiming
+        ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas && !session.isAnyClaiming
+    }
+
+    /// the v1 claim sheet's Claim: something claimable, gas, and no claim of
+    /// either kind in flight (EarningsSession.isAnyClaiming)
+    var claimEnabled: Bool {
+        !claimableClaims.isEmpty && !needsGas && !session.isAnyClaiming
     }
 
     /// the v2 claim sheet has no amount to show, never 0: the ledger could not
-    /// be read, or it read no account and could not read a pool
+    /// be read, or it read no account and could not read a pool. A claim in
+    /// flight has its figure, whatever the reads since say.
     var ledgerClaimUnavailable: Bool {
-        ledger == .unavailable || (ledger.accounts.isEmpty && !ledger.unavailablePools.isEmpty)
+        !isLedgerClaiming && (ledger == .unavailable || (ledger.accounts.isEmpty && !ledger.unavailablePools.isEmpty))
     }
 
-    /// The v2 claim sheet's figure is a total to show: a line holds an amount
-    /// above the floor a claim moves, or no line holds anything left, a true
-    /// 0. While what is left is all under the floor, in a pool that could not
-    /// be read or of an amount not known yet, the lines say why and the sheet
-    /// shows no figure, never 0 (Windows' and Android's claim dialogs).
+    /// The v2 claim sheet's figure (ledgerClaimFigureRao) is a total to show.
+    /// During a claim always: a claim sends something. Between claims: a line
+    /// holds an amount above the floor a claim moves, or no line holds
+    /// anything left, a true 0. While what is left is all under the floor, in
+    /// a pool that could not be read or of an amount not known yet, the lines
+    /// say why and the sheet shows no figure, never 0 (Windows' and Android's
+    /// claim dialogs).
     var ledgerClaimTotalKnown: Bool {
+        if isLedgerClaiming {
+            return ledgerClaimFigureRao > 0
+        }
         let left = ledgerClaimRowsLeft
         return left.contains(.moves) || !left.contains(.noFigure)
     }
@@ -354,7 +420,7 @@ final class EarningsViewModel: ObservableObject {
         // `try?` flattens an optional result, so a failed wallet read would
         // read as "none"; earningsAttempt keeps the failure distinct
         let client = client
-        refreshCtfWins()
+        session.readCtfWins()
         async let walletTask = earningsAttempt { try await client.fetchWallet() }
         async let epochsTask = earningsAttempt { try await client.accountEpochs() }
         async let topTask = earningsAttempt { try await client.topMe() }
@@ -383,58 +449,6 @@ final class EarningsViewModel: ObservableObject {
 
         loadedOnce = true
         isLoading = false
-    }
-
-    /// Reads the capture the flag wins: beside the refresh, at a claim's Done
-    /// and at the times after it. Each read starts when asked, beside any
-    /// still out, so the reads keep their times, and the lines show the
-    /// newest read's good answer, whatever order the answers land in. A read
-    /// that failed keeps the last good read's lines and never blanks them,
-    /// nor drops an older read's good answer still to land: only a good read
-    /// that no longer lists a win takes its line away, or a sign-out, which
-    /// ends this view model with the account's screens.
-    private func refreshCtfWins() {
-        ctfWinsReadsStarted += 1
-        let read = ctfWinsReadsStarted
-        let client = client
-        Task { [weak self] in
-            let wins = await client.ctfUnclaimedWins()
-            guard let self, let wins, read > self.ctfWinsReadShown else {
-                return
-            }
-            self.ctfWinsReadShown = read
-            self.ctfWins = wins
-        }
-    }
-
-    /// After a claim that paid an account, the wins are read again at each of
-    /// ctfWinsReadsAfterClaim after its Done, beside the read at Done: a win
-    /// the claim paid reads claimed only once the finalized head covers the
-    /// claim. Each read starts at its time and replaces the lines unless it
-    /// failed (refreshCtfWins). The next paying claim's Done starts the reads
-    /// over; one that paid nothing leaves them be. They end
-    /// with this view model, which lives as long as the signed-in account's
-    /// screens, so a sign-out ends them; while it lives they run with
-    /// Earnings off screen too, since a later visit does not read the wins
-    /// again.
-    private func readCtfWinsAfterClaim() {
-        ctfWinsAfterClaim?.cancel()
-        let sleep = sleep
-        ctfWinsAfterClaim = Task { [weak self] in
-            var afterDone = Duration.zero
-            for at in Self.ctfWinsReadsAfterClaim {
-                do {
-                    try await sleep(at - afterDone)
-                } catch {
-                    return
-                }
-                afterDone = at
-                guard !Task.isCancelled, let self else {
-                    return
-                }
-                self.refreshCtfWins()
-            }
-        }
     }
 
     /// The layer that only exists with a wallet: gas key, balance, claims,
@@ -492,21 +506,47 @@ final class EarningsViewModel: ObservableObject {
         claim(epochs: claimableClaims.map { $0.epoch })
     }
 
+    /// The v1 claim, the session's (EarningsSession): its events and its Done
+    /// land whatever screen is up, and none starts while a claim of either
+    /// kind is in flight. What it moves is what the claims read gives `epochs`.
     func claim(epochs: [Int64]) {
-        guard !isClaiming, !epochs.isEmpty else {
-            return
-        }
-        isClaiming = true
-        claimProgress = Dictionary(uniqueKeysWithValues: epochs.map { ($0, ClaimRowState.queued) })
-        client.claim(epochs: epochs) { [weak self] event in
-            Task { @MainActor [weak self] in
-                self?.apply(event)
-            }
-        }
+        session.claim(epochs: epochs, listed: claims)
     }
 
+    /// The v1 sheet's epochs: the claims read's, and during a claim the ones
+    /// the sheet listed when Claim was pressed (EarningsSession.claimListed),
+    /// which a read since never changes or empties, as Linux's and Windows'
+    /// sheets keep the claim's own rows.
+    var claimSheetClaims: [SnEpochClaimInfo] {
+        isClaiming ? session.claimListed : claims
+    }
+
+    /// The count under the v1 sheet's figure ("Claimable epochs: N"): the
+    /// claimable epochs, and during a claim the epochs it sends, fixed with
+    /// the figure until Done (as on Windows).
+    var claimSheetClaimableCount: Int {
+        isClaiming ? claimProgress.count : claimableClaims.count
+    }
+
+    /// The v1 tile's Claim: something claimable, or a claim in flight, which
+    /// it opens whatever the last read says (as the v2 tile's does, and the
+    /// other apps' v1 Claim).
+    var claimTileEnabled: Bool {
+        !claimableClaims.isEmpty || isClaiming
+    }
+
+    /// The v1 claim sheet's figure, which its Claim names too: what is
+    /// unclaimed, and during a claim what the claim moves, the epochs it sends
+    /// as Claim found them, fixed until Done (owner, 2026-11-12, as on
+    /// Android and Linux), so a read since never makes it 0.
+    var claimFigureRao: Int64 {
+        isClaiming ? session.claimMovingRao : totalClaimableRao
+    }
+
+    /// The v1 sheet starts over, but for a claim in flight, whose progress a
+    /// sheet opened again shows.
     func resetClaimProgress() {
-        claimProgress = [:]
+        session.resetClaimProgress()
     }
 
     var claimFailureMessages: [(epoch: Int64, message: String)] {
@@ -523,44 +563,25 @@ final class EarningsViewModel: ObservableObject {
         !isClaiming && !claimProgress.isEmpty
     }
 
-    private func apply(_ event: SnClaimEvent) {
-        switch event {
-        case .sent(let epoch, let txHash):
-            claimProgress[epoch] = .sent(txHash: txHash)
-        case .confirmed(let epoch, let txHash, let amountRao):
-            claimProgress[epoch] = .confirmed(txHash: txHash, amountRao: amountRao)
-        case .failed(let epoch, let message):
-            claimProgress[epoch] = .failed(message: message)
-        case .done:
-            isClaiming = false
-            Task { [weak self] in
-                await self?.refreshSubnet()
-            }
-        }
-    }
-
     // MARK: settlement v2 claims
 
     /// Claims every v2 account with something claimable, the pool's and the
-    /// capture the flag pool's alike: the SDK sends one claim to
-    /// STSettlementVault2 from the gas key, or, for two or more, one
-    /// STClaimBatcher transaction that claims them all.
+    /// capture the flag pool's alike, as the signed-in session's claim
+    /// (EarningsSession): the SDK sends one claim to STSettlementVault2 from
+    /// the gas key, or, for two or more, one STClaimBatcher transaction that
+    /// claims them all. Its events and its Done land whatever screen is up,
+    /// and none starts while one is in flight.
     func claimLedger() {
-        let accounts = ledgerClaimableAccounts
-        guard !isLedgerClaiming, ledgerChain.claimConfigured, !accounts.isEmpty else {
+        guard ledgerChain.claimConfigured else {
             return
         }
-        isLedgerClaiming = true
-        ledgerClaimProgress = Dictionary(accounts.map { ($0.id, LedgerClaimRowState.queued) }, uniquingKeysWith: { first, _ in first })
-        client.ledgerClaim { [weak self] event in
-            Task { @MainActor [weak self] in
-                self?.applyLedger(event)
-            }
-        }
+        session.claimLedger(sends: ledgerClaimableAccounts, listed: ledger.accounts)
     }
 
+    /// The v2 sheet starts over, but for a claim in flight, whose progress a
+    /// sheet opened again shows.
     func resetLedgerClaimProgress() {
-        ledgerClaimProgress = [:]
+        session.resetLedgerClaimProgress()
     }
 
     /// Each account's line in the v2 claim sheet, then each pool that could
@@ -568,7 +589,13 @@ final class EarningsViewModel: ObservableObject {
     /// Linux's and Windows' claim rows do: an account its own read found in a
     /// pool the sheet's read could not read takes that pool's line, and a pool
     /// it could not read that the sheet's read did not list gets a line.
+    /// During a claim an account it sends shows the amount Claim found, as
+    /// Windows' rows do, whatever a read since says (on macOS the view model
+    /// built on coming back to Account reads the ledger again).
     var ledgerClaimRows: [SnLedgerClaimRow] {
+        let sends = isLedgerClaiming
+            ? Dictionary(session.ledgerClaimSends.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            : [:]
         let listed = Set(ledger.accounts.map(\.id))
         let listedNoIds = Set(ledger.accounts.map(\.noId))
         let unavailableNoIds = Set(ledger.unavailablePools.map(\.noId))
@@ -590,12 +617,14 @@ final class EarningsViewModel: ObservableObject {
             unavailablePools: ledger.unavailablePools + reported,
             transferFloorRao: ledgerTransferFloorRao
         )
-        let extraRows = extra.map { SnLedgerClaimRow.found($0.key, kind: $0.kind, progress: $0.state, chain: ledgerChain, pools: pools) }
+        let extraRows = extra.map {
+            SnLedgerClaimRow.found($0.key, kind: $0.kind, progress: $0.state, chain: ledgerChain, pools: pools, sentRao: sends[$0.key]?.claimableRao)
+        }
         let unavailableRows = ledger.unavailablePools.flatMap { pool in
             let taken = extraRows.filter { $0.id.noId == pool.noId }
             return taken.isEmpty ? [SnLedgerClaimRow.of(pool, pools: pools)] : taken
         }
-        return ledger.accounts.map { SnLedgerClaimRow.of($0, progress: ledgerClaimProgress[$0.id], chain: ledgerChain, pools: pools) }
+        return ledger.accounts.map { SnLedgerClaimRow.of(sends[$0.id] ?? $0, progress: ledgerClaimProgress[$0.id], chain: ledgerChain, pools: pools) }
             + unavailableRows
             + extraRows.filter { !unavailableNoIds.contains($0.id.noId) }
     }
@@ -612,65 +641,6 @@ final class EarningsViewModel: ObservableObject {
 
     var ledgerClaimFinished: Bool {
         !isLedgerClaiming && !ledgerClaimProgress.isEmpty
-    }
-
-    private func applyLedger(_ event: SnLedgerClaimEvent) {
-        switch event {
-        case .sent(let noId, let index, let txHash):
-            ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .sent(txHash: txHash)
-        case .confirmed(let noId, let index, let txHash, let amountRao):
-            ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .confirmed(txHash: txHash, amountRao: amountRao)
-        case .failed(let noId, let index, let message):
-            let code = SnLedgerClaimFailure.code(of: message)
-            if code == SnLedgerClaimFailure.alreadyClaimedCode {
-                // another sender claimed it first, which is success; the
-                // refresh after Done shows the account paid
-                ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .alreadyClaimed
-            } else if code == SnLedgerClaimFailure.needsGasCode {
-                // nothing was sent for it: still claimable once the gas key
-                // is topped up, which the gas card asks for
-                ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .needsGas
-            } else if code == SnLedgerClaimFailure.ledgerUnavailableCode, noId != 0, index == 0 {
-                // the claim could not read this pool, whose account index it
-                // does not know, and claimed the others: the pool, and each
-                // account of it the sheet listed or the claim reported that
-                // the claim sent nothing for, whatever its index and under
-                // the floor too, are unavailable right now; one the claim
-                // sent keeps its state (Android's, Linux's and Windows' rule)
-                let poolKey = SnLedgerAccountKey(noId: noId, index: index)
-                let keys = Set(
-                    ledger.accounts.filter { $0.noId == noId }.map(\.id)
-                        + ledgerClaimProgress.keys.filter { $0.noId == noId }
-                        + [poolKey]
-                )
-                for key in keys where ledgerClaimProgress[key]?.unsent ?? true {
-                    ledgerClaimProgress[key] = .unavailable
-                }
-            } else if SnLedgerClaimFailure.underFloor(message) {
-                // the sdk's preflight found an account under the floor and
-                // sent nothing for it: it waits, below the claim minimum, as
-                // the sheet said, lone or beside others, and is no failure
-                ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .underFloor
-            } else {
-                ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .failed(message: message)
-            }
-        case .done:
-            isLedgerClaiming = false
-            // an account the SDK did not claim is not left pending
-            ledgerClaimProgress = ledgerClaimProgress.filter { $0.value != .queued }
-            // a win whose award this claim, or another sender's, paid is no
-            // longer unclaimed: the wins are read now, after any claim, as
-            // every app reads them, and after one that paid again on the
-            // schedule, as the server reads the claim only once the finalized
-            // head covers it
-            refreshCtfWins()
-            if ledgerClaimProgress.values.contains(where: \.paid) {
-                readCtfWinsAfterClaim()
-            }
-            Task { [weak self] in
-                await self?.refreshSubnet()
-            }
-        }
     }
 }
 

@@ -49,8 +49,15 @@ final class BittensorKeyModel: ObservableObject {
     private var observedLinkGeneration: Int64 = 0
     private var copiedResetTask: Task<Void, Never>?
 
-    /// a consent went through this flow: read the consent and earnings again
-    var onLinked: () -> Void = {}
+    /// A consent went through this flow: read the consent and earnings again.
+    /// nil while no screen listens (EarningsView sets it while it is on
+    /// screen); a link that lands meanwhile, while Earnings is covered or away,
+    /// is handed on when one sets it again, never lost.
+    var onLinked: (() -> Void)? {
+        didSet {
+            handOnLink()
+        }
+    }
 
     init(
         flow: BittensorKeyFlowing,
@@ -73,7 +80,8 @@ final class BittensorKeyModel: ObservableObject {
     }
 
     deinit {
-        flow.close()
+        // a consent on its way finishes first (BittensorKeyFlowEnd)
+        BittensorKeyFlowEnd.end(flow)
     }
 
     /// Mirrors the flow. A finished screen closes itself.
@@ -110,10 +118,17 @@ final class BittensorKeyModel: ObservableObject {
         if screen.confirming != SdkBittensorLocalKeyConfirmNone {
             deleteExplained = false
         }
-        if card.linkGeneration != observedLinkGeneration {
-            observedLinkGeneration = card.linkGeneration
-            onLinked()
+        handOnLink()
+    }
+
+    /// A link the flow made since the last one handed on goes to the screen
+    /// that listens, once; it waits while none does.
+    private func handOnLink() {
+        guard let onLinked, card.linkGeneration != observedLinkGeneration else {
+            return
         }
+        observedLinkGeneration = card.linkGeneration
+        onLinked()
     }
 
     // MARK: what the rest of Earnings read
@@ -326,5 +341,57 @@ final class BittensorKeyModel: ObservableObject {
             return false
         }
         return await authenticator.authenticate(reason: String(localized: "use your Bittensor recovery phrase"))
+    }
+}
+
+/// Ends the flow of a key model that went with its screen. The SDK's Close
+/// cancels a consent on its way (sdk BittensorLocalKeyFlow.Close), which would
+/// leave a key the one tap made stored but not linked when the user leaves
+/// Earnings before the consent lands. So a flow still busy is kept until the
+/// consent lands or fails, then closed; one that is not is closed at once.
+/// (Android's flow lives with its activity's view model, past the Earnings
+/// screen, so leaving it never cancels a consent there either.)
+enum BittensorKeyFlowEnd {
+
+    private static let lock = NSLock()
+    private static var finishing: [Int: BittensorKeyFlowing] = [:]
+    private static var lastToken = 0
+
+    static func end(_ flow: BittensorKeyFlowing) {
+        guard flow.card.busy else {
+            flow.close()
+            return
+        }
+        let token = lock.withLock { () -> Int in
+            lastToken += 1
+            finishing[lastToken] = flow
+            return lastToken
+        }
+        // the flow calls back on its own goroutine; the card is read on the
+        // main queue, as the model reads it
+        flow.onChange {
+            DispatchQueue.main.async {
+                closeIfIdle(token)
+            }
+        }
+        // the consent may have landed before the handler was in place
+        DispatchQueue.main.async {
+            closeIfIdle(token)
+        }
+    }
+
+    /// `flow` is kept until its consent lands
+    static func isFinishing(_ flow: BittensorKeyFlowing) -> Bool {
+        lock.withLock { finishing.values.contains { $0 === flow } }
+    }
+
+    private static func closeIfIdle(_ token: Int) {
+        guard let flow = lock.withLock({ finishing[token] }), !flow.card.busy else {
+            return
+        }
+        let ending = lock.withLock { finishing.removeValue(forKey: token) != nil }
+        if ending {
+            flow.close()
+        }
     }
 }

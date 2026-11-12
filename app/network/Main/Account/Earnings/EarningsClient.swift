@@ -76,10 +76,11 @@ protocol EarningsClient: AnyObject {
     /// asks URnetwork to claim a coldkey's balance now
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome
     /// every capture the flag slot the network's clients won whose award is
-    /// not claimed yet, newest first (GET /sn/ctf/client), [] without one;
-    /// nil when the read failed or its answer could not be read, which keeps
-    /// the last good read's lines (every app, 2026-11-12)
-    func ctfUnclaimedWins() async -> [SnCtfWinInfo]?
+    /// not claimed yet, newest first (GET /sn/ctf/client), none without one,
+    /// and whether the answer is the network's or this client's alone; nil
+    /// when the read failed or its answer could not be read, which keeps the
+    /// last good read's lines (every app, 2026-11-12)
+    func ctfUnclaimedWins() async -> SnCtfWinsAnswer?
 
     // points history and the Top 200 standing
     func accountEpochs() async throws -> [AccountEpochInfo]
@@ -546,7 +547,7 @@ final class EarningsSdkClient: EarningsClient {
         return .refused(reason: result.reason, nextAtMillis: result.nextAtMillis)
     }
 
-    func ctfUnclaimedWins() async -> [SnCtfWinInfo]? {
+    func ctfUnclaimedWins() async -> SnCtfWinsAnswer? {
         guard let device else {
             return nil
         }
@@ -562,12 +563,13 @@ final class EarningsSdkClient: EarningsClient {
     }
 
     /// Every slot won whose award is not claimed yet (sdk UnclaimedWins),
-    /// newest first, [] for none. An answer that could not be read (an
+    /// newest first, none for none, and the client the answer is for (sdk
+    /// ClientId, "" for the network's). An answer that could not be read (an
     /// Error, or no list, which the sdk always sends) is nil: a read that
     /// failed, which keeps the lines and never says there was no win. The
     /// sdk never lets this route sign the user out, whatever it answers
     /// (sdk-ctf-v2 §1).
-    static func ctfUnclaimedWins(from result: SdkSnCtfClientResult) -> [SnCtfWinInfo]? {
+    static func ctfUnclaimedWins(from result: SdkSnCtfClientResult) -> SnCtfWinsAnswer? {
         guard result.error == nil, let list = result.unclaimedWins else {
             return nil
         }
@@ -578,7 +580,10 @@ final class EarningsSdkClient: EarningsClient {
             }
             wins.append(info)
         }
-        return SnCtfWinInfo.newestFirst(wins)
+        return SnCtfWinsAnswer(
+            wins: SnCtfWinInfo.newestFirst(wins),
+            clientId: result.clientId.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
     }
 
     // MARK: points history and the Top 200 standing
@@ -849,10 +854,10 @@ final class EarningsPreviewClient: EarningsClient {
 }
 
 /// Without a relay, as in previews and the test doubles: nothing to say, and
-/// Claim now can't be asked; and no capture the flag win to name (a read that
-/// answered with none).
+/// Claim now can't be asked; and no capture the flag win to name (the
+/// network's answer, with none).
 extension EarningsClient {
     func claimStatus() async -> SnClaimStatusInfo? { nil }
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome { .failed("unavailable") }
-    func ctfUnclaimedWins() async -> [SnCtfWinInfo]? { [] }
+    func ctfUnclaimedWins() async -> SnCtfWinsAnswer? { SnCtfWinsAnswer(wins: []) }
 }

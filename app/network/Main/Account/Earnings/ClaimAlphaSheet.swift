@@ -17,12 +17,14 @@ struct ClaimAlphaSheet: View {
     @ObservedObject var viewModel: EarningsViewModel
     let dismiss: () -> Void
 
+    /// the claimable epochs, and during a claim the epochs it sends
     private var claimableCount: Int {
-        viewModel.claimableClaims.count
+        viewModel.claimSheetClaimableCount
     }
 
+    /// what is unclaimed, and during a claim what the claim moves
     private var amountText: String {
-        viewModel.client.formatAlpha(rao: viewModel.totalClaimableRao)
+        viewModel.client.formatAlpha(rao: viewModel.claimFigureRao)
     }
 
     var body: some View {
@@ -58,11 +60,12 @@ struct ClaimAlphaSheet: View {
                     shortSs58: viewModel.client.shortSs58
                 )
 
-                if !viewModel.claims.isEmpty {
+                // during a claim the epochs Claim listed, whatever a read since says
+                if !viewModel.claimSheetClaims.isEmpty {
                     VStack(spacing: 0) {
-                        ForEach(viewModel.claims) { claim in
+                        ForEach(viewModel.claimSheetClaims) { claim in
                             claimRow(claim)
-                            if claim.id != viewModel.claims.last?.id {
+                            if claim.id != viewModel.claimSheetClaims.last?.id {
                                 Divider()
                             }
                         }
@@ -88,12 +91,14 @@ struct ClaimAlphaSheet: View {
                         dismiss()
                     })
                 } else {
+                    // waits for a claim of either kind in flight, which a
+                    // sheet opened again shows
                     UrButton(
                         text: "Claim \(amountText)",
                         action: {
                             viewModel.claimAll()
                         },
-                        enabled: claimableCount > 0 && !viewModel.needsGas && !viewModel.isClaiming,
+                        enabled: viewModel.claimEnabled,
                         isProcessing: viewModel.isClaiming
                     )
                 }

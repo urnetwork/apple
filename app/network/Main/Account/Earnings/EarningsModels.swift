@@ -345,6 +345,24 @@ struct SnCtfWinInfo: Equatable {
     }
 }
 
+/// A good read of the capture the flag wins: every win not claimed yet,
+/// newest first, and whose wins they are. The sdk's ClientId is "" for the
+/// network's answer, every client's wins, read with the session's network
+/// credential; it names the client for an answer for that client alone, the
+/// sdk's read with the client token after the network credential's read
+/// failed, or any answer of a server before the network answer. A network
+/// answer beats a client answer (owner, 2026-11-12).
+struct SnCtfWinsAnswer: Equatable {
+    let wins: [SnCtfWinInfo]
+    /// the client answered for; "" for the network's answer
+    var clientId: String = ""
+
+    /// this client's wins alone
+    var fromClient: Bool {
+        !clientId.isEmpty
+    }
+}
+
 /// The answer to a Claim now tap.
 enum SnClaimNowOutcome: Equatable {
     /// queued: URnetwork sends it ahead of its automatic claims, the oldest

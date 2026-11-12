@@ -53,9 +53,14 @@ struct MainNavigationSplitView: View {
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     
     @ObservedObject var providerListStore: ProviderListStore
-    
+
     @StateObject private var networkReliabilityStore: NetworkReliabilityStore
-    
+
+    // the signed-in session's claims and capture the flag lines: the sidebar's
+    // switch builds the Account screens again on each visit, so they live
+    // here, until a sign-out ends this view
+    @StateObject private var earningsSession: EarningsSession
+
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
@@ -75,7 +80,11 @@ struct MainNavigationSplitView: View {
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
         
         _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
-        
+
+        _earningsSession = StateObject(wrappedValue: EarningsSession(
+            client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
+        ))
+
         self.isPro = isPro
         self.introductionComplete = introductionComplete
 
@@ -178,6 +187,7 @@ struct MainNavigationSplitView: View {
                     api: api,
                     urApiService: urApiService,
                     device: device,
+                    earningsSession: earningsSession,
                     logout: logout,
                         networkUserViewModel: networkUserViewModel,
                     referralLinkViewModel: referralLinkViewModel,

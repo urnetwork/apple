@@ -228,6 +228,24 @@ struct BittensorKeyModelTests {
         #expect(linked == 1)
     }
 
+    // a link that lands while no screen listens (Earnings covered or away) is
+    // handed on, once, when one listens again
+    @Test func aLinkWhileNoScreenListensIsHandedOnWhenOneDoes() {
+        let fixture = Fixture()
+        let model = make(fixture)
+        var linked = 0
+        model.onLinked = { linked += 1 }
+        model.onLinked = nil
+        fixture.flow.card.linkGeneration = 1
+        model.refresh()
+        #expect(linked == 0)
+        model.onLinked = { linked += 1 }
+        #expect(linked == 1)
+        model.refresh()
+        model.onLinked = { linked += 1 }
+        #expect(linked == 1)
+    }
+
     // the flow works from the app's own consent read: the latest read decides
     @Test func theConsentReadReachesTheFlow() {
         let fixture = Fixture()
@@ -286,6 +304,54 @@ struct BittensorKeyModelTests {
             _ = make(fixture)
         }
         #expect(fixture.flow.calls == ["close"])
+    }
+
+    // a consent on its way when the model goes (the user left Earnings during
+    // the one tap) finishes: the flow closes once it lands, as Close would
+    // cancel it and leave the key stored but not linked
+    @Test func aConsentOnItsWayFinishesBeforeTheFlowEnds() async {
+        let fixture = Fixture()
+        fixture.flow.card.busy = true
+        do {
+            _ = make(fixture)
+        }
+        #expect(!fixture.flow.calls.contains("close"))
+        #expect(BittensorKeyFlowEnd.isFinishing(fixture.flow))
+        // still busy: a change of the flow ends nothing
+        fixture.flow.handler?()
+        await Self.mainQueueRuns()
+        #expect(!fixture.flow.calls.contains("close"))
+        // the consent lands
+        fixture.flow.card.busy = false
+        fixture.flow.handler?()
+        fixture.flow.handler?()
+        await Self.mainQueueRuns()
+        #expect(fixture.flow.calls.filter { $0 == "close" }.count == 1)
+        #expect(!BittensorKeyFlowEnd.isFinishing(fixture.flow))
+    }
+
+    // a consent that lands as the model goes, before the flow's handler is the
+    // one that ends it, still ends the flow: the change went to the model's
+    // handler, and nothing else will come
+    @Test func aConsentThatLandsAsTheModelGoesStillEndsTheFlow() async {
+        let fixture = Fixture()
+        fixture.flow.card.busy = true
+        do {
+            _ = make(fixture)
+        }
+        fixture.flow.card.busy = false
+        await Self.mainQueueRuns()
+        #expect(fixture.flow.calls.filter { $0 == "close" }.count == 1)
+        #expect(!BittensorKeyFlowEnd.isFinishing(fixture.flow))
+    }
+
+    /// the blocks already on the main queue run
+    private static func mainQueueRuns() async {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                continuation.resume()
+            }
+        }
     }
 
     // MARK: words

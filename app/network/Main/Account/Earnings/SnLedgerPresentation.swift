@@ -215,7 +215,8 @@ struct SnLedgerTilePresentation: Equatable {
     let balances: Balances
     /// the Claim action shows: v2 claims are configured
     let showsClaim: Bool
-    /// and can be used: something is claimable and no v2 claim runs
+    /// and can be used: something is claimable, or a v2 claim is in flight,
+    /// whose sheet it opens, where Claim waits for it
     let claimEnabled: Bool
     /// each row names its pool: there is more than one, or one that is not
     /// the operator's pool
@@ -228,10 +229,16 @@ struct SnLedgerTilePresentation: Equatable {
     /// that cannot be read before v2 claims are configured (before
     /// activation balances show only when the ledger returns some). A pool
     /// that could not be read is a row of its own and hides no other.
+    ///
+    /// `claimInFlight`: a v2 claim of the signed-in session is in flight
+    /// (EarningsSession). Claim then stays enabled, whatever the read says,
+    /// and opens the claim sheet on the claim's progress, where Claim waits
+    /// for it (owner, 2026-11-12: a claim in flight is the session's, and a
+    /// sheet opened again shows it), as Linux's tile and Windows' section do.
     static func of(
         load: SnLedgerLoad,
         claimConfigured: Bool,
-        isClaiming: Bool,
+        claimInFlight: Bool,
         transferFloorRao: Int64 = 0
     ) -> SnLedgerTilePresentation? {
         switch load {
@@ -241,7 +248,7 @@ struct SnLedgerTilePresentation: Equatable {
             guard claimConfigured else {
                 return nil
             }
-            return SnLedgerTilePresentation(balances: .unavailable, showsClaim: true, claimEnabled: false, showsPools: false)
+            return SnLedgerTilePresentation(balances: .unavailable, showsClaim: true, claimEnabled: claimInFlight, showsPools: false)
         case .loaded(let accounts, let unavailablePools):
             // a pool that could not be read is no balance to show before
             // activation, as a ledger that could not be read is none
@@ -254,7 +261,7 @@ struct SnLedgerTilePresentation: Equatable {
             return SnLedgerTilePresentation(
                 balances: .pools(rows),
                 showsClaim: claimConfigured,
-                claimEnabled: claimConfigured && !isClaiming && !claimable.isEmpty,
+                claimEnabled: claimConfigured && (claimInFlight || !claimable.isEmpty),
                 showsPools: rows.count > 1 || rows.contains { !$0.name.isPoolNumber },
                 claimsBoth: pools.claimsBoth(claimable)
             )
@@ -357,15 +364,18 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     /// An account the claim reports that the sheet's read did not list: its
     /// pool could not be read then, and the claim's own read found it. It
     /// takes that pool's line (Android's, Linux's and Windows' rule), with no
-    /// figure until vault2 confirms what it paid.
+    /// figure until vault2 confirms what it paid. `sentRao`: the amount Claim
+    /// found for an account the claim sends that a read since did not list
+    /// (EarningsViewModel.ledgerClaimRows), which is its figure.
     static func found(
         _ key: SnLedgerAccountKey,
         kind: SnLedgerPoolKind,
         progress: EarningsViewModel.LedgerClaimRowState,
         chain: SnLedgerChainInfo,
-        pools: SnLedgerPools
+        pools: SnLedgerPools,
+        sentRao: Int64? = nil
     ) -> SnLedgerClaimRow {
-        of(id: key, name: pools.name(kind: kind, noId: key.noId), claimableRao: nil, progress: progress, chain: chain)
+        of(id: key, name: pools.name(kind: kind, noId: key.noId), claimableRao: sentRao, progress: progress, chain: chain)
     }
 
     private static func of(

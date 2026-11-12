@@ -55,7 +55,10 @@ struct MainView: View {
         isPro: Bool,
         // a loaded balance's Pro, to the sdk's decision (DeviceManager
         // subscriptionBalanceLoaded); answers whether to refresh the jwt
-        subscriptionPlanLoaded: @escaping (Bool) -> Bool = { _ in false }
+        subscriptionPlanLoaded: @escaping (Bool) -> Bool = { _ in false },
+        // a balance read that failed, to the same decision (DeviceManager
+        // subscriptionBalanceFailed): the plan is not known, never Free
+        subscriptionPlanFailed: @escaping () -> Void = {}
     ) {
         self.api = api
         self.logout = logout
@@ -78,6 +81,7 @@ struct MainView: View {
                     }
                 },
                 planLoaded: subscriptionPlanLoaded,
+                planReadFailed: subscriptionPlanFailed,
                 purchaseConfirmation: SdkPurchaseConfirmation(api: api)
             )
             
@@ -127,6 +131,7 @@ struct MainView: View {
                         logout: self.logout,
                         providerListStore: providerListStore,
                         introductionComplete: introductionComplete,
+                        errorFetchingSubscriptionBalance: subscriptionBalanceViewModel.errorFetchingSubscriptionBalance,
                         isPro: isPro
                     )
                     #endif

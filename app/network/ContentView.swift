@@ -126,6 +126,9 @@ struct ContentView: View {
                             isPro: deviceManager.isPro,
                             subscriptionPlanLoaded: { serverIsPro in
                                 deviceManager.subscriptionBalanceLoaded(serverIsPro: serverIsPro)
+                            },
+                            subscriptionPlanFailed: {
+                                deviceManager.subscriptionBalanceFailed()
                             }
                         )
                         // a device that replaces the signed-in one with no

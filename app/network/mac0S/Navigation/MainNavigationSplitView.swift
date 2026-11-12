@@ -70,6 +70,9 @@ struct MainNavigationSplitView: View {
         logout: @escaping () -> Void,
         providerListStore: ProviderListStore,
         introductionComplete: Binding<Bool>,
+        // a balance read failed: the plan is not known, so the introduction,
+        // which sells a plan, waits (as on iOS, MainTabView)
+        errorFetchingSubscriptionBalance: Bool = false,
         isPro: Bool
     ) {
         self.api = api
@@ -92,7 +95,8 @@ struct MainNavigationSplitView: View {
          */
         self.displayIntroduction = IntroductionGate.shouldDisplay(
             introductionComplete: introductionComplete.wrappedValue,
-            isPro: isPro
+            isPro: isPro,
+            balanceUnavailable: errorFetchingSubscriptionBalance
         )
     }
     

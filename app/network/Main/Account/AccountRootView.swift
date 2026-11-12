@@ -115,7 +115,10 @@ struct AccountRootView: View {
             guestModeClaim: deviceManager.parsedJwt?.guestMode,
             serverGuest: subscriptionBalanceViewModel.isGuest
         )
-            
+        // Pro, Free, or not known yet: a spinner, or a retry once a read
+        // failed, never Free or Get Pro (support inbox 4074)
+        let shownPlan = deviceManager.shownPlan
+
         ScrollView {
             
             HStack {
@@ -137,44 +140,61 @@ struct AccountRootView: View {
                                     .font(themeManager.currentTheme.titleCondensedFont)
                                     .foregroundColor(themeManager.currentTheme.textColor)
                             } else {
-                             
-                                if isPro {
-                                    // Pro: the label itself is a button that replays the celebration
-                                    Button(action: {
-                                        proCelebration.launch()
-                                    }) {
-                                        Text("Pro")
+
+                                switch shownPlan.load {
+                                case .loading:
+                                    // the first balance read is on its way
+                                    ProgressView()
+                                case .failed:
+                                    // the retry is under this row
+                                    EmptyView()
+                                case .loaded:
+                                    if shownPlan == .pro {
+                                        // Pro: the label itself is a button that replays the celebration
+                                        Button(action: {
+                                            proCelebration.launch()
+                                        }) {
+                                            Text("Pro")
+                                                .font(themeManager.currentTheme.titleCondensedFont)
+                                                .foregroundColor(themeManager.currentTheme.textColor)
+                                        }
+                                        .buttonStyle(.plain)
+                                    } else {
+                                        Text("Free")
                                             .font(themeManager.currentTheme.titleCondensedFont)
                                             .foregroundColor(themeManager.currentTheme.textColor)
                                     }
-                                    .buttonStyle(.plain)
-                                } else {
-                                    Text("Free")
-                                        .font(themeManager.currentTheme.titleCondensedFont)
-                                        .foregroundColor(themeManager.currentTheme.textColor)
                                 }
 
                             }
-                            
+
                             Spacer()
-          
+
                             /**
-                             * Upgrade subscription button
-                             * if user is
+                             * Upgrade subscription button, only once the
+                             * server said Free
                              */
-                            if (!isPro && !isGuest) {
-                             
+                            if (shownPlan.offersUpgrade && !isGuest) {
+
                                 Button(action: {
                                     viewModel.isPresentedUpgradeSheet = true
                                 }) {
                                     Text("Get Pro")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                 }
-                                
+
                             }
-                            
+
                         }
-                            
+
+                        // a balance read failed before the server answered:
+                        // the plan is not known, and is read again on retry
+                        if !isGuest && shownPlan.load == .failed {
+                            SectionLoadFailedView(retry: {
+                                Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
+                            })
+                        }
+
                         /**
                          * An App Store subscription can only be changed or cancelled
                          * through Apple; this hands off to it. A Pro plan billed

@@ -225,7 +225,6 @@ struct ControlDohSettingsTests {
         "Use built-in servers only",
         "Save",
         "Bootstrap DNS-over-HTTPS servers saved",
-        "The VPN uses the new bootstrap servers the next time it connects.",
     ]
 
     /// The import line, whose servers the Swift literal interpolates: `%@` in

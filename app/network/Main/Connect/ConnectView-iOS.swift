@@ -621,6 +621,7 @@ struct ConnectView_iOS: View {
             balanceRecovery: connectViewModel.balanceRecoveryState,
             cancelBalanceRecovery: connectViewModel.clearBalanceRecovery,
             isPro: isPro,
+            shownPlan: deviceManager.shownPlan,
             paymentPastDue: subscriptionBalanceViewModel.paymentPastDue,
             updatePaymentMethodURL: {
                 await subscriptionBalanceViewModel.updatePaymentMethodURL()
@@ -640,7 +641,10 @@ struct ConnectView_iOS: View {
                 isPresentedManageDevices = true
             },
             proFeaturesPrompt: proFeaturesNoticeStore.mainPrompt,
-            dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice
+            dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice,
+            retryPlan: {
+                Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
+            }
         )
     }
 

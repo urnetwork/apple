@@ -119,6 +119,9 @@ struct ConnectActions: View {
     let balanceRecovery: BalanceRecoveryState
     let cancelBalanceRecovery: () -> Void
     let isPro: Bool
+    // the plan card's plan as DeviceManager publishes it: Pro, Free, or not
+    // known yet, never shown as Free or with Get Pro (support inbox 4074)
+    let shownPlan: ShownPlan
     // the renewal the store is retrying, for the plan card's past-due notice
     // (see PaymentPastDue), and the notice's "Update payment method" link
     let paymentPastDue: PaymentPastDue?
@@ -144,6 +147,9 @@ struct ConnectActions: View {
     // client limit notice's Get Pro and Manage devices, and its close
     var proFeaturesPrompt: ProFeaturesPrompt? = nil
     var dismissProFeatures: () -> Void = {}
+    // the plan card's retry once a balance read failed: reads the balance
+    // again
+    var retryPlan: () -> Void = {}
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -761,25 +767,39 @@ struct ConnectActions: View {
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
             
-            HStack(alignment: .firstTextBaseline) {
-                 
-                Text(isPro ? "Pro" : "Free")
-                    .font(themeManager.currentTheme.titleCondensedFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-            
-                Spacer()
+            switch shownPlan.load {
+            case .failed:
+                // a read failed before the server answered: neither Free nor
+                // Get Pro, but a retry (support inbox 4074)
+                Spacer().frame(height: 4)
+                SectionLoadFailedView(retry: retryPlan)
+            case .loading, .loaded:
+                HStack(alignment: .firstTextBaseline) {
 
-                if (!isPro) {
-                    Button(action: {
-                        openUpgradeSheet()
-                    }) {
-                        Text("Get Pro")
-                            .font(themeManager.currentTheme.secondaryBodyFont)
+                    if shownPlan.load == .loading {
+                        // the first balance read is on its way
+                        ProgressView()
+                    } else {
+                        Text(shownPlan == .pro ? "Pro" : "Free")
+                            .font(themeManager.currentTheme.titleCondensedFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
                     }
+
+                    Spacer()
+
+                    // only once the server said Free
+                    if shownPlan.offersUpgrade {
+                        Button(action: {
+                            openUpgradeSheet()
+                        }) {
+                            Text("Get Pro")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                        }
+                    }
+
                 }
-                
             }
-                
+
             // a renewal whose payment did not go through, while
             // the store retries it, as on the account plan card
             if paymentPastDue != nil {

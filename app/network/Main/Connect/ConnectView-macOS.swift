@@ -185,6 +185,7 @@ import URnetworkSdk
                                 balanceRecovery: connectViewModel.balanceRecoveryState,
                                 cancelBalanceRecovery: connectViewModel.clearBalanceRecovery,
                                 isPro: isPro,
+                                shownPlan: deviceManager.shownPlan,
                                 paymentPastDue: subscriptionBalanceViewModel.paymentPastDue,
                                 updatePaymentMethodURL: {
                                     await subscriptionBalanceViewModel.updatePaymentMethodURL()
@@ -203,7 +204,10 @@ import URnetworkSdk
                                     isPresentedManageDevices = true
                                 },
                                 proFeaturesPrompt: proFeaturesNoticeStore.mainPrompt,
-                                dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice
+                                dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice,
+                                retryPlan: {
+                                    Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
+                                }
                             )
                             
                         }

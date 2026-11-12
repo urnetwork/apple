@@ -110,12 +110,13 @@ struct ClaimLedgerSheet: View {
                         viewModel.resetLedgerClaimProgress()
                         dismiss()
                     })
-                } else if unavailable || (!totalKnown && !viewModel.isLedgerClaiming) {
-                    // no amount to name: never a Claim of 0
+                } else if unavailable {
                     UrButton(text: "Claim", action: {}, enabled: false)
                 } else {
+                    // no figure, no amount on the button either, while a claim
+                    // runs too: never a Claim of 0
                     UrButton(
-                        text: viewModel.ledgerClaimsBoth ? "Claim both" : "Claim \(amountText)",
+                        text: viewModel.ledgerClaimsBoth ? "Claim both" : totalKnown ? "Claim \(amountText)" : "Claim",
                         action: {
                             viewModel.claimLedger()
                         },

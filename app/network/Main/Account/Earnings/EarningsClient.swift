@@ -76,9 +76,10 @@ protocol EarningsClient: AnyObject {
     /// asks URnetwork to claim a coldkey's balance now
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome
     /// every capture the flag slot the network's clients won whose award is
-    /// not claimed yet, newest first (GET /sn/ctf/client); none without one,
-    /// or when the draw's answer could not be read
-    func ctfUnclaimedWins() async -> [SnCtfWinInfo]
+    /// not claimed yet, newest first (GET /sn/ctf/client), [] without one;
+    /// nil when the read failed or its answer could not be read, which keeps
+    /// the last good read's lines (every app, 2026-11-12)
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo]?
 
     // points history and the Top 200 standing
     func accountEpochs() async throws -> [AccountEpochInfo]
@@ -545,9 +546,9 @@ final class EarningsSdkClient: EarningsClient {
         return .refused(reason: result.reason, nextAtMillis: result.nextAtMillis)
     }
 
-    func ctfUnclaimedWins() async -> [SnCtfWinInfo] {
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo]? {
         guard let device else {
-            return []
+            return nil
         }
         let result: SdkSnCtfClientResult? = await withCheckedContinuation { continuation in
             device.snCtfClient(SnCtfClientCallback { result, _ in
@@ -555,18 +556,20 @@ final class EarningsSdkClient: EarningsClient {
             })
         }
         guard let result else {
-            return []
+            return nil
         }
         return Self.ctfUnclaimedWins(from: result)
     }
 
     /// Every slot won whose award is not claimed yet (sdk UnclaimedWins),
-    /// newest first. An answer that could not be read draws no line, as no
-    /// win does: it never says there was none. The sdk never lets this route
-    /// sign the user out, whatever it answers (sdk-ctf-v2 §1).
-    static func ctfUnclaimedWins(from result: SdkSnCtfClientResult) -> [SnCtfWinInfo] {
+    /// newest first, [] for none. An answer that could not be read (an
+    /// Error, or no list, which the sdk always sends) is nil: a read that
+    /// failed, which keeps the lines and never says there was no win. The
+    /// sdk never lets this route sign the user out, whatever it answers
+    /// (sdk-ctf-v2 §1).
+    static func ctfUnclaimedWins(from result: SdkSnCtfClientResult) -> [SnCtfWinInfo]? {
         guard result.error == nil, let list = result.unclaimedWins else {
-            return []
+            return nil
         }
         var wins: [SnCtfWinInfo] = []
         for i in 0..<list.len() {
@@ -846,9 +849,10 @@ final class EarningsPreviewClient: EarningsClient {
 }
 
 /// Without a relay, as in previews and the test doubles: nothing to say, and
-/// Claim now can't be asked; and no capture the flag win to name.
+/// Claim now can't be asked; and no capture the flag win to name (a read that
+/// answered with none).
 extension EarningsClient {
     func claimStatus() async -> SnClaimStatusInfo? { nil }
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome { .failed("unavailable") }
-    func ctfUnclaimedWins() async -> [SnCtfWinInfo] { [] }
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo]? { [] }
 }

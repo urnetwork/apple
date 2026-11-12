@@ -303,7 +303,11 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
         case noFigure
     }
 
-    var left: Left {
+    /// `transferFloorRao`: the relay's floor (0: none). An amount under it is
+    /// no figure a claim moves, whatever the claim said of the account since
+    /// (needs_gas, sent, failed): the sheet's claim never takes it, as
+    /// Windows' and Linux's dialogs keep their floor.
+    func left(transferFloorRao: Int64) -> Left {
         switch status {
         case .claimed:
             return .nothing
@@ -313,7 +317,10 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
             guard let amountRao else {
                 return .noFigure
             }
-            return amountRao > 0 ? .moves : .nothing
+            if amountRao <= 0 {
+                return .nothing
+            }
+            return SnLedgerPools.underFloor(claimableRao: amountRao, transferFloorRao: transferFloorRao) ? .noFigure : .moves
         }
     }
 

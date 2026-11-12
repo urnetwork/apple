@@ -107,7 +107,9 @@ final class EarningsViewModel: ObservableObject {
 
     /// every capture the flag slot the network's clients won whose award is
     /// not claimed yet, newest first, for a line each under the Settlement v2
-    /// balances; none without one, or when they could not be read
+    /// balances, as the last good read gave them: a read that failed keeps
+    /// them (every app, 2026-11-12), and none show until the first read with
+    /// the signed-in account's screens answers
     @Published private(set) var ctfWins: [SnCtfWinInfo] = []
 
     let client: EarningsClient
@@ -313,8 +315,15 @@ final class EarningsViewModel: ObservableObject {
     /// be read or of an amount not known yet, the lines say why and the sheet
     /// shows no figure, never 0 (Windows' and Android's claim dialogs).
     var ledgerClaimTotalKnown: Bool {
-        let left = ledgerClaimRows.map(\.left)
+        let left = ledgerClaimRowsLeft
         return left.contains(.moves) || !left.contains(.noFigure)
+    }
+
+    /// what each line of the v2 claim sheet has left for its figure, at the
+    /// relay's floor
+    var ledgerClaimRowsLeft: [SnLedgerClaimRow.Left] {
+        let floor = ledgerTransferFloorRao
+        return ledgerClaimRows.map { $0.left(transferFloorRao: floor) }
     }
 
     /// How and when the provider is paid, for the foot of the points card;
@@ -377,7 +386,10 @@ final class EarningsViewModel: ObservableObject {
 
     /// Reads the capture the flag wins beside the refresh, one read at a
     /// time; one asked for during a read runs once it ends, so the lines
-    /// follow the latest state.
+    /// follow the latest state. A read that failed keeps the last good
+    /// read's lines and never blanks them: only a good read that no longer
+    /// lists a win takes its line away, or a sign-out, which ends this view
+    /// model with the account's screens.
     private func refreshCtfWins() {
         guard ctfWinsRead == nil else {
             ctfWinsReadAgain = true
@@ -389,7 +401,9 @@ final class EarningsViewModel: ObservableObject {
             guard let self else {
                 return
             }
-            self.ctfWins = wins
+            if let wins {
+                self.ctfWins = wins
+            }
             self.ctfWinsRead = nil
             if self.ctfWinsReadAgain {
                 self.ctfWinsReadAgain = false
@@ -649,10 +663,12 @@ final class EarningsViewModel: ObservableObject {
             // an account the SDK did not claim is not left pending
             ledgerClaimProgress = ledgerClaimProgress.filter { $0.value != .queued }
             // a win whose award this claim, or another sender's, paid is no
-            // longer unclaimed: the wins are read now, and again after it, as
-            // the server reads the claim only once the finalized head covers it
+            // longer unclaimed: the wins are read now, after any claim, as
+            // every app reads them, and after one that paid again on the
+            // schedule, as the server reads the claim only once the finalized
+            // head covers it
+            refreshCtfWins()
             if ledgerClaimProgress.values.contains(where: \.paid) {
-                refreshCtfWins()
                 readCtfWinsAfterClaim()
             }
             Task { [weak self] in

@@ -166,7 +166,10 @@ final class ConnectionRegionStore: ObservableObject {
  * Whether `error` means the app could not reach URnetwork at all (DNS, dial,
  * TLS, timeout), as opposed to an answer from the platform (an HTTP status,
  * a result error: auth or validation). Only the former suggests choosing a
- * connection region.
+ * connection region. Apple's own URL loading errors answer here; a Go
+ * failure's text is the sdk's one rule for every app (sdk cant_reach.go
+ * IsCantReachError), so the same failure raises the prompt on every platform
+ * (support inbox 7956, 7973).
  */
 func isCantReachUrnetworkError(_ error: Error) -> Bool {
     if error is CancellationError {
@@ -185,28 +188,15 @@ func isCantReachUrnetworkError(_ error: Error) -> Bool {
             return false
         }
     }
-    let message = nsError.localizedDescription.lowercased()
-    // connect.HttpStatusError renders as "<code> <text>: <body>": the platform answered
-    if let first = message.split(separator: " ").first, first.count == 3, Int(first) != nil {
-        return false
-    }
-    // an api call that no route answered fails as "http request attempts
-    // exhausted" (connect HttpRequestExhaustedError), whose text names none of
-    // its causes; the rest are Go's net, tls and http errors
-    let markers = [
-        "http request attempts exhausted", "http request failed",
-        "no such host", "lookup ", "server misbehaving", "dial tcp", "dial udp", "i/o timeout",
-        "context deadline exceeded", "connection refused", "connection reset", "network is unreachable",
-        "host is unreachable", "no route to host", "tls: ", "tls handshake", "x509: ",
-        "timeout awaiting response headers", "unexpected eof", ": eof",
-    ]
-    return markers.contains { message.contains($0) }
+    return SdkIsCantReachError(nsError.localizedDescription)
 }
 
 /**
  * The app-wide "Can't reach URnetwork" prompt. Api calls report their
- * failures; a can't-reach failure raises the prompt, which opens the
- * connection region picker. It never changes the region by itself.
+ * failures, and a signed-in connect reports its window's diagnosis; a
+ * can't-reach failure or a turn to the platform being unreachable raises the
+ * prompt, which opens the connection region picker. It never changes the
+ * region by itself.
  */
 @MainActor
 final class CantReachUrnetworkPrompt: ObservableObject {
@@ -225,8 +215,36 @@ final class CantReachUrnetworkPrompt: ObservableObject {
         return true
     }
 
+    /// A signed-in connect's window report: raises the prompt when its
+    /// diagnosis has just turned to the platform being unreachable, once per
+    /// turn, as Windows does (the sdk's CantReachOnStall). Returns whether it
+    /// did.
+    @discardableResult
+    func reportStall(previousStallReason: String, stallReason: String) -> Bool {
+        guard SdkCantReachOnStall(previousStallReason, stallReason) else {
+            return false
+        }
+        visible = true
+        return true
+    }
+
     func dismiss() {
         visible = false
+    }
+}
+
+/// The device's window reports (WindowStatus), for the can't-reach rule on a
+/// signed-in connect (ConnectViewModel.makeWindowStatusListener).
+final class CantReachWindowStatusListener: NSObject, SdkWindowStatusChangeListenerProtocol {
+
+    private let c: (_ windowStatus: SdkWindowStatus?) -> Void
+
+    init(c: @escaping (_ windowStatus: SdkWindowStatus?) -> Void) {
+        self.c = c
+    }
+
+    func windowStatusChanged(_ windowStatus: SdkWindowStatus?) {
+        c(windowStatus)
     }
 }
 

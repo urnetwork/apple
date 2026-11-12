@@ -632,6 +632,17 @@ class DeviceManager: ObservableObject {
         extenderProvideGuess ?? ExtenderProvideDisplay.of(status: extenderProvideStatus)
     }
 
+    /// The line under the router port mapping switch (EXTENDER.md S10): the
+    /// reading of the role's port mapping in the last status, and none while
+    /// either switch is off, so turning one off clears it at once rather than
+    /// leaving the last status's line until the next arrives.
+    var extenderPortMappingLine: String? {
+        guard provideExtender, extenderPortMapping else {
+            return nil
+        }
+        return ExtenderPortMappingLine.of(status: extenderProvideStatus)
+    }
+
     @Published private(set) var provideEnabled: Bool = false
     @Published private(set) var providePaused: Bool = false
 

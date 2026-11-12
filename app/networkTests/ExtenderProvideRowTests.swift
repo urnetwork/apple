@@ -77,8 +77,10 @@ struct ExtenderProvideRowTests {
     }
 
     // N7: the model is read from the sdk's status field by field. Each of the
-    // eight fields the row and the section read moves the model on its own,
-    // and every other field of the status changes nothing
+    // eleven fields the rows and the section read moves the model on its own,
+    // and every other field of the status changes nothing: among them the
+    // port mapping's error and the router's external address (S10), which can
+    // name an address and so never reach the app
     @Test func theModelReadsTheSdkStatusFieldByField() {
         func baseline() -> SdkExtenderProvideStatus {
             let sdk = SdkExtenderProvideStatus()
@@ -90,6 +92,9 @@ struct ExtenderProvideRowTests {
             sdk.activatedV6 = false
             sdk.lastActivationRefused = false
             sdk.enabled = true
+            sdk.portMapping = SdkExtenderPortMappingMapped
+            sdk.portMappingMethodName = "UPnP"
+            sdk.portMappingPorts = "TCP 443, UDP 443, UDP 4053"
             return sdk
         }
         let base = ExtenderProvideStatusModel(baseline())
@@ -101,7 +106,10 @@ struct ExtenderProvideRowTests {
             activatedV4: true,
             activatedV6: false,
             lastActivationRefused: false,
-            enabled: true
+            enabled: true,
+            portMapping: SdkExtenderPortMappingMapped,
+            portMappingMethodName: "UPnP",
+            portMappingPorts: "TCP 443, UDP 443, UDP 4053"
         ))
 
         let readFields: [(String, (SdkExtenderProvideStatus) -> Void)] = [
@@ -113,6 +121,9 @@ struct ExtenderProvideRowTests {
             ("activatedV6", { $0.activatedV6 = true }),
             ("lastActivationRefused", { $0.lastActivationRefused = true }),
             ("enabled", { $0.enabled = false }),
+            ("portMapping", { $0.portMapping = SdkExtenderPortMappingFailed }),
+            ("portMappingMethodName", { $0.portMappingMethodName = "PCP" }),
+            ("portMappingPorts", { $0.portMappingPorts = "TCP 40443→443" }),
         ]
         for (name, change) in readFields {
             let sdk = baseline()
@@ -140,6 +151,13 @@ struct ExtenderProvideRowTests {
             ("limitedBySubnetsCount", { $0.limitedBySubnetsCount = 3 }),
             ("limitedBySourceCount", { $0.limitedBySourceCount = 4 }),
             ("connectionCount", { $0.connectionCount = 7 }),
+            // the method as a code, beside the name the line reads
+            ("portMappingMethod", { $0.portMappingMethod = "pcp" }),
+            ("portMappingExternalIp", { $0.portMappingExternalIp = "203.0.113.7" }),
+            ("portMappingTcpPort", { $0.portMappingTcpPort = 40443 }),
+            ("portMappingUdpPort", { $0.portMappingUdpPort = 40443 }),
+            ("portMappingDnsPort", { $0.portMappingDnsPort = 4053 }),
+            ("portMappingError", { $0.portMappingError = "upnp: AddPortMapping: 718 ConflictInMappingEntry at 192.0.2.1" }),
         ]
         for (name, change) in otherFields {
             let sdk = baseline()

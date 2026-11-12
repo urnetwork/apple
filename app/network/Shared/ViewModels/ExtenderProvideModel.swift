@@ -2,8 +2,9 @@
 //  ExtenderProvideModel.swift
 //  URnetwork
 //
-//  The provider extender status and the one reading of it the Extender rows
-//  draw (EXTENDER.md N2, N3, N7).
+//  The provider extender status, the one reading of it the Extender rows draw
+//  (EXTENDER.md N2, N3, N7), and the line under the router port mapping switch
+//  (S10).
 //
 
 import Foundation
@@ -21,8 +22,11 @@ import URnetworkSdk
 /// One provider extender status, reduced to what the app reads. The Extender
 /// row reads `supported`, `state`, `errorCase`, `reason`, the two families and
 /// `lastActivationRefused` (N7); the extender statistics section reads
-/// `enabled` (O8). Every other field of the sdk status is the state rule's
-/// alone.
+/// `enabled` (O8); the line under the router port mapping switch reads the
+/// three port mapping fields (S10). Every other field of the sdk status is the
+/// state rule's alone or the log's: the port mapping's error and the external
+/// address the router gave are never read, since the router's words can name
+/// an address.
 struct ExtenderProvideStatusModel: Equatable {
 
     /// The device process carries the role. False hides the row (N1).
@@ -42,6 +46,16 @@ struct ExtenderProvideStatusModel: Equatable {
     /// The role is running. While it is, and the provider statistics show,
     /// the extender statistics show (O4).
     let enabled: Bool
+    /// One of the sdk's `ExtenderPortMapping` values, the router port mapping
+    /// of the running role (S10). Empty while no role runs.
+    let portMapping: String
+    /// How the router was asked, as the sdk names it in every language: PCP,
+    /// NAT-PMP or UPnP. Empty unless mapped.
+    let portMappingMethodName: String
+    /// What the router forwards, as the sdk writes it in every language, such
+    /// as `TCP 443, UDP 443, UDP 4053`, or `TCP 40443→443` for a router port
+    /// other than the bound one. Empty unless mapped.
+    let portMappingPorts: String
 
     /// What the app holds until a device reports (N2): the role unsupported,
     /// so the row is hidden, and not running.
@@ -58,7 +72,10 @@ struct ExtenderProvideStatusModel: Equatable {
         activatedV4: Bool = false,
         activatedV6: Bool = false,
         lastActivationRefused: Bool = false,
-        enabled: Bool = false
+        enabled: Bool = false,
+        portMapping: String = "",
+        portMappingMethodName: String = "",
+        portMappingPorts: String = ""
     ) {
         self.supported = supported
         self.state = state
@@ -68,6 +85,9 @@ struct ExtenderProvideStatusModel: Equatable {
         self.activatedV6 = activatedV6
         self.lastActivationRefused = lastActivationRefused
         self.enabled = enabled
+        self.portMapping = portMapping
+        self.portMappingMethodName = portMappingMethodName
+        self.portMappingPorts = portMappingPorts
     }
 
     init(_ status: SdkExtenderProvideStatus) {
@@ -79,7 +99,49 @@ struct ExtenderProvideStatusModel: Equatable {
             activatedV4: status.activatedV4,
             activatedV6: status.activatedV6,
             lastActivationRefused: status.lastActivationRefused,
-            enabled: status.enabled
+            enabled: status.enabled,
+            portMapping: status.portMapping,
+            portMappingMethodName: status.portMappingMethodName,
+            portMappingPorts: status.portMappingPorts
+        )
+    }
+}
+
+/// The line under the router port mapping switch (EXTENDER.md S10), read from
+/// the role's port mapping state, method name and ports text alone. The
+/// router's own words never reach it, since they can name an address: a
+/// failure says only that the router did not open the ports, and the reason
+/// stays in the log.
+enum ExtenderPortMappingLine {
+
+    /// The line for one state, or none: off, empty while no role runs, a state
+    /// from a newer device process, and a mapping without a method or ports
+    /// text to name, which would read as empty parentheses.
+    static func of(state: String, methodName: String, ports: String) -> String? {
+        switch state {
+        case SdkExtenderPortMappingNotNeeded:
+            return String(localized: "Not needed: this device has a public address.")
+        case SdkExtenderPortMappingMapping:
+            return String(localized: "Asking your router…")
+        case SdkExtenderPortMappingMapped:
+            guard !methodName.isEmpty, !ports.isEmpty else {
+                return nil
+            }
+            // the ports, then the method, neither translated
+            return String(format: String(localized: "Your router forwards %@ (%@)."), ports, methodName)
+        case SdkExtenderPortMappingFailed:
+            return String(localized: "Your router didn't open the ports. Trying again later.")
+        default:
+            return nil
+        }
+    }
+
+    /// The line for the role's port mapping in one status.
+    static func of(status: ExtenderProvideStatusModel) -> String? {
+        of(
+            state: status.portMapping,
+            methodName: status.portMappingMethodName,
+            ports: status.portMappingPorts
         )
     }
 }

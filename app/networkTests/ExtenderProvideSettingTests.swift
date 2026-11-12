@@ -32,9 +32,10 @@ private final class ExtenderProvideHeldDispatcher: @unchecked Sendable {
 }
 
 // The device side of the seam: what the device reports, the settings it holds
-// (the provider extender and the lag.dev measurements), every read of them and
-// every write that reaches them. Retaining the callback after close models a
-// status the sdk admitted before the listener was removed.
+// (the provider extender, the lag.dev measurements and the router port
+// mapping), every read of them and every write that reaches them. Retaining
+// the callback after close models a status the sdk admitted before the
+// listener was removed.
 private final class ExtenderProvideTestingSource: ExtenderProvideSource {
     private(set) var status: ExtenderProvideStatusModel
     private(set) var setting: Bool
@@ -139,6 +140,29 @@ struct ExtenderProvideSettingTests {
         supported: true,
         state: SdkExtenderProvideStateOff
     )
+
+    // the running role with its router port mapping in one state (S10)
+    private static func portMapping(
+        _ portMapping: String,
+        methodName: String = "",
+        ports: String = ""
+    ) -> ExtenderProvideStatusModel {
+        ExtenderProvideStatusModel(
+            supported: true,
+            state: SdkExtenderProvideStateActive,
+            activatedV4: true,
+            enabled: true,
+            portMapping: portMapping,
+            portMappingMethodName: methodName,
+            portMappingPorts: ports
+        )
+    }
+    private static let mapped = portMapping(
+        SdkExtenderPortMappingMapped,
+        methodName: "UPnP",
+        ports: "TCP 443, UDP 443, UDP 4053"
+    )
+    private static let mappedLine = "Your router forwards TCP 443, UDP 443, UDP 4053 (UPnP)."
 
     private let dispatcher: ExtenderProvideHeldDispatcher
     private let manager: DeviceManager
@@ -379,6 +403,112 @@ struct ExtenderProvideSettingTests {
         #expect(!manager.extenderPortMapping)
         #expect(source.portMappingWrites.isEmpty)
         manager.extenderPortMapping = true
+        #expect(source.portMappingWrites.isEmpty)
+    }
+
+    // S10: while the port mapping switch is on, the line under it follows
+    // each status the device pushes, and a role that stops takes it away;
+    // nothing is written for it
+    @Test func thePortMappingLineFollowsThePushedStatusWhileTheSwitchIsOn() {
+        let source = ExtenderProvideTestingSource(
+            status: Self.portMapping(SdkExtenderPortMappingMapping),
+            setting: true,
+            portMapping: true
+        )
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.extenderPortMappingLine == "Asking your router\u{2026}")
+
+        source.push(Self.mapped, setting: true)
+        #expect(dispatcher.deliver() == 1)
+        #expect(manager.extenderPortMappingLine == Self.mappedLine)
+
+        source.push(Self.portMapping(SdkExtenderPortMappingFailed), setting: true)
+        #expect(dispatcher.deliver() == 1)
+        #expect(manager.extenderPortMappingLine == "Your router didn't open the ports. Trying again later.")
+
+        source.push(Self.portMapping(SdkExtenderPortMappingNotNeeded), setting: true)
+        #expect(dispatcher.deliver() == 1)
+        #expect(manager.extenderPortMappingLine == "Not needed: this device has a public address.")
+
+        // not providing: the role stops and reports no port mapping state
+        source.push(
+            ExtenderProvideStatusModel(supported: true, state: SdkExtenderProvideStateNotProviding),
+            setting: true
+        )
+        #expect(dispatcher.deliver() == 1)
+        #expect(manager.extenderPortMapping)
+        #expect(manager.extenderPortMappingLine == nil)
+
+        #expect(source.portMappingWrites.isEmpty)
+        #expect(source.writes.isEmpty)
+    }
+
+    // turned off, the line goes at once rather than standing until the next
+    // status, and a status the device sent before it took the write, still
+    // mapped, draws none
+    @Test func thePortMappingLineGoesAtOnceWhenItsSwitchTurnsOff() {
+        let source = ExtenderProvideTestingSource(status: Self.mapped, setting: true, portMapping: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.extenderPortMappingLine == Self.mappedLine)
+
+        manager.extenderPortMapping = false
+
+        #expect(source.portMappingWrites == [false])
+        #expect(manager.extenderProvideStatus == Self.mapped)
+        #expect(manager.extenderPortMappingLine == nil)
+
+        source.push(Self.mapped, setting: true, portMapping: false)
+        #expect(dispatcher.deliver() == 1)
+        #expect(manager.extenderPortMappingLine == nil)
+    }
+
+    // turned on, no line until the role says what the router did: the status
+    // from before the write still says off
+    @Test func turningThePortMappingSwitchOnShowsNoLineUntilTheRoleReports() {
+        let source = ExtenderProvideTestingSource(
+            status: Self.portMapping(SdkExtenderPortMappingOff),
+            setting: true,
+            portMapping: false
+        )
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.extenderPortMappingLine == nil)
+
+        manager.extenderPortMapping = true
+
+        #expect(source.portMappingWrites == [true])
+        #expect(manager.extenderPortMappingLine == nil)
+
+        source.push(Self.portMapping(SdkExtenderPortMappingMapping), setting: true)
+        #expect(dispatcher.deliver() == 1)
+        #expect(manager.extenderPortMappingLine == "Asking your router\u{2026}")
+    }
+
+    // the Extender switch turned off stops the role: like the Extender row's
+    // guess, the port mapping line does not wait for the next status
+    @Test func turningTheExtenderOffTakesThePortMappingLineAtOnce() {
+        let source = ExtenderProvideTestingSource(status: Self.mapped, setting: true, portMapping: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.extenderPortMappingLine == Self.mappedLine)
+
+        manager.provideExtender = false
+
+        #expect(source.writes == [false])
+        #expect(manager.extenderProvideGuess != nil)
+        #expect(manager.extenderPortMappingLine == nil)
+        // the port mapping setting itself is untouched
+        #expect(manager.extenderPortMapping)
+        #expect(source.portMappingWrites.isEmpty)
+    }
+
+    @Test func theResetTakesThePortMappingLine() {
+        let source = ExtenderProvideTestingSource(status: Self.mapped, setting: true, portMapping: true)
+        manager.setupExtenderProvide(source: source)
+        #expect(manager.extenderPortMappingLine == Self.mappedLine)
+
+        manager.resetExtenderProvide()
+
+        #expect(manager.extenderProvideStatus == .unsupported)
+        #expect(manager.extenderPortMappingLine == nil)
         #expect(source.portMappingWrites.isEmpty)
     }
 }

@@ -49,8 +49,8 @@ enum BillingDeepLink: Equatable {
         self = link
     }
 
-    /// The purchase went through on Stripe's side; the server learns of it by
-    /// webhook, so the caller starts the confirmation poll.
+    /// The purchase went through on Stripe's side: the store reports it to
+    /// the server, and the caller starts the confirmation poll.
     var isConfirmed: Bool {
         switch self {
         case .payDone, .checkoutComplete:

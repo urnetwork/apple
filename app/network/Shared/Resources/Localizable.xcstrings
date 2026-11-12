@@ -35525,6 +35525,173 @@
         }
       }
     },
+    "Asking your router…" : {
+      "comment" : "Status line under the Open a port on my router switch while the router's first answer is awaited.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ سؤال جهاز التوجيه…"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotazování routeru…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router wird gefragt…"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Γίνεται ερώτημα στον δρομολογητή σας…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asking your router…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultando a tu router…"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultando a tu router…"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultando a tu router…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interrogation de votre routeur…"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פונה לנתב שלכם…"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके राउटर से पूछा जा रहा है…"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menghubungi router Anda…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richiesta al router in corso…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ルーターに問い合わせています…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라우터에 요청하는 중…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je router wordt gevraagd…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pytanie routera…"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A consultar o seu router…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultando seu roteador…"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A consultar o seu router…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запрос к роутеру…"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frågar din router…"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กำลังสอบถามเราเตอร์ของคุณ…"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запит до роутера…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang hỏi bộ định tuyến của bạn…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在询问您的路由器…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在詢問你的路由器…"
+          }
+        }
+      }
+    },
     "Asks your router, by UPnP, NAT-PMP or PCP, to forward TCP and UDP 443 and UDP 4053 to this device, so the extender can be reached from the internet. This opens a port on your router." : {
       "comment" : "Secondary text under the Open a port on my router toggle: what turning it on does. It must say plainly that it opens a port on the user's router.",
       "localizations" : {
@@ -151468,6 +151635,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法量度"
+          }
+        }
+      }
+    },
+    "Not needed: this device has a public address." : {
+      "comment" : "Status line under the Open a port on my router switch: the device has a public address, so the router is not asked to open anything.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غير مطلوب: لهذا الجهاز عنوان عام."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Není potřeba: toto zařízení má veřejnou adresu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht nötig: Dieses Gerät hat eine öffentliche Adresse."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν χρειάζεται: αυτή η συσκευή έχει δημόσια διεύθυνση."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not needed: this device has a public address."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No es necesario: este dispositivo tiene una dirección pública."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No es necesario: este dispositivo tiene una dirección pública."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No es necesario: este dispositivo tiene una dirección pública."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inutile : cet appareil a une adresse publique."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא נדרש: למכשיר הזה יש כתובת ציבורית."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ज़रूरी नहीं: इस डिवाइस का एक सार्वजनिक पता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak diperlukan: perangkat ini memiliki alamat publik."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non necessario: questo dispositivo ha un indirizzo pubblico."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不要です：このデバイスにはパブリックアドレスがあります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "필요하지 않음: 이 기기에는 공인 주소가 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niet nodig: dit apparaat heeft een openbaar adres."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niepotrzebne: to urządzenie ma adres publiczny."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não é necessário: este dispositivo tem um endereço público."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não é necessário: este dispositivo tem um endereço público."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não é necessário: este dispositivo tem um endereço público."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не требуется: у этого устройства публичный адрес."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behövs inte: den här enheten har en offentlig adress."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่จำเป็น: อุปกรณ์นี้มีที่อยู่สาธารณะ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не потрібно: цей пристрій має публічну адресу."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không cần: thiết bị này có địa chỉ công khai."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无需：此设备有公网地址。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無需：此裝置有公共地址。"
           }
         }
       }
@@ -288696,6 +289030,340 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的推薦連結"
+          }
+        }
+      }
+    },
+    "Your router didn't open the ports. Trying again later." : {
+      "comment" : "Status line under the Open a port on my router switch when no method mapped the ports. The reason stays in the log, since the router's words can name an address; the device asks again on its own.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يفتح جهاز التوجيه المنافذ. ستتم المحاولة مرة أخرى لاحقًا."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš router porty neotevřel. Zkusíme to znovu později."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Router hat die Ports nicht geöffnet. Später wird es erneut versucht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο δρομολογητής σας δεν άνοιξε τις θύρες. Θα γίνει νέα προσπάθεια αργότερα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your router didn't open the ports. Trying again later."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu router no abrió los puertos. Se volverá a intentar más tarde."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu router no abrió los puertos. Se volverá a intentar más tarde."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu router no abrió los puertos. Se volverá a intentar más tarde."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre routeur n’a pas ouvert les ports. Nouvel essai plus tard."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הנתב שלכם לא פתח את הפורטים. ננסה שוב מאוחר יותר."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके राउटर ने पोर्ट नहीं खोले। बाद में फिर से कोशिश की जाएगी।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router Anda tidak membuka port. Akan dicoba lagi nanti."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo router non ha aperto le porte. Nuovo tentativo più tardi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ルーターがポートを開きませんでした。後でもう一度試します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라우터가 포트를 열지 않았습니다. 나중에 다시 시도합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je router heeft de poorten niet geopend. Later wordt het opnieuw geprobeerd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router nie otworzył portów. Spróbujemy ponownie później."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu router não abriu as portas. Será tentado novamente mais tarde."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu roteador não abriu as portas. Tentaremos de novo mais tarde."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu router não abriu as portas. Será tentado novamente mais tarde."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Роутер не открыл порты. Попробуем ещё раз позже."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din router öppnade inte portarna. Försöker igen senare."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เราเตอร์ของคุณไม่ได้เปิดพอร์ต จะลองอีกครั้งในภายหลัง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Роутер не відкрив порти. Спробуємо ще раз пізніше."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ định tuyến của bạn không mở các cổng. Sẽ thử lại sau."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的路由器未打开端口。稍后会再试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的路由器未有開啟連接埠。稍後會再試。"
+          }
+        }
+      }
+    },
+    "Your router forwards %@ (%@)." : {
+      "comment" : "Status line under the Open a port on my router switch once the router forwards the extender's ports. The first argument is the ports, such as TCP 443, UDP 443, UDP 4053 (an arrow joins a router port to the device's, as TCP 40443→443); the second is how the router was asked: PCP, NAT-PMP or UPnP. Neither is translated.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يعيد جهاز التوجيه توجيه %1$@ (%2$@)."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš router přesměrovává %1$@ (%2$@)."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Router leitet %1$@ weiter (%2$@)."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο δρομολογητής σας προωθεί τις %1$@ (%2$@)."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your router forwards %1$@ (%2$@)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu router reenvía %1$@ (%2$@)."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu router reenvía %1$@ (%2$@)."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu router reenvía %1$@ (%2$@)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre routeur redirige %1$@ (%2$@)."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הנתב שלכם מעביר את %1$@ (%2$@)."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका राउटर %1$@ फ़ॉरवर्ड करता है (%2$@)।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router Anda meneruskan %1$@ (%2$@)."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo router inoltra %1$@ (%2$@)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ルーターが %1$@ を転送しています（%2$@）。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라우터가 %1$@을(를) 전달합니다(%2$@)."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je router stuurt %1$@ door (%2$@)."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router przekierowuje %1$@ (%2$@)."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu router encaminha %1$@ (%2$@)."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu roteador encaminha %1$@ (%2$@)."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu router encaminha %1$@ (%2$@)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Роутер перенаправляет %1$@ (%2$@)."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din router vidarebefordrar %1$@ (%2$@)."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เราเตอร์ของคุณส่งต่อ %1$@ (%2$@)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Роутер переспрямовує %1$@ (%2$@)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ định tuyến của bạn chuyển tiếp %1$@ (%2$@)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的路由器正在转发 %1$@（%2$@）。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的路由器正在轉發 %1$@（%2$@）。"
           }
         }
       }

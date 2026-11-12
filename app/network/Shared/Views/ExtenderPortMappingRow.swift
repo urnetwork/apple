@@ -2,8 +2,9 @@
 //  ExtenderPortMappingRow.swift
 //  URnetwork
 //
-//  The router port mapping switch, under the speed tests switch of the
-//  Connections card (EXTENDER.md S10). macOS only; iOS runs no role.
+//  The router port mapping switch and its status line, under the speed tests
+//  switch of the Connections card (EXTENDER.md S10). macOS only; iOS runs no
+//  role.
 //
 
 #if os(macOS)
@@ -14,7 +15,9 @@ import SwiftUI
 /// 443 and UDP 4053 -- to this device, which opens them on the router. Off by
 /// default on every app (owner, 2026-11-11); off removes what the router
 /// forwards. It draws beside the Extender row, so only while the device
-/// reports the role supported: hidden, never disabled.
+/// reports the role supported: hidden, never disabled. Under the description,
+/// while the switch is on, one line says what the router did
+/// (`DeviceManager.extenderPortMappingLine`), never in the router's own words.
 struct ExtenderPortMappingRow: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -42,6 +45,17 @@ struct ExtenderPortMappingRow: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
                     .fixedSize(horizontal: false, vertical: true)
+
+                // already localized, so drawn verbatim; whole rather than cut,
+                // since the method closes the line
+                if let line = deviceManager.extenderPortMappingLine {
+                    Text(line)
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                        // a new state repaints at once, as the Extender row's
+                        .transaction { $0.animation = nil }
+                }
             }
             .padding(.leading, Self.inset)
         }

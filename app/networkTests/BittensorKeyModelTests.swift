@@ -330,6 +330,21 @@ struct BittensorKeyModelTests {
         #expect(!BittensorKeyFlowEnd.isFinishing(fixture.flow))
     }
 
+    // a consent that lands as the model goes, before the flow's handler is the
+    // one that ends it, still ends the flow: the change went to the model's
+    // handler, and nothing else will come
+    @Test func aConsentThatLandsAsTheModelGoesStillEndsTheFlow() async {
+        let fixture = Fixture()
+        fixture.flow.card.busy = true
+        do {
+            _ = make(fixture)
+        }
+        fixture.flow.card.busy = false
+        await Self.mainQueueRuns()
+        #expect(fixture.flow.calls.filter { $0 == "close" }.count == 1)
+        #expect(!BittensorKeyFlowEnd.isFinishing(fixture.flow))
+    }
+
     /// the blocks already on the main queue run
     private static func mainQueueRuns() async {
         await withCheckedContinuation { continuation in

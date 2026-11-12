@@ -115,11 +115,12 @@ final class EarningsViewModel: ObservableObject {
     let client: EarningsClient
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
-    /// the read of the capture the flag wins, which runs beside the refresh
-    /// and never holds it up (the sdk waits up to a minute for the route)
-    private var ctfWinsRead: Task<Void, Never>?
-    /// a read was asked for while one ran
-    private var ctfWinsReadAgain = false
+    /// the reads of the capture the flag wins started so far, and the newest
+    /// whose good answer the lines show: the reads run beside the refresh and
+    /// never hold it up (the sdk waits up to a minute for the route), they
+    /// overlap, and their answers land in any order
+    private var ctfWinsReadsStarted = 0
+    private var ctfWinsReadShown = 0
     /// the reads of the wins after the last paying claim's Done
     /// (readCtfWinsAfterClaim)
     private var ctfWinsAfterClaim: Task<Void, Never>?
@@ -384,39 +385,34 @@ final class EarningsViewModel: ObservableObject {
         isLoading = false
     }
 
-    /// Reads the capture the flag wins beside the refresh, one read at a
-    /// time; one asked for during a read runs once it ends, so the lines
-    /// follow the latest state. A read that failed keeps the last good
-    /// read's lines and never blanks them: only a good read that no longer
-    /// lists a win takes its line away, or a sign-out, which ends this view
-    /// model with the account's screens.
+    /// Reads the capture the flag wins: beside the refresh, at a claim's Done
+    /// and at the times after it. Each read starts when asked, beside any
+    /// still out, so the reads keep their times, and the lines show the
+    /// newest read's good answer, whatever order the answers land in. A read
+    /// that failed keeps the last good read's lines and never blanks them,
+    /// nor drops an older read's good answer still to land: only a good read
+    /// that no longer lists a win takes its line away, or a sign-out, which
+    /// ends this view model with the account's screens.
     private func refreshCtfWins() {
-        guard ctfWinsRead == nil else {
-            ctfWinsReadAgain = true
-            return
-        }
+        ctfWinsReadsStarted += 1
+        let read = ctfWinsReadsStarted
         let client = client
-        ctfWinsRead = Task { [weak self] in
+        Task { [weak self] in
             let wins = await client.ctfUnclaimedWins()
-            guard let self else {
+            guard let self, let wins, read > self.ctfWinsReadShown else {
                 return
             }
-            if let wins {
-                self.ctfWins = wins
-            }
-            self.ctfWinsRead = nil
-            if self.ctfWinsReadAgain {
-                self.ctfWinsReadAgain = false
-                self.refreshCtfWins()
-            }
+            self.ctfWinsReadShown = read
+            self.ctfWins = wins
         }
     }
 
     /// After a claim that paid an account, the wins are read again at each of
     /// ctfWinsReadsAfterClaim after its Done, beside the read at Done: a win
     /// the claim paid reads claimed only once the finalized head covers the
-    /// claim. Each read replaces the lines. The next paying claim's Done
-    /// starts the reads over; one that paid nothing leaves them be. They end
+    /// claim. Each read starts at its time and replaces the lines unless it
+    /// failed (refreshCtfWins). The next paying claim's Done starts the reads
+    /// over; one that paid nothing leaves them be. They end
     /// with this view model, which lives as long as the signed-in account's
     /// screens, so a sign-out ends them; while it lives they run with
     /// Earnings off screen too, since a later visit does not read the wins

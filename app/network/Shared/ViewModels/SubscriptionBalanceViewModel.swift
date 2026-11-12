@@ -73,6 +73,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
     /// Reports a loaded balance's Pro to the sdk's decision (DeviceManager's
     /// SubscriptionProTracker), which answers whether to refresh the jwt now.
     private let planLoaded: (Bool) -> Bool
+    /// Reports a balance read that failed to the same decision, which then
+    /// shows the plan as not known rather than Free (support inbox 4074).
+    private let planReadFailed: () -> Void
     private var isPro: Bool
 
     // the last balance published for the Home Screen dashboard, so the
@@ -149,11 +152,13 @@ class SubscriptionBalanceViewModel: ObservableObject {
         isPro: Bool,
         refreshJwt: @escaping () -> Void,
         planLoaded: @escaping (Bool) -> Bool = { _ in false },
+        planReadFailed: @escaping () -> Void = {},
         purchaseConfirmation: PurchaseConfirming
     ) {
         self.urApiService = urApiService
         self.refreshJwt = refreshJwt
         self.planLoaded = planLoaded
+        self.planReadFailed = planReadFailed
         self.isPro = isPro
         self.purchaseConfirmation = purchaseConfirmation
         purchaseConfirmation.setForeground(active)
@@ -386,8 +391,11 @@ class SubscriptionBalanceViewModel: ObservableObject {
             print("\(domain) error fetching subscription balance \(error)")
             self.isLoading = false
             self.errorFetchingSubscriptionBalance = true
+            // an error or no result: the plan is the server's last answer, or
+            // not known yet, never Free (support inbox 4074)
+            planReadFailed()
         }
-        
+
     }
     
     private func startBackgroundPolling() {

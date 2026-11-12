@@ -821,7 +821,30 @@ class DeviceManager: ObservableObject {
             self.isPro = value
         }
     }
+
+    /**
+     * The plan the plan cards show (ShownPlan), as the sdk decides it
+     * (SubscriptionProTracker.GetShownPlan): the server's answer once a
+     * balance has loaded; before that Pro by the stored jwt's claim, else not
+     * known yet, while the first read is on its way (.loading) and once a
+     * read failed (.unreachable). Only the server says Free: a failed or
+     * pending read showed Free with its Get Pro (support inbox 4074). isPro is
+     * this plan being Pro.
+     */
+    @Published private(set) var shownPlan: ShownPlan = .loading
     private let proTracker: SdkSubscriptionProTracker? = SdkNewSubscriptionProTracker()
+
+    /// Publishes the tracker's decision after each of its inputs: the shown
+    /// plan and, from it, Pro. `fallback` is the plan without a tracker.
+    private func publishPlan(fallback: ShownPlan) {
+        let plan = proTracker.map {
+            ShownPlan.of(sdkPlan: $0.getShownPlan(), lastReadFailed: $0.getLastReadFailed())
+        } ?? fallback
+        if shownPlan != plan {
+            shownPlan = plan
+        }
+        setIsPro(plan == .pro)
+    }
 
     /**
      * A balance loaded; `serverIsPro` is whether it carries a current
@@ -831,8 +854,19 @@ class DeviceManager: ObservableObject {
      */
     func subscriptionBalanceLoaded(serverIsPro: Bool) -> Bool {
         let refreshJwt = proTracker?.balanceLoaded(serverIsPro) ?? false
-        setIsPro(proTracker?.getIsPro() ?? serverIsPro)
+        publishPlan(fallback: serverIsPro ? .pro : .free)
         return refreshJwt
+    }
+
+    /**
+     * A balance read failed (an error, or no result). The plan stays the
+     * server's last answer; before one it stays Pro by the claim or becomes
+     * .unreachable, which the plan cards show with a retry, never as Free
+     * (support inbox 4074). No jwt refresh is asked for.
+     */
+    func subscriptionBalanceFailed() {
+        _ = proTracker?.balanceFailed()
+        publishPlan(fallback: shownPlan == .loading ? .unreachable : shownPlan)
     }
     
     private var deviceProvideSub: SdkSubProtocol?
@@ -1109,18 +1143,23 @@ class DeviceManager: ObservableObject {
         guard let localState = networkSpace?.getAsyncLocalState()?.getLocalState() else {
             parsedJwt = nil
             proTracker?.reset()
+            // no session: no plan, and no Pro carried over from the last one
+            publishPlan(fallback: .loading)
             return
         }
-        
+
         do {
             parsedJwt = try localState.parseByJwt()
             // the claim counts only until a balance loads: the stored jwt a
-            // refresh leaves as it was never moves Pro back (isPro)
+            // refresh leaves as it was never moves Pro back (isPro). A claim
+            // of free is not known yet: it stays free after a purchase until
+            // the stored jwt renews (shownPlan)
             proTracker?.setJwt(localState.getByJwt())
-            setIsPro(proTracker?.getIsPro() ?? (parsedJwt?.pro ?? false))
+            publishPlan(fallback: parsedJwt?.pro == true ? .pro : .loading)
         } catch {
             parsedJwt = nil
             proTracker?.reset()
+            publishPlan(fallback: .loading)
         }
     }
     

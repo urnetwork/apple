@@ -120,6 +120,9 @@ struct ContentView: View {
                             isPro: deviceManager.isPro,
                             subscriptionPlanLoaded: { serverIsPro in
                                 deviceManager.subscriptionBalanceLoaded(serverIsPro: serverIsPro)
+                            },
+                            subscriptionPlanFailed: {
+                                deviceManager.subscriptionBalanceFailed()
                             }
                         )
                         .opacity(opacity)

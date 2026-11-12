@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import URnetworkSdk
 
 /**
  * Post-purchase screen with honest copy per confirmation phase (finding A2).
@@ -42,7 +43,17 @@ struct PurchaseSuccessView: View {
     /// Store (the direct-download build's Stripe flow); nil keeps the defaults.
     var confirmingTitle: String? = nil
     var confirmingMessage: String? = nil
+    /// The signed-in network's name, for the account the plan is on.
+    let networkName: String?
     var dismiss: () -> Void
+
+    /// The account the purchase is for (SdkPlanAccountName), "" to show none.
+    /// Never a guest the app knows of: every purchase entry sends one to add a
+    /// sign-in method first, and the sdk's rule hides a legacy guest's own
+    /// name.
+    private var accountName: String {
+        SdkPlanAccountName(networkName, false)
+    }
 
     var body: some View {
         ZStack {
@@ -103,6 +114,19 @@ struct PurchaseSuccessView: View {
                         }
 
                         Spacer()
+                    }
+
+                    // which account the plan is on, in every phase: customers
+                    // with several accounts paid on one and read another
+                    if !accountName.isEmpty {
+                        Spacer().frame(height: 8)
+
+                        HStack {
+                            Text("Account: \(accountName)")
+                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                            Spacer()
+                        }
                     }
 
                     if phase == .confirming {
@@ -171,6 +195,7 @@ struct PurchaseSuccessView: View {
 
 #Preview {
     PurchaseSuccessView(
+        networkName: "example-network",
         dismiss: {}
     )
 }

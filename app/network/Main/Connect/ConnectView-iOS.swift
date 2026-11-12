@@ -353,6 +353,7 @@ struct ConnectView_iOS: View {
                             openedByStartConnectBlock: connectViewModel.upgradeOpenedByStartConnectBlock,
                             isPro: isPro
                         ),
+                        networkName: deviceManager.parsedJwt?.networkName,
                         dismiss: {
                             connectViewModel.isPresentedUpgradeSheet = false
                             // the purchase flags describe ONE attempt; letting them

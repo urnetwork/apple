@@ -16,6 +16,10 @@
 //  hiding the others; and one claim claims both. Entries from a server that
 //  predates it have no kind and show as before.
 //
+//  Any account, lone or beside others, whose balance is under the transfer
+//  floor reads "Below the claim minimum" and is left out of the claim, which
+//  never sends a claim the chain refuses (owner, 2026-11-11, for every app).
+//
 
 import Foundation
 
@@ -48,22 +52,31 @@ enum SnLedgerLoad: Equatable {
 /// What a pool's row is called, from its kind (the sdk's Label is the
 /// server's English name, which the app does not show). Before capture the
 /// flag a row is "Pool 1", as it has been. A capture the flag account is
-/// "Capture the flag", and the operator's pool beside one is the "Provider
-/// pool".
+/// "Capture the flag", and the one operator pool beside one is the "Provider
+/// pool"; beside two or more, each keeps its number (Android's
+/// snLedgerPoolName, Linux's LedgerPoolName).
 enum SnLedgerPoolName: Equatable {
     /// "Pool %lld"
     case pool(noId: Int64)
     case providerPool
     case captureTheFlag
 
-    /// `besideCtf`: the rows include a capture the flag pool, read or not
-    static func of(kind: SnLedgerPoolKind, noId: Int64, besideCtf: Bool) -> SnLedgerPoolName {
+    /// `namesProviderPool`: the pools in view call the operator's pool the
+    /// provider pool (namesProviderPool(_:))
+    static func of(kind: SnLedgerPoolKind, noId: Int64, namesProviderPool: Bool) -> SnLedgerPoolName {
         switch kind {
         case .ctf:
             return .captureTheFlag
         case .pool:
-            return besideCtf ? .providerPool : .pool(noId: noId)
+            return namesProviderPool ? .providerPool : .pool(noId: noId)
         }
+    }
+
+    /// The pools in view, read or not, call the operator's pool the "Provider
+    /// pool": a capture the flag pool is among them, beside exactly one
+    /// operator pool.
+    static func namesProviderPool(_ pools: [(kind: SnLedgerPoolKind, noId: Int64)]) -> Bool {
+        pools.contains { $0.kind == .ctf } && Set(pools.filter { $0.kind == .pool }.map(\.noId)).count == 1
     }
 
     /// the name every pool had before capture the flag, which a lone pool's
@@ -99,26 +112,28 @@ struct SnLedgerPools: Equatable {
     /// 0 when it gave none
     var transferFloorRao: Int64 = 0
 
-    /// the ledger lists a capture the flag pool, read or not
-    var besideCtf: Bool {
-        accounts.contains { $0.kind == .ctf } || unavailablePools.contains { $0.kind == .ctf }
+    /// every pool the ledger lists, read or not
+    private var inView: [(kind: SnLedgerPoolKind, noId: Int64)] {
+        accounts.map { ($0.kind, $0.noId) } + unavailablePools.map { ($0.kind, $0.noId) }
     }
 
-    /// Capture the flag's rules hold: the ledger lists a capture the flag pool,
-    /// or a pool it could not read, which only a server that serves capture the
-    /// flag sends. A balance under the transfer floor then waits, and the
-    /// claim's refusal of one is no failure. Without them every row reads as
-    /// it did.
-    var ctfRules: Bool {
-        besideCtf || !unavailablePools.isEmpty
+    /// the operator's pool is the "Provider pool" (SnLedgerPoolName.namesProviderPool)
+    var namesProviderPool: Bool {
+        SnLedgerPoolName.namesProviderPool(inView)
     }
 
     func name(_ account: SnLedgerAccountInfo) -> SnLedgerPoolName {
-        SnLedgerPoolName.of(kind: account.kind, noId: account.noId, besideCtf: besideCtf)
+        SnLedgerPoolName.of(kind: account.kind, noId: account.noId, namesProviderPool: namesProviderPool)
     }
 
     func name(_ pool: SnLedgerUnavailablePool) -> SnLedgerPoolName {
-        SnLedgerPoolName.of(kind: pool.kind, noId: pool.noId, besideCtf: besideCtf)
+        SnLedgerPoolName.of(kind: pool.kind, noId: pool.noId, namesProviderPool: namesProviderPool)
+    }
+
+    /// a pool the claim reports that the ledger did not list, named among the
+    /// listed pools and it
+    func name(kind: SnLedgerPoolKind, noId: Int64) -> SnLedgerPoolName {
+        SnLedgerPoolName.of(kind: kind, noId: noId, namesProviderPool: SnLedgerPoolName.namesProviderPool(inView + [(kind, noId)]))
     }
 
     /// A balance the chain cannot move yet: under the transfer floor at the
@@ -128,13 +143,14 @@ struct SnLedgerPools: Equatable {
         0 < claimableRao && claimableRao < transferFloorRao
     }
 
-    /// under the floor, by capture the flag's rules; without them the claim's
-    /// preflight decides, as it did
+    /// "Below the claim minimum": any account under the floor, lone or beside
+    /// others, capture the flag or not (owner, 2026-11-11)
     func underFloor(_ account: SnLedgerAccountInfo) -> Bool {
-        ctfRules && Self.underFloor(claimableRao: account.claimableRao, transferFloorRao: transferFloorRao)
+        Self.underFloor(claimableRao: account.claimableRao, transferFloorRao: transferFloorRao)
     }
 
-    /// what a claim pays: something to claim, and not under the floor
+    /// what a claim pays: something to claim, and not under the floor, so
+    /// the claim never asks the chain for a transfer it refuses
     func claimable(_ account: SnLedgerAccountInfo) -> Bool {
         0 < account.claimableRao && !underFloor(account)
     }
@@ -188,10 +204,12 @@ struct SnLedgerTilePresentation: Equatable {
         case pools([SnLedgerPoolRow])
         /// what the claim relay says is claimable, for a network with no
         /// wallet on this device to read the ledger by: its total, nil while it
-        /// could read no account, never 0, and beside capture the flag the
-        /// pools it adds up and the ones it could not read
-        /// (SnClaimRelayRow.tileRows)
-        case claimable(Int64?, rows: [SnClaimRelayRow] = [])
+        /// could read none of the coldkey's accounts, never 0; beside capture
+        /// the flag the pools it adds up and the ones it could not read
+        /// (SnClaimRelayRow.tileRows); and "Below the claim minimum" under a
+        /// total that is one account's under the floor
+        /// (SnClaimRelayRow.tileTotalUnderFloor)
+        case claimable(Int64?, rows: [SnClaimRelayRow] = [], underFloor: Bool = false)
     }
 
     let balances: Balances
@@ -265,8 +283,9 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     let id: SnLedgerAccountKey
     let name: SnLedgerPoolName
     /// the transfer the vault confirmed once the claim lands, else what is
-    /// claimable
-    let amountRao: Int64
+    /// claimable; nil, no figure, for a pool that could not be read and for
+    /// an account the sheet's read did not list until it is confirmed
+    let amountRao: Int64?
     let status: SnLedgerClaimStatus
     /// the claim transaction on the explorer, once sent
     let explorerUrl: URL?
@@ -274,7 +293,7 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     /// a pool the ledger read could not read, under the key the claim
     /// reports it by
     static func of(_ pool: SnLedgerUnavailablePool, pools: SnLedgerPools) -> SnLedgerClaimRow {
-        SnLedgerClaimRow(id: pool.id, name: pools.name(pool), amountRao: 0, status: .unavailable, explorerUrl: nil)
+        SnLedgerClaimRow(id: pool.id, name: pools.name(pool), amountRao: nil, status: .unavailable, explorerUrl: nil)
     }
 
     /// `pools`: the ledger the account is in, which names it and gives the
@@ -287,33 +306,62 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     ) -> SnLedgerClaimRow {
         let pools = pools ?? SnLedgerPools(accounts: [account], unavailablePools: [])
         let name = pools.name(account)
-        func row(_ amountRao: Int64, _ status: SnLedgerClaimStatus, _ explorerUrl: URL? = nil) -> SnLedgerClaimRow {
-            SnLedgerClaimRow(id: account.id, name: name, amountRao: amountRao, status: status, explorerUrl: explorerUrl)
-        }
         guard let progress else {
+            let status: SnLedgerClaimStatus
             if pools.underFloor(account) {
-                return row(account.claimableRao, .underFloor)
+                status = .underFloor
+            } else if account.claimableRao > 0 {
+                status = .unclaimed
+            } else {
+                status = account.paidRao > 0 ? .claimed : .pending
             }
-            if account.claimableRao > 0 {
-                return row(account.claimableRao, .unclaimed)
-            }
-            return row(account.claimableRao, account.paidRao > 0 ? .claimed : .pending)
+            return SnLedgerClaimRow(id: account.id, name: name, amountRao: account.claimableRao, status: status, explorerUrl: nil)
+        }
+        return of(id: account.id, name: name, claimableRao: account.claimableRao, progress: progress, chain: chain)
+    }
+
+    /// An account the claim reports that the sheet's read did not list: its
+    /// pool could not be read then, and the claim's own read found it. It
+    /// takes that pool's line (Android's, Linux's and Windows' rule), with no
+    /// figure until vault2 confirms what it paid.
+    static func found(
+        _ key: SnLedgerAccountKey,
+        kind: SnLedgerPoolKind,
+        progress: EarningsViewModel.LedgerClaimRowState,
+        chain: SnLedgerChainInfo,
+        pools: SnLedgerPools
+    ) -> SnLedgerClaimRow {
+        of(id: key, name: pools.name(kind: kind, noId: key.noId), claimableRao: nil, progress: progress, chain: chain)
+    }
+
+    private static func of(
+        id: SnLedgerAccountKey,
+        name: SnLedgerPoolName,
+        claimableRao: Int64?,
+        progress: EarningsViewModel.LedgerClaimRowState,
+        chain: SnLedgerChainInfo
+    ) -> SnLedgerClaimRow {
+        func row(_ amountRao: Int64?, _ status: SnLedgerClaimStatus, _ explorerUrl: URL? = nil) -> SnLedgerClaimRow {
+            SnLedgerClaimRow(id: id, name: name, amountRao: amountRao, status: status, explorerUrl: explorerUrl)
         }
         switch progress {
         case .queued:
-            return row(account.claimableRao, .pending)
+            return row(claimableRao, .pending)
         case .sent(let txHash):
-            return row(account.claimableRao, .sent, chain.explorerUrl(txHash: txHash))
+            return row(claimableRao, .sent, chain.explorerUrl(txHash: txHash))
         case .confirmed(let txHash, let amountRao):
             return row(amountRao, .claimed, chain.explorerUrl(txHash: txHash))
         case .alreadyClaimed:
-            return row(account.claimableRao, .claimed)
+            return row(claimableRao, .claimed)
         case .failed:
-            return row(account.claimableRao, .failed)
+            return row(claimableRao, .failed)
+        case .needsGas:
+            // nothing was sent: still claimable once the gas key is topped up
+            return row(claimableRao, .unclaimed)
         case .underFloor:
-            return row(account.claimableRao, .underFloor)
+            return row(claimableRao, .underFloor)
         case .unavailable:
-            return row(account.claimableRao, .unavailable)
+            return row(nil, .unavailable)
         }
     }
 }
@@ -343,13 +391,11 @@ struct SnClaimRelayRow: Identifiable, Equatable {
     /// URnetwork's claim on the explorer, for a Claimed row
     let txUrl: URL?
 
-    /// The claim sheet's rows, or none without capture the flag's rules: a
-    /// relay that lists no capture the flag pool and no pool it could not
-    /// read keeps the sheet's one balance, as it has been.
+    /// The claim sheet's rows: every account the relay reports, as Android's
+    /// and Linux's claim sheets list them (snClaimRelayRows), so a lone
+    /// account below the claim minimum says so too (owner, 2026-11-11: on
+    /// any account, lone or not).
     static func rows(_ status: SnClaimStatusInfo) -> [SnClaimRelayRow] {
-        guard status.ctfRules else {
-            return []
-        }
         let accounts = status.accounts.filter { 0 < $0.claimableRao || $0.showsClaimed }
         let namesColdkeys = 1 < Set(accounts.map(\.coldkeySs58)).count
         return accounts.map { row($0, status: status, namesColdkey: namesColdkeys) } + status.unavailablePools.map { row($0, status: status) }
@@ -360,11 +406,28 @@ struct SnClaimRelayRow: Identifiable, Equatable {
     /// accounts with something to claim, then each pool the relay could not
     /// read. None while one operator pool's total says it all, as before.
     static func tileRows(_ status: SnClaimStatusInfo) -> [SnClaimRelayRow] {
-        let accounts = status.accounts.filter { $0.coldkeySs58 == status.coldkeySs58 && 0 < $0.claimableRao }
+        let accounts = tileAccounts(status)
         guard !status.unavailablePools.isEmpty || 1 < accounts.count || accounts.contains(where: { $0.kind == .ctf }) else {
             return []
         }
         return accounts.map { row($0, status: status, namesColdkey: false) } + status.unavailablePools.map { row($0, status: status) }
+    }
+
+    /// The tile's total with no rows under it is one account's, below the
+    /// claim minimum: the line goes under the total, as Linux's no-wallet
+    /// tile has it, where each row says it once there are rows.
+    static func tileTotalUnderFloor(_ status: SnClaimStatusInfo) -> Bool {
+        let accounts = tileAccounts(status)
+        guard tileRows(status).isEmpty, accounts.count == 1, let account = accounts.first else {
+            return false
+        }
+        return SnLedgerPools.underFloor(claimableRao: account.claimableRao, transferFloorRao: status.transferFloorRao)
+    }
+
+    /// the primary coldkey's accounts with something to claim, which the
+    /// tile's total adds up
+    private static func tileAccounts(_ status: SnClaimStatusInfo) -> [SnClaimRelayAccountInfo] {
+        status.accounts.filter { $0.coldkeySs58 == status.coldkeySs58 && 0 < $0.claimableRao }
     }
 
     private static func row(_ account: SnClaimRelayAccountInfo, status: SnClaimStatusInfo, namesColdkey: Bool) -> SnClaimRelayRow {
@@ -378,7 +441,7 @@ struct SnClaimRelayRow: Identifiable, Equatable {
         }
         return SnClaimRelayRow(
             id: "\(account.coldkeySs58)/\(account.noId)",
-            name: SnLedgerPoolName.of(kind: account.kind, noId: account.noId, besideCtf: status.besideCtf),
+            name: SnLedgerPoolName.of(kind: account.kind, noId: account.noId, namesProviderPool: status.namesProviderPool),
             coldkeySs58: namesColdkey ? account.coldkeySs58 : "",
             amountRao: account.showsClaimed ? account.claimAmountRao : account.claimableRao,
             status: state,
@@ -389,7 +452,7 @@ struct SnClaimRelayRow: Identifiable, Equatable {
     private static func row(_ pool: SnLedgerUnavailablePool, status: SnClaimStatusInfo) -> SnClaimRelayRow {
         SnClaimRelayRow(
             id: "\(pool.vault)/\(pool.noId)",
-            name: SnLedgerPoolName.of(kind: pool.kind, noId: pool.noId, besideCtf: status.besideCtf),
+            name: SnLedgerPoolName.of(kind: pool.kind, noId: pool.noId, namesProviderPool: status.namesProviderPool),
             coldkeySs58: "",
             amountRao: 0,
             status: .unavailable,
@@ -400,21 +463,18 @@ struct SnClaimRelayRow: Identifiable, Equatable {
 
 extension SnClaimStatusInfo {
 
-    /// the relay lists a capture the flag pool, read or not
-    var besideCtf: Bool {
-        accounts.contains { $0.kind == .ctf } || unavailablePools.contains { $0.kind == .ctf }
+    /// the operator's pool is the "Provider pool" among the relay's pools,
+    /// read or not (SnLedgerPoolName.namesProviderPool)
+    var namesProviderPool: Bool {
+        SnLedgerPoolName.namesProviderPool(accounts.map { ($0.kind, $0.noId) } + unavailablePools.map { ($0.kind, $0.noId) })
     }
 
-    /// capture the flag's rules hold (SnLedgerPools.ctfRules): the relay lists
-    /// a capture the flag pool or a pool it could not read
-    var ctfRules: Bool {
-        besideCtf || !unavailablePools.isEmpty
-    }
-
-    /// the tile's total for a network with no wallet on this device; nil
-    /// while the relay could read none of its accounts, which is not 0
-    var tileClaimableRao: Int64? {
-        accounts.isEmpty && !unavailablePools.isEmpty ? nil : claimableRao
+    /// The relay's total, the primary coldkey's accounts together, for the
+    /// tile of a network with no wallet on this device and for the claim
+    /// sheet; nil while a pool could not be read and none of that coldkey's
+    /// accounts could, which is not 0 (Android's snClaimRelayTotalKnown).
+    var knownClaimableRao: Int64? {
+        unavailablePools.isEmpty || accounts.contains { $0.coldkeySs58 == coldkeySs58 } ? claimableRao : nil
     }
 }
 
@@ -436,6 +496,11 @@ enum SnLedgerClaimFailure: Equatable {
     /// claimed the account first, which is success, not a failure
     static let alreadyClaimedCode = "already_claimed"
 
+    /// the SDK's needs_gas (SnErrorCodeNeedsGas): naming an account, the gas
+    /// key could not pay for its claim and nothing was sent, so the account
+    /// is still claimable and the gas card shows the top-up, not a failure
+    static let needsGasCode = "needs_gas"
+
     /// the SDK's ledger_unavailable (SnErrorCodeLedgerUnavailable): naming a
     /// pool with index 0, the claim could not read that pool and claimed the
     /// others, so the pool is unavailable right now, not a failure
@@ -447,16 +512,16 @@ enum SnLedgerClaimFailure: Equatable {
     }
 
     /// The claim's refusal of an account under the runtime's transfer floor,
-    /// "not_claimable: AmountTooLow: …" (Android's snLedgerClaimUnderFloor):
-    /// by capture the flag's rules the account waits, below the claim
-    /// minimum, and it is no failure.
+    /// "not_claimable: AmountTooLow: …" (Android's snLedgerClaimUnderFloor),
+    /// which the sdk's preflight reports without sending: the account waits,
+    /// below the claim minimum, and it is no failure.
     static func underFloor(_ message: String) -> Bool {
         code(of: message) == "not_claimable" && message.contains("AmountTooLow")
     }
 
     static func of(_ message: String) -> SnLedgerClaimFailure {
         switch code(of: message) {
-        case "needs_gas":
+        case needsGasCode:
             return .needsGas
         case "chain_rpc_unreachable", "chain_not_configured", "ledger_unavailable", "artifact_unavailable":
             return .unreachable

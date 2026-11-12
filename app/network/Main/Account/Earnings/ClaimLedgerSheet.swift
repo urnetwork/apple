@@ -130,9 +130,12 @@ struct ClaimLedgerSheet: View {
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
                 } else {
-                    Text(verbatim: viewModel.client.formatAlpha(rao: row.amountRao))
-                        .font(themeManager.currentTheme.secondaryBodyFont)
-                        .foregroundColor(themeManager.currentTheme.textColor)
+                    // no figure for an amount not known yet, never 0
+                    if let amountRao = row.amountRao {
+                        Text(verbatim: viewModel.client.formatAlpha(rao: amountRao))
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                    }
                     if row.status != .underFloor {
                         LedgerClaimStatusPill(status: row.status)
                     }

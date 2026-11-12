@@ -503,8 +503,9 @@ struct UnclaimedAlphaTile: View {
 /// ledger that cannot be read says "Unavailable", never 0. Claim opens the
 /// v2 claim dialog once v2 claims are configured. A capture the flag account
 /// is a row of its own, named, under the provider pool's; a pool that could
-/// not be read says so in its row; and while both accounts are claimable the
-/// device's claim is "Claim both".
+/// not be read says so in its row; while both accounts are claimable the
+/// device's claim is "Claim both"; and each slot the network's clients won
+/// whose award is not claimed yet has a line, newest first.
 struct SnLedgerTile: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -521,9 +522,10 @@ struct SnLedgerTile: View {
     /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*), when this
     /// is the first claim tile on Earnings
     var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
-    /// the capture the flag slot this device won last, for its line; nil for
-    /// none, or when the draw's answer could not be read
-    var ctfWin: SnCtfWinInfo? = nil
+    /// every capture the flag slot the network's clients won whose award is
+    /// not claimed yet, newest first, a line each; none without one, or when
+    /// the draw's answer could not be read
+    var ctfWins: [SnCtfWinInfo] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -537,13 +539,17 @@ struct SnLedgerTile: View {
                 ForEach(rows) { row in
                     poolBalances(row)
                 }
-            case .claimable(let rao, let rows):
+            case .claimable(let rao, let rows, let underFloor):
                 // no total while the relay could read no account, never 0
                 if let rao {
                     amount(rao)
                     Text("Claimable")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    // one account's total that no claim can move yet
+                    if underFloor {
+                        LedgerUnderFloorLine()
+                    }
                 }
                 // the pools the total adds up, and the ones it leaves out
                 if !rows.isEmpty {
@@ -551,9 +557,13 @@ struct SnLedgerTile: View {
                         .padding(.top, 4)
                 }
             }
-            if let ctfWin {
-                SnCtfWinLine(win: ctfWin)
-                    .padding(.top, 8)
+            if !ctfWins.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(Array(ctfWins.enumerated()), id: \.offset) { _, win in
+                        SnCtfWinLine(win: win)
+                    }
+                }
+                .padding(.top, 8)
             }
             // the relay's section while it has something to say: a balance it
             // claims or waits on, or a claim it paid in full (the claimed state)
@@ -650,8 +660,8 @@ struct SnLedgerTile: View {
     }
 }
 
-/// The capture the flag line under the Settlement v2 balances: the slot this
-/// device won last (GET /sn/ctf/client).
+/// A capture the flag line under the Settlement v2 balances: one slot the
+/// network's clients won whose award is not claimed yet (GET /sn/ctf/client).
 struct SnCtfWinLine: View {
 
     @EnvironmentObject var themeManager: ThemeManager

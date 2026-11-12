@@ -133,6 +133,13 @@ enum SnLedgerPoolKind: Equatable {
     init(sdkKind: String) {
         self = sdkKind == SdkSnLedgerPoolKindCtf ? .ctf : .pool
     }
+
+    /// the kind of a pool known by its id alone (an account the claim reports
+    /// that no read listed), as the sdk reads an entry without a kind:
+    /// capture the flag's pools are 2^32 + n
+    init(noId: Int64) {
+        self = SdkSnLedgerCtfPoolIdBase <= noId ? .ctf : .pool
+    }
 }
 
 /// The coldkey's settlement v2 account in one operator pool, from the SDK's
@@ -278,9 +285,11 @@ struct SnClaimRelayAccountInfo: Equatable {
     }
 }
 
-/// The capture the flag slot this device won last (sdk
-/// SnCtfClientResult.LatestWin, from GET /sn/ctf/client): one of the up to
-/// five slots of its country and role in an epoch's draw.
+/// A capture the flag slot won whose award is not claimed yet (an entry of
+/// sdk SnCtfClientResult.UnclaimedWins, from GET /sn/ctf/client, which the sdk
+/// asks for the network's wins, every client's, as ur.io does): one of the up
+/// to five slots of its country and role in an epoch's draw. The tile draws a
+/// line for each.
 struct SnCtfWinInfo: Equatable {
 
     enum Role: Equatable {
@@ -291,9 +300,11 @@ struct SnCtfWinInfo: Equatable {
     let role: Role
     /// lowercase ISO 3166-1 alpha-2
     let country: String
+    /// the epoch whose draw it won; 0 when not known
+    let epoch: Int64
 
     /// nil for a role this build does not know, or no country
-    init?(role: String, country: String) {
+    init?(role: String, country: String, epoch: Int64 = 0) {
         switch role {
         case SdkSnCtfRoleProvider:
             self.role = .provider
@@ -306,6 +317,15 @@ struct SnCtfWinInfo: Equatable {
             return nil
         }
         self.country = country
+        self.epoch = epoch
+    }
+
+    /// The wins newest first: by epoch, and within an epoch in the order
+    /// given (the sdk's: providers before extenders).
+    static func newestFirst(_ wins: [SnCtfWinInfo]) -> [SnCtfWinInfo] {
+        wins.enumerated()
+            .sorted { $0.element.epoch != $1.element.epoch ? $0.element.epoch > $1.element.epoch : $0.offset < $1.offset }
+            .map(\.element)
     }
 
     /// "You won one of the Iceland provider slots": a slot, never the flag,

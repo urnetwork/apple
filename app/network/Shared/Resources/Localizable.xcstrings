@@ -35525,6 +35525,173 @@
         }
       }
     },
+    "Asks your router, by UPnP, NAT-PMP or PCP, to forward TCP and UDP 443 and UDP 4053 to this device, so the extender can be reached from the internet. This opens a port on your router." : {
+      "comment" : "Secondary text under the Open a port on my router toggle: what turning it on does. It must say plainly that it opens a port on the user's router.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يطلب من جهاز التوجيه، عبر UPnP أو NAT-PMP أو PCP، إعادة توجيه TCP و UDP 443 و UDP 4053 إلى هذا الجهاز، حتى يمكن الوصول إلى الموسّع من الإنترنت. يفتح هذا منفذًا على جهاز التوجيه الخاص بك."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Požádá váš router přes UPnP, NAT-PMP nebo PCP, aby na toto zařízení přesměroval TCP a UDP 443 a UDP 4053, aby byl extender dosažitelný z internetu. Tím se na vašem routeru otevře port."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bittet deinen Router per UPnP, NAT-PMP oder PCP, TCP und UDP 443 sowie UDP 4053 an dieses Gerät weiterzuleiten, damit der Extender aus dem Internet erreichbar ist. Dadurch wird ein Port auf deinem Router geöffnet."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ζητά από τον δρομολογητή σας, μέσω UPnP, NAT-PMP ή PCP, να προωθεί τις TCP και UDP 443 και UDP 4053 σε αυτή τη συσκευή, ώστε ο επεκτατής να είναι προσβάσιμος από το διαδίκτυο. Αυτό ανοίγει μια θύρα στον δρομολογητή σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asks your router, by UPnP, NAT-PMP or PCP, to forward TCP and UDP 443 and UDP 4053 to this device, so the extender can be reached from the internet. This opens a port on your router."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pide a tu router, mediante UPnP, NAT-PMP o PCP, que reenvíe TCP y UDP 443 y UDP 4053 a este dispositivo, para que se pueda acceder al extensor desde internet. Esto abre un puerto en tu router."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pide a tu router, mediante UPnP, NAT-PMP o PCP, que reenvíe TCP y UDP 443 y UDP 4053 a este dispositivo, para que se pueda acceder al extensor desde internet. Esto abre un puerto en tu router."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pide a tu router, mediante UPnP, NAT-PMP o PCP, que reenvíe TCP y UDP 443 y UDP 4053 a este dispositivo, para que se pueda acceder al extensor desde internet. Esto abre un puerto en tu router."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande à votre routeur, via UPnP, NAT-PMP ou PCP, de rediriger TCP et UDP 443 et UDP 4053 vers cet appareil, afin que l’extendeur soit joignable depuis Internet. Cela ouvre un port sur votre routeur."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבקש מהנתב שלכם, באמצעות UPnP,‏ NAT-PMP או PCP, להעביר את TCP ו-UDP 443 ואת UDP 4053 למכשיר הזה, כדי שאפשר יהיה להגיע למרחיב מהאינטרנט. פעולה זו פותחת פורט בנתב שלכם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके राउटर से UPnP, NAT-PMP या PCP के ज़रिए TCP और UDP 443 और UDP 4053 को इस डिवाइस पर फ़ॉरवर्ड करने के लिए कहता है, ताकि इंटरनेट से एक्सटेंडर तक पहुँचा जा सके। इससे आपके राउटर पर एक पोर्ट खुलता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meminta router Anda, melalui UPnP, NAT-PMP, atau PCP, untuk meneruskan TCP dan UDP 443 serta UDP 4053 ke perangkat ini, agar extender dapat dijangkau dari internet. Ini membuka port di router Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiede al tuo router, tramite UPnP, NAT-PMP o PCP, di inoltrare TCP e UDP 443 e UDP 4053 a questo dispositivo, così l’extender è raggiungibile da Internet. In questo modo si apre una porta sul tuo router."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UPnP、NAT-PMP、または PCP でルーターに TCP と UDP 443、UDP 4053 をこのデバイスへ転送するよう求め、インターネットからエクステンダーに接続できるようにします。ルーターのポートが開きます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UPnP, NAT-PMP 또는 PCP로 라우터에 TCP 및 UDP 443, UDP 4053을 이 기기로 전달하도록 요청하여 인터넷에서 익스텐더에 접속할 수 있게 합니다. 이렇게 하면 라우터의 포트가 열립니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vraagt je router via UPnP, NAT-PMP of PCP om TCP en UDP 443 en UDP 4053 naar dit apparaat door te sturen, zodat de extender vanaf het internet bereikbaar is. Hierdoor wordt een poort op je router geopend."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prosi router przez UPnP, NAT-PMP lub PCP o przekierowanie TCP i UDP 443 oraz UDP 4053 na to urządzenie, aby extender był osiągalny z internetu. Spowoduje to otwarcie portu na routerze."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pede ao seu router, por UPnP, NAT-PMP ou PCP, que encaminhe TCP e UDP 443 e UDP 4053 para este dispositivo, para que o extensor possa ser alcançado a partir da internet. Isto abre uma porta no seu router."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pede ao seu roteador, por UPnP, NAT-PMP ou PCP, que encaminhe TCP e UDP 443 e UDP 4053 para este dispositivo, para que o extensor possa ser acessado pela internet. Isso abre uma porta no seu roteador."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pede ao seu router, por UPnP, NAT-PMP ou PCP, que encaminhe TCP e UDP 443 e UDP 4053 para este dispositivo, para que o extensor possa ser alcançado a partir da internet. Isto abre uma porta no seu router."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просит ваш роутер через UPnP, NAT-PMP или PCP перенаправлять TCP и UDP 443 и UDP 4053 на это устройство, чтобы экстендер был доступен из интернета. Это открывает порт на вашем роутере."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ber din router via UPnP, NAT-PMP eller PCP att vidarebefordra TCP och UDP 443 och UDP 4053 till den här enheten, så att extendern kan nås från internet. Det öppnar en port i din router."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ขอให้เราเตอร์ของคุณส่งต่อ TCP และ UDP 443 และ UDP 4053 มายังอุปกรณ์นี้ผ่าน UPnP, NAT-PMP หรือ PCP เพื่อให้เข้าถึงตัวขยายได้จากอินเทอร์เน็ต การทำเช่นนี้จะเปิดพอร์ตบนเราเตอร์ของคุณ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просить ваш роутер через UPnP, NAT-PMP або PCP переспрямовувати TCP і UDP 443 та UDP 4053 на цей пристрій, щоб екстендер був доступний з інтернету. Це відкриває порт на вашому роутері."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu cầu bộ định tuyến của bạn, qua UPnP, NAT-PMP hoặc PCP, chuyển tiếp TCP và UDP 443 cùng UDP 4053 đến thiết bị này để có thể truy cập bộ mở rộng từ internet. Việc này mở một cổng trên bộ định tuyến của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 UPnP、NAT-PMP 或 PCP 请求您的路由器将 TCP 和 UDP 443 以及 UDP 4053 转发到此设备，以便从互联网访问扩展器。这会在您的路由器上打开端口。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過 UPnP、NAT-PMP 或 PCP 要求你的路由器將 TCP 和 UDP 443 以及 UDP 4053 轉發到此裝置，以便從互聯網存取擴展器。這會在你的路由器上開啟連接埠。"
+          }
+        }
+      }
+    },
     "Attach logs to feedback (optional)" : {
       "comment" : "Call to action",
       "localizations" : {
@@ -155646,6 +155813,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟"
+          }
+        }
+      }
+    },
+    "Open a port on my router" : {
+      "comment" : "Title of the toggle under the Extender setting that has the extender ask the router (UPnP, NAT-PMP or PCP) to forward its ports to this device. Off by default on every app.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فتح منفذ على جهاز التوجيه الخاص بي"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otevřít port na mém routeru"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port auf meinem Router öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Άνοιγμα θύρας στον δρομολογητή μου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open a port on my router"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir un puerto en mi router"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir un puerto en mi router"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir un puerto en mi router"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir un port sur mon routeur"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פתיחת פורט בנתב שלי"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मेरे राउटर पर एक पोर्ट खोलें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buka port di router saya"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri una porta sul mio router"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ルーターのポートを開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 라우터에서 포트 열기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een poort openen op mijn router"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz port na moim routerze"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir uma porta no meu router"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir uma porta no meu roteador"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir uma porta no meu router"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть порт на моём роутере"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna en port i min router"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิดพอร์ตบนเราเตอร์ของฉัน"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити порт на моєму роутері"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở cổng trên bộ định tuyến của tôi"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在我的路由器上打开端口"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在我的路由器上開啟連接埠"
           }
         }
       }

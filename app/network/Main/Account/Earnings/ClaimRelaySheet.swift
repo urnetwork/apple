@@ -467,16 +467,20 @@ struct ClaimRelaySheet: View {
 
     @ViewBuilder
     private func content(_ status: SnClaimStatusInfo) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            UrLabel(text: "Claimable")
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(verbatim: SnAlpha.formatAmount(rao: status.claimableRao))
-                    .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                Text(verbatim: SnAlpha.symbol)
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                Spacer()
+        // no total while none of the coldkey's pools could be read, never 0:
+        // the rows say which could not
+        if let claimableRao = status.knownClaimableRao {
+            VStack(alignment: .leading, spacing: 4) {
+                UrLabel(text: "Claimable")
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(verbatim: SnAlpha.formatAmount(rao: claimableRao))
+                        .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    Text(verbatim: SnAlpha.symbol)
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    Spacer()
+                }
             }
         }
         if !status.coldkeySs58.isEmpty {

@@ -5,8 +5,8 @@
 //  The Earnings screen's door to the SDK: the account's epoch history, the
 //  Bittensor wallet attached to this device's provider client, the gas key,
 //  the settlement-vault claims, the settlement v2 accounts and their claim,
-//  the capture the flag slot this device won (GET /sn/ctf/client), and the
-//  network's Top 200 standing on the Protocol leaderboard (GET
+//  the capture the flag slots won and not claimed (GET /sn/ctf/client), and
+//  the network's Top 200 standing on the Protocol leaderboard (GET
 //  /sn/top/me). Claims are direct between the SDK on this
 //  device and the vault contracts; nothing here goes through a URnetwork API
 //  at claim time.
@@ -75,9 +75,10 @@ protocol EarningsClient: AnyObject {
     func claimStatus() async -> SnClaimStatusInfo?
     /// asks URnetwork to claim a coldkey's balance now
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome
-    /// the capture the flag slot this device won last (GET /sn/ctf/client);
-    /// nil without one, or when the draw's answer could not be read
-    func ctfLatestWin() async -> SnCtfWinInfo?
+    /// every capture the flag slot the network's clients won whose award is
+    /// not claimed yet, newest first (GET /sn/ctf/client); none without one,
+    /// or when the draw's answer could not be read
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo]
 
     // points history and the Top 200 standing
     func accountEpochs() async throws -> [AccountEpochInfo]
@@ -544,9 +545,9 @@ final class EarningsSdkClient: EarningsClient {
         return .refused(reason: result.reason, nextAtMillis: result.nextAtMillis)
     }
 
-    func ctfLatestWin() async -> SnCtfWinInfo? {
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo] {
         guard let device else {
-            return nil
+            return []
         }
         let result: SdkSnCtfClientResult? = await withCheckedContinuation { continuation in
             device.snCtfClient(SnCtfClientCallback { result, _ in
@@ -554,19 +555,27 @@ final class EarningsSdkClient: EarningsClient {
             })
         }
         guard let result else {
-            return nil
+            return []
         }
-        return Self.ctfLatestWin(from: result)
+        return Self.ctfUnclaimedWins(from: result)
     }
 
-    /// The slot this device won last. An answer that could not be read (a
-    /// network JWT's 401 among them) draws no line, as no win does: it never
-    /// says there was none.
-    static func ctfLatestWin(from result: SdkSnCtfClientResult) -> SnCtfWinInfo? {
-        guard result.error == nil, let win = result.latestWin else {
-            return nil
+    /// Every slot won whose award is not claimed yet (sdk UnclaimedWins),
+    /// newest first. An answer that could not be read draws no line, as no
+    /// win does: it never says there was none. The sdk never lets this route
+    /// sign the user out, whatever it answers (sdk-ctf-v2 §1).
+    static func ctfUnclaimedWins(from result: SdkSnCtfClientResult) -> [SnCtfWinInfo] {
+        guard result.error == nil, let list = result.unclaimedWins else {
+            return []
         }
-        return SnCtfWinInfo(role: win.role, country: win.country)
+        var wins: [SnCtfWinInfo] = []
+        for i in 0..<list.len() {
+            guard let win = list.get(i), let info = SnCtfWinInfo(role: win.role, country: win.country, epoch: win.epoch) else {
+                continue
+            }
+            wins.append(info)
+        }
+        return SnCtfWinInfo.newestFirst(wins)
     }
 
     // MARK: points history and the Top 200 standing
@@ -841,5 +850,5 @@ final class EarningsPreviewClient: EarningsClient {
 extension EarningsClient {
     func claimStatus() async -> SnClaimStatusInfo? { nil }
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome { .failed("unavailable") }
-    func ctfLatestWin() async -> SnCtfWinInfo? { nil }
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo] { [] }
 }

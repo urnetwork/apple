@@ -14,11 +14,19 @@
 //  Capture the flag (sn/CAPTURETHEFLAG.md §10): a capture the flag account is
 //  a row of its own beside the provider pool's, each named from its kind; a
 //  pool the operator could not read is unavailable in its own row and hides
-//  no other; a capture the flag balance under the relay's transfer floor
-//  waits; one claim claims both pools ("Claim both"), as the SDK's one batch
-//  transaction, within one claim's gas reserve; the relay's claim sheet lists
-//  each pool's account; and entries without a kind, from a server that
-//  predates it, read exactly as before.
+//  no other; one claim claims both pools ("Claim both"), as the SDK's one
+//  batch transaction, within one claim's gas reserve; the relay's claim sheet
+//  lists each pool's account; and entries without a kind, from a server that
+//  predates it, read as before.
+//
+//  The owner's rules of 2026-11-11, for every app: any account under the
+//  relay's transfer floor, lone or beside others, reads "Below the claim
+//  minimum" and is left out of the claim, and the sdk's AmountTooLow is never
+//  a failure; an account the gas key could not pay for (needs_gas, the sdk
+//  claiming the largest first) is still claimable, with the top-up; and each
+//  unclaimed win has a line, newest first. The claim's rows follow Android's,
+//  Linux's and Windows': a pool's ledger_unavailable leaves a sent account's
+//  state, and an account the claim found takes its unreadable pool's line.
 //
 
 import Foundation
@@ -451,8 +459,9 @@ struct SnLedgerTests {
         ])
     }
 
-    // §11 (v2 claim): needs_gas shows the gas top-up and keeps Claim off
-    // until the dialog starts over
+    // §11 (v2 claim), sdk-ctf-v2 §2.1: needs_gas means the sdk sent nothing
+    // for the account, so it is still claimable: no failure, the gas card's
+    // top-up, and Claim off until the dialog starts over
     @Test func needsGasShowsTheGasTopUp() async {
         let (client, viewModel) = await Self.loaded([Self.account()])
         #expect(!viewModel.ledgerNeedsGas)
@@ -462,14 +471,48 @@ struct SnLedgerTests {
         client.emit(.done)
         await Self.settle { !viewModel.isLedgerClaiming }
 
-        #expect(viewModel.ledgerClaimFailures.map(\.failure) == [.needsGas])
-        #expect(viewModel.ledgerClaimRows.map(\.status) == [.failed])
+        #expect(viewModel.ledgerClaimProgress == [Self.key: .needsGas])
+        #expect(viewModel.ledgerClaimFailures.isEmpty)
+        #expect(viewModel.ledgerClaimRows.map(\.status) == [.unclaimed])
+        #expect(viewModel.ledgerClaimRows.map(\.amountRao) == [3_241_000_000])
         #expect(viewModel.ledgerNeedsGas)
         #expect(!viewModel.ledgerClaimEnabled)
         #expect(viewModel.ledgerClaimFinished)
 
         viewModel.resetLedgerClaimProgress()
         #expect(!viewModel.ledgerNeedsGas)
+    }
+
+    // sdk-ctf-v2 §2.1 (owner, 2026-11-11: claim the largest if there is not
+    // enough gas for both): a gas key that can pay for one claim but not the
+    // batch claims the largest account alone; the other, which the sdk sent
+    // nothing for, is still claimable with the top-up, never a failure
+    @Test func withGasForOneClaimTheOtherAccountIsStillClaimable() async {
+        let (client, viewModel) = await Self.loaded([Self.account(), Self.ctfAccount()])
+        #expect(viewModel.ledgerClaimsBoth)
+
+        viewModel.claimLedger()
+        #expect(client.claimCalls == 1)
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xlargest"))
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xlargest", amountRao: 3_241_000_000))
+        client.emit(.failed(noId: Self.ctfNoId, index: 7, message: "needs_gas: this claim needs up to 0.0143 TAO of gas, the gas key 0x1111 has 0.0021 TAO; send TAO to 5Grw"))
+        client.ledgerAnswer = [Self.paid, Self.ctfAccount()]
+        client.emit(.done)
+        await Self.settle { viewModel.ledger == .loaded([Self.paid, Self.ctfAccount()]) }
+
+        #expect(viewModel.ledgerClaimFailures.isEmpty)
+        #expect(viewModel.ledgerClaimRows == [
+            SnLedgerClaimRow(id: Self.key, name: .providerPool, amountRao: 3_241_000_000, status: .claimed, explorerUrl: URL(string: "https://evm.taostats.io/tx/0xlargest")),
+            SnLedgerClaimRow(id: Self.ctfKey, name: .captureTheFlag, amountRao: 144_076_980, status: .unclaimed, explorerUrl: nil),
+        ])
+        #expect(viewModel.ledgerNeedsGas)
+        #expect(viewModel.ledgerClaimFinished)
+
+        // the dialog done, the account claims once the gas key is topped up
+        viewModel.resetLedgerClaimProgress()
+        #expect(!viewModel.ledgerNeedsGas)
+        #expect(viewModel.ledgerClaimableAccounts == [Self.ctfAccount()])
+        #expect(viewModel.ledgerClaimEnabled)
     }
 
     // §11 (v2 claim): a gas key short of a v2 claim's reserve shows the
@@ -595,18 +638,67 @@ struct SnLedgerTests {
     // MARK: capture the flag
 
     // §10: each row is named from its kind: a capture the flag account
-    // "Capture the flag", the operator's pool beside one "Provider pool", and
-    // a pool with none beside it its number, as before
+    // "Capture the flag", the one operator pool beside one "Provider pool",
+    // and a pool with none beside it its number, as before
     @Test func eachPoolIsNamedFromItsKind() {
-        #expect(SnLedgerPoolName.of(kind: .pool, noId: 1, besideCtf: false) == .pool(noId: 1))
-        #expect(SnLedgerPoolName.of(kind: .pool, noId: 1, besideCtf: true) == .providerPool)
-        #expect(SnLedgerPoolName.of(kind: .ctf, noId: Self.ctfNoId, besideCtf: true) == .captureTheFlag)
+        #expect(SnLedgerPoolName.of(kind: .pool, noId: 1, namesProviderPool: false) == .pool(noId: 1))
+        #expect(SnLedgerPoolName.of(kind: .pool, noId: 1, namesProviderPool: true) == .providerPool)
+        #expect(SnLedgerPoolName.of(kind: .ctf, noId: Self.ctfNoId, namesProviderPool: true) == .captureTheFlag)
+        #expect(SnLedgerPoolName.of(kind: .ctf, noId: Self.ctfNoId, namesProviderPool: false) == .captureTheFlag)
         // a pool the operator could not read counts as beside
         let pools = SnLedgerPools(accounts: [Self.account()], unavailablePools: [Self.ctfUnavailable])
-        #expect(pools.besideCtf)
+        #expect(pools.namesProviderPool)
         #expect(pools.name(Self.account()) == .providerPool)
         #expect(pools.name(Self.ctfUnavailable) == .captureTheFlag)
-        #expect(!SnLedgerPools(accounts: [Self.account(), Self.account(noId: 2, index: 3)], unavailablePools: []).besideCtf)
+        #expect(!SnLedgerPools(accounts: [Self.account(), Self.account(noId: 2, index: 3)], unavailablePools: []).namesProviderPool)
+        #expect(!SnLedgerPools(accounts: [Self.account()], unavailablePools: []).namesProviderPool)
+    }
+
+    // §10, as Android's snLedgerPoolName and Linux's LedgerPoolName: beside
+    // two operator pools "Provider pool" would name neither, so each keeps
+    // its number, read or not; the capture the flag pool keeps its name
+    @Test func twoOperatorPoolsBesideCaptureTheFlagKeepTheirNumbers() {
+        let second = Self.account(noId: 2, index: 3)
+        let pools = SnLedgerPools(accounts: [Self.account(), second, Self.ctfAccount()], unavailablePools: [])
+        #expect(!pools.namesProviderPool)
+        #expect(pools.rows.map(\.name) == [.pool(noId: 1), .pool(noId: 2), .captureTheFlag])
+        let unreadSecond = SnLedgerPools(
+            accounts: [Self.account(), Self.ctfAccount()],
+            unavailablePools: [SnLedgerUnavailablePool(vault: Self.vault2, noId: 2)]
+        )
+        #expect(unreadSecond.rows.map(\.name) == [.pool(noId: 1), .captureTheFlag, .pool(noId: 2)])
+        // the relay's rows the same
+        let coldkey = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        let status = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            accounts: [
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 3_241_000_000),
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 2, claimableRao: 1_000_000_000),
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: Self.ctfNoId, kind: .ctf, claimableRao: 144_076_980),
+            ]
+        )
+        #expect(SnClaimRelayRow.rows(status).map(\.name) == [.pool(noId: 1), .pool(noId: 2), .captureTheFlag])
+        // a second pool's account with no row is in view all the same
+        let rowless = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            accounts: [
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 3_241_000_000),
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 2),
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: Self.ctfNoId, kind: .ctf, claimableRao: 144_076_980),
+            ]
+        )
+        #expect(SnClaimRelayRow.rows(rowless).map(\.name) == [.pool(noId: 1), .captureTheFlag])
+        // one operator pool's accounts of two coldkeys are still one pool
+        let replaced = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
+        let twoColdkeys = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            accounts: [
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 3_241_000_000),
+                SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: 1, claimableRao: 1_000_000_000),
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: Self.ctfNoId, kind: .ctf, claimableRao: 144_076_980),
+            ]
+        )
+        #expect(SnClaimRelayRow.rows(twoColdkeys).map(\.name) == [.providerPool, .providerPool, .captureTheFlag])
     }
 
     // §10: the capture the flag account is a row of its own under the
@@ -675,10 +767,9 @@ struct SnLedgerTests {
         #expect(SnLedgerTilePresentation.of(load: .loaded([], unavailablePools: [providerPool]), claimConfigured: false, isClaiming: false) == nil)
     }
 
-    // §10: beside capture the flag a balance under the relay's transfer floor
-    // waits, "Below the claim minimum", and Claim is not "Claim both"; without
-    // a floor the claim's preflight decides, and before capture the flag a
-    // pool account keeps the rule it had
+    // §10: a balance under the relay's transfer floor waits, "Below the claim
+    // minimum", and Claim is not "Claim both"; without a floor the claim's
+    // preflight decides
     @Test func aBalanceUnderTheFloorWaitsBesideCaptureTheFlag() {
         let pool = Self.account()
         let oneSlot = Self.ctfAccount(claimableRao: 48_025_660)
@@ -695,37 +786,72 @@ struct SnLedgerTests {
         #expect(SnLedgerTilePresentation.of(load: .loaded([pool, Self.ctfAccount(claimableRao: Self.floorRao)]), claimConfigured: true, isClaiming: false, transferFloorRao: Self.floorRao)?.claimsBoth == true)
         // no floor without a price
         #expect(SnLedgerTilePresentation.of(load: .loaded([pool, oneSlot]), claimConfigured: true, isClaiming: false, transferFloorRao: 0)?.claimsBoth == true)
-        // before capture the flag a pool account under it is claimable, as it
-        // was
+        // beside a pool that could not be read it waits too
         let smallPool = Self.account(claimableRao: 1_000_000)
-        #expect(SnLedgerTilePresentation.of(load: .loaded([smallPool]), claimConfigured: true, isClaiming: false, transferFloorRao: Self.floorRao) == SnLedgerTilePresentation(
-            balances: .pools([Self.row(smallPool)]),
-            showsClaim: true,
-            claimEnabled: true,
-            showsPools: false
-        ))
-        let before = SnLedgerPools(accounts: [smallPool], unavailablePools: [], transferFloorRao: Self.floorRao)
-        #expect(!before.ctfRules)
-        #expect(SnLedgerClaimRow.of(smallPool, progress: nil, chain: Self.configured, pools: before).status == .unclaimed)
-        // beside it, it waits too; and so it does beside a pool that could
-        // not be read
         let beside = SnLedgerPools(accounts: [smallPool, oneSlot], unavailablePools: [], transferFloorRao: Self.floorRao)
         #expect(SnLedgerClaimRow.of(smallPool, progress: nil, chain: Self.configured, pools: beside).status == .underFloor)
         #expect(SnLedgerClaimRow.of(oneSlot, progress: nil, chain: Self.configured, pools: beside).status == .underFloor)
         let partial = SnLedgerPools(accounts: [smallPool], unavailablePools: [SnLedgerUnavailablePool(vault: Self.vault2, noId: 2)], transferFloorRao: Self.floorRao)
-        #expect(partial.ctfRules)
         #expect(SnLedgerClaimRow.of(smallPool, progress: nil, chain: Self.configured, pools: partial).status == .underFloor)
         // a claim's progress overrides it
         #expect(SnLedgerClaimRow.of(oneSlot, progress: .underFloor, chain: Self.configured, pools: beside).status == .underFloor)
         #expect(SnLedgerClaimRow.of(oneSlot, progress: .sent(txHash: "0xabc"), chain: Self.configured, pools: beside).status == .sent)
     }
 
-    // §10: the sdk claims every account with something to claim, and the
-    // chain refuses one under the floor (not_claimable: AmountTooLow): beside
-    // capture the flag it waits, below the claim minimum, and is no failure,
-    // whether the sheet left it out by the relay's floor or knew no floor;
-    // before capture the flag the refusal is the failure it was
-    @Test func theClaimsRefusalUnderTheFloorIsNoFailureBesideCaptureTheFlag() async {
+    // owner, 2026-11-11: "Below the claim minimum" shows on any pool account
+    // under the minimum, lone or beside others, on a server with capture the
+    // flag or before it, and the claim never asks the chain for a transfer it
+    // refuses: a lone account under the floor offers no Claim
+    @Test func aLonePoolAccountUnderTheFloorWaitsToo() async {
+        let smallPool = Self.account(claimableRao: 1_000_000)
+        #expect(SnLedgerTilePresentation.of(load: .loaded([smallPool]), claimConfigured: true, isClaiming: false, transferFloorRao: Self.floorRao) == SnLedgerTilePresentation(
+            balances: .pools([SnLedgerPoolRow(name: .pool(noId: 1), balance: .account(smallPool), underFloor: true)]),
+            showsClaim: true,
+            claimEnabled: false,
+            showsPools: false
+        ))
+        let lone = SnLedgerPools(accounts: [smallPool], unavailablePools: [], transferFloorRao: Self.floorRao)
+        #expect(SnLedgerClaimRow.of(smallPool, progress: nil, chain: Self.configured, pools: lone).status == .underFloor)
+        #expect(!lone.claimable(smallPool))
+        // two operator pools, neither capture the flag's
+        let twoPools = SnLedgerTilePresentation.of(
+            load: .loaded([Self.account(), Self.account(noId: 2, index: 3, claimableRao: 1_000_000)]),
+            claimConfigured: true,
+            isClaiming: false,
+            transferFloorRao: Self.floorRao
+        )
+        #expect(twoPools?.balances == .pools([
+            SnLedgerPoolRow(name: .pool(noId: 1), balance: .account(Self.account())),
+            SnLedgerPoolRow(name: .pool(noId: 2), balance: .account(Self.account(noId: 2, index: 3, claimableRao: 1_000_000)), underFloor: true),
+        ]))
+        #expect(twoPools?.claimEnabled == true)
+        // at the floor it is claimable; without a floor the preflight decides
+        #expect(SnLedgerTilePresentation.of(load: .loaded([Self.account(claimableRao: Self.floorRao)]), claimConfigured: true, isClaiming: false, transferFloorRao: Self.floorRao)?.claimEnabled == true)
+        #expect(SnLedgerTilePresentation.of(load: .loaded([smallPool]), claimConfigured: true, isClaiming: false, transferFloorRao: 0)?.claimEnabled == true)
+
+        // the screen: the relay's floor holds the lone account, and its claim
+        // is not offered
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [smallPool]
+        client.relayAnswer = SnClaimStatusInfo(transferFloorRao: Self.floorRao)
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        #expect(viewModel.ledgerTile?.balances == .pools([SnLedgerPoolRow(name: .pool(noId: 1), balance: .account(smallPool), underFloor: true)]))
+        #expect(viewModel.ledgerClaimableAccounts.isEmpty)
+        #expect(viewModel.ledgerClaimableRao == 0)
+        #expect(viewModel.ledgerClaimRows.map(\.status) == [.underFloor])
+        #expect(!viewModel.ledgerClaimEnabled)
+        viewModel.claimLedger()
+        #expect(client.claimCalls == 0)
+    }
+
+    // §10: the sdk claims every account with something to claim, and its
+    // preflight finds one under the floor (not_claimable: AmountTooLow) and
+    // sends nothing for it: it waits, below the claim minimum, and is no
+    // failure, whether the sheet left it out by the relay's floor or knew no
+    // floor, beside capture the flag or alone (owner, 2026-11-11)
+    @Test func theClaimsRefusalUnderTheFloorIsNoFailure() async {
         let amountTooLow = "not_claimable: AmountTooLow: the claim is below the runtime's transfer floor"
         let oneSlot = Self.ctfAccount(claimableRao: 48_025_660)
 
@@ -757,15 +883,25 @@ struct SnLedgerTests {
         #expect(unpricedModel.ledgerClaimFailures.isEmpty)
         #expect(unpricedModel.ledgerClaimProgress[Self.ctfKey] == .underFloor)
 
-        // before capture the flag
+        // a lone pool account, on a server before capture the flag, with no
+        // floor known: no failure either
         let small = Self.account(claimableRao: 1_000_000)
-        let (oldClient, oldModel) = await Self.loaded([small])
-        oldModel.claimLedger()
-        oldClient.emit(.failed(noId: 1, index: 42, message: amountTooLow))
-        oldClient.emit(.done)
-        await Self.settle { !oldModel.isLedgerClaiming }
-        #expect(oldModel.ledgerClaimFailures.map(\.failure) == [.message(amountTooLow)])
-        #expect(oldModel.ledgerClaimRows.map(\.status) == [.failed])
+        let (loneClient, loneModel) = await Self.loaded([small])
+        loneModel.claimLedger()
+        loneClient.emit(.failed(noId: 1, index: 42, message: amountTooLow))
+        loneClient.emit(.done)
+        await Self.settle { !loneModel.isLedgerClaiming }
+        #expect(loneModel.ledgerClaimFailures.isEmpty)
+        #expect(loneModel.ledgerClaimRows.map(\.status) == [.underFloor])
+        // any other not_claimable is still a failure
+        let (otherClient, otherModel) = await Self.loaded([Self.account()])
+        let elsewhere = "not_claimable: the ledger lists this account in 0x3333333333333333333333333333333333333333, not in the configured vault2 0x2222222222222222222222222222222222222222"
+        otherModel.claimLedger()
+        otherClient.emit(.failed(noId: 1, index: 42, message: elsewhere))
+        otherClient.emit(.done)
+        await Self.settle { !otherModel.isLedgerClaiming }
+        #expect(otherModel.ledgerClaimFailures.map(\.failure) == [.message(elsewhere)])
+        #expect(otherModel.ledgerClaimRows.map(\.status) == [.failed])
     }
 
     // §9.1: the claim sheet shows no amount, never 0, while nothing could be
@@ -869,7 +1005,7 @@ struct SnLedgerTests {
         #expect(viewModel.ledger == .loaded([Self.account()], unavailablePools: [Self.ctfUnavailable]))
         #expect(viewModel.ledgerClaimRows == [
             SnLedgerClaimRow(id: Self.key, name: .providerPool, amountRao: 3_241_000_000, status: .unclaimed, explorerUrl: nil),
-            SnLedgerClaimRow(id: SnLedgerAccountKey(noId: Self.ctfNoId, index: 0), name: .captureTheFlag, amountRao: 0, status: .unavailable, explorerUrl: nil),
+            SnLedgerClaimRow(id: SnLedgerAccountKey(noId: Self.ctfNoId, index: 0), name: .captureTheFlag, amountRao: nil, status: .unavailable, explorerUrl: nil),
         ])
         #expect(viewModel.ledgerClaimEnabled)
         #expect(!viewModel.ledgerClaimsBoth)
@@ -909,6 +1045,81 @@ struct SnLedgerTests {
         client.emit(.done)
         await Self.settle { !viewModel.isLedgerClaiming }
         #expect(viewModel.ledgerClaimFailures.map(\.failure) == [.unreachable])
+    }
+
+    // as Android's and Linux's claim rows: a pool's ledger_unavailable marks
+    // only its accounts the claim has not sent; one already sent keeps its
+    // state
+    @Test func aPoolsLedgerUnavailableKeepsASentAccountsState() async {
+        let (client, viewModel) = await Self.loaded([Self.account()])
+
+        viewModel.claimLedger()
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xabc"))
+        client.emit(.failed(noId: 1, index: 0, message: "ledger_unavailable: the ledger of Pool 1 (pool 1) could not be read"))
+        await Self.settle { viewModel.ledgerClaimProgress[SnLedgerAccountKey(noId: 1, index: 0)] == .unavailable }
+
+        #expect(viewModel.ledgerClaimProgress[Self.key] == .sent(txHash: "0xabc"))
+        #expect(viewModel.ledgerClaimRows.map(\.status) == [.sent])
+        #expect(viewModel.ledgerClaimFailures.isEmpty)
+    }
+
+    // as Android's, Linux's and Windows' claim rows: the sheet's read could
+    // not read the capture the flag pool, and the claim's own read found its
+    // account and claimed it in the batch: that account takes the pool's line,
+    // with no figure until vault2 confirms what it paid
+    @Test func anAccountTheClaimFindsTakesItsPoolsLine() async {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account()]
+        client.unavailablePools = [Self.ctfUnavailable]
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        let link = URL(string: "https://evm.taostats.io/tx/0xbatch")
+
+        viewModel.claimLedger()
+        #expect(viewModel.ledgerClaimProgress == [Self.key: .queued])
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xbatch"))
+        client.emit(.sent(noId: Self.ctfNoId, index: 7, txHash: "0xbatch"))
+        await Self.settle { viewModel.ledgerClaimProgress[Self.ctfKey] == .sent(txHash: "0xbatch") }
+        #expect(viewModel.ledgerClaimRows == [
+            SnLedgerClaimRow(id: Self.key, name: .providerPool, amountRao: 3_241_000_000, status: .sent, explorerUrl: link),
+            SnLedgerClaimRow(id: Self.ctfKey, name: .captureTheFlag, amountRao: nil, status: .sent, explorerUrl: link),
+        ])
+
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xbatch", amountRao: 3_241_000_000))
+        client.emit(.confirmed(noId: Self.ctfNoId, index: 7, txHash: "0xbatch", amountRao: 144_076_980))
+        await Self.settle { viewModel.ledgerClaimProgress[Self.ctfKey] == .confirmed(txHash: "0xbatch", amountRao: 144_076_980) }
+        #expect(viewModel.ledgerClaimRows.last == SnLedgerClaimRow(id: Self.ctfKey, name: .captureTheFlag, amountRao: 144_076_980, status: .claimed, explorerUrl: link))
+
+        // read again after Done, the account is the ledger's own row
+        client.ledgerAnswer = [Self.paid, Self.ctfPaid]
+        client.unavailablePools = []
+        client.emit(.done)
+        await Self.settle { viewModel.ledger == .loaded([Self.paid, Self.ctfPaid]) }
+        #expect(viewModel.ledgerClaimRows == [
+            SnLedgerClaimRow(id: Self.key, name: .providerPool, amountRao: 3_241_000_000, status: .claimed, explorerUrl: link),
+            SnLedgerClaimRow(id: Self.ctfKey, name: .captureTheFlag, amountRao: 144_076_980, status: .claimed, explorerUrl: link),
+        ])
+    }
+
+    // as Android's claim rows: a pool the claim's own read could not read,
+    // which the sheet's read did not list at all, gets a line of its own,
+    // and names the rows beside it
+    @Test func aPoolOnlyTheClaimCouldNotReadGetsALine() async {
+        let (client, viewModel) = await Self.loaded([Self.account()])
+
+        viewModel.claimLedger()
+        client.emit(.failed(noId: Self.ctfNoId, index: 0, message: "ledger_unavailable: the ledger of Capture the flag (pool 4294967297) could not be read"))
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xabc"))
+        await Self.settle { viewModel.ledgerClaimProgress[Self.key] == .sent(txHash: "0xabc") }
+
+        #expect(viewModel.ledgerClaimRows == [
+            SnLedgerClaimRow(id: Self.key, name: .providerPool, amountRao: 3_241_000_000, status: .sent, explorerUrl: URL(string: "https://evm.taostats.io/tx/0xabc")),
+            SnLedgerClaimRow(id: SnLedgerAccountKey(noId: Self.ctfNoId, index: 0), name: .captureTheFlag, amountRao: nil, status: .unavailable, explorerUrl: nil),
+        ])
+        #expect(viewModel.ledgerClaimFailures.isEmpty)
+        #expect(SnLedgerPoolKind(noId: Self.ctfNoId) == .ctf)
+        #expect(SnLedgerPoolKind(noId: 1) == .pool)
     }
 
     // §10: the relay's claim sheet lists each pool's account beside capture
@@ -962,7 +1173,7 @@ struct SnLedgerTests {
                 SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: Self.ctfNoId, kind: .ctf, claimTxHash: "0x" + String(repeating: "ab", count: 32), claimTxUrl: txUrl, claimAmountRao: 144_076_980),
                 SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: 1, claimableRao: 1_000_000_000),
                 // nothing to claim and no claim of URnetwork's: no row
-                SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: 2),
+                SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: Self.ctfNoId, kind: .ctf),
             ],
             unavailablePools: [Self.ctfUnavailable]
         )
@@ -982,6 +1193,43 @@ struct SnLedgerTests {
         )
         #expect(SnClaimRelayRow.rows(partial).map(\.status) == [.pending, .unavailable])
         #expect(SnClaimRelayRow.rows(partial).map(\.name) == [.pool(noId: 1), .pool(noId: 2)])
+    }
+
+    // owner, 2026-11-11: a lone account under the floor reads "Below the
+    // claim minimum" in the relay's claim sheet too, on its own row, before
+    // capture the flag as beside it; at the floor or more the sheet keeps its
+    // one balance, as before
+    @Test func theRelaySheetListsALoneAccountUnderTheFloor() {
+        let coldkey = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        let lone = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            claimableRao: 1_000_000,
+            transferFloorRao: Self.floorRao,
+            accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 1_000_000)]
+        )
+        #expect(SnClaimRelayRow.rows(lone) == [
+            SnClaimRelayRow(id: "\(coldkey)/1", name: .pool(noId: 1), coldkeySs58: "", amountRao: 1_000_000, status: .underFloor, txUrl: nil),
+        ])
+        let atFloor = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            claimableRao: Self.floorRao,
+            transferFloorRao: Self.floorRao,
+            accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: Self.floorRao)]
+        )
+        #expect(SnClaimRelayRow.rows(atFloor).isEmpty)
+        // a replaced wallet's account under it lists each coldkey's
+        let replaced = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
+        let twoColdkeys = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            claimableRao: 3_241_000_000,
+            transferFloorRao: Self.floorRao,
+            accounts: [
+                SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 3_241_000_000),
+                SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: 1, claimableRao: 1_000_000),
+            ]
+        )
+        #expect(SnClaimRelayRow.rows(twoColdkeys).map(\.status) == [.pending, .underFloor])
+        #expect(SnClaimRelayRow.rows(twoColdkeys).map(\.coldkeySs58) == [coldkey, replaced])
     }
 
     // §10: a network with no wallet on this device sees the relay's total,
@@ -1039,16 +1287,46 @@ struct SnLedgerTests {
         client.relayAnswer = SnClaimStatusInfo(coldkeySs58: coldkey, showsTile: true, unavailablePools: [Self.ctfUnavailable])
         await viewModel.refreshClaimStatus()
         #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(nil, rows: [unavailableRow]))
+        // only a replaced wallet's account read: still none of the primary
+        // coldkey's, so no total either, never 0 (Android's
+        // snClaimRelayTotalKnown); the claim sheet the same
+        let onlyReplaced = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            showsTile: true,
+            accounts: [SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: 1, claimableRao: 1_000_000_000)],
+            unavailablePools: [Self.ctfUnavailable]
+        )
+        #expect(onlyReplaced.knownClaimableRao == nil)
+        client.relayAnswer = onlyReplaced
+        await viewModel.refreshClaimStatus()
+        #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(nil, rows: [unavailableRow]))
+        // a whole answer always has its total
+        #expect(SnClaimStatusInfo(coldkeySs58: coldkey, claimableRao: 0).knownClaimableRao == 0)
 
         // a whole answer with one operator pool: the total alone, as before
         client.relayAnswer = SnClaimStatusInfo(
             coldkeySs58: coldkey,
             claimableRao: 3_241_000_000,
+            transferFloorRao: Self.floorRao,
             showsTile: true,
             accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 3_241_000_000)]
         )
         await viewModel.refreshClaimStatus()
         #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(3_241_000_000))
+
+        // unless its balance is below the claim minimum, which its row says
+        // (owner, 2026-11-11)
+        client.relayAnswer = SnClaimStatusInfo(
+            coldkeySs58: coldkey,
+            claimableRao: 1_000_000,
+            transferFloorRao: Self.floorRao,
+            showsTile: true,
+            accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 1_000_000)]
+        )
+        await viewModel.refreshClaimStatus()
+        #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(1_000_000, rows: [
+            SnClaimRelayRow(id: "\(coldkey)/1", name: .pool(noId: 1), coldkeySs58: "", amountRao: 1_000_000, status: .underFloor, txUrl: nil),
+        ]))
     }
 
     // §10: the relay's per-pool rows read through the SDK: each account's
@@ -1094,54 +1372,104 @@ struct SnLedgerTests {
         #expect(status.claimableRao == 3_241_000_000)
     }
 
-    // §10 (optional line): the slot this device won last, from GET
-    // /sn/ctf/client; an answer that could not be read draws no line, and
-    // neither does a role this build does not know
-    @Test func theSdkWinReadGivesTheLatestWin() throws {
-        let win = SdkSnCtfWin()
-        win.role = SdkSnCtfRoleExtender
-        win.country = "la"
-        win.epoch = 9
+    // owner, 2026-11-11: the "you won a slot" line shows for every unclaimed
+    // win, the sdk's UnclaimedWins (sdk-ctf-v2 §1), one each, newest first,
+    // providers before extenders within an epoch; a claimed win is no line,
+    // and neither is the latest win alone; an answer that could not be read
+    // draws none, and neither does a role this build does not know
+    @Test func theSdkWinReadGivesEveryUnclaimedWinNewestFirst() throws {
+        func win(_ role: String, _ country: String, _ epoch: Int64) -> SdkSnCtfWin {
+            let win = SdkSnCtfWin()
+            win.role = role
+            win.country = country
+            win.epoch = epoch
+            return win
+        }
+        // claimed: in Wins, the latest, and not in UnclaimedWins
+        let claimedWin = win(SdkSnCtfRoleProvider, "de", 12)
+        let all = try #require(SdkSnCtfWinList())
+        all.add(claimedWin)
+        let unclaimed = try #require(SdkSnCtfWinList())
+        unclaimed.add(win(SdkSnCtfRoleProvider, "is", 10))
+        unclaimed.add(win(SdkSnCtfRoleExtender, "la", 10))
+        unclaimed.add(win("observer", "is", 10))
+        unclaimed.add(win(SdkSnCtfRoleProvider, "", 10))
+        unclaimed.add(win(SdkSnCtfRoleProvider, "is", 9))
+        // out of order: the line still goes first
+        unclaimed.add(win(SdkSnCtfRoleExtender, "fj", 11))
+        for i in 0..<unclaimed.len() {
+            all.add(unclaimed.get(i))
+        }
         let result = SdkSnCtfClientResult()
-        result.latestWin = win
-        #expect(EarningsSdkClient.ctfLatestWin(from: result) == SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "la"))
-        #expect(EarningsSdkClient.ctfLatestWin(from: SdkSnCtfClientResult()) == nil)
-        result.error = Self.snError(code: SdkSnErrorCodeCtfUnavailable, message: "401 Unauthorized")
-        #expect(EarningsSdkClient.ctfLatestWin(from: result) == nil)
+        result.wins = all
+        result.latestWin = claimedWin
+        result.unclaimedWins = unclaimed
+        let expected = [
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "fj", epoch: 11)),
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10)),
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "la", epoch: 10)),
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 9)),
+        ]
+        #expect(EarningsSdkClient.ctfUnclaimedWins(from: result) == expected)
+
+        // every win claimed, or an answer with none: no line
+        let allClaimed = SdkSnCtfClientResult()
+        allClaimed.wins = all
+        allClaimed.latestWin = claimedWin
+        allClaimed.unclaimedWins = SdkSnCtfWinList()
+        #expect(EarningsSdkClient.ctfUnclaimedWins(from: allClaimed).isEmpty)
+        #expect(EarningsSdkClient.ctfUnclaimedWins(from: SdkSnCtfClientResult()).isEmpty)
+        result.error = Self.snError(code: SdkSnErrorCodeCtfUnavailable, message: "503 Service Unavailable")
+        #expect(EarningsSdkClient.ctfUnclaimedWins(from: result).isEmpty)
 
         #expect(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is")?.role == .provider)
         #expect(SnCtfWinInfo(role: "observer", country: "is") == nil)
         #expect(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "") == nil)
     }
 
-    // §10 (optional line): the refresh reads the win beside the ledger, and
-    // a later read without one draws no line
-    @Test func theRefreshReadsTheLatestWin() async throws {
+    // the lines are newest first by epoch, in the sdk's order within one
+    @Test func theWinsAreNewestFirst() throws {
+        let p9 = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 9))
+        let e10 = try #require(SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "is", epoch: 10))
+        let p10 = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let p11 = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "fj", epoch: 11))
+        #expect(SnCtfWinInfo.newestFirst([p9, p10, e10, p11]) == [p11, p10, e10, p9])
+        #expect(SnCtfWinInfo.newestFirst([e10, p10]) == [e10, p10])
+        #expect(SnCtfWinInfo.newestFirst([]).isEmpty)
+    }
+
+    // the refresh reads every unclaimed win beside the ledger, and a later
+    // read without one draws no line
+    @Test func theRefreshReadsEveryUnclaimedWin() async throws {
         let client = FakeLedgerClient()
         client.chain = Self.configured
         client.ledgerAnswer = [Self.account(), Self.ctfAccount()]
-        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is"))
-        client.ctfWinAnswer = win
+        let wins = [
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10)),
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "is", epoch: 10)),
+            try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 9)),
+        ]
+        client.ctfWinsAnswer = wins
         let viewModel = EarningsViewModel(client: client)
 
         await viewModel.refresh()
-        await Self.settle { viewModel.ctfWin == win }
-        #expect(viewModel.ctfWin == win)
+        await Self.settle { viewModel.ctfWins == wins }
+        #expect(viewModel.ctfWins == wins)
 
-        client.ctfWinAnswer = nil
+        client.ctfWinsAnswer = []
         await viewModel.refresh()
-        await Self.settle { viewModel.ctfWin == nil }
-        #expect(viewModel.ctfWin == nil)
+        await Self.settle { viewModel.ctfWins.isEmpty }
+        #expect(viewModel.ctfWins.isEmpty)
     }
 
-    // §10 (optional line): the win's read never holds up the refresh, which
-    // the sdk can wait on for up to a minute; the line follows once it lands
+    // the wins' read never holds up the refresh, which the sdk can wait on
+    // for up to a minute; the lines follow once it lands
     @Test func theWinsReadNeverHoldsUpTheRefresh() async throws {
         let client = FakeLedgerClient()
         client.chain = Self.configured
         client.ledgerAnswer = [Self.account(), Self.ctfAccount()]
-        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "la"))
-        client.ctfWinAnswer = win
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleExtender, country: "la", epoch: 9))
+        client.ctfWinsAnswer = [win]
         var open: AsyncStream<Void>.Continuation?
         client.ctfWinGate = AsyncStream { open = $0 }
         let viewModel = EarningsViewModel(client: client)
@@ -1150,11 +1478,68 @@ struct SnLedgerTests {
         #expect(viewModel.loadedOnce)
         #expect(!viewModel.isLoading)
         #expect(viewModel.ledger == .loaded([Self.account(), Self.ctfAccount()]))
-        #expect(viewModel.ctfWin == nil)
+        #expect(viewModel.ctfWins.isEmpty)
 
         open?.yield()
-        await Self.settle { viewModel.ctfWin == win }
-        #expect(viewModel.ctfWin == win)
+        await Self.settle { viewModel.ctfWins == [win] }
+        #expect(viewModel.ctfWins == [win])
+    }
+
+    // a claim that paid an account reads the wins again, so a win whose award
+    // it paid loses its line; a claim that paid nothing does not
+    @Test func aClaimThatPaysReadsTheWinsAgain() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account(), Self.ctfAccount()]
+        client.ctfWinsAnswer = [win]
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        await Self.settle { viewModel.ctfWins == [win] }
+        #expect(client.ctfWinsReads == 1)
+
+        viewModel.claimLedger()
+        client.emit(.sent(noId: Self.ctfNoId, index: 7, txHash: "0xbatch"))
+        client.emit(.confirmed(noId: Self.ctfNoId, index: 7, txHash: "0xbatch", amountRao: 144_076_980))
+        client.ctfWinsAnswer = []
+        client.emit(.done)
+        await Self.settle { viewModel.ctfWins.isEmpty }
+        #expect(viewModel.ctfWins.isEmpty)
+        #expect(client.ctfWinsReads == 2)
+
+        viewModel.resetLedgerClaimProgress()
+        viewModel.claimLedger()
+        client.emit(.failed(noId: 0, index: 0, message: "chain_rpc_unreachable: dial tcp: i/o timeout"))
+        client.emit(.done)
+        await Self.settle { !viewModel.isLedgerClaiming }
+        #expect(client.ctfWinsReads == 2)
+    }
+
+    // a read asked for while one runs (a claim's Done during the refresh's
+    // read) runs once that one ends, so the lines never keep a paid win
+    @Test func aWinsReadAskedForDuringOneRunsAfterIt() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account(), Self.ctfAccount()]
+        client.ctfWinsAnswer = [win]
+        var open: AsyncStream<Void>.Continuation?
+        client.ctfWinGate = AsyncStream { open = $0 }
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        await Self.settle { client.ctfWinsReads == 1 }
+
+        viewModel.claimLedger()
+        client.emit(.confirmed(noId: Self.ctfNoId, index: 7, txHash: "0xbatch", amountRao: 144_076_980))
+        client.emit(.done)
+        await Self.settle { !viewModel.isLedgerClaiming }
+        #expect(client.ctfWinsReads == 1)
+
+        client.ctfWinsAnswer = []
+        open?.yield()
+        await Self.settle { client.ctfWinsReads == 2 && viewModel.ctfWins.isEmpty }
+        #expect(client.ctfWinsReads == 2)
+        #expect(viewModel.ctfWins.isEmpty)
     }
 
     // MARK: localization
@@ -1224,9 +1609,10 @@ private final class FakeLedgerClient: EarningsClient {
     var ledgerAnswer: [SnLedgerAccountInfo]? = []
     var unavailablePools: [SnLedgerUnavailablePool] = []
     var relayAnswer: SnClaimStatusInfo?
-    var ctfWinAnswer: SnCtfWinInfo?
-    /// holds the win's read until the test yields to it
+    var ctfWinsAnswer: [SnCtfWinInfo] = []
+    /// holds the next read of the wins until the test yields to it
     var ctfWinGate: AsyncStream<Void>?
+    private(set) var ctfWinsReads = 0
     private(set) var ledgerReads = 0
     var gasTao: Double = 1
     var v1Claims: [SnEpochClaimInfo] = []
@@ -1276,13 +1662,15 @@ private final class FakeLedgerClient: EarningsClient {
         onClaimEvent = onEvent
     }
     func claimStatus() async -> SnClaimStatusInfo? { relayAnswer }
-    func ctfLatestWin() async -> SnCtfWinInfo? {
-        if let ctfWinGate {
-            for await _ in ctfWinGate {
+    func ctfUnclaimedWins() async -> [SnCtfWinInfo] {
+        ctfWinsReads += 1
+        if let gate = ctfWinGate {
+            ctfWinGate = nil
+            for await _ in gate {
                 break
             }
         }
-        return ctfWinAnswer
+        return ctfWinsAnswer
     }
     func accountEpochs() async throws -> [AccountEpochInfo] { [] }
     func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }

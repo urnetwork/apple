@@ -539,13 +539,17 @@ struct SnLedgerTile: View {
                 ForEach(rows) { row in
                     poolBalances(row)
                 }
-            case .claimable(let rao, let rows):
+            case .claimable(let rao, let rows, let underFloor):
                 // no total while the relay could read no account, never 0
                 if let rao {
                     amount(rao)
                     Text("Claimable")
                         .font(themeManager.currentTheme.secondaryBodyFont)
                         .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    // one account's total that no claim can move yet
+                    if underFloor {
+                        LedgerUnderFloorLine()
+                    }
                 }
                 // the pools the total adds up, and the ones it leaves out
                 if !rows.isEmpty {

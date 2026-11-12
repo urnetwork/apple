@@ -199,7 +199,11 @@ final class EarningsViewModel: ObservableObject {
             return nil
         }
         return SnLedgerTilePresentation(
-            balances: .claimable(claimStatus.knownClaimableRao, rows: SnClaimRelayRow.tileRows(claimStatus)),
+            balances: .claimable(
+                claimStatus.knownClaimableRao,
+                rows: SnClaimRelayRow.tileRows(claimStatus),
+                underFloor: SnClaimRelayRow.tileTotalUnderFloor(claimStatus)
+            ),
             showsClaim: false,
             claimEnabled: false,
             showsPools: false

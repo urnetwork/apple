@@ -8,9 +8,10 @@
 //  the automatic threshold, and on Claim now, at most once in a period for
 //  each coldkey. Small amounts wait and say why. The device's own claim with
 //  its gas key stays as the fallback. The sdk decides all of it
-//  (SnClaimStatus); these views only word it. Beside capture the flag
-//  (sn/CAPTURETHEFLAG.md §10) the claim sheet lists each pool's account, and
-//  Claim now, which keeps its label, claims them all.
+//  (SnClaimStatus); these views only word it. The claim sheet lists each
+//  account the relay reports, the capture the flag pool's beside the
+//  operator pool's (sn/CAPTURETHEFLAG.md §10), as Android's and Linux's do,
+//  and Claim now, which keeps its label, claims them all.
 //
 
 import SwiftUI
@@ -489,7 +490,7 @@ struct ClaimRelaySheet: View {
                 .foregroundColor(themeManager.currentTheme.textColor)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        // each pool's account beside capture the flag: Claim now claims them all
+        // each account the relay reports: Claim now claims them all
         let rows = SnClaimRelayRow.rows(status)
         if !rows.isEmpty {
             SnClaimRelayRows(rows: rows)

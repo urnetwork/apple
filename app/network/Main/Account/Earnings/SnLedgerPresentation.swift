@@ -204,10 +204,12 @@ struct SnLedgerTilePresentation: Equatable {
         case pools([SnLedgerPoolRow])
         /// what the claim relay says is claimable, for a network with no
         /// wallet on this device to read the ledger by: its total, nil while it
-        /// could read no account, never 0, and beside capture the flag the
-        /// pools it adds up and the ones it could not read
-        /// (SnClaimRelayRow.tileRows)
-        case claimable(Int64?, rows: [SnClaimRelayRow] = [])
+        /// could read none of the coldkey's accounts, never 0; beside capture
+        /// the flag the pools it adds up and the ones it could not read
+        /// (SnClaimRelayRow.tileRows); and "Below the claim minimum" under a
+        /// total that is one account's under the floor
+        /// (SnClaimRelayRow.tileTotalUnderFloor)
+        case claimable(Int64?, rows: [SnClaimRelayRow] = [], underFloor: Bool = false)
     }
 
     let balances: Balances
@@ -389,34 +391,43 @@ struct SnClaimRelayRow: Identifiable, Equatable {
     /// URnetwork's claim on the explorer, for a Claimed row
     let txUrl: URL?
 
-    /// The claim sheet's rows. A relay that lists no capture the flag pool and
-    /// no pool it could not read keeps the sheet's one balance, as it has
-    /// been, unless a balance is below the claim minimum, which only its row
-    /// can say (owner, 2026-11-11: on any account, lone or not).
+    /// The claim sheet's rows: every account the relay reports, as Android's
+    /// and Linux's claim sheets list them (snClaimRelayRows), so a lone
+    /// account below the claim minimum says so too (owner, 2026-11-11: on
+    /// any account, lone or not).
     static func rows(_ status: SnClaimStatusInfo) -> [SnClaimRelayRow] {
         let accounts = status.accounts.filter { 0 < $0.claimableRao || $0.showsClaimed }
         let namesColdkeys = 1 < Set(accounts.map(\.coldkeySs58)).count
-        let rows = accounts.map { row($0, status: status, namesColdkey: namesColdkeys) } + status.unavailablePools.map { row($0, status: status) }
-        guard status.listsEachPool || rows.contains(where: { $0.status == .underFloor }) else {
-            return []
-        }
-        return rows
+        return accounts.map { row($0, status: status, namesColdkey: namesColdkeys) } + status.unavailablePools.map { row($0, status: status) }
     }
 
     /// The tile's rows for a network with no wallet on this device, under the
     /// total they add up (snClaimRelayTileRows): the primary coldkey's
     /// accounts with something to claim, then each pool the relay could not
-    /// read. None while one operator pool's total says it all, as before,
-    /// unless its balance is below the claim minimum.
+    /// read. None while one operator pool's total says it all, as before.
     static func tileRows(_ status: SnClaimStatusInfo) -> [SnClaimRelayRow] {
-        let accounts = status.accounts.filter { $0.coldkeySs58 == status.coldkeySs58 && 0 < $0.claimableRao }
-        let rows = accounts.map { row($0, status: status, namesColdkey: false) } + status.unavailablePools.map { row($0, status: status) }
-        guard !status.unavailablePools.isEmpty || 1 < accounts.count || accounts.contains(where: { $0.kind == .ctf })
-            || rows.contains(where: { $0.status == .underFloor })
-        else {
+        let accounts = tileAccounts(status)
+        guard !status.unavailablePools.isEmpty || 1 < accounts.count || accounts.contains(where: { $0.kind == .ctf }) else {
             return []
         }
-        return rows
+        return accounts.map { row($0, status: status, namesColdkey: false) } + status.unavailablePools.map { row($0, status: status) }
+    }
+
+    /// The tile's total with no rows under it is one account's, below the
+    /// claim minimum: the line goes under the total, as Linux's no-wallet
+    /// tile has it, where each row says it once there are rows.
+    static func tileTotalUnderFloor(_ status: SnClaimStatusInfo) -> Bool {
+        let accounts = tileAccounts(status)
+        guard tileRows(status).isEmpty, accounts.count == 1, let account = accounts.first else {
+            return false
+        }
+        return SnLedgerPools.underFloor(claimableRao: account.claimableRao, transferFloorRao: status.transferFloorRao)
+    }
+
+    /// the primary coldkey's accounts with something to claim, which the
+    /// tile's total adds up
+    private static func tileAccounts(_ status: SnClaimStatusInfo) -> [SnClaimRelayAccountInfo] {
+        status.accounts.filter { $0.coldkeySs58 == status.coldkeySs58 && 0 < $0.claimableRao }
     }
 
     private static func row(_ account: SnClaimRelayAccountInfo, status: SnClaimStatusInfo, namesColdkey: Bool) -> SnClaimRelayRow {
@@ -456,12 +467,6 @@ extension SnClaimStatusInfo {
     /// read or not (SnLedgerPoolName.namesProviderPool)
     var namesProviderPool: Bool {
         SnLedgerPoolName.namesProviderPool(accounts.map { ($0.kind, $0.noId) } + unavailablePools.map { ($0.kind, $0.noId) })
-    }
-
-    /// the claim sheet lists each pool's account: the relay lists a capture
-    /// the flag account, or a pool it could not read
-    var listsEachPool: Bool {
-        accounts.contains { $0.kind == .ctf } || !unavailablePools.isEmpty
     }
 
     /// The relay's total, the primary coldkey's accounts together, for the

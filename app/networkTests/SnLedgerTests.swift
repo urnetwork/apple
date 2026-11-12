@@ -1122,18 +1122,22 @@ struct SnLedgerTests {
         #expect(SnLedgerPoolKind(noId: 1) == .pool)
     }
 
-    // §10: the relay's claim sheet lists each pool's account beside capture
-    // the flag (Android's rows): Pending, Below the claim minimum under the
-    // floor, Claimed with URnetwork's transaction, a pool it could not read;
-    // before capture the flag it keeps its one balance
-    @Test func theRelaySheetListsEachPoolBesideCaptureTheFlag() {
+    // §10: the relay's claim sheet lists each pool's account, as Android's
+    // and Linux's sheets (snClaimRelayRows): Pending, Below the claim minimum
+    // under the floor, Claimed with URnetwork's transaction, a pool it could
+    // not read; before capture the flag a lone account is listed too
+    @Test func theRelaySheetListsEachPoolsAccount() {
         let coldkey = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
         let before = SnClaimStatusInfo(
             coldkeySs58: coldkey,
             claimableRao: 3_241_000_000,
             accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 3_241_000_000)]
         )
-        #expect(SnClaimRelayRow.rows(before).isEmpty)
+        #expect(SnClaimRelayRow.rows(before) == [
+            SnClaimRelayRow(id: "\(coldkey)/1", name: .pool(noId: 1), coldkeySs58: "", amountRao: 3_241_000_000, status: .pending, txUrl: nil),
+        ])
+        // nothing to claim and no claim of URnetwork's: no row
+        #expect(SnClaimRelayRow.rows(SnClaimStatusInfo(coldkeySs58: coldkey, accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1)])).isEmpty)
 
         let status = SnClaimStatusInfo(
             coldkeySs58: coldkey,
@@ -1196,9 +1200,8 @@ struct SnLedgerTests {
     }
 
     // owner, 2026-11-11: a lone account under the floor reads "Below the
-    // claim minimum" in the relay's claim sheet too, on its own row, before
-    // capture the flag as beside it; at the floor or more the sheet keeps its
-    // one balance, as before
+    // claim minimum" in the relay's claim sheet too, on its row, before
+    // capture the flag as beside it; at the floor it is Pending
     @Test func theRelaySheetListsALoneAccountUnderTheFloor() {
         let coldkey = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
         let lone = SnClaimStatusInfo(
@@ -1216,7 +1219,7 @@ struct SnLedgerTests {
             transferFloorRao: Self.floorRao,
             accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: Self.floorRao)]
         )
-        #expect(SnClaimRelayRow.rows(atFloor).isEmpty)
+        #expect(SnClaimRelayRow.rows(atFloor).map(\.status) == [.pending])
         // a replaced wallet's account under it lists each coldkey's
         let replaced = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
         let twoColdkeys = SnClaimStatusInfo(
@@ -1314,19 +1317,28 @@ struct SnLedgerTests {
         await viewModel.refreshClaimStatus()
         #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(3_241_000_000))
 
-        // unless its balance is below the claim minimum, which its row says
-        // (owner, 2026-11-11)
-        client.relayAnswer = SnClaimStatusInfo(
+        // a total that is one account's under the floor says "Below the claim
+        // minimum" under it (owner, 2026-11-11; Linux's no-wallet tile)
+        let loneUnderFloor = SnClaimStatusInfo(
             coldkeySs58: coldkey,
             claimableRao: 1_000_000,
             transferFloorRao: Self.floorRao,
             showsTile: true,
             accounts: [SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: 1, claimableRao: 1_000_000)]
         )
+        client.relayAnswer = loneUnderFloor
         await viewModel.refreshClaimStatus()
-        #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(1_000_000, rows: [
-            SnClaimRelayRow(id: "\(coldkey)/1", name: .pool(noId: 1), coldkeySs58: "", amountRao: 1_000_000, status: .underFloor, txUrl: nil),
-        ]))
+        #expect(viewModel.ledgerTileWithRelay?.balances == .claimable(1_000_000, rows: [], underFloor: true))
+        // a replaced wallet's account is not in the total, and so not in its
+        // floor either
+        var withReplaced = loneUnderFloor
+        withReplaced.accounts.append(SnClaimRelayAccountInfo(coldkeySs58: replaced, noId: 1, claimableRao: 1_000_000_000))
+        #expect(SnClaimRelayRow.tileTotalUnderFloor(withReplaced))
+        // where the tile lists rows, each says it for itself, not the total
+        var besideCtf = loneUnderFloor
+        besideCtf.accounts.append(SnClaimRelayAccountInfo(coldkeySs58: coldkey, noId: Self.ctfNoId, kind: .ctf, claimableRao: 144_076_980))
+        #expect(!SnClaimRelayRow.tileTotalUnderFloor(besideCtf))
+        #expect(SnClaimRelayRow.tileRows(besideCtf).map(\.status) == [.underFloor, .pending])
     }
 
     // §10: the relay's per-pool rows read through the SDK: each account's

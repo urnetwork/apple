@@ -115,9 +115,8 @@ struct AccountRootView: View {
             guestModeClaim: deviceManager.parsedJwt?.guestMode,
             serverGuest: subscriptionBalanceViewModel.isGuest
         )
-        // Pro or Free as the server answered, or not known yet: a spinner, or
-        // a retry once a read failed, never Free or Get Pro (support inbox
-        // 4074)
+        // Pro, Free, or not known yet: a spinner, or a retry once a read
+        // failed, never Free or Get Pro (support inbox 4074)
         let shownPlan = deviceManager.shownPlan
 
         ScrollView {

@@ -823,7 +823,7 @@ class DeviceManager: ObservableObject {
     }
 
     /**
-     * The plan the plan cards show (ShownPlan), as the sdk decides it
+     * The plan cards' plan, as the sdk decides it
      * (SubscriptionProTracker.GetShownPlan): the server's answer once a
      * balance has loaded; before that Pro by the stored jwt's claim, else not
      * known yet, while the first read is on its way (.loading) and once a
@@ -834,8 +834,9 @@ class DeviceManager: ObservableObject {
     @Published private(set) var shownPlan: ShownPlan = .loading
     private let proTracker: SdkSubscriptionProTracker? = SdkNewSubscriptionProTracker()
 
-    /// Publishes the tracker's decision after each of its inputs: the shown
-    /// plan and, from it, Pro. `fallback` is the plan without a tracker.
+    /// Sets the cards' plan and, from it, isPro to the tracker's decision;
+    /// called after each of the tracker's inputs. `fallback` stands in when
+    /// there is no tracker.
     private func publishPlan(fallback: ShownPlan) {
         let plan = proTracker.map {
             ShownPlan.of(sdkPlan: $0.getShownPlan(), lastReadFailed: $0.getLastReadFailed())
@@ -859,10 +860,10 @@ class DeviceManager: ObservableObject {
     }
 
     /**
-     * A balance read failed (an error, or no result). The plan stays the
-     * server's last answer; before one it stays Pro by the claim or becomes
-     * .unreachable, which the plan cards show with a retry, never as Free
-     * (support inbox 4074). No jwt refresh is asked for.
+     * Takes a balance read that ended in an error or no result. The plan
+     * stays the server's last answer; before one it stays Pro by the claim or
+     * becomes .unreachable, which the plan cards show with a retry, never as
+     * Free (support inbox 4074). No jwt refresh is asked for.
      */
     func subscriptionBalanceFailed() {
         _ = proTracker?.balanceFailed()
@@ -1151,10 +1152,10 @@ class DeviceManager: ObservableObject {
         do {
             parsedJwt = try localState.parseByJwt()
             // the claim counts only until a balance loads: the stored jwt a
-            // refresh leaves as it was never moves Pro back (isPro). A claim
-            // of free is not known yet: it stays free after a purchase until
-            // the stored jwt renews (shownPlan)
+            // refresh leaves as it was never moves Pro back (isPro)
             proTracker?.setJwt(localState.getByJwt())
+            // a claim of free is not known yet: it stays free after a
+            // purchase until the stored jwt renews
             publishPlan(fallback: parsedJwt?.pro == true ? .pro : .loading)
         } catch {
             parsedJwt = nil

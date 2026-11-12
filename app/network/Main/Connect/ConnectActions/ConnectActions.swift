@@ -119,9 +119,8 @@ struct ConnectActions: View {
     let balanceRecovery: BalanceRecoveryState
     let cancelBalanceRecovery: () -> Void
     let isPro: Bool
-    // the plan card's plan (DeviceManager.shownPlan): Pro or Free as the
-    // server answered, or not known yet, which shows a spinner or a retry and
-    // never Free or Get Pro (support inbox 4074)
+    // the plan card's plan as DeviceManager publishes it: Pro, Free, or not
+    // known yet, never shown as Free or with Get Pro (support inbox 4074)
     let shownPlan: ShownPlan
     // the renewal the store is retrying, for the plan card's past-due notice
     // (see PaymentPastDue), and the notice's "Update payment method" link
@@ -770,9 +769,8 @@ struct ConnectActions: View {
             
             switch shownPlan.load {
             case .failed:
-                // a balance read failed before the server answered: the
-                // plan is not known, so neither Free nor Get Pro, but a
-                // retry (support inbox 4074)
+                // a read failed before the server answered: neither Free nor
+                // Get Pro, but a retry (support inbox 4074)
                 Spacer().frame(height: 4)
                 SectionLoadFailedView(retry: retryPlan)
             case .loading, .loaded:

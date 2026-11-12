@@ -2,19 +2,23 @@
 //  ShownPlan.swift
 //  URnetwork
 //
-//  The plan the plan cards show, as the sdk decides it
-//  (SubscriptionProTracker.GetShownPlan, which DeviceManager holds): Pro or
-//  Free as the server answered, Pro also by the stored jwt's claim before it
-//  answers, and neither until it does. In December 2025 the balance read
-//  failed under database load and the app showed a failed read as Free, with
-//  its Get Pro, to networks whose paid plans were running (support inbox
-//  4074). Only the server says Free.
+//  The plan cards' plan, mapped from the sdk's strings, and what a card shows
+//  for it.
 //
 
 import Foundation
 
+/// As the sdk decides it (SubscriptionProTracker.GetShownPlan, which
+/// DeviceManager holds): Pro or Free as the server answered, Pro also by the
+/// stored jwt's claim before it answers, and neither until it does. In
+/// December 2025 the balance read failed under database load and the app
+/// showed a failed read as Free, with its Get Pro, to networks whose paid
+/// plans were running (support inbox 4074). Only the server says Free.
 enum ShownPlan: Equatable {
+    /// The server answered Pro, or before it answered, the stored jwt's claim
+    /// is Pro.
     case pro
+    /// The server answered Free.
     case free
     /// The server has not answered and the claim is not Pro: the first
     /// balance read is on its way.

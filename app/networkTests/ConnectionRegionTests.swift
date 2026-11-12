@@ -144,8 +144,9 @@ struct CantReachUrnetworkTests {
         #expect(isCantReachUrnetworkError(goError("http request attempts exhausted")))
     }
 
-    // the other texts Go's http client gives for a failed round trip, which
-    // Windows and Linux already treat as can't-reach
+    // the other texts Go's http client gives for a failed round trip; a Go
+    // failure's text is the sdk's rule for every app now (sdk cant_reach.go,
+    // whose tests hold every app's cases)
     @Test func goTransportFailuresAreCantReach() {
         #expect(isCantReachUrnetworkError(goError("http request failed: unexpected status")))
         #expect(isCantReachUrnetworkError(goError("server misbehaving")))
@@ -163,6 +164,27 @@ struct CantReachUrnetworkTests {
         #expect(!isCantReachUrnetworkError(NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No result found"])))
         #expect(!isCantReachUrnetworkError(URLError(.userAuthenticationRequired)))
         #expect(!isCantReachUrnetworkError(CancellationError()))
+    }
+
+    // Signed in, Windows alone raised the prompt as the window's diagnosis
+    // turned to the platform being unreachable (support inbox 7956, 7973);
+    // apple now does too, by the sdk's rule (CantReachOnStall), reported by
+    // ConnectViewModel's window status listener. Once per turn.
+    @Test func aSignedInStallRaisesThePromptOncePerTurn() {
+        let prompt = CantReachUrnetworkPrompt()
+
+        #expect(!prompt.reportStall(previousStallReason: "", stallReason: "evaluating"))
+        #expect(!prompt.visible)
+
+        #expect(prompt.reportStall(previousStallReason: "evaluating", stallReason: "platform-unreachable"))
+        #expect(prompt.visible)
+
+        prompt.dismiss()
+        #expect(!prompt.reportStall(previousStallReason: "platform-unreachable", stallReason: "platform-unreachable"))
+        #expect(!prompt.visible)
+
+        #expect(prompt.reportStall(previousStallReason: "providers-unresponsive", stallReason: "platform-unreachable"))
+        #expect(prompt.visible)
     }
 
     @Test func thePromptShowsOnlyForCantReachAndNeverChangesTheRegion() {

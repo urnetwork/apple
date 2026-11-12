@@ -5,7 +5,8 @@
 //  The Earnings screen's door to the SDK: the account's epoch history, the
 //  Bittensor wallet attached to this device's provider client, the gas key,
 //  the settlement-vault claims, the settlement v2 accounts and their claim,
-//  and the network's Top 200 standing on the Protocol leaderboard (GET
+//  the capture the flag slot this device won (GET /sn/ctf/client), and the
+//  network's Top 200 standing on the Protocol leaderboard (GET
 //  /sn/top/me). Claims are direct between the SDK on this
 //  device and the vault contracts; nothing here goes through a URnetwork API
 //  at claim time.
@@ -64,15 +65,19 @@ protocol EarningsClient: AnyObject {
     /// vault2 and the explorer link from the chain settings; v2 claims are
     /// not configured while vault2 is unset (before activation)
     func ledgerChain() -> SnLedgerChainInfo
-    /// the coldkey's v2 accounts, one per pool; throws when the ledger cannot
-    /// be read (ledger_unavailable), which is never zero
-    func ledgerAccounts() async throws -> [SnLedgerAccountInfo]
+    /// the coldkey's v2 accounts, one per pool, and the pools the operator
+    /// could not read just now; throws when the ledger cannot be read
+    /// (ledger_unavailable), which is never zero
+    func ledgerAccounts() async throws -> SnLedgerAccountsInfo
     func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void)
     /// what URnetwork's claim relay says of the network's balance; nil when
     /// the sdk can't ask
     func claimStatus() async -> SnClaimStatusInfo?
     /// asks URnetwork to claim a coldkey's balance now
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome
+    /// the capture the flag slot this device won last (GET /sn/ctf/client);
+    /// nil without one, or when the draw's answer could not be read
+    func ctfLatestWin() async -> SnCtfWinInfo?
 
     // points history and the Top 200 standing
     func accountEpochs() async throws -> [AccountEpochInfo]
@@ -386,7 +391,7 @@ final class EarningsSdkClient: EarningsClient {
         return SnLedgerChainInfo(vault2Address: settings.vault2Address, explorerTxUrl: settings.explorerTxUrl)
     }
 
-    func ledgerAccounts() async throws -> [SnLedgerAccountInfo] {
+    func ledgerAccounts() async throws -> SnLedgerAccountsInfo {
         let device = try requireDevice()
         let result: SdkSnLedgerAccountsResult = try await withCheckedThrowingContinuation { continuation in
             let callback = SnLedgerAccountsCallback { result, err in
@@ -405,10 +410,11 @@ final class EarningsSdkClient: EarningsClient {
         return try Self.ledgerAccounts(from: result)
     }
 
-    /// The accounts of an SDK ledger read. Its error (ledger_unavailable
-    /// above all) throws, and so does a read with no list: the balances are
-    /// unavailable then, never zero.
-    static func ledgerAccounts(from result: SdkSnLedgerAccountsResult) throws -> [SnLedgerAccountInfo] {
+    /// The accounts of an SDK ledger read, and the pools it could not read
+    /// (a partial answer). Its error (ledger_unavailable above all) throws,
+    /// and so does a read with no list: the balances are unavailable then,
+    /// never zero.
+    static func ledgerAccounts(from result: SdkSnLedgerAccountsResult) throws -> SnLedgerAccountsInfo {
         if let error = Self.error(result.error) {
             throw error
         }
@@ -426,10 +432,24 @@ final class EarningsSdkClient: EarningsClient {
                 claimableRao: account.claimableRao,
                 paidRao: account.paidRao,
                 pending: account.pending,
-                pendingRao: account.pendingRao
+                pendingRao: account.pendingRao,
+                kind: SnLedgerPoolKind(sdkKind: account.kind)
             ))
         }
-        return accounts
+        return SnLedgerAccountsInfo(accounts: accounts, unavailablePools: unavailablePools(from: result.unavailablePools))
+    }
+
+    /// The pools an SDK answer could not read; none for a whole answer.
+    static func unavailablePools(from list: SdkSnLedgerUnavailablePoolList?) -> [SnLedgerUnavailablePool] {
+        guard let list else {
+            return []
+        }
+        var pools: [SnLedgerUnavailablePool] = []
+        for i in 0..<list.len() {
+            guard let pool = list.get(i) else { continue }
+            pools.append(SnLedgerUnavailablePool(vault: pool.vault, noId: pool.noId, kind: SnLedgerPoolKind(sdkKind: pool.kind)))
+        }
+        return pools
     }
 
     func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {
@@ -460,7 +480,22 @@ final class EarningsSdkClient: EarningsClient {
     /// The relay's answer as the screens read it. An error leaves the balances
     /// unavailable, never zero.
     static func claimStatus(from result: SdkSnClaimStatusResult) -> SnClaimStatusInfo {
-        SnClaimStatusInfo(
+        var accounts: [SnClaimRelayAccountInfo] = []
+        if let list = result.accounts {
+            for i in 0..<list.len() {
+                guard let account = list.get(i) else { continue }
+                accounts.append(SnClaimRelayAccountInfo(
+                    coldkeySs58: account.coldkeySs58,
+                    noId: account.noId,
+                    kind: SnLedgerPoolKind(sdkKind: account.kind),
+                    claimableRao: account.claimableRao,
+                    claimTxHash: account.claimTxHash,
+                    claimTxUrl: account.claimTxUrl,
+                    claimAmountRao: account.claimAmountRao
+                ))
+            }
+        }
+        return SnClaimStatusInfo(
             relayState: result.relayState,
             coldkeySs58: result.coldkeySs58,
             action: result.action,
@@ -476,12 +511,15 @@ final class EarningsSdkClient: EarningsClient {
             automaticThresholdRao: result.automaticThresholdRao,
             automaticThresholdTaoRao: result.automaticThresholdTaoRao,
             transferFloorTaoRao: result.transferFloorTaoRao,
+            transferFloorRao: result.transferFloorRao,
             claimNowPeriodDays: result.claimNowPeriodDays,
             unavailable: result.error != nil,
             showsTile: result.showsTile,
             showsClaimed: result.showsClaimed,
             claimTxUrl: result.claimTxUrl,
-            claimAmountRao: result.claimAmountRao
+            claimAmountRao: result.claimAmountRao,
+            accounts: accounts,
+            unavailablePools: unavailablePools(from: result.unavailablePools)
         )
     }
 
@@ -504,6 +542,31 @@ final class EarningsSdkClient: EarningsClient {
             return .requested
         }
         return .refused(reason: result.reason, nextAtMillis: result.nextAtMillis)
+    }
+
+    func ctfLatestWin() async -> SnCtfWinInfo? {
+        guard let device else {
+            return nil
+        }
+        let result: SdkSnCtfClientResult? = await withCheckedContinuation { continuation in
+            device.snCtfClient(SnCtfClientCallback { result, _ in
+                continuation.resume(returning: result)
+            })
+        }
+        guard let result else {
+            return nil
+        }
+        return Self.ctfLatestWin(from: result)
+    }
+
+    /// The slot this device won last. An answer that could not be read (a
+    /// network JWT's 401 among them) draws no line, as no win does: it never
+    /// says there was none.
+    static func ctfLatestWin(from result: SdkSnCtfClientResult) -> SnCtfWinInfo? {
+        guard result.error == nil, let win = result.latestWin else {
+            return nil
+        }
+        return SnCtfWinInfo(role: win.role, country: win.country)
     }
 
     // MARK: points history and the Top 200 standing
@@ -612,6 +675,12 @@ private class SnClaimStatusCallback: SdkCallback<SdkSnClaimStatusResult, SdkSnCl
 
 private class SnClaimNowCallback: SdkCallback<SdkSnClaimNowResult, SdkSnClaimNowCallbackProtocol>, SdkSnClaimNowCallbackProtocol {
     func result(_ result: SdkSnClaimNowResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class SnCtfClientCallback: SdkCallback<SdkSnCtfClientResult, SdkSnCtfClientCallbackProtocol>, SdkSnCtfClientCallbackProtocol {
+    func result(_ result: SdkSnCtfClientResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }
@@ -750,7 +819,7 @@ final class EarningsPreviewClient: EarningsClient {
         onEvent(.done)
     }
     func ledgerChain() -> SnLedgerChainInfo { ledgerChainInfo }
-    func ledgerAccounts() async throws -> [SnLedgerAccountInfo] { ledgerRows }
+    func ledgerAccounts() async throws -> SnLedgerAccountsInfo { SnLedgerAccountsInfo(accounts: ledgerRows) }
     func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {
         for account in ledgerRows where account.claimableRao > 0 {
             onEvent(.sent(noId: account.noId, index: account.index, txHash: "0xabc"))
@@ -768,8 +837,9 @@ final class EarningsPreviewClient: EarningsClient {
 }
 
 /// Without a relay, as in previews and the test doubles: nothing to say, and
-/// Claim now can't be asked.
+/// Claim now can't be asked; and no capture the flag win to name.
 extension EarningsClient {
     func claimStatus() async -> SnClaimStatusInfo? { nil }
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome { .failed("unavailable") }
+    func ctfLatestWin() async -> SnCtfWinInfo? { nil }
 }

@@ -29,6 +29,13 @@
 //  holds no app logs, so with the tunnel up that build's upload holds the
 //  extension's logs only.
 //
+//  Beside the glog files, either zip holds the app's exit diagnostics,
+//  Logs/app/exit-diagnostics.txt: why the app's earlier processes ended, as
+//  MetricKit reported it, one sanitized line per record (AppExitDiagnostics).
+//  The sdk's upload takes that file by name and plans it first, so the cap
+//  never leaves it out; with the direct-download build's tunnel up it is left
+//  out with the app's other logs.
+//
 
 import Foundation
 import URnetworkSdk

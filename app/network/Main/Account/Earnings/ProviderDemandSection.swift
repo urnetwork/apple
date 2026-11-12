@@ -147,7 +147,8 @@ struct ProviderDemandSection: View {
 }
 
 /// One number of the "Why?" panel: the label and the value, amber when it
-/// does not pass, over a muted help line.
+/// does not pass, over a muted help line and the lines of the reason the
+/// network checks downgraded the device.
 private struct ProviderStatusRowView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -170,6 +171,13 @@ private struct ProviderStatusRowView: View {
                 .font(.system(size: 11))
                 .foregroundColor(themeManager.currentTheme.textMutedColor)
                 .fixedSize(horizontal: false, vertical: true)
+            // already in the reader's language (providerStatusReasons)
+            ForEach(Array(row.reasons.enumerated()), id: \.offset) { _, reason in
+                Text(verbatim: reason)
+                    .font(.system(size: 11))
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .accessibilityElement(children: .combine)
     }

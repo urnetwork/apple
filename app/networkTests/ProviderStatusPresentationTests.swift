@@ -241,6 +241,32 @@ struct ProviderStatusPresentationTests {
         let notYet = try #require(Self.row(ProviderStatusNumber(name: "url_checks", hasMinimum: true, minimum: 0.8, passes: false)))
         #expect(notYet.value == "Not yet")
         #expect(!notYet.passes)
+        #expect(notYet.reasons.isEmpty)
+    }
+
+    /// A downgraded provider's network checks row (server FP2-PROTOCOL.md
+    /// §5.5): the sdk's lines in its order, each with its count, a label this
+    /// build has no string for as the server's English, and nothing else.
+    @Test func theNetworkChecksTellADowngradedDeviceWhy() throws {
+        #expect(SdkProviderStatusReasonLineTcp == "tcp")
+        #expect(SdkProviderStatusReasonLineIpv4 == "ipv4")
+        let row = try #require(Self.row(ProviderStatusNumber(
+            name: "url_checks", hasValue: true, value: 0.65, hasMinimum: true, minimum: 0.8, passes: false, count: 13, total: 20,
+            reasonLines: [
+                ProviderStatusReasonLine(label: SdkProviderStatusReasonLineTcp, count: 3),
+                ProviderStatusReasonLine(label: SdkProviderStatusReasonLineIpv4, count: 2),
+            ]
+        )))
+        #expect(row.reasons == [
+            "3 of these checks failed only over HTTP/3 (UDP), so this device is offered for TCP traffic only. Some app builds and some networks do not route UDP.",
+            "2 of these checks failed only over IPv6, so this device is offered for IPv4 traffic only.",
+        ])
+        #expect(row.value == "13 of 20 loaded (needs 80%)")
+
+        #expect(providerStatusReasons([
+            ProviderStatusReasonLine(label: SdkProviderStatusReasonLineText, text: "A newer server's sentence."),
+            ProviderStatusReasonLine(label: "pq"),
+        ]) == ["A newer server's sentence."])
     }
 
     @Test func theSpeedTestIsAByteRate() throws {

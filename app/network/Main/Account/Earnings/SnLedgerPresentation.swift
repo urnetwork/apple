@@ -290,6 +290,40 @@ struct SnLedgerClaimRow: Identifiable, Equatable {
     /// the claim transaction on the explorer, once sent
     let explorerUrl: URL?
 
+    /// What the line has left for the sheet's figure, the claim's total
+    /// (EarningsViewModel.ledgerClaimTotalKnown), as Windows' claim dialog
+    /// counts its rows.
+    enum Left: Equatable {
+        /// an amount a claim moves: above the floor, not paid yet
+        case moves
+        /// nothing: claimed, or nothing to claim
+        case nothing
+        /// something no figure says: under the floor, in a pool that could
+        /// not be read, or an amount not known yet
+        case noFigure
+    }
+
+    /// `transferFloorRao`: the relay's floor (0: none). An amount under it is
+    /// no figure a claim moves, whatever the claim said of the account since
+    /// (needs_gas, sent, failed): the sheet's claim never takes it, as
+    /// Windows' and Linux's dialogs keep their floor.
+    func left(transferFloorRao: Int64) -> Left {
+        switch status {
+        case .claimed:
+            return .nothing
+        case .underFloor, .unavailable:
+            return .noFigure
+        case .unclaimed, .pending, .sent, .failed:
+            guard let amountRao else {
+                return .noFigure
+            }
+            if amountRao <= 0 {
+                return .nothing
+            }
+            return SnLedgerPools.underFloor(claimableRao: amountRao, transferFloorRao: transferFloorRao) ? .noFigure : .moves
+        }
+    }
+
     /// a pool the ledger read could not read, under the key the claim
     /// reports it by
     static func of(_ pool: SnLedgerUnavailablePool, pools: SnLedgerPools) -> SnLedgerClaimRow {

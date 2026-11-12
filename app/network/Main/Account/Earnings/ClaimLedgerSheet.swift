@@ -7,10 +7,12 @@
 //  claimable, the provider pool's and the capture the flag pool's alike, from
 //  the gas key: one transaction to STSettlementVault2 for one account, one
 //  STClaimBatcher transaction for two or more ("Claim both"); alpha lands on
-//  the connected coldkey. Shows the claimable total, the gas key and its TAO
-//  balance (with the top-up when short or when a claim needed gas), each
-//  pool's claim state with its transaction on the explorer once sent, a pool
-//  that could not be read as unavailable right now, and the failures.
+//  the connected coldkey. Shows the claimable total (none, never 0, while
+//  what is left is all under the floor, unavailable or of an amount not known
+//  yet), the gas key and its TAO balance (with the top-up when short or when a
+//  claim needed gas), each pool's claim state with its transaction on the
+//  explorer once sent, a pool that could not be read as unavailable right
+//  now, and the failures.
 //
 
 import SwiftUI
@@ -28,6 +30,13 @@ struct ClaimLedgerSheet: View {
         viewModel.ledgerClaimUnavailable
     }
 
+    /// the claim's total is a figure to show: with nothing above the floor
+    /// left and an account under it, unavailable or of an amount not known
+    /// yet, the lines say why, and there is no figure, never 0
+    private var totalKnown: Bool {
+        viewModel.ledgerClaimTotalKnown
+    }
+
     private var amountText: String {
         viewModel.client.formatAlpha(rao: viewModel.ledgerClaimableRao)
     }
@@ -43,13 +52,16 @@ struct ClaimLedgerSheet: View {
                         .foregroundColor(themeManager.currentTheme.textColor)
                 }
 
-                VStack(alignment: .leading, spacing: 0) {
-                    UrLabel(text: "Claimable")
-                    if unavailable {
+                if unavailable {
+                    VStack(alignment: .leading, spacing: 0) {
+                        UrLabel(text: "Claimable")
                         Text("Unavailable")
                             .font(themeManager.currentTheme.titleCondensedFont)
                             .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    } else {
+                    }
+                } else if totalKnown {
+                    VStack(alignment: .leading, spacing: 0) {
+                        UrLabel(text: "Claimable")
                         Text(verbatim: amountText)
                             .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
                             .foregroundColor(themeManager.currentTheme.textColor)
@@ -101,8 +113,10 @@ struct ClaimLedgerSheet: View {
                 } else if unavailable {
                     UrButton(text: "Claim", action: {}, enabled: false)
                 } else {
+                    // no figure, no amount on the button either, while a claim
+                    // runs too: never a Claim of 0
                     UrButton(
-                        text: viewModel.ledgerClaimsBoth ? "Claim both" : "Claim \(amountText)",
+                        text: viewModel.ledgerClaimsBoth ? "Claim both" : totalKnown ? "Claim \(amountText)" : "Claim",
                         action: {
                             viewModel.claimLedger()
                         },

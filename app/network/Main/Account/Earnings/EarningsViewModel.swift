@@ -54,6 +54,17 @@ final class EarningsViewModel: ObservableObject {
                 return false
             }
         }
+
+        /// the claim sent nothing for the account: still queued, or the sdk
+        /// held it back (needs_gas, under the floor, its pool unavailable)
+        var unsent: Bool {
+            switch self {
+            case .queued, .needsGas, .underFloor, .unavailable:
+                return true
+            case .sent, .confirmed, .alreadyClaimed, .failed:
+                return false
+            }
+        }
     }
 
     @Published private(set) var wallet: SnWalletInfo?
@@ -96,17 +107,32 @@ final class EarningsViewModel: ObservableObject {
 
     /// every capture the flag slot the network's clients won whose award is
     /// not claimed yet, newest first, for a line each under the Settlement v2
-    /// balances; none without one, or when they could not be read
+    /// balances, as the last good read gave them: a read that failed keeps
+    /// them (every app, 2026-11-12), and none show until the first read with
+    /// the signed-in account's screens answers
     @Published private(set) var ctfWins: [SnCtfWinInfo] = []
 
     let client: EarningsClient
     private var walletSubscription: EarningsSubscription?
     private var chainSettingsSynced = false
-    /// the read of the capture the flag wins, which runs beside the refresh
-    /// and never holds it up (the sdk waits up to a minute for the route)
-    private var ctfWinsRead: Task<Void, Never>?
-    /// a read was asked for while one ran
-    private var ctfWinsReadAgain = false
+    /// the reads of the capture the flag wins started so far, and the newest
+    /// whose good answer the lines show: the reads run beside the refresh and
+    /// never hold it up (the sdk waits up to a minute for the route), they
+    /// overlap, and their answers land in any order
+    private var ctfWinsReadsStarted = 0
+    private var ctfWinsReadShown = 0
+    /// the reads of the wins after the last paying claim's Done
+    /// (readCtfWinsAfterClaim)
+    private var ctfWinsAfterClaim: Task<Void, Never>?
+    /// waits between those reads: Task.sleep, or the tests' clock
+    private let sleep: (Duration) async throws -> Void
+
+    /// When the wins are read again after a claim that paid an account, after
+    /// its Done, beside the read at Done (every app's schedule). The SDK's
+    /// Done comes once the claim is in a block, but the server says a win is
+    /// claimed only once vault2's claimed at the finalized head covers the
+    /// claim, so the read at Done can still list a win the claim paid.
+    static let ctfWinsReadsAfterClaim: [Duration] = [.seconds(30), .seconds(60), .seconds(120)]
 
     /// the per-claim gas reserve in TAO, which the top-up asks for and Claim
     /// waits for: the SDK sends a v1 claim only when the gas key holds its
@@ -121,8 +147,12 @@ final class EarningsViewModel: ObservableObject {
     /// at 5 gwei
     static let ledgerGasTaoPerClaim = 0.02
 
-    init(client: EarningsClient) {
+    init(
+        client: EarningsClient,
+        sleep: @escaping (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+    ) {
         self.client = client
+        self.sleep = sleep
         self.wallet = client.cachedWallet()
         self.gasKey = client.gasKey()
         walletSubscription = client.observeWallet { [weak self] wallet in
@@ -280,6 +310,23 @@ final class EarningsViewModel: ObservableObject {
         ledger == .unavailable || (ledger.accounts.isEmpty && !ledger.unavailablePools.isEmpty)
     }
 
+    /// The v2 claim sheet's figure is a total to show: a line holds an amount
+    /// above the floor a claim moves, or no line holds anything left, a true
+    /// 0. While what is left is all under the floor, in a pool that could not
+    /// be read or of an amount not known yet, the lines say why and the sheet
+    /// shows no figure, never 0 (Windows' and Android's claim dialogs).
+    var ledgerClaimTotalKnown: Bool {
+        let left = ledgerClaimRowsLeft
+        return left.contains(.moves) || !left.contains(.noFigure)
+    }
+
+    /// what each line of the v2 claim sheet has left for its figure, at the
+    /// relay's floor
+    var ledgerClaimRowsLeft: [SnLedgerClaimRow.Left] {
+        let floor = ledgerTransferFloorRao
+        return ledgerClaimRows.map { $0.left(transferFloorRao: floor) }
+    }
+
     /// How and when the provider is paid, for the foot of the points card;
     /// nil until the wallet read settles (a failed read with no cached wallet
     /// says nothing about the coldkey).
@@ -338,24 +385,53 @@ final class EarningsViewModel: ObservableObject {
         isLoading = false
     }
 
-    /// Reads the capture the flag wins beside the refresh, one read at a
-    /// time; one asked for during a read runs once it ends, so the lines
-    /// follow the latest state.
+    /// Reads the capture the flag wins: beside the refresh, at a claim's Done
+    /// and at the times after it. Each read starts when asked, beside any
+    /// still out, so the reads keep their times, and the lines show the
+    /// newest read's good answer, whatever order the answers land in. A read
+    /// that failed keeps the last good read's lines and never blanks them,
+    /// nor drops an older read's good answer still to land: only a good read
+    /// that no longer lists a win takes its line away, or a sign-out, which
+    /// ends this view model with the account's screens.
     private func refreshCtfWins() {
-        guard ctfWinsRead == nil else {
-            ctfWinsReadAgain = true
-            return
-        }
+        ctfWinsReadsStarted += 1
+        let read = ctfWinsReadsStarted
         let client = client
-        ctfWinsRead = Task { [weak self] in
+        Task { [weak self] in
             let wins = await client.ctfUnclaimedWins()
-            guard let self else {
+            guard let self, let wins, read > self.ctfWinsReadShown else {
                 return
             }
+            self.ctfWinsReadShown = read
             self.ctfWins = wins
-            self.ctfWinsRead = nil
-            if self.ctfWinsReadAgain {
-                self.ctfWinsReadAgain = false
+        }
+    }
+
+    /// After a claim that paid an account, the wins are read again at each of
+    /// ctfWinsReadsAfterClaim after its Done, beside the read at Done: a win
+    /// the claim paid reads claimed only once the finalized head covers the
+    /// claim. Each read starts at its time and replaces the lines unless it
+    /// failed (refreshCtfWins). The next paying claim's Done starts the reads
+    /// over; one that paid nothing leaves them be. They end
+    /// with this view model, which lives as long as the signed-in account's
+    /// screens, so a sign-out ends them; while it lives they run with
+    /// Earnings off screen too, since a later visit does not read the wins
+    /// again.
+    private func readCtfWinsAfterClaim() {
+        ctfWinsAfterClaim?.cancel()
+        let sleep = sleep
+        ctfWinsAfterClaim = Task { [weak self] in
+            var afterDone = Duration.zero
+            for at in Self.ctfWinsReadsAfterClaim {
+                do {
+                    try await sleep(at - afterDone)
+                } catch {
+                    return
+                }
+                afterDone = at
+                guard !Task.isCancelled, let self else {
+                    return
+                }
                 self.refreshCtfWins()
             }
         }
@@ -556,16 +632,18 @@ final class EarningsViewModel: ObservableObject {
                 ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .needsGas
             } else if code == SnLedgerClaimFailure.ledgerUnavailableCode, noId != 0, index == 0 {
                 // the claim could not read this pool, whose account index it
-                // does not know, and claimed the others: the pool, and an
-                // account this sheet queued in it, are unavailable right now;
-                // one the claim already sent keeps its state (Android's and
-                // Linux's rule)
-                var keys = ledgerClaimProgress.filter { $0.key.noId == noId && $0.value == .queued }.map(\.key)
+                // does not know, and claimed the others: the pool, and each
+                // account of it the sheet listed or the claim reported that
+                // the claim sent nothing for, whatever its index and under
+                // the floor too, are unavailable right now; one the claim
+                // sent keeps its state (Android's, Linux's and Windows' rule)
                 let poolKey = SnLedgerAccountKey(noId: noId, index: index)
-                if ledgerClaimProgress[poolKey] == nil {
-                    keys.append(poolKey)
-                }
-                for key in keys {
+                let keys = Set(
+                    ledger.accounts.filter { $0.noId == noId }.map(\.id)
+                        + ledgerClaimProgress.keys.filter { $0.noId == noId }
+                        + [poolKey]
+                )
+                for key in keys where ledgerClaimProgress[key]?.unsent ?? true {
                     ledgerClaimProgress[key] = .unavailable
                 }
             } else if SnLedgerClaimFailure.underFloor(message) {
@@ -581,9 +659,13 @@ final class EarningsViewModel: ObservableObject {
             // an account the SDK did not claim is not left pending
             ledgerClaimProgress = ledgerClaimProgress.filter { $0.value != .queued }
             // a win whose award this claim, or another sender's, paid is no
-            // longer unclaimed
+            // longer unclaimed: the wins are read now, after any claim, as
+            // every app reads them, and after one that paid again on the
+            // schedule, as the server reads the claim only once the finalized
+            // head covers it
+            refreshCtfWins()
             if ledgerClaimProgress.values.contains(where: \.paid) {
-                refreshCtfWins()
+                readCtfWinsAfterClaim()
             }
             Task { [weak self] in
                 await self?.refreshSubnet()

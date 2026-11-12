@@ -2512,12 +2512,15 @@ struct SnLedgerTests {
         #expect(second.claimTileEnabled)
         #expect(second.claimSheetClaims == listed)
         #expect(second.claimFigureRao == 1_500_000_000)
+        // the count under the figure is the press's too, never 0 under it
+        #expect(second.claimSheetClaimableCount == 2)
         #expect(!second.claimEnabled)
 
         client.emitV1(.done)
         await Self.settle { !second.isClaiming }
         #expect(!second.claimTileEnabled)
         #expect(second.claimSheetClaims.isEmpty)
+        #expect(second.claimSheetClaimableCount == 0)
         #expect(session.claimListed.isEmpty)
         #expect(session.claimMovingRao == 0)
     }

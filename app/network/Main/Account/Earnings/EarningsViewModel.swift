@@ -521,6 +521,13 @@ final class EarningsViewModel: ObservableObject {
         isClaiming ? session.claimListed : claims
     }
 
+    /// The count under the v1 sheet's figure ("Claimable epochs: N"): the
+    /// claimable epochs, and during a claim the epochs it sends, fixed with
+    /// the figure until Done (as on Windows).
+    var claimSheetClaimableCount: Int {
+        isClaiming ? claimProgress.count : claimableClaims.count
+    }
+
     /// The v1 tile's Claim: something claimable, or a claim in flight, which
     /// it opens whatever the last read says (as the v2 tile's does, and the
     /// other apps' v1 Claim).

@@ -264,9 +264,12 @@ struct EarningsView: View {
             // claims from, past leaving Account on macOS and past a sign-out.
             // The sheets they serve are this view's own, so it is on screen
             // while any of those is up; a consent read still out when it goes
-            // is read again by the next visit (.task).
+            // is read again by the next visit (.task), a link that lands
+            // meanwhile is handed on when it is back (BittensorKeyModel
+            // .onLinked), and a consent on its way when the key model goes
+            // finishes (BittensorKeyFlowEnd).
             consentFlow.onStatusRead = { _, _ in }
-            keyModel.onLinked = {}
+            keyModel.onLinked = nil
             connectFlow.onConnected = { _ in }
             consentFlow.onSigned = {}
             solanaFlow.openWallet = { _ in false }

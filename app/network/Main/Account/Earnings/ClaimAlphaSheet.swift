@@ -17,8 +17,9 @@ struct ClaimAlphaSheet: View {
     @ObservedObject var viewModel: EarningsViewModel
     let dismiss: () -> Void
 
+    /// the claimable epochs, and during a claim the epochs it sends
     private var claimableCount: Int {
-        viewModel.claimableClaims.count
+        viewModel.claimSheetClaimableCount
     }
 
     /// what is unclaimed, and during a claim what the claim moves

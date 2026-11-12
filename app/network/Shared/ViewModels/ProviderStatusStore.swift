@@ -267,6 +267,18 @@ extension ProviderStatusNumber {
 
     /// A copy of the sdk's number.
     init(_ number: SdkProviderRankingNumber) {
+        var reasonLines: [ProviderStatusReasonLine] = []
+        if let lines = number.reasonLines {
+            for i in 0..<lines.len() {
+                if let line = lines.get(i) {
+                    reasonLines.append(ProviderStatusReasonLine(
+                        label: line.label,
+                        count: line.count,
+                        text: line.text
+                    ))
+                }
+            }
+        }
         self.init(
             name: number.name,
             hasValue: number.hasValue,
@@ -277,7 +289,8 @@ extension ProviderStatusNumber {
             maximum: number.maximum,
             passes: number.passes,
             count: number.count,
-            total: number.total
+            total: number.total,
+            reasonLines: reasonLines
         )
     }
 }

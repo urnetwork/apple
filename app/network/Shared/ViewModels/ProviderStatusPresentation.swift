@@ -198,6 +198,20 @@ struct ProviderStatusNumber: Equatable {
     var passes: Bool = true
     var count: Int = 0
     var total: Int = 0
+    /// the sdk's lines for why the network checks downgraded this device, in
+    /// the order they show (url_checks only, server FP2-PROTOCOL.md §5.5)
+    var reasonLines: [ProviderStatusReasonLine] = []
+}
+
+/// One line the sdk derived from a number's reason, a mirror of its
+/// `ProviderStatusReasonLine`.
+struct ProviderStatusReasonLine: Equatable {
+    /// one of the `SdkProviderStatusReasonLine*` labels
+    var label: String
+    /// the checks a tcp or ipv4 line counts
+    var count: Int = 0
+    /// the server's English, for a reason this build has no string for
+    var text: String = ""
 }
 
 /// Where clients find this device.
@@ -207,13 +221,31 @@ struct ProviderStatusCountry: Equatable {
 }
 
 /// One row of the "Why?" panel: a label, a value (amber when it does not
-/// pass) and a muted help line under it.
+/// pass) and a muted help line under it, then the lines of the reason the
+/// network checks downgraded the device, when there is one.
 struct ProviderStatusRow: Identifiable {
     let id: String
     let label: LocalizedStringResource
     let value: String
     let help: LocalizedStringResource
     let passes: Bool
+    var reasons: [String] = []
+}
+
+/// The sdk's reason lines as this build shows them, in the sdk's order: tcp
+/// and ipv4 in the reader's language with their counts, any other label as
+/// the server's English, and a line with neither left out.
+func providerStatusReasons(_ lines: [ProviderStatusReasonLine]) -> [String] {
+    lines.compactMap { line in
+        switch line.label {
+        case SdkProviderStatusReasonLineTcp:
+            return String(localized: "\(line.count) of these checks failed only over HTTP/3 (UDP), so this device is offered for TCP traffic only. Some app builds and some networks do not route UDP.")
+        case SdkProviderStatusReasonLineIpv4:
+            return String(localized: "\(line.count) of these checks failed only over IPv6, so this device is offered for IPv4 traffic only.")
+        default:
+            return line.text.isEmpty ? nil : line.text
+        }
+    }
 }
 
 private let reliabilityLookbackPrefix = "reliability_lookback_"
@@ -310,7 +342,8 @@ func providerStatusRow(
         label: label,
         value: value,
         help: help,
-        passes: number.passes
+        passes: number.passes,
+        reasons: providerStatusReasons(number.reasonLines)
     )
 }
 

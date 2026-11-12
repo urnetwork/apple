@@ -2223,6 +2223,31 @@ struct SnLedgerTests {
         #expect(client.ctfWinsReads == 3)
     }
 
+    // the screens draw the view model, so a change of the session's claim or
+    // lines is a change of the view model's
+    @Test func theViewModelChangesWithTheSession() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let (client, viewModel) = await Self.loaded([Self.account()])
+        var changes = 0
+        let watch = viewModel.objectWillChange.sink { _ in changes += 1 }
+        defer { watch.cancel() }
+
+        // the claim starts: the session's change alone
+        viewModel.claimLedger()
+        #expect(changes > 0)
+        // its event
+        let started = changes
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xabc"))
+        await Self.settle { changes > started }
+        #expect(changes > started)
+        // a wins read's answer
+        let sent = changes
+        client.ctfWinsAnswer = [win]
+        viewModel.session.readCtfWins()
+        await Self.settle { viewModel.ctfWins == [win] }
+        #expect(changes > sent)
+    }
+
     // iOS: the claim sheet swiped away during a claim, and opened again from
     // the tile's Claim or the relay's "Claim it yourself": the claim as it
     // went on, never a sheet started over, and Claim held until Done

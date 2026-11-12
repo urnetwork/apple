@@ -14,9 +14,10 @@ import URnetworkSdk
  * The space stores the list and applies it in place: a save swaps the client
  * strategy's DoH settings, and the space, a device bound to it and this screen
  * stay valid, so the app's own lookups take the new servers at once. The
- * packet tunnel reads the space from the app group when it starts, on iOS and
- * on macOS alike, so a running tunnel keeps the servers it started with until
- * it connects again, which the screen says.
+ * packet tunnel, on iOS and macOS alike, runs its device in its own copy of the
+ * space, read when it starts; the app's device remote hands a running tunnel
+ * the new servers in place too (sdk device_remote_ingress_dns.go), so the screen
+ * no longer says they wait for the next connect.
  */
 
 /// What the last save came to.

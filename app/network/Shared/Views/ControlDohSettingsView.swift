@@ -98,16 +98,13 @@ struct ControlDohSettingsSection: View {
             )
 
             if store.saveOutcome == .saved {
+                // a running tunnel takes the servers in place: the app's
+                // device remote hands them to the packet tunnel's own copy of
+                // the space (sdk device_remote_ingress_dns.go), so there is no
+                // next-connect note
                 Text("Bootstrap DNS-over-HTTPS servers saved")
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
-                // the packet tunnel, on iOS and macOS alike, reads the space
-                // from the app group when it starts, so a running tunnel keeps
-                // the servers it started with
-                Text("The VPN uses the new bootstrap servers the next time it connects.")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
-                    .fixedSize(horizontal: false, vertical: true)
             }
 
         }

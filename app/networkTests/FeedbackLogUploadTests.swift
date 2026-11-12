@@ -292,4 +292,39 @@ struct FeedbackLogUploadTests {
             #expect(byteCount <= 100 * 1024 * 1024)
         }
     }
+
+    /// Why the app's earlier processes ended (AppExitDiagnostics, support
+    /// 8190): a MetricKit payload the sdk logs is one sanitized line of
+    /// Logs/app/exit-diagnostics.txt, a payload that comes again adds nothing,
+    /// and the upload of either process holds the file. That newer glog files
+    /// never crowd it out of the cap is pinned in the sdk
+    /// (TestSelectUploadLogFilesPlansTheExitDiagnosticsFileFirst).
+    @Test func eitherProcesssUploadHoldsTheExitDiagnostics() throws {
+        let payloadJson = """
+            {"crashDiagnostics" : [{"callStackTree" : {"callStacks" : []},
+              "diagnosticMetaData" : {"appVersion" : "2026.11.3", "appBuildVersion" : "4512",
+                "osVersion" : "iPhone OS 26.1 (23B85)", "exceptionType" : 1, "exceptionCode" : 1, "signal" : 11,
+                "terminationReason" : "Namespace SIGNAL, Code 11 /private/var/containers/Bundle/Application/x"}}]}
+            """
+        let crashMillis: Int64 = 1_794_316_740_000
+        try Self.withLogRoot(processName: DiagnosticsLogContract.appProcessName) { root in
+            #expect(SdkLogMetricKitDiagnosticPayload(payloadJson, crashMillis, crashMillis) == 1)
+            #expect(SdkLogMetricKitDiagnosticPayload(payloadJson, crashMillis, crashMillis) == 0)
+
+            let file = root.appendingPathComponent("app/exit-diagnostics.txt")
+            let content = try String(contentsOf: file, encoding: .utf8)
+            #expect(content.hasPrefix("2026-11-10T13:19:00Z..2026-11-10T13:19:00Z metrickit crash app=2026.11.3 build=4512 "))
+            #expect(content.contains(" signal=SIGSEGV(11) "))
+            #expect(!content.contains("/private"))
+            #expect(content.filter { $0 == "\n" }.count == 1)
+            #expect(Self.sourceNames(Self.uploadInventory()).contains("app/exit-diagnostics.txt"))
+        }
+        // the extension's upload, while the tunnel is up, from the same root
+        try Self.withLogRoot(processName: DiagnosticsLogContract.extensionProcessName) { root in
+            try Self.writeLogFile(root: root, source: "app", name: "exit-diagnostics.txt",
+                                  byteCount: 2048, modified: Date().addingTimeInterval(-2 * 86400))
+
+            #expect(Self.sourceNames(Self.uploadInventory()).contains("app/exit-diagnostics.txt"))
+        }
+    }
 }

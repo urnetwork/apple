@@ -13,6 +13,9 @@ struct MainView: View {
     let api: SdkApi
     let urApiService: UrApiServiceProtocol
     let device: SdkDeviceRemote
+    // the signed-in account's claims and capture the flag lines, the app's
+    // (EarningsSessions): every window's Account screens draw this one
+    let earningsSession: EarningsSession
     let logout: () -> Void
     // var connectViewController: SdkConnectViewController?
     let welcomeAnimationComplete: Binding<Bool>
@@ -44,6 +47,7 @@ struct MainView: View {
     init(
         api: SdkApi,
         device: SdkDeviceRemote,
+        earningsSession: EarningsSession,
         logout: @escaping () -> Void,
         welcomeAnimationComplete: Binding<Bool>,
         networkId: SdkId?,
@@ -56,6 +60,7 @@ struct MainView: View {
         self.api = api
         self.logout = logout
         self.device = device
+        self.earningsSession = earningsSession
         let urApiService = UrApiService(api: api)
         self.urApiService = urApiService
         self.welcomeAnimationComplete = welcomeAnimationComplete
@@ -105,6 +110,7 @@ struct MainView: View {
                         api: api,
                         urApiService: urApiService,
                         device: device,
+                        earningsSession: earningsSession,
                         logout: self.logout,
                         providerStore: providerListStore,
                         introductionComplete: introductionComplete,
@@ -117,6 +123,7 @@ struct MainView: View {
                         api: api,
                         urApiService: urApiService,
                         device: device,
+                        earningsSession: earningsSession,
                         logout: self.logout,
                         providerListStore: providerListStore,
                         introductionComplete: introductionComplete,

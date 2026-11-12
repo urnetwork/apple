@@ -9,7 +9,8 @@
 //  flag pool's) and their claim, the gas key balance and the network's Top
 //  200 standing on the Protocol leaderboard. The claims in flight and
 //  capture the flag's won lines are the signed-in session's (EarningsSession),
-//  which outlives this view model where the Account screens do not.
+//  which the app holds for every window and which outlives this view model
+//  where the Account screens do not.
 //
 
 import Combine
@@ -160,7 +161,7 @@ final class EarningsViewModel: ObservableObject {
     static let ledgerGasTaoPerClaim = 0.02
 
     /// The Account screens' view model on the signed-in session's claims and
-    /// won lines, and its client.
+    /// won lines, and its client: each window's own, on the one session.
     init(session: EarningsSession) {
         self.session = session
         let client = session.client
@@ -177,17 +178,16 @@ final class EarningsViewModel: ObservableObject {
         sessionChanges = session.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
-        // a claim's Done, whichever view model started it: the subnet as the
-        // chain now has it, read by the view model on screen alone
+        // a claim's Done, whichever window's view model started it: the
+        // subnet as the chain now has it, read by every view model alive,
+        // the one of each window that shows Account (macOS) and the tab
+        // view's (iOS), so no window keeps the balances the claim paid with
+        // Claim on them. One whose Account screens went is gone with them.
         sessionClaimsDone = session.claimDone.sink { [weak self] _ in
-            guard let self, self.session.screen === self else {
-                return
-            }
             Task { [weak self] in
                 await self?.refreshSubnet()
             }
         }
-        session.screen = self
     }
 
     /// A view model with a session of its own, as previews and tests have.

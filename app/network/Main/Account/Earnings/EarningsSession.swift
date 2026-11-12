@@ -7,25 +7,30 @@
 //  settlement v2 claim, with their progress and their Done; and capture the
 //  flag's won lines, with the reads after a claim.
 //
+//  The session is app-wide (owner, 2026-11-12: "make the session
+//  app-wide"): the app holds one for the signed-in account
+//  (EarningsSessions), and every window and view shares it. On macOS each
+//  window (File > New Window) shows Account on the same session, so a claim
+//  in flight shows in every window, and Claim is held in every window while
+//  any claim runs. A sign-out ends it, and a second account's sign-in gets a
+//  fresh one.
+//
 //  The Account screens' view model (EarningsViewModel) does not live that
 //  long everywhere: on macOS the sidebar's switch builds the Account screens,
-//  so leaving Account drops it and coming back builds another. A claim in
-//  flight is the session's, so its events and its Done land here whatever
-//  screen is up; a view model built during it shows the claim as it went on,
-//  with Claim held until Done, and no second claim starts while one is in
-//  flight. A view model alive at a claim's Done reads the subnet again; one
+//  so leaving Account drops it and coming back builds another, and each
+//  window builds its own. A claim in flight is the session's, so its events
+//  and its Done land here whatever screen is up; a view model built during it
+//  shows the claim as it went on, with Claim held until Done, and no second
+//  claim starts while one is in flight. Every view model alive at a claim's
+//  Done, one for each window that shows Account, reads the subnet again; one
 //  built after it reads everything on its first visit anyway.
-//
-//  The tab view (iOS) and the split view (macOS) own one for the signed-in
-//  account and hand it to the Account screens. A sign-out ends them, and this
-//  with them, as it ends the claim: the claim's late events find nothing.
 //
 
 import Combine
 import Foundation
 
-/// A claim's Done, for the view models that live: each reads the subnet
-/// again.
+/// A claim's Done, for the view models that live, one for each window that
+/// shows Account: each reads the subnet again.
 enum EarningsClaimDone: Equatable {
     /// the v1 claim's
     case claim
@@ -93,12 +98,13 @@ final class EarningsSession: ObservableObject {
     /// claim, so the read at Done can still list a win the claim paid.
     static let ctfWinsReadsAfterClaim: [Duration] = [.seconds(30), .seconds(60), .seconds(120)]
 
-    /// each claim's Done, for the view models that live
+    /// each claim's Done, for the view models that live: each window's
+    /// Account screens read the subnet again
     let claimDone = PassthroughSubject<EarningsClaimDone, Never>()
-    /// the Account screens' view model built last, the one on screen: only it
-    /// reads the subnet again at a claim's Done, so a view model an earlier
-    /// visit left behind costs no reads
-    weak var screen: EarningsViewModel?
+
+    /// A sign-out, or another account's sign-in, ended the session (end()):
+    /// it starts nothing more, and nothing landing after takes it on.
+    private(set) var ended = false
 
     init(
         client: EarningsClient,
@@ -108,21 +114,34 @@ final class EarningsSession: ObservableObject {
         self.sleep = sleep
     }
 
-    /// A claim of either kind is in flight. The gas key sends one claim at a
-    /// time: the sdk reads its pending nonce as it signs, with no lock across
-    /// a v1 and a v2 claim, so two at once could take the same nonce. Neither
-    /// kind starts while one is in flight, as on Linux.
+    /// A claim of either kind is in flight, from any window. The gas key
+    /// sends one claim at a time: the sdk reads its pending nonce as it
+    /// signs, with no lock across a v1 and a v2 claim, so two at once could
+    /// take the same nonce. Neither kind starts while one is in flight, as
+    /// on Linux, and every window's Claim waits for it (the session is
+    /// app-wide).
     var isAnyClaiming: Bool {
         isClaiming || isLedgerClaiming
+    }
+
+    /// Ends the session: a sign-out, or another account's sign-in
+    /// (EarningsSessions). The claims' late events and the reads' late
+    /// answers find nothing, as when the session went with the screens: the
+    /// reads after a claim stop, and no claim or read starts. The screens
+    /// that drew it go with the sign-out.
+    func end() {
+        ended = true
+        ctfWinsAfterClaim?.cancel()
+        ctfWinsAfterClaim = nil
     }
 
     // MARK: the v1 claim
 
     /// The v1 claim of `epochs`, of the claims the sheet `listed`: it moves
     /// those epochs' amounts as Claim found them. Nothing while a claim of
-    /// either kind is in flight (isAnyClaiming).
+    /// either kind is in flight (isAnyClaiming), or once the session ended.
     func claim(epochs: [Int64], listed: [SnEpochClaimInfo]) {
-        guard !isAnyClaiming, !epochs.isEmpty else {
+        guard !ended, !isAnyClaiming, !epochs.isEmpty else {
             return
         }
         let amounts = Dictionary(listed.map { ($0.epoch, $0.amountRao) }, uniquingKeysWith: { first, _ in first })
@@ -150,6 +169,9 @@ final class EarningsSession: ObservableObject {
     }
 
     private func apply(_ event: SnClaimEvent) {
+        guard !ended else {
+            return
+        }
         switch event {
         case .sent(let epoch, let txHash):
             claimProgress[epoch] = .sent(txHash: txHash)
@@ -173,9 +195,9 @@ final class EarningsSession: ObservableObject {
     /// two or more, one STClaimBatcher transaction that claims them all.
     /// `listed` is every account the sheet listed. Nothing while a claim of
     /// either kind is in flight: the gas key sends one at a time
-    /// (isAnyClaiming).
+    /// (isAnyClaiming); nor once the session ended.
     func claimLedger(sends accounts: [SnLedgerAccountInfo], listed: [SnLedgerAccountInfo]) {
-        guard !isAnyClaiming, !accounts.isEmpty else {
+        guard !ended, !isAnyClaiming, !accounts.isEmpty else {
             return
         }
         isLedgerClaiming = true
@@ -199,6 +221,9 @@ final class EarningsSession: ObservableObject {
     }
 
     private func applyLedger(_ event: SnLedgerClaimEvent) {
+        guard !ended else {
+            return
+        }
         switch event {
         case .sent(let noId, let index, let txHash):
             ledgerClaimProgress[SnLedgerAccountKey(noId: noId, index: index)] = .sent(txHash: txHash)
@@ -277,7 +302,13 @@ final class EarningsSession: ObservableObject {
     /// client's. A network answer replaces a client answer's lines whatever
     /// order their reads started in, and another network answer's unless that
     /// read is newer.
+    ///
+    /// None starts once the session ended, and an answer that lands after
+    /// it shows nowhere.
     func readCtfWins() {
+        guard !ended else {
+            return
+        }
         ctfWinsReadsStarted += 1
         let read = ctfWinsReadsStarted
         let client = client
@@ -288,7 +319,7 @@ final class EarningsSession: ObservableObject {
     }
 
     private func applyCtfWins(_ answer: SnCtfWinsAnswer?, read: Int) {
-        guard let answer else {
+        guard !ended, let answer else {
             return
         }
         if answer.fromClient {
@@ -309,7 +340,8 @@ final class EarningsSession: ObservableObject {
     /// claim. Each read starts at its time and replaces the lines unless it
     /// failed (readCtfWins). The next paying claim's Done starts the reads
     /// over; one that paid nothing leaves them be. They run with the session,
-    /// whatever screen is up, and a sign-out, which ends it, ends them.
+    /// whatever screen or window is up, and a sign-out, which ends it (end()),
+    /// ends them.
     private func readCtfWinsAfterClaim() {
         ctfWinsAfterClaim?.cancel()
         let sleep = sleep
@@ -328,5 +360,59 @@ final class EarningsSession: ObservableObject {
                 self.readCtfWins()
             }
         }
+    }
+}
+
+/// The app's EarningsSession: one for the signed-in account, which every
+/// window and view shares (owner, 2026-11-12: "make the session app-wide").
+/// Before, the tab view (iOS) and each window's split view (macOS) built
+/// their own, so a second window (File > New Window, ⌘N) knew nothing of a
+/// claim in flight in the first: its Claim followed its own read, and could
+/// start a second claim from the same gas key while the first ran.
+///
+/// The app makes one and has it follow the signed-in device for the life of
+/// the process, whatever window is up (NetworkApp): a sign-in's device gets
+/// a fresh session, the same device keeps its own, and a sign-out (no
+/// device) ends it, as another device's sign-in does before that device
+/// gets its own. Each window's screens draw the session of the device they
+/// show (session(for:)).
+@MainActor
+final class EarningsSessions: ObservableObject {
+
+    /// the signed-in account's session; nil while signed out
+    @Published private(set) var current: EarningsSession?
+    /// the signed-in device `current` is for
+    private weak var device: AnyObject?
+    /// the signed-in device followed (follow)
+    private var following: AnyCancellable?
+
+    /// The session of `device` while it is the device signed in, which every
+    /// window's screens share; nil for any other device, as one a sign-out
+    /// or a later sign-in replaced.
+    func session(for device: AnyObject) -> EarningsSession? {
+        device === self.device ? current : nil
+    }
+
+    /// Follows the signed-in device, DeviceManager's, from the one signed in
+    /// now, for as long as this lives (signedIn).
+    func follow<Device: AnyObject, Devices: Publisher>(
+        _ devices: Devices,
+        makeSession: @escaping @MainActor (Device) -> EarningsSession
+    ) where Devices.Output == Device?, Devices.Failure == Never {
+        following = devices.sink { [weak self] device in
+            self?.signedIn(device, makeSession: makeSession)
+        }
+    }
+
+    /// The device signed in now: the same device keeps its session; none (a
+    /// sign-out) ends it; another (a second account's sign-in) ends it and
+    /// gets a fresh one from `makeSession`.
+    func signedIn<Device: AnyObject>(_ device: Device?, makeSession: @MainActor (Device) -> EarningsSession) {
+        if let device, device === self.device, current != nil {
+            return
+        }
+        current?.end()
+        self.device = device
+        current = device.map(makeSession)
     }
 }

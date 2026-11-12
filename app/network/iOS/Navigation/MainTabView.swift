@@ -14,6 +14,10 @@ struct MainTabView: View {
     let api: SdkApi
     let urApiService: UrApiServiceProtocol
     let device: SdkDeviceRemote
+    // the signed-in session's claims and capture the flag lines, which the
+    // Account screens draw: the app's (EarningsSessions), which a sign-out
+    // ends
+    let earningsSession: EarningsSession
     let logout: () -> Void
     let introductionComplete: Binding<Bool>
     let isPro: Bool
@@ -24,9 +28,6 @@ struct MainTabView: View {
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     @StateObject private var networkReliabilityStore: NetworkReliabilityStore
-    // the signed-in session's claims and capture the flag lines, which the
-    // Account screens draw and a sign-out ends with this view
-    @StateObject private var earningsSession: EarningsSession
 
     @ObservedObject var providerListStore: ProviderListStore
 
@@ -50,6 +51,7 @@ struct MainTabView: View {
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
+        earningsSession: EarningsSession,
         logout: @escaping () -> Void,
         providerStore: ProviderListStore,
         introductionComplete: Binding<Bool>,
@@ -61,6 +63,7 @@ struct MainTabView: View {
         self.urApiService = urApiService
         self.logout = logout
         self.device = device
+        self.earningsSession = earningsSession
 
         self.providerListStore = providerStore
         self.isPro = isPro
@@ -69,10 +72,6 @@ struct MainTabView: View {
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
         
         _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
-
-        _earningsSession = StateObject(wrappedValue: EarningsSession(
-            client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
-        ))
 
         self.introductionComplete = introductionComplete
 

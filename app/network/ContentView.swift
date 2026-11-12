@@ -34,6 +34,8 @@ struct ContentView: View {
     @StateObject var viewModel = ViewModel()
     @EnvironmentObject var deviceManager: DeviceManager
     @EnvironmentObject var connectViewModel: ConnectViewModel
+    // the signed-in account's earnings session, which every window shares
+    @EnvironmentObject var earningsSessions: EarningsSessions
     @StateObject private var snackbarManager = UrSnackbarManager()
     @StateObject private var connectWalletProviderViewModel = ConnectWalletProviderViewModel()
     @ObservedObject private var insufficientBalanceNoticePosts = InsufficientBalanceNoticePosts.shared
@@ -86,6 +88,9 @@ struct ContentView: View {
 
                 case .main:
                     if let device = deviceManager.device,
+                       // the device's claims and won lines, the app's: every
+                       // window draws the one session
+                       let earningsSession = earningsSessions.session(for: device),
                        deviceManager.vpnManager != nil
                         || deviceManager.startupMode == .hardwareNoVPN {
                         
@@ -94,6 +99,7 @@ struct ContentView: View {
                         MainView(
                             api: api,
                             device: device,
+                            earningsSession: earningsSession,
                             logout: {
                                 
                                 // warned first while the payout key isn't saved
@@ -125,6 +131,11 @@ struct ContentView: View {
                                 deviceManager.subscriptionBalanceFailed()
                             }
                         )
+                        // a device that replaces the signed-in one with no
+                        // sign-out between gets the main screens anew, on its
+                        // own session: none of the screens keeps the one
+                        // before, which its sign-in ended
+                        .id(ObjectIdentifier(earningsSession))
                         .opacity(opacity)
 
                     } else {

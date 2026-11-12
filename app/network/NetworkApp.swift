@@ -303,6 +303,10 @@ struct NetworkApp: App {
     @StateObject var proFeaturesNoticeStore = ProFeaturesNoticeStore()
     // where a Home Screen widget tap takes the app (urnetwork://widgets/...)
     @StateObject var deepLinkRouter = DeepLinkRouter()
+    // the signed-in account's claims in flight and capture the flag lines:
+    // one session for every window (EarningsSessions), following the device
+    // whatever window is up
+    @StateObject var earningsSessions: EarningsSessions
 
     init() {
         // the app process writes its own logs too: glog writes NOTHING until a
@@ -349,6 +353,18 @@ struct NetworkApp: App {
             wrappedValue: TransportDelayStore(deviceWorkQueue: connectViewModel.connectCommandQueue)
         )
         #endif
+        // one earnings session for the signed-in account, which every window
+        // shares: a sign-in's device gets a fresh one, a sign-out ends it
+        let earningsSessions = EarningsSessions()
+        _earningsSessions = StateObject(wrappedValue: earningsSessions)
+        earningsSessions.follow(deviceManager.$device) { [weak deviceManager] (device: SdkDeviceRemote) in
+            let api = deviceManager?.api
+            return EarningsSession(client: EarningsSdkClient(
+                api: api,
+                urApiService: UrApiService(apiProvider: { api }),
+                device: device
+            ))
+        }
         appDelegate.deviceManager = deviceManager
         // every logout, the server's included, stops the account connecting
         deviceManager.logoutStarted = { [weak connectViewModel] device in
@@ -583,6 +599,7 @@ struct NetworkApp: App {
                 .environmentObject(providePowerStore)
                 .environmentObject(deepLinkRouter)
                 .environmentObject(proFeaturesNoticeStore)
+                .environmentObject(earningsSessions)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 // the payout key's reminder, tapped: the Key screen
                 .onReceive(BittensorKeyReminderTaps.shared.$pending) { pending in
@@ -696,6 +713,7 @@ struct NetworkApp: App {
                 .environmentObject(deepLinkRouter)
                 .environmentObject(splitTunnelProxyController)
                 .environmentObject(proFeaturesNoticeStore)
+                .environmentObject(earningsSessions)
                 .environment(\.presentationActive, presentationLifecycle.isActive)
                 // the payout key's reminder, tapped: the Key screen
                 .onReceive(BittensorKeyReminderTaps.shared.$pending) { pending in

@@ -39,6 +39,12 @@ struct MainNavigationSplitView: View {
     let api: SdkApi
     let urApiService: UrApiServiceProtocol
     let device: SdkDeviceRemote
+    // the signed-in session's claims and capture the flag lines: the app's
+    // (EarningsSessions), which every window shares, so a claim started in
+    // one window shows in each and holds Claim in each until Done. The
+    // sidebar's switch builds the Account screens again on each visit; the
+    // session outlives them, until a sign-out ends it
+    let earningsSession: EarningsSession
     let logout: () -> Void
     let isPro: Bool
     // owned by ContentView; finishing the introduction writes it back
@@ -56,15 +62,11 @@ struct MainNavigationSplitView: View {
 
     @StateObject private var networkReliabilityStore: NetworkReliabilityStore
 
-    // the signed-in session's claims and capture the flag lines: the sidebar's
-    // switch builds the Account screens again on each visit, so they live
-    // here, until a sign-out ends this view
-    @StateObject private var earningsSession: EarningsSession
-
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
+        earningsSession: EarningsSession,
         logout: @escaping () -> Void,
         providerListStore: ProviderListStore,
         introductionComplete: Binding<Bool>,
@@ -77,16 +79,13 @@ struct MainNavigationSplitView: View {
         self.urApiService = urApiService
         self.logout = logout
         self.device = device
+        self.earningsSession = earningsSession
         self.providerListStore = providerListStore
         _networkUserViewModel = StateObject(wrappedValue: NetworkUserViewModel(api: api))
         
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
         
         _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
-
-        _earningsSession = StateObject(wrappedValue: EarningsSession(
-            client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
-        ))
 
         self.isPro = isPro
         self.introductionComplete = introductionComplete

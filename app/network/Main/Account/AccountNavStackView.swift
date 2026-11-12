@@ -43,7 +43,9 @@ struct AccountNavStackView: View {
     
     /// `earningsSession`: the signed-in session's claims and capture the flag
     /// lines, which outlive these screens (on macOS leaving Account drops
-    /// them; the tab view and the split view own the session)
+    /// them) and which every window shares: the app holds the session
+    /// (EarningsSessions), and each window's Account screens build a view
+    /// model on it
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,

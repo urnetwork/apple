@@ -38,7 +38,14 @@
 //  pool the claim cannot read makes each of its listed accounts the claim sent
 //  nothing for unavailable, whatever its index.
 //
+//  The session is app-wide (owner, 2026-11-12): the app holds one for the
+//  signed-in device (EarningsSessions), which two windows' Account screens
+//  share, so a claim started in one shows in the other and holds Claim there
+//  until Done; a sign-out ends it, and a second account's sign-in, or the
+//  tab view's on iOS, gets a fresh one.
+//
 
+import Combine
 import Foundation
 import Testing
 import URnetworkSdk
@@ -2228,7 +2235,8 @@ struct SnLedgerTests {
             second.resetLedgerClaimProgress()
             #expect(second.ledgerClaimProgress.isEmpty)
         }
-        // a sign-out ends the session, and the reads after the claim with it
+        // a session let go ends the reads after the claim with it (the app
+        // holds the session now, and a sign-out ends it: aSignOutEndsTheSession)
         await Self.settle { releasedSession == nil }
         #expect(releasedSession == nil)
         clock.advance()
@@ -2525,27 +2533,470 @@ struct SnLedgerTests {
         #expect(session.claimMovingRao == 0)
     }
 
-    // a claim's Done reads the subnet again in the view model on screen, the
-    // one built last, alone: one an earlier visit left behind costs no reads
-    @Test func onlyTheViewModelOnScreenReadsAgainAtADone() async {
+    // a claim's Done reads the subnet again in every view model alive, the
+    // one of each window that shows Account (the session is app-wide), so no
+    // window keeps the balances the claim paid with Claim on them; one an
+    // earlier visit built went with its screens and costs no read
+    @Test func everyWindowsViewModelReadsAgainAtADone() async {
         let client = FakeLedgerClient()
         client.chain = Self.configured
         client.ledgerAnswer = [Self.account()]
         let session = EarningsSession(client: client)
-        let earlier = EarningsViewModel(session: session)
-        await earlier.refresh()
-        let current = EarningsViewModel(session: session)
-        await current.refresh()
-        #expect(session.screen === current)
+        weak var left: EarningsViewModel?
+        do {
+            let earlier = EarningsViewModel(session: session)
+            left = earlier
+            await earlier.refresh()
+        }
+        await Self.settle { left == nil }
+        #expect(left == nil)
+        let window = EarningsViewModel(session: session)
+        await window.refresh()
+        let other = EarningsViewModel(session: session)
+        await other.refresh()
+        #expect(other.ledgerClaimEnabled)
 
-        current.claimLedger()
+        window.claimLedger()
         let reads = client.ledgerReads
         client.ledgerAnswer = [Self.paid]
         client.emit(.done)
-        await Self.settle { current.ledger == .loaded([Self.paid]) }
+        await Self.settle { window.ledger == .loaded([Self.paid]) && other.ledger == .loaded([Self.paid]) }
         await Self.settle { false }
-        #expect(client.ledgerReads == reads + 1)
-        #expect(earlier.ledger == .loaded([Self.account()]))
+        #expect(client.ledgerReads == reads + 2)
+        #expect(window.ledger == .loaded([Self.paid]))
+        #expect(other.ledger == .loaded([Self.paid]))
+        // nothing left: no window offers Claim on what the claim paid
+        #expect(!window.ledgerClaimEnabled)
+        #expect(!other.ledgerClaimEnabled)
+    }
+
+    // MARK: the app-wide session (owner, 2026-11-12: "make the session app-wide")
+
+    /// The app's owner of the earnings session following a stand-in for the
+    /// device manager's signed-in device (none: signed out), and the clients
+    /// the sessions it has made so far read through, one per sign-in from
+    /// `clients`, or a new one each when they run out.
+    private static func appSessions(
+        signedIn device: NSObject? = nil,
+        clients: [FakeLedgerClient] = [],
+        clock: FakeClock? = nil
+    ) -> (sessions: EarningsSessions, devices: CurrentValueSubject<NSObject?, Never>, made: () -> [FakeLedgerClient]) {
+        let sessions = EarningsSessions()
+        let devices = CurrentValueSubject<NSObject?, Never>(device)
+        var queue = clients
+        var made: [FakeLedgerClient] = []
+        sessions.follow(devices) { _ in
+            let client = queue.isEmpty ? FakeLedgerClient() : queue.removeFirst()
+            made.append(client)
+            if let clock {
+                return EarningsSession(client: client, sleep: { await clock.sleep($0) })
+            }
+            return EarningsSession(client: client)
+        }
+        return (sessions, devices, { made })
+    }
+
+    /// v1 claims: epoch 7 claimable, 1 α
+    nonisolated private static let v1Claimable = [
+        SnEpochClaimInfo(epoch: 7, shareBps: 100, amountRao: 1_000_000_000, status: .claimable, claimOpenBlock: 0, expiryBlock: 0, txHash: ""),
+    ]
+
+    /// a client with a connected coldkey, v2 claims configured, the pool's
+    /// and capture the flag's accounts, a v1 epoch to claim and `wins`
+    private static func walletClient(wins: [SnCtfWinInfo] = []) -> FakeLedgerClient {
+        let client = FakeLedgerClient()
+        client.chain = Self.configured
+        client.ledgerAnswer = [Self.account(), Self.ctfAccount()]
+        client.v1Claims = Self.v1Claimable
+        client.ctfWinsAnswer = wins
+        return client
+    }
+
+    // the app holds one session for the signed-in device: each window's
+    // Account screens (macOS: File > New Window) get the same, the device
+    // published again keeps it, and a device that is not the one signed in
+    // gets none
+    @Test func twoWindowsShareOneSession() async throws {
+        let device = NSObject()
+        let client = Self.walletClient()
+        // a sign-in the device manager restored before the app followed it
+        let app = Self.appSessions(signedIn: device, clients: [client])
+        let session = try #require(app.sessions.session(for: device))
+        #expect(app.sessions.current === session)
+        #expect(app.made().count == 1)
+
+        // two windows, each with its own Account screens' view model
+        let first = EarningsViewModel(session: try #require(app.sessions.session(for: device)))
+        let second = EarningsViewModel(session: try #require(app.sessions.session(for: device)))
+        #expect(first.session === second.session)
+        #expect(first.client === second.client)
+        #expect(app.made().count == 1)
+
+        // the device manager publishes the same device again: the same session
+        app.devices.send(device)
+        #expect(app.sessions.session(for: device) === session)
+        #expect(app.made().count == 1)
+        #expect(!session.ended)
+        // another device's screens are not this session's
+        #expect(app.sessions.session(for: NSObject()) == nil)
+
+        // the windows' lines are the session's: one read shows in both
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        client.ctfWinsAnswer = [win]
+        await first.refresh()
+        await Self.settle { second.ctfWins == [win] }
+        #expect(second.ctfWins == [win])
+        #expect(first.ctfWins == [win])
+    }
+
+    // a v2 claim started in one window shows in the other at once and as it
+    // goes on, holds Claim there, of either kind, until Done, and the other
+    // window's tile opens it; its Done lands in both, and Claim follows the
+    // read again in both
+    @Test func aClaimInOneWindowShowsAndIsHeldInTheOther() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let device = NSObject()
+        let client = Self.walletClient(wins: [win])
+        let clock = FakeClock()
+        let app = Self.appSessions(signedIn: device, clients: [client], clock: clock)
+        let session = try #require(app.sessions.session(for: device))
+        let first = EarningsViewModel(session: session)
+        let second = EarningsViewModel(session: session)
+        await first.refresh()
+        await second.refresh()
+        await Self.settle { second.ctfWins == [win] }
+        #expect(first.ledgerClaimEnabled)
+        #expect(second.ledgerClaimEnabled)
+        #expect(second.claimEnabled)
+        var secondChanges = 0
+        let watch = second.objectWillChange.sink { _ in secondChanges += 1 }
+        defer { watch.cancel() }
+
+        first.claimLedger()
+        #expect(client.claimCalls == 1)
+        // the other window shows it at once, with what Claim named
+        #expect(secondChanges > 0)
+        #expect(second.isLedgerClaiming)
+        #expect(second.ledgerClaimProgress == [Self.key: .queued, Self.ctfKey: .queued])
+        #expect(second.ledgerClaimFigureRao == 3_241_000_000 + 144_076_980)
+        #expect(second.ledgerClaimsBoth)
+        // and holds Claim there, the v1 claim's too: the gas key sends one
+        // claim at a time
+        #expect(!second.ledgerClaimEnabled)
+        #expect(!second.claimEnabled)
+        second.claimLedger()
+        second.claimAll()
+        #expect(client.claimCalls == 1)
+        #expect(client.v1ClaimCalls == 0)
+        #expect(!second.isClaiming)
+        // its tile's Claim opens the claim in flight, never a sheet started
+        // over
+        #expect(second.ledgerTile?.claimEnabled == true)
+        second.resetLedgerClaimProgress()
+        #expect(second.ledgerClaimProgress.count == 2)
+
+        // each event shows in both windows
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xbatch"))
+        await Self.settle { second.ledgerClaimProgress[Self.key] == .sent(txHash: "0xbatch") }
+        #expect(second.ledgerClaimProgress[Self.key] == .sent(txHash: "0xbatch"))
+        #expect(first.ledgerClaimProgress[Self.key] == .sent(txHash: "0xbatch"))
+        #expect(second.ledgerClaimRows.map(\.status) == [.sent, .pending])
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xbatch", amountRao: 3_241_000_000))
+        client.emit(.confirmed(noId: Self.ctfNoId, index: 7, txHash: "0xbatch", amountRao: 144_076_980))
+        await Self.settle { second.ledgerClaimProgress[Self.ctfKey] == .confirmed(txHash: "0xbatch", amountRao: 144_076_980) }
+        // still held until Done, in both
+        #expect(!first.ledgerClaimEnabled)
+        #expect(!second.claimEnabled)
+
+        // the Done lands in both: each window reads the subnet again, the
+        // session reads the wins once, and Claim follows the read again
+        let ledgerReads = client.ledgerReads
+        let winsReads = client.ctfWinsReads
+        client.ledgerAnswer = [Self.paid, Self.ctfPaid]
+        client.ctfWinsAnswer = []
+        client.emit(.done)
+        await Self.settle {
+            first.ledger == .loaded([Self.paid, Self.ctfPaid]) && second.ledger == .loaded([Self.paid, Self.ctfPaid])
+                && second.ctfWins.isEmpty && clock.sleeping == 1
+        }
+        #expect(!first.isLedgerClaiming)
+        #expect(!second.isLedgerClaiming)
+        #expect(first.ledgerClaimFinished)
+        #expect(second.ledgerClaimFinished)
+        #expect(client.ledgerReads == ledgerReads + 2)
+        #expect(client.ctfWinsReads == winsReads + 1)
+        #expect(first.ctfWins.isEmpty)
+        #expect(second.ctfWins.isEmpty)
+        #expect(!second.ledgerClaimEnabled)
+        #expect(second.claimEnabled)
+        #expect(first.claimEnabled)
+        // the reads after it are the session's, one schedule for both windows
+        #expect(clock.waits == [.seconds(30)])
+    }
+
+    // a v1 claim started in the other window is held in the first the same
+    // way: it shows the epochs Claim listed, the figure and the count, its
+    // tile opens it, and no claim of either kind starts until Done
+    @Test func aV1ClaimInOneWindowShowsAndIsHeldInTheOther() async throws {
+        let device = NSObject()
+        let client = Self.walletClient()
+        let app = Self.appSessions(signedIn: device, clients: [client])
+        let session = try #require(app.sessions.session(for: device))
+        let first = EarningsViewModel(session: session)
+        let second = EarningsViewModel(session: session)
+        await first.refresh()
+        await second.refresh()
+        #expect(first.claimEnabled)
+
+        second.claimAll()
+        #expect(client.v1ClaimCalls == 1)
+        #expect(first.isClaiming)
+        #expect(first.claimProgress == [7: .queued])
+        #expect(first.claimSheetClaims == Self.v1Claimable)
+        #expect(first.claimFigureRao == 1_000_000_000)
+        #expect(first.claimSheetClaimableCount == 1)
+        #expect(first.claimTileEnabled)
+        #expect(!first.claimEnabled)
+        #expect(!first.ledgerClaimEnabled)
+        first.claimAll()
+        first.claimLedger()
+        #expect(client.v1ClaimCalls == 1)
+        #expect(client.claimCalls == 0)
+        #expect(!first.isLedgerClaiming)
+        first.resetClaimProgress()
+        #expect(first.claimProgress == [7: .queued])
+
+        client.emitV1(.sent(epoch: 7, txHash: "0xv1"))
+        await Self.settle { first.claimProgress[7] == .sent(txHash: "0xv1") }
+        #expect(first.claimProgress[7] == .sent(txHash: "0xv1"))
+
+        let ledgerReads = client.ledgerReads
+        client.v1Claims = [SnEpochClaimInfo(epoch: 7, shareBps: 100, amountRao: 1_000_000_000, status: .claimed, claimOpenBlock: 0, expiryBlock: 0, txHash: "0xv1")]
+        client.emitV1(.confirmed(epoch: 7, txHash: "0xv1", amountRao: 1_000_000_000))
+        client.emitV1(.done)
+        await Self.settle {
+            first.claimFinished && second.claimFinished && first.claimableClaims.isEmpty && second.claimableClaims.isEmpty
+        }
+        #expect(first.claimFinished)
+        #expect(second.claimFinished)
+        #expect(client.ledgerReads == ledgerReads + 2)
+        #expect(second.claimableClaims.isEmpty)
+        #expect(!first.claimEnabled)
+        #expect(!first.claimTileEnabled)
+        #expect(first.ledgerClaimEnabled)
+        #expect(second.ledgerClaimEnabled)
+    }
+
+    // a sign-out ends the session: the app drops it, and the claim's late
+    // events, its Done and the reads after the last paying claim find nothing,
+    // whatever window or view model is still about; the ended session starts
+    // no claim or read
+    @Test func aSignOutEndsTheSession() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let device = NSObject()
+        let client = Self.walletClient(wins: [win])
+        let clock = FakeClock()
+        let app = Self.appSessions(signedIn: device, clients: [client], clock: clock)
+        let session = try #require(app.sessions.session(for: device))
+        let window = EarningsViewModel(session: session)
+        await window.refresh()
+        await Self.settle { window.ctfWins == [win] }
+
+        // a claim that paid, whose reads after it are still to come
+        window.claimLedger()
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xbatch", amountRao: 3_241_000_000))
+        client.emit(.done)
+        await Self.settle { !window.isLedgerClaiming && clock.sleeping == 1 }
+        #expect(clock.sleeping == 1)
+        // and a v1 claim in flight
+        await window.refreshSubnet()
+        window.claimAll()
+        #expect(window.isClaiming)
+        client.emitV1(.sent(epoch: 7, txHash: "0xv1"))
+        await Self.settle { window.claimProgress[7] == .sent(txHash: "0xv1") }
+        await Self.settle { false }
+
+        // sign-out: the device manager's device goes
+        app.devices.send(nil)
+        #expect(session.ended)
+        #expect(app.sessions.current == nil)
+        #expect(app.sessions.session(for: device) == nil)
+
+        // the claim's late events and its Done find nothing
+        let ledgerReads = client.ledgerReads
+        let winsReads = client.ctfWinsReads
+        client.emitV1(.confirmed(epoch: 7, txHash: "0xv1", amountRao: 1_000_000_000))
+        client.emitV1(.done)
+        await Self.settle { false }
+        #expect(session.claimProgress == [7: .sent(txHash: "0xv1")])
+        #expect(client.ledgerReads == ledgerReads)
+        // the reads after the paying claim stop
+        clock.advance()
+        await Self.settle { false }
+        #expect(client.ctfWinsReads == winsReads)
+        #expect(window.ctfWins == [win])
+        // and it starts nothing more
+        window.claimLedger()
+        session.readCtfWins()
+        await Self.settle { false }
+        #expect(client.claimCalls == 1)
+        #expect(client.v1ClaimCalls == 1)
+        #expect(client.ctfWinsReads == winsReads)
+    }
+
+    // a session ended between claims starts no claim of either kind and no
+    // read, whichever window asks, and a read out when it ended lands nowhere
+    @Test func anEndedSessionStartsNothing() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let client = Self.walletClient()
+        let session = EarningsSession(client: client)
+        let window = EarningsViewModel(session: session)
+        await window.refresh()
+        await Self.settle { false }
+        #expect(window.ledgerClaimEnabled)
+        #expect(window.claimEnabled)
+
+        var open: AsyncStream<Void>.Continuation?
+        client.ctfWinGate = AsyncStream { open = $0 }
+        client.ctfWinsAnswer = [win]
+        let winsReads = client.ctfWinsReads
+        session.readCtfWins()
+        await Self.settle { client.ctfWinsReads == winsReads + 1 }
+        session.end()
+        open?.yield()
+        await Self.settle { false }
+        #expect(session.ctfWins.isEmpty)
+
+        window.claimLedger()
+        window.claimAll()
+        session.readCtfWins()
+        await Self.settle { false }
+        #expect(client.claimCalls == 0)
+        #expect(client.v1ClaimCalls == 0)
+        #expect(!session.isAnyClaiming)
+        #expect(client.ctfWinsReads == winsReads + 1)
+    }
+
+    // a second account's sign-in gets a fresh session: no claim of the first
+    // account's in flight, no lines until its own first read answers, and
+    // Claim not held by the first account's claim, whose late events never
+    // reach it; after a sign-out, or with no sign-out between
+    @Test func aSecondAccountsSignInGetsAFreshSession() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let first = NSObject()
+        let firstClient = Self.walletClient(wins: [win])
+        let secondClient = Self.walletClient()
+        let thirdClient = Self.walletClient()
+        let app = Self.appSessions(signedIn: first, clients: [firstClient, secondClient, thirdClient])
+        let firstSession = try #require(app.sessions.session(for: first))
+        let firstWindow = EarningsViewModel(session: firstSession)
+        await firstWindow.refresh()
+        await Self.settle { firstWindow.ctfWins == [win] }
+        firstWindow.claimLedger()
+        #expect(firstSession.isLedgerClaiming)
+
+        app.devices.send(nil)
+        let second = NSObject()
+        app.devices.send(second)
+        let secondSession = try #require(app.sessions.session(for: second))
+        #expect(secondSession !== firstSession)
+        #expect(firstSession.ended)
+        #expect(!secondSession.ended)
+        #expect(app.sessions.session(for: first) == nil)
+        #expect(app.made().count == 2)
+
+        let secondWindow = EarningsViewModel(session: secondSession)
+        #expect(!secondWindow.isLedgerClaiming)
+        #expect(secondWindow.ledgerClaimProgress.isEmpty)
+        #expect(secondWindow.ctfWins.isEmpty)
+        await secondWindow.refresh()
+        #expect(secondWindow.ledgerClaimEnabled)
+        #expect(secondWindow.claimEnabled)
+        secondWindow.claimLedger()
+        #expect(secondClient.claimCalls == 1)
+        // the first account's claim goes on in the sdk: none of it reaches
+        // the second account's, and its ended session takes none of it
+        // either, nor its Done: no wins read, no read of the subnet
+        let firstLedgerReads = firstClient.ledgerReads
+        let firstWinsReads = firstClient.ctfWinsReads
+        firstClient.emit(.confirmed(noId: 1, index: 42, txHash: "0xfirst", amountRao: 3_241_000_000))
+        firstClient.emit(.done)
+        await Self.settle { false }
+        #expect(secondWindow.ledgerClaimProgress == [Self.key: .queued, Self.ctfKey: .queued])
+        #expect(secondWindow.isLedgerClaiming)
+        #expect(firstSession.isLedgerClaiming)
+        #expect(firstSession.ledgerClaimProgress == [Self.key: .queued, Self.ctfKey: .queued])
+        #expect(firstClient.ledgerReads == firstLedgerReads)
+        #expect(firstClient.ctfWinsReads == firstWinsReads)
+
+        // a device that replaces the signed-in one with no sign-out between
+        // ends its session too, and gets a fresh one
+        let third = NSObject()
+        app.devices.send(third)
+        let thirdSession = try #require(app.sessions.session(for: third))
+        #expect(secondSession.ended)
+        #expect(thirdSession !== secondSession)
+        #expect(!thirdSession.isAnyClaiming)
+        #expect(app.sessions.session(for: second) == nil)
+        #expect(app.made().count == 3)
+    }
+
+    // iOS: the tab view keeps its Account screens, so one view model draws
+    // the app's session for the whole sign-in, as it drew the tab view's: a
+    // claim's sheet swiped away and opened again shows it, Claim waits until
+    // Done, the Done reads again, and the wins are read on the schedule; a
+    // sign-out ends the reads, and the next sign-in's tab view starts over
+    @Test func theTabViewDrawsTheAppsSession() async throws {
+        let win = try #require(SnCtfWinInfo(role: SdkSnCtfRoleProvider, country: "is", epoch: 10))
+        let device = NSObject()
+        let client = Self.walletClient(wins: [win])
+        let clock = FakeClock()
+        let app = Self.appSessions(clients: [client], clock: clock)
+        #expect(app.sessions.current == nil)
+        app.devices.send(device)
+        let tab = EarningsViewModel(session: try #require(app.sessions.session(for: device)))
+        await tab.refresh()
+        await Self.settle { tab.ctfWins == [win] }
+
+        tab.claimLedger()
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xbatch"))
+        await Self.settle { tab.ledgerClaimProgress[Self.key] == .sent(txHash: "0xbatch") }
+        // the sheet swiped away, and opened again from the tile
+        #expect(tab.ledgerTile?.claimEnabled == true)
+        tab.resetLedgerClaimProgress()
+        #expect(tab.ledgerClaimProgress == [Self.key: .sent(txHash: "0xbatch"), Self.ctfKey: .queued])
+        #expect(!tab.ledgerClaimEnabled)
+        tab.claimLedger()
+        #expect(client.claimCalls == 1)
+
+        let ledgerReads = client.ledgerReads
+        client.ledgerAnswer = [Self.paid, Self.ctfPaid]
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xbatch", amountRao: 3_241_000_000))
+        client.emit(.confirmed(noId: Self.ctfNoId, index: 7, txHash: "0xbatch", amountRao: 144_076_980))
+        client.emit(.done)
+        // the server still says unclaimed at Done
+        await Self.settle { tab.ledger == .loaded([Self.paid, Self.ctfPaid]) && clock.sleeping == 1 }
+        #expect(client.ledgerReads == ledgerReads + 1)
+        #expect(tab.ctfWins == [win])
+        client.ctfWinsAnswer = []
+        clock.advance()
+        await Self.settle { tab.ctfWins.isEmpty && clock.sleeping == 1 }
+        #expect(tab.ctfWins.isEmpty)
+        #expect(clock.waits == [.seconds(30), .seconds(30)])
+
+        // sign-out: the reads stop
+        let winsReads = client.ctfWinsReads
+        app.devices.send(nil)
+        clock.advance()
+        await Self.settle { false }
+        #expect(client.ctfWinsReads == winsReads)
+        // the next sign-in's tab view: a fresh session
+        let next = NSObject()
+        app.devices.send(next)
+        let nextTab = EarningsViewModel(session: try #require(app.sessions.session(for: next)))
+        #expect(nextTab.session !== tab.session)
+        #expect(nextTab.ledgerClaimProgress.isEmpty)
+        #expect(nextTab.ctfWins.isEmpty)
     }
 
     // MARK: localization

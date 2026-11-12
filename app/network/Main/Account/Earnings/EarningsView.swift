@@ -227,7 +227,8 @@ struct EarningsView: View {
                                 viewModel.resetLedgerClaimProgress()
                                 presentLedgerClaimSheet = true
                             },
-                            fundsDisclaimer: viewModel.hasWallet ? SdkBittensorFundsDisclaimerNone : keyModel.card.claimFundsDisclaimer
+                            fundsDisclaimer: viewModel.hasWallet ? SdkBittensorFundsDisclaimerNone : keyModel.card.claimFundsDisclaimer,
+                            ctfWin: viewModel.ctfWin
                         )
                     }
 

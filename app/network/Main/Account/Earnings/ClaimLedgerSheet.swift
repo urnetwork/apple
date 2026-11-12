@@ -4,11 +4,13 @@
 //
 //  The settlement v2 claim dialog, beside the v1 one. The SDK on this device
 //  claims every finalized v2 account of the coldkey with a verified
-//  claimable, one transaction per pool to STSettlementVault2 from the gas
-//  key; alpha lands on the connected coldkey. Shows the claimable total, the
-//  gas key and its TAO balance (with the top-up when short or when a claim
-//  needed gas), each pool's claim state with its transaction on the explorer
-//  once sent, and the failures.
+//  claimable, the provider pool's and the capture the flag pool's alike, from
+//  the gas key: one transaction to STSettlementVault2 for one account, one
+//  STClaimBatcher transaction for two or more ("Claim both"); alpha lands on
+//  the connected coldkey. Shows the claimable total, the gas key and its TAO
+//  balance (with the top-up when short or when a claim needed gas), each
+//  pool's claim state with its transaction on the explorer once sent, a pool
+//  that could not be read as unavailable right now, and the failures.
 //
 
 import SwiftUI
@@ -20,9 +22,10 @@ struct ClaimLedgerSheet: View {
     @ObservedObject var viewModel: EarningsViewModel
     let dismiss: () -> Void
 
-    /// the ledger could not be read again: no amount, never 0
+    /// the ledger could not be read again, or nothing in it could: no amount,
+    /// never 0
     private var unavailable: Bool {
-        viewModel.ledger == .unavailable
+        viewModel.ledgerClaimUnavailable
     }
 
     private var amountText: String {
@@ -99,7 +102,7 @@ struct ClaimLedgerSheet: View {
                     UrButton(text: "Claim", action: {}, enabled: false)
                 } else {
                     UrButton(
-                        text: "Claim \(amountText)",
+                        text: viewModel.ledgerClaimsBoth ? "Claim both" : "Claim \(amountText)",
                         action: {
                             viewModel.claimLedger()
                         },
@@ -117,14 +120,27 @@ struct ClaimLedgerSheet: View {
     private func claimRow(_ row: SnLedgerClaimRow) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text("Pool \(row.id.noId)")
+                Text(verbatim: row.name.text())
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
                 Spacer()
-                Text(verbatim: viewModel.client.formatAlpha(rao: row.amountRao))
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textColor)
-                LedgerClaimStatusPill(status: row.status)
+                if row.status == .unavailable {
+                    // in place of the amount, never 0
+                    Text("Unavailable right now")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                } else {
+                    Text(verbatim: viewModel.client.formatAlpha(rao: row.amountRao))
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                    if row.status != .underFloor {
+                        LedgerClaimStatusPill(status: row.status)
+                    }
+                }
+            }
+            // a line, not a pill: it is long in many languages
+            if row.status == .underFloor {
+                LedgerUnderFloorLine()
             }
             if let explorerUrl = row.explorerUrl {
                 Button(action: {
@@ -159,6 +175,20 @@ struct ClaimLedgerSheet: View {
     }
 }
 
+/// "Below the claim minimum", under a pool's row: no claim can move its
+/// balance until it is worth the transfer floor; it waits in the vault.
+struct LedgerUnderFloorLine: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        Text("Below the claim minimum")
+            .font(themeManager.currentTheme.secondaryBodyFont)
+            .foregroundColor(themeManager.currentTheme.textMutedColor)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 /// The claim state of one pool's v2 account: what the ledger says,
 /// overlaid by the live claim progress while a claim runs.
 struct LedgerClaimStatusPill: View {
@@ -178,6 +208,10 @@ struct LedgerClaimStatusPill: View {
             return Text("Claimed")
         case .failed:
             return Text("Failed")
+        case .underFloor:
+            return Text("Below the claim minimum")
+        case .unavailable:
+            return Text("Unavailable right now")
         }
     }
 
@@ -185,7 +219,7 @@ struct LedgerClaimStatusPill: View {
         switch status {
         case .unclaimed:
             return introProGold
-        case .pending, .sent:
+        case .pending, .sent, .underFloor, .unavailable:
             return themeManager.currentTheme.textMutedColor
         case .claimed:
             return themeManager.currentTheme.accentColor
@@ -213,6 +247,7 @@ struct LedgerClaimStatusPill: View {
         gasTao: 0.05,
         ledger: [
             SnLedgerAccountInfo(vault: vault2, noId: 1, index: 42, finalizedRao: 5_000_000_000, claimableRao: 3_241_000_000, paidRao: 1_759_000_000, pending: true, pendingRao: 5_500_000_000),
+            SnLedgerAccountInfo(vault: vault2, noId: 4_294_967_297, index: 7, finalizedRao: 144_076_980, claimableRao: 144_076_980, paidRao: 0, pending: false, pendingRao: 0, kind: .ctf),
         ],
         ledgerChain: SnLedgerChainInfo(vault2Address: vault2, explorerTxUrl: "https://evm.taostats.io/tx/%s")
     )

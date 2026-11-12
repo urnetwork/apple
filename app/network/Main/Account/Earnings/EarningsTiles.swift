@@ -501,7 +501,10 @@ struct UnclaimedAlphaTile: View {
 /// is the headline, then what was earned (the finalized cumulative) and
 /// paid, and what a committed root adds while it awaits finalization. A
 /// ledger that cannot be read says "Unavailable", never 0. Claim opens the
-/// v2 claim dialog once v2 claims are configured.
+/// v2 claim dialog once v2 claims are configured. A capture the flag account
+/// is a row of its own, named, under the provider pool's; a pool that could
+/// not be read says so in its row; and while both accounts are claimable the
+/// device's claim is "Claim both".
 struct SnLedgerTile: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -518,6 +521,9 @@ struct SnLedgerTile: View {
     /// the claim card's disclaimer (sdk BittensorFundsDisclaimer*), when this
     /// is the first claim tile on Earnings
     var fundsDisclaimer: String = SdkBittensorFundsDisclaimerNone
+    /// the capture the flag slot this device won last, for its line; nil for
+    /// none, or when the draw's answer could not be read
+    var ctfWin: SnCtfWinInfo? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -527,15 +533,27 @@ struct SnLedgerTile: View {
                 Text("Unavailable")
                     .font(themeManager.currentTheme.titleCondensedFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
-            case .accounts(let accounts):
-                ForEach(accounts) { account in
-                    accountBalances(account)
+            case .pools(let rows):
+                ForEach(rows) { row in
+                    poolBalances(row)
                 }
-            case .claimable(let rao):
-                amount(rao)
-                Text("Claimable")
-                    .font(themeManager.currentTheme.secondaryBodyFont)
-                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+            case .claimable(let rao, let rows):
+                // no total while the relay could read no account, never 0
+                if let rao {
+                    amount(rao)
+                    Text("Claimable")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                // the pools the total adds up, and the ones it leaves out
+                if !rows.isEmpty {
+                    SnClaimRelayRows(rows: rows, inSheet: false)
+                        .padding(.top, 4)
+                }
+            }
+            if let ctfWin {
+                SnCtfWinLine(win: ctfWin)
+                    .padding(.top, 8)
             }
             // the relay's section while it has something to say: a balance it
             // claims or waits on, or a claim it paid in full (the claimed state)
@@ -544,7 +562,7 @@ struct SnLedgerTile: View {
                 SnClaimRelaySection(status: relay, claimNow: claimNow, selfClaim: selfClaim, inSheet: false)
             } else if presentation.showsClaim {
                 Spacer().frame(height: 8)
-                UrButton(text: "Claim", action: claim, enabled: presentation.claimEnabled)
+                UrButton(text: presentation.claimsBoth ? "Claim both" : "Claim", action: claim, enabled: presentation.claimEnabled)
             }
             BittensorFundsDisclaimerText(disclaimer: fundsDisclaimer)
                 .padding(.top, 4)
@@ -567,14 +585,29 @@ struct SnLedgerTile: View {
         }
     }
 
+    /// One pool's row: its name where the tile names its pools, then the
+    /// account's balances, or "Unavailable right now" in their place, never
+    /// 0, for a pool that could not be read.
     @ViewBuilder
-    private func accountBalances(_ account: SnLedgerAccountInfo) -> some View {
+    private func poolBalances(_ row: SnLedgerPoolRow) -> some View {
         if presentation.showsPools {
-            Text("Pool \(account.noId)")
+            Text(verbatim: row.name.text())
                 .font(themeManager.currentTheme.bodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
                 .padding(.top, 8)
         }
+        switch row.balance {
+        case .account(let account):
+            accountBalances(account, underFloor: row.underFloor)
+        case .unavailable:
+            Text("Unavailable right now")
+                .font(themeManager.currentTheme.titleCondensedFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+        }
+    }
+
+    @ViewBuilder
+    private func accountBalances(_ account: SnLedgerAccountInfo, underFloor: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(verbatim: SnAlpha.formatAmount(rao: account.claimableRao))
                 .font(Font.custom("ABCGravity-ExtraCondensed", size: 42))
@@ -587,6 +620,11 @@ struct SnLedgerTile: View {
         Text("Claimable")
             .font(themeManager.currentTheme.secondaryBodyFont)
             .foregroundColor(themeManager.currentTheme.textMutedColor)
+        // no claim can move it yet: it waits in the vault until it is worth
+        // the transfer floor
+        if underFloor {
+            LedgerUnderFloorLine()
+        }
         Spacer().frame(height: 8)
         HStack {
             column("Earned", account.finalizedRao)
@@ -609,6 +647,30 @@ struct SnLedgerTile: View {
                 .font(themeManager.currentTheme.titleCondensedFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
         }
+    }
+}
+
+/// The capture the flag line under the Settlement v2 balances: the slot this
+/// device won last (GET /sn/ctf/client).
+struct SnCtfWinLine: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let win: SnCtfWinInfo
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "flag.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(themeManager.currentTheme.accentColor)
+                .accessibilityHidden(true)
+            Text(verbatim: win.text())
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("earnings.ctf.won")
     }
 }
 

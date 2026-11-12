@@ -41,10 +41,14 @@ struct AccountNavStackView: View {
     // the connect screen's upgrade sheet
     let openUpgradeSheet: () -> Void
     
+    /// `earningsSession`: the signed-in session's claims and capture the flag
+    /// lines, which outlive these screens (on macOS leaving Account drops
+    /// them; the tab view and the split view own the session)
     init(
         api: SdkApi,
         urApiService: UrApiServiceProtocol,
         device: SdkDeviceRemote,
+        earningsSession: EarningsSession,
         logout: @escaping () -> Void,
         networkUserViewModel: NetworkUserViewModel,
         referralLinkViewModel: ReferralLinkViewModel,
@@ -59,9 +63,7 @@ struct AccountNavStackView: View {
                 api: api
             )
         )
-        _earningsViewModel = StateObject(wrappedValue: EarningsViewModel(
-            client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
-        ))
+        _earningsViewModel = StateObject(wrappedValue: EarningsViewModel(session: earningsSession))
         _usdcWalletsViewModel = StateObject(wrappedValue: UsdcWalletsViewModel(
             client: UsdcWalletsSdkClient(api: api, urApiService: urApiService)
         ))

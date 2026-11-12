@@ -24,9 +24,12 @@ struct MainTabView: View {
     @StateObject var networkUserViewModel: NetworkUserViewModel
     @StateObject var referralLinkViewModel: ReferralLinkViewModel
     @StateObject private var networkReliabilityStore: NetworkReliabilityStore
-    
+    // the signed-in session's claims and capture the flag lines, which the
+    // Account screens draw and a sign-out ends with this view
+    @StateObject private var earningsSession: EarningsSession
+
     @ObservedObject var providerListStore: ProviderListStore
-    
+
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
@@ -34,7 +37,7 @@ struct MainTabView: View {
     @EnvironmentObject var connectViewModel: ConnectViewModel
     @EnvironmentObject var subscriptionBalanceViewModel: SubscriptionBalanceViewModel
     @Environment(\.presentationActive) private var presentationActive
-    
+
     @State private var selectedTab = 0
     @State private var displayIntroduction: Bool
     // an email's offer link: the welcome offer on its own, while it is active
@@ -66,9 +69,13 @@ struct MainTabView: View {
         _referralLinkViewModel = StateObject(wrappedValue: ReferralLinkViewModel(api: api))
         
         _networkReliabilityStore = StateObject(wrappedValue: NetworkReliabilityStore(api: urApiService))
-        
+
+        _earningsSession = StateObject(wrappedValue: EarningsSession(
+            client: EarningsSdkClient(api: api, urApiService: urApiService, device: device)
+        ))
+
         self.introductionComplete = introductionComplete
-        
+
         /**
          * Prompt introduction
          */
@@ -135,6 +142,7 @@ struct MainTabView: View {
                 api: api,
                 urApiService: urApiService,
                 device: device,
+                earningsSession: earningsSession,
                 logout: logout,
                 networkUserViewModel: networkUserViewModel,
                 referralLinkViewModel: referralLinkViewModel,

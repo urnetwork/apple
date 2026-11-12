@@ -9,10 +9,12 @@
 //  STClaimBatcher transaction for two or more ("Claim both"); alpha lands on
 //  the connected coldkey. Shows the claimable total (none, never 0, while
 //  what is left is all under the floor, unavailable or of an amount not known
-//  yet), the gas key and its TAO balance (with the top-up when short or when a
-//  claim needed gas), each pool's claim state with its transaction on the
-//  explorer once sent, a pool that could not be read as unavailable right
-//  now, and the failures.
+//  yet; during a claim what the claim moves), the gas key and its TAO balance
+//  (with the top-up when short or when a claim needed gas), each pool's claim
+//  state with its transaction on the explorer once sent, a pool that could not
+//  be read as unavailable right now, and the failures. The claim is the
+//  signed-in session's (EarningsSession): the sheet dismissed during it and
+//  opened again shows it as it went on, its Claim held until Done.
 //
 
 import SwiftUI
@@ -32,13 +34,16 @@ struct ClaimLedgerSheet: View {
 
     /// the claim's total is a figure to show: with nothing above the floor
     /// left and an account under it, unavailable or of an amount not known
-    /// yet, the lines say why, and there is no figure, never 0
+    /// yet, the lines say why, and there is no figure, never 0; a claim in
+    /// flight always has its figure
     private var totalKnown: Bool {
         viewModel.ledgerClaimTotalKnown
     }
 
+    /// between claims what a claim pays, during one what the claim moves
+    /// (the signed-in session's claim, which a sheet opened again shows)
     private var amountText: String {
-        viewModel.client.formatAlpha(rao: viewModel.ledgerClaimableRao)
+        viewModel.client.formatAlpha(rao: viewModel.ledgerClaimFigureRao)
     }
 
     var body: some View {

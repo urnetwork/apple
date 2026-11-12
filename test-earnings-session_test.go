@@ -80,12 +80,20 @@ func TestEarningsSessionIsTheApps(t *testing.T) {
 	if got := strings.Count(app, ".environmentObject(earningsSessions)"); got != 2 {
 		t.Errorf("%d window contents get the earnings session's owner, want 2 (iOS and macOS)", got)
 	}
+	// the init sets every stored property, the owner too, before its first
+	// use of self (the delegate adaptor), or Swift refuses it
+	owner, firstSelf := strings.Index(app, "_earningsSessions = StateObject(wrappedValue: earningsSessions)"), strings.Index(app, "appDelegate.deviceManager = deviceManager")
+	if owner < 0 || firstSelf < 0 || firstSelf < owner {
+		t.Error("the app's init uses self before it makes the earnings session's owner")
+	}
 
 	content := earningsSessionCode(earningsSessionRead(t, "app/network/ContentView.swift"))
 	for _, line := range []string{
 		"@EnvironmentObject var earningsSessions: EarningsSessions",
 		"let earningsSession = earningsSessions.session(for: device),",
 		"earningsSession: earningsSession,",
+		// another device's session gets the main screens anew
+		".id(ObjectIdentifier(earningsSession))",
 	} {
 		if !strings.Contains(content, line) {
 			t.Errorf("the main screens do not draw the signed-in device's session: %s", line)

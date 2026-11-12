@@ -128,6 +128,11 @@ struct ContentView: View {
                                 deviceManager.subscriptionBalanceLoaded(serverIsPro: serverIsPro)
                             }
                         )
+                        // a device that replaces the signed-in one with no
+                        // sign-out between gets the main screens anew, on its
+                        // own session: none of the screens keeps the one
+                        // before, which its sign-in ended
+                        .id(ObjectIdentifier(earningsSession))
                         .opacity(opacity)
 
                     } else {

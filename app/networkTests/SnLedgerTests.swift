@@ -2235,7 +2235,8 @@ struct SnLedgerTests {
             second.resetLedgerClaimProgress()
             #expect(second.ledgerClaimProgress.isEmpty)
         }
-        // a sign-out ends the session, and the reads after the claim with it
+        // a session let go ends the reads after the claim with it (the app
+        // holds the session now, and a sign-out ends it: aSignOutEndsTheSession)
         await Self.settle { releasedSession == nil }
         #expect(releasedSession == nil)
         clock.advance()
@@ -2914,12 +2915,19 @@ struct SnLedgerTests {
         secondWindow.claimLedger()
         #expect(secondClient.claimCalls == 1)
         // the first account's claim goes on in the sdk: none of it reaches
-        // the second account's
+        // the second account's, and its ended session takes none of it
+        // either, nor its Done: no wins read, no read of the subnet
+        let firstLedgerReads = firstClient.ledgerReads
+        let firstWinsReads = firstClient.ctfWinsReads
         firstClient.emit(.confirmed(noId: 1, index: 42, txHash: "0xfirst", amountRao: 3_241_000_000))
         firstClient.emit(.done)
         await Self.settle { false }
         #expect(secondWindow.ledgerClaimProgress == [Self.key: .queued, Self.ctfKey: .queued])
         #expect(secondWindow.isLedgerClaiming)
+        #expect(firstSession.isLedgerClaiming)
+        #expect(firstSession.ledgerClaimProgress == [Self.key: .queued, Self.ctfKey: .queued])
+        #expect(firstClient.ledgerReads == firstLedgerReads)
+        #expect(firstClient.ctfWinsReads == firstWinsReads)
 
         // a device that replaces the signed-in one with no sign-out between
         // ends its session too, and gets a fresh one

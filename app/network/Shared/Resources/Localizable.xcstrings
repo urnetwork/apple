@@ -18460,6 +18460,1072 @@
         }
       }
     },
+    "%lld of these checks failed only over HTTP/3 (UDP), so this device is offered for TCP traffic only. Some app builds and some networks do not route UDP." : {
+      "comment" : "Provider status 'Why?' list: a line under the network checks when the checks took UDP away (FP2-PROTOCOL.md §5.5, the sdk's ProviderStatusReasonLineTcp). The argument is how many of the checks failed only over HTTP/3, which runs over UDP; the device is still offered to clients, but for TCP traffic only.",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل %lld من هذه الفحوصات عبر HTTP/3 (UDP) فقط، لذا يُعرض هذا الجهاز لحركة مرور TCP فقط. بعض إصدارات التطبيق وبعض الشبكات لا توجّه UDP."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل فحص واحد من هذه الفحوصات عبر HTTP/3 (UDP) فقط، لذا يُعرض هذا الجهاز لحركة مرور TCP فقط. بعض إصدارات التطبيق وبعض الشبكات لا توجّه UDP."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل فحصان من هذه الفحوصات عبر HTTP/3 (UDP) فقط، لذا يُعرض هذا الجهاز لحركة مرور TCP فقط. بعض إصدارات التطبيق وبعض الشبكات لا توجّه UDP."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشلت %lld من هذه الفحوصات عبر HTTP/3 (UDP) فقط، لذا يُعرض هذا الجهاز لحركة مرور TCP فقط. بعض إصدارات التطبيق وبعض الشبكات لا توجّه UDP."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل %lld من هذه الفحوصات عبر HTTP/3 (UDP) فقط، لذا يُعرض هذا الجهاز لحركة مرور TCP فقط. بعض إصدارات التطبيق وبعض الشبكات لا توجّه UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل %lld من هذه الفحوصات عبر HTTP/3 (UDP) فقط، لذا يُعرض هذا الجهاز لحركة مرور TCP فقط. بعض إصدارات التطبيق وبعض الشبكات لا توجّه UDP."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhala jen přes HTTP/3 (UDP), takže se toto zařízení nabízí jen pro provoz TCP. Některé verze aplikace a některé sítě UDP nesměrují."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhaly jen přes HTTP/3 (UDP), takže se toto zařízení nabízí jen pro provoz TCP. Některé verze aplikace a některé sítě UDP nesměrují."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhalo jen přes HTTP/3 (UDP), takže se toto zařízení nabízí jen pro provoz TCP. Některé verze aplikace a některé sítě UDP nesměrují."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhalo jen přes HTTP/3 (UDP), takže se toto zařízení nabízí jen pro provoz TCP. Některé verze aplikace a některé sítě UDP nesměrují."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld dieser Prüfungen ist nur über HTTP/3 (UDP) fehlgeschlagen, daher wird dieses Gerät nur für TCP-Verkehr angeboten. Manche App-Versionen und manche Netzwerke leiten kein UDP weiter."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld dieser Prüfungen sind nur über HTTP/3 (UDP) fehlgeschlagen, daher wird dieses Gerät nur für TCP-Verkehr angeboten. Manche App-Versionen und manche Netzwerke leiten kein UDP weiter."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld από αυτούς τους ελέγχους απέτυχε μόνο μέσω HTTP/3 (UDP), οπότε η συσκευή προτείνεται μόνο για κίνηση TCP. Ορισμένες εκδόσεις της εφαρμογής και ορισμένα δίκτυα δεν δρομολογούν UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld από αυτούς τους ελέγχους απέτυχαν μόνο μέσω HTTP/3 (UDP), οπότε η συσκευή προτείνεται μόνο για κίνηση TCP. Ορισμένες εκδόσεις της εφαρμογής και ορισμένα δίκτυα δεν δρομολογούν UDP."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld of these checks failed only over HTTP/3 (UDP), so this device is offered for TCP traffic only. Some app builds and some networks do not route UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld of these checks failed only over HTTP/3 (UDP), so this device is offered for TCP traffic only. Some app builds and some networks do not route UDP."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas comprobaciones falló solo a través de HTTP/3 (UDP), así que este dispositivo solo se ofrece para tráfico TCP. Algunas versiones de la app y algunas redes no enrutan UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas comprobaciones fallaron solo a través de HTTP/3 (UDP), así que este dispositivo solo se ofrece para tráfico TCP. Algunas versiones de la app y algunas redes no enrutan UDP."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones falló solo a través de HTTP/3 (UDP), así que este dispositivo solo se ofrece para tráfico TCP. Algunas versiones de la app y algunas redes no enrutan UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones fallaron solo a través de HTTP/3 (UDP), así que este dispositivo solo se ofrece para tráfico TCP. Algunas versiones de la app y algunas redes no enrutan UDP."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones falló solo a través de HTTP/3 (UDP), así que este dispositivo solo se ofrece para tráfico TCP. Algunas versiones de la app y algunas redes no enrutan UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones fallaron solo a través de HTTP/3 (UDP), así que este dispositivo solo se ofrece para tráfico TCP. Algunas versiones de la app y algunas redes no enrutan UDP."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de ces vérifications a échoué uniquement via HTTP/3 (UDP), donc cet appareil n'est proposé que pour le trafic TCP. Certaines versions de l'application et certains réseaux n'acheminent pas l'UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de ces vérifications ont échoué uniquement via HTTP/3 (UDP), donc cet appareil n'est proposé que pour le trafic TCP. Certaines versions de l'application et certains réseaux n'acheminent pas l'UDP."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "בדיקה אחת מהבדיקות האלה נכשלה רק דרך HTTP/3 (UDP), ולכן המכשיר הזה מוצע רק לתעבורת TCP. חלק מגרסאות האפליקציה וחלק מהרשתות לא מנתבים UDP."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "שתיים מהבדיקות האלה נכשלו רק דרך HTTP/3 (UDP), ולכן המכשיר הזה מוצע רק לתעבורת TCP. חלק מגרסאות האפליקציה וחלק מהרשתות לא מנתבים UDP."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld מהבדיקות האלה נכשלו רק דרך HTTP/3 (UDP), ולכן המכשיר הזה מוצע רק לתעבורת TCP. חלק מגרסאות האפליקציה וחלק מהרשתות לא מנתבים UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld מהבדיקות האלה נכשלו רק דרך HTTP/3 (UDP), ולכן המכשיר הזה מוצע רק לתעבורת TCP. חלק מגרסאות האפליקציה וחלק מהרשתות לא מנתבים UDP."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "इनमें से %lld जाँच केवल HTTP/3 (UDP) पर विफल हुई, इसलिए यह डिवाइस केवल TCP ट्रैफ़िक के लिए पेश किया जाता है। कुछ ऐप संस्करण और कुछ नेटवर्क UDP को रूट नहीं करते।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "इनमें से %lld जाँचें केवल HTTP/3 (UDP) पर विफल हुईं, इसलिए यह डिवाइस केवल TCP ट्रैफ़िक के लिए पेश किया जाता है। कुछ ऐप संस्करण और कुछ नेटवर्क UDP को रूट नहीं करते।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld dari pemeriksaan ini gagal hanya melalui HTTP/3 (UDP), jadi perangkat ini hanya ditawarkan untuk lalu lintas TCP. Beberapa versi aplikasi dan beberapa jaringan tidak merutekan UDP."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld di questi controlli non è riuscito solo tramite HTTP/3 (UDP), quindi questo dispositivo viene offerto solo per il traffico TCP. Alcune versioni dell'app e alcune reti non instradano UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld di questi controlli non sono riusciti solo tramite HTTP/3 (UDP), quindi questo dispositivo viene offerto solo per il traffico TCP. Alcune versioni dell'app e alcune reti non instradano UDP."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "これらのチェックのうち %lld 件は HTTP/3 (UDP) でのみ失敗したため、このデバイスは TCP トラフィック専用で提示されます。一部のアプリのバージョンや一部のネットワークは UDP をルーティングしません。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "이 검사 중 %lld개가 HTTP/3(UDP)에서만 실패하여 이 기기는 TCP 트래픽 전용으로 제시됩니다. 일부 앱 버전과 일부 네트워크는 UDP를 라우팅하지 않습니다."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld van deze controles mislukte alleen via HTTP/3 (UDP), dus dit apparaat wordt alleen aangeboden voor TCP-verkeer. Sommige app-versies en sommige netwerken routeren geen UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld van deze controles mislukten alleen via HTTP/3 (UDP), dus dit apparaat wordt alleen aangeboden voor TCP-verkeer. Sommige app-versies en sommige netwerken routeren geen UDP."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodła się tylko przez HTTP/3 (UDP), więc to urządzenie jest proponowane tylko dla ruchu TCP. Niektóre wersje aplikacji i niektóre sieci nie przekazują UDP."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodły się tylko przez HTTP/3 (UDP), więc to urządzenie jest proponowane tylko dla ruchu TCP. Niektóre wersje aplikacji i niektóre sieci nie przekazują UDP."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodło się tylko przez HTTP/3 (UDP), więc to urządzenie jest proponowane tylko dla ruchu TCP. Niektóre wersje aplikacji i niektóre sieci nie przekazują UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodło się tylko przez HTTP/3 (UDP), więc to urządzenie jest proponowane tylko dla ruchu TCP. Niektóre wersje aplikacji i niektóre sieci nie przekazują UDP."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falhou apenas através de HTTP/3 (UDP), por isso este dispositivo só é oferecido para tráfego TCP. Algumas versões da aplicação e algumas redes não encaminham UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falharam apenas através de HTTP/3 (UDP), por isso este dispositivo só é oferecido para tráfego TCP. Algumas versões da aplicação e algumas redes não encaminham UDP."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falhou apenas por HTTP/3 (UDP), então este dispositivo só é oferecido para tráfego TCP. Algumas versões do app e algumas redes não roteiam UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falharam apenas por HTTP/3 (UDP), então este dispositivo só é oferecido para tráfego TCP. Algumas versões do app e algumas redes não roteiam UDP."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falhou apenas através de HTTP/3 (UDP), por isso este dispositivo só é oferecido para tráfego TCP. Algumas versões da aplicação e algumas redes não encaminham UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falharam apenas através de HTTP/3 (UDP), por isso este dispositivo só é oferecido para tráfego TCP. Algumas versões da aplicação e algumas redes não encaminham UDP."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошла только по HTTP/3 (UDP), поэтому это устройство предлагается только для трафика TCP. Некоторые версии приложения и некоторые сети не передают UDP."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошли только по HTTP/3 (UDP), поэтому это устройство предлагается только для трафика TCP. Некоторые версии приложения и некоторые сети не передают UDP."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошли только по HTTP/3 (UDP), поэтому это устройство предлагается только для трафика TCP. Некоторые версии приложения и некоторые сети не передают UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошли только по HTTP/3 (UDP), поэтому это устройство предлагается только для трафика TCP. Некоторые версии приложения и некоторые сети не передают UDP."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld av dessa kontroller misslyckades bara över HTTP/3 (UDP), så den här enheten erbjuds bara för TCP-trafik. Vissa appversioner och vissa nätverk routar inte UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld av dessa kontroller misslyckades bara över HTTP/3 (UDP), så den här enheten erbjuds bara för TCP-trafik. Vissa appversioner och vissa nätverk routar inte UDP."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "การตรวจสอบเหล่านี้ %lld รายการล้มเหลวเฉพาะผ่าน HTTP/3 (UDP) อุปกรณ์นี้จึงถูกเสนอสำหรับการรับส่งข้อมูล TCP เท่านั้น แอปบางเวอร์ชันและเครือข่ายบางแห่งไม่กำหนดเส้นทาง UDP"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшла лише через HTTP/3 (UDP), тому цей пристрій пропонується лише для трафіку TCP. Деякі версії застосунку та деякі мережі не передають UDP."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшли лише через HTTP/3 (UDP), тому цей пристрій пропонується лише для трафіку TCP. Деякі версії застосунку та деякі мережі не передають UDP."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшли лише через HTTP/3 (UDP), тому цей пристрій пропонується лише для трафіку TCP. Деякі версії застосунку та деякі мережі не передають UDP."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшли лише через HTTP/3 (UDP), тому цей пристрій пропонується лише для трафіку TCP. Деякі версії застосунку та деякі мережі не передають UDP."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld trong số các lần kiểm tra này chỉ thất bại qua HTTP/3 (UDP), nên thiết bị này chỉ được đề xuất cho lưu lượng TCP. Một số phiên bản ứng dụng và một số mạng không định tuyến UDP."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "这些检查中有 %lld 项仅通过 HTTP/3 (UDP) 时失败，因此此设备仅推荐用于 TCP 流量。部分应用版本和部分网络不路由 UDP。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "這些檢查中有 %lld 項僅經 HTTP/3 (UDP) 時失敗，因此此裝置只會推薦用於 TCP 流量。部分應用程式版本和部分網絡不會路由 UDP。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
+    "%lld of these checks failed only over IPv6, so this device is offered for IPv4 traffic only." : {
+      "comment" : "Provider status 'Why?' list: a line under the network checks when the checks took IPv6 away (FP2-PROTOCOL.md §5.5, the sdk's ProviderStatusReasonLineIpv4). The argument is how many of the checks failed only over IPv6; the device is still offered to clients, but for IPv4 traffic only.",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+            "zero" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل %lld من هذه الفحوصات عبر IPv6 فقط، لذا يُعرض هذا الجهاز لحركة مرور IPv4 فقط."
+              }
+            },
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل فحص واحد من هذه الفحوصات عبر IPv6 فقط، لذا يُعرض هذا الجهاز لحركة مرور IPv4 فقط."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل فحصان من هذه الفحوصات عبر IPv6 فقط، لذا يُعرض هذا الجهاز لحركة مرور IPv4 فقط."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشلت %lld من هذه الفحوصات عبر IPv6 فقط، لذا يُعرض هذا الجهاز لحركة مرور IPv4 فقط."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل %lld من هذه الفحوصات عبر IPv6 فقط، لذا يُعرض هذا الجهاز لحركة مرور IPv4 فقط."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "فشل %lld من هذه الفحوصات عبر IPv6 فقط، لذا يُعرض هذا الجهاز لحركة مرور IPv4 فقط."
+              }
+            }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhala jen přes IPv6, takže se toto zařízení nabízí jen pro provoz IPv4."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhaly jen přes IPv6, takže se toto zařízení nabízí jen pro provoz IPv4."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhalo jen přes IPv6, takže se toto zařízení nabízí jen pro provoz IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z těchto kontrol selhalo jen přes IPv6, takže se toto zařízení nabízí jen pro provoz IPv4."
+              }
+            }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld dieser Prüfungen ist nur über IPv6 fehlgeschlagen, daher wird dieses Gerät nur für IPv4-Verkehr angeboten."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld dieser Prüfungen sind nur über IPv6 fehlgeschlagen, daher wird dieses Gerät nur für IPv4-Verkehr angeboten."
+              }
+            }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld από αυτούς τους ελέγχους απέτυχε μόνο μέσω IPv6, οπότε η συσκευή προτείνεται μόνο για κίνηση IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld από αυτούς τους ελέγχους απέτυχαν μόνο μέσω IPv6, οπότε η συσκευή προτείνεται μόνο για κίνηση IPv4."
+              }
+            }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld of these checks failed only over IPv6, so this device is offered for IPv4 traffic only."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld of these checks failed only over IPv6, so this device is offered for IPv4 traffic only."
+              }
+            }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas comprobaciones falló solo a través de IPv6, así que este dispositivo solo se ofrece para tráfico IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas comprobaciones fallaron solo a través de IPv6, así que este dispositivo solo se ofrece para tráfico IPv4."
+              }
+            }
+            }
+          }
+        },
+        "es-419" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones falló solo a través de IPv6, así que este dispositivo solo se ofrece para tráfico IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones fallaron solo a través de IPv6, así que este dispositivo solo se ofrece para tráfico IPv4."
+              }
+            }
+            }
+          }
+        },
+        "es-MX" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones falló solo a través de IPv6, así que este dispositivo solo se ofrece para tráfico IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de estas verificaciones fallaron solo a través de IPv6, así que este dispositivo solo se ofrece para tráfico IPv4."
+              }
+            }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de ces vérifications a échoué uniquement via IPv6, donc cet appareil n'est proposé que pour le trafic IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld de ces vérifications ont échoué uniquement via IPv6, donc cet appareil n'est proposé que pour le trafic IPv4."
+              }
+            }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "בדיקה אחת מהבדיקות האלה נכשלה רק דרך IPv6, ולכן המכשיר הזה מוצע רק לתעבורת IPv4."
+              }
+            },
+            "two" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "שתיים מהבדיקות האלה נכשלו רק דרך IPv6, ולכן המכשיר הזה מוצע רק לתעבורת IPv4."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld מהבדיקות האלה נכשלו רק דרך IPv6, ולכן המכשיר הזה מוצע רק לתעבורת IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld מהבדיקות האלה נכשלו רק דרך IPv6, ולכן המכשיר הזה מוצע רק לתעבורת IPv4."
+              }
+            }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "इनमें से %lld जाँच केवल IPv6 पर विफल हुई, इसलिए यह डिवाइस केवल IPv4 ट्रैफ़िक के लिए पेश किया जाता है।"
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "इनमें से %lld जाँचें केवल IPv6 पर विफल हुईं, इसलिए यह डिवाइस केवल IPv4 ट्रैफ़िक के लिए पेश किया जाता है।"
+              }
+            }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld dari pemeriksaan ini gagal hanya melalui IPv6, jadi perangkat ini hanya ditawarkan untuk lalu lintas IPv4."
+              }
+            }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld di questi controlli non è riuscito solo tramite IPv6, quindi questo dispositivo viene offerto solo per il traffico IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld di questi controlli non sono riusciti solo tramite IPv6, quindi questo dispositivo viene offerto solo per il traffico IPv4."
+              }
+            }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "これらのチェックのうち %lld 件は IPv6 でのみ失敗したため、このデバイスは IPv4 トラフィック専用で提示されます。"
+              }
+            }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "이 검사 중 %lld개가 IPv6에서만 실패하여 이 기기는 IPv4 트래픽 전용으로 제시됩니다."
+              }
+            }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld van deze controles mislukte alleen via IPv6, dus dit apparaat wordt alleen aangeboden voor IPv4-verkeer."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld van deze controles mislukten alleen via IPv6, dus dit apparaat wordt alleen aangeboden voor IPv4-verkeer."
+              }
+            }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodła się tylko przez IPv6, więc to urządzenie jest proponowane tylko dla ruchu IPv4."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodły się tylko przez IPv6, więc to urządzenie jest proponowane tylko dla ruchu IPv4."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodło się tylko przez IPv6, więc to urządzenie jest proponowane tylko dla ruchu IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld z tych kontroli nie powiodło się tylko przez IPv6, więc to urządzenie jest proponowane tylko dla ruchu IPv4."
+              }
+            }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falhou apenas através de IPv6, por isso este dispositivo só é oferecido para tráfego IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falharam apenas através de IPv6, por isso este dispositivo só é oferecido para tráfego IPv4."
+              }
+            }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falhou apenas por IPv6, então este dispositivo só é oferecido para tráfego IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falharam apenas por IPv6, então este dispositivo só é oferecido para tráfego IPv4."
+              }
+            }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falhou apenas através de IPv6, por isso este dispositivo só é oferecido para tráfego IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld destas verificações falharam apenas através de IPv6, por isso este dispositivo só é oferecido para tráfego IPv4."
+              }
+            }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошла только по IPv6, поэтому это устройство предлагается только для трафика IPv4."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошли только по IPv6, поэтому это устройство предлагается только для трафика IPv4."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошли только по IPv6, поэтому это устройство предлагается только для трафика IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld из этих проверок не прошли только по IPv6, поэтому это устройство предлагается только для трафика IPv4."
+              }
+            }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld av dessa kontroller misslyckades bara över IPv6, så den här enheten erbjuds bara för IPv4-trafik."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld av dessa kontroller misslyckades bara över IPv6, så den här enheten erbjuds bara för IPv4-trafik."
+              }
+            }
+            }
+          }
+        },
+        "th" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "การตรวจสอบเหล่านี้ %lld รายการล้มเหลวเฉพาะผ่าน IPv6 อุปกรณ์นี้จึงถูกเสนอสำหรับการรับส่งข้อมูล IPv4 เท่านั้น"
+              }
+            }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+            "one" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшла лише через IPv6, тому цей пристрій пропонується лише для трафіку IPv4."
+              }
+            },
+            "few" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшли лише через IPv6, тому цей пристрій пропонується лише для трафіку IPv4."
+              }
+            },
+            "many" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшли лише через IPv6, тому цей пристрій пропонується лише для трафіку IPv4."
+              }
+            },
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld з цих перевірок не пройшли лише через IPv6, тому цей пристрій пропонується лише для трафіку IPv4."
+              }
+            }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "%lld trong số các lần kiểm tra này chỉ thất bại qua IPv6, nên thiết bị này chỉ được đề xuất cho lưu lượng IPv4."
+              }
+            }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "这些检查中有 %lld 项仅通过 IPv6 时失败，因此此设备仅推荐用于 IPv4 流量。"
+              }
+            }
+            }
+          }
+        },
+        "zh-HK" : {
+          "variations" : {
+            "plural" : {
+            "other" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "這些檢查中有 %lld 項僅經 IPv6 時失敗，因此此裝置只會推薦用於 IPv4 流量。"
+              }
+            }
+            }
+          }
+        }
+      }
+    },
     "%lld peers" : {
       "comment" : "Contracts widget header: number of peers with open contracts.",
       "localizations" : {

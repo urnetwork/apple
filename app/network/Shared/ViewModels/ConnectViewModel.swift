@@ -188,6 +188,10 @@ class ConnectViewModel: ObservableObject {
     private var contractListenerSub: SdkSubProtocol?
     private var clientLimitListenerSub: SdkSubProtocol?
     private var connectLocationStateSub: SdkSubProtocol?
+    private var windowStatusListenerSub: SdkSubProtocol?
+    // the window's last diagnosis (WindowStatus.stallReason), for the sdk's
+    // can't-reach rule on a signed-in connect (makeWindowStatusListener)
+    private var windowStallReason = ""
     // the device listeners' generation: closeListeners advances it, so a
     // report or a read for a retired listener changes nothing
     private var deviceListenerGeneration = 0
@@ -346,6 +350,10 @@ class ConnectViewModel: ObservableObject {
         // its prompt now
         self.clientLimitListenerSub = device.add(makeClientLimitStatusListener())
         self.refreshClientLimitStatus()
+
+        // signed in, a window that turns to the platform being unreachable
+        // offers the connection region picker
+        self.windowStatusListenerSub = device.add(makeWindowStatusListener())
     }
 
     /**
@@ -426,7 +434,7 @@ class ConnectViewModel: ObservableObject {
         selectedLocationListenerSub?.close()
         // the device's take its state lock: closed on the command queue, and
         // their reports until then change nothing (deviceListenerGeneration)
-        closeOnCommandQueue([tunnelListenerSub, contractListenerSub, clientLimitListenerSub, connectLocationStateSub])
+        closeOnCommandQueue([tunnelListenerSub, contractListenerSub, clientLimitListenerSub, connectLocationStateSub, windowStatusListenerSub])
 
         gridListenerSub = nil
         connectionStatusListenerSub = nil
@@ -435,6 +443,9 @@ class ConnectViewModel: ObservableObject {
         contractListenerSub = nil
         clientLimitListenerSub = nil
         connectLocationStateSub = nil
+        windowStatusListenerSub = nil
+        // the next device's window starts from no diagnosis
+        windowStallReason = ""
     }
 
     /// Closes the device's `subs` on the command queue, after the commands
@@ -1099,6 +1110,28 @@ extension ConnectViewModel {
                         self.startContractStatusRefresh(queued)
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Signed in, a window whose diagnosis turns to the platform being
+     * unreachable offers the connection region picker, as a failed api call
+     * does (reportUrnetworkReachability) and as Windows did alone: the sdk's
+     * one rule (CantReachOnStall) decides, once per turn (support inbox 7956,
+     * 7973). It never changes the region.
+     */
+    func makeWindowStatusListener() -> CantReachWindowStatusListener {
+        let generation = deviceListenerGeneration
+        return CantReachWindowStatusListener { [weak self] windowStatus in
+            let stallReason = windowStatus?.stallReason ?? ""
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation else { return }
+                CantReachUrnetworkPrompt.shared.reportStall(
+                    previousStallReason: self.windowStallReason,
+                    stallReason: stallReason
+                )
+                self.windowStallReason = stallReason
             }
         }
     }

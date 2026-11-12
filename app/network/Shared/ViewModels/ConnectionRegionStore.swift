@@ -15,8 +15,12 @@ import URnetworkSdk
  * the tunnel's DNS (the "Traffic DNS" settings).
  *
  * The network space stores it (local only, never sent to the server) and
- * applies it in place from the next lookup. The login screen control and the
- * DNS settings picker read and write that one value. "" is Other / Undisclosed.
+ * applies it in place from the next lookup. A running packet tunnel takes it
+ * in place too: the app's device remote hands it to the tunnel's own copy of
+ * the space (sdk device_remote_ingress_dns.go), so a region chosen from the
+ * "Can't reach URnetwork" prompt over a stalled connect needs no reconnect.
+ * The login screen control and the DNS settings picker read and write that one
+ * value. "" is Other / Undisclosed.
  */
 
 /// What the store reads from and writes to: the active network space, or a

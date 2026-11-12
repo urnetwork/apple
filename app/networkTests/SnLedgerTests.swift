@@ -1102,6 +1102,41 @@ struct SnLedgerTests {
         ])
     }
 
+    // an account at index 0 has the key its pool's ledger_unavailable names:
+    // it is one line either way, unavailable when the claim cannot read its
+    // pool, and the found account's line in place of its unreadable pool's
+    @Test func anAccountAtIndexZeroIsOneLine() async {
+        let ctfAtZero = Self.account(noId: Self.ctfNoId, index: 0, finalizedRao: 144_076_980, claimableRao: 144_076_980, paidRao: 0, kind: .ctf)
+        let zeroKey = SnLedgerAccountKey(noId: Self.ctfNoId, index: 0)
+        let (client, viewModel) = await Self.loaded([Self.account(), ctfAtZero])
+
+        viewModel.claimLedger()
+        #expect(viewModel.ledgerClaimProgress == [Self.key: .queued, zeroKey: .queued])
+        client.emit(.failed(noId: Self.ctfNoId, index: 0, message: "ledger_unavailable: the ledger of Capture the flag (pool 4294967297) could not be read"))
+        client.emit(.sent(noId: 1, index: 42, txHash: "0xabc"))
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xabc", amountRao: 3_241_000_000))
+        client.emit(.done)
+        await Self.settle { !viewModel.isLedgerClaiming }
+        #expect(viewModel.ledgerClaimRows.map(\.id) == [Self.key, zeroKey])
+        #expect(viewModel.ledgerClaimRows.map(\.status) == [.claimed, .unavailable])
+        #expect(viewModel.ledgerClaimFailures.isEmpty)
+
+        // the sheet could not read the pool, and the claim found the account
+        let found = FakeLedgerClient()
+        found.chain = Self.configured
+        found.ledgerAnswer = [Self.account()]
+        found.unavailablePools = [Self.ctfUnavailable]
+        let foundModel = EarningsViewModel(client: found)
+        await foundModel.refresh()
+        foundModel.claimLedger()
+        found.emit(.sent(noId: Self.ctfNoId, index: 0, txHash: "0xbatch"))
+        found.emit(.sent(noId: 1, index: 42, txHash: "0xbatch"))
+        await Self.settle { foundModel.ledgerClaimProgress[Self.key] == .sent(txHash: "0xbatch") }
+        #expect(foundModel.ledgerClaimRows.map(\.id) == [Self.key, zeroKey])
+        #expect(foundModel.ledgerClaimRows.map(\.status) == [.sent, .sent])
+        #expect(foundModel.ledgerClaimRows.map(\.amountRao) == [3_241_000_000, nil])
+    }
+
     // as Android's claim rows: a pool the claim's own read could not read,
     // which the sheet's read did not list at all, gets a line of its own,
     // and names the rows beside it

@@ -82,13 +82,15 @@ func TestV1ClaimGasTopUpCoversTheSdkFloor(t *testing.T) {
 // the dialog never offers a claim the SDK refuses as needs_gas. It waits too
 // while a claim of either kind runs, in any window: the gas key sends one
 // claim at a time, and the session is app-wide (EarningsSession.isAnyClaiming).
+// And it waits for a claims read that started after the last v1 claim ended
+// (owner, 2026-11-12): one from before can list the epochs it paid.
 func TestV1ClaimWaitsForTheGasTopUp(t *testing.T) {
 	model := v1GasRead(t, "app/network/Main/Account/Earnings/EarningsViewModel.swift")
 	if !strings.Contains(model, "    var needsGas: Bool {\n        (gasTao ?? 0) < gasNeededTao\n    }\n") {
 		t.Error("needsGas is not a gas key short of the top-up")
 	}
-	if !strings.Contains(model, "    var claimEnabled: Bool {\n        !claimableClaims.isEmpty && !needsGas && !session.isAnyClaiming\n    }\n") {
-		t.Error("the v1 Claim does not wait for the top-up and for a claim in flight")
+	if !strings.Contains(model, "    var claimEnabled: Bool {\n        claimsReadSinceClaim && !claimableClaims.isEmpty && !needsGas && !session.isAnyClaiming\n    }\n") {
+		t.Error("the v1 Claim does not wait for the top-up, for a claim in flight and for a read after the last claim")
 	}
 	sheet := v1GasRead(t, "app/network/Main/Account/Earnings/ClaimAlphaSheet.swift")
 	for _, line := range []string{

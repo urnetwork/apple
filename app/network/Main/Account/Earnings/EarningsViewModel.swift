@@ -12,6 +12,11 @@
 //  which the app holds for every window and which outlives this view model
 //  where the Account screens do not.
 //
+//  The subnet layer's reads overlap and land in any order, so each is
+//  numbered as it starts: an answer never replaces one that a read started
+//  after it put there, and Claim of either kind waits for a read that
+//  started after that kind's last claim ended (owner, 2026-11-12).
+//
 
 import Combine
 import Foundation
@@ -140,6 +145,15 @@ final class EarningsViewModel: ObservableObject {
     /// the session's claims' Done
     private var sessionClaimsDone: AnyCancellable?
 
+    /// the reads of the subnet layer started so far (refreshSubnet), each
+    /// numbered as it starts
+    private var subnetReadsStarted = 0
+    /// the read each part of the layer shows, the v1 claims, the v2 accounts
+    /// and the gas balance, with the claims of its kind ended when it started
+    private var claimsShown = EarningsReadShown()
+    private var ledgerShown = EarningsReadShown()
+    private var gasShown = EarningsReadShown()
+
     /// When the wins are read again after a claim that paid an account, after
     /// its Done (EarningsSession.ctfWinsReadsAfterClaim, every app's
     /// schedule).
@@ -229,14 +243,34 @@ final class EarningsViewModel: ObservableObject {
     }
 
     /// the Settlement v2 tile, or nil for none; its Claim opens the claim in
-    /// flight while there is one
+    /// flight while there is one, and else waits for a read of the accounts
+    /// that started after the last v2 claim ended
     var ledgerTile: SnLedgerTilePresentation? {
         SnLedgerTilePresentation.of(
             load: ledger,
             claimConfigured: ledgerChain.claimConfigured,
             claimInFlight: isLedgerClaiming,
-            transferFloorRao: ledgerTransferFloorRao
+            transferFloorRao: ledgerTransferFloorRao,
+            readSinceClaim: ledgerReadSinceClaim
         )
+    }
+
+    /// The v1 claims shown come from a read that started after the last v1
+    /// claim ended (Done). A read that started before it, still out at the
+    /// Done or answered before it, can list the epochs the claim paid as
+    /// claimable, and a v1 Claim of them is a transaction the vault reverts,
+    /// with its gas spent: no v1 Claim is offered from it (owner,
+    /// 2026-11-12). Claim waits for the read the Done starts; if that read
+    /// fails, the claims shown stay as they were, and Claim waits for the
+    /// next good one.
+    var claimsReadSinceClaim: Bool {
+        claimsShown.claimsEnded == session.claimsEnded
+    }
+
+    /// The same for the v2 accounts and the last v2 claim: no v2 Claim is
+    /// offered from a ledger read that started before it ended.
+    var ledgerReadSinceClaim: Bool {
+        ledgerShown.claimsEnded == session.ledgerClaimsEnded
     }
 
     /// the relay's transfer floor in rao of α, 0 while it gives none
@@ -353,15 +387,19 @@ final class EarningsViewModel: ObservableObject {
     }
 
     /// the v2 claim sheet's Claim, which waits for a claim of either kind in
-    /// flight: the gas key sends one at a time (EarningsSession.isAnyClaiming)
+    /// flight: the gas key sends one at a time (EarningsSession.isAnyClaiming);
+    /// and for a read of the accounts that started after the last v2 claim
+    /// ended (ledgerReadSinceClaim)
     var ledgerClaimEnabled: Bool {
-        ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas && !session.isAnyClaiming
+        ledgerReadSinceClaim && ledgerChain.claimConfigured && !ledgerClaimableAccounts.isEmpty && !ledgerNeedsGas
+            && !session.isAnyClaiming
     }
 
-    /// the v1 claim sheet's Claim: something claimable, gas, and no claim of
-    /// either kind in flight (EarningsSession.isAnyClaiming)
+    /// the v1 claim sheet's Claim: something claimable in a read that started
+    /// after the last v1 claim ended (claimsReadSinceClaim), gas, and no claim
+    /// of either kind in flight (EarningsSession.isAnyClaiming)
     var claimEnabled: Bool {
-        !claimableClaims.isEmpty && !needsGas && !session.isAnyClaiming
+        claimsReadSinceClaim && !claimableClaims.isEmpty && !needsGas && !session.isAnyClaiming
     }
 
     /// the v2 claim sheet has no amount to show, never 0: the ledger could not
@@ -399,6 +437,9 @@ final class EarningsViewModel: ObservableObject {
     /// `localKeyPaid`: the network's consent pays the payout key on this
     /// device, a coldkey before the wallet read lists it, so there is no
     /// coldkey left to set.
+    /// Its Claim, which opens the v1 sheet, waits as the tile's does for a
+    /// read of the claims that started after the last v1 claim ended, but for
+    /// a v1 claim in flight, whose sheet it opens.
     func payoutLine(nowMillis: Int64, formatTime: (Int64) -> String, localKeyPaid: Bool = false) -> SnPayoutLine? {
         let hasColdkey = hasWallet || localKeyPaid
         return SnPayoutLine.of(
@@ -407,7 +448,8 @@ final class EarningsViewModel: ObservableObject {
             totalClaimableRao: totalClaimableRao,
             schedule: schedule,
             nowMillis: nowMillis,
-            formatTime: formatTime
+            formatTime: formatTime,
+            claimOffered: claimsReadSinceClaim || isClaiming
         )
     }
 
@@ -453,13 +495,33 @@ final class EarningsViewModel: ObservableObject {
 
     /// The layer that only exists with a wallet: gas key, balance, claims,
     /// the settlement v2 accounts.
+    ///
+    /// The reads overlap (a refresh, a wallet change, the read at each claim's
+    /// Done) and their answers land in any order. Each read is numbered as it
+    /// starts, with the claims of each kind ended by then (EarningsSession):
+    /// each part shows an answer only if no read that started after it shows
+    /// there already, so an answer from before a claim's Done never replaces
+    /// the one read after it, and Claim waits for a read that started after
+    /// its kind's last Done (claimsReadSinceClaim, ledgerReadSinceClaim).
     func refreshSubnet() async {
+        subnetReadsStarted += 1
+        let read = subnetReadsStarted
+        let claimsEnded = session.claimsEnded
+        let ledgerClaimsEnded = session.ledgerClaimsEnded
         guard hasWallet else {
-            claims = []
-            totalClaimableRao = 0
-            schedule = nil
-            gasTao = nil
-            ledger = .loaded([])
+            // nothing to read: the layer is empty at once, and no read out
+            // from before puts it back
+            if claimsShown.shows(read, claimsEnded: claimsEnded) {
+                claims = []
+                totalClaimableRao = 0
+                schedule = nil
+            }
+            if gasShown.shows(read) {
+                gasTao = nil
+            }
+            if ledgerShown.shows(read, claimsEnded: ledgerClaimsEnded) {
+                ledger = .loaded([])
+            }
             return
         }
         if !chainSettingsSynced {
@@ -473,19 +535,26 @@ final class EarningsViewModel: ObservableObject {
         async let claimsTask: (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?)? = try? client.claims()
         async let ledgerTask: SnLedgerAccountsInfo? = try? client.ledgerAccounts()
         let (balance, claimsResult, ledgerResult) = await (balanceTask, claimsTask, ledgerTask)
-        gasTao = balance
-        if let claimsResult {
+        // a failed read is unknown
+        if gasShown.shows(read) {
+            gasTao = balance
+        }
+        // a failed read keeps the claims shown
+        if let claimsResult, claimsShown.shows(read, claimsEnded: claimsEnded) {
             claims = claimsResult.claims.sorted { $0.epoch > $1.epoch }
             totalClaimableRao = claimsResult.totalClaimableRao
             schedule = claimsResult.schedule
         }
-        // the latest read decides: a failed read is unavailable even after a
-        // good one, so no claim is offered on balances that could not be read;
-        // a pool that could not be read is unavailable on its own
-        if let ledgerResult {
-            ledger = .loaded(ledgerResult.accounts, unavailablePools: ledgerResult.unavailablePools)
-        } else {
-            ledger = .unavailable
+        // a read's answer stands until one that started after it answers: a
+        // failed read is unavailable even after a good one, so no claim is
+        // offered on balances that could not be read; a pool that could not
+        // be read is unavailable on its own
+        if ledgerShown.shows(read, claimsEnded: ledgerClaimsEnded) {
+            if let ledgerResult {
+                ledger = .loaded(ledgerResult.accounts, unavailablePools: ledgerResult.unavailablePools)
+            } else {
+                ledger = .unavailable
+            }
         }
     }
 
@@ -508,8 +577,13 @@ final class EarningsViewModel: ObservableObject {
 
     /// The v1 claim, the session's (EarningsSession): its events and its Done
     /// land whatever screen is up, and none starts while a claim of either
-    /// kind is in flight. What it moves is what the claims read gives `epochs`.
+    /// kind is in flight, nor from a claims read that started before the last
+    /// v1 claim ended (claimsReadSinceClaim). What it moves is what the claims
+    /// read gives `epochs`.
     func claim(epochs: [Int64]) {
+        guard claimsReadSinceClaim else {
+            return
+        }
         session.claim(epochs: epochs, listed: claims)
     }
 
@@ -528,11 +602,12 @@ final class EarningsViewModel: ObservableObject {
         isClaiming ? claimProgress.count : claimableClaims.count
     }
 
-    /// The v1 tile's Claim: something claimable, or a claim in flight, which
-    /// it opens whatever the last read says (as the v2 tile's does, and the
-    /// other apps' v1 Claim).
+    /// The v1 tile's Claim: something claimable in a read that started after
+    /// the last v1 claim ended (claimsReadSinceClaim), or a claim in flight,
+    /// which it opens whatever the last read says (as the v2 tile's does, and
+    /// the other apps' v1 Claim).
     var claimTileEnabled: Bool {
-        !claimableClaims.isEmpty || isClaiming
+        (claimsReadSinceClaim && !claimableClaims.isEmpty) || isClaiming
     }
 
     /// The v1 claim sheet's figure, which its Claim names too: what is
@@ -570,9 +645,10 @@ final class EarningsViewModel: ObservableObject {
     /// (EarningsSession): the SDK sends one claim to STSettlementVault2 from
     /// the gas key, or, for two or more, one STClaimBatcher transaction that
     /// claims them all. Its events and its Done land whatever screen is up,
-    /// and none starts while one is in flight.
+    /// and none starts while one is in flight, nor from a ledger read that
+    /// started before the last v2 claim ended (ledgerReadSinceClaim).
     func claimLedger() {
-        guard ledgerChain.claimConfigured else {
+        guard ledgerChain.claimConfigured, ledgerReadSinceClaim else {
             return
         }
         session.claimLedger(sends: ledgerClaimableAccounts, listed: ledger.accounts)
@@ -641,6 +717,32 @@ final class EarningsViewModel: ObservableObject {
 
     var ledgerClaimFinished: Bool {
         !isLedgerClaiming && !ledgerClaimProgress.isEmpty
+    }
+}
+
+/// Which read of the subnet layer (EarningsViewModel.refreshSubnet) one part
+/// of it shows, the v1 claims, the v2 accounts or the gas balance, and how
+/// many claims of the part's kind had ended (EarningsSession.claimsEnded,
+/// ledgerClaimsEnded) when that read started. The reads overlap and their
+/// answers land in any order: one shows only if no read that started after
+/// it shows already.
+struct EarningsReadShown: Equatable {
+
+    /// the read shown, numbered as the reads start; 0 before any
+    private(set) var read = 0
+    /// the claims of the part's kind that had ended when it started
+    private(set) var claimsEnded = 0
+
+    /// Read `read`, started when `claimsEnded` claims of the part's kind had
+    /// ended, answered: it is the read shown from now, unless one that
+    /// started after it shows already (false, and nothing changes).
+    mutating func shows(_ read: Int, claimsEnded: Int = 0) -> Bool {
+        guard self.read < read else {
+            return false
+        }
+        self.read = read
+        self.claimsEnded = claimsEnded
+        return true
     }
 }
 

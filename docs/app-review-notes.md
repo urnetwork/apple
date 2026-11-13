@@ -52,6 +52,16 @@ Why the screen hides itself: the phrase controls the user's funds, so the words 
 in a way that keeps them out of most screenshots and recordings. That is best effort, and
 the app doesn't promise it.
 
+## USDC payouts removed
+
+Paste with the first release built after 2026-11-13.
+
+URnetwork no longer pays providers in USDC. Those payouts ended on 2026-11-12, and earnings
+are paid only in SN25α, as described above. This release removes the last USDC payout
+screens from Earnings: the Connect Solana wallet option, the Solana wallet card and the line
+about a final USDC payout. The app has no other USDC payout feature. Signing in with a Solana
+wallet doesn't change.
+
 ## Export compliance
 
 The key uses sr25519 signatures from the app's existing sdk. It adds no encryption of user

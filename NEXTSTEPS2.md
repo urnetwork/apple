@@ -136,7 +136,10 @@ case, and it exercises the server verification the same way.
   can never be the payout wallet: the apps hide "Make default", and the server
   rejects it in `SetPayoutWallet` **and** skips the auto-set-first-wallet-as-default
   on wallet creation. A Bittensor *signup* also creates no payout wallet
-  (`NetworkCreate` only auto-creates one for `SOL`/`MATIC`).
+  (`NetworkCreate` only auto-creates one for `SOL`/`MATIC`). *(Superseded:
+  provider earnings have gone to a Bittensor coldkey through the network
+  payout consent since 2026-10-06, USDC provider payouts ended on 2026-11-12,
+  and the Apple app removed its USDC payout wallet on 2026-11-13.)*
 - **Connect wallet** for Bittensor is paste-an-address (ss58, checksum-validated
   server side) — no signature, per the decision in BITTENSOR.md.
 - **Sign-up parity**: an unlinked wallet routes to create-network with the wallet

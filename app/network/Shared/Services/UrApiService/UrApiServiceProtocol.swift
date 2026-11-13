@@ -64,11 +64,6 @@ protocol UrApiServiceProtocol {
     func getNetworkReliability() async throws -> SdkGetNetworkReliabilityResult
     
     /**
-     * Wallet
-     */
-    func validateWalletAddress(address: String, chain: String) async throws -> Bool
-    
-    /**
      * Settings
      */
     func loginWithSeedphrase(seedphrase: String) async throws -> AuthLoginResult

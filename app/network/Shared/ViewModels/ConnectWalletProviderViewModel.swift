@@ -71,14 +71,6 @@ class ConnectWalletProviderViewModel: ObservableObject {
         clearConnectionState()
         createKeyPair()
     }
-
-    /// Forgets the connected wallet's key and session without a wallet round
-    /// trip. The Earnings payout flow only needs the public key it links;
-    /// sign-in and add-sign-in-method then connect a wallet of their own
-    /// instead of signing with this session.
-    func forgetConnection() {
-        clearConnectionState()
-    }
     
     @discardableResult
     func connectSolflareWallet(onOpenFailed: (() -> Void)? = nil) -> Bool {
@@ -548,13 +540,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
     /// words when it knows the code; nil for any other code, whose own text
     /// the caller shows.
     private func walletReturnError(code: String, provider: ConnectedWalletProvider) -> Error? {
-        guard let text = SolanaWalletReturnError.text(code: code, provider: provider) else {
-            return nil
-        }
-        if code == SdkSolanaWalletBridgeErrorExtensionNotFound {
-            return WalletDeepLinkError.extensionNotFound(text)
-        }
-        return WalletDeepLinkError.walletError(text)
+        SolanaWalletReturnError.text(code: code, provider: provider).map { WalletDeepLinkError.walletError($0) }
     }
 
     #if canImport(AppKit)
@@ -709,10 +695,6 @@ enum WalletDeepLinkError: Error {
     case missingParams
     case invalidParameters
     case walletError(String)
-    /// the ur.io bridge found no extension of the wallet in the browser
-    /// (macOS), in this app's words: kept apart from walletError so the
-    /// payout sheet can offer manual entry for it
-    case extensionNotFound(String)
 }
 
 enum ConnectedWalletProvider {

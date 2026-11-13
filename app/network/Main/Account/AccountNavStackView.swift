@@ -23,7 +23,6 @@ struct AccountNavStackView: View {
     
     @StateObject var accountPreferencesViewModel: AccountPreferencesViewModel
     @StateObject var earningsViewModel: EarningsViewModel
-    @StateObject var usdcWalletsViewModel: UsdcWalletsViewModel
     @StateObject var accountPointsStore: AccountPointsStore
     
     @ObservedObject var networkUserViewModel: NetworkUserViewModel
@@ -66,9 +65,6 @@ struct AccountNavStackView: View {
             )
         )
         _earningsViewModel = StateObject(wrappedValue: EarningsViewModel(session: earningsSession))
-        _usdcWalletsViewModel = StateObject(wrappedValue: UsdcWalletsViewModel(
-            client: UsdcWalletsSdkClient(api: api, urApiService: urApiService)
-        ))
         _accountPointsStore = StateObject.init(wrappedValue: AccountPointsStore(api: api))
         
         self.networkUserViewModel = networkUserViewModel
@@ -244,7 +240,6 @@ struct AccountNavStackView: View {
                 networkReliabilityWindow: networkReliabilityWindow,
                 fetchNetworkReliability: fetchNetworkReliability,
                 viewModel: earningsViewModel,
-                usdcViewModel: usdcWalletsViewModel,
                 consentClient: NetworkConsentSdkClient(api: api),
                 isGuest: GuestAccount.isGuest(
                     guestModeClaim: deviceManager.parsedJwt?.guestMode,

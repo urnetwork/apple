@@ -4,8 +4,8 @@
 //
 //  The SN payout line at the foot of the points card: which line shows (no
 //  coldkey, nothing claimable, claimable), the epoch end, claim-open and
-//  expiry times formatted from the sdk's epoch schedule, the schedule carried
-//  from the claims read into the line, and the final USDC payout line.
+//  expiry times formatted from the sdk's epoch schedule, and the schedule
+//  carried from the claims read into the line.
 //
 
 import Foundation
@@ -148,26 +148,5 @@ struct SnPayoutLineTests {
         let noWallet = EarningsViewModel(client: EarningsPreviewClient(schedule: Self.schedule))
         await noWallet.refresh()
         #expect(noWallet.payoutLine(nowMillis: Self.now, formatTime: Self.tag) == .setColdkey)
-    }
-
-    @Test func theUsdcLineIsTheFinalUsdcPayoutWhilePending() async {
-        #expect(UsdcFormat.finalPayoutWaiting("3.87") == "Final USDC payout: 3.87 USDC waiting")
-
-        let client = FakeUsdcWalletsClient()
-        client.paymentRows = [
-            UsdcPaymentInfo(id: "held", walletId: nil, payoutNanoCents: 3_870_000_000, tokenAmount: 0, completed: false, canceled: false, completeTimeMillis: nil),
-        ]
-        let viewModel = UsdcWalletsViewModel(client: client)
-        await viewModel.refresh()
-        #expect(viewModel.showsPendingLine)
-        #expect(viewModel.pendingUsd.map(UsdcFormat.finalPayoutWaiting) == "Final USDC payout: 3.87 USDC waiting")
-
-        // paid out: the line is gone
-        client.paymentRows = [
-            UsdcPaymentInfo(id: "held", walletId: nil, payoutNanoCents: 3_870_000_000, tokenAmount: 3.87, completed: true, canceled: false, completeTimeMillis: 1),
-        ]
-        await viewModel.refresh()
-        #expect(!viewModel.showsPendingLine)
-        #expect(viewModel.pendingUsd == nil)
     }
 }

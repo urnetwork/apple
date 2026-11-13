@@ -447,7 +447,7 @@ func TestBittensorKeyWalletCardShowsTheKeyOnThisDevice(t *testing.T) {
 		t.Error("the wallet card offers Connect Bittensor wallet beside the key on this device")
 	}
 	keyBranch := card[key:connect]
-	for _, line := range []string{"shortAddress(localKey.address)", "connectSolanaItem", "if localKey.linked {"} {
+	for _, line := range []string{"shortAddress(localKey.address)", "if localKey.linked {"} {
 		if !strings.Contains(keyBranch, line) {
 			t.Errorf("the key's wallet card lost %s", line)
 		}

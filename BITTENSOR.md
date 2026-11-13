@@ -3,6 +3,13 @@
 **Status: EVALUATION ONLY — no code written. Awaiting a go/no-go and the four
 decisions in [Open questions](#open-questions).**
 
+> **Update 2026-11-13.** The USDC payout rails this evaluation describes (gap 8,
+> open question 3) are history. Provider earnings have been paid in SN25α to a
+> Bittensor coldkey since 2026-10-06, and USDC provider payouts ended on
+> 2026-11-12. On 2026-11-13 the owner closed USDC out, and the Apple app's last
+> USDC payout surfaces were removed: Connect Solana wallet, the Solana wallet
+> card and the final USDC payout line.
+
 Goal evaluated: add **"Sign in with Bittensor"** (wallet auth login) and
 **"Connect Bittensor Wallet"** (external wallet) to the URnetwork iOS and Android
 apps, using the **Tao.com app** as the wallet — mirroring the existing Solana

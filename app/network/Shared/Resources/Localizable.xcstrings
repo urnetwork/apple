@@ -63508,6 +63508,7 @@
     },
     "Connect a Solana wallet app, or enter a Solana USDC address manually." : {
       "comment" : "Note at the top of the Solana connect sheet/card, above the wallet-app button and the manual-entry link.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -65515,6 +65516,7 @@
     },
     "Connect Solana wallet" : {
       "comment" : "Overflow menu item next to “Connect Bittensor wallet” on the Earnings screen, and the title of the Solana connect sheet/card: connect a Solana USDC payout wallet (wallet app, or manual address entry). USDC payouts continue until the migration to Bittensor completes.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -84611,6 +84613,7 @@
     },
     "Default" : {
       "comment" : "Call to action",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -99988,6 +99991,7 @@
       }
     },
     "Enter a Solana USDC wallet address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -100155,6 +100159,7 @@
     },
     "Enter address manually" : {
       "comment" : "Fallback link to paste an ss58 address.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -103689,6 +103694,7 @@
     },
     "Error setting default wallet: %@" : {
       "comment" : "Snackbar shown when setting the default payout wallet fails, with the underlying error message. Used in Main/Account/Wallet/WalletView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -111046,6 +111052,7 @@
     },
     "Final USDC payout: %@ USDC waiting" : {
       "comment" : "The last USDC payout still pending since provider payouts moved to the UR subnet; shown on the Solana wallet block and, while no Solana wallet is connected, next to the wallet actions, only while a USDC amount is pending. Mirrors the email headline.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -141002,6 +141009,7 @@
     },
     "Make default" : {
       "comment" : "Wallet Screen",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -148530,6 +148538,7 @@
     },
     "No compatible Solana wallet app was found on this device. Choose “Enter address manually” to paste your wallet address instead." : {
       "comment" : "Body of the no-wallet alert (android) and note (iOS) of the Solana payout wallet's connect sheet, when no wallet app on the device can connect (android: no wallet app answers the Mobile Wallet Adapter request, as reported with Brave Wallet installed; iOS: neither Phantom nor Solflare is installed). A typed address works with any wallet, so the line points at the sheet's manual entry, naming its Enter address manually control in that control's own words (enter_address_manually); the android alert also offers that control as its action. Signing in needs a wallet app and keeps no_wallets_found_alert_content.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -166613,6 +166622,7 @@
     },
     "Payout wallet updated" : {
       "comment" : "Snackbar shown after the payout wallet is changed. Used in Main/Account/Wallet/WalletView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -167449,6 +167459,7 @@
     },
     "Payouts now go to %@." : {
       "comment" : "Status line or snackbar after removing the payout wallet made another of the account's wallets the payout wallet (the server promotes the newest other Solana or Polygon wallet). The placeholder is the new payout wallet's shortened address, its first and last four characters around an ellipsis.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -192163,6 +192174,7 @@
     },
     "Remove wallet" : {
       "comment" : "Used in Main/Account/AccountNavStackView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -226310,6 +226322,7 @@
     },
     "That is not a valid Solana address." : {
       "comment" : "Validation error under the manual address field when the address is not a valid Solana address (parallel to invalid_ss58_address).",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -226644,6 +226657,7 @@
     },
     "The %@ extension was not found in this browser. Install it and try again, or choose “Enter address manually” to paste your wallet address." : {
       "comment" : "Error in the Solana payout wallet's connect sheet of the desktop apps (macOS, Windows, Linux) when the ur.io wallet bridge page returns extension_not_found: the chosen wallet's browser extension is not in this browser. The argument is the wallet product name (Phantom or Solflare). The sheet also takes a typed address, which works with any wallet, so the line points at its Enter address manually control, named in that control's own words (enter_address_manually). Signing in has no manual entry and keeps bittensor_error_extension_not_found.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -233701,6 +233715,7 @@
     },
     "There was an error connecting your wallet: %@" : {
       "comment" : "Snackbar shown when connecting a wallet fails, with the underlying error message. Used in Main/Account/Wallets/WalletsView.swift.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -263091,6 +263106,7 @@
     },
     "USDC payouts continue to this wallet until the migration to Bittensor is complete." : {
       "comment" : "Second paragraph of the Solana connect sheet/card, and the body line under a connected Solana wallet.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -263258,6 +263274,7 @@
     },
     "USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one." : {
       "comment" : "Body of the remove confirmation for the payout wallet (the title is remove_wallet). Removing the payout wallet makes another of the account's active Solana or Polygon wallets the payout wallet when there is one (the server picks it; payouts_now_go_to names it after the removal), and holds USDC payouts until the user connects a wallet when there is none.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -263424,6 +263441,7 @@
       }
     },
     "USDC wallet address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -272289,6 +272307,7 @@
     },
     "Wallet options" : {
       "comment" : "Accessibility label of the three-dot overflow button next to “Connect Bittensor wallet” and on the connected Bittensor wallet block.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -292278,6 +292297,7 @@
       }
     },
     "τ" : {
+      "extractionState" : "stale",
       "shouldTranslate" : false
     }
   },

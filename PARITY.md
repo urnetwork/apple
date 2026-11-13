@@ -7,6 +7,8 @@
 >
 > iPad and regular-width iPhone Duo are now UI targets, with split layouts for Connect, Account and Leaderboard.
 
+> **Update 2026-11-13.** USDC provider payouts ended on 2026-11-12, and the owner closed USDC out on 2026-11-13. Providers are paid in SN25α to a Bittensor coldkey, as they have been since 2026-10-06. The Apple app no longer has a USDC payout wallet: Connect Solana wallet, the Solana wallet card with its Default badge and Remove, and the final USDC payout line are gone. The USDC payout wallet items below (the Windows set-default/remove/payments gap, P1 item 6's wallet depth, the web's set-payout) are history, not work to port.
+
 Seven audits over six app surfaces, grounded in current source (not planning docs):
 
 1. iPad vs iPhone (this repo)
@@ -197,7 +199,7 @@ Key surfaces:
 5. iOS: delete or wire the dead connect-screen guest cover; port profile network-name rename from Android.
 
 **P1 — structural parity:**
-6. Windows: provide control (mode picker + tray state) + the settings tail; wallet depth (set-default/remove/payments).
+6. Windows: provide control (mode picker + tray state) + the settings tail; wallet depth (set-default/remove/payments; dropped 2026-11-13 with USDC payouts).
 7. Linux: the Account half (settings form first: rename/copy-ID/blocked locations/delete account), provide mode picker, 4-state tray.
 8. Android: quick-settings tile (only platform with no OS-level connect affordance); consider universal-link parity on iOS (`ur.io/c` associated domain) and unify deep-link schemes (`ur://` vs `urnetwork://`).
 9. Web: split rules port, `setPerformanceProfile` + `contractStatus` + `getRecommendedDnsResolverSettings` wasm bindings, device rename/client-ID.

@@ -544,7 +544,7 @@ func TestBittensorKeyClaimedStateAsDrawn(t *testing.T) {
 	if claimedInSheet < 0 {
 		t.Fatal("the claim sheet has no claimed state")
 	}
-	for _, line := range []string{"SnClaimRelayClaimed(status: status)", `UrButton(text: "Done", action: dismiss`, "SnClaimRelayAgainOn(status: status)"} {
+	for _, line := range []string{"SnClaimRelayClaimed(status: status,", `UrButton(text: "Done", action: dismiss`, "SnClaimRelayAgainOn(status: status)"} {
 		if !strings.Contains(content[claimedInSheet:], line) {
 			t.Errorf("the claim sheet's claimed state lost %s", line)
 		}

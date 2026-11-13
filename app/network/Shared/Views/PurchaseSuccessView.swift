@@ -23,7 +23,7 @@ import URnetworkSdk
  *   "Restore purchases" as the manual retry.
  * - `.confirmed`: the server confirmed the entitlement — the original premium
  *   copy. Also the default, for flows that confirm before presenting. Not for
- *   balance codes: a code is data only (BalanceCodeRedeemedView).
+ *   balance codes, data or a gift year of Pro (BalanceCodeRedeemedView).
  */
 enum PurchaseConfirmationPhase {
     case confirming

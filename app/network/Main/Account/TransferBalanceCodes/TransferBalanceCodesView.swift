@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import URnetworkSdk
 
 struct TransferBalanceCodesView: View {
     
@@ -57,7 +58,7 @@ struct TransferBalanceCodesView: View {
                                     
                                     Spacer()
                                     
-                                    Text("+\(formatBalanceBytes(Int(balanceCode.balanceByteCount)))")
+                                    Text(Self.amountText(balanceCode))
                                     
                                     Spacer()
         
@@ -124,17 +125,27 @@ struct TransferBalanceCodesView: View {
                             closeSheet: {
                                 viewModel.displayRedeemSheet = false
                             },
-                            onSuccess: { _ in
+                            onSuccess: { redeemed in
                                 
                                 viewModel.displayRedeemSheet = false
                                 
-                                // a balance code is data only: read the balance
-                                // once, never the Pro confirmation poll. The new
-                                // code's "+data" row below confirms the redeem.
+                                // the balance and the plan, read once: a gift
+                                // code's year of Pro reaches the plan and the jwt
+                                // from here. Never the purchase confirmation
+                                // poll: the redeem itself granted.
                                 Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
                                 
                                 Task {
                                     await viewModel.getRedeemedBalanceCodes()
+                                }
+                                
+                                // confirmed as every redeem is
+                                // (BalanceCodeRedeemedView), besides its new row
+                                Task {
+                                    // Wait approx. 300ms for the sheet to animate out and keyboard to dismiss
+                                    try? await Task.sleep(for: .milliseconds(300))
+                                    viewModel.redeemedBalanceCode = redeemed
+                                    viewModel.balanceCodeRedeemed = true
                                 }
                                 
                             },
@@ -144,6 +155,15 @@ struct TransferBalanceCodesView: View {
                         
                     }
                     .background(themeManager.currentTheme.backgroundColor)
+                }
+                .sheetOffTheFold(isPresented: $viewModel.balanceCodeRedeemed) {
+                    BalanceCodeRedeemedView(redeemed: viewModel.redeemedBalanceCode, dismiss: {
+                        viewModel.balanceCodeRedeemed = false
+                    })
+                    .environmentObject(themeManager)
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
+                    .ignoresSafeArea()
                 }
                 
                 if let loadErrorMessage = viewModel.loadErrorMessage {
@@ -183,6 +203,17 @@ struct TransferBalanceCodesView: View {
         return Self.shortDateFormatter.string(from: date)
     }
     
+    /// A row's amount: a gift code's year of Pro in place of its 0 bytes
+    /// (mmm/GIFTOFPRIVACY.md 10.5), or the data a data code added. A code
+    /// from a server that predates gift codes reads as data.
+    static func amountText(_ balanceCode: SdkRedeemedBalanceCode) -> String {
+        if balanceCode.kind == SdkBalanceCodeKindProGift {
+            return String(localized: "A year of Pro")
+        }
+        let amount = formatBalanceBytes(Int(balanceCode.balanceByteCount))
+        return String(localized: "+\(amount)")
+    }
+
 }
 
 //#Preview {

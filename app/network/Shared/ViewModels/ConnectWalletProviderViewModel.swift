@@ -167,8 +167,16 @@ class ConnectWalletProviderViewModel: ObservableObject {
         }
         return openURL(url) { success in
             if !success {
+                #if os(macOS)
+                // macOS opens the ur.io wallet bridge page in the browser, so
+                // the wallet never saw the request: the browser's failure, in
+                // the words Windows and Linux show for it
+                print("The browser would not open the \(provider) wallet bridge page")
+                onOpenFailed(.browserNotOpened)
+                #else
                 print("The \(provider) wallet would not open")
                 onOpenFailed(.app(SdkSolanaWalletFailureWalletAppNotFound, provider: provider))
+                #endif
             }
         }
     }
@@ -764,6 +772,21 @@ struct SolanaWalletFailure: Error, Equatable {
         SolanaWalletFailure(source: SdkSolanaWalletFailureSourceApp, code: code, provider: provider)
     }
 
+    /// the store key of the desktop apps' words for a browser that would not
+    /// open a sign-in page (sso_browser_open_failed)
+    static let browserNotOpenedMessageKey = "sso_browser_open_failed"
+
+    /// The browser would not open the ur.io wallet bridge page (macOS), so the
+    /// wallet never saw the request: not one of the sdk's wallet failures, and
+    /// read as Windows and Linux read it.
+    static let browserNotOpened = SolanaWalletFailure(failure: "browser_not_opened", messageKey: browserNotOpenedMessageKey, walletName: "")
+
+    private init(failure: String, messageKey: String, walletName: String) {
+        self.failure = failure
+        self.messageKey = messageKey
+        self.walletName = walletName
+    }
+
     /// The message, in the user's language.
     var message: String {
         Self.message(messageKey: messageKey, walletName: walletName)
@@ -786,6 +809,8 @@ struct SolanaWalletFailure: Error, Equatable {
             return String(localized: "Your \(walletName) wallet has no account to sign with. Add or connect an account in the wallet, then try again.")
         case SdkSolanaWalletFailureMessageSessionNotFound:
             return String(localized: "The wallet connection wasn't found in this browser. Start again to reconnect your wallet.")
+        case browserNotOpenedMessageKey:
+            return String(localized: "Could not open the browser. Please try again.")
         case SdkSolanaWalletFailureMessageWallet:
             fallthrough
         default:

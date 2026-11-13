@@ -163,7 +163,8 @@ struct LoginInitialView: View {
             .alert(String(localized: "No Solana Wallets Found"), isPresented: $presentNoSolanaWalletAlert) {
                 Button(String(localized: "Got it")) {}
             } message: {
-                Text("No Solana wallets were found installed on this device. Please install a wallet and try again.")
+                // the sdk's no_wallet failure: no wallet app to hand off to
+                Text(SolanaWalletFailure.app(SdkSolanaWalletFailureNoWallet, provider: nil).message)
             }
             .sheetOffTheFold(isPresented: $viewModel.presentSigninWithSolanaSheet) {
                 
@@ -183,7 +184,8 @@ struct LoginInitialView: View {
                         let attempt = NetworkLoginWalletAttempt(request: request, message: message)
                         solanaAttempt = attempt
                         return attempt.id
-                    }
+                    },
+                    onFailure: failSolanaSignIn
                 )
                 .environmentObject(themeManager)
                 .environmentObject(connectWalletProviderViewModel)
@@ -290,17 +292,23 @@ struct LoginInitialView: View {
                     guard let attempt else { return }
                     let key = connectWalletProviderViewModel.connectedPublicKey ?? ""
                     if !attempt.receive(url, signature: signature, publicKey: key, handle: handleSolanaWalletResult) {
+                        // not a signature over the challenge by the connected
+                        // key: the wallet's hand-back could not be read
+                        let failure = SolanaWalletFailure.app(SdkSolanaWalletFailureWallet, provider: connectWalletProviderViewModel.connectedWalletProvider)
                         attempt.fail(url) {
-                            viewModel.finishSolanaAttempt(request: attempt.request)
-                            viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+                            viewModel.failSolanaAttempt(failure, request: attempt.request)
                         }
                     }
                 },
-                onError: { _ in
+                onError: { failure in
+                    // the connect step's failure has no attempt yet
+                    guard isSignatureReturn else {
+                        failSolanaSignIn(failure)
+                        return
+                    }
                     guard let attempt else { return }
                     attempt.fail(url) {
-                        viewModel.finishSolanaAttempt(request: attempt.request)
-                        viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+                        viewModel.failSolanaAttempt(failure, request: attempt.request)
                     }
                 }
             )
@@ -340,6 +348,15 @@ struct LoginInitialView: View {
                 viewModel.setPresentSigninWithSolanaSheet(true)
             }
         }
+    }
+
+    /// A Solana wallet failure outside a sign attempt's own hand-back: the
+    /// wallet would not open, or the connect step failed. Only while the sheet
+    /// waits on the wallet; the attempt ends on the failure's message.
+    private func failSolanaSignIn(_ failure: SolanaWalletFailure) {
+        guard let request = solanaRequest, request.isCurrent, viewModel.presentSigninWithSolanaSheet else { return }
+        solanaAttempt = nil
+        viewModel.failSolanaAttempt(failure, request: request)
     }
 
     private func handleSolanaWalletResult(message: String, signature: String, publicKey: String, request: NetworkLoginRequest) async {

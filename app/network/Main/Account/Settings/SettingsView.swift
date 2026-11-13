@@ -114,9 +114,6 @@ struct SettingsView: View {
                     Text("Your Bittensor key isn't backed up. Deleting your account also deletes it from this device, and URnetwork can't get it back.")
                 }
             }
-            .onOpenURL { url in
-                handleWalletDeepLink(url)
-            }
             .sheetOffTheFold(isPresented: $viewModel.presentSeedphraseSheet) {
                 SeedphraseDisplayView(
                     seedphrase: viewModel.generatedSeedphrase,
@@ -282,31 +279,6 @@ struct SettingsView: View {
         
         #endif
         
-    }
-    
-    private func handleWalletDeepLink(_ url: URL) {
-        let vm = connectWalletProviderViewModel
-        // only the add-sign-in-method flow takes wallet links here: a stray or
-        // replayed return (the ur.io bridge's Return to URnetwork, a late tab)
-        // must not connect a wallet nobody is waiting for
-        guard vm.pendingAddAuthSignatureHandler != nil else {
-            return
-        }
-        if let pk = vm.connectedPublicKey {
-            vm.handleDeepLink(
-                url,
-                onSignature: { signature in
-                    if let handler = vm.pendingAddAuthSignatureHandler {
-                        Task {
-                            await handler(pk, signature)
-                        }
-                    }
-                },
-                onError: { _ in }
-            )
-        } else {
-            vm.handleDeepLink(url)
-        }
     }
     
     private func saveDeviceName() async {

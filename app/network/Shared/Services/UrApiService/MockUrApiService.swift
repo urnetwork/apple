@@ -92,10 +92,6 @@ class MockUrApiService: UrApiServiceProtocol {
         return SdkGetNetworkReliabilityResult()
     }
     
-    func validateWalletAddress(address: String, chain: String) async throws -> Bool {
-        return true
-    }
-    
     func deleteAccount() async throws -> SdkNetworkDeleteResult {
         return SdkNetworkDeleteResult()
     }

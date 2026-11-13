@@ -3,11 +3,11 @@
 //  networkTests
 //
 //  A failed fetch was shown as real data: Account and Earnings showed 0
-//  points, the Earnings history said "No epochs yet", a failed wallet read
-//  offered to connect a wallet, and the USDC payout wallet card disappeared.
-//  Each section now reports the failure (SectionLoad.failed, shown with a
-//  Retry) while it has nothing fetched to show, keeps what it has when a
-//  refresh fails, and clears the failure when a retry succeeds.
+//  points, the Earnings history said "No epochs yet", and a failed wallet
+//  read offered to connect a wallet. Each section now reports the failure
+//  (SectionLoad.failed, shown with a Retry) while it has nothing fetched to
+//  show, keeps what it has when a refresh fails, and clears the failure when
+//  a retry succeeds.
 //
 
 import Foundation
@@ -163,43 +163,6 @@ struct FetchErrorRetryTests {
 
     private static func epoch(_ epoch: Int64) -> AccountEpochInfo {
         AccountEpochInfo(epoch: epoch, startMillis: 0, endMillis: 0, points: 1, shareBps: 0)
-    }
-
-    // MARK: USDC payout wallet
-
-    @Test func aFailedPayoutWalletReadIsReported() async {
-        let client = FakeUsdcWalletsClient()
-        client.walletsError = FetchError()
-        let viewModel = UsdcWalletsViewModel(client: client)
-
-        await viewModel.refresh()
-
-        #expect(viewModel.payoutWallet == nil)
-        #expect(viewModel.loadFailed)
-
-        client.walletsError = nil
-        await viewModel.refresh()
-        #expect(!viewModel.loadFailed)
-    }
-
-    @Test func aFailedPayoutIdReadIsReported() async {
-        let client = FakeUsdcWalletsClient()
-        client.walletRows = [UsdcWalletInfo(id: "w", chain: .sol, address: "a", hasSeekerToken: false)]
-        client.payoutIdError = FetchError()
-        let viewModel = UsdcWalletsViewModel(client: client)
-
-        await viewModel.refresh()
-
-        #expect(viewModel.loadFailed)
-    }
-
-    @Test func noPayoutWalletIsNotAFailure() async {
-        let viewModel = UsdcWalletsViewModel(client: FakeUsdcWalletsClient())
-
-        await viewModel.refresh()
-
-        #expect(viewModel.payoutWallet == nil)
-        #expect(!viewModel.loadFailed)
     }
 
     // MARK: SectionLoad

@@ -3,7 +3,9 @@
 //  networkTests
 //
 //  Which Earnings connect flow a wallet deep link reaches: each flow takes
-//  only its own callbacks, and only while its sheet is up.
+//  only its own callbacks, and only while its sheet is up. A Phantom or
+//  Solflare return reaches none: Earnings has no Solana wallet since USDC
+//  payouts ended (2026-11-12).
 //
 
 import Foundation
@@ -20,28 +22,34 @@ struct EarningsWalletLinkTests {
     private static let widget = URL(string: "urnetwork://widgets/connect")!
 
     @Test func aWalletLinkReachesOnlyTheSheetItBelongsTo() {
-        #expect(EarningsWalletLink.route(Self.phantom, solanaSheetUp: true, bittensorSheetUp: false) == .solana)
-        #expect(EarningsWalletLink.route(Self.solflare, solanaSheetUp: true, bittensorSheetUp: false) == .solana)
-        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: true) == .bittensor)
-        // the other flow's late callback
-        #expect(EarningsWalletLink.route(Self.bittensorError, solanaSheetUp: true, bittensorSheetUp: false) == nil)
-        #expect(EarningsWalletLink.route(Self.phantom, solanaSheetUp: false, bittensorSheetUp: true) == nil)
+        #expect(EarningsWalletLink.route(Self.bittensor, bittensorSheetUp: true) == .bittensor)
+        #expect(EarningsWalletLink.route(Self.bittensorError, bittensorSheetUp: true) == .bittensor)
         // the sheet was dismissed
-        #expect(EarningsWalletLink.route(Self.solflare, solanaSheetUp: false, bittensorSheetUp: false) == nil)
+        #expect(EarningsWalletLink.route(Self.bittensor, bittensorSheetUp: false) == nil)
+        #expect(EarningsWalletLink.route(Self.bittensorError, bittensorSheetUp: false) == nil)
         // not a connect callback
-        #expect(EarningsWalletLink.route(Self.signIn, solanaSheetUp: true, bittensorSheetUp: true) == nil)
-        #expect(EarningsWalletLink.route(Self.widget, solanaSheetUp: true, bittensorSheetUp: true) == nil)
+        #expect(EarningsWalletLink.route(Self.signIn, bittensorSheetUp: true, consentSheetUp: true) == nil)
+        #expect(EarningsWalletLink.route(Self.widget, bittensorSheetUp: true, consentSheetUp: true) == nil)
+    }
+
+    // USDC payouts ended, and with them the Solana payout wallet sheet: a
+    // Phantom or Solflare connect return is no Earnings flow's, whichever
+    // sheet is up
+    @Test func aSolanaLinkReachesNoEarningsSheet() {
+        for url in [Self.phantom, Self.solflare] {
+            #expect(EarningsWalletLink.route(url, bittensorSheetUp: true) == nil, "\(url)")
+            #expect(EarningsWalletLink.route(url, bittensorSheetUp: false, consentSheetUp: true) == nil, "\(url)")
+            #expect(EarningsWalletLink.route(url, bittensorSheetUp: false) == nil, "\(url)")
+        }
     }
 
     // CS-7: the payout consent signs through the same bridge link, so its
     // hand-back reaches the consent sheet while that is up, and only then
     @Test func aBittensorLinkReachesTheConsentSheetWhileItIsUp() {
-        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: true) == .consent)
-        #expect(EarningsWalletLink.route(Self.bittensorError, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: true) == .consent)
-        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: true, consentSheetUp: false) == .bittensor)
-        // a Solana callback is never the consent's
-        #expect(EarningsWalletLink.route(Self.phantom, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: true) == nil)
+        #expect(EarningsWalletLink.route(Self.bittensor, bittensorSheetUp: false, consentSheetUp: true) == .consent)
+        #expect(EarningsWalletLink.route(Self.bittensorError, bittensorSheetUp: false, consentSheetUp: true) == .consent)
+        #expect(EarningsWalletLink.route(Self.bittensor, bittensorSheetUp: true, consentSheetUp: false) == .bittensor)
         // the consent sheet was dismissed
-        #expect(EarningsWalletLink.route(Self.bittensor, solanaSheetUp: false, bittensorSheetUp: false, consentSheetUp: false) == nil)
+        #expect(EarningsWalletLink.route(Self.bittensor, bittensorSheetUp: false, consentSheetUp: false) == nil)
     }
 }

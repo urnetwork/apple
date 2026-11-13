@@ -65,7 +65,10 @@ commented out). Now the full funnel runs on macOS.
   Solana" button is enabled.
 - `Main/Account/Wallets/WalletsView.swift`: the macOS Connect-wallet sheet now
   shows the full `ConnectWalletNavigationStack` (Phantom/Solflare deeplink +
-  manual entry) instead of manual-entry only.
+  manual entry) instead of manual-entry only. *(History: Earnings later
+  replaced the Wallets screen, and its Solana payout wallet connect was removed
+  on 2026-11-13, when USDC payouts had ended. The bridge stays for signing in
+  with Solana and adding a Solana sign-in method.)*
 
 **Web bridge, built:** `mmm/ur.io/astro/src/pages/wallet-connect.astro` — a
 standalone page that drives the Phantom/Solflare **browser extension**

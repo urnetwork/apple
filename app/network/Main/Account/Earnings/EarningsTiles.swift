@@ -3,18 +3,13 @@
 //  URnetwork
 //
 //  The tiles of the Earnings screen: the Top 200
-//  standing, the Bittensor wallet block with its wallet options, the unclaimed
-//  alpha tile, the settlement v2 tile, the network payout consent card, the
-//  SN payout line of the points card and the epoch history rows.
+//  standing, the Bittensor wallet block, the unclaimed alpha tile, the
+//  settlement v2 tile, the network payout consent card, the SN payout line of
+//  the points card and the epoch history rows.
 //
 
 import SwiftUI
 import URnetworkSdk
-#if canImport(UIKit)
-import UIKit
-#elseif canImport(AppKit)
-import AppKit
-#endif
 
 /// The network's Top 200 standing (apple/LEADERTOP.md §8), as the Protocol
 /// leaderboard projects it: the position, the margin to the 200 line and
@@ -213,10 +208,7 @@ struct Top200Tile: View {
 /// The Bittensor wallet block: the connect call when none is attached, the
 /// coldkey and the settlement note once it is. While no wallet is read and the
 /// payout key is on this device, the key's address takes the connect call's
-/// place, so the one tap leaves no second wallet to connect. Its wallet options
-/// connect the Solana wallet USDC payouts go to until the migration to
-/// Bittensor is complete: next to the connect button, or at the trailing end of
-/// the header once a coldkey or the key is shown.
+/// place, so the one tap leaves no second wallet to connect.
 struct BittensorWalletCard: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -228,10 +220,6 @@ struct BittensorWalletCard: View {
     var localKey: BittensorWalletCardLocalKey? = nil
     let shortAddress: (String) -> String
     let connect: () -> Void
-    /// the final USDC payout waiting while there is no Solana payout wallet,
-    /// or nil
-    let pendingUsd: String?
-    let connectSolana: () -> Void
     /// the wallet read failed with no cached wallet: whether one is connected
     /// is unknown, so no connect offer
     var loadFailed: Bool = false
@@ -241,15 +229,8 @@ struct BittensorWalletCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            UrLabel(text: "Bittensor wallet")
             if let wallet {
-                HStack {
-                    UrLabel(text: "Bittensor wallet")
-                    Spacer()
-                    WalletOverflowMenu(style: .plain) {
-                        connectSolanaItem
-                    }
-                }
-                pendingLine
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.seal.fill")
                         .foregroundColor(themeManager.currentTheme.accentColor)
@@ -274,17 +255,8 @@ struct BittensorWalletCard: View {
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
             } else if loadFailed {
-                UrLabel(text: "Bittensor wallet")
                 SectionLoadFailedView(retry: retry)
             } else if let localKey {
-                HStack {
-                    UrLabel(text: "Bittensor wallet")
-                    Spacer()
-                    WalletOverflowMenu(style: .plain) {
-                        connectSolanaItem
-                    }
-                }
-                pendingLine
                 HStack(spacing: 8) {
                     Image(systemName: localKey.linked ? "checkmark.seal.fill" : "key.fill")
                         .foregroundColor(localKey.linked ? themeManager.currentTheme.accentColor : themeManager.currentTheme.textMutedColor)
@@ -306,45 +278,15 @@ struct BittensorWalletCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else {
-                UrLabel(text: "Bittensor wallet")
                 WalletNotRetroactiveNote()
                 Spacer().frame(height: 4)
-                pendingLine
-                HStack(spacing: 8) {
-                    UrButton(text: "Connect Bittensor wallet", action: connect)
-                    WalletOverflowMenu(style: .bordered) {
-                        connectSolanaItem
-                    }
-                }
+                UrButton(text: "Connect Bittensor wallet", action: connect)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(themeManager.currentTheme.tintedBackgroundBase)
         .cornerRadius(12)
-    }
-
-    /// "Final USDC payout: 3.87 USDC waiting", while the last USDC payout is
-    /// held for want of a Solana wallet
-    @ViewBuilder
-    private var pendingLine: some View {
-        if let pendingUsd {
-            Text(verbatim: UsdcFormat.finalPayoutWaiting(pendingUsd))
-                .font(themeManager.currentTheme.secondaryBodyFont)
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-        }
-    }
-
-    private var connectSolanaItem: some View {
-        Button(action: connectSolana) {
-            Label {
-                Text("Connect Solana wallet")
-            } icon: {
-                SolanaMenuIcon.image
-                    .accessibilityHidden(true)
-            }
-        }
-        .accessibilityIdentifier("acceptance.earnings.connectSolana")
     }
 }
 
@@ -361,98 +303,6 @@ struct BittensorWalletCardLocalKey: Equatable {
         }
         address = card.storedAddress
         linked = card.state == SdkBittensorLocalKeyStateSaveLaterLinked
-    }
-}
-
-/// The three-dot wallet options: bordered at the height of the button beside
-/// it, or plain at the trailing end of a wallet card's header.
-struct WalletOverflowMenu<Content: View>: View {
-
-    enum Style {
-        case bordered
-        case plain
-    }
-
-    @EnvironmentObject var themeManager: ThemeManager
-
-    let style: Style
-    var accessibilityIdentifier: String = "acceptance.earnings.walletOptions"
-    @ViewBuilder let items: () -> Content
-
-    var body: some View {
-        Menu {
-            items()
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.system(size: style == .bordered ? 16 : 13))
-                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                .frame(width: side, height: side)
-                .contentShape(Rectangle())
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .frame(width: side, height: side)
-        .overlay(border)
-        .accessibilityLabel(Text("Wallet options"))
-        .accessibilityIdentifier(accessibilityIdentifier)
-    }
-
-    private var side: CGFloat {
-        style == .bordered ? 48 : 28
-    }
-
-    @ViewBuilder
-    private var border: some View {
-        if style == .bordered {
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(themeManager.currentTheme.borderStrongColor, lineWidth: 1)
-        }
-    }
-}
-
-/// The Solana logomark sized for a menu item. Menus drop frame modifiers and
-/// show an asset image at its own size (the logomark is 313×281 pt), so the
-/// logo is drawn into a small template image once.
-private enum SolanaMenuIcon {
-
-    static let image: Image = {
-        let side: CGFloat = 16
-        #if canImport(UIKit)
-        guard let logo = UIImage(named: "solana.logo") else {
-            return Image("solana.logo")
-        }
-        let size = CGSize(width: side, height: side)
-        let sized = UIGraphicsImageRenderer(size: size).image { _ in
-            logo.draw(in: SolanaMenuIcon.aspectFit(logo.size, in: size))
-        }
-        return Image(uiImage: sized.withRenderingMode(.alwaysTemplate))
-        #elseif canImport(AppKit)
-        guard let logo = NSImage(named: "solana.logo") else {
-            return Image("solana.logo")
-        }
-        let size = NSSize(width: side, height: side)
-        let sized = NSImage(size: size, flipped: false) { _ in
-            logo.draw(in: SolanaMenuIcon.aspectFit(logo.size, in: size))
-            return true
-        }
-        sized.isTemplate = true
-        return Image(nsImage: sized)
-        #endif
-    }()
-
-    private static func aspectFit(_ content: CGSize, in bounds: CGSize) -> CGRect {
-        guard content.width > 0, content.height > 0 else {
-            return CGRect(origin: .zero, size: bounds)
-        }
-        let scale = min(bounds.width / content.width, bounds.height / content.height)
-        let fitted = CGSize(width: content.width * scale, height: content.height * scale)
-        return CGRect(
-            x: (bounds.width - fitted.width) / 2,
-            y: (bounds.height - fitted.height) / 2,
-            width: fitted.width,
-            height: fitted.height
-        )
     }
 }
 

@@ -9,10 +9,9 @@
 //  to the settlement vault. The settlement v2 balances show in a tile of
 //  their own beside it, with their own claim. The network payout consent names
 //  the coldkey one signature by the network's owner pays every provider of the
-//  network to. Alpha is not retroactive. USDC
-//  payouts continue to a Solana wallet until the migration to Bittensor is
-//  complete; the wallet options next to the Bittensor call connect it. The
-//  payout consent card sits above the wallet cards, since a network without a
+//  network to. Alpha is not retroactive. Providers are paid in SN25α only:
+//  USDC payouts ended on 2026-11-12, and the screen has no USDC wallet. The
+//  payout consent card sits above the wallet card, since a network without a
 //  consent is one tap away from earning (apple/BTEASY.md): the SDK's payout key
 //  flow behind it makes the key, and a banner stays while its phrase isn't
 //  saved.
@@ -24,7 +23,6 @@ import URnetworkSdk
 struct EarningsView: View {
 
     @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var throughputStore: ThroughputStore
     @EnvironmentObject var deviceManager: DeviceManager
@@ -36,16 +34,13 @@ struct EarningsView: View {
     let networkReliabilityWindow: SdkReliabilityWindow?
     let fetchNetworkReliability: () async -> Void
     @ObservedObject var viewModel: EarningsViewModel
-    @ObservedObject var usdcViewModel: UsdcWalletsViewModel
     /// the jwt's claim or the server's: a guest gets no key
     let isGuest: Bool
 
     @StateObject private var connectFlow: ConnectBittensorWalletFlow
-    @StateObject private var solanaFlow: ConnectSolanaWalletFlow
     @StateObject private var consentFlow: NetworkConsentFlow
     @StateObject private var keyModel: BittensorKeyModel
     @State private var presentConnectSheet = false
-    @State private var presentSolanaSheet = false
     @State private var presentClaimSheet = false
     @State private var presentLedgerClaimSheet = false
     @State private var presentConsentSheet = false
@@ -65,7 +60,6 @@ struct EarningsView: View {
         networkReliabilityWindow: SdkReliabilityWindow?,
         fetchNetworkReliability: @escaping () async -> Void,
         viewModel: EarningsViewModel,
-        usdcViewModel: UsdcWalletsViewModel,
         consentClient: NetworkConsentClient,
         isGuest: Bool = false,
         makeKeyFlow: @escaping () -> BittensorKeyFlowing = { BittensorKeyPreviewFlow() }
@@ -75,10 +69,8 @@ struct EarningsView: View {
         self.networkReliabilityWindow = networkReliabilityWindow
         self.fetchNetworkReliability = fetchNetworkReliability
         self.viewModel = viewModel
-        self.usdcViewModel = usdcViewModel
         self.isGuest = isGuest
         _keyModel = StateObject(wrappedValue: BittensorKeyModel(flow: makeKeyFlow()))
-        _solanaFlow = StateObject(wrappedValue: ConnectSolanaWalletFlow(client: usdcViewModel.client))
         _connectFlow = StateObject(wrappedValue: ConnectBittensorWalletFlow(
             client: viewModel.client,
             connect: { address, signature, message in
@@ -163,11 +155,6 @@ struct EarningsView: View {
                             connectFlow.reset()
                             presentConnectSheet = true
                         },
-                        pendingUsd: usdcViewModel.showsPendingLine ? usdcViewModel.pendingUsd : nil,
-                        connectSolana: {
-                            solanaFlow.reset()
-                            presentSolanaSheet = true
-                        },
                         loadFailed: viewModel.walletLoadFailed,
                         retry: {
                             Task {
@@ -175,25 +162,6 @@ struct EarningsView: View {
                             }
                         }
                     )
-
-                    // the wallet USDC payouts go to until the migration to Bittensor
-                    if usdcViewModel.loadedOnce, let wallet = usdcViewModel.payoutWallet {
-                        SolanaWalletCard(
-                            wallet: wallet,
-                            pendingUsd: usdcViewModel.pendingUsd,
-                            isRemoving: usdcViewModel.isRemoving,
-                            remove: {
-                                usdcViewModel.walletQueuedForRemoval = wallet
-                            }
-                        )
-                    } else if usdcViewModel.loadFailed {
-                        // unread is not "no payout wallet"
-                        SolanaWalletLoadFailedCard(retry: {
-                            Task {
-                                await usdcViewModel.refresh()
-                            }
-                        })
-                    }
 
                     if viewModel.hasWallet {
                         // the first claim tile carries the claim card's disclaimer
@@ -272,8 +240,6 @@ struct EarningsView: View {
             keyModel.onLinked = nil
             connectFlow.onConnected = { _ in }
             consentFlow.onSigned = {}
-            solanaFlow.openWallet = { _ in false }
-            solanaFlow.onConnected = { _ in }
         }
         .refreshable {
             await refresh()
@@ -311,21 +277,6 @@ struct EarningsView: View {
             consentFlow.onSigned = {
                 presentConsentSheet = false
             }
-            solanaFlow.openWallet = { app in
-                switch app {
-                case .phantom:
-                    return connectWalletProviderViewModel.connectPhantomWallet(onOpenFailed: showSolanaWalletOpenFailed)
-                case .solflare:
-                    return connectWalletProviderViewModel.connectSolflareWallet(onOpenFailed: showSolanaWalletOpenFailed)
-                }
-            }
-            solanaFlow.onConnected = { _ in
-                presentSolanaSheet = false
-                Task {
-                    await usdcViewModel.refresh()
-                    snackbarManager.showSnackbar(message: String(localized: "Payout wallet updated"))
-                }
-            }
         }
         .onOpenURL { url in
             handleDeepLink(url)
@@ -344,51 +295,6 @@ struct EarningsView: View {
             #elseif os(macOS)
             .frame(minWidth: 460, minHeight: 320)
             #endif
-        }
-        .sheetOffTheFold(isPresented: $presentSolanaSheet, onDismiss: {
-            solanaFlow.reset()
-        }) {
-            ConnectSolanaWalletSheet(
-                flow: solanaFlow,
-                dismiss: { presentSolanaSheet = false }
-            )
-            .environmentObject(themeManager)
-            .environmentObject(connectWalletProviderViewModel)
-            .environmentObject(snackbarManager)
-            // linking cannot be abandoned half way: no swipe on iOS, no
-            // Escape on macOS
-            .interactiveDismissDisabled(solanaFlow.stage == .connecting)
-            #if os(iOS)
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            #elseif os(macOS)
-            .frame(minWidth: 460, minHeight: 320)
-            #endif
-        }
-        .alert(
-            "Remove wallet",
-            isPresented: Binding(
-                get: { usdcViewModel.walletQueuedForRemoval != nil },
-                set: { isPresented in
-                    if !isPresented {
-                        usdcViewModel.walletQueuedForRemoval = nil
-                    }
-                }
-            ),
-            presenting: usdcViewModel.walletQueuedForRemoval
-        ) { wallet in
-            Button("Remove", role: .destructive) {
-                Task {
-                    await removeSolanaWallet(wallet)
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: { _ in
-            // removing the payout wallet makes another of the network's Solana
-            // or Polygon wallets the payout wallet when there is one (the
-            // server picks it) and holds USDC payouts when there is none: one
-            // line for both
-            Text("USDC payouts move to another of your Solana or Polygon wallets, or are held until you connect one.")
         }
         .sheetOffTheFold(isPresented: $presentClaimSheet) {
             ClaimAlphaSheet(
@@ -682,9 +588,8 @@ struct EarningsView: View {
         async let earnings: Void = viewModel.refresh()
         async let points: Void = accountPointsStore.fetchAccountPoints()
         async let reliability: Void = fetchNetworkReliability()
-        async let usdc: Void = usdcViewModel.refresh()
         async let consent: Void = consentFlow.refreshStatus()
-        (_, _, _, _, _) = await (earnings, points, reliability, usdc, consent)
+        (_, _, _, _) = await (earnings, points, reliability, consent)
         syncKeyModelWithEarnings()
     }
 
@@ -698,29 +603,12 @@ struct EarningsView: View {
         )
     }
 
-    /// The wallets come back as deep links. Phantom and Solflare (or the ur.io
-    /// bridge driving their extensions) return the Solana public key through
-    /// urnetwork://phantom-connect or urnetwork://solflare-connect; the ur.io
-    /// wallet bridge returns the coldkey and its signature over the connect
-    /// challenge, or over the payout consent. A link reaches only the flow it
-    /// belongs to, and only while that flow's sheet is up.
+    /// The ur.io wallet bridge comes back as a deep link with the coldkey and
+    /// its signature over the connect challenge, or over the payout consent. A
+    /// link reaches only the flow it belongs to, and only while that flow's
+    /// sheet is up.
     private func handleDeepLink(_ url: URL) {
-        switch EarningsWalletLink.route(url, solanaSheetUp: presentSolanaSheet, bittensorSheetUp: presentConnectSheet, consentSheetUp: presentConsentSheet) {
-        case .solana:
-            connectWalletProviderViewModel.handleDeepLink(
-                url,
-                onPublicKeyRetrieved: { publicKey, provider in
-                    // the payout wallet needs only the key; sign-in must not
-                    // reuse this session
-                    connectWalletProviderViewModel.forgetConnection()
-                    Task {
-                        await solanaFlow.handleWalletReturn(publicKey: publicKey, provider: provider)
-                    }
-                },
-                onError: { error in
-                    solanaFlow.handleWalletError(error)
-                }
-            )
+        switch EarningsWalletLink.route(url, bittensorSheetUp: presentConnectSheet, consentSheetUp: presentConsentSheet) {
         case .bittensor:
             handleBittensorDeepLink(url, connector: connectFlow.connector)
         case .consent:
@@ -737,24 +625,6 @@ struct EarningsView: View {
             await connector.handleBridgeReturn(url)
         }
     }
-
-    /// The wallet app did not open: back to the chooser.
-    private func showSolanaWalletOpenFailed() {
-        solanaFlow.reset()
-        snackbarManager.showSnackbar(message: String(localized: "Couldn't open wallet. Please install it and try again."))
-    }
-
-    private func removeSolanaWallet(_ wallet: UsdcWalletInfo) async {
-        switch await usdcViewModel.removeWallet(wallet.id) {
-        case .failure(let error):
-            snackbarManager.showSnackbar(message: ConnectSolanaWalletFlow.errorMessage(for: error))
-        case .success(let promoted?):
-            // another wallet became the payout wallet: say where payouts go now
-            snackbarManager.showSnackbar(message: String(localized: "Payouts now go to \(SnAlpha.shortSs58(promoted.address))."))
-        case .success(nil):
-            break
-        }
-    }
 }
 
 /// The places on the Earnings screen a link scrolls to.
@@ -763,27 +633,23 @@ enum EarningsScrollAnchor: Hashable {
     case top200
 }
 
-/// Which connect sheet a wallet deep link belongs to: Phantom and Solflare
-/// (or the ur.io bridge driving their extensions) return to the Solana sheet,
-/// the ur.io Bittensor bridge to the Bittensor sheet or the payout consent
-/// sheet, whichever is up. A link whose sheet is not up belongs to none.
+/// Which connect sheet a wallet deep link belongs to: the ur.io Bittensor
+/// bridge returns to the Bittensor sheet or the payout consent sheet,
+/// whichever is up. A link whose sheet is not up belongs to none, and so does
+/// a Phantom or Solflare return, which only signing in and adding a sign-in
+/// method take.
 enum EarningsWalletLink: Equatable {
-    case solana
     case bittensor
     case consent
 
-    static func route(_ url: URL, solanaSheetUp: Bool, bittensorSheetUp: Bool, consentSheetUp: Bool = false) -> EarningsWalletLink? {
-        switch url.host ?? "" {
-        case "phantom-connect", "solflare-connect":
-            return solanaSheetUp ? .solana : nil
-        case "bittensor-sign-message":
-            if consentSheetUp {
-                return .consent
-            }
-            return bittensorSheetUp ? .bittensor : nil
-        default:
+    static func route(_ url: URL, bittensorSheetUp: Bool, consentSheetUp: Bool = false) -> EarningsWalletLink? {
+        guard url.host == "bittensor-sign-message" else {
             return nil
         }
+        if consentSheetUp {
+            return .consent
+        }
+        return bittensorSheetUp ? .bittensor : nil
     }
 }
 
@@ -804,13 +670,9 @@ enum EarningsWalletLink: Equatable {
         networkReliabilityWindow: nil,
         fetchNetworkReliability: {},
         viewModel: EarningsViewModel(client: client),
-        usdcViewModel: UsdcWalletsViewModel(
-            client: UsdcWalletsPreviewClient(startLinked: true, pendingUsdNanoCents: 3_870_000_000)
-        ),
         consentClient: NetworkConsentPreviewClient()
     )
     .environmentObject(themeManager)
-    .environmentObject(ConnectWalletProviderViewModel())
     .environmentObject(UrSnackbarManager())
     .environmentObject(DeepLinkRouter())
     .background(themeManager.currentTheme.backgroundColor)

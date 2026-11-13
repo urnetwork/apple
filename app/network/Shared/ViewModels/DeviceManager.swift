@@ -2458,15 +2458,20 @@ extension DeviceManager {
     // table; unknown (newer) identifiers fall back to the identifier
     // itself ("iPhone19,1"), which still names the device
     /// The device's time zone (IANA) and locale (BCP 47) go with every
-    /// auth-client call: the server schedules onboarding sends in local time
-    /// and picks the template language from them. The SDK's args gain the two
-    /// fields with the onboarding SDK rebuild; until the linked xcframework has
-    /// them they are set through key-value coding only when the properties
-    /// exist, so the app builds and runs against either framework.
+    /// auth-client call: the server places the campaign emails in the
+    /// reader's day and writes them in their language. The locale is the
+    /// first of the user's preferred languages, not `Locale.current`, which
+    /// the app resolves from its own localizations (AppClientInfo
+    /// .preferredLanguages); the SDK adds the whole list
+    /// (AppClientInfo.applyMailLocale). The SDK's args gain the fields with
+    /// the onboarding SDK rebuild; until the linked xcframework has them they
+    /// are set through key-value coding only when the properties exist, so
+    /// the app builds and runs against either framework.
     static func applyClientContext(to authArgs: SdkAuthNetworkClientArgs) {
+        let locale = AppClientInfo.preferredLanguages.first ?? Locale.current.identifier(.bcp47)
         let context: [(selector: String, key: String, value: String)] = [
             ("setTimeZone:", "timeZone", TimeZone.current.identifier),
-            ("setLocale:", "locale", Locale.current.identifier(.bcp47)),
+            ("setLocale:", "locale", locale),
         ]
         for entry in context where authArgs.responds(to: Selector(entry.selector)) {
             authArgs.setValue(entry.value, forKey: entry.key)

@@ -74,8 +74,40 @@ enum AppClientInfo {
     }
 
     /// Reports this app's device type, version and distribution with every
-    /// call `api` makes.
+    /// call `api` makes, and the device's zone and languages with its
+    /// sign-up, sign-in and auth-client calls.
     static func apply(to api: SdkApi?) {
         api?.setClientInfo(SdkNewClientInfoWithDistribution(deviceType, bundleAppVersion, buildDistribution))
+        applyMailLocale(to: api)
+    }
+
+    /// The device's languages, most preferred first: the user's own list
+    /// (Settings > Language & Region), not `Locale.current`, which the app
+    /// resolves from its own localizations, so a Czech or Swahili reader of
+    /// an app without those reads as English though the emails have them.
+    static var preferredLanguages: [String] {
+        Locale.preferredLanguages
+    }
+
+    /// Gives `api` the device's zone and languages, which the SDK sends with
+    /// sign-up, sign-in and auth-client so the server places the campaign
+    /// emails in the reader's day and writes them in their language (server
+    /// controller/mail_context.go). The SDK's api gains setMailLocale with the
+    /// sdk of 2026-11-13; until the linked xcframework has it the call is
+    /// skipped, so the app builds and runs against either framework, as
+    /// DeviceManager.applyClientContext does for the auth-client fields.
+    static func applyMailLocale(to api: SdkApi?) {
+        guard let api else {
+            return
+        }
+        let selector = Selector(("setMailLocale:locales:"))
+        guard api.responds(to: selector) else {
+            return
+        }
+        let locales = SdkNewStringList()
+        for language in preferredLanguages {
+            locales?.add(language)
+        }
+        _ = api.perform(selector, with: TimeZone.current.identifier, with: locales)
     }
 }

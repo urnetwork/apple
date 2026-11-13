@@ -44,6 +44,14 @@
 //  until Done; a sign-out ends it, and a second account's sign-in, or the
 //  tab view's on iOS, gets a fresh one.
 //
+//  The reads' order (owner, 2026-11-12): a read of the subnet that started
+//  before a claim's Done and answers after the read the Done starts, in the
+//  same window or another, never replaces what that read put there; and
+//  Claim of each kind, in the sheets, on the tiles and on the payout line,
+//  waits for a read that started after that kind's last Done, whatever
+//  answered before it. A fake holds the reads' answers back to land them in
+//  either order.
+//
 
 import Combine
 import Foundation
@@ -1188,7 +1196,9 @@ struct SnLedgerTests {
         #expect(viewModel.ledgerClaimProgress[Self.ctfKey] == .unavailable)
         #expect(viewModel.ledgerClaimFailures.isEmpty)
         #expect(viewModel.ledgerClaimRows.map(\.status) == [.claimed, .unavailable])
-        // a ledger_unavailable naming no pool is still the failure it was
+        // a ledger_unavailable naming no pool is still the failure it was: a
+        // second claim, once the read the Done started has answered
+        await Self.settle { viewModel.ledgerClaimEnabled }
         viewModel.resetLedgerClaimProgress()
         viewModel.claimLedger()
         client.emit(.failed(noId: 0, index: 0, message: "ledger_unavailable: 503 Service Unavailable"))
@@ -2570,6 +2580,364 @@ struct SnLedgerTests {
         #expect(!other.ledgerClaimEnabled)
     }
 
+    // MARK: the reads' order (owner, 2026-11-12)
+
+    /// a v1 epoch's claim of 1 α as the claims read lists it
+    nonisolated private static func epochClaim(_ epoch: Int64, _ status: SnClaimStatus) -> SnEpochClaimInfo {
+        SnEpochClaimInfo(epoch: epoch, shareBps: 100, amountRao: 1_000_000_000, status: status, claimOpenBlock: 0, expiryBlock: 0, txHash: "")
+    }
+
+    /// Waits until the read's three parts (the gas balance, the claims and
+    /// the ledger) are held at `gate`, with time to spare on a loaded machine.
+    /// A read that has not reached it fails the test, rather than answering
+    /// unheld and running a weaker race.
+    private static func settleHeld(_ gate: ReadGate) async {
+        for turn in 0..<5000 where gate.holding < 3 {
+            await Task.yield()
+            if turn % 10 == 9 {
+                try? await Task.sleep(nanoseconds: 2_000_000)
+            }
+        }
+        #expect(gate.holding == 3, "the read's three parts never reached the gate")
+    }
+
+    /// Starts a read of `viewModel`'s subnet layer (a refresh, a wallet
+    /// change) whose answers, the server's as it starts, `gate` holds back
+    /// until it opens.
+    private static func heldRead(
+        _ viewModel: EarningsViewModel,
+        _ client: FakeLedgerClient,
+        _ gate: ReadGate
+    ) async -> Task<Void, Never> {
+        client.subnetGate = gate
+        let read = Task { await viewModel.refreshSubnet() }
+        await Self.settleHeld(gate)
+        client.subnetGate = nil
+        return read
+    }
+
+    /// Emits a claim's Done with the read it starts held at `gate`, whose
+    /// answers are the server's as the Done reads.
+    private static func doneWithItsReadHeld(_ emit: () -> Void, _ client: FakeLedgerClient, _ gate: ReadGate) async {
+        client.subnetGate = gate
+        emit()
+        await Self.settleHeld(gate)
+        client.subnetGate = nil
+    }
+
+    // A read of the subnet that started before a v1 claim's Done (a refresh
+    // during the claim) answers after the read the Done starts: its claims,
+    // which still list the epoch the claim paid as claimable, never replace
+    // the ones read after the Done, so no v1 Claim is offered from them, whose
+    // transaction the vault would revert with its gas spent
+    @Test func aV1ReadFromBeforeTheDoneAnsweringAfterTheDonesReadChangesNothing() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        #expect(viewModel.claimEnabled)
+        viewModel.claimAll()
+        #expect(client.v1ClaimCalls == 1)
+
+        // a refresh during the claim reads the chain before it pays epoch 7
+        let early = ReadGate()
+        let stale = await Self.heldRead(viewModel, client, early)
+
+        // the claim pays epoch 7, and its Done reads again
+        let afterDone = [Self.epochClaim(7, .claimed)]
+        client.v1Claims = afterDone
+        client.emitV1(.confirmed(epoch: 7, txHash: "0x7", amountRao: 1_000_000_000))
+        client.emitV1(.done)
+        await Self.settle { !viewModel.isClaiming && viewModel.claims == afterDone }
+        #expect(viewModel.claims == afterDone)
+        #expect(!viewModel.claimEnabled)
+
+        // the read from before the Done answers last: epoch 7 claimable
+        early.open()
+        await stale.value
+        #expect(viewModel.claims == afterDone)
+        #expect(viewModel.totalClaimableRao == 0)
+        #expect(!viewModel.claimEnabled)
+        #expect(!viewModel.claimTileEnabled)
+    }
+
+    // The same read answering before the Done's read: no read after the Done
+    // has answered, so its claims show, but no v1 Claim is offered from them,
+    // nor from the claims read before the claim, which are the ones shown at
+    // the Done; Claim waits for the Done's read, and then follows it
+    @Test func aV1ClaimWaitsAfterTheDoneForAReadThatStartedAfterIt() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        viewModel.claimAll()
+        let early = ReadGate()
+        let stale = await Self.heldRead(viewModel, client, early)
+
+        // the claim pays epoch 7, epoch 9 is claimable now, and the Done's
+        // read is held too
+        let afterDone = [Self.epochClaim(9, .claimable), Self.epochClaim(7, .claimed)]
+        client.v1Claims = afterDone
+        let atDone = ReadGate()
+        await Self.doneWithItsReadHeld({
+            client.emitV1(.confirmed(epoch: 7, txHash: "0x7", amountRao: 1_000_000_000))
+            client.emitV1(.done)
+        }, client, atDone)
+        #expect(!viewModel.isClaiming)
+        #expect(!viewModel.claimsReadSinceClaim)
+        #expect(viewModel.claimableClaims.map(\.epoch) == [7])
+        #expect(!viewModel.claimEnabled)
+        #expect(!viewModel.claimTileEnabled)
+        #expect(viewModel.payoutLine(nowMillis: 0, formatTime: { _ in "" }) == .schedule(times: nil, claimable: false))
+
+        early.open()
+        await stale.value
+        #expect(viewModel.claimableClaims.map(\.epoch) == [7])
+        #expect(!viewModel.claimEnabled)
+        #expect(!viewModel.claimTileEnabled)
+        #expect(viewModel.payoutLine(nowMillis: 0, formatTime: { _ in "" }) == .schedule(times: nil, claimable: false))
+        viewModel.claimAll()
+        #expect(client.v1ClaimCalls == 1)
+
+        atDone.open()
+        await Self.settle { viewModel.claims == afterDone }
+        #expect(viewModel.claimsReadSinceClaim)
+        #expect(viewModel.claimableClaims.map(\.epoch) == [9])
+        #expect(viewModel.claimEnabled)
+        #expect(viewModel.claimTileEnabled)
+        #expect(viewModel.payoutLine(nowMillis: 0, formatTime: { _ in "" }) == .schedule(times: nil, claimable: true))
+    }
+
+    // A claims read at the Done that fails keeps the claims shown, as every
+    // failed claims read does, though they are from before the Done: Claim
+    // waits for the next good read
+    @Test func aFailedClaimsReadAtTheDoneKeepsTheClaimsAndClaimWaits() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        viewModel.claimAll()
+
+        client.v1ClaimsFail = true
+        let reads = client.claimsReads
+        client.emitV1(.done)
+        await Self.settle { !viewModel.isClaiming && client.claimsReads == reads + 1 }
+        await Self.settle { false }
+        #expect(viewModel.claimableClaims.map(\.epoch) == [7])
+        #expect(!viewModel.claimEnabled)
+        #expect(!viewModel.claimTileEnabled)
+
+        client.v1ClaimsFail = false
+        client.v1Claims = [Self.epochClaim(9, .claimable), Self.epochClaim(7, .claimed)]
+        await viewModel.refresh()
+        #expect(viewModel.claimableClaims.map(\.epoch) == [9])
+        #expect(viewModel.claimEnabled)
+        #expect(viewModel.claimTileEnabled)
+    }
+
+    // One window's read of the ledger that started before a v2 claim's Done,
+    // the claim another window started, answers after the reads the Done
+    // starts in both: no window puts back the balances the claim paid, nor
+    // offers Claim on them (the session is app-wide)
+    @Test func aLedgerReadFromBeforeTheDoneInAnotherWindowChangesNothing() async {
+        let client = Self.walletClient()
+        let session = EarningsSession(client: client)
+        let window = EarningsViewModel(session: session)
+        await window.refresh()
+        let other = EarningsViewModel(session: session)
+        await other.refresh()
+        #expect(other.ledgerClaimEnabled)
+
+        window.claimLedger()
+        #expect(client.claimCalls == 1)
+        // the other window reads the ledger during the claim, before it pays
+        let early = ReadGate()
+        let stale = await Self.heldRead(other, client, early)
+
+        let afterDone = [Self.paid, Self.ctfPaid]
+        client.ledgerAnswer = afterDone
+        client.emit(.confirmed(noId: 1, index: 42, txHash: "0xa", amountRao: 3_241_000_000))
+        client.emit(.confirmed(noId: Self.ctfNoId, index: 7, txHash: "0xa", amountRao: 144_076_980))
+        client.emit(.done)
+        await Self.settle { window.ledger == .loaded(afterDone) && other.ledger == .loaded(afterDone) }
+        #expect(window.ledger == .loaded(afterDone))
+        #expect(other.ledger == .loaded(afterDone))
+
+        // the other window's read from before the Done answers last
+        early.open()
+        await stale.value
+        #expect(other.ledger == .loaded(afterDone))
+        #expect(other.ledgerClaimableAccounts.isEmpty)
+        #expect(!other.ledgerClaimEnabled)
+        #expect(other.ledgerTile?.claimEnabled == false)
+        #expect(window.ledger == .loaded(afterDone))
+        #expect(!window.ledgerClaimEnabled)
+    }
+
+    // The same read answering before the Done's read: its accounts show, but
+    // no v2 Claim is offered from them, nor from the accounts read before the
+    // claim; the Done's read decides, a failed one unavailable whatever
+    // answered before it, and the next good read offers Claim again
+    @Test func aV2ClaimWaitsAfterTheDoneForAReadThatStartedAfterIt() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        viewModel.claimLedger()
+        let early = ReadGate()
+        let stale = await Self.heldRead(viewModel, client, early)
+
+        // the Done's read fails, and is held
+        client.ledgerAnswer = nil
+        let atDone = ReadGate()
+        await Self.doneWithItsReadHeld({ client.emit(.done) }, client, atDone)
+        #expect(!viewModel.isLedgerClaiming)
+        #expect(!viewModel.ledgerReadSinceClaim)
+        #expect(!viewModel.ledgerClaimableAccounts.isEmpty)
+        #expect(!viewModel.ledgerClaimEnabled)
+        #expect(viewModel.ledgerTile?.claimEnabled == false)
+
+        early.open()
+        await stale.value
+        #expect(viewModel.ledger == .loaded([Self.account(), Self.ctfAccount()]))
+        #expect(!viewModel.ledgerClaimEnabled)
+        #expect(viewModel.ledgerTile?.claimEnabled == false)
+        viewModel.claimLedger()
+        #expect(client.claimCalls == 1)
+
+        atDone.open()
+        await Self.settle { viewModel.ledger == .unavailable }
+        #expect(viewModel.ledger == .unavailable)
+        #expect(!viewModel.ledgerClaimEnabled)
+
+        // a win paid since: what is left, with Claim on it
+        client.ledgerAnswer = [Self.paid, Self.ctfAccount()]
+        await viewModel.refreshSubnet()
+        #expect(viewModel.ledgerReadSinceClaim)
+        #expect(viewModel.ledgerClaimableAccounts == [Self.ctfAccount()])
+        #expect(viewModel.ledgerClaimEnabled)
+        #expect(viewModel.ledgerTile?.claimEnabled == true)
+    }
+
+    // Each kind waits for its own claim: a v2 claim pays nothing a v1 read
+    // lists, so its Done leaves the v1 Claim as the claims read has it, and a
+    // v1 claim's Done leaves the v2 Claim as the ledger read has it
+    @Test func aClaimsDoneHoldsOnlyItsOwnKindsClaim() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+
+        viewModel.claimLedger()
+        let atV2Done = ReadGate()
+        await Self.doneWithItsReadHeld({ client.emit(.done) }, client, atV2Done)
+        #expect(viewModel.claimEnabled)
+        #expect(!viewModel.ledgerClaimEnabled)
+        atV2Done.open()
+        await Self.settle { viewModel.ledgerClaimEnabled }
+        #expect(viewModel.ledgerClaimEnabled)
+
+        viewModel.claimAll()
+        #expect(client.v1ClaimCalls == 1)
+        let atV1Done = ReadGate()
+        await Self.doneWithItsReadHeld({ client.emitV1(.done) }, client, atV1Done)
+        #expect(viewModel.ledgerClaimEnabled)
+        #expect(!viewModel.claimEnabled)
+        atV1Done.open()
+        await Self.settle { viewModel.claimEnabled }
+        #expect(viewModel.claimEnabled)
+    }
+
+    // With no wallet the layer is empty at once, and a read from before,
+    // with the wallet, never puts its claims or balances back
+    @Test func aReadOutWhenTheWalletGoesNeverPutsTheLayerBack() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        let early = ReadGate()
+        let stale = await Self.heldRead(viewModel, client, early)
+
+        client.wallet = nil
+        await viewModel.refresh()
+        #expect(!viewModel.hasWallet)
+        #expect(viewModel.claims.isEmpty)
+        #expect(viewModel.ledger == .loaded([]))
+
+        early.open()
+        await stale.value
+        #expect(viewModel.claims.isEmpty)
+        #expect(viewModel.ledger == .loaded([]))
+        #expect(viewModel.gasTao == nil)
+        #expect(!viewModel.claimEnabled)
+        #expect(!viewModel.ledgerClaimEnabled)
+    }
+
+    // A failed ledger read is unavailable only while no read that started
+    // after it has answered: an older read's failure that lands after a newer
+    // read's accounts changes nothing, nor does an older read's accounts that
+    // land after a newer read's failure
+    @Test func anOlderLedgerAnswerGoodOrFailedNeverReplacesANewerOne() async {
+        let client = Self.walletClient()
+        let viewModel = EarningsViewModel(client: client)
+        await viewModel.refresh()
+        let accounts = [Self.account(), Self.ctfAccount()]
+
+        client.ledgerAnswer = nil
+        let failing = ReadGate()
+        let olderFailing = await Self.heldRead(viewModel, client, failing)
+        client.ledgerAnswer = accounts
+        await viewModel.refreshSubnet()
+        #expect(viewModel.ledger == .loaded(accounts))
+        failing.open()
+        await olderFailing.value
+        #expect(viewModel.ledger == .loaded(accounts))
+        #expect(viewModel.ledgerClaimEnabled)
+
+        let good = ReadGate()
+        let olderGood = await Self.heldRead(viewModel, client, good)
+        client.ledgerAnswer = nil
+        await viewModel.refreshSubnet()
+        #expect(viewModel.ledger == .unavailable)
+        good.open()
+        await olderGood.value
+        #expect(viewModel.ledger == .unavailable)
+        #expect(!viewModel.ledgerClaimEnabled)
+    }
+
+    // The payout line's Claim, as the tile's, opens a v1 claim in flight
+    // whatever the window's claims read: in a window whose read at the last
+    // Done failed, so that its claims are from before it, another window's
+    // claim still shows there with the line's Claim on it
+    @Test func thePayoutLinesClaimOpensAClaimInFlightWhateverTheRead() async {
+        let client = Self.walletClient()
+        let session = EarningsSession(client: client)
+        let window = EarningsViewModel(session: session)
+        await window.refresh()
+        let other = EarningsViewModel(session: session)
+        await other.refresh()
+        let line = { (viewModel: EarningsViewModel) in
+            viewModel.payoutLine(nowMillis: 0, formatTime: { _ in "" })
+        }
+
+        // a claim of epoch 7, and both windows' reads at its Done fail
+        window.claimAll()
+        client.v1ClaimsFail = true
+        let reads = client.claimsReads
+        client.emitV1(.done)
+        await Self.settle { !window.isClaiming && client.claimsReads == reads + 2 }
+        await Self.settle { false }
+        #expect(!other.claimsReadSinceClaim)
+        #expect(line(other) == .schedule(times: nil, claimable: false))
+
+        // the first window reads again, and claims epoch 9
+        client.v1ClaimsFail = false
+        client.v1Claims = [Self.epochClaim(9, .claimable), Self.epochClaim(7, .claimed)]
+        await window.refresh()
+        #expect(window.claimEnabled)
+        window.claimAll()
+        #expect(client.v1ClaimCalls == 2)
+        #expect(other.isClaiming)
+        #expect(!other.claimsReadSinceClaim)
+        #expect(line(other) == .schedule(times: nil, claimable: true))
+        #expect(other.claimTileEnabled)
+        #expect(!other.claimEnabled)
+    }
+
     // MARK: the app-wide session (owner, 2026-11-12: "make the session app-wide")
 
     /// The app's owner of the earnings session following a stand-in for the
@@ -3085,6 +3453,11 @@ private final class FakeLedgerClient: EarningsClient {
     var v1Claims: [SnEpochClaimInfo] = []
     /// the claims read fails
     var v1ClaimsFail = false
+    /// holds back the answers of the subnet's reads that start while it is
+    /// set (the gas balance, the claims and the ledger), each the server's
+    /// answer as the read started, until the test opens it
+    var subnetGate: ReadGate?
+    private(set) var claimsReads = 0
     private(set) var v1ClaimCalls = 0
     private(set) var claimCalls = 0
     private var onClaimEvent: ((SnLedgerClaimEvent) -> Void)?
@@ -3117,12 +3490,25 @@ private final class FakeLedgerClient: EarningsClient {
     func gasKey() -> SnGasKeyInfo? {
         SnGasKeyInfo(address: "0x1111111111111111111111111111111111111111", mirrorSs58: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
     }
-    func gasBalanceTao() async throws -> Double { gasTao }
+    func gasBalanceTao() async throws -> Double {
+        // the server answers as the read starts; a gate holds the answer back
+        let answer = gasTao
+        if let gate = subnetGate {
+            await gate.pass()
+        }
+        return answer
+    }
     func claims() async throws -> (claims: [SnEpochClaimInfo], totalClaimableRao: Int64, schedule: SnEpochScheduleInfo?) {
-        if v1ClaimsFail {
+        claimsReads += 1
+        let fails = v1ClaimsFail
+        let answer = v1Claims
+        if let gate = subnetGate {
+            await gate.pass()
+        }
+        if fails {
             throw Unsupported()
         }
-        return (v1Claims, v1Claims.filter { $0.status == .claimable }.reduce(0) { $0 + $1.amountRao }, nil)
+        return (answer, answer.filter { $0.status == .claimable }.reduce(0) { $0 + $1.amountRao }, nil)
     }
     func claim(epochs: [Int64], onEvent: @escaping (SnClaimEvent) -> Void) {
         v1ClaimCalls += 1
@@ -3131,10 +3517,15 @@ private final class FakeLedgerClient: EarningsClient {
     func ledgerChain() -> SnLedgerChainInfo { chain }
     func ledgerAccounts() async throws -> SnLedgerAccountsInfo {
         ledgerReads += 1
-        guard let ledgerAnswer else {
+        let answer = ledgerAnswer
+        let unavailable = unavailablePools
+        if let gate = subnetGate {
+            await gate.pass()
+        }
+        guard let answer else {
             throw LedgerUnavailable()
         }
-        return SnLedgerAccountsInfo(accounts: ledgerAnswer, unavailablePools: unavailablePools)
+        return SnLedgerAccountsInfo(accounts: answer, unavailablePools: unavailable)
     }
     func ledgerClaim(onEvent: @escaping (SnLedgerClaimEvent) -> Void) {
         claimCalls += 1
@@ -3156,6 +3547,39 @@ private final class FakeLedgerClient: EarningsClient {
     }
     func accountEpochs() async throws -> [AccountEpochInfo] { [] }
     func topMe() async throws -> SnTopMeResultInfo { throw EarningsClientError.emptyResult }
+}
+
+/// Holds back the answers of the reads that start while a fake client has it
+/// set, each the answer the server gave as the read started, until the test
+/// opens it: so a read that started before a claim's Done can answer after
+/// the read the Done starts, or before it.
+@MainActor
+private final class ReadGate {
+
+    private var held: [CheckedContinuation<Void, Never>] = []
+    private var isOpen = false
+
+    /// the reads waiting at the gate
+    var holding: Int {
+        held.count
+    }
+
+    func pass() async {
+        guard !isOpen else {
+            return
+        }
+        await withCheckedContinuation { held.append($0) }
+    }
+
+    /// lets every read held through, and any that comes later
+    func open() {
+        isOpen = true
+        let released = held
+        held = []
+        for read in released {
+            read.resume()
+        }
+    }
 }
 
 /// The tests' clock for the view model's waits (its `sleep`): each wait asked

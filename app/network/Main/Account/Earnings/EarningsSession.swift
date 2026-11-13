@@ -23,7 +23,9 @@
 //  shows the claim as it went on, with Claim held until Done, and no second
 //  claim starts while one is in flight. Every view model alive at a claim's
 //  Done, one for each window that shows Account, reads the subnet again; one
-//  built after it reads everything on its first visit anyway.
+//  built after it reads everything on its first visit anyway. The session
+//  counts the claims ended of each kind, so that each view model offers Claim
+//  only from a read that started after its kind's last Done.
 //
 
 import Combine
@@ -101,6 +103,21 @@ final class EarningsSession: ObservableObject {
     /// each claim's Done, for the view models that live: each window's
     /// Account screens read the subnet again
     let claimDone = PassthroughSubject<EarningsClaimDone, Never>()
+
+    // MARK: the claims ended
+
+    /// How many v1 claims have ended (Done). A read of the claims that started
+    /// before the last one ended can still list the epochs it paid as
+    /// claimable, and a v1 claim of them is a transaction the vault reverts,
+    /// with its gas spent: each view model offers a v1 Claim only from a read
+    /// that started after it (EarningsViewModel.claimsReadSinceClaim, owner,
+    /// 2026-11-12). Counted by kind: a v2 claim pays nothing a v1 read lists,
+    /// nor the reverse, and the gas both spend the sdk checks again before it
+    /// sends.
+    @Published private(set) var claimsEnded = 0
+    /// the same for the v2 claims and the reads of the ledger
+    /// (EarningsViewModel.ledgerReadSinceClaim)
+    @Published private(set) var ledgerClaimsEnded = 0
 
     /// A sign-out, or another account's sign-in, ended the session (end()):
     /// it starts nothing more, and nothing landing after takes it on.
@@ -181,6 +198,7 @@ final class EarningsSession: ObservableObject {
             claimProgress[epoch] = .failed(message: message)
         case .done:
             isClaiming = false
+            claimsEnded += 1
             claimMovingRao = 0
             claimListed = []
             claimDone.send(.claim)
@@ -265,6 +283,7 @@ final class EarningsSession: ObservableObject {
             }
         case .done:
             isLedgerClaiming = false
+            ledgerClaimsEnded += 1
             ledgerClaimSends = []
             ledgerClaimListed = []
             // an account the SDK did not claim is not left pending

@@ -235,11 +235,17 @@ struct SnLedgerTilePresentation: Equatable {
     /// and opens the claim sheet on the claim's progress, where Claim waits
     /// for it (owner, 2026-11-12: a claim in flight is the session's, and a
     /// sheet opened again shows it), as Linux's tile and Windows' section do.
+    ///
+    /// `readSinceClaim`: `load` is a read that started after the last v2 claim
+    /// ended (EarningsViewModel.ledgerReadSinceClaim). One that started before
+    /// it can still hold what the claim paid, so Claim waits for the read the
+    /// Done starts (owner, 2026-11-12).
     static func of(
         load: SnLedgerLoad,
         claimConfigured: Bool,
         claimInFlight: Bool,
-        transferFloorRao: Int64 = 0
+        transferFloorRao: Int64 = 0,
+        readSinceClaim: Bool = true
     ) -> SnLedgerTilePresentation? {
         switch load {
         case .loading:
@@ -261,7 +267,7 @@ struct SnLedgerTilePresentation: Equatable {
             return SnLedgerTilePresentation(
                 balances: .pools(rows),
                 showsClaim: claimConfigured,
-                claimEnabled: claimConfigured && (claimInFlight || !claimable.isEmpty),
+                claimEnabled: claimConfigured && (claimInFlight || (readSinceClaim && !claimable.isEmpty)),
                 showsPools: rows.count > 1 || rows.contains { !$0.name.isPoolNumber },
                 claimsBoth: pools.claimsBoth(claimable)
             )

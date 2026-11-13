@@ -41,14 +41,17 @@ enum SnPayoutLine: Equatable {
     /// The line for the card, or nil while it is not known whether a coldkey
     /// is set (the wallet is loading, or its read failed with none cached). A
     /// schedule whose epoch has already ended waits for the next refresh
-    /// rather than show a past end.
+    /// rather than show a past end. `claimOffered`: the Claim action may
+    /// show at all; it waits while the claims read is one that started
+    /// before the last v1 claim ended (EarningsViewModel.payoutLine).
     static func of(
         walletKnown: Bool,
         hasColdkey: Bool,
         totalClaimableRao: Int64,
         schedule: SnEpochScheduleInfo?,
         nowMillis: Int64,
-        formatTime: (Int64) -> String
+        formatTime: (Int64) -> String,
+        claimOffered: Bool = true
     ) -> SnPayoutLine? {
         guard walletKnown else {
             return nil
@@ -64,7 +67,7 @@ enum SnPayoutLine: Equatable {
                 expiry: formatTime(schedule.expiryMillis)
             )
         }
-        return .schedule(times: times, claimable: totalClaimableRao > 0)
+        return .schedule(times: times, claimable: claimOffered && totalClaimableRao > 0)
     }
 
     /// A schedule time as the reader's local date and time

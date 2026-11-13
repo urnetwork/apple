@@ -56,7 +56,8 @@ struct SnPayoutLineTests {
         hasColdkey: Bool = true,
         totalClaimableRao: Int64 = 0,
         schedule: SnEpochScheduleInfo? = SnPayoutLineTests.schedule,
-        nowMillis: Int64 = SnPayoutLineTests.now
+        nowMillis: Int64 = SnPayoutLineTests.now,
+        claimOffered: Bool = true
     ) -> SnPayoutLine? {
         SnPayoutLine.of(
             walletKnown: walletKnown,
@@ -64,7 +65,8 @@ struct SnPayoutLineTests {
             totalClaimableRao: totalClaimableRao,
             schedule: schedule,
             nowMillis: nowMillis,
-            formatTime: tag
+            formatTime: tag,
+            claimOffered: claimOffered
         )
     }
 
@@ -86,6 +88,15 @@ struct SnPayoutLineTests {
 
     @Test func somethingClaimableAddsClaim() {
         #expect(Self.line(totalClaimableRao: 3_241_000_000) == .schedule(times: Self.taggedTimes, claimable: true))
+    }
+
+    // the claims read is one from before the last v1 claim ended, which can
+    // still list what it paid: the line keeps its times and leaves Claim out
+    // until a read from after it (owner, 2026-11-12)
+    @Test func aClaimsReadFromBeforeTheLastClaimEndedOffersNoClaim() {
+        #expect(Self.line(totalClaimableRao: 3_241_000_000, claimOffered: false) == .schedule(times: Self.taggedTimes, claimable: false))
+        #expect(Self.line(totalClaimableRao: 3_241_000_000, schedule: nil, claimOffered: false) == .schedule(times: nil, claimable: false))
+        #expect(Self.line(hasColdkey: false, totalClaimableRao: 3_241_000_000, claimOffered: false) == .setColdkey)
     }
 
     @Test func withoutTheScheduleTheExplanationStandsAlone() {

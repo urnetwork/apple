@@ -11,7 +11,6 @@ struct SolanaSignMessageSheet: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
-    @EnvironmentObject var snackbarManager: UrSnackbarManager
     
     var isSigningMessage: Bool
     var setIsSigningMessage: (Bool) -> Void
@@ -20,6 +19,10 @@ struct SolanaSignMessageSheet: View {
     var message: String
     var dismiss: () -> Void
     var beginSigning: (() -> String?)? = nil
+    /// The wallet would not open (or its request could not be made): the
+    /// owner shows the failure's message, where a snackbar would sit behind
+    /// the sheet.
+    var onFailure: (SolanaWalletFailure) -> Void
     
     var body: some View {
         VStack {
@@ -53,12 +56,7 @@ struct SolanaSignMessageSheet: View {
                      
                     Button(
                         action: {
-                            let didOpen = connectWalletProviderViewModel.connectPhantomWallet(
-                                onOpenFailed: showWalletOpenFailed
-                            )
-                            if !didOpen {
-                                showWalletOpenFailed()
-                            }
+                            connectWalletProviderViewModel.connectPhantomWallet(onOpenFailed: onFailure)
                         },
                     ) {
                         
@@ -83,12 +81,7 @@ struct SolanaSignMessageSheet: View {
                         
                     
                     Button(action: {
-                        let didOpen = connectWalletProviderViewModel.connectSolflareWallet(
-                            onOpenFailed: showWalletOpenFailed
-                        )
-                        if !didOpen {
-                            showWalletOpenFailed()
-                        }
+                        connectWalletProviderViewModel.connectSolflareWallet(onOpenFailed: onFailure)
                     }) {
                         
                         VStack {
@@ -153,23 +146,23 @@ struct SolanaSignMessageSheet: View {
                             if beginSigning != nil && attemptId == nil { return }
                             setIsSigningMessage(true)
 
+                            let signFailed = { (failure: SolanaWalletFailure) in
+                                setIsSigningMessage(false)
+                                onFailure(failure)
+                            }
                             let didStartSigning: Bool
                             switch provider {
                             case .phantom:
                                 didStartSigning = connectWalletProviderViewModel.signMessagePhantom(
                                     message: message,
                                     attemptId: attemptId,
-                                    onOpenFailed: {
-                                        setIsSigningMessage(false)
-                                    }
+                                    onOpenFailed: signFailed
                                 )
                             case .solflare:
                                 didStartSigning = connectWalletProviderViewModel.signMessageSolflare(
                                     message: message,
                                     attemptId: attemptId,
-                                    onOpenFailed: {
-                                        setIsSigningMessage(false)
-                                    }
+                                    onOpenFailed: signFailed
                                 )
                             case .bittensor:
                                 // bittensor signs through the ur.io/wallet-connect
@@ -195,10 +188,6 @@ struct SolanaSignMessageSheet: View {
         }
         .padding()
     }
-
-    private func showWalletOpenFailed() {
-        snackbarManager.showSnackbar(message: String(localized: "Couldn't open wallet. Please install it and try again."))
-    }
 }
 
 #Preview {
@@ -208,9 +197,9 @@ struct SolanaSignMessageSheet: View {
         signButtonText: "Sign in with Solana",
         signButtonLabelText: "Sign in",
         message: "Welcome to URnetwork",
-        dismiss: {}
+        dismiss: {},
+        onFailure: {_ in }
     )
     .environmentObject(ThemeManager.shared)
     .environmentObject(ConnectWalletProviderViewModel())
-    .environmentObject(UrSnackbarManager())
 }

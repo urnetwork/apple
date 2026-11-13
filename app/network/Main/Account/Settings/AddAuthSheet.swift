@@ -165,15 +165,15 @@ struct AddAuthSheet: View {
                 walletConnectionTask?.cancel()
                 walletConnectionTask = nil
                 bittensorFlow.cancel()
-                connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
-                connectWalletProviderViewModel.pendingWalletAuthMessage = nil
                 #if os(macOS) && DIRECT_DOWNLOAD
                 cancelBrowserSignIn()
                 #endif
             }
-            // a Bittensor bridge hand-back (urnetwork://bittensor-sign-message)
-            // for the sheet's own "add" session; any other purpose is ignored
             .onOpenURL { url in
+                // a Phantom or Solflare hand-back for the sheet's Solana wallet
+                handleSolanaWalletReturn(url)
+                // a Bittensor bridge hand-back (urnetwork://bittensor-sign-message)
+                // for the sheet's own "add" session; any other purpose is ignored
                 Task {
                     _ = await bittensorFlow.handleOpenUrl(url)
                 }
@@ -530,20 +530,12 @@ struct AddAuthSheet: View {
         addError = nil
         walletStep = .connecting
         
-        // Set up the pending handler for when wallet signs back
-        connectWalletProviderViewModel.pendingAddAuthSignatureHandler = { [self] publicKey, signature in
-            Task { @MainActor in
-                await completeWalletAuth(publicKey: publicKey, signature: signature)
-            }
-        }
-        
         // Fetch the challenge first before connecting
         do {
             let challengeArgs = SdkAuthWalletChallengeArgs()
             challengeArgs.blockchain = "solana"
             let challengeResult = try await api.authWalletChallenge(challengeArgs)
             self.walletChallengeMessage = challengeResult.messageTemplate
-            connectWalletProviderViewModel.pendingWalletAuthMessage = challengeResult.messageTemplate
         } catch {
             addError = "Failed to get wallet challenge: \(error.localizedDescription)"
             isAdding = false
@@ -558,13 +550,14 @@ struct AddAuthSheet: View {
             return
         }
         
-        // Open wallet connection
+        // Open wallet connection; a wallet that would not open says why
+        // (failWallet)
         let opened: Bool
         switch provider {
         case .phantom:
-            opened = connectWalletProviderViewModel.connectPhantomWallet()
+            opened = connectWalletProviderViewModel.connectPhantomWallet(onOpenFailed: failWallet)
         case .solflare:
-            opened = connectWalletProviderViewModel.connectSolflareWallet()
+            opened = connectWalletProviderViewModel.connectSolflareWallet(onOpenFailed: failWallet)
         case .bittensor:
             opened = false
         @unknown default:
@@ -572,14 +565,13 @@ struct AddAuthSheet: View {
         }
         
         if !opened {
-            addError = "Could not open wallet. Please install it and try again."
             isAdding = false
             walletStep = .disconnected
             return
         }
         
-        // We'll wait for the connect deep link to fire
-        // The Sheet's onAppear sets up a polling timer
+        // the connect hand-back (handleSolanaWalletReturn) sets the key
+        // this polls for, or ends the attempt on its failure
         await pollForWalletConnection()
     }
     
@@ -606,9 +598,8 @@ struct AddAuthSheet: View {
         walletStep = .signing
         
         guard let provider = connectWalletProviderViewModel.connectedWalletProvider else {
-            addError = "Wallet not connected"
-            isAdding = false
-            walletStep = .disconnected
+            // the connection is gone: the wallet's generic failure
+            failWallet(.app(SdkSolanaWalletFailureWallet, provider: nil))
             return
         }
         
@@ -616,21 +607,61 @@ struct AddAuthSheet: View {
         let didStartSigning: Bool
         switch provider {
         case .phantom:
-            didStartSigning = connectWalletProviderViewModel.signMessagePhantom(message: message)
+            didStartSigning = connectWalletProviderViewModel.signMessagePhantom(message: message, onOpenFailed: failWallet)
         case .solflare:
-            didStartSigning = connectWalletProviderViewModel.signMessageSolflare(message: message)
+            didStartSigning = connectWalletProviderViewModel.signMessageSolflare(message: message, onOpenFailed: failWallet)
         case .bittensor:
             didStartSigning = false
         @unknown default:
             didStartSigning = false
         }
         
+        // a wallet that would not open has said why (failWallet)
         if !didStartSigning {
-            addError = "Failed to start wallet signing"
             isAdding = false
-            walletStep = .connected(connectWalletProviderViewModel.connectedPublicKey ?? "")
+            walletStep = .disconnected
         }
-        // The pendingAddAuthSignatureHandler will complete the flow when the signature comes back
+        // the sign hand-back (handleSolanaWalletReturn) completes the flow
+    }
+
+    /// A Phantom or Solflare hand-back (the wallet app on iOS, the ur.io
+    /// bridge page on macOS) while the sheet waits for one: the connection,
+    /// then the signature, or the failure in its place. A stray or replayed
+    /// return (the bridge's Return to URnetwork, a late tab) must not connect
+    /// a wallet nobody is waiting for, and a closed sheet takes none.
+    private func handleSolanaWalletReturn(_ url: URL) {
+        let vm = connectWalletProviderViewModel
+        let host = url.host ?? ""
+        switch walletStep {
+        case .connecting:
+            guard ["phantom-connect", "solflare-connect"].contains(host) else { return }
+            vm.handleDeepLink(url, onError: failWallet)
+        case .signing:
+            guard ["phantom-sign-message", "solflare-sign-message"].contains(host),
+                  let publicKey = vm.connectedPublicKey else { return }
+            vm.handleDeepLink(
+                url,
+                onSignature: { signature in
+                    Task {
+                        await completeWalletAuth(publicKey: publicKey, signature: signature)
+                    }
+                },
+                onError: failWallet
+            )
+        case .disconnected, .connected:
+            return
+        }
+    }
+
+    /// A Solana wallet failure (the wallet would not open, or handed back a
+    /// failure): the attempt ends on its message, the sdk's words for it, and
+    /// the wallet is chosen again.
+    private func failWallet(_ failure: SolanaWalletFailure) {
+        walletConnectionTask?.cancel()
+        walletConnectionTask = nil
+        isAdding = false
+        walletStep = .disconnected
+        addError = failure.message
     }
     
     private func completeWalletAuth(publicKey: String, signature: String) async {
@@ -646,16 +677,12 @@ struct AddAuthSheet: View {
             let _ = try await api.addAuth(args)
             isAdding = false
             walletStep = .disconnected
-            connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
-            connectWalletProviderViewModel.pendingWalletAuthMessage = nil
             _ = await networkUserViewModel?.refreshNetworkUser()
             await signInAdded(.wallet, userAuth: "", message: String(localized: "Wallet sign-in method added"))
         } catch(let error) {
             isAdding = false
             addError = error.localizedDescription
             walletStep = .disconnected
-            connectWalletProviderViewModel.pendingAddAuthSignatureHandler = nil
-            connectWalletProviderViewModel.pendingWalletAuthMessage = nil
         }
     }
     

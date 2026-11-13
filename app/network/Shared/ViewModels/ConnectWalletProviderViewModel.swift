@@ -27,6 +27,12 @@ class ConnectWalletProviderViewModel: ObservableObject {
     private var walletEncryptionPublicKey: String? = nil
     var connectedWalletProvider: ConnectedWalletProvider? = nil
     
+    /// The scheme a hand-back's errorCode is read in, one of
+    /// SdkSolanaWalletFailureSource*: on iOS the wallet apps' own deep link
+    /// codes, on macOS the ur.io bridge page's codes (openURL hands the
+    /// wallet's link to the bridge, which drives the browser extension).
+    let walletReturnSource: String
+
     /**
      * Solflare
      */
@@ -43,14 +49,19 @@ class ConnectWalletProviderViewModel: ObservableObject {
     private let phantomDisconnectRedirectLink = "urnetwork://phantom-disconnect"
     private let phantomSignMessageRedirectLink = "urnetwork://phantom-sign-message"
 
-    
-    // When set, the wallet deep link onSignature routes here instead of the default multiplier claim flow
-    var pendingAddAuthSignatureHandler: ((String, String) async -> Void)?
-    
-    // Challenge message to sign during wallet auth addition
-    var pendingWalletAuthMessage: String?
-    
     init() {
+        #if canImport(UIKit)
+        walletReturnSource = SdkSolanaWalletFailureSourceWalletApp
+        #else
+        walletReturnSource = SdkSolanaWalletFailureSourceBridge
+        #endif
+        self.createKeyPair()
+    }
+
+    /// Reads every hand-back in `walletReturnSource`'s scheme, whatever the
+    /// platform (tests).
+    init(walletReturnSource: String) {
+        self.walletReturnSource = walletReturnSource
         self.createKeyPair()
     }
         
@@ -72,94 +83,102 @@ class ConnectWalletProviderViewModel: ObservableObject {
         createKeyPair()
     }
     
+    // Connecting and signing hand the request to the wallet: its app on iOS,
+    // the ur.io bridge page in the browser on macOS (openURL). Each returns
+    // false when the hand-off did not start. A request that could not be made
+    // and a wallet that would not open, now or once the open completes, reach
+    // `onOpenFailed` once, as the sdk's failure for it.
+
     @discardableResult
-    func connectSolflareWallet(onOpenFailed: (() -> Void)? = nil) -> Bool {
+    func connectSolflareWallet(onOpenFailed: ((_ failure: SolanaWalletFailure) -> Void)? = nil) -> Bool {
         prepareForWalletConnection()
 
         let queryStringResult = self.buildConnectQueryString(redirectLink: solflareConnectRedirectLink)
         
         guard case .success(let queryString) = queryStringResult else {
             print("Failed to build query string: \(queryStringResult)")
+            onOpenFailed?(.app(SdkSolanaWalletFailureWallet, provider: .solflare))
             return false
         }
         
-        if let url = URL(string: "https://\(self.solflareHostname)/ul/v1/connect?\(queryString)") {
-            return self.openURL(url) { success in
-                if !success {
-                    self.clearConnectionState()
-                    onOpenFailed?()
-                }
-            }
+        return openWallet(URL(string: "https://\(self.solflareHostname)/ul/v1/connect?\(queryString)"), provider: .solflare) { failure in
+            self.clearConnectionState()
+            onOpenFailed?(failure)
         }
-
-        return false
     }
     
     @discardableResult
-    func connectPhantomWallet(onOpenFailed: (() -> Void)? = nil) -> Bool {
+    func connectPhantomWallet(onOpenFailed: ((_ failure: SolanaWalletFailure) -> Void)? = nil) -> Bool {
         prepareForWalletConnection()
 
         let queryStringResult = self.buildConnectQueryString(redirectLink: phantomConnectRedirectLink)
         
         guard case .success(let queryString) = queryStringResult else {
             print("Failed to build query string: \(queryStringResult)")
+            onOpenFailed?(.app(SdkSolanaWalletFailureWallet, provider: .phantom))
             return false
         }
         
-        if let url = URL(string: "https://\(self.phantomHostname)/ul/v1/connect?\(queryString)") {
-            return self.openURL(url) { success in
-                if !success {
-                    self.clearConnectionState()
-                    onOpenFailed?()
-                }
-            }
+        return openWallet(URL(string: "https://\(self.phantomHostname)/ul/v1/connect?\(queryString)"), provider: .phantom) { failure in
+            self.clearConnectionState()
+            onOpenFailed?(failure)
         }
-
-        return false
     }
     
     @discardableResult
-    func signMessagePhantom(message: String, attemptId: String? = nil, onOpenFailed: (() -> Void)? = nil) -> Bool {
+    func signMessagePhantom(message: String, attemptId: String? = nil, onOpenFailed: ((_ failure: SolanaWalletFailure) -> Void)? = nil) -> Bool {
         let queryStringResult = buildSignMessageQueryString(message: message, redirectLink: NetworkLoginWalletAttempt.redirectLink(phantomSignMessageRedirectLink, attemptId: attemptId))
         
         guard case .success(let queryString) = queryStringResult else {
             print("Failed to build query string: \(queryStringResult)")
+            onOpenFailed?(.app(SdkSolanaWalletFailureWallet, provider: .phantom))
             return false
         }
         
-        // Construct the URL string
-        let urlString = "https://\(self.phantomHostname)/ul/v1/signMessage?\(queryString)"
-        
-        if let url = URL(string: urlString) {
-            return self.openURL(url) { success in
-                if !success {
-                    onOpenFailed?()
-                }
-            }
-        } else {
-            print("Failed to create URL from: \(urlString)")
-            return false
+        return openWallet(URL(string: "https://\(self.phantomHostname)/ul/v1/signMessage?\(queryString)"), provider: .phantom) { failure in
+            onOpenFailed?(failure)
         }
     }
     
     @discardableResult
-    func signMessageSolflare(message: String, attemptId: String? = nil, onOpenFailed: (() -> Void)? = nil) -> Bool {
+    func signMessageSolflare(message: String, attemptId: String? = nil, onOpenFailed: ((_ failure: SolanaWalletFailure) -> Void)? = nil) -> Bool {
         let queryStringResult = buildSignMessageQueryString(message: message, redirectLink: NetworkLoginWalletAttempt.redirectLink(solflareSignMessageRedirectLink, attemptId: attemptId))
         
         guard case .success(let queryString) = queryStringResult else {
             print("Failed to build query string: \(queryStringResult)")
+            onOpenFailed?(.app(SdkSolanaWalletFailureWallet, provider: .solflare))
             return false
         }
         
-        if let url = URL(string: "https://\(self.solflareHostname)/ul/v1/signMessage?\(queryString)") {
-            return self.openURL(url) { success in
-                if !success {
-                    onOpenFailed?()
-                }
+        return openWallet(URL(string: "https://\(self.solflareHostname)/ul/v1/signMessage?\(queryString)"), provider: .solflare) { failure in
+            onOpenFailed?(failure)
+        }
+    }
+
+    /// Opens the wallet's `url`. A link that could not be made is the
+    /// wallet's generic failure (wallet_error), a wallet that would not open
+    /// wallet_app_not_found; either reaches `onOpenFailed` once. False when
+    /// the hand-off did not start.
+    private func openWallet(_ url: URL?, provider: ConnectedWalletProvider, onOpenFailed: @escaping (_ failure: SolanaWalletFailure) -> Void) -> Bool {
+        guard let url else {
+            print("Failed to make the \(provider) wallet link")
+            onOpenFailed(.app(SdkSolanaWalletFailureWallet, provider: provider))
+            return false
+        }
+        return openURL(url) { success in
+            if !success {
+                #if os(macOS)
+                // macOS opens the ur.io wallet bridge page in the browser, so
+                // the wallet never saw the request: the browser's failure, in
+                // the words Windows and Linux show for it
+                print("The browser would not open the \(provider) wallet bridge page")
+                onOpenFailed(.browserNotOpened)
+                #else
+                print("The \(provider) wallet would not open")
+                onOpenFailed(.app(SdkSolanaWalletFailureWalletAppNotFound, provider: provider))
+                #endif
             }
         }
-        
-        return false
     }
     
     /**
@@ -268,11 +287,14 @@ class ConnectWalletProviderViewModel: ObservableObject {
         return .success(queryString)
     }
     
+    /// A Phantom or Solflare hand-back: the connection, or the signature. A
+    /// failure, handed back or found reading the hand-back, reaches `onError`
+    /// as the sdk's failure for it.
     func handleDeepLink(
         _ url: URL,
         onPublicKeyRetrieved: ((_ publicKey: String, _ wallet: ConnectedWalletProvider) -> Void)? = nil,
         onSignature: ((_ signature: String) -> Void)? = nil,
-        onError: ((_ error: Error) -> Void)? = nil
+        onError: ((_ failure: SolanaWalletFailure) -> Void)? = nil
     ) {
 
         // todo - handle disconnect
@@ -327,14 +349,17 @@ class ConnectWalletProviderViewModel: ObservableObject {
         queryItems: [URLQueryItem],
         connectedWalletProvider: ConnectedWalletProvider,
         onSignature: ((_ signature: String) -> Void)? = nil,
-        onError: ((_ error: Error) -> Void)? = nil
+        onError: ((_ failure: SolanaWalletFailure) -> Void)? = nil
     ) {
         
         // First check for errors
-        if let errorCode = queryItems.first(where: { $0.name == "errorCode" })?.value,
-           let errorMessage = queryItems.first(where: { $0.name == "errorMessage" })?.value {
-            print("Wallet signing error: Code \(errorCode) - \(errorMessage)")
-            onError?(walletReturnError(code: errorCode, provider: connectedWalletProvider) ?? walletDeepLinkError("Wallet signing error: \(errorMessage)"))
+        if let failure = walletReturnFailure(queryItems: queryItems, provider: connectedWalletProvider) {
+            if failure.failure == SdkSolanaWalletFailureSessionNotFound {
+                // the browser lost the connect step's key, so starting again
+                // must connect the wallet again rather than sign at once
+                clearConnectionState()
+            }
+            onError?(failure)
             return
         }
         
@@ -349,7 +374,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
             print("data: \(params["data"] != nil)")
             print("keyPair: \(dappKeyPair != nil)")
             print("walletEncryptionPublicKey: \(self.walletEncryptionPublicKey != nil)")
-            onError?(walletDeepLinkError("Missing required parameters for signature verification"))
+            onError?(unreadableReturn("missing signature parameters", provider: connectedWalletProvider))
             return
         }
               
@@ -372,8 +397,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
                             callback(base64Signature)  // Send base64 signature to the callback
                         }
                     } else {
-                        print("Failed to decode base58 signature")
-                        onError?(walletDeepLinkError("Failed to decode wallet signature"))
+                        onError?(unreadableReturn("the signature is not base58", provider: connectedWalletProvider))
                     }
                     
                 } catch {
@@ -381,15 +405,13 @@ class ConnectWalletProviderViewModel: ObservableObject {
                     if let responseString = String(data: decryptedData, encoding: .utf8) {
                         print("Raw response: \(responseString)")
                     }
-                    onError?(error)
+                    onError?(unreadableReturn("the signature response does not decode", provider: connectedWalletProvider))
                 }
             } else {
-                print("Failed to decrypt signature data")
-                onError?(walletDeepLinkError("Failed to decrypt wallet signature"))
+                onError?(unreadableReturn("the signature does not decrypt", provider: connectedWalletProvider))
             }
         } else {
-            print("Failed to generate shared secret for signature verification")
-            onError?(walletDeepLinkError("Failed to verify wallet signature"))
+            onError?(unreadableReturn("no shared secret for the signature", provider: connectedWalletProvider))
         }
     }
     
@@ -397,13 +419,11 @@ class ConnectWalletProviderViewModel: ObservableObject {
         queryItems: [URLQueryItem],
         connectedWalletProvider: ConnectedWalletProvider,
         onPublicKeyRetrieved: ((_ publicKey: String, _ wallet: ConnectedWalletProvider) -> Void)? = nil,
-        onError: ((_ error: Error) -> Void)? = nil
+        onError: ((_ failure: SolanaWalletFailure) -> Void)? = nil
     ) {
-        if let errorCode = queryItems.first(where: { $0.name == "errorCode" })?.value,
-           let errorMessage = queryItems.first(where: { $0.name == "errorMessage" })?.value {
-            print("Wallet connect error: Code \(errorCode) - \(errorMessage)")
+        if let failure = walletReturnFailure(queryItems: queryItems, provider: connectedWalletProvider) {
             clearConnectionState()
-            onError?(walletReturnError(code: errorCode, provider: connectedWalletProvider) ?? walletDeepLinkError("Wallet connect error: \(errorMessage)"))
+            onError?(failure)
             return
         }
 
@@ -416,7 +436,7 @@ class ConnectWalletProviderViewModel: ObservableObject {
               let data = params["data"],
               let keyPair = dappKeyPair else {
             clearConnectionState()
-            onError?(walletDeepLinkError("Missing required parameters for wallet connection"))
+            onError?(unreadableReturn("missing connection parameters", provider: connectedWalletProvider))
             return
         }
               
@@ -438,14 +458,34 @@ class ConnectWalletProviderViewModel: ObservableObject {
                 }
                 
             } else {
-                print("Decryption failed")
                 clearConnectionState()
-                onError?(walletDeepLinkError("Failed to decrypt wallet connection"))
+                onError?(unreadableReturn("the connection does not decrypt or decode", provider: connectedWalletProvider))
             }
         } else {
             clearConnectionState()
-            onError?(walletDeepLinkError("Failed to verify wallet connection"))
+            onError?(unreadableReturn("no shared secret for the connection", provider: connectedWalletProvider))
         }
+    }
+
+    /// The failure a hand-back carries in place of its answer
+    /// (?errorCode&errorMessage), read by the sdk in this platform's scheme
+    /// (walletReturnSource); nil for a hand-back without one. The wallet's or
+    /// the bridge page's own text is only logged, never shown.
+    private func walletReturnFailure(queryItems: [URLQueryItem], provider: ConnectedWalletProvider) -> SolanaWalletFailure? {
+        guard let errorCode = queryItems.first(where: { $0.name == "errorCode" })?.value else {
+            return nil
+        }
+        let errorMessage = queryItems.first(where: { $0.name == "errorMessage" })?.value ?? ""
+        let failure = SolanaWalletFailure(source: walletReturnSource, code: errorCode, provider: provider)
+        print("Wallet hand-back from \(provider): \(walletReturnSource) code \(errorCode) is \(failure.failure): \(errorMessage)")
+        return failure
+    }
+
+    /// A hand-back this app could not read (missing parameters, a key or an
+    /// answer that does not decrypt or decode): the wallet's generic failure.
+    private func unreadableReturn(_ reason: String, provider: ConnectedWalletProvider) -> SolanaWalletFailure {
+        print("Wallet hand-back from \(provider) unreadable: \(reason)")
+        return .app(SdkSolanaWalletFailureWallet, provider: provider)
     }
 
     private func queryParameters(from queryItems: [URLQueryItem]) -> [String: String] {
@@ -530,17 +570,6 @@ class ConnectWalletProviderViewModel: ObservableObject {
             return .failure(.failedGeneratingNonce)
         }
         return .success(SdkEncodeBase58(Data(randomBytes)))
-    }
-    
-    private func walletDeepLinkError(_ message: String) -> Error {
-        NSError(domain: "ConnectWalletProviderViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
-    }
-
-    /// A failure the wallet or the ur.io bridge handed back, in this app's
-    /// words when it knows the code; nil for any other code, whose own text
-    /// the caller shows.
-    private func walletReturnError(code: String, provider: ConnectedWalletProvider) -> Error? {
-        SolanaWalletReturnError.text(code: code, provider: provider).map { WalletDeepLinkError.walletError($0) }
     }
 
     #if canImport(AppKit)
@@ -694,7 +723,6 @@ enum WalletDeepLinkError: Error {
     case failedGeneratingNonce
     case missingParams
     case invalidParameters
-    case walletError(String)
 }
 
 enum ConnectedWalletProvider {
@@ -703,31 +731,93 @@ enum ConnectedWalletProvider {
     case bittensor
 }
 
-/// This app's words for the error a Solana wallet hand-back carries: the ur.io
-/// bridge page's codes on macOS (sdk SolanaWalletBridgeError*, sent next to
-/// the page's English text), and on iOS the wallet apps' own 4001, a declined
-/// request. Any other code (the page's invalid_request and wallet_error, a
-/// wallet's other codes, the -1 of pages before the codes) has none: its own
-/// text is shown.
-enum SolanaWalletReturnError {
-    /// Phantom's and Solflare's deep link code for a request the user declined
-    static let walletUserRejectedCode = "4001"
+/// Why a Solana wallet sign-in failed (signing in, the second signature that
+/// creates a network, adding a sign-in method), read by the sdk
+/// (SdkSolanaWalletFailureFor) the same way on every app: the failure, and
+/// the localizations store key of the message every app shows for it. The
+/// app only picks the scheme of the code (the ur.io bridge page's on macOS,
+/// the wallet apps' own on iOS, or a failure it found itself) and displays
+/// the message. A wallet's or the bridge page's own text is never shown.
+struct SolanaWalletFailure: Error, Equatable {
+    /// one of SdkSolanaWalletFailure*
+    let failure: String
+    /// one of SdkSolanaWalletFailureMessage*
+    let messageKey: String
+    /// the message's argument, a wallet product name; "" when it takes none
+    let walletName: String
 
-    /// The words for `code`, with the wallet's product name where the text
-    /// takes one; nil for a code this app does not know.
-    static func text(code: String, provider: ConnectedWalletProvider) -> String? {
-        let walletName = provider == .solflare ? "Solflare" : "Phantom"
-        switch code {
-        case SdkSolanaWalletBridgeErrorExtensionNotFound:
-            return String(localized: "The \(walletName) extension was not found in this browser. Install it, then try again.")
-        case SdkSolanaWalletBridgeErrorNoAccount:
-            return String(localized: "Your \(walletName) wallet has no account to sign with. Add or connect an account in the wallet, then try again.")
-        case SdkSolanaWalletBridgeErrorSessionNotFound:
-            return String(localized: "The wallet connection wasn't found in this browser. Start again to reconnect your wallet.")
-        case SdkSolanaWalletBridgeErrorUserRejected, walletUserRejectedCode:
+    /// The failure `code` names in the scheme of `source`, one of
+    /// SdkSolanaWalletFailureSource*. `provider` is the wallet the user chose,
+    /// which the sdk names; nil when the app does not know which answered.
+    init(source: String, code: String, provider: ConnectedWalletProvider?) {
+        let walletId: String
+        switch provider {
+        case .phantom:
+            walletId = "phantom"
+        case .solflare:
+            walletId = "solflare"
+        case .bittensor, nil:
+            walletId = ""
+        }
+        let classified = SdkSolanaWalletFailureFor(source, code, walletId)
+        // the sdk answers every source and code; a nil from the binding
+        // reads as the generic failure
+        failure = classified?.failure ?? SdkSolanaWalletFailureWallet
+        messageKey = classified?.messageKey ?? SdkSolanaWalletFailureMessageWallet
+        walletName = classified?.walletName ?? ""
+    }
+
+    /// A failure the app found itself, `code` one of SdkSolanaWalletFailure*.
+    static func app(_ code: String, provider: ConnectedWalletProvider?) -> SolanaWalletFailure {
+        SolanaWalletFailure(source: SdkSolanaWalletFailureSourceApp, code: code, provider: provider)
+    }
+
+    /// the store key of the desktop apps' words for a browser that would not
+    /// open a sign-in page (sso_browser_open_failed)
+    static let browserNotOpenedMessageKey = "sso_browser_open_failed"
+
+    /// The browser would not open the ur.io wallet bridge page (macOS), so the
+    /// wallet never saw the request: not one of the sdk's wallet failures, and
+    /// read as Windows and Linux read it.
+    static let browserNotOpened = SolanaWalletFailure(failure: "browser_not_opened", messageKey: browserNotOpenedMessageKey, walletName: "")
+
+    private init(failure: String, messageKey: String, walletName: String) {
+        self.failure = failure
+        self.messageKey = messageKey
+        self.walletName = walletName
+    }
+
+    /// The message, in the user's language.
+    var message: String {
+        Self.message(messageKey: messageKey, walletName: walletName)
+    }
+
+    /// The text of each store key the sdk answers, in the user's language,
+    /// with the wallet's name where it takes one: the one place an app
+    /// screen gets a Solana sign-in failure's words.
+    static func message(messageKey: String, walletName: String) -> String {
+        switch messageKey {
+        case SdkSolanaWalletFailureMessageUserRejected:
             return String(localized: "The request was declined in your wallet. Start again and approve it to continue.")
+        case SdkSolanaWalletFailureMessageNoWallet:
+            return String(localized: "No Solana wallets were found installed on this device. Please install a wallet and try again.")
+        case SdkSolanaWalletFailureMessageWalletAppNotFound:
+            return String(localized: "Couldn't open wallet. Please install it and try again.")
+        case SdkSolanaWalletFailureMessageExtensionNotFound:
+            return String(localized: "The \(walletName) extension was not found in this browser. Install it, then try again.")
+        case SdkSolanaWalletFailureMessageNoAccount:
+            return String(localized: "Your \(walletName) wallet has no account to sign with. Add or connect an account in the wallet, then try again.")
+        case SdkSolanaWalletFailureMessageSessionNotFound:
+            return String(localized: "The wallet connection wasn't found in this browser. Start again to reconnect your wallet.")
+        case browserNotOpenedMessageKey:
+            return String(localized: "Could not open the browser. Please try again.")
+        case SdkSolanaWalletFailureMessageWallet:
+            fallthrough
         default:
-            return nil
+            // the wallet's generic failure, which a key this build does not
+            // know reads as too; it names Solana when the wallet is unknown
+            let name = walletName.isEmpty ? "Solana" : walletName
+            return String(localized: "Your \(name) wallet couldn't finish the request. Check the wallet, then try again.")
         }
     }
 }

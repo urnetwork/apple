@@ -288,6 +288,34 @@ final class NetworkLoginProducerOwnershipTests: XCTestCase {
         XCTAssertTrue(current.fail(try url(current, host: "solflare-sign-message")) { model.finishSolanaAttempt(request: request) })
         XCTAssertFalse(model.isSigningMessage)
     }
+
+    // A Solana wallet failure used to read "There was an error logging in"
+    // whatever it was. It ends the attempt on the sdk's message for it while
+    // the sheet waits on the wallet, and says nothing once the sheet is closed
+    // (the user cancelled) or another sign-in began.
+    func testSolanaFailureShowsItsOwnMessageOnlyWhileTheSheetWaits() throws {
+        let f = try OuterLoginFixture(); defer { f.close() }
+        let request = try f.begin(); let model = LoginInitialView.ViewModel(urApiService: OuterLoginService())
+        let declined = SolanaWalletFailure(source: SdkSolanaWalletFailureSourceWalletApp, code: "4001", provider: .phantom)
+        XCTAssertEqual(declined.messageKey, SdkSolanaWalletFailureMessageUserRejected)
+        model.setIsSigningMessage(true); model.setPresentSigninWithSolanaSheet(true)
+        model.failSolanaAttempt(declined, request: request)
+        XCTAssertEqual(model.loginErrorMessage, declined.message)
+        XCTAssertNotEqual(model.loginErrorMessage, String(localized: "There was an error logging in"))
+        XCTAssertFalse(model.isSigningMessage)
+        XCTAssertFalse(model.presentSigninWithSolanaSheet)
+
+        model.setLoginErrorMessage(nil); model.setIsSigningMessage(true)
+        model.failSolanaAttempt(declined, request: request)
+        XCTAssertNil(model.loginErrorMessage, "a closed sheet's late failure is silent")
+        XCTAssertFalse(model.isSigningMessage)
+
+        model.setPresentSigninWithSolanaSheet(true)
+        _ = try f.begin()
+        model.failSolanaAttempt(declined, request: request)
+        XCTAssertNil(model.loginErrorMessage, "an old attempt's failure is silent")
+        XCTAssertTrue(model.presentSigninWithSolanaSheet)
+    }
     func testLateInitialAndSeedphraseFailuresBecomeCancellation() async throws {
         let f = try OuterLoginFixture(); defer { f.close() }
         let initialRequest = try f.begin()

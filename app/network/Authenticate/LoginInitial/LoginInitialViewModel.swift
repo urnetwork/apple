@@ -100,6 +100,20 @@ extension LoginInitialView {
             isSigningForCreateNetwork = false
         }
 
+        /// A Solana wallet failure while the sheet waits on the wallet (to sign
+        /// in, or for the second signature that creates the network): the
+        /// attempt ends and its message, the sdk's words for the failure,
+        /// shows under the sign-in methods. Once the sheet is closed (the user
+        /// cancelled), a late failure says nothing.
+        func failSolanaAttempt(_ failure: SolanaWalletFailure, request: NetworkLoginRequest) {
+            guard request.isCurrent else { return }
+            let waiting = presentSigninWithSolanaSheet
+            finishSolanaAttempt(request: request)
+            if waiting {
+                setLoginErrorMessage(failure.message)
+            }
+        }
+
         @Published private(set) var solanaChallengeMessage: String?
 
         @Published var isSigningForCreateNetwork: Bool = false

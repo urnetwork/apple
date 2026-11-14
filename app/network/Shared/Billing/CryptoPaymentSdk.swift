@@ -239,6 +239,15 @@ enum CryptoPaymentSdk {
         SdkClassifySubscriptionStore(store)
     }
 
+    /// The stores of a balance's `subscriptions`: every store billing the
+    /// network now, one entry per store (none from an older server).
+    static func stores(_ subscriptions: SdkSubscriptionList?) -> [String] {
+        guard let subscriptions else {
+            return []
+        }
+        return (0..<subscriptions.len()).compactMap { subscriptions.get($0)?.store }
+    }
+
     static func strings(_ list: SdkStringList?) -> [String] {
         guard let list else {
             return []

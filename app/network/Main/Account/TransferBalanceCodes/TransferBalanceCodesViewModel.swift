@@ -16,6 +16,8 @@ extension TransferBalanceCodesView {
         let api: UrApiServiceProtocol
         @Published private(set) var isLoading: Bool = false
         @Published var displayRedeemSheet: Bool = false
+        @Published var balanceCodeRedeemed: Bool = false
+        @Published var redeemedBalanceCode = RedeemedBalanceCode(addedByteCount: 0)
         @Published private(set) var isInitializing: Bool = true
         @Published private(set) var redeemedBalanceCodes: [SdkRedeemedBalanceCode] = []
         @Published private(set) var loadErrorMessage: String?

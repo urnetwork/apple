@@ -135,7 +135,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
     /// The network's latest one-time crypto credit whose grace has not ended.
     @Published private(set) var cryptoTerm: CryptoTerm?
     /// The current subscription's store family (ClassifySubscriptionStore):
-    /// "crypto" for a one-time crypto year, which does not renew.
+    /// "crypto" for a one-time crypto year and "gift" for a redeemed gift
+    /// year, neither of which renews.
     @Published private(set) var currentSubscriptionStoreClass: String = ""
 
     /// The renewal the store is retrying after its payment did not go
@@ -279,14 +280,18 @@ class SubscriptionBalanceViewModel: ObservableObject {
 
     /// Reads the crypto payment tabs (over the coins payable now and the ones
     /// the server cannot quote now, which stay greyed), the crypto term and the
-    /// current store's family off a balance result (an older server sends
-    /// none).
+    /// family of the store the plan row describes (planStore: a gift gives way
+    /// to another store still billing) off a balance result (an older server
+    /// sends none).
     func applyCryptoPayments(_ result: SdkSubscriptionBalanceResult) {
         let tabs = CryptoPaymentSdk.tabsByPlan(result.cryptoAssets, result.cryptoUnavailableAssets)
         if tabs != cryptoPaymentTabs { cryptoPaymentTabs = tabs }
         let term = CryptoPaymentSdk.term(result.cryptoTerm)
         if term != cryptoTerm { cryptoTerm = term }
-        let storeClass = CryptoPaymentSdk.storeClass(result.currentSubscription?.store ?? "")
+        let storeClass = CryptoPaymentSdk.storeClass(planStore(
+            currentStore: result.currentSubscription?.store ?? "",
+            activeStores: CryptoPaymentSdk.stores(result.subscriptions)
+        ))
         if storeClass != currentSubscriptionStoreClass { currentSubscriptionStoreClass = storeClass }
     }
 

@@ -10,7 +10,8 @@ import SwiftUI
 struct RedeemBalanceCodeSheet: View {
     
     let closeSheet: () -> Void
-    // the code's data is on the balance; a code grants no Pro
+    // the code's data, or a gift code's year of Pro, is granted: the caller
+    // reads the balance and the plan, and confirms it (BalanceCodeRedeemedView)
     let onSuccess: (RedeemedBalanceCode) -> Void
     @StateObject private var viewModel: ViewModel
     
@@ -85,7 +86,7 @@ struct RedeemBalanceCodeSheet: View {
                         },
                         
                     )
-                    .disabled(viewModel.redeemState == .validating || viewModel.code.count != 26)
+                    .disabled(!viewModel.canRedeem)
                 }
                 
                 ToolbarItem(placement: .cancellationAction) {

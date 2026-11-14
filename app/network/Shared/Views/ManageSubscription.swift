@@ -79,7 +79,11 @@ func manageSubscriptionOnWebURL(authCode: String) -> URL? {
 /// ur.io. On the direct-download build: the network's Pro plan in the Stripe
 /// portal (StoreKit is never consulted), except a one-time crypto year
 /// (`storeClass` "crypto", ClassifySubscriptionStore), which never renews and
-/// has nothing to manage.
+/// has nothing to manage. Nothing to manage on the network for a redeemed
+/// gift year either (`storeClass` "gift", which planStore gives only while no
+/// other store bills the network): the plan row says it doesn't renew
+/// instead (giftPlanLine). An App Store subscription this Apple ID holds is
+/// still Apple's to manage, next to a gift as next to any plan.
 func manageSubscriptionAction(
     platform: ManageSubscriptionPlatform,
     distribution: BillingDistribution = .current,
@@ -88,10 +92,10 @@ func manageSubscriptionAction(
     storeClass: String = ""
 ) -> ManageSubscriptionAction? {
     if distribution == .direct {
-        return isPro && !subscriptionStoreIsCrypto(storeClass) ? .stripePortal : nil
+        return isPro && !subscriptionStoreIsCrypto(storeClass) && !subscriptionStoreIsGift(storeClass) ? .stripePortal : nil
     }
     guard hasAppStoreSubscription else {
-        return isPro ? .manageOnWeb : nil
+        return isPro && !subscriptionStoreIsGift(storeClass) ? .manageOnWeb : nil
     }
     switch platform {
     case .iOS:
@@ -99,4 +103,40 @@ func manageSubscriptionAction(
     case .macOS:
         return .openURL(appStoreSubscriptionsURL)
     }
+}
+
+/// Whether the current subscription is a redeemed gift code's year of Pro
+/// (the SDK's ClassifySubscriptionStore family "gift", the store "gift"):
+/// someone else paid for it and it never renews, so there is nothing to
+/// manage or cancel (mmm/GIFTOFPRIVACY.md 10.5, "After redemption,
+/// everywhere").
+func subscriptionStoreIsGift(_ storeClass: String) -> Bool {
+    storeClass == "gift"
+}
+
+/// The store the plan row describes (Android's planStore): the current
+/// subscription's, except a gift while another store also bills the network.
+/// A gift year starts after any paid period, and a store subscription that
+/// renews after that overlaps it and keeps charging (a redeem bills no one).
+/// The server names one active store as current, which can be the gift, so
+/// then the first store of `activeStores` (the balance's `subscriptions`:
+/// every store billing the network now) that is not a gift is described, and
+/// its manage action stays.
+func planStore(currentStore: String, activeStores: [String]) -> String {
+    guard subscriptionStoreIsGift(CryptoPaymentSdk.storeClass(currentStore)) else {
+        return currentStore
+    }
+    return activeStores.first { store in
+        !store.isEmpty && !subscriptionStoreIsGift(CryptoPaymentSdk.storeClass(store))
+    } ?? currentStore
+}
+
+/// The plan row's line where "Manage subscription" would be, for a redeemed
+/// gift year of Pro: the gift's twin of a one-time crypto year's
+/// does-not-renew line. nil for every other plan.
+func giftPlanLine(isPro: Bool, storeClass: String) -> String? {
+    guard isPro, subscriptionStoreIsGift(storeClass) else {
+        return nil
+    }
+    return String(localized: "A gift. It doesn't renew.")
 }

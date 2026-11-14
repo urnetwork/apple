@@ -344,6 +344,63 @@ struct CryptoPaymentSdkTests {
         #expect(viewModel.currentSubscriptionStoreClass == "")
     }
 
+    /// A redeemed gift year's balance (the store "gift") puts the plan row on
+    /// the gift's line, in every build (ManageSubscription giftPlanLine).
+    @Test func aGiftYearsBalanceIsTheGiftFamily() {
+        let result = SdkSubscriptionBalanceResult()
+        let subscription = SdkSubscription()
+        subscription.store = SdkSubscriptionStoreGift
+        result.currentSubscription = subscription
+
+        let viewModel = makeViewModel()
+        viewModel.applyCryptoPayments(result)
+        #expect(viewModel.currentSubscriptionStoreClass == "gift")
+        #expect(giftPlanLine(isPro: true, storeClass: viewModel.currentSubscriptionStoreClass) != nil)
+        #expect(manageSubscriptionAction(
+            platform: .iOS,
+            hasAppStoreSubscription: false,
+            isPro: true,
+            storeClass: viewModel.currentSubscriptionStoreClass
+        ) == nil)
+    }
+
+    /// The server may name the gift as current while an App Store
+    /// subscription also bills the network (`subscriptions`): the plan row
+    /// describes the App Store one, whose Manage stays.
+    @Test func aGiftBesideAStoreStillBillingIsThatStoresFamily() {
+        let result = SdkSubscriptionBalanceResult()
+        let gift = SdkSubscription()
+        gift.store = SdkSubscriptionStoreGift
+        let apple = SdkSubscription()
+        apple.store = "apple"
+        apple.plan = "yearly"
+        result.currentSubscription = gift
+        let subscriptions = SdkNewSubscriptionList()
+        subscriptions?.add(gift)
+        subscriptions?.add(apple)
+        result.subscriptions = subscriptions
+
+        let viewModel = makeViewModel()
+        viewModel.applyCryptoPayments(result)
+        #expect(viewModel.currentSubscriptionStoreClass == "apple")
+        #expect(giftPlanLine(isPro: true, storeClass: viewModel.currentSubscriptionStoreClass) == nil)
+        #expect(manageSubscriptionAction(
+            platform: .iOS,
+            hasAppStoreSubscription: true,
+            isPro: true,
+            storeClass: viewModel.currentSubscriptionStoreClass
+        ) == .storeKitSheet)
+
+        // the gift alone again, once the App Store year ended
+        let alone = SdkSubscriptionBalanceResult()
+        alone.currentSubscription = gift
+        let giftOnly = SdkNewSubscriptionList()
+        giftOnly?.add(gift)
+        alone.subscriptions = giftOnly
+        viewModel.applyCryptoPayments(alone)
+        #expect(viewModel.currentSubscriptionStoreClass == "gift")
+    }
+
     @Test func everyOneTimeCryptoMarketIsTheCryptoFamily() {
         for market in ["solana", "monero", "zcash"] {
             #expect(CryptoPaymentSdk.storeClass(market) == "crypto")

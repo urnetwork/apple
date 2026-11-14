@@ -400,8 +400,10 @@ struct IntroductionView: View {
                                     
                                     presentRedeemBalanceCodeSheet = false
                                     
-                                    // a balance code is data only: read the balance
-                                    // once, never the Pro confirmation poll
+                                    // the balance and the plan, read once: a gift
+                                    // code's year of Pro reaches the plan and the
+                                    // jwt from here. Never the purchase confirmation
+                                    // poll: the redeem itself granted.
                                     Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
                                     
                                     Task {

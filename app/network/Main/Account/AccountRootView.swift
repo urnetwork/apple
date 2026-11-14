@@ -208,7 +208,8 @@ struct AccountRootView: View {
                          * An App Store subscription can only be changed or cancelled
                          * through Apple; this hands off to it. A Pro plan billed
                          * elsewhere opens ur.io's Manage Subscription (see
-                         * ManageSubscription).
+                         * ManageSubscription). A redeemed gift year has nothing
+                         * to manage: its place says the gift doesn't renew.
                          */
                         if let manageAction = manageSubscriptionAction(
                             platform: .current,
@@ -255,6 +256,20 @@ struct AccountRootView: View {
                                     Text("Manage subscription")
                                         .font(themeManager.currentTheme.secondaryBodyFont)
                                 }
+                            }
+                        } else if let giftLine = giftPlanLine(
+                            isPro: isPro,
+                            storeClass: subscriptionBalanceViewModel.currentSubscriptionStoreClass
+                        ) {
+                            // a redeemed gift year: someone else paid, it never
+                            // renews, and there is nothing to manage or cancel
+                            HStack {
+                                Spacer()
+                                Text(giftLine)
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    .multilineTextAlignment(.trailing)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                         }
 
@@ -643,8 +658,10 @@ struct AccountRootView: View {
                         
                         viewModel.isPresentedRedeemBalanceCodeSheet = false
                         
-                        // a balance code is data only: read the balance once,
-                        // never the Pro confirmation poll
+                        // the balance and the plan, read once: a gift code's
+                        // year of Pro reaches the plan and the jwt from here.
+                        // Never the purchase confirmation poll: the redeem
+                        // itself granted.
                         Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
                         
                         Task {

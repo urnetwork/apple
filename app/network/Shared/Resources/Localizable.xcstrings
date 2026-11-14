@@ -32407,169 +32407,169 @@
         }
       }
     },
-    "All-time points. A block is one finalized epoch; the streak counts consecutive blocks with points, ending at the latest one." : {
+    "All-time points. A block is one week; the streak counts consecutive blocks with points, and a week whose points couldn't be awarded, or are still being awarded, doesn't break it." : {
       "comment" : "Points leaderboard: the explanation under the list header.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "النقاط منذ البداية. الكتلة هي فترة مكتملة واحدة؛ وتحسب السلسلة الكتل المتتالية ذات النقاط حتى آخر كتلة."
+            "value" : "النقاط منذ البداية. الكتلة هي أسبوع واحد؛ وتحسب السلسلة الكتل المتتالية ذات النقاط، ولا يقطعها أسبوع تعذّر منح نقاطه أو ما زال منحها جاريًا."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body za celou dobu. Blok je jedna dokončená epocha; série počítá po sobě jdoucí bloky s body končící tím posledním."
+            "value" : "Body za celou dobu. Blok je jeden týden; série počítá po sobě jdoucí bloky s body a týden, za který se body nepodařilo přidělit nebo se ještě přidělují, ji nepřeruší."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punkte seit Beginn. Ein Block ist eine abgeschlossene Epoche; die Serie zählt aufeinanderfolgende Blöcke mit Punkten bis zum letzten."
+            "value" : "Punkte seit Beginn. Ein Block ist eine Woche; die Serie zählt aufeinanderfolgende Blöcke mit Punkten, und eine Woche, deren Punkte nicht vergeben werden konnten oder noch vergeben werden, unterbricht sie nicht."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Πόντοι όλων των εποχών. Ένα μπλοκ είναι μία οριστικοποιημένη εποχή· το σερί μετρά διαδοχικά μπλοκ με πόντους έως το τελευταίο."
+            "value" : "Πόντοι όλων των εποχών. Ένα μπλοκ είναι μία εβδομάδα· το σερί μετρά διαδοχικά μπλοκ με πόντους, και μια εβδομάδα της οποίας οι πόντοι δεν μπόρεσαν να απονεμηθούν ή απονέμονται ακόμη δεν το διακόπτει."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All-time points. A block is one finalized epoch; the streak counts consecutive blocks with points, ending at the latest one."
+            "value" : "All-time points. A block is one week; the streak counts consecutive blocks with points, and a week whose points couldn't be awarded, or are still being awarded, doesn't break it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puntos históricos. Un bloque es una época finalizada; la racha cuenta bloques consecutivos con puntos hasta el último."
+            "value" : "Puntos históricos. Un bloque es una semana; la racha cuenta bloques consecutivos con puntos, y una semana cuyos puntos no se pudieron otorgar, o aún se están otorgando, no la interrumpe."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puntos históricos. Un bloque es una época finalizada; la racha cuenta bloques consecutivos con puntos hasta el último."
+            "value" : "Puntos históricos. Un bloque es una semana; la racha cuenta bloques consecutivos con puntos, y una semana cuyos puntos no se pudieron otorgar, o aún se están otorgando, no la interrumpe."
           }
         },
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puntos históricos. Un bloque es una época finalizada; la racha cuenta bloques consecutivos con puntos hasta el último."
+            "value" : "Puntos históricos. Un bloque es una semana; la racha cuenta bloques consecutivos con puntos, y una semana cuyos puntos no se pudieron otorgar, o aún se están otorgando, no la interrumpe."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Points cumulés. Un bloc est une époque finalisée ; la série compte les blocs consécutifs avec des points jusqu'au dernier."
+            "value" : "Points cumulés. Un bloc correspond à une semaine ; la série compte les blocs consécutifs avec des points, et une semaine dont les points n'ont pas pu être attribués, ou sont encore en cours d'attribution, ne l'interrompt pas."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "נקודות מאז ומעולם. בלוק הוא תקופה שהושלמה; הרצף סופר בלוקים רצופים עם נקודות עד האחרון."
+            "value" : "נקודות מאז ומעולם. בלוק הוא שבוע אחד; הרצף סופר בלוקים רצופים עם נקודות, ושבוע שאת נקודותיו לא ניתן היה להעניק, או שהן עדיין מוענקות, אינו שובר אותו."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "अब तक के कुल पॉइंट। एक ब्लॉक एक पूर्ण एपोक है; स्ट्रीक पॉइंट वाले लगातार ब्लॉक गिनती है, जो नवीनतम पर समाप्त होती है।"
+            "value" : "अब तक के कुल पॉइंट। एक ब्लॉक एक सप्ताह है; स्ट्रीक पॉइंट वाले लगातार ब्लॉक गिनती है, और जिस सप्ताह के पॉइंट नहीं दिए जा सके या अभी दिए जा रहे हैं, उससे स्ट्रीक नहीं टूटती।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Poin sepanjang waktu. Satu blok adalah satu epoch yang difinalisasi; runtutan menghitung blok berturut-turut dengan poin hingga yang terakhir."
+            "value" : "Poin sepanjang waktu. Satu blok adalah satu minggu; runtutan menghitung blok berturut-turut dengan poin, dan minggu yang poinnya tidak dapat diberikan, atau masih sedang diberikan, tidak memutusnya."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punti complessivi. Un blocco è un'epoca finalizzata; la serie conta i blocchi consecutivi con punti fino all'ultimo."
+            "value" : "Punti complessivi. Un blocco è una settimana; la serie conta i blocchi consecutivi con punti, e una settimana per cui non è stato possibile assegnare i punti, o per cui l'assegnazione è ancora in corso, non la interrompe."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "累計ポイント。ブロックは確定した1エポック。連続は最新ブロックまでポイントを獲得した連続ブロック数です。"
+            "value" : "累計ポイント。ブロックは1週間です。連続はポイントを獲得した連続ブロック数で、ポイントを付与できなかった週や、まだ付与中の週があっても途切れません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "누적 포인트입니다. 블록은 확정된 에포크 하나이며, 연속은 최신 블록까지 포인트를 얻은 연속 블록 수입니다."
+            "value" : "누적 포인트입니다. 블록은 한 주이며, 연속은 포인트를 얻은 연속 블록 수로, 포인트를 지급하지 못했거나 아직 지급 중인 주가 있어도 끊기지 않습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punten aller tijden. Een blok is één afgeronde epoch; de reeks telt opeenvolgende blokken met punten tot het laatste."
+            "value" : "Punten aller tijden. Een blok is één week; de reeks telt opeenvolgende blokken met punten, en een week waarvan de punten niet konden worden toegekend, of nog worden toegekend, onderbreekt de reeks niet."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punkty od początku. Blok to jedna sfinalizowana epoka; seria liczy kolejne bloki z punktami aż do ostatniego."
+            "value" : "Punkty od początku. Blok to jeden tydzień; seria liczy kolejne bloki z punktami, a tydzień, za który nie udało się przyznać punktów lub są one jeszcze przyznawane, jej nie przerywa."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pontos de sempre. Um bloco é uma época finalizada; a sequência conta blocos consecutivos com pontos até ao último."
+            "value" : "Pontos de sempre. Um bloco é uma semana; a sequência conta blocos consecutivos com pontos, e uma semana cujos pontos não puderam ser atribuídos, ou ainda estão a ser atribuídos, não a interrompe."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pontos de todos os tempos. Um bloco é uma época finalizada; a sequência conta blocos consecutivos com pontos até o último."
+            "value" : "Pontos de todos os tempos. Um bloco é uma semana; a sequência conta blocos consecutivos com pontos, e uma semana cujos pontos não puderam ser concedidos, ou ainda estão sendo concedidos, não a interrompe."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pontos de sempre. Um bloco é uma época finalizada; a sequência conta blocos consecutivos com pontos até ao último."
+            "value" : "Pontos de sempre. Um bloco é uma semana; a sequência conta blocos consecutivos com pontos, e uma semana cujos pontos não puderam ser atribuídos, ou ainda estão a ser atribuídos, não a interrompe."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Очки за всё время. Блок — одна завершённая эпоха; серия считает подряд идущие блоки с очками до последнего."
+            "value" : "Очки за всё время. Блок — одна неделя; серия считает подряд идущие блоки с очками, и неделя, очки за которую не удалось начислить или ещё начисляются, её не прерывает."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Poäng genom tiderna. Ett block är en slutförd epok; sviten räknar på varandra följande block med poäng fram till det senaste."
+            "value" : "Poäng genom tiderna. Ett block är en vecka; sviten räknar på varandra följande block med poäng, och en vecka vars poäng inte kunde delas ut, eller fortfarande delas ut, bryter den inte."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "คะแนนสะสมทั้งหมด บล็อกคือหนึ่งอีพอคที่สรุปแล้ว ต่อเนื่องนับบล็อกที่มีคะแนนติดต่อกันจนถึงบล็อกล่าสุด"
+            "value" : "คะแนนสะสมทั้งหมด บล็อกคือหนึ่งสัปดาห์ ต่อเนื่องนับบล็อกที่มีคะแนนติดต่อกัน และสัปดาห์ที่มอบคะแนนไม่ได้หรือยังอยู่ระหว่างการมอบคะแนนจะไม่ทำให้ต่อเนื่องขาดช่วง"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Бали за весь час. Блок — одна завершена епоха; серія рахує послідовні блоки з балами до останнього."
+            "value" : "Бали за весь час. Блок — один тиждень; серія рахує послідовні блоки з балами, і тиждень, бали за який не вдалося нарахувати або ще нараховуються, її не перериває."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Điểm tích lũy. Một khối là một epoch đã hoàn tất; chuỗi đếm các khối liên tiếp có điểm cho đến khối mới nhất."
+            "value" : "Điểm tích lũy. Một khối là một tuần; chuỗi đếm các khối liên tiếp có điểm, và tuần không thể trao điểm hoặc vẫn đang trao điểm sẽ không làm đứt chuỗi."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "历史累计积分。一个区块是一个已确认的周期；连续统计直到最新区块的连续得分区块数。"
+            "value" : "历史累计积分。一个区块为一周；连续统计连续得分的区块数，积分未能发放或仍在发放中的一周不会中断连续。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "歷史累計積分。一個區塊是一個已確認的週期；連續統計直到最新區塊的連續得分區塊數。"
+            "value" : "歷史累計積分。一個區塊為一週；連續統計連續得分的區塊數，積分未能發放或仍在發放中的一週不會中斷連續。"
           }
         }
       }
@@ -140841,7 +140841,7 @@
       }
     },
     "Longest streak" : {
-      "comment" : "Points leaderboard: secondary stat, the best run of consecutive blocks with points.",
+      "comment" : "Points leaderboard: secondary stat, the best run of consecutive weeks (blocks) with points; a week whose points couldn't be awarded doesn't break a run.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -222132,7 +222132,7 @@
       }
     },
     "Streak" : {
-      "comment" : "Points leaderboard: stat tile label and sort chip. Consecutive blocks with points.",
+      "comment" : "Points leaderboard: stat tile label and sort chip. Consecutive weeks (blocks) with points; a week whose points couldn't be awarded, or are still being awarded, doesn't break it.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

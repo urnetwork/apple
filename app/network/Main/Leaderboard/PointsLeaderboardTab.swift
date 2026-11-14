@@ -703,7 +703,7 @@ private struct PointsHeader: View {
 
             Spacer().frame(height: 16)
 
-            Text("All-time points. A block is one finalized epoch; the streak counts consecutive blocks with points, ending at the latest one.")
+            Text("All-time points. A block is one week; the streak counts consecutive blocks with points, and a week whose points couldn't be awarded, or are still being awarded, doesn't break it.")
                 .font(themeManager.currentTheme.secondaryBodyFont)
                 .foregroundStyle(themeManager.currentTheme.textMutedColor)
 

@@ -167,13 +167,15 @@ final class ConnectionRegionStore: ObservableObject {
 // MARK: can't reach URnetwork
 
 /**
- * Whether `error` means the app could not reach URnetwork at all (DNS, dial,
- * TLS, timeout), as opposed to an answer from the platform (an HTTP status,
- * a result error: auth or validation). Only the former suggests choosing a
- * connection region. Apple's own URL loading errors answer here; a Go
- * failure's text is the sdk's one rule for every app (sdk cant_reach.go
- * IsCantReachError), so the same failure raises the prompt on every platform
- * (support inbox 7956, 7973).
+ * Whether `error` raises the "Can't reach URnetwork" prompt: the app could not
+ * reach URnetwork at all (DNS, dial, TLS, timeout), as opposed to an answer
+ * from the platform (an HTTP status, a result error: auth or validation), and
+ * not just once. The sdk's one rule for every app decides (sdk cant_reach.go
+ * IsCantReachError), Apple's own URL loading errors included, by domain and
+ * code: one failed call is not an outage, failures that last its hold are, and
+ * a host that does not exist or a certificate that is not URnetwork's settle
+ * it at once. The same failure raises the prompt on every platform (support
+ * inbox 7956, 7973).
  */
 func isCantReachUrnetworkError(_ error: Error) -> Bool {
     if error is CancellationError {
@@ -181,16 +183,7 @@ func isCantReachUrnetworkError(_ error: Error) -> Bool {
     }
     let nsError = error as NSError
     if nsError.domain == NSURLErrorDomain {
-        switch nsError.code {
-        case NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost, NSURLErrorDNSLookupFailed,
-             NSURLErrorTimedOut, NSURLErrorNetworkConnectionLost, NSURLErrorNotConnectedToInternet,
-             NSURLErrorSecureConnectionFailed, NSURLErrorServerCertificateUntrusted,
-             NSURLErrorServerCertificateHasBadDate, NSURLErrorServerCertificateHasUnknownRoot,
-             NSURLErrorCannotLoadFromNetwork:
-            return true
-        default:
-            return false
-        }
+        return SdkIsCantReachError("\(NSURLErrorDomain) \(nsError.code)")
     }
     return SdkIsCantReachError(nsError.localizedDescription)
 }

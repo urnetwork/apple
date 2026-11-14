@@ -129,29 +129,17 @@ struct CantReachUrnetworkTests {
         NSError(domain: "go", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 
-    @Test func aNetworkFailureIsCantReach() {
+    // A failure that settles it raises the prompt at once, a Go failure and an
+    // Apple URL loading error alike: the sdk's one rule decides for both (sdk
+    // cant_reach.go). Any other can't-reach failure raises it only once
+    // failures have lasted the rule's hold, so whether one more raises it here
+    // depends on the failures this process saw before; the sdk's tests hold
+    // those texts and the hold, with a clock they set.
+    @Test func aFailureThatSettlesItIsCantReach() {
         #expect(isCantReachUrnetworkError(goError("Post \"https://api.bringyour.com/auth/login\": dial tcp: lookup api.bringyour.com: no such host")))
-        #expect(isCantReachUrnetworkError(goError("Post \"https://api.bringyour.com/auth/login\": context deadline exceeded")))
-        #expect(isCantReachUrnetworkError(goError("read tcp 10.0.0.2:5000->1.2.3.4:443: connection reset by peer")))
+        #expect(isCantReachUrnetworkError(goError("tls: failed to verify certificate: x509: certificate signed by unknown authority")))
         #expect(isCantReachUrnetworkError(URLError(.cannotFindHost)))
-        #expect(isCantReachUrnetworkError(URLError(.timedOut)))
-    }
-
-    // an api call that no route answered fails with this text, which names none
-    // of its causes (connect HttpRequestExhaustedError): what a mainland China
-    // sign-in reports when the default DoH servers are blocked
-    @Test func attemptsExhaustedIsCantReach() {
-        #expect(isCantReachUrnetworkError(goError("http request attempts exhausted")))
-    }
-
-    // the other texts Go's http client gives for a failed round trip; a Go
-    // failure's text is the sdk's rule for every app now (sdk cant_reach.go,
-    // whose tests hold every app's cases)
-    @Test func goTransportFailuresAreCantReach() {
-        #expect(isCantReachUrnetworkError(goError("http request failed: unexpected status")))
-        #expect(isCantReachUrnetworkError(goError("server misbehaving")))
-        #expect(isCantReachUrnetworkError(goError("connect: host is unreachable")))
-        #expect(isCantReachUrnetworkError(goError("net/http: TLS handshake timeout")))
+        #expect(isCantReachUrnetworkError(URLError(.serverCertificateUntrusted)))
     }
 
     @Test func aStatusAnswerAboutAttemptsIsNot() {

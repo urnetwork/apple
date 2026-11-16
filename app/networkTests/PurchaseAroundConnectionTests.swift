@@ -81,6 +81,7 @@ struct PurchaseAroundConnectionTests {
         var purchaseSuccess: Bool { true }
         var purchasePending: Bool { true }
         var purchaseError: String? { "error" }
+        var purchaseRetryPlan: PaymentOption? { .yearly }
         var purchaseConfirmingTitle: String? { "title" }
         var purchaseConfirmingMessage: String? { "message" }
         var checkoutView: AnyView? { AnyView(EmptyView()) }
@@ -566,6 +567,7 @@ struct PurchaseAroundConnectionTests {
         #expect(store.purchaseSuccess)
         #expect(store.purchasePending)
         #expect(store.purchaseError == "error")
+        #expect(store.purchaseRetryPlan == .yearly)
         #expect(store.purchaseConfirmingTitle == "title")
         #expect(store.purchaseConfirmingMessage == "message")
         #expect(store.checkoutView != nil)

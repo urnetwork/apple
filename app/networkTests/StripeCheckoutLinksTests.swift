@@ -192,4 +192,67 @@ struct StripeCheckoutLinksTests {
         #expect(StripeCheckoutLinks.navigation(for: URL(string: "https://js.stripe.com/v3/")!, targetsNewWindow: false)
             == .load)
     }
+
+    // MARK: a 3D Secure challenge's window
+
+    private static let challenge = URL(string: "https://hooks.stripe.com/3d_secure_2/challenge")!
+    private static let bank = URL(string: "https://acs.bank.example/challenge")!
+
+    /// A window Stripe's frames, or the bank page inside them, open by script
+    /// or post a form to (fromSubframe, not a link) opens in the app: in the
+    /// browser it could not answer the frame that opened it. On https, or
+    /// blank before it is navigated or posted to.
+    @Test func aChallengesWindowFromStripesFramesOpensInTheApp() {
+        for url in [Self.challenge, Self.bank, URL(string: "about:blank")!] {
+            #expect(StripeCheckoutLinks.newWindow(for: url, linkActivated: false, fromSubframe: true) == .challengeWindow, "\(url)")
+        }
+        // window.open() with no URL
+        #expect(StripeCheckoutLinks.newWindow(for: nil, linkActivated: false, fromSubframe: true) == .challengeWindow)
+    }
+
+    /// Nothing else gets a window in the app: a link (Stripe's terms and
+    /// privacy) and anything the checkout page itself opens go to the browser
+    /// as before, a challenge window only ever opens on https or blank, and a
+    /// urnetwork:// return never opens anything.
+    @Test func noOtherWindowOpensInTheApp() {
+        // links, from anywhere
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "https://stripe.com/legal")!, linkActivated: true, fromSubframe: true) == .browser)
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "https://ur.io/terms")!, linkActivated: true, fromSubframe: false) == .browser)
+        // the page's own windows
+        #expect(StripeCheckoutLinks.newWindow(for: Self.challenge, linkActivated: false, fromSubframe: false) == .browser)
+        #expect(StripeCheckoutLinks.newWindow(for: nil, linkActivated: false, fromSubframe: false) == .nothing)
+        // not https or blank
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "http://acs.bank.example/challenge")!, linkActivated: false, fromSubframe: true) == .browser)
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "bankid:///?autostarttoken=x")!, linkActivated: false, fromSubframe: true) == .nothing)
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "javascript:void(0)")!, linkActivated: false, fromSubframe: true) == .nothing)
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "about:srcdoc")!, linkActivated: false, fromSubframe: true) == .nothing)
+        #expect(StripeCheckoutLinks.newWindow(for: URL(string: "mailto:support@ur.io")!, linkActivated: true, fromSubframe: false) == .browser)
+        // returns
+        for (linkActivated, fromSubframe) in [(false, true), (true, false), (false, false)] {
+            #expect(StripeCheckoutLinks.newWindow(for: URL(string: "urnetwork://pay/done")!, linkActivated: linkActivated, fromSubframe: fromSubframe) == .nothing)
+        }
+    }
+
+    /// A form posted to a new window (a 3D Secure 1 style challenge) asks the
+    /// navigation policy first: it must load, so WebKit goes on to ask for the
+    /// window, where the posted form arrives whole. A link there still goes
+    /// to the browser.
+    @Test func aChallengesNewWindowNavigationGoesOnToItsWindow() {
+        #expect(StripeCheckoutLinks.navigation(for: Self.bank, targetsNewWindow: true, linkActivated: false, fromSubframe: true) == .load)
+        #expect(StripeCheckoutLinks.navigation(for: Self.bank, targetsNewWindow: true, linkActivated: true, fromSubframe: true) == .openInBrowser)
+        #expect(StripeCheckoutLinks.navigation(for: Self.bank, targetsNewWindow: true, linkActivated: false, fromSubframe: false) == .openInBrowser)
+        // a navigation in place is untouched
+        #expect(StripeCheckoutLinks.navigation(for: Self.bank, targetsNewWindow: false, linkActivated: false, fromSubframe: true) == .load)
+    }
+
+    /// Inside a challenge window only https pages and blank or srcdoc frames
+    /// load: no return, no plain http, no other scheme (no app launches).
+    @Test func aChallengeWindowLoadsOnlyHttpsPages() {
+        for url in ["https://hooks.stripe.com/3d_secure_2/challenge", "https://acs.bank.example/otp", "about:blank", "about:srcdoc", "ABOUT:BLANK"] {
+            #expect(StripeCheckoutLinks.challengeWindowLoads(URL(string: url)!), "\(url)")
+        }
+        for url in ["urnetwork://pay/done", "urnetwork://checkout?status=complete", "http://acs.bank.example/otp", "bankid:///?autostarttoken=x", "file:///etc/hosts", "javascript:alert(1)", "data:text/html,x", "about:config"] {
+            #expect(!StripeCheckoutLinks.challengeWindowLoads(URL(string: url)!), "\(url)")
+        }
+    }
 }

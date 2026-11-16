@@ -62,6 +62,7 @@ final class ConnectionAwareSubscriptionStore: SubscriptionStore {
     var purchaseSuccess: Bool { store.purchaseSuccess }
     var purchasePending: Bool { store.purchasePending }
     var purchaseError: String? { store.purchaseError }
+    var purchaseRetryPlan: PaymentOption? { store.purchaseRetryPlan }
     var purchaseConfirmingTitle: String? { store.purchaseConfirmingTitle }
     var purchaseConfirmingMessage: String? { store.purchaseConfirmingMessage }
     var checkoutView: AnyView? { store.checkoutView }

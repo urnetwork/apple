@@ -32,6 +32,11 @@ struct IntroductionOfferView: View {
     let startTrial: () -> Void
     var isPurchasing: Bool = false
     var purchaseError: String? = nil
+    /// Try again under the error, which starts the trial by card again: the
+    /// error is a card the server refused (the direct download's Stripe
+    /// purchase, SubscriptionStore.purchaseRetryPlan), and the remedy is a
+    /// new payment form.
+    var retryOffered: Bool = false
     /// Presented from an email link rather than as an onboarding page.
     var standalone: Bool = false
     /// The surface named on the events.
@@ -76,6 +81,17 @@ struct IntroductionOfferView: View {
         #else
         return 0
         #endif
+    }
+
+    /// Try again under a refused card's error: the button's Card path, by
+    /// card whatever the method row shows, since the card is what was refused.
+    private func retryTrialByCard() {
+        #if DIRECT_DOWNLOAD
+        ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: PaymentMethod.card.eventStore)
+        #else
+        ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+        #endif
+        startTrial()
     }
 
     /// The line under the button: the offer's terms for Card, a coin's fine print.
@@ -213,6 +229,18 @@ struct IntroductionOfferView: View {
                         Text(purchaseError)
                             .font(themeManager.currentTheme.secondaryBodyFont)
                             .foregroundColor(.red)
+
+                        if retryOffered {
+                            Spacer().frame(height: 8)
+                            Button(action: retryTrialByCard) {
+                                Text("Try again")
+                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                            .underline()
+                            .disabled(isPurchasing)
+                        }
                     }
 
                     Spacer(minLength: 24)

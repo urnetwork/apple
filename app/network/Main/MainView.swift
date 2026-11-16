@@ -237,6 +237,22 @@ struct MainView: View {
              */
             subscriptionBalanceViewModel.serverRefusedGuestPurchase()
         }
+        .onChange(of: stripeSubscriptionStore.purchaseRefusal) { refusal in
+            /**
+             * The server refused the card payment the confirmation poll waits
+             * on (a yearly trial whose card failed its CVC check): no Pro is
+             * coming, so the poll ends now rather than giving up later and
+             * saying the purchase may still land. An open sheet shows the
+             * refusal with Try again in place of the confirming screen; the
+             * user may have closed it, so the app's overlay says it too, as it
+             * does for a give-up (not while another purchase is open).
+             */
+            guard let refusal else { return }
+            subscriptionBalanceViewModel.cancelPurchaseConfirmation()
+            if let message = refusal.message {
+                snackbarManager.showSnackbar(message: message)
+            }
+        }
         #if DIRECT_DOWNLOAD
         .onChange(of: cryptoInvoiceStore.guestSignInRequiredSequence) { _ in
             // the same refusal for a crypto invoice

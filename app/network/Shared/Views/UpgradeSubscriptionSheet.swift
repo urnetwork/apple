@@ -61,6 +61,12 @@ struct UpgradeSubscriptionSheet: View {
      */
     var purchaseError: String? = nil
     /**
+     * The plan Try again buys by card when `purchaseError` is a refused card
+     * (the direct download's Stripe purchase: a new payment form); nil keeps
+     * Restore purchases beside the error.
+     */
+    var purchaseRetryPlan: PaymentOption? = nil
+    /**
      * The product fetch failed and there is nothing to sell; shows a retry
      * instead of the old eternal spinner.
      */
@@ -313,23 +319,43 @@ struct UpgradeSubscriptionSheet: View {
                                             .font(themeManager.currentTheme.secondaryBodyFont)
                                             .foregroundColor(.red)
 
-                                        Button(action: restorePurchases) {
-                                            if isRestoringPurchases {
-                                                ProgressView()
-                                                    .progressViewStyle(CircularProgressViewStyle())
-                                            } else {
-                                                Text("Restore purchases")
+                                        if let purchaseRetryPlan, purchaseError == self.purchaseError {
+
+                                            // a card the server refused (its CVC check
+                                            // failed): nothing was bought to restore, and
+                                            // the remedy is a new payment form
+                                            Button(action: {
+                                                selectedPaymentOption = purchaseRetryPlan
+                                                buyByCard(purchaseRetryPlan)
+                                            }) {
+                                                Text("Try again")
                                                     .font(themeManager.currentTheme.secondaryBodyFont)
                                             }
-                                        }
-                                        .buttonStyle(.plain)
-                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                        .underline()
+                                            .buttonStyle(.plain)
+                                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                            .underline()
+                                            .disabled(isPurchasing)
 
-                                        if let restoreMessage {
-                                            Text(restoreMessage)
-                                                .font(themeManager.currentTheme.secondaryBodyFont)
-                                                .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                        } else {
+
+                                            Button(action: restorePurchases) {
+                                                if isRestoringPurchases {
+                                                    ProgressView()
+                                                        .progressViewStyle(CircularProgressViewStyle())
+                                                } else {
+                                                    Text("Restore purchases")
+                                                        .font(themeManager.currentTheme.secondaryBodyFont)
+                                                }
+                                            }
+                                            .buttonStyle(.plain)
+                                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                            .underline()
+
+                                            if let restoreMessage {
+                                                Text(restoreMessage)
+                                                    .font(themeManager.currentTheme.secondaryBodyFont)
+                                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                            }
                                         }
                                     }
 
@@ -373,28 +399,7 @@ struct UpgradeSubscriptionSheet: View {
                                             return
                                         }
                                         #endif
-                                        // the active welcome offer on the yearly plan goes
-                                        // through the App Store offer code; everything else
-                                        // is a plain purchase
-                                        if selectedPaymentOption == .yearly,
-                                           let offer = presentation.offer,
-                                           let redeemOffer {
-                                            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
-                                            redeemOffer(offer)
-                                            return
-                                        }
-                                        if let purchasePlan {
-                                            purchasePlan(selectedPaymentOption)
-                                            return
-                                        }
-                                        let product = selectedPaymentOption == .monthly
-                                            ? monthlyProduct
-                                            : yearlyProduct
-                                        if let product {
-                                            purchase(product)
-                                        } else {
-                                            purchaseUnavailable()
-                                        }
+                                        buyByCard(selectedPaymentOption)
                                     },
                                     onCardTapped: { option in
                                         if presentation.hasOffer {
@@ -475,6 +480,31 @@ struct UpgradeSubscriptionSheet: View {
         }
         #endif
 
+    }
+
+    /// Buys `option` through the store (the card, on the direct download):
+    /// the active welcome offer on the yearly plan goes through the App Store
+    /// offer code; everything else is a plain purchase.
+    private func buyByCard(_ option: PaymentOption) {
+        if option == .yearly,
+           let offer = presentation.offer,
+           let redeemOffer {
+            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+            redeemOffer(offer)
+            return
+        }
+        if let purchasePlan {
+            purchasePlan(option)
+            return
+        }
+        let product = option == .monthly
+            ? monthlyProduct
+            : yearlyProduct
+        if let product {
+            purchase(product)
+        } else {
+            purchaseUnavailable()
+        }
     }
 
     /// The success view's line while the server confirms: the store's, or for

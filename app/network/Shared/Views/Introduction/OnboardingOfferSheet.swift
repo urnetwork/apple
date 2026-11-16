@@ -169,6 +169,7 @@ struct OnboardingOfferSheet: View {
                     startTrial: startTrial,
                     isPurchasing: subscriptionStore.isPurchasing,
                     purchaseError: failureMessage,
+                    retryOffered: subscriptionStore.purchaseRetryPlan != nil,
                     standalone: true,
                     surface: SdkOfferSurfaceEmailLink,
                     experimentId: subscriptionBalanceViewModel.offerExperimentId,

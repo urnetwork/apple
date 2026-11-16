@@ -47,6 +47,8 @@ struct GuestPurchaseRefusalTests {
         ("already_subscribed", "You already have Pro, so nothing was charged. Manage your subscription from your account."),
         ("plan_unavailable", "This plan is not available right now. Try again later."),
         ("checkout_unavailable", "Checkout isn't available right now. Please try again later."),
+        // the localizations store's checkout_error_incorrect_cvc
+        ("incorrect_cvc", "Your card's security code (CVC) didn't match. Check the card details and try again."),
     ]
 
     @Test func aCodeWithALineReadsThatLineAlone() {
@@ -56,6 +58,40 @@ struct GuestPurchaseRefusalTests {
             == String(localized: "This plan is not available right now. Try again later."))
         #expect(CheckoutRefusal.message(code: "checkout_unavailable", words: Self.words, screenLine: Self.screenLine)
             == String(localized: "Checkout isn't available right now. Please try again later."))
+        #expect(CheckoutRefusal.message(code: "incorrect_cvc", words: Self.words, screenLine: Self.screenLine)
+            == String(localized: "Your card's security code (CVC) didn't match. Check the card details and try again."))
+    }
+
+    // MARK: a refused card
+
+    /// The server refuses a yearly trial whose card failed its CVC check with
+    /// incorrect_cvc, the sdk's PurchaseErrorCodeIncorrectCvc: the payment
+    /// report's error, and a payment sheet or checkout session refused for
+    /// the card. Only that code is a refusal of the card itself, exactly as
+    /// the server sends it.
+    @Test func incorrectCvcIsTheCardRefusal() {
+        #expect(SdkPurchaseErrorCodeIncorrectCvc == "incorrect_cvc")
+        #expect(CheckoutRefusal.isCardRefusal("incorrect_cvc"))
+        for code in ["", "INCORRECT_CVC", "incorrect_cvc ", "card_declined", "already_subscribed", "start_failed", "guest_sign_in_required"] {
+            #expect(!CheckoutRefusal.isCardRefusal(code), "\(code)")
+        }
+    }
+
+    /// Any answer to the payment report that carries an error is a refusal.
+    /// The card refusal reads its own line; any other code, or none, the
+    /// screen's own line with the server's words under it, as the Linux app
+    /// reads it (a checkout code's line is for a start the server refused,
+    /// not for a payment it took).
+    @Test func aRefusedReportReadsTheCvcLineElseTheScreensLineWithTheServersWords() {
+        #expect(CheckoutRefusal.reportMessage(code: "incorrect_cvc", words: Self.words, screenLine: Self.screenLine)
+            == String(localized: "Your card's security code (CVC) didn't match. Check the card details and try again."))
+        for code in ["card_declined", "", "already_subscribed", "start_failed", "INCORRECT_CVC"] {
+            #expect(CheckoutRefusal.reportMessage(code: code, words: Self.words, screenLine: Self.screenLine)
+                == "The screen's own line.\nThe server's own words.", "\(code)")
+        }
+        // nothing goes under the line when the server said nothing more
+        #expect(CheckoutRefusal.reportMessage(code: "card_declined", words: "", screenLine: Self.screenLine) == Self.screenLine)
+        #expect(CheckoutRefusal.reportMessage(code: "", words: Self.screenLine, screenLine: Self.screenLine) == Self.screenLine)
     }
 
     @Test func invalidRequestAndStartFailedReadTheScreensLineAlone() {

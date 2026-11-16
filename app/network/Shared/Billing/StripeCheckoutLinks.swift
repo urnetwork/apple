@@ -87,8 +87,23 @@ enum StripeCheckoutNavigation: Equatable {
     case handBack(BillingDeepLink)
     /// A target=_blank link (Stripe's terms/privacy): the default browser.
     case openInBrowser
-    /// Anything else loads in the web view.
+    /// Anything else loads in the web view (a new window a 3D Secure
+    /// challenge asks for goes on to the window it opens, newWindow).
     case load
+}
+
+/// Where a new window the checkout page asks for opens.
+enum StripeCheckoutNewWindow: Equatable {
+    /// A small window in the app: one that Stripe's frames, or the bank page
+    /// Stripe's challenge frame shows, open by script or post a form to, as a
+    /// 3D Secure challenge can. In the default browser it could not answer
+    /// the page that opened it, and a posted form would arrive empty.
+    case challengeWindow
+    /// The default browser: a link (Stripe's terms and privacy), or a window
+    /// the checkout page itself opens.
+    case browser
+    /// Nothing opens: a urnetwork:// return, or a URL no browser takes.
+    case nothing
 }
 
 enum StripeCheckoutLinks {
@@ -271,15 +286,76 @@ enum StripeCheckoutLinks {
     // MARK: navigation
 
     /// What to do with a navigation the checkout page starts. `targetsNewWindow`
-    /// is a navigation with no target frame (target=_blank / window.open).
-    static func navigation(for url: URL, targetsNewWindow: Bool) -> StripeCheckoutNavigation {
+    /// is a navigation with no target frame (target=_blank / window.open);
+    /// `linkActivated` and `fromSubframe` say who asked (newWindow).
+    static func navigation(for url: URL, targetsNewWindow: Bool, linkActivated: Bool = true, fromSubframe: Bool = false) -> StripeCheckoutNavigation {
         if isReturnURL(url) {
             // a return we cannot read still never loads: the scheme is ours
             return .handBack(parseReturn(url) ?? .checkoutFailed(code: nil, message: nil))
         }
         if targetsNewWindow {
+            // a challenge's window goes on to the web view's window request
+            // (a form posted to a new window asks here first), which opens it
+            if newWindow(for: url, linkActivated: linkActivated, fromSubframe: fromSubframe) == .challengeWindow {
+                return .load
+            }
             return .openInBrowser
         }
         return .load
+    }
+
+    // MARK: new windows
+
+    /// Where a new window opens. `linkActivated` is a click on a link
+    /// (target=_blank), as opposed to a script (window.open) or a form posted
+    /// to a new window. `fromSubframe` is a request from a frame inside the
+    /// checkout page: on the pay page and the checkout bridge those are only
+    /// Stripe's frames (the card form, its 3D Secure challenge) and the bank
+    /// pages the challenge frame shows, so no other site gets a window in the
+    /// app. A link still opens in the browser, and so does anything the page
+    /// itself opens.
+    static func newWindow(for url: URL?, linkActivated: Bool, fromSubframe: Bool) -> StripeCheckoutNewWindow {
+        if let url, isReturnURL(url) {
+            return .nothing
+        }
+        if fromSubframe && !linkActivated && challengeWindowOpens(url) {
+            return .challengeWindow
+        }
+        guard let scheme = url?.scheme?.lowercased(), ["https", "http", "mailto"].contains(scheme) else {
+            return .nothing
+        }
+        return .browser
+    }
+
+    /// What a challenge window may open on: an https page, or the blank page
+    /// a script opens before it navigates or posts a form to it.
+    static func challengeWindowOpens(_ url: URL?) -> Bool {
+        guard let url, !url.absoluteString.isEmpty else {
+            // window.open() with no URL: about:blank
+            return true
+        }
+        switch url.scheme?.lowercased() {
+        case "https":
+            return true
+        case "about":
+            return url.absoluteString.lowercased() == "about:blank"
+        default:
+            return false
+        }
+    }
+
+    /// What loads inside a challenge window: https pages, and blank or srcdoc
+    /// frames. Nothing else does: no urnetwork:// return (the checkout page
+    /// hands back, not its challenge), no plain http, and no other scheme, so
+    /// a page there cannot launch an app.
+    static func challengeWindowLoads(_ url: URL) -> Bool {
+        switch url.scheme?.lowercased() {
+        case "https":
+            return true
+        case "about":
+            return ["about:blank", "about:srcdoc"].contains(url.absoluteString.lowercased())
+        default:
+            return false
+        }
     }
 }

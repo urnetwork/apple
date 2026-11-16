@@ -149,4 +149,48 @@ struct PurchaseConfirmationTests {
         #expect(!viewModel.isPolling)
         #expect(confirmation.calls == [.stop])
     }
+
+    // MARK: a refused card
+
+    /// The server refused the card payment being confirmed (a yearly trial
+    /// whose card failed its CVC check): no Pro is coming, so the
+    /// confirmation ends at once rather than giving up two minutes later and
+    /// saying the purchase may still land.
+    @Test func aRefusedPurchaseEndsTheConfirmationWithoutAGiveUp() {
+        let confirmation = FakePurchaseConfirmation()
+        let viewModel = makeViewModel(confirmation)
+        viewModel.setActive(true)
+        viewModel.startPolling()
+        confirmation.calls.removeAll()
+
+        viewModel.cancelPurchaseConfirmation()
+
+        #expect(!viewModel.isPolling)
+        #expect(!viewModel.purchaseConfirmationTimedOut)
+        #expect(confirmation.calls == [.stop])
+
+        // a late state from the stopped controller changes nothing
+        confirmation.emit(SdkPurchaseConfirmationStateConfirmationGaveUp)
+        #expect(!viewModel.purchaseConfirmationTimedOut)
+    }
+
+    /// The hosted checkout's refusal can come after the poll's budget ran out
+    /// (the sdk asks again every five minutes): the refusal replaces the
+    /// give-up.
+    @Test func aRefusalAfterTheGiveUpClearsIt() {
+        let confirmation = FakePurchaseConfirmation()
+        let viewModel = makeViewModel(confirmation)
+        viewModel.setActive(true)
+        viewModel.startPolling()
+        confirmation.emit(SdkPurchaseConfirmationStateConfirmationGaveUp)
+        #expect(viewModel.purchaseConfirmationTimedOut)
+        confirmation.calls.removeAll()
+
+        viewModel.cancelPurchaseConfirmation()
+
+        #expect(!viewModel.purchaseConfirmationTimedOut)
+        #expect(!viewModel.isPolling)
+        // nothing was running to stop
+        #expect(confirmation.calls.isEmpty)
+    }
 }

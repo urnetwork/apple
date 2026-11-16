@@ -17,7 +17,7 @@ struct StripeSubscriptionStoreTests {
         var calls: [String] = []
         /// The payments reported, in order, and each report's answer to give.
         var reports: [StripePurchaseId] = []
-        var reportDones: [(String?) -> Void] = []
+        var reportDones: [(StripePurchaseReport?) -> Void] = []
 
         func prices(storefrontCountry: String?) async throws -> StripePlanPrices {
             calls.append("prices")
@@ -39,7 +39,7 @@ struct StripeSubscriptionStoreTests {
             return try portal.get()
         }
 
-        func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (String?) -> Void) {
+        func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (StripePurchaseReport?) -> Void) {
             reports.append(purchaseId)
             reportDones.append(done)
         }
@@ -264,6 +264,7 @@ struct StripeSubscriptionStoreTests {
             ("invalid_request", screenLine),
             ("start_failed", screenLine),
             ("rate_limited", "\(screenLine)\n\(words)"),
+            ("incorrect_cvc", String(localized: "Your card's security code (CVC) didn't match. Check the card details and try again.")),
         ]
         let client = FakeClient()
         var opened: [URL] = []
@@ -275,6 +276,8 @@ struct StripeSubscriptionStoreTests {
             #expect(store.purchaseError == purchaseError, "\(code)")
             #expect(!store.isPurchasing, "\(code)")
             #expect(!store.purchaseSuccess, "\(code)")
+            // only a refusal of the card offers Try again
+            #expect(store.purchaseRetryPlan == (code == "incorrect_cvc" ? .yearly : nil), "\(code)")
         }
         #expect(opened.isEmpty)
         #expect(polled == 0)
@@ -283,7 +286,8 @@ struct StripeSubscriptionStoreTests {
 
     /// The pay sheet's and the embedded session's refusals still fall through
     /// to the next stage: the sheet shows the hosted session's refusal, and a
-    /// hosted page that opens still wins.
+    /// hosted page that opens still wins. A refusal of the card itself does
+    /// not (aCardRefusalAtAnEarlierStageIsFinal).
     @Test @MainActor func theEarlierStagesRefusalsFallThroughToTheHostedSession() async {
         let client = FakeClient()
         client.paymentSheet = .failure(StripeBillingError.refused(code: "plan_unavailable", message: "No pay sheet price."))
@@ -301,6 +305,52 @@ struct StripeSubscriptionStoreTests {
         #expect(client.calls == ["paymentSheet:monthly", "session:pro_monthly:embedded:never", "session:pro_monthly:hosted"])
         #expect(store.purchaseError == nil)
         #expect(store.purchaseSuccess)
+    }
+
+    /// A refusal of the card itself (incorrect_cvc, a yearly trial's card that
+    /// failed its CVC check) is final at whatever stage it comes: no later
+    /// stage takes the card either. The plans come back with the refusal and
+    /// Try again, which starts over with a new payment sheet.
+    @Test @MainActor func aCardRefusalAtAnEarlierStageIsFinal() async {
+        let cvcLine = String(localized: "Your card's security code (CVC) didn't match. Check the card details and try again.")
+
+        // the pay sheet
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.refused(code: "incorrect_cvc", message: "Your card's security code (CVC) didn't match."))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret"))
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_1"))
+        var opened: [URL] = []
+        let store = Self.store(client, opened: { opened.append($0); return true })
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(client.calls == ["paymentSheet:yearly"])
+        #expect(store.purchaseError == cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(store.checkout == nil)
+        #expect(!store.isPurchasing)
+        #expect(!store.purchaseSuccess)
+        #expect(opened.isEmpty)
+        #expect(polled == 0)
+
+        // the embedded session
+        client.calls.removeAll()
+        client.paymentSheet = .failure(StripeBillingError.server("no sheet"))
+        client.embedded = .failure(StripeBillingError.refused(code: "incorrect_cvc", message: ""))
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(client.calls == ["paymentSheet:yearly", "session:pro_yearly:embedded:never"])
+        #expect(store.purchaseError == cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(opened.isEmpty)
+        #expect(polled == 0)
+
+        // Try again is a new purchase: a new payment sheet, and a clean attempt
+        client.calls.removeAll()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_2", publishableKey: "pk"))
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(client.calls == ["paymentSheet:yearly"])
+        #expect(store.checkout?.stage == .paySheet)
+        #expect(store.purchaseError == nil)
+        #expect(store.purchaseRetryPlan == nil)
     }
 
     // MARK: a guest network
@@ -558,14 +608,14 @@ struct StripeSubscriptionStoreTests {
         client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
         let store = Self.store(client)
         await store.purchase(plan: .yearly, onSuccess: {})
-        client.reportDones[0](SdkPurchaseReportStatusPending)
+        client.reportDones[0](StripePurchaseReport(status: SdkPurchaseReportStatusPending))
         await Self.settle()
         store.handle(.checkoutComplete(sessionId: "cs_test_1"))
         #expect(client.reports == [.session("cs_test_1"), .session("cs_test_1")])
 
         client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_2", sessionId: "cs_test_2"))
         await store.purchase(plan: .yearly, onSuccess: {})
-        client.reportDones[2](SdkPurchaseReportStatusCredited)
+        client.reportDones[2](StripePurchaseReport(status: SdkPurchaseReportStatusCredited))
         await Self.settle()
         store.handle(.checkoutComplete(sessionId: "cs_test_2"))
         #expect(client.reports == [.session("cs_test_1"), .session("cs_test_1"), .session("cs_test_2")])
@@ -578,6 +628,259 @@ struct StripeSubscriptionStoreTests {
         #expect(store.handle(.checkoutComplete(sessionId: "cs_test_1")))
         #expect(store.handle(.payDone))
         #expect(client.reports.isEmpty)
+    }
+
+    // MARK: a refused card payment
+
+    private static let cvcLine = String(localized: "Your card's security code (CVC) didn't match. Check the card details and try again.")
+    /// The server's answer for a yearly trial whose card failed its CVC check.
+    private static let cvcRefusal = StripePurchaseReport(
+        status: SdkPurchaseReportStatusInvalid,
+        refusal: StripePurchaseRefusal(code: "incorrect_cvc", message: "Your card's security code (CVC) didn't match. Check the card details and try again.")
+    )
+
+    /// The client hands the store the sdk's answer: its status, and the
+    /// refusal when the server named one (VerifyStorePurchaseResult.Error).
+    @Test func theClientReadsTheRefusalOffTheSdksAnswer() {
+        let refused = SdkVerifyStorePurchaseResult()
+        refused.status = SdkPurchaseReportStatusInvalid
+        let error = SdkOnboardingError()
+        error.code = SdkPurchaseErrorCodeIncorrectCvc
+        error.message = "Your card's security code (CVC) didn't match."
+        refused.error = error
+        #expect(SdkStripeBillingClient.report(refused, err: nil)
+            == StripePurchaseReport(status: "invalid", refusal: StripePurchaseRefusal(code: "incorrect_cvc", message: "Your card's security code (CVC) didn't match.")))
+
+        // an answer without one, and an older server's
+        let credited = SdkVerifyStorePurchaseResult()
+        credited.status = SdkPurchaseReportStatusCredited
+        #expect(SdkStripeBillingClient.report(credited, err: nil) == StripePurchaseReport(status: "credited"))
+        let invalid = SdkVerifyStorePurchaseResult()
+        invalid.status = SdkPurchaseReportStatusInvalid
+        #expect(SdkStripeBillingClient.report(invalid, err: nil)?.refusal == nil)
+
+        // no answer
+        #expect(SdkStripeBillingClient.report(nil, err: nil) == nil)
+        #expect(SdkStripeBillingClient.report(refused, err: NSError(domain: "test", code: 1)) == nil)
+    }
+
+    /// The server refuses a yearly trial whose card failed its CVC check when
+    /// the pay sheet's payment is reported (no Pro; the card is detached). The
+    /// confirming screen gives way to the plans with the refusal and Try
+    /// again, the poll is told to end, and a return for the same payment
+    /// confirms nothing.
+    @Test @MainActor func aRefusedPaySheetPaymentShowsInPlaceOfTheConfirmingScreen() async throws {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_secret", publishableKey: "pk_1", subscriptionId: "sub_test_1"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        #expect(store.purchaseSuccess)
+        #expect(polled == 1)
+        #expect(store.purchaseRefusal == nil)
+
+        client.reportDones[0](Self.cvcRefusal)
+        await Self.settle()
+        #expect(!store.purchaseSuccess)
+        #expect(!store.isPurchasing)
+        #expect(store.checkout == nil)
+        #expect(store.purchaseError == Self.cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(store.purchaseConfirmingTitle == nil)
+        #expect(store.purchaseConfirmingMessage == nil)
+        #expect(store.purchaseRefusal?.message == Self.cvcLine)
+
+        // final: a stale return for the same payment confirms nothing and
+        // reports nothing more
+        #expect(!store.handle(.payDone))
+        #expect(polled == 1)
+        #expect(client.reports == [.subscription("sub_test_1")])
+        #expect(!store.purchaseSuccess)
+
+        // Try again is a new payment sheet, reported by its own subscription
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_2", publishableKey: "pk_1", subscriptionId: "sub_test_2"))
+        await store.purchase(plan: try #require(store.purchaseRetryPlan), onSuccess: { polled += 1 })
+        #expect(client.calls == ["paymentSheet:yearly", "paymentSheet:yearly"])
+        #expect(store.purchaseError == nil)
+        #expect(store.purchaseRetryPlan == nil)
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        #expect(client.reports == [.subscription("sub_test_1"), .subscription("sub_test_2")])
+        #expect(store.purchaseSuccess)
+        #expect(polled == 2)
+    }
+
+    /// The embedded checkout's payment is refused the same way, by its session.
+    @Test @MainActor func aRefusedEmbeddedCheckoutPaymentShowsInPlaceOfTheConfirmingScreen() async {
+        let client = FakeClient()
+        client.paymentSheet = .failure(StripeBillingError.server("no sheet"))
+        client.embedded = .success(StripeCheckoutSessionResponse(clientSecret: "cs_secret", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.handle(.checkoutComplete(sessionId: nil)))
+        #expect(client.reports == [.session("cs_test_1")])
+
+        client.reportDones[0](Self.cvcRefusal)
+        await Self.settle()
+        #expect(!store.purchaseSuccess)
+        #expect(store.purchaseError == Self.cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(store.purchaseRefusal?.message == Self.cvcLine)
+        #expect(!store.handle(.checkoutComplete(sessionId: "cs_test_1")))
+    }
+
+    /// The hosted page is reported as the browser opens it, and the sdk asks
+    /// again at 1 s, 5 s, 30 s and then every 5 minutes, so its refusal can
+    /// come after the poll's two minutes ran out. It shows all the same, in
+    /// place of "Finish in your browser."; and the browser handing the
+    /// checkout back afterwards confirms nothing: no poll for a plan that is
+    /// not coming.
+    @Test @MainActor func theHostedPagesRefusalShowsLateAndItsReturnConfirmsNothing() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        var polled = 0
+        await store.purchase(plan: .yearly, onSuccess: { polled += 1 })
+        #expect(store.purchaseSuccess)
+        #expect(store.purchaseConfirmingTitle == "Finish in your browser.")
+        #expect(polled == 1)
+
+        client.reportDones[0](StripePurchaseReport(
+            status: SdkPurchaseReportStatusInvalid,
+            refusal: StripePurchaseRefusal(code: "incorrect_cvc", message: "The server's own words.")
+        ))
+        await Self.settle()
+        #expect(!store.purchaseSuccess)
+        #expect(store.purchaseConfirmingTitle == nil)
+        #expect(store.purchaseConfirmingMessage == nil)
+        #expect(store.purchaseError == Self.cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(store.purchaseRefusal?.message == Self.cvcLine)
+
+        #expect(!store.handle(.checkoutComplete(sessionId: "cs_test_1")))
+        #expect(polled == 1)
+        #expect(client.reports == [.session("cs_test_1")])
+        #expect(store.purchaseError == Self.cvcLine)
+        #expect(!store.purchaseSuccess)
+    }
+
+    /// The browser's return can come first, while the sdk waits to ask again:
+    /// the confirming screen it brings gives way to the refusal just the same.
+    @Test @MainActor func aRefusalAfterTheBrowsersReturnShowsInPlaceOfTheConfirmingScreen() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        #expect(store.handle(.checkoutComplete(sessionId: "cs_test_1")))
+        #expect(store.purchaseConfirmingMessage == "We're confirming your purchase. Your plan will update automatically.")
+
+        client.reportDones[0](Self.cvcRefusal)
+        await Self.settle()
+        #expect(!store.purchaseSuccess)
+        #expect(store.purchaseConfirmingMessage == nil)
+        #expect(store.purchaseError == Self.cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(store.purchaseRefusal?.message == Self.cvcLine)
+    }
+
+    /// The sheet was closed while the poll waited (the poll runs on): the
+    /// refusal still ends the poll and says so on the app's overlay, and the
+    /// next opening of the sheet shows it with Try again.
+    @Test @MainActor func aRefusalAfterTheSheetClosedShowsTheNextTime() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.resetPurchaseState()
+        #expect(!store.purchaseSuccess)
+
+        client.reportDones[0](Self.cvcRefusal)
+        await Self.settle()
+        #expect(store.purchaseRefusal?.message == Self.cvcLine)
+        #expect(store.purchaseError == Self.cvcLine)
+        #expect(store.purchaseRetryPlan == .yearly)
+        #expect(!store.purchaseSuccess)
+
+        // closing the sheet again clears it
+        store.resetPurchaseState()
+        #expect(store.purchaseError == nil)
+        #expect(store.purchaseRetryPlan == nil)
+    }
+
+    /// A purchase started since (a new pay sheet open) is not about the
+    /// refused one: the poll is still told to end, but the open purchase
+    /// keeps its state and the overlay says nothing it could read as its own.
+    @Test @MainActor func aRefusalWhileAnotherPurchaseIsOpenLeavesItAlone() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.resetPurchaseState()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_2", publishableKey: "pk", subscriptionId: "sub_test_2"))
+        await store.purchase(plan: .monthly, onSuccess: {})
+        #expect(store.checkout?.stage == .paySheet)
+
+        client.reportDones[0](Self.cvcRefusal)
+        await Self.settle()
+        #expect(store.checkout?.stage == .paySheet)
+        #expect(store.isPurchasing)
+        #expect(store.purchaseError == nil)
+        #expect(store.purchaseRetryPlan == nil)
+        #expect(store.purchaseRefusal != nil)
+        #expect(store.purchaseRefusal?.message == nil)
+    }
+
+    /// A refusal of an earlier payment, when a later one went to the poll
+    /// since, changes nothing: the later one's own report answers for it.
+    @Test @MainActor func anEarlierPaymentsRefusalChangesNothing() async {
+        let client = FakeClient()
+        client.hosted = .success(StripeCheckoutSessionResponse(checkoutUrl: "https://checkout.example/c/pay/cs_test_1", sessionId: "cs_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .yearly, onSuccess: {})
+        store.resetPurchaseState()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti_2", publishableKey: "pk", subscriptionId: "sub_test_2"))
+        await store.purchase(plan: .monthly, onSuccess: {})
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        #expect(store.purchaseSuccess)
+        #expect(client.reports == [.session("cs_test_1"), .subscription("sub_test_2")])
+
+        client.reportDones[0](Self.cvcRefusal)
+        await Self.settle()
+        #expect(store.purchaseSuccess)
+        #expect(store.purchaseError == nil)
+        #expect(store.purchaseRetryPlan == nil)
+        #expect(store.purchaseRefusal == nil)
+        // and its late return still confirms nothing
+        #expect(!store.handle(.checkoutComplete(sessionId: "cs_test_1")))
+    }
+
+    /// Any answer that carries an error is a refusal. One with another code
+    /// reads the sheet's own line with the server's words under it, as the
+    /// Linux app reads it, and one without words the sheet's line alone;
+    /// either offers Try again, since the server will take nothing more for
+    /// that payment.
+    @Test @MainActor func aRefusedReportWithAnotherCodeReadsTheSheetsLineWithTheServersWords() async {
+        let client = FakeClient()
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk", subscriptionId: "sub_test_1"))
+        let store = Self.store(client)
+        await store.purchase(plan: .monthly, onSuccess: {})
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        client.reportDones[0](StripePurchaseReport(
+            status: SdkPurchaseReportStatusInvalid,
+            refusal: StripePurchaseRefusal(code: "card_declined", message: "Your card was declined.")
+        ))
+        await Self.settle()
+        #expect(store.purchaseError == "Something went wrong. Please try again later.\nYour card was declined.")
+        #expect(store.purchaseRetryPlan == .monthly)
+        #expect(!store.purchaseSuccess)
+
+        client.paymentSheet = .success(StripePaymentSheetResponse(setupIntentClientSecret: "seti", publishableKey: "pk", subscriptionId: "sub_test_2"))
+        await store.purchase(plan: .monthly, onSuccess: {})
+        store.handlePayMessage(["type": "ur-pay", "status": "succeeded"])
+        client.reportDones[1](StripePurchaseReport(status: SdkPurchaseReportStatusInvalid, refusal: StripePurchaseRefusal(code: "", message: "")))
+        await Self.settle()
+        #expect(store.purchaseError == "Something went wrong. Please try again later.")
+        #expect(store.purchaseRefusal?.sequence == 2)
     }
 
     /// Lets a fallback the store queued on the main actor run.

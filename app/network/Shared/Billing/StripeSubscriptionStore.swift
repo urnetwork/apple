@@ -23,6 +23,12 @@
 //  confirmation poll StoreKit uses. The hosted page is reported as the
 //  browser opens it, since its return may never reach the app: the sdk asks
 //  again while the server answers pending.
+//  The report can refuse the payment: a yearly trial whose card failed its
+//  CVC check gets no Pro, and the server detaches the card. The confirming
+//  screen, or the give-up after the poll's two minutes (the hosted page's
+//  refusal can take five, the sdk's wait between asks), gives way to the
+//  plans with the refusal and Try again, a new payment form; the poll ends
+//  (purchaseRefusal, which MainView acts on).
 //  Manage/cancel is the Stripe customer portal, opened in the browser.
 //
 
@@ -35,6 +41,16 @@ import AppKit
 #elseif os(iOS)
 import UIKit
 #endif
+
+/// A card payment the server refused after checkout, which the store last
+/// handed to the confirmation poll (StripeSubscriptionStore.purchaseRefusal).
+struct StripePurchaseRefusalNotice: Equatable {
+    /// Counts the refusals, so a second one with the same words still changes it.
+    let sequence: Int
+    /// The refusal's words for the app's overlay; nil while another purchase
+    /// is open, which they would read as about.
+    let message: String?
+}
 
 /// A checkout page open in the sheet's web view.
 struct StripeCheckoutRequest: Equatable, Identifiable {
@@ -62,6 +78,15 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// Stripe has no Ask to Buy; a purchase is never pending.
     let purchasePending: Bool = false
     @Published private(set) var purchaseError: String?
+    /// The plan a refused card can be tried again with, a new payment form
+    /// (Try again), while purchaseError shows the refusal: a payment report's
+    /// refusal, or a payment sheet or checkout session refused for the card
+    /// (CheckoutRefusal.isCardRefusal). Nil with any other error.
+    @Published private(set) var purchaseRetryPlan: PaymentOption?
+    /// Raised when the server refuses the card payment the store last handed
+    /// to the confirmation poll: no Pro is coming, so MainView ends the poll,
+    /// and says so on the app's overlay in case the sheet was closed.
+    @Published private(set) var purchaseRefusal: StripePurchaseRefusalNotice?
     @Published private(set) var purchaseConfirmingTitle: String?
     @Published private(set) var purchaseConfirmingMessage: String?
     /// The checkout page to show, while one is open.
@@ -96,6 +121,22 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// Reports the sdk is still asking about, or that the server answered
     /// for good: a second return for one of them reports nothing more.
     private var reportedPurchaseIds: Set<StripePurchaseId> = []
+
+    /// A paid purchase the store handed to the confirmation poll: its id,
+    /// its plan and its attempt.
+    private struct ConfirmedPurchase {
+        let id: StripePurchaseId
+        let plan: PaymentOption
+        let attempt: Int
+    }
+    /// The last one. Its refusal ends the poll and shows in place of the
+    /// confirming screen; an earlier one's changes nothing, since a later
+    /// payment went to the poll since. A closed sheet keeps it: the poll runs
+    /// on after the close, and the refusal shows the next time.
+    private var confirmedPurchase: ConfirmedPurchase?
+    /// Payments the server refused. Final: a return for one confirms nothing.
+    private var refusedPurchaseIds: Set<StripePurchaseId> = []
+    private var refusalSequence: Int = 0
 
     init(client: StripeBillingClient, openExternal: ((URL) -> Bool)? = nil) {
         self.client = client
@@ -179,6 +220,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         isPurchasing = true
         purchaseSuccess = false
         purchaseError = nil
+        purchaseRetryPlan = nil
         purchaseConfirmingTitle = nil
         purchaseConfirmingMessage = nil
         restoreResultMessage = nil
@@ -203,6 +245,11 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         } catch StripeBillingError.guestSignInRequired {
             guard attempt == self.attempt else { return }
             refuseForGuest()
+            return
+        } catch StripeBillingError.refusal(let code, let message) where CheckoutRefusal.isCardRefusal(code) {
+            // the card itself was refused: no later stage takes it either
+            guard attempt == self.attempt else { return }
+            refuse(code: code, message: message)
             return
         } catch {
             guard attempt == self.attempt else { return }
@@ -235,6 +282,11 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             guard attempt == self.attempt else { return }
             refuseForGuest()
             return
+        } catch StripeBillingError.refusal(let code, let message) where CheckoutRefusal.isCardRefusal(code) {
+            // the card itself was refused: the hosted page would not take it either
+            guard attempt == self.attempt else { return }
+            refuse(code: code, message: message)
+            return
         } catch {
             guard attempt == self.attempt else { return }
             print("[StripeSubscriptionStore] embedded checkout failed: \(error)")
@@ -245,8 +297,8 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// 3. hosted checkout in the default browser, reported as it opens, then
     /// the confirmation poll so Pro flips the moment the server credits it.
     /// Its refusal is the one the sheet shows (the earlier stages fall
-    /// through to the next), in this app's words for the server's code
-    /// (CheckoutRefusal).
+    /// through to the next, except a refusal of the card), in this app's
+    /// words for the server's code (CheckoutRefusal).
     private func openHostedCheckout(attempt: Int) async {
         do {
             let session = try await client.checkoutSession(itemId: eventProduct, uiMode: SdkStripeUiModeHosted, redirectOnCompletion: "", storefrontCountry: nil)
@@ -261,6 +313,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             // the browser's return may never reach the app: report now, and
             // the sdk asks again while the checkout is still open
             reportPurchase(purchaseId)
+            confirm(purchaseId)
             purchaseConfirmingTitle = String(localized: "Finish in your browser.")
             purchaseConfirmingMessage = String(localized: "Complete your purchase in the browser. Your plan updates here automatically once payment is confirmed.")
             purchaseSuccess = true
@@ -271,7 +324,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
             refuseForGuest()
         } catch StripeBillingError.refusal(let code, let message) {
             guard attempt == self.attempt else { return }
-            fail(message: CheckoutRefusal.message(code: code, words: message, screenLine: Self.screenLine), errorClass: "transport")
+            refuse(code: code, message: message)
         } catch {
             // no answer from the server
             guard attempt == self.attempt else { return }
@@ -300,19 +353,27 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// The page navigated to a urnetwork:// return (from the web view or the
     /// browser via NetworkApp.onOpenURL). True when it confirmed a purchase:
     /// the store has reported it, and the caller starts the confirmation poll.
+    /// A return for a payment the server already refused confirms nothing.
     @discardableResult
     func handle(_ link: BillingDeepLink) -> Bool {
         if link.isConfirmed {
+            var paidId = purchaseId
+            if case .checkoutComplete(let sessionId?) = link {
+                // the return names the session it completed
+                paidId = .session(sessionId)
+            }
+            if let paidId, refusedPurchaseIds.contains(paidId) {
+                // the browser handing back a checkout whose card the server
+                // turned down: the refusal stays, and no poll waits for a
+                // plan that is not coming
+                return false
+            }
             // paid — in the web view, or in the browser handing control back —
             // report it so the server credits it now rather than when Stripe's
             // webhook lands, and confirm with the poll exactly like hosted
             if isPurchasing || checkout != nil || openedInBrowser != nil {
-                var paidId = purchaseId
-                if case .checkoutComplete(let sessionId?) = link {
-                    // the return names the session it completed
-                    paidId = .session(sessionId)
-                }
                 reportPurchase(paidId)
+                confirm(paidId)
                 if !outcomeEmitted {
                     outcomeEmitted = true
                     ClientEvents.shared.purchaseCompleted(store: storeName, product: eventProduct, plan: eventPlan, trial: false, price: eventPrice, currency: eventCurrency)
@@ -381,20 +442,72 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
     /// asks again while it is pending (Api.ReportStripePurchase). The
     /// confirmation poll still decides when the plan shows Pro. A report that
     /// ends without a final answer frees its id, so a later return for the
-    /// same payment reports it again.
+    /// same payment reports it again. A refusal is final (purchaseRefused).
     private func reportPurchase(_ purchaseId: StripePurchaseId?) {
         guard let purchaseId, !reportedPurchaseIds.contains(purchaseId) else {
             return
         }
         reportedPurchaseIds.insert(purchaseId)
-        client.reportStripePurchase(purchaseId) { [weak self] status in
+        client.reportStripePurchase(purchaseId) { [weak self] report in
             Task { @MainActor in
-                print("[StripeSubscriptionStore] purchase report: \(status ?? "no answer")")
-                if !SdkIsPurchaseReportTerminal(status) {
-                    self?.reportedPurchaseIds.remove(purchaseId)
+                guard let self else {
+                    return
+                }
+                if let refusal = report?.refusal {
+                    print("[StripeSubscriptionStore] purchase report: refused (\(refusal.code))")
+                    // every later report of it answers the same, so it stays reported
+                    self.purchaseRefused(purchaseId, refusal: refusal)
+                    return
+                }
+                print("[StripeSubscriptionStore] purchase report: \(report?.status ?? "no answer")")
+                if !SdkIsPurchaseReportTerminal(report?.status) {
+                    self.reportedPurchaseIds.remove(purchaseId)
                 }
             }
         }
+    }
+
+    /// The paid purchase the confirmation poll now waits on (nil when the
+    /// page named none, so no report and no refusal can come for it).
+    private func confirm(_ purchaseId: StripePurchaseId?) {
+        confirmedPurchase = purchaseId.map { ConfirmedPurchase(id: $0, plan: plan, attempt: attempt) }
+    }
+
+    /// The server refused a card payment after checkout: a yearly trial whose
+    /// card failed its CVC check gets no Pro, and the card is detached, so
+    /// nothing is charged. Only the payment the poll waits on counts. The
+    /// poll ends (purchaseRefusal), and unless another purchase is open, the
+    /// confirming screen gives way to the plans with the refusal and Try
+    /// again, from the give-up after the poll's budget too, and after a
+    /// close the next time the sheet opens. Try again takes a new payment
+    /// form: the server refuses every later report of this one the same way.
+    private func purchaseRefused(_ purchaseId: StripePurchaseId, refusal: StripePurchaseRefusal) {
+        refusedPurchaseIds.insert(purchaseId)
+        guard let confirmed = confirmedPurchase, confirmed.id == purchaseId else {
+            // an earlier payment's: a later one went to the poll since
+            return
+        }
+        confirmedPurchase = nil
+        let message = CheckoutRefusal.reportMessage(code: refusal.code, words: refusal.message, screenLine: Self.screenLine)
+        // a purchase started since is not about this one
+        let anotherOpen = isPurchasing || checkout != nil
+        if !anotherOpen {
+            if confirmed.attempt == attempt && !outcomeEmitted {
+                // the hosted page's attempt, which the browser's return has not ended
+                outcomeEmitted = true
+                ClientEvents.shared.purchaseFailed(store: storeName, product: eventProduct, plan: eventPlan, trial: false, price: eventPrice, currency: eventCurrency, errorClass: refusal.code.isEmpty ? "refused" : refusal.code)
+            }
+            attempt += 1
+            openedInBrowser = nil
+            purchaseSuccess = false
+            purchaseConfirmingTitle = nil
+            purchaseConfirmingMessage = nil
+            restoreResultMessage = nil
+            purchaseError = message
+            purchaseRetryPlan = confirmed.plan
+        }
+        refusalSequence += 1
+        purchaseRefusal = StripePurchaseRefusalNotice(sequence: refusalSequence, message: anotherOpen ? nil : message)
     }
 
     /// The server refused the purchase because the network is a legacy guest
@@ -426,6 +539,18 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         checkout = nil
         isPurchasing = false
         purchaseError = (message?.isEmpty == false ? message : nil) ?? Self.screenLine
+        purchaseRetryPlan = nil
+    }
+
+    /// A refused payment sheet or checkout session, in this app's words for
+    /// the server's code (CheckoutRefusal). A refusal of the card itself
+    /// offers Try again with the plan, a new payment form.
+    private func refuse(code: String, message: String) {
+        let cardRefused = CheckoutRefusal.isCardRefusal(code)
+        fail(message: CheckoutRefusal.message(code: code, words: message, screenLine: Self.screenLine), errorClass: cardRefused ? code : "transport")
+        if cardRefused {
+            purchaseRetryPlan = plan
+        }
     }
 
     func resetPurchaseState() {
@@ -433,6 +558,7 @@ final class StripeSubscriptionStore: ObservableObject, SubscriptionStore {
         // observe these values
         if purchaseSuccess { purchaseSuccess = false }
         if purchaseError != nil { purchaseError = nil }
+        if purchaseRetryPlan != nil { purchaseRetryPlan = nil }
         if purchaseConfirmingTitle != nil { purchaseConfirmingTitle = nil }
         if purchaseConfirmingMessage != nil { purchaseConfirmingMessage = nil }
         if restoreResultMessage != nil { restoreResultMessage = nil }

@@ -423,6 +423,7 @@ import URnetworkSdk
                         purchasePending: subscriptionStore.purchasePending,
                         purchaseConfirmationTimedOut: subscriptionBalanceViewModel.purchaseConfirmationTimedOut,
                         purchaseError: subscriptionStore.purchaseError,
+                        purchaseRetryPlan: subscriptionStore.purchaseRetryPlan,
                         productsLoadFailed: subscriptionStore.plansLoadFailed,
                         retryFetchProducts: {
                             subscriptionStore.retryLoadPlansIfNeeded(storefrontCountry: subscriptionBalanceViewModel.storefrontCountry)

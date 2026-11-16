@@ -222,6 +222,24 @@ struct IntroductionView: View {
         }
     }
 
+    /// The plan step's purchase through the store (the card, on the direct
+    /// download): the active welcome offer on the yearly plan goes through
+    /// the store's offer path (the App Store offer code, step 5; the Stripe
+    /// coupon); the rest is a plain purchase. A plan whose product has not
+    /// arrived is the store's to report.
+    private func startByCard(_ option: PaymentOption) {
+        let purchase = OnboardingPurchase.forSelection(option, offer: presentation.offer)
+        if case .redeemOffer = purchase {
+            #if DIRECT_DOWNLOAD
+            // the events name the method's store: stripe for Card
+            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: PaymentMethod.card.eventStore)
+            #else
+            ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
+            #endif
+        }
+        start(purchase)
+    }
+
     /// Where the plan step's purchase leads (GuestAccount.purchaseEntry), by
     /// the rule the upgrade sheet's GuestPurchaseGate follows.
     private var purchaseEntry: GuestAccount.PurchaseEntry {
@@ -474,6 +492,7 @@ struct IntroductionView: View {
                                 },
                                 isPurchasing: subscriptionStore.isPurchasing,
                                 purchaseError: failureMessage,
+                                retryOffered: subscriptionStore.purchaseRetryPlan != nil,
                                 experimentId: subscriptionBalanceViewModel.offerExperimentId,
                                 experimentVariant: subscriptionBalanceViewModel.offerExperimentVariant,
                                 methodRow: methodRow,
@@ -645,20 +664,7 @@ struct IntroductionView: View {
                                     return
                                 }
                                 #endif
-                                // the active welcome offer on the yearly plan goes through
-                                // the store's offer path (the App Store offer code, step 5;
-                                // the Stripe coupon); the rest is a plain purchase. A plan
-                                // whose product has not arrived is the store's to report.
-                                let purchase = OnboardingPurchase.forSelection(selectedPaymentOption, offer: presentation.offer)
-                                if case .redeemOffer = purchase {
-                                    #if DIRECT_DOWNLOAD
-                                    // the events name the method's store: stripe for Card
-                                    ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly, store: PaymentMethod.card.eventStore)
-                                    #else
-                                    ClientEvents.shared.offerCtaTapped(plan: SdkPlanYearly)
-                                    #endif
-                                }
-                                start(purchase)
+                                startByCard(selectedPaymentOption)
 
                             },
                             onCardTapped: { option in
@@ -694,25 +700,46 @@ struct IntroductionView: View {
 
                                 Spacer().frame(height: 8)
 
-                                Button(action: restorePurchases) {
-                                    if subscriptionStore.isRestoringPurchases {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle())
-                                    } else {
-                                        Text("Restore purchases")
+                                if let retryPlan = subscriptionStore.purchaseRetryPlan,
+                                   purchaseError == subscriptionStore.purchaseError {
+
+                                    // a card the server refused (its CVC check
+                                    // failed): nothing was bought to restore, and
+                                    // the remedy is a new payment form
+                                    Button(action: {
+                                        selectedPaymentOption = retryPlan
+                                        startByCard(retryPlan)
+                                    }) {
+                                        Text("Try again")
                                             .font(themeManager.currentTheme.secondaryBodyFont)
                                     }
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundColor(themeManager.currentTheme.textMutedColor)
-                                .underline()
+                                    .buttonStyle(.plain)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    .underline()
+                                    .disabled(subscriptionStore.isPurchasing)
 
-                                if let restoreMessage = subscriptionStore.restoreResultMessage {
-                                    Spacer().frame(height: 8)
+                                } else {
 
-                                    Text(restoreMessage)
-                                        .font(themeManager.currentTheme.secondaryBodyFont)
-                                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    Button(action: restorePurchases) {
+                                        if subscriptionStore.isRestoringPurchases {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle())
+                                        } else {
+                                            Text("Restore purchases")
+                                                .font(themeManager.currentTheme.secondaryBodyFont)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    .underline()
+
+                                    if let restoreMessage = subscriptionStore.restoreResultMessage {
+                                        Spacer().frame(height: 8)
+
+                                        Text(restoreMessage)
+                                            .font(themeManager.currentTheme.secondaryBodyFont)
+                                            .foregroundColor(themeManager.currentTheme.textMutedColor)
+                                    }
                                 }
                             }
 

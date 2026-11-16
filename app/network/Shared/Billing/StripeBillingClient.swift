@@ -37,6 +37,26 @@ enum StripePurchaseId: Hashable {
     case subscription(String)
 }
 
+/// Why the server will not credit a card payment it was told about: one of
+/// its PurchaseErrorCode* values (SdkPurchaseErrorCodeIncorrectCvc, a yearly
+/// trial's card that failed its CVC check) and its English words, which go
+/// under the screen's own line for any other code
+/// (CheckoutRefusal.reportMessage).
+struct StripePurchaseRefusal: Equatable {
+    var code: String
+    var message: String
+}
+
+/// The server's answer to a card payment report.
+struct StripePurchaseReport: Equatable {
+    /// One of SdkPurchaseReportStatus*.
+    var status: String
+    /// Why the server refused the payment, when it names a reason (the
+    /// status is then invalid). Final: every later report of the same
+    /// payment answers the same.
+    var refusal: StripePurchaseRefusal? = nil
+}
+
 enum StripeBillingError: LocalizedError, Equatable {
     /// The server answered with an error message.
     case server(String)
@@ -78,9 +98,10 @@ protocol StripeBillingClient {
     /// Tells the server a card payment finished, so it credits the plan
     /// without waiting for Stripe's webhook. Returns at once: the sdk asks
     /// again while the server answers pending (about 21 minutes), then calls
-    /// `done` once, on any thread, with the last status
-    /// (SdkPurchaseReportStatus*), nil when no attempt was answered.
-    func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (String?) -> Void)
+    /// `done` once, on any thread, with the last answer, nil when no attempt
+    /// was answered. A refused payment answers with its refusal, at the
+    /// first report that draws it.
+    func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (StripePurchaseReport?) -> Void)
 }
 
 /// The client over the SDK api. A nil api (no network space yet) fails every call.
@@ -177,7 +198,7 @@ final class SdkStripeBillingClient: StripeBillingClient {
         return url
     }
 
-    func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (String?) -> Void) {
+    func reportStripePurchase(_ purchaseId: StripePurchaseId, done: @escaping (StripePurchaseReport?) -> Void) {
         guard let api else {
             done(nil)
             return
@@ -190,8 +211,21 @@ final class SdkStripeBillingClient: StripeBillingClient {
             args.subscriptionId = subscriptionId
         }
         api.reportStripePurchase(args, callback: StripePurchaseReportCallback { result, err in
-            done(err == nil ? result?.status : nil)
+            done(Self.report(result, err: err))
         })
+    }
+
+    /// The answer a report's callback carries: the status, and the server's
+    /// refusal when it names one (VerifyStorePurchaseResult.Error); nil with
+    /// no answer.
+    static func report(_ result: SdkVerifyStorePurchaseResult?, err: Error?) -> StripePurchaseReport? {
+        guard err == nil, let result else {
+            return nil
+        }
+        return StripePurchaseReport(
+            status: result.status,
+            refusal: result.error.map { StripePurchaseRefusal(code: $0.code, message: $0.message) }
+        )
     }
 }
 

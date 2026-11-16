@@ -284737,6 +284737,173 @@
         }
       }
     },
+    "Your card's security code (CVC) didn't match. Check the card details and try again." : {
+      "comment" : "Shown when the server refuses a Stripe card for the yearly plan's free trial because the card's security code (CVC) check failed (verify-stripe-checkout answers error.code incorrect_cvc). The card was not saved and nothing was or will be charged; the trial did not start. Shown with a Try again action that opens a new payment form. Apps: the Android builds outside Google Play, the macOS direct download, Windows and Linux; the site: the checkout return page.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمز الأمان لبطاقتك (CVC) غير مطابق. تحقق من بيانات البطاقة وحاول مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezpečnostní kód vaší karty (CVC) nesouhlasí. Zkontrolujte údaje o kartě a zkuste to znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Sicherheitscode (CVC) deiner Karte stimmt nicht. Prüfe die Kartendaten und versuche es erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο κωδικός ασφαλείας (CVC) της κάρτας σας δεν ταιριάζει. Ελέγξτε τα στοιχεία της κάρτας και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your card's security code (CVC) didn't match. Check the card details and try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El código de seguridad (CVC) de tu tarjeta no coincide. Revisa los datos de la tarjeta e inténtalo de nuevo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El código de seguridad (CVC) de tu tarjeta no coincide. Revisa los datos de la tarjeta e inténtalo de nuevo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El código de seguridad (CVC) de tu tarjeta no coincide. Revisa los datos de la tarjeta e inténtalo de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le code de sécurité (CVC) de votre carte ne correspond pas. Vérifiez les informations de la carte et réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קוד האבטחה (CVC) של הכרטיס שלך אינו תואם. בדוק את פרטי הכרטיס ונסה שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके कार्ड का सुरक्षा कोड (CVC) मेल नहीं खाया। कार्ड की जानकारी जाँचें और फिर से कोशिश करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kode keamanan (CVC) kartu Anda tidak cocok. Periksa detail kartu, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il codice di sicurezza (CVC) della tua carta non corrisponde. Controlla i dati della carta e riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カードのセキュリティコード（CVC）が一致しませんでした。カード情報を確認して、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카드 보안 코드(CVC)가 일치하지 않습니다. 카드 정보를 확인한 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De beveiligingscode (CVC) van je kaart klopt niet. Controleer de kaartgegevens en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kod bezpieczeństwa (CVC) Twojej karty się nie zgadza. Sprawdź dane karty i spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O código de segurança (CVC) do seu cartão não corresponde. Verifique os dados do cartão e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O código de segurança (CVC) do seu cartão não confere. Verifique os dados do cartão e tente de novo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O código de segurança (CVC) do seu cartão não corresponde. Verifique os dados do cartão e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Код безопасности (CVC) вашей карты не совпал. Проверьте данные карты и попробуйте снова."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kortets säkerhetskod (CVC) stämde inte. Kontrollera kortuppgifterna och försök igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รหัสความปลอดภัย (CVC) ของบัตรไม่ตรงกัน โปรดตรวจสอบข้อมูลบัตรแล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Код безпеки (CVC) вашої картки не збігся. Перевірте дані картки й спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mã bảo mật (CVC) của thẻ không khớp. Hãy kiểm tra thông tin thẻ rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的银行卡安全码（CVC）不匹配。请检查卡片信息后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的信用卡保安編號（CVC）不符。請檢查卡資料後再試。"
+          }
+        }
+      }
+    },
     "Your choice, completely optional:" : {
       "comment" : "Lead line above the two bullets on the onboarding Contribute bandwidth page.",
       "localizations" : {

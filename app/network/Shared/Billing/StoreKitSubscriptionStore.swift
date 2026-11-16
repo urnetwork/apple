@@ -68,6 +68,8 @@ final class StoreKitSubscriptionStore: SubscriptionStore {
     var purchaseSuccess: Bool { manager.purchaseSuccess }
     var purchasePending: Bool { manager.purchasePending }
     var purchaseError: String? { manager.purchaseError }
+    // a StoreKit failure keeps its own remedy (Restore purchases)
+    var purchaseRetryPlan: PaymentOption? { nil }
     var purchaseConfirmingTitle: String? { nil }
     var purchaseConfirmingMessage: String? { nil }
     var checkoutView: AnyView? { nil }

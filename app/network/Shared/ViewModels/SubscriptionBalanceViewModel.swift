@@ -523,6 +523,25 @@ class SubscriptionBalanceViewModel: ObservableObject {
             purchaseConfirmationTimedOut = false
         }
     }
+
+    /**
+     * The store refused the purchase this poll confirms: the server turned
+     * the card down after checkout (a yearly trial whose card failed its CVC
+     * check, StripeSubscriptionStore.purchaseRefusal). No Pro is coming, so
+     * the confirmation ends now instead of spending its budget and then
+     * saying the purchase may still land, and a give-up it already raised is
+     * cleared: the refusal takes its place. The balance goes back to the
+     * background poll, as after a give-up.
+     */
+    func cancelPurchaseConfirmation() {
+        if isPolling {
+            endPurchaseConfirmation()
+        }
+        clearPurchaseConfirmationTimeout()
+        if active && !isPro {
+            startBackgroundPolling()
+        }
+    }
     
     func isSupporterWithBalance() -> Bool {
         print("is supporter with balance? pro=\(isPro) availableByteCount=\(self.availableByteCount)")

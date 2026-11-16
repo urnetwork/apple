@@ -42,6 +42,10 @@ protocol SubscriptionStore: AnyObject {
     var purchaseSuccess: Bool { get }
     var purchasePending: Bool { get }
     var purchaseError: String? { get }
+    /// The plan to buy again from Try again beside `purchaseError`, when the
+    /// error is a refused card (the direct download's Stripe purchase: a new
+    /// payment form); nil for any other error, and always on the App Store.
+    var purchaseRetryPlan: PaymentOption? { get }
     /// The success screen's title and copy while the server confirms; nil for
     /// the StoreKit defaults.
     var purchaseConfirmingTitle: String? { get }

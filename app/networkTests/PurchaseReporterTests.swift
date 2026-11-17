@@ -158,6 +158,30 @@ struct PurchaseReporterTests {
         #expect(verify.calls == ["jws-5"])
     }
 
+    // MARK: a test build's purchase (owner 2026-11-17, "Keep buttons, neutral notice")
+
+    /**
+     * The server refuses a sandbox purchase (a TestFlight build) of an account
+     * that is not an internal tester. The refusal is terminal like invalid
+     * (recorded, so a launch scan does not ask again), and the scan says so,
+     * so the restore shows the neutral line instead of "Purchase found".
+     */
+    @Test func aRefusedTestPurchaseIsTerminalAndTheScanSaysSo() async {
+        let verify = FakeVerify()
+        verify.answers["jws-8"] = .sandboxPurchaseRefused
+        let reporter = makeReporter(defaults: makeDefaults(), verify: verify)
+
+        let scan = await reporter.reportEntitlements([proof(8, networkId)], networkId: networkId, force: true)
+
+        #expect(verify.calls == ["jws-8"])
+        #expect(scan.reportResults[8] == .sandboxPurchase)
+        #expect(scan.sandboxRefused)
+        #expect(!scan.newlyCredited)
+
+        _ = await reporter.reportEntitlements([proof(8, networkId)], networkId: networkId, force: false)
+        #expect(verify.calls == ["jws-8"])
+    }
+
     /**
      * A credited transaction without a token was credited to the session
      * network the report was made with, so that network's confirmation poll

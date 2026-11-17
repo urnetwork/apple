@@ -226153,6 +226153,173 @@
         }
       }
     },
+    "Test purchases in test builds don't unlock Pro." : {
+      "comment" : "Shown inline in the upgrade flow, and as the restore result, when the server refuses an App Store sandbox purchase (a TestFlight build) because the account is not one of its internal testers: the purchase report answers invalid with error code sandbox_purchase (sdk IsSandboxPurchaseRefusal). Test purchases are free, so they unlock nothing. Neutral on purpose: it must never name another way to pay (the App Store's anti-steering rule). Owner 2026-11-17: \"Keep buttons, neutral notice\" (Shared/ViewModels/AppStoreSubscriptionManager.swift).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عمليات الشراء التجريبية في الإصدارات التجريبية لا تفعّل خطة Pro."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testovací nákupy v testovacích verzích neodemykají Pro."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testkäufe in Testversionen schalten Pro nicht frei."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι δοκιμαστικές αγορές σε δοκιμαστικές εκδόσεις δεν ξεκλειδώνουν το Pro."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test purchases in test builds don't unlock Pro."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las compras de prueba en las versiones de prueba no desbloquean Pro."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las compras de prueba en las versiones de prueba no desbloquean Pro."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las compras de prueba en las versiones de prueba no desbloquean Pro."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les achats de test dans les versions de test ne débloquent pas Pro."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "רכישות ניסיון בגרסאות ניסיון לא פותחות את Pro."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "टेस्ट बिल्ड में की गई टेस्ट खरीदारी से Pro अनलॉक नहीं होता।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembelian uji coba di versi uji coba tidak membuka Pro."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gli acquisti di prova nelle versioni di prova non sbloccano Pro."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テストビルドでのテスト購入では Pro は有効になりません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "테스트 빌드의 테스트 구매로는 Pro가 활성화되지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testaankopen in testversies ontgrendelen Pro niet."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakupy testowe w wersjach testowych nie odblokowują Pro."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As compras de teste em versões de teste não desbloqueiam o Pro."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compras de teste em versões de teste não desbloqueiam o Pro."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As compras de teste em versões de teste não desbloqueiam o Pro."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тестовые покупки в тестовых сборках не открывают Pro."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testköp i testversioner låser inte upp Pro."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การซื้อทดสอบในเวอร์ชันทดสอบจะไม่ปลดล็อก Pro"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тестові покупки в тестових збірках не відкривають Pro."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao dịch mua thử nghiệm trong bản thử nghiệm không mở khóa Pro."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试版本中的测试购买不会解锁 Pro。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "測試版本中的測試購買不會解鎖 Pro。"
+          }
+        }
+      }
+    },
     "Test sites that loaded through this connection in the last 8 hours. Most must load; filtering by your internet provider lowers it." : {
       "comment" : "Provider status 'Why?' list: explanation under the network checks.",
       "localizations" : {

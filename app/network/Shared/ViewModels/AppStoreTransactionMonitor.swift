@@ -244,6 +244,9 @@ final class AppStoreTransactionMonitor: ObservableObject {
         case .invalid:
             unreported.removeValue(forKey: transaction.id)
             print("[AppStoreTransactionMonitor] server rejected transaction \(transaction.id) as invalid")
+        case .sandboxPurchase:
+            unreported.removeValue(forKey: transaction.id)
+            print("[AppStoreTransactionMonitor] server refused sandbox transaction \(transaction.id): not an internal tester")
         case .deferredNoSession, .transientFailure:
             // keep the live handle so a session appearing retries immediately;
             // the durable JWS + StoreKit redelivery cover every other path

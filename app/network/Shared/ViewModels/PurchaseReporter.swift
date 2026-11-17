@@ -37,6 +37,15 @@ enum PurchaseReportOutcome {
      */
     case invalid
     /**
+     * Terminal: a sandbox purchase (a TestFlight build) that the server
+     * refused because this account is not one of its internal testers
+     * (`SdkIsSandboxPurchaseRefusal`; owner 2026-11-17, "Keep buttons, neutral
+     * notice"). Test purchases are free, so they unlock nothing. Finished like
+     * `invalid`; the UI shows the neutral line "Test purchases in test builds
+     * don't unlock Pro." and never a way to pay elsewhere.
+     */
+    case sandboxPurchase
+    /**
      * No session api exists yet (logged out, or the network space is still
      * initializing). The JWS is persisted, the transaction is NOT finished,
      * and reporting is deferred until a session exists
@@ -72,12 +81,16 @@ struct EntitlementProof {
  * The result of one entitlement scan. `foundCurrent`/`foundOther` classify
  * the entitlements by network (the restore outcome); `newlyCredited` is set
  * when the server credited a report-only proof just now, i.e. a purchase that
- * had been stranded (start the confirmation poll).
+ * had been stranded (start the confirmation poll). `sandboxRefused` is set
+ * when the server refused a reported sandbox purchase (a TestFlight build on
+ * an account that is not an internal tester): the restore shows the neutral
+ * line instead of "Purchase found".
  */
 struct EntitlementScanResult {
     var foundCurrent = false
     var foundOther = false
     var newlyCredited = false
+    var sandboxRefused = false
     var reportResults: [UInt64: PurchaseReportOutcome] = [:]
 }
 
@@ -213,7 +226,7 @@ final class PurchaseReporter {
         let reportOutcome = await reportUntilTerminal(transactionId: transactionId, jws: jws)
 
         switch reportOutcome {
-        case .credited, .wrongNetwork, .invalid:
+        case .credited, .wrongNetwork, .invalid, .sandboxPurchase:
             // 3. only THEN finish and drop the proof
             await transaction.finish()
             clearPersisted(transactionId: transactionId)
@@ -251,7 +264,7 @@ final class PurchaseReporter {
                 jws: report.jws
             )
             switch outcome {
-            case .credited, .wrongNetwork, .invalid:
+            case .credited, .wrongNetwork, .invalid, .sandboxPurchase:
                 clearPersisted(transactionId: report.transactionId)
             case .deferredNoSession:
                 // no session for this one means no session for the rest
@@ -355,6 +368,9 @@ final class PurchaseReporter {
             case .credited:
                 scan.newlyCredited = true
                 recordReportedEntitlement(transactionId)
+            case .sandboxPurchase:
+                scan.sandboxRefused = true
+                recordReportedEntitlement(transactionId)
             case .alreadyCredited, .wrongNetwork, .invalid:
                 recordReportedEntitlement(transactionId)
             case .deferredNoSession:
@@ -410,6 +426,8 @@ final class PurchaseReporter {
 
     enum ReportAttemptResult {
         case status(String)
+        /// invalid, naming a refused sandbox purchase (`SdkIsSandboxPurchaseRefusal`)
+        case sandboxPurchaseRefused
         case transportFailure
     }
 
@@ -419,6 +437,7 @@ final class PurchaseReporter {
         case alreadyCredited
         case wrongNetwork
         case invalid
+        case sandboxPurchase
         case deferredNoSession
         case transientFailure
 
@@ -427,6 +446,7 @@ final class PurchaseReporter {
             case .credited, .alreadyCredited: return .credited
             case .wrongNetwork: return .wrongNetwork
             case .invalid: return .invalid
+            case .sandboxPurchase: return .sandboxPurchase
             case .deferredNoSession: return .deferredNoSession
             case .transientFailure: return .transientFailure
             }
@@ -467,6 +487,8 @@ final class PurchaseReporter {
                 default:
                     return .invalid
                 }
+            case .sandboxPurchaseRefused:
+                return .sandboxPurchase
             case .status, .transportFailure:
                 // transport failure or `pending`: not terminal, retry with the
                 // sdk backoff schedule — bounded per pass, unbounded across
@@ -494,6 +516,11 @@ final class PurchaseReporter {
                 }
                 guard let status = result?.status, !status.isEmpty else {
                     continuation.resume(returning: .transportFailure)
+                    return
+                }
+                // the refusal's code, never its message text
+                if SdkIsSandboxPurchaseRefusal(result) {
+                    continuation.resume(returning: .sandboxPurchaseRefused)
                     return
                 }
                 continuation.resume(returning: .status(status))

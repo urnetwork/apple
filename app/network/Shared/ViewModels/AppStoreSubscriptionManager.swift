@@ -471,6 +471,16 @@ class AppStoreSubscriptionManager: ObservableObject {
                          */
                         self.purchaseError = String(localized: "This purchase couldn't be verified with the App Store, so it can't be applied to your account. If you were charged and your plan doesn't update, please contact support.")
 
+                    case .sandboxPurchase:
+                        /**
+                         * A purchase in a test build (TestFlight's sandbox) on
+                         * an account that is not an internal tester: free, so
+                         * it unlocks nothing (owner 2026-11-17, "Keep buttons,
+                         * neutral notice"). Finished like invalid. The line is
+                         * neutral on purpose and names no other way to pay.
+                         */
+                        self.purchaseError = String(localized: "Test purchases in test builds don't unlock Pro.")
+
                     case .deferredNoSession, .transientFailure, .alreadyInFlight:
                         /**
                          * The server couldn't be reached (or answered
@@ -598,6 +608,12 @@ class AppStoreSubscriptionManager: ObservableObject {
         let foundCurrent = scan.foundCurrent
         let foundOther = scan.foundOther
 
+        if scan.sandboxRefused {
+            // a test build's purchase on an account that is not an internal
+            // tester: nothing to confirm, and nothing to poll
+            restoreResultMessage = String(localized: "Test purchases in test builds don't unlock Pro.")
+            return .failed
+        }
         if foundCurrent {
             restoreResultMessage = String(localized: "Purchase found. Confirming your plan — it will update automatically.")
             return .restored

@@ -286,9 +286,15 @@ final class PurchaseReporter {
      * on `invalid`, so this scan is its only remaining proof. It counts as
      * this network's only when the server credits it here.
      *
-     * Entitlements under another network are not reported: the server could
-     * only answer wrong_network, and the linked network is credited via its
-     * own session.
+     * An entitlement under another network is reported only by a
+     * user-triggered restore (`force`). When that network's account was
+     * deleted, the server moves the subscription to this network and credits
+     * it here (server apple_subscription_move_controller.go; owner 2026-11-17,
+     * "Restore moves it."; support inbox 2489), so it counts as this
+     * network's when the server credits it. Otherwise the server answers
+     * wrong_network, and the purchase stays the other account's. A launch or
+     * sign-in scan does not report it: it would only ask the same question
+     * again.
      *
      * Each entitlement is reported once (see `reportedEntitlementsKey`) unless
      * `force` is set, which a user-triggered restore uses.
@@ -301,18 +307,25 @@ final class PurchaseReporter {
         var scan = EntitlementScanResult()
         var noSession = false
         for entitlement in entitlements {
-            guard let networkId, entitlement.appAccountToken == nil || entitlement.appAccountToken == networkId else {
+            guard let networkId else {
                 scan.foundOther = true
                 continue
             }
             let unbound = entitlement.appAccountToken == nil
-            if !unbound {
+            // bought for another network: reported only by a restore, which
+            // the server answers by moving it here when that account is deleted
+            let otherNetwork = !unbound && entitlement.appAccountToken != networkId
+            if otherNetwork && !force {
+                scan.foundOther = true
+                continue
+            }
+            if !unbound && !otherNetwork {
                 scan.foundCurrent = true
             }
 
             let transactionId = entitlement.transactionId
             if noSession || (!force && reportedEntitlements.contains(transactionId)) {
-                if unbound {
+                if unbound || otherNetwork {
                     // not reported now: whose it is stays unknown
                     scan.foundOther = true
                 }
@@ -329,7 +342,7 @@ final class PurchaseReporter {
                 jws: entitlement.jws
             )
             scan.reportResults[transactionId] = result.outcome
-            if unbound {
+            if unbound || otherNetwork {
                 switch result {
                 case .credited, .alreadyCredited:
                     // the server credited it to this network

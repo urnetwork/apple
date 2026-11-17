@@ -116,6 +116,48 @@ struct PurchaseReporterTests {
         #expect(verify.calls == ["jws-7"])
     }
 
+    // MARK: another network's purchase (support inbox 2489)
+
+    /**
+     * The subscription was bought for an account that was deleted, and its
+     * owner restores purchases from the account they use now. The restore
+     * must report it, so the server can move it here (owner 2026-11-17,
+     * "Restore moves it."), and a credit counts as this network's. Before,
+     * the scan never reported it and the restore said it was bought under a
+     * different account.
+     */
+    @Test func aRestoreReportsAnotherNetworksPurchaseAndCountsItWhenTheServerMovesIt() async {
+        let verify = FakeVerify()
+        let reporter = makeReporter(defaults: makeDefaults(), verify: verify)
+
+        let scan = await reporter.reportEntitlements([proof(5, otherNetworkId)], networkId: networkId, force: true)
+
+        #expect(verify.calls == ["jws-5"])
+        #expect(scan.reportResults[5] == .credited)
+        #expect(scan.newlyCredited)
+        #expect(scan.foundCurrent)
+        #expect(!scan.foundOther)
+    }
+
+    /// A live account's purchase stays its own: wrong_network, and the restore says so.
+    @Test func aRestoreOfALiveNetworksPurchaseStaysThatNetworks() async {
+        let verify = FakeVerify()
+        verify.answers["jws-5"] = .status(SdkPurchaseReportStatusWrongNetwork)
+        let reporter = makeReporter(defaults: makeDefaults(), verify: verify)
+
+        let scan = await reporter.reportEntitlements([proof(5, otherNetworkId)], networkId: networkId, force: true)
+
+        #expect(verify.calls == ["jws-5"])
+        #expect(scan.reportResults[5] == .wrongNetwork)
+        #expect(!scan.newlyCredited)
+        #expect(!scan.foundCurrent)
+        #expect(scan.foundOther)
+
+        // a launch scan never asks about another network's purchase
+        _ = await reporter.reportEntitlements([proof(6, otherNetworkId)], networkId: networkId, force: false)
+        #expect(verify.calls == ["jws-5"])
+    }
+
     /**
      * A credited transaction without a token was credited to the session
      * network the report was made with, so that network's confirmation poll

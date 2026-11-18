@@ -248922,6 +248922,173 @@
         }
       }
     },
+    "Too many active sessions. Sign out sessions you no longer use in Account > Sessions, then try again." : {
+      "comment" : "Shown when the account holds its cap of active sessions and refused a request that would start one, while the user is signed in to the account: adding a sign-in method (its verification step) in every app, and creating a hosted proxy on ur.io. On ur.io a button that opens Account > Sessions (sessions_open) is next to it. 'Account' and 'Sessions' are the names of those screens; keep them as the app names them.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توجد جلسات نشطة كثيرة جدًا. سجّل الخروج من الجلسات التي لم تعد تستخدمها في الحساب > الجلسات، ثم حاول مرة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Příliš mnoho aktivních relací. V části Účet > Relace odhlaste relace, které už nepoužíváte, a zkuste to znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu viele aktive Sitzungen. Melde unter Konto > Sitzungen die Sitzungen ab, die du nicht mehr nutzt, und versuche es dann erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπάρχουν πάρα πολλές ενεργές συνεδρίες. Αποσυνδέστε τις συνεδρίες που δεν χρησιμοποιείτε πια από το Λογαριασμός > Συνεδρίες και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many active sessions. Sign out sessions you no longer use in Account > Sessions, then try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay demasiadas sesiones activas. Cierra las sesiones que ya no uses en Cuenta > Sesiones y vuelve a intentarlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay demasiadas sesiones activas. Cierra las sesiones que ya no uses en Cuenta > Sesiones y vuelve a intentarlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay demasiadas sesiones activas. Cierra las sesiones que ya no uses en Cuenta > Sesiones y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trop de sessions actives. Déconnectez les sessions que vous n’utilisez plus dans Compte > Sessions, puis réessayez."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש יותר מדי הפעלות פעילות. נתקו את ההפעלות שאתם כבר לא משתמשים בהן בחשבון > הפעלות, ואז נסו שוב."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बहुत सारे सक्रिय सत्र हैं। खाता > सत्र में उन सत्रों से साइन आउट करें जिनका आप अब उपयोग नहीं करते, फिर पुनः प्रयास करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terlalu banyak sesi aktif. Keluar dari sesi yang tidak Anda gunakan lagi di Akun > Sesi, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Troppe sessioni attive. Chiudi le sessioni che non usi più in Account > Sessioni, poi riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクティブなセッションが多すぎます。アカウント > セッションで、使用しなくなったセッションからサインアウトしてから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "활성 세션이 너무 많습니다. 계정 > 세션에서 더 이상 사용하지 않는 세션에서 로그아웃한 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te veel actieve sessies. Log de sessies die je niet meer gebruikt uit via Account > Sessies en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zbyt wiele aktywnych sesji. Wyloguj sesje, których już nie używasz, w sekcji Konto > Sesje, a potem spróbuj ponownie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demasiadas sessões ativas. Termine as sessões que já não utiliza em Conta > Sessões e tente novamente."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Há sessões ativas demais. Encerre as sessões que você não usa mais em Conta > Sessões e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demasiadas sessões ativas. Termine as sessões que já não utiliza em Conta > Sessões e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком много активных сеансов. Завершите неиспользуемые сеансы в разделе «Аккаунт > Сеансы» и попробуйте снова."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För många aktiva sessioner. Logga ut sessioner som du inte längre använder under Konto > Sessioner och försök sedan igen."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "มีเซสชันที่ใช้งานอยู่มากเกินไป ออกจากระบบเซสชันที่คุณไม่ได้ใช้แล้วใน บัญชี > เซสชัน แล้วลองอีกครั้ง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забагато активних сеансів. Завершіть сеанси, якими ви більше не користуєтеся, у розділі «Обліковий запис > Сеанси» і спробуйте ще раз."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có quá nhiều phiên đang hoạt động. Hãy đăng xuất các phiên bạn không còn dùng trong Tài khoản > Phiên đăng nhập, rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活跃会话过多。请在“账户 > 登录会话”中退出不再使用的会话，然后重试。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用中的工作階段太多。請在「帳戶 > 登入工作階段」中登出不再使用的工作階段，然後再試一次。"
+          }
+        }
+      }
+    },
     "Too many attempts. You can request a new code in %lld minutes." : {
       "comment" : "Verify screen: the server refused to send a new verification code because of too many recent attempts. The argument is the number of minutes until a new code can be requested.",
       "localizations" : {

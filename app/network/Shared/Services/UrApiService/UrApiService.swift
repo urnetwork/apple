@@ -1650,6 +1650,13 @@ struct SessionLimitReachedError: LocalizedError, Equatable {
         String(localized: "Too many active sessions. On a device that's signed in to this account, go to Account > Sessions and sign out sessions you no longer use, then try again.")
     }
 
+    /// The words for this refusal on a screen of a signed-in device (adding a
+    /// sign-in method, whose verification mints a session): this device can
+    /// open Account > Sessions itself.
+    static var signedInMessage: String {
+        String(localized: "Too many active sessions. Sign out sessions you no longer use in Account > Sessions, then try again.")
+    }
+
     /// The words a screen shows for `error` when it is this refusal, a
     /// network create's included; nil for any other error.
     static func message(for error: Error) -> String? {

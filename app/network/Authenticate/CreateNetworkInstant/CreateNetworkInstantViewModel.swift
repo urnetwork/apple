@@ -82,7 +82,9 @@ extension CreateNetworkInstantView {
                 return result
             } catch {
                 guard request?.isCurrent != false else { return nil }
-                errorMessage = "There was an error creating your account. Please try again."
+                // the account's cap of active sessions says how to free one
+                errorMessage = SessionLimitReachedError.message(for: error)
+                    ?? "There was an error creating your account. Please try again."
                 return nil
             }
 

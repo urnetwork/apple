@@ -45,7 +45,7 @@ struct LoginAuthCodeView: View {
                     text: $viewModel.authCode,
                     label: "Authentication code",
                     placeholder: "Enter your one-time auth code",
-                    supportingText: viewModel.loginFailed ? "There was an error validating your auth code. Please try again or generate a new one" : "",
+                    supportingText: supportingText,
                     isEnabled: !viewModel.isLoading,
                     validationState: viewModel.loginFailed ? .invalid : .valid,
                     submitLabel: .done,
@@ -94,6 +94,16 @@ struct LoginAuthCodeView: View {
         #endif
     }
 
+    /// The field's line after a failed sign-in: the account's cap of active
+    /// sessions says how to free one (SessionLimitReachedError), anything
+    /// else is the code's.
+    private var supportingText: LocalizedStringKey {
+        if viewModel.sessionLimitReached {
+            return "Too many active sessions. On a device that's signed in to this account, go to Account > Sessions and sign out sessions you no longer use, then try again."
+        }
+        return viewModel.loginFailed ? "There was an error validating your auth code. Please try again or generate a new one" : ""
+    }
+
     private func submit() {
         guard !viewModel.isLoading, !viewModel.authCode.isEmpty else { return }
         guard let request = loginContext?.begin() else { return }
@@ -111,7 +121,8 @@ struct LoginAuthCodeView: View {
         case .success(let authCodeLoginResult):
             await handleSuccess(authCodeLoginResult.jwt, request)
         case .failure:
-            // the view model flags the field; nothing else to show
+            // the view model flags the field (supportingText); nothing else
+            // to show
             break
         }
     }

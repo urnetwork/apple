@@ -2270,15 +2270,21 @@ extension DeviceManager {
                         continuation.resume(throwing: error)
                     } else if let resultError = result?.error {
                         // the sdk decides what a client limit refusal offers
-                        // (ClientLimitStatus.prompt); every other refusal
-                        // keeps the server's message
+                        // (ClientLimitStatus.prompt). The account's cap of
+                        // active sessions is not one: neither an upgrade nor
+                        // a device removal frees a session, so it has its own
+                        // words. Every other refusal keeps the server's message
                         switch resultError.clientLimitPrompt {
                         case SdkClientLimitPromptUpgrade, SdkClientLimitPromptRemoveClient:
                             continuation.resume(throwing: NetworkClientLimitError(
                                 offersUpgrade: resultError.clientLimitPrompt == SdkClientLimitPromptUpgrade
                             ))
                         default:
-                            continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                            if resultError.code == SdkSessionErrorCodeLimitReached {
+                                continuation.resume(throwing: SessionLimitReachedError())
+                            } else {
+                                continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                            }
                         }
                     } else if let clientJwt = result?.byClientJwt, !clientJwt.isEmpty {
                         continuation.resume(returning: (clientJwt, result?.clientId))

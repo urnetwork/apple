@@ -269,7 +269,8 @@ struct CreateNetworkVerifyView: View {
             // only fires when the field changes back to full length. (setting otp first
             // triggers its didSet which clears the error, so set the message afterwards.)
             viewModel.otp = ""
-            viewModel.setOtpErrorMessage("There was an error authenticating, please try again later.")
+            // the account's cap of active sessions says how to free one
+            viewModel.setOtpErrorMessage(SessionLimitReachedError.message(for: error) ?? "There was an error authenticating, please try again later.")
             
             // TODO: clear viewmodel loading state
             

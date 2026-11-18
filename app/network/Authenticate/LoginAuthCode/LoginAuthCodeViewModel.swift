@@ -16,12 +16,17 @@ extension LoginAuthCodeView {
         @Published var authCode: String = "" {
             didSet {
                 loginFailed = false
+                sessionLimitReached = false
             }
         }
 
         @Published private(set) var isLoading: Bool = false
 
         @Published private(set) var loginFailed: Bool = false
+
+        /// with loginFailed: the account's cap of active sessions refused the
+        /// sign-in (SessionLimitReachedError), not the code
+        @Published private(set) var sessionLimitReached: Bool = false
 
         init(urApiService: UrApiServiceProtocol) {
             self.urApiService = urApiService
@@ -45,6 +50,7 @@ extension LoginAuthCodeView {
 
                 self.isLoading = false
                 self.loginFailed = false
+                self.sessionLimitReached = false
 
                 return .success(result)
 
@@ -52,6 +58,7 @@ extension LoginAuthCodeView {
                 guard request?.isCurrent != false else { return .failure(CancellationError()) }
                 self.isLoading = false
                 self.loginFailed = true
+                self.sessionLimitReached = error is SessionLimitReachedError
                 return .failure(error)
             }
         }

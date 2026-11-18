@@ -412,7 +412,8 @@ extension UrApiService {
                 }
                 
                 if let resultError = result.error {
-                    continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "result.error exists \(resultError.message)"]))
+                    // the session cap keeps its own words
+                    continuation.resume(throwing: UrApiService.authLoginRefusal(resultError))
                     return
                 }
                 
@@ -460,8 +461,9 @@ extension UrApiService {
                     return
                 }
 
-                if let resultError = result.error {
-                    continuation.resume(throwing: NSError(domain: "UrApiService", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                // the session cap keeps its own words
+                if let refusal = UrApiService.createNetworkRefusal(result) {
+                    continuation.resume(throwing: refusal)
                     return
                 }
 
@@ -575,11 +577,15 @@ extension UrApiService {
     }
     
     /// A create the server refused, with its reason for the form (a taken
-    /// network name, an account that already exists), or a wallet signature
-    /// that is not from the entered address (its signature_mismatch code).
+    /// network name, an account that already exists), a wallet signature
+    /// that is not from the entered address (its signature_mismatch code), or
+    /// the account's cap of active sessions (its session_limit_reached code).
     static func createNetworkRefusal(_ result: SdkNetworkCreateResult) -> NetworkCreateError? {
         guard let resultError = result.error else {
             return nil
+        }
+        if resultError.code == SdkSessionErrorCodeLimitReached {
+            return .sessionLimitReached
         }
         if resultError.code == BittensorWallet.signatureMismatchCode {
             return .signatureMismatch(message: resultError.message)
@@ -587,9 +593,13 @@ extension UrApiService {
         return .refused(message: resultError.message)
     }
 
-    /// A sign-in the server refused: a wallet signature that is not from the
-    /// entered address keeps its own error (WalletSignatureMismatchError).
+    /// A sign-in the server refused: the account's cap of active sessions
+    /// (SessionLimitReachedError) and a wallet signature that is not from the
+    /// entered address (WalletSignatureMismatchError) keep their own errors.
     static func authLoginRefusal(_ resultError: SdkAuthLoginResultError) -> Error {
+        if resultError.code == SdkSessionErrorCodeLimitReached {
+            return SessionLimitReachedError()
+        }
         if resultError.code == BittensorWallet.signatureMismatchCode {
             return WalletSignatureMismatchError(message: resultError.message)
         }
@@ -734,8 +744,12 @@ extension UrApiService {
                     return
                 }
 
-                if let errMsg = result.error?.message {
-                    continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: errMsg]))
+                if let resultError = result.error {
+                    if resultError.code == SdkSessionErrorCodeLimitReached {
+                        continuation.resume(throwing: SessionLimitReachedError())
+                    } else {
+                        continuation.resume(throwing: NSError(domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                    }
                     return
                 }
 
@@ -900,10 +914,13 @@ extension UrApiService {
                     return
                 }
                 
-                if result.error != nil {
-                    continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Error in result"]))
+                if let resultError = result.error {
+                    if resultError.code == SdkSessionErrorCodeLimitReached {
+                        continuation.resume(throwing: SessionLimitReachedError())
+                    } else {
+                        continuation.resume(throwing: NSError(domain: "UrApiService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Error in result"]))
+                    }
                     return
-                    
                 }
 
                 guard !result.jwt.isEmpty else {
@@ -1599,6 +1616,8 @@ enum NetworkCreateError: LocalizedError, Equatable {
     /// the wallet signature is not from the entered address (signature_mismatch):
     /// the wallet signed with another account; the server's message
     case signatureMismatch(message: String)
+    /// the account holds its cap of active sessions (SessionLimitReachedError)
+    case sessionLimitReached
 
     var errorDescription: String? {
         switch self {
@@ -1606,7 +1625,38 @@ enum NetworkCreateError: LocalizedError, Equatable {
             return message
         case .signatureMismatch(let message):
             return message
+        case .sessionLimitReached:
+            return SessionLimitReachedError.message
         }
+    }
+}
+
+/// A sign-in the server refused because the account holds its cap of active
+/// sessions (the result error code SdkSessionErrorCodeLimitReached, sdk
+/// api_session_limit.go): a sign-in of any kind, a code sign-in, a
+/// verification, or the device's client right after a sign-in. Nothing was
+/// signed out to make room. The user signs out sessions they no longer use in
+/// Account > Sessions on a device that is signed in, then tries again; there
+/// is no retry and no sign-out here. Reads as the app's words for it, never
+/// the server's message. A network create's refusal is
+/// NetworkCreateError.sessionLimitReached, with the same words.
+struct SessionLimitReachedError: LocalizedError, Equatable {
+
+    var errorDescription: String? {
+        Self.message
+    }
+
+    static var message: String {
+        String(localized: "Too many active sessions. On a device that's signed in to this account, go to Account > Sessions and sign out sessions you no longer use, then try again.")
+    }
+
+    /// The words a screen shows for `error` when it is this refusal, a
+    /// network create's included; nil for any other error.
+    static func message(for error: Error) -> String? {
+        if error is SessionLimitReachedError || (error as? NetworkCreateError) == .sessionLimitReached {
+            return message
+        }
+        return nil
     }
 }
 

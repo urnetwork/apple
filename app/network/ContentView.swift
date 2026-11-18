@@ -322,7 +322,9 @@ struct ContentView: View {
                     offersUpgrade: clientLimit.offersUpgrade
                 )
             } else {
-                snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
+                // the account's cap of active sessions says how to free one
+                snackbarManager.showSnackbar(message: SessionLimitReachedError.message(for: error)
+                    ?? String(localized: "There was an error creating your network. Please try again later."))
             }
         }
     }
@@ -356,7 +358,8 @@ struct ContentView: View {
                 if let clientLimit = error as? NetworkClientLimitError {
                     signInRetryMessage = ClientLimitNotice.body(offersUpgrade: clientLimit.offersUpgrade)
                 } else {
-                    signInRetryMessage = String(localized: "There was an error creating your network. Please try again later.")
+                    signInRetryMessage = SessionLimitReachedError.message(for: error)
+                        ?? String(localized: "There was an error creating your network. Please try again later.")
                 }
             }
         }

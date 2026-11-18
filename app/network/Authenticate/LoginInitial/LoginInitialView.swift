@@ -566,7 +566,8 @@ struct LoginInitialView: View {
     }
 
     /// `failureMessage` replaces the generic line for a failure that has its
-    /// own words (bittensorSignInFailureText).
+    /// own words (bittensorSignInFailureText), as the account's cap of active
+    /// sessions does (SessionLimitReachedError).
     private func handleAuthLoginResult(_ authLoginResult: AuthLoginResult, request: NetworkLoginRequest, failureMessage: String? = nil) async {
         guard request.isCurrent else { return }
         
@@ -639,7 +640,10 @@ struct LoginInitialView: View {
         case .failure(let error):
             print("auth login error: \(error.localizedDescription)")
             viewModel.setIsCheckingUserAuth(false)
-            let message = failureMessage ?? String(localized: "There was an error logging in")
+            // the account's cap of active sessions says how to free one
+            let message = failureMessage
+                ?? SessionLimitReachedError.message(for: error)
+                ?? String(localized: "There was an error logging in")
             viewModel.setLoginErrorMessage(message)
             if deviceManager.device != nil {
                 snackbarManager.showSnackbar(message: message)

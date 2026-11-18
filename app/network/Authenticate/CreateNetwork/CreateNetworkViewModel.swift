@@ -26,8 +26,12 @@ enum AuthType {
 /// when it refused the create with one, otherwise the generic error. A taken
 /// name submitted while the availability check was failing is caught here. A
 /// wallet signature pasted from `bittensorWalletId` that is not from the
-/// entered address says so in that wallet's words.
+/// entered address says so in that wallet's words, and the account's cap of
+/// active sessions in the app's (SessionLimitReachedError).
 func createNetworkFailureMessage(_ error: Error, bittensorWalletId: String? = nil) -> String {
+    if let message = SessionLimitReachedError.message(for: error) {
+        return message
+    }
     if case NetworkCreateError.signatureMismatch(let message) = error {
         if let text = BittensorWallet.signatureMismatchText(walletId: bittensorWalletId) {
             return text

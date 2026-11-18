@@ -29,7 +29,9 @@ protocol UrApiServiceProtocol {
     func getAllProviders() async throws -> SdkFilteredLocations
     
     /**
-     * Authentication
+     * Authentication. A sign-in, code sign-in or verification the account's
+     * cap of active sessions refuses throws SessionLimitReachedError, a
+     * network create NetworkCreateError.sessionLimitReached.
      */
     func authLogin(_ args: SdkAuthLoginArgs) async throws -> AuthLoginResult
     func createNetwork(_ args: SdkNetworkCreateArgs) async throws -> LoginNetworkResult

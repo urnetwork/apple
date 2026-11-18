@@ -24,6 +24,7 @@ private final class StartupLogoutSource: DeviceAuthCallbackSource {
         logout = callback
         return {}
     }
+    func observeAccountSignInRequired(_ callback: @escaping @Sendable (String) -> Void) -> () -> Void { {} }
 }
 
 /// All state is generated here; no device/RPC, profile, Keychain or account is opened.

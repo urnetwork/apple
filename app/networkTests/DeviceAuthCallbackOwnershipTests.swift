@@ -35,8 +35,10 @@ private final class DeviceAuthTestingSource: DeviceAuthCallbackSource {
     let instanceId: String?
     private(set) var refreshCloses = 0
     private(set) var logoutCloses = 0
+    private(set) var accountSignInRequiredCloses = 0
     private var refresh: (@Sendable (String?) -> Void)?
     private var logout: (@Sendable (String) -> Void)?
+    private var accountSignInRequired: (@Sendable (String) -> Void)?
 
     init(instanceId: String? = "same-instance") {
         self.instanceId = instanceId
@@ -54,9 +56,17 @@ private final class DeviceAuthTestingSource: DeviceAuthCallbackSource {
         return { [weak self] in self?.logoutCloses += 1 }
     }
 
+    func observeAccountSignInRequired(_ callback: @escaping @Sendable (String) -> Void) -> () -> Void {
+        accountSignInRequired = callback
+        return { [weak self] in self?.accountSignInRequiredCloses += 1 }
+    }
+
     func emitRefresh(_ jwt: String?) { refresh?(jwt) }
     // the device's logout with the cause it reports (Device.GetAuthLogoutCause)
     func emitLogout(cause: String = "") { logout?(cause) }
+    // the api's AccountSignInRequired with the cause it reports
+    // (Api.GetAccountSignInRequiredCause)
+    func emitAccountSignInRequired(cause: String = "") { accountSignInRequired?(cause) }
 }
 
 // These sinks stand in for the externally destructive operations only.
@@ -501,5 +511,156 @@ final class DeviceAuthLogoutNoticeTests: XCTestCase {
         enum WriteFailure: Error { case refused }
         XCTAssertThrowsError(try fixture.manager.acceptNetworkLogin { throw WriteFailure.refused })
         XCTAssertEqual(fixture.manager.signedOutNotice, .signedOutRemotely)
+    }
+}
+
+// The account's sign-in rejected while this device stays signed in on a
+// client credential of another session (server session/REVOKE-FINAL.md R9,
+// REVOKE-UI-FINAL.md §5): the device's api reports AccountSignInRequired, not
+// a logout. Nothing is signed out or disconnected; the main screens show a
+// notice until the user dismisses it, or until the next sign-in or sign-out.
+// It says that another device signed the session out only for the trusted
+// cause the api gives (Api.GetAccountSignInRequiredCause).
+@MainActor
+final class DeviceAccountSignInNoticeTests: XCTestCase {
+    func testTheNoticeSaysWhyOnlyForTheTrustedCause() {
+        XCTAssertEqual(AccountSignInNotice(accountSignInRequiredCause: SdkAuthLogoutCauseSessionRevoked), .signedOutRemotely)
+        for cause in ["", "client_removed", "SESSION_REVOKED"] {
+            XCTAssertEqual(AccountSignInNotice(accountSignInRequiredCause: cause), .signInRequired, "cause \(cause)")
+        }
+        let signInAgain = String(localized: "Sign in again to manage sessions.")
+        XCTAssertEqual(AccountSignInNotice.signInRequired.message, signInAgain)
+        XCTAssertEqual(
+            AccountSignInNotice.signedOutRemotely.message,
+            String(localized: "This session was signed out from another device.") + " " + signInAgain
+        )
+    }
+
+    // the trusted cause: both sentences, after the main-actor delivery; the
+    // device is not signed out, and its auth callbacks stay current
+    func testARevokedAccountSignInShowsTheNoticeAndKeepsTheDevice() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitAccountSignInRequired(cause: SdkAuthLogoutCauseSessionRevoked)
+        XCTAssertNil(fixture.manager.accountSignInNotice, "the notice landed before the main-actor delivery")
+
+        XCTAssertEqual(fixture.dispatcher.deliverBatch(), 1)
+        XCTAssertEqual(fixture.manager.accountSignInNotice, .signedOutRemotely)
+        XCTAssertEqual(fixture.manager.accountSignInNotice?.message, "This session was signed out from another device. Sign in again to manage sessions.")
+        XCTAssertEqual(fixture.effects.logouts, 0)
+        XCTAssertEqual(fixture.effects.profiles, 1)
+        XCTAssertNil(fixture.manager.signedOutNotice)
+
+        source.emitRefresh("client-refreshed")
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.effects.refreshWrites, 1)
+        XCTAssertEqual(fixture.manager.accountSignInNotice, .signedOutRemotely)
+    }
+
+    // any other cause, empty included: only that the account needs a sign-in
+    func testAnyOtherCauseSaysOnlyToSignInAgain() {
+        for cause in ["", "client_removed", "SESSION_REVOKED"] {
+            let fixture = DeviceAuthTestingFixture()
+            let source = DeviceAuthTestingSource()
+            fixture.manager.setupDeviceAuthListeners(source: source)
+            source.emitAccountSignInRequired(cause: cause)
+            fixture.dispatcher.deliverBatch()
+            XCTAssertEqual(fixture.manager.accountSignInNotice, .signInRequired, "cause \(cause)")
+            XCTAssertEqual(fixture.manager.accountSignInNotice?.message, "Sign in again to manage sessions.", "cause \(cause)")
+            XCTAssertEqual(fixture.effects.logouts, 0, "cause \(cause)")
+        }
+    }
+
+    func testADismissedNoticeIsGone() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitAccountSignInRequired(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.dispatcher.deliverBatch()
+        XCTAssertNotNil(fixture.manager.accountSignInNotice)
+
+        fixture.manager.dismissAccountSignInNotice()
+        XCTAssertNil(fixture.manager.accountSignInNotice)
+        XCTAssertEqual(fixture.effects.logouts, 0)
+    }
+
+    // the next sign-in clears it; a sign-in whose write fails keeps it
+    func testTheNextSignInClearsTheNotice() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitAccountSignInRequired(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.dispatcher.deliverBatch()
+
+        enum WriteFailure: Error { case refused }
+        XCTAssertThrowsError(try fixture.manager.acceptNetworkLogin { throw WriteFailure.refused })
+        XCTAssertEqual(fixture.manager.accountSignInNotice, .signedOutRemotely)
+
+        fixture.manager.acceptNetworkLogin {
+            fixture.effects.admin = "admin-next"
+        }
+        XCTAssertNil(fixture.manager.accountSignInNotice)
+    }
+
+    // a sign-out clears it, and a report already queued does not land after
+    func testASignOutClearsTheNoticeAndAQueuedReport() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitAccountSignInRequired()
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.manager.accountSignInNotice, .signInRequired)
+
+        source.emitAccountSignInRequired(cause: SdkAuthLogoutCauseSessionRevoked)
+        XCTAssertTrue(fixture.manager.beginLogout())
+        XCTAssertNil(fixture.manager.accountSignInNotice)
+        fixture.dispatcher.deliverBatch()
+        XCTAssertNil(fixture.manager.accountSignInNotice)
+    }
+
+    // the server signing this app out afterwards ends the notice with the
+    // sign-in, and the sign-in screen says why
+    func testALogoutAfterTheNoticeEndsIt() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitAccountSignInRequired()
+        fixture.dispatcher.deliverBatch()
+        XCTAssertNotNil(fixture.manager.accountSignInNotice)
+
+        source.emitLogout(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.effects.logouts, 1)
+        XCTAssertNil(fixture.manager.accountSignInNotice)
+        XCTAssertEqual(fixture.manager.signedOutNotice, .signedOutRemotely)
+    }
+
+    // a replaced device's listener is closed and its queued report does not
+    // land; the current device's does
+    func testARetiredDevicesReportLeavesNoNotice() {
+        let fixture = DeviceAuthTestingFixture()
+        let old = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: old)
+        old.emitAccountSignInRequired(cause: SdkAuthLogoutCauseSessionRevoked)
+        let current = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: current)
+        XCTAssertEqual(old.accountSignInRequiredCloses, 1)
+        XCTAssertEqual(fixture.dispatcher.deliverBatch(), 1)
+        XCTAssertNil(fixture.manager.accountSignInNotice)
+
+        current.emitAccountSignInRequired()
+        fixture.dispatcher.deliverBatch()
+        XCTAssertEqual(fixture.manager.accountSignInNotice, .signInRequired)
+    }
+
+    func testClearDeviceRetiresAQueuedReport() {
+        let fixture = DeviceAuthTestingFixture()
+        let source = DeviceAuthTestingSource()
+        fixture.manager.setupDeviceAuthListeners(source: source)
+        source.emitAccountSignInRequired(cause: SdkAuthLogoutCauseSessionRevoked)
+        fixture.manager.clearDevice()
+        fixture.dispatcher.deliverBatch()
+        XCTAssertNil(fixture.manager.accountSignInNotice)
     }
 }

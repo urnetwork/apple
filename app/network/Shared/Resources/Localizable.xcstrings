@@ -260718,43 +260718,43 @@
         }
       }
     },
-    "URnetwork is powered by the world's largest, safest,\nand most decentralized ingress and egress protocol." : {
+    "URnetwork is powered by a decentralized ingress and egress protocol,\nrun on community devices in a large selection of countries." : {
       "comment" : "Call to action",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعمل URnetwork ببروتوكول الدخول والخروج الأكبر\nوالأكثر أمانًا ولامركزية في العالم."
+            "value" : "تعمل URnetwork ببروتوكول دخول وخروج لامركزي\nيعمل على أجهزة المجتمع في مجموعة كبيرة من البلدان."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork stojí na největším, nejbezpečnějším a nejvíce\ndecentralizovaném protokolu na světě pro příchozí a odchozí provoz."
+            "value" : "URnetwork stojí na decentralizovaném protokolu pro příchozí a odchozí provoz,\nkterý běží na zařízeních komunity ve velkém výběru zemí."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork basiert auf dem weltweit größten, sichersten\nund am stärksten dezentralisierten Ingress- und Egress-Protokoll."
+            "value" : "URnetwork basiert auf einem dezentralen Ingress- und Egress-Protokoll,\ndas auf Community-Geräten in einer großen Auswahl an Ländern läuft."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Το URnetwork τροφοδοτείται από το μεγαλύτερο, ασφαλέστερο\nκαι πιο αποκεντρωμένο πρωτόκολλο εισόδου και εξόδου στον κόσμο."
+            "value" : "Το URnetwork τροφοδοτείται από ένα αποκεντρωμένο πρωτόκολλο εισόδου και εξόδου\nπου τρέχει σε συσκευές της κοινότητας σε μεγάλη επιλογή χωρών."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork is powered by the world's largest, safest,\nand most decentralized ingress and egress protocol."
+            "value" : "URnetwork is powered by a decentralized ingress and egress protocol,\nrun on community devices in a large selection of countries."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork funciona con el protocolo de entrada y salida\nmás grande, seguro y descentralizado del mundo."
+            "value" : "URnetwork funciona con un protocolo descentralizado de entrada y salida,\nque se ejecuta en dispositivos de la comunidad en una amplia selección de países."
           }
         },
         "es-419" : {
@@ -260766,121 +260766,121 @@
         "es-MX" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork funciona con el protocolo de entrada y salida\nmás grande, seguro y descentralizado del mundo."
+            "value" : "URnetwork funciona con un protocolo descentralizado de entrada y salida,\nque se ejecuta en dispositivos de la comunidad en una amplia selección de países."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork repose sur le protocole d'entrée et de sortie\nle plus vaste, le plus sûr et le plus décentralisé au monde."
+            "value" : "URnetwork repose sur un protocole d'entrée et de sortie décentralisé,\nexécuté sur les appareils de la communauté dans un large choix de pays."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork מבוססת על פרוטוקול הכניסה והיציאה\nהגדול, הבטוח והמבוזר ביותר בעולם."
+            "value" : "URnetwork מבוססת על פרוטוקול כניסה ויציאה מבוזר\nשפועל על מכשירי הקהילה במבחר גדול של מדינות."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork दुनिया के सबसे बड़े, सबसे सुरक्षित\nऔर सबसे विकेंद्रीकृत प्रवेश-निकास प्रोटोकॉल पर चलता है।"
+            "value" : "URnetwork एक विकेंद्रीकृत प्रवेश-निकास प्रोटोकॉल पर चलता है,\nजो कई देशों में समुदाय के उपकरणों पर चलता है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork didukung oleh protokol ingress dan egress\nterbesar, teraman, dan paling terdesentralisasi di dunia."
+            "value" : "URnetwork didukung oleh protokol ingress dan egress terdesentralisasi\nyang berjalan di perangkat komunitas di banyak pilihan negara."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork si basa sul protocollo di ingresso e uscita\npiù grande, sicuro e decentralizzato al mondo."
+            "value" : "URnetwork si basa su un protocollo di ingresso e uscita decentralizzato,\neseguito sui dispositivi della community in un'ampia scelta di paesi."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetworkは、世界最大で最も安全、最も分散化された\nイングレス・エグレスプロトコルを基盤としています。"
+            "value" : "URnetworkは、分散型のイングレス・エグレスプロトコルを基盤とし、\n多くの国のコミュニティのデバイス上で動作しています。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork는 세계에서 가장 크고 안전하며 가장 분산화된\n인그레스·이그레스 프로토콜로 구동됩니다."
+            "value" : "URnetwork는 분산형 인그레스·이그레스 프로토콜로 구동되며,\n다양한 국가의 커뮤니티 기기에서 실행됩니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork draait op het grootste, veiligste en meest\ngedecentraliseerde ingress- en egress-protocol ter wereld."
+            "value" : "URnetwork draait op een gedecentraliseerd ingress- en egress-protocol\ndat op apparaten van de community in een grote selectie landen draait."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork opiera się na największym, najbezpieczniejszym i najbardziej\nzdecentralizowanym na świecie protokole wejścia i wyjścia."
+            "value" : "URnetwork opiera się na zdecentralizowanym protokole wejścia i wyjścia,\ndziałającym na urządzeniach społeczności w wielu krajach."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A URnetwork é alimentada pelo maior, mais seguro\ne mais descentralizado protocolo de entrada e saída do mundo."
+            "value" : "A URnetwork é alimentada por um protocolo descentralizado de entrada e saída,\nexecutado em dispositivos da comunidade numa grande seleção de países."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A URnetwork é alimentada pelo maior, mais seguro\ne mais descentralizado protocolo de entrada e saída do mundo."
+            "value" : "A URnetwork é alimentada por um protocolo descentralizado de entrada e saída,\nexecutado em dispositivos da comunidade em uma grande seleção de países."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A URnetwork é alimentada pelo maior, mais seguro\ne mais descentralizado protocolo de entrada e saída do mundo."
+            "value" : "A URnetwork é alimentada por um protocolo descentralizado de entrada e saída,\nexecutado em dispositivos da comunidade numa grande seleção de países."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В основе URnetwork — самый крупный, безопасный\nи децентрализованный в мире протокол входа и выхода трафика."
+            "value" : "В основе URnetwork — децентрализованный протокол входа и выхода трафика,\nработающий на устройствах сообщества в большом выборе стран."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork drivs av världens största, säkraste\noch mest decentraliserade in- och utgångsprotokoll."
+            "value" : "URnetwork drivs av ett decentraliserat in- och utgångsprotokoll\nsom körs på communityns enheter i ett stort urval av länder."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork ขับเคลื่อนด้วยโปรโตคอลทางเข้าออกที่ใหญ่ที่สุด\nปลอดภัยที่สุด และกระจายศูนย์มากที่สุดในโลก"
+            "value" : "URnetwork ขับเคลื่อนด้วยโปรโตคอลทางเข้าออกแบบกระจายศูนย์\nที่ทำงานบนอุปกรณ์ของชุมชนในหลายประเทศ"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В основі URnetwork — найбільший, найбезпечніший\nі найдецентралізованіший у світі протокол входу й виходу трафіку."
+            "value" : "В основі URnetwork — децентралізований протокол входу й виходу трафіку,\nщо працює на пристроях спільноти у великому виборі країн."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork được vận hành bởi giao thức ra vào lớn nhất,\nan toàn nhất và phi tập trung nhất thế giới."
+            "value" : "URnetwork được vận hành bởi giao thức ra vào phi tập trung,\nchạy trên thiết bị của cộng đồng tại nhiều quốc gia."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork 由全球最大、最安全、\n最去中心化的出入口协议驱动。"
+            "value" : "URnetwork 由去中心化的出入口协议驱动，\n运行在众多国家的社区设备上。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URnetwork 由全球最大、最安全、\n最去中心化的出入口協議驅動。"
+            "value" : "URnetwork 由去中心化的出入口協議驅動，\n運行在眾多國家的社區設備上。"
           }
         }
       }

@@ -3,11 +3,16 @@
 //  URnetwork
 //
 //  Account > Sessions (server/session/REVOKE-UI-FINAL.md): every signed-in
-//  session of the account, this app's first, each signed out after a
-//  confirmation. iOS swipes a row left to reveal Sign out and pulls to
+//  session of the account, each signed out after a confirmation. The device
+//  sign-ins come first, this app's at the top, a page at a time with Show
+//  more; then one collapsible group per kind of client (hosted proxies, API
+//  clients, paired devices, other clients) with its count, whose rows open a
+//  page at a time too. iOS swipes a row left to reveal Sign out and pulls to
 //  refresh; macOS has a trailing Sign out button, a context menu and a
 //  toolbar refresh. The session ID is copied from the row's context menu
-//  (a long press on iOS). SessionsStore drives the SDK controller.
+//  (a long press on iOS). SessionsStore drives the SDK controller, which
+//  holds the whole list; the list here makes only the rows it shows, so a
+//  long list stays cheap.
 //
 
 import SwiftUI
@@ -99,6 +104,7 @@ struct SessionsView: View {
 
     private func sessionsList(now: Date) -> some View {
         let snapshot = store.snapshot
+        let format = SessionTimeFormat()
         return List {
             switch snapshot.content {
             case .loading:
@@ -145,10 +151,21 @@ struct SessionsView: View {
                 notes(snapshot)
             case .list:
                 refreshFailedNotice(snapshot)
-                Section {
-                    ForEach(snapshot.rows(now: now, format: SessionTimeFormat())) { row in
-                        sessionRow(row)
+                if !snapshot.sessions.isEmpty {
+                    Section {
+                        // each row is made as the list shows it
+                        ForEach(snapshot.sessions) { session in
+                            sessionRow(SessionRowPresentation(session, snapshot: snapshot, now: now, format: format))
+                        }
+                        if snapshot.sessionsHasMore {
+                            showMoreButton {
+                                store.showMoreSignIns()
+                            }
+                        }
                     }
+                }
+                ForEach(snapshot.groups) { group in
+                    groupSection(group, snapshot: snapshot, now: now, format: format)
                 }
                 if snapshot.showsSignOutOthers {
                     Section {
@@ -245,6 +262,55 @@ struct SessionsView: View {
                     .foregroundColor(themeManager.currentTheme.dangerColor)
             }
         }
+    }
+
+    /**
+     * A group of client sessions: its header with the group's count is a
+     * disclosure, the platform's chevron and expanded or collapsed state,
+     * which opens and closes the group through the controller. While open,
+     * its rows read as the group's (Hosted proxy, ...) and sign out like any
+     * row, then Show more while the group has more.
+     */
+    private func groupSection(_ group: SessionGroupItem, snapshot: SessionsSnapshot, now: Date, format: SessionTimeFormat) -> some View {
+        let kind = SessionGroupKind(group.kind)
+        return Section {
+            DisclosureGroup(isExpanded: Binding(
+                get: { group.expanded },
+                set: { expanded in
+                    store.setGroupExpanded(group.kind, expanded: expanded)
+                }
+            )) {
+                // each row is made as the list shows it
+                ForEach(group.sessions) { session in
+                    sessionRow(SessionRowPresentation(session, group: kind, snapshot: snapshot, now: now, format: format))
+                }
+                if group.hasMore {
+                    showMoreButton {
+                        store.showMoreSessions(group.kind)
+                    }
+                }
+            } label: {
+                Text(verbatim: snapshot.title(of: group))
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+            }
+            .listRowBackground(themeManager.currentTheme.tintedBackgroundBase)
+        }
+    }
+
+    /// The controller's next page of a section's rows.
+    private func showMoreButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Text("Show more")
+                Spacer(minLength: 0)
+            }
+            .font(themeManager.currentTheme.bodyFont)
+            .foregroundColor(themeManager.currentTheme.accentColor)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(themeManager.currentTheme.tintedBackgroundBase)
     }
 
     private func sessionRow(_ row: SessionRowPresentation) -> some View {

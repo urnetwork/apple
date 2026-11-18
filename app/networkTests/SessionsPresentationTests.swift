@@ -17,8 +17,9 @@ import URnetworkSdk
  * device label and logo for every device type, the method for every sign-in
  * kind, the country color, the short ID, Last used across every unit up to
  * the 7-day date cutoff, the full date and time a screen reader hears, the
- * states in place of the list, and the confirmations. Times are formatted in
- * en_US and UTC against a fixed clock.
+ * states in place of the list, the client groups' headers, counts and row
+ * labels, and the confirmations. Times are formatted in en_US and UTC
+ * against a fixed clock.
  */
 struct SessionsPresentationTests {
 
@@ -412,11 +413,13 @@ struct SessionsPresentationTests {
         var snapshot = SessionsSnapshot()
         snapshot.loaded = true
         snapshot.sessions = [Self.session()]
+        snapshot.sessionCount = 1
         snapshot.error = SessionErrorItem(retryable: true)
         #expect(snapshot.content == .list)
         #expect(snapshot.refreshFailed)
 
         snapshot.sessions = []
+        snapshot.sessionCount = 0
         #expect(snapshot.content == .empty)
         #expect(snapshot.refreshFailed)
 
@@ -447,6 +450,22 @@ struct SessionsPresentationTests {
         #expect(snapshot.content == .empty)
     }
 
+    // §5 C: empty only with no device sign-in and no group; a list of client
+    // sessions alone, or of sign-ins past the shown page, is a list
+    @Test func emptyMeansNoSignInAndNoGroup() {
+        var snapshot = SessionsSnapshot()
+        snapshot.loaded = true
+        snapshot.groups = [SessionGroupItem(kind: SdkClientSessionGroupHostedProxies, count: 3)]
+        #expect(snapshot.content == .list)
+
+        snapshot.groups = []
+        snapshot.sessionCount = 1
+        #expect(snapshot.content == .list)
+
+        snapshot.sessionCount = 0
+        #expect(snapshot.content == .empty)
+    }
+
     // §4: a failed sign-out of the other sessions says so under the button,
     // which stays; a retry in flight shows progress instead
     @Test func aFailedSignOutOfTheOtherSessionsSaysSoUnderTheButton() {
@@ -456,6 +475,8 @@ struct SessionsPresentationTests {
             SessionItem(id: Self.sessionId, current: true, kind: "google"),
             SessionItem(id: "02b2e4d3-0000-4000-8000-00000000000b", kind: "password"),
         ]
+        snapshot.sessionCount = 2
+        snapshot.otherSessionCount = 1
         #expect(snapshot.showsSignOutOthers)
         #expect(snapshot.signOutOthersFailedMessage == nil)
 
@@ -494,21 +515,138 @@ struct SessionsPresentationTests {
 
     // §4: every sign-out names the session
     @Test func confirmationsNameTheSession() {
-        let withPlace = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "Android", place: "Chicago, Illinois, United States", current: false)
+        let withPlace = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "Android", place: "Chicago, Illinois, United States", current: false, hostedProxy: false)
         #expect(withPlace.title == "Sign out this session?")
         #expect(withPlace.message == "Android in Chicago, Illinois, United States will be signed out.")
 
-        let noPlace = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "Unknown device", place: "", current: false)
+        let noPlace = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "Unknown device", place: "", current: false, hostedProxy: false)
         #expect(noPlace.message == "Unknown device will be signed out.")
 
-        let current = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "iOS", place: "Chicago", current: true)
+        let current = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "iOS", place: "Chicago", current: true, hostedProxy: false)
         #expect(current.title == "Sign out this session?")
         #expect(current.message == "This is the session you're using. This app will be signed out.")
 
-        let others = SessionsConfirmation.signOutOthers
+        let others = SessionsConfirmation.signOutOthers(keepsHostedProxies: false)
         #expect(others.title == "Sign out all other sessions?")
         #expect(others.message == "Every other session in this list will be signed out. This session stays signed in. Anyone who knows your sign-in details can still sign in again.")
         // §4: never "all devices signed out"
         #expect(!others.message.localizedCaseInsensitiveContains("all devices"))
+    }
+
+    // §5 C: a hosted proxy's sign-out says the proxy stops working, and the
+    // bulk sign-out says it keeps hosted proxies while the list has them
+    @Test func hostedProxyConfirmationsSayWhatHappensToTheProxies() {
+        let proxy = SessionsConfirmation.signOut(sessionId: Self.sessionId, device: "Hosted proxy", place: "Chicago", current: false, hostedProxy: true)
+        #expect(proxy.title == "Sign out this session?")
+        #expect(proxy.message == "This hosted proxy will stop working. Create a new one to replace it.")
+        #expect(proxy.message(keyNeedsBackup: true) == proxy.message)
+
+        let others = SessionsConfirmation.signOutOthers(keepsHostedProxies: true)
+        #expect(others.title == "Sign out all other sessions?")
+        #expect(others.message == "Every other session in this list will be signed out, except hosted proxies. This session stays signed in. Anyone who knows your sign-in details can still sign in again.")
+        #expect(!others.message.localizedCaseInsensitiveContains("all devices"))
+    }
+
+    // MARK: Groups
+
+    // §5 C: each kind's header with its count, and an unknown kind as other
+    // clients
+    @Test func everyGroupHasItsHeaderAndRowLabel() {
+        let cases: [(String, SessionGroupKind, String, String)] = [
+            (SdkClientSessionGroupHostedProxies, .hostedProxies, "Hosted proxies (7)", "Hosted proxy"),
+            (SdkClientSessionGroupApiClients, .apiClients, "API clients (7)", "API client"),
+            (SdkClientSessionGroupPairedDevices, .pairedDevices, "Paired devices (7)", "Paired device"),
+            (SdkClientSessionGroupOtherClients, .otherClients, "Other clients (7)", "Other client"),
+            ("future_clients", .otherClients, "Other clients (7)", "Other client"),
+        ]
+        let snapshot = SessionsSnapshot()
+        for (kind, groupKind, title, rowLabel) in cases {
+            #expect(SessionGroupKind(kind) == groupKind, "kind \(kind)")
+            let group = SessionGroupItem(kind: kind, count: 7)
+            #expect(snapshot.title(of: group, locale: Locale(identifier: "en_US")) == title, "kind \(kind)")
+            #expect(groupKind.rowLabel == rowLabel, "kind \(kind)")
+        }
+    }
+
+    // §4: {count} in the locale's grouping, with "+" while the counts are
+    // lower bounds
+    @Test func aGroupsCountIsGroupedForTheLocaleWithAPlusWhileTruncated() {
+        let english = Locale(identifier: "en_US")
+        #expect(SessionLabels.count(1_234, truncated: false, locale: english) == "1,234")
+        #expect(SessionLabels.count(1_234, truncated: true, locale: english) == "1,234+")
+        #expect(SessionLabels.count(12, truncated: false, locale: english) == "12")
+        #expect(SessionLabels.count(1_234, truncated: false, locale: Locale(identifier: "de_DE")) == "1.234")
+
+        var snapshot = SessionsSnapshot()
+        let group = SessionGroupItem(kind: SdkClientSessionGroupHostedProxies, count: 10_000)
+        #expect(snapshot.title(of: group, locale: english) == "Hosted proxies (10,000)")
+        snapshot.truncated = true
+        #expect(snapshot.title(of: group, locale: english) == "Hosted proxies (10,000+)")
+    }
+
+    // §5 C: a group's rows are sign-in rows with line 1's device label
+    // replaced by the group's row label, the app version still appended; the
+    // logo, place, times and ID are the row's own
+    @Test func aGroupsRowsReadAsTheGroup() throws {
+        let session = Self.session(kind: "api_key_client", lastUsed: Self.lastUsed(deviceType: "cli", appVersion: "1.4.0"))
+        let snapshot = SessionsSnapshot()
+        let group = SessionGroupItem(kind: SdkClientSessionGroupApiClients, count: 1, expanded: true, sessions: [session])
+        let row = try #require(snapshot.rows(in: group, now: Self.now, format: Self.format).first)
+        #expect(row.title == "API client · 1.4.0")
+        #expect(row.device == "API client")
+        #expect(row.signOutActionName == "Sign out API client")
+        #expect(row.icon == .cli)
+        #expect(row.place == "Chicago, Illinois, United States")
+        #expect(row.signIn == "Signed in Sep 26 · API key · ID 01a1f3c2")
+
+        let proxy = SessionRowPresentation(
+            Self.session(kind: "legacy_proxy", lastUsed: Self.lastUsed(deviceType: "server", appVersion: "")),
+            group: .hostedProxies,
+            snapshot: snapshot,
+            now: Self.now,
+            format: Self.format
+        )
+        #expect(proxy.title == "Hosted proxy")
+        #expect(proxy.icon == .server)
+        // a sign-in row keeps the device type's label
+        #expect(Self.row(Self.session(lastUsed: Self.lastUsed(deviceType: "cli", appVersion: "1.4.0"))).title == "Command line · 1.4.0")
+    }
+
+    // the screen's lookups: a row on screen in a group carries its kind, and
+    // the list has hosted proxies only with their group
+    @Test func aListedRowKnowsItsGroup() throws {
+        var snapshot = SessionsSnapshot()
+        snapshot.sessions = [SessionItem(id: Self.sessionId, current: true, kind: "google")]
+        let proxyId = "02b2e4d3-0000-4000-8000-00000000000b"
+        snapshot.groups = [SessionGroupItem(kind: SdkClientSessionGroupHostedProxies, count: 1, expanded: true, sessions: [SessionItem(id: proxyId, kind: "legacy_proxy")])]
+        let signIn = try #require(snapshot.listedSession(Self.sessionId))
+        #expect(signIn.session.id == Self.sessionId)
+        #expect(signIn.group == nil)
+        let proxy = try #require(snapshot.listedSession(proxyId))
+        #expect(proxy.session.id == proxyId)
+        #expect(proxy.group == .hostedProxies)
+        #expect(snapshot.listedSession("03c3d5e4-0000-4000-8000-00000000000c")?.session.id == nil)
+        #expect(snapshot.hasHostedProxies)
+
+        snapshot.groups = [SessionGroupItem(kind: SdkClientSessionGroupApiClients, count: 2)]
+        #expect(!snapshot.hasHostedProxies)
+    }
+
+    // §5 C: Sign out all other sessions shows with this app's session and a
+    // positive count from the controller, which leaves out hosted proxies
+    @Test func signOutOthersShowsWithThisSessionAndAPositiveCount() {
+        var snapshot = SessionsSnapshot()
+        snapshot.loaded = true
+        snapshot.sessions = [SessionItem(id: Self.sessionId, current: true, kind: "google")]
+        snapshot.sessionCount = 1
+        snapshot.groups = [SessionGroupItem(kind: SdkClientSessionGroupHostedProxies, count: 5)]
+        #expect(!snapshot.showsSignOutOthers)
+
+        snapshot.otherSessionCount = 2
+        #expect(snapshot.showsSignOutOthers)
+
+        // no current session listed
+        snapshot.sessions = [SessionItem(id: Self.sessionId, current: false, kind: "google")]
+        #expect(!snapshot.showsSignOutOthers)
     }
 }

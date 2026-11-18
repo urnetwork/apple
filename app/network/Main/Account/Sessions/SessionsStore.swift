@@ -5,13 +5,17 @@
 //  Account > Sessions (server/session/REVOKE-UI-FINAL.md): the account's
 //  signed-in sessions and their sign-out, from the SDK's shared
 //  ClientSessionViewController. The controller owns everything about the
-//  sessions themselves: fetching, the account credential, polling every 30 s
-//  while visible, retries, operation ids, pending (202) recovery, and the
-//  sign-out of this app once its own session is revoked (it rejects the
-//  account credential, so the app's logout listeners take over). This store
+//  sessions themselves: fetching every page of the list, the account
+//  credential, polling every 30 s while visible, retries, operation ids,
+//  pending (202) recovery, and the sign-out of this app once its own session
+//  is revoked (it rejects the account credential, so the app's logout
+//  listeners take over). It also lays the list out: the device sign-ins a
+//  page at a time, then one collapsible group per kind of client (hosted
+//  proxies, API clients, paired devices, other clients) with its count, and
+//  the count of sessions Sign out all other sessions signs out. This store
 //  only mirrors the controller's snapshots into value types, forwards the
-//  screen's lifecycle and intents, and holds the confirmation a sign-out
-//  waits for.
+//  screen's lifecycle and intents (a group opened or closed, Show more), and
+//  holds the confirmation a sign-out waits for.
 //
 //  Everything here runs on the main actor; the controller's listener fires on
 //  an SDK thread and hops to the main queue before it touches the store.
@@ -50,6 +54,25 @@ struct SessionItem: Equatable, Identifiable {
     var createTimeMillis: Int64? = nil
     /// nil when no use was observed
     var lastUsed: SessionLastUsedItem? = nil
+}
+
+/// The sessions of one kind of client, below the device sign-ins: collapsed
+/// to its count until the screen opens it.
+struct SessionGroupItem: Equatable, Identifiable {
+    /// the SDK's kind (SdkClientSessionGroupHostedProxies, ...), which opening
+    /// the group and Show more hand back to the controller
+    let kind: String
+    /// the group's sessions; a lower bound while the snapshot is truncated
+    var count: Int = 0
+    var expanded: Bool = false
+    /// while expanded, the rows to show in display order; empty while collapsed
+    var sessions: [SessionItem] = []
+    /// expanded, with rows past `sessions`: Show more
+    var hasMore: Bool = false
+
+    var id: String {
+        kind
+    }
 }
 
 /// A failed request, by its flags. The SDK's message is never shown.
@@ -96,8 +119,22 @@ enum SessionsContent: Equatable {
 
 /// One read of the controller, in its display order.
 struct SessionsSnapshot: Equatable {
-    /// current first, then the most recent known use
+    /// the device sign-ins shown: current first, then the most recent known
+    /// use, a page at a time
     var sessions: [SessionItem] = []
+    /// all the device sign-ins, `sessions` and the rest
+    var sessionCount: Int = 0
+    /// more device sign-ins than `sessions`: Show more
+    var sessionsHasMore: Bool = false
+    /// the client sessions below the sign-ins, one group per kind of client
+    /// in display order; a kind without sessions has none
+    var groups: [SessionGroupItem] = []
+    /// the sessions Sign out all other sessions signs out: every listed
+    /// session but this one and the hosted proxies, which it keeps
+    var otherSessionCount: Int = 0
+    /// the list was longer than the controller reads, so the counts are lower
+    /// bounds
+    var truncated: Bool = false
     var currentSessionId: String? = nil
     /// "partial" while sign-ins from older app versions may be missing
     var legacyCoverage: String = ""
@@ -122,7 +159,8 @@ struct SessionsSnapshot: Equatable {
             // a retry after a failed first load shows progress again
             return error != nil && !loading ? .loadFailed : .loading
         }
-        return sessions.isEmpty ? .empty : .list
+        // no device sign-in and no group of client sessions
+        return sessionCount == 0 && groups.isEmpty ? .empty : .list
     }
 
     /// A refresh failed after a list was loaded: the list stays, with a
@@ -135,9 +173,30 @@ struct SessionsSnapshot: Equatable {
         session.current || (currentSessionId != nil && session.id == currentSessionId)
     }
 
-    /// Only with this app's session and at least one other.
+    /// Only with this app's session and a session the bulk sign-out signs
+    /// out: the controller's count, which leaves out the hosted proxies it
+    /// keeps.
     var showsSignOutOthers: Bool {
-        sessions.contains { isCurrent($0) } && sessions.contains { !isCurrent($0) }
+        otherSessionCount > 0 && sessions.contains { isCurrent($0) }
+    }
+
+    /// The list has hosted proxies, which Sign out all other sessions keeps.
+    var hasHostedProxies: Bool {
+        groups.contains { SessionGroupKind($0.kind) == .hostedProxies }
+    }
+
+    /// A row on screen: one of the shown sign-ins, or a row of an open group
+    /// with that group's kind.
+    func listedSession(_ sessionId: String) -> (session: SessionItem, group: SessionGroupKind?)? {
+        if let session = sessions.first(where: { $0.id == sessionId }) {
+            return (session, nil)
+        }
+        for group in groups {
+            if let session = group.sessions.first(where: { $0.id == sessionId }) {
+                return (session, SessionGroupKind(group.kind))
+            }
+        }
+        return nil
     }
 
     var signingOutOthers: Bool {
@@ -162,10 +221,14 @@ struct SessionsSnapshot: Equatable {
 
 /// A sign-out waiting for the user's confirmation.
 enum SessionsConfirmation: Equatable {
-    /// one session; `place` is empty when unknown, and `current` is this
-    /// app's own session
-    case signOut(sessionId: String, device: String, place: String, current: Bool)
-    case signOutOthers
+    /// one session: `device` is its row's label (a group's row label for a
+    /// client session), `place` is empty when unknown, `current` is this
+    /// app's own session, and `hostedProxy` a row of the hosted proxies group
+    case signOut(sessionId: String, device: String, place: String, current: Bool, hostedProxy: Bool)
+    /// every listed session but this one and the hosted proxies;
+    /// `keepsHostedProxies` while the list has hosted proxies, which the
+    /// message then says it keeps
+    case signOutOthers(keepsHostedProxies: Bool)
 }
 
 // MARK: Controller
@@ -184,6 +247,12 @@ protocol ClientSessionControlling: AnyObject {
     /// a retry reuses its operation.
     func revokeSession(_ sessionId: String)
     func revokeOtherSessions()
+    /// Opens a client group to its first rows, or closes it. Presentation
+    /// only: nothing is requested, and the next snapshot shows it.
+    func setGroupExpanded(kind: String, expanded: Bool)
+    /// Another page of a section's rows: the device sign-ins
+    /// (SdkClientSessionGroupSignIns) or an open group. Presentation only.
+    func showMoreSessions(kind: String)
     /// Calls `changed` on an SDK thread after every snapshot, until the
     /// subscription is closed.
     func addSnapshotListener(_ changed: @escaping @Sendable () -> Void) -> SdkSubProtocol?
@@ -370,21 +439,47 @@ final class SessionsStore: ObservableObject {
         }
     }
 
+    /// A group's header opened or closed it. The controller lays the list out
+    /// again at once, so its snapshot shows without waiting for a hop.
+    func setGroupExpanded(_ kind: String, expanded: Bool) {
+        guard !closed, let controller else {
+            return
+        }
+        controller.setGroupExpanded(kind: kind, expanded: expanded)
+        update(notification: nil)
+    }
+
+    /// Show more under the device sign-ins.
+    func showMoreSignIns() {
+        showMoreSessions(SdkClientSessionGroupSignIns)
+    }
+
+    /// Show more under an open group.
+    func showMoreSessions(_ kind: String) {
+        guard !closed, let controller else {
+            return
+        }
+        controller.showMoreSessions(kind: kind)
+        update(notification: nil)
+    }
+
     /**
-     * A row's sign-out: asks first. Nothing happens for a session that is
+     * A row's sign-out: asks first, naming the row as it reads (a group's row
+     * label for a client session). Nothing happens for a session that is
      * already signing out (a repeated activation), or one no longer listed.
      */
     func requestSignOut(sessionId: String) {
         guard !closed,
-              let session = snapshot.sessions.first(where: { $0.id == sessionId }),
+              let listed = snapshot.listedSession(sessionId),
               !(snapshot.action(for: sessionId)?.inProgress ?? false) else {
             return
         }
         confirmation = .signOut(
             sessionId: sessionId,
-            device: SessionLabels.device(session.lastUsed?.deviceType ?? "").label,
-            place: SessionLabels.place(session.lastUsed),
-            current: snapshot.isCurrent(session)
+            device: SessionLabels.rowDevice(listed.session, group: listed.group),
+            place: SessionLabels.place(listed.session.lastUsed),
+            current: snapshot.isCurrent(listed.session),
+            hostedProxy: listed.group == .hostedProxies
         )
     }
 
@@ -393,7 +488,7 @@ final class SessionsStore: ObservableObject {
         guard !closed, snapshot.showsSignOutOthers, !snapshot.signingOutOthers else {
             return
         }
-        confirmation = .signOutOthers
+        confirmation = .signOutOthers(keepsHostedProxies: snapshot.hasHostedProxies)
     }
 
     /**
@@ -406,7 +501,7 @@ final class SessionsStore: ObservableObject {
             return
         }
         switch confirmation {
-        case .signOut(let sessionId, _, _, _):
+        case .signOut(let sessionId, _, _, _, _):
             controller.revokeSession(sessionId)
         case .signOutOthers:
             controller.revokeOtherSessions()
@@ -465,6 +560,14 @@ extension SdkClientSessionViewController: ClientSessionControlling {
         revokeSession(id)
     }
 
+    func setGroupExpanded(kind: String, expanded: Bool) {
+        setGroupExpanded(kind, expanded: expanded)
+    }
+
+    func showMoreSessions(kind: String) {
+        showMoreSessions(kind)
+    }
+
     func addSnapshotListener(_ changed: @escaping @Sendable () -> Void) -> SdkSubProtocol? {
         add(ClientSessionListener(changed))
     }
@@ -491,14 +594,19 @@ extension SessionsSnapshot {
         guard let snapshot else {
             return
         }
-        if let list = snapshot.sessions {
-            sessions.reserveCapacity(list.len())
+        sessions = SessionItem.items(snapshot.sessions)
+        sessionCount = snapshot.sessionCount
+        sessionsHasMore = snapshot.sessionsHasMore
+        if let list = snapshot.groups {
+            groups.reserveCapacity(list.len())
             for i in 0..<list.len() {
-                if let info = list.get(i), let session = SessionItem(info) {
-                    sessions.append(session)
+                if let group = list.get(i) {
+                    groups.append(SessionGroupItem(group))
                 }
             }
         }
+        otherSessionCount = snapshot.otherSessionCount
+        truncated = snapshot.truncated
         currentSessionId = snapshot.currentSessionId?.idStr
         legacyCoverage = snapshot.legacyCoverage
         loaded = snapshot.loaded
@@ -517,7 +625,37 @@ extension SessionsSnapshot {
     }
 }
 
+extension SessionGroupItem {
+
+    /// A copy of the SDK's group.
+    init(_ group: SdkClientSessionGroup) {
+        self.init(
+            kind: group.kind,
+            count: group.count,
+            expanded: group.expanded,
+            sessions: SessionItem.items(group.sessions),
+            hasMore: group.hasMore
+        )
+    }
+}
+
 extension SessionItem {
+
+    /// Copies of the SDK's sessions in their order; one without a session id
+    /// is left out.
+    static func items(_ list: SdkNetworkSessionInfoList?) -> [SessionItem] {
+        guard let list else {
+            return []
+        }
+        var items: [SessionItem] = []
+        items.reserveCapacity(list.len())
+        for i in 0..<list.len() {
+            if let info = list.get(i), let session = SessionItem(info) {
+                items.append(session)
+            }
+        }
+        return items
+    }
 
     /// A copy of the SDK's session; nil without a session id.
     init?(_ info: SdkNetworkSessionInfo) {

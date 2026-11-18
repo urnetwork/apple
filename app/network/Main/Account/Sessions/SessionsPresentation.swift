@@ -5,13 +5,15 @@
 //  What Account > Sessions says (server/session/REVOKE-UI-FINAL.md §3-§5),
 //  as plain values: each row's three lines, its device logo and country
 //  color, the times (Last used is relative up to 7 days, then a date) with the
-//  full date and time a screen reader speaks instead, the confirmations, and
+//  full date and time a screen reader speaks instead, the client groups'
+//  headers with their counts and their rows' labels, the confirmations, and
 //  the failed sign-out of the other sessions and sign-in-required text.
 //  Pure, so the labels, logos, colors and times are tested without a view.
 //  Every string is from the string catalog; server metadata is shown as text.
 //
 
 import Foundation
+import URnetworkSdk
 
 /// The device logos the country circle shows (template assets, drawn white).
 enum SessionDeviceIcon: String, CaseIterable {
@@ -98,6 +100,77 @@ enum SessionLabels {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: ", ")
+    }
+
+    /// Line 1's label of a row, which its confirmation and screen-reader
+    /// action name too: the group's row label for a client session, else the
+    /// reported device type's.
+    static func rowDevice(_ session: SessionItem, group: SessionGroupKind?) -> String {
+        group?.rowLabel ?? device(session.lastUsed?.deviceType ?? "").label
+    }
+
+    /// A group's count as its header says it: the locale's digits and
+    /// grouping ("1,234"), then "+" while the list was truncated, when the
+    /// counts are lower bounds.
+    static func count(_ count: Int, truncated: Bool, locale: Locale = .current) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .decimal
+        let number = formatter.string(from: NSNumber(value: count)) ?? String(count)
+        return truncated ? number + "+" : number
+    }
+}
+
+/// The groups of client sessions below the device sign-ins, by the SDK's
+/// kinds (ClientSessionSnapshot.Groups): each names its header and its rows.
+enum SessionGroupKind: Equatable {
+    case hostedProxies
+    case apiClients
+    case pairedDevices
+    case otherClients
+
+    /// The SDK's kind; one this app does not know reads as other clients.
+    init(_ kind: String) {
+        switch kind {
+        case SdkClientSessionGroupHostedProxies:
+            self = .hostedProxies
+        case SdkClientSessionGroupApiClients:
+            self = .apiClients
+        case SdkClientSessionGroupPairedDevices:
+            self = .pairedDevices
+        default:
+            self = .otherClients
+        }
+    }
+
+    /// The label of the group's rows in place of the device type's:
+    /// "Hosted proxy".
+    var rowLabel: String {
+        switch self {
+        case .hostedProxies:
+            return String(localized: "Hosted proxy")
+        case .apiClients:
+            return String(localized: "API client")
+        case .pairedDevices:
+            return String(localized: "Paired device")
+        case .otherClients:
+            return String(localized: "Other client")
+        }
+    }
+
+    /// The header, with the count as SessionLabels.count formats it:
+    /// "Hosted proxies (1,234)".
+    func title(count: String) -> String {
+        switch self {
+        case .hostedProxies:
+            return String(format: String(localized: "Hosted proxies (%@)"), count)
+        case .apiClients:
+            return String(format: String(localized: "API clients (%@)"), count)
+        case .pairedDevices:
+            return String(format: String(localized: "Paired devices (%@)"), count)
+        case .otherClients:
+            return String(format: String(localized: "Other clients (%@)"), count)
+        }
     }
 }
 
@@ -204,7 +277,10 @@ struct SessionRowPresentation: Equatable, Identifiable {
     let shortId: String
     /// this app's session, tagged This session
     let isCurrent: Bool
+    /// line 1's label: the device type's, or the group's row label for a
+    /// client session
     let device: String
+    /// the reported device type's logo, in a group too
     let icon: SessionDeviceIcon
     /// the country circle's color
     let colorHex: String
@@ -223,22 +299,24 @@ struct SessionRowPresentation: Equatable, Identifiable {
     /// the last sign-out failed
     let signOutFailed: Bool
 
-    init(_ session: SessionItem, snapshot: SessionsSnapshot, now: Date, format: SessionTimeFormat) {
+    /// `group` is the group of a client session's row, nil for a sign-in.
+    init(_ session: SessionItem, group: SessionGroupKind? = nil, snapshot: SessionsSnapshot, now: Date, format: SessionTimeFormat) {
         let lastUsed = session.lastUsed
         let device = SessionLabels.device(lastUsed?.deviceType ?? "")
+        let label = SessionLabels.rowDevice(session, group: group)
         let place = SessionLabels.place(lastUsed)
         let action = snapshot.action(for: session.id)
 
         id = session.id
         shortId = String(session.id.prefix(8))
         isCurrent = snapshot.isCurrent(session)
-        self.device = device.label
+        self.device = label
         icon = device.icon
         colorHex = countryDotColorHex(lastUsed?.countryCode ?? "")
         self.place = place
 
         let version = (lastUsed?.appVersion ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        title = version.isEmpty ? device.label : "\(device.label) · \(version)"
+        title = version.isEmpty ? label : "\(label) · \(version)"
 
         if let lastUsed {
             // the server's Unix seconds
@@ -281,9 +359,22 @@ struct SessionRowPresentation: Equatable, Identifiable {
 
 extension SessionsSnapshot {
 
-    /// The rows, in the controller's order.
+    /// The rows of the shown sign-ins, in the controller's order. The screen
+    /// makes each as its list shows it, so a long list stays cheap.
     func rows(now: Date, format: SessionTimeFormat) -> [SessionRowPresentation] {
         sessions.map { SessionRowPresentation($0, snapshot: self, now: now, format: format) }
+    }
+
+    /// The rows of an open group, labeled as the group's.
+    func rows(in group: SessionGroupItem, now: Date, format: SessionTimeFormat) -> [SessionRowPresentation] {
+        let kind = SessionGroupKind(group.kind)
+        return group.sessions.map { SessionRowPresentation($0, group: kind, snapshot: self, now: now, format: format) }
+    }
+
+    /// A group's header: "Hosted proxies (1,234)", with "+" after the count
+    /// while the list was truncated.
+    func title(of group: SessionGroupItem, locale: Locale = .current) -> String {
+        SessionGroupKind(group.kind).title(count: SessionLabels.count(group.count, truncated: truncated, locale: locale))
     }
 
     /// The line under Sign out all other sessions once that sign-out failed;
@@ -311,7 +402,7 @@ extension SessionsConfirmation {
     /// The message, with the payout key's warning when this session's sign out
     /// leaves an unsaved key behind.
     func message(keyNeedsBackup: Bool) -> String {
-        if keyNeedsBackup, case .signOut(_, _, _, let current) = self, current {
+        if keyNeedsBackup, case .signOut(_, _, _, let current, _) = self, current {
             return message + "\n\n" + BittensorKeySignOut.warning
         }
         return message
@@ -328,15 +419,21 @@ extension SessionsConfirmation {
 
     var message: String {
         switch self {
-        case .signOut(_, let device, let place, let current):
+        case .signOut(_, let device, let place, let current, let hostedProxy):
             if current {
                 return String(localized: "This is the session you're using. This app will be signed out.")
+            }
+            if hostedProxy {
+                return String(localized: "This hosted proxy will stop working. Create a new one to replace it.")
             }
             if place.isEmpty {
                 return String(format: String(localized: "%@ will be signed out."), device)
             }
             return String(format: String(localized: "%@ in %@ will be signed out."), device, place)
-        case .signOutOthers:
+        case .signOutOthers(let keepsHostedProxies):
+            if keepsHostedProxies {
+                return String(localized: "Every other session in this list will be signed out, except hosted proxies. This session stays signed in. Anyone who knows your sign-in details can still sign in again.")
+            }
             return String(localized: "Every other session in this list will be signed out. This session stays signed in. Anyone who knows your sign-in details can still sign in again.")
         }
     }

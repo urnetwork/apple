@@ -412,14 +412,17 @@ struct BittensorKeyModelTests {
     // the sessions screen's own confirmation warns for this session only
     @Test func theSessionsConfirmationWarnsForThisSession() {
         let sessionId = "a-session"
-        let current = SessionsConfirmation.signOut(sessionId: sessionId, device: "Mac", place: "", current: true)
+        let current = SessionsConfirmation.signOut(sessionId: sessionId, device: "Mac", place: "", current: true, hostedProxy: false)
         #expect(current.message(keyNeedsBackup: false) == current.message)
         #expect(current.message(keyNeedsBackup: true).hasPrefix(current.message))
         #expect(current.message(keyNeedsBackup: true).hasSuffix(BittensorKeySignOut.warning))
 
-        let other = SessionsConfirmation.signOut(sessionId: sessionId, device: "Mac", place: "", current: false)
+        let other = SessionsConfirmation.signOut(sessionId: sessionId, device: "Mac", place: "", current: false, hostedProxy: false)
         #expect(other.message(keyNeedsBackup: true) == other.message)
-        #expect(SessionsConfirmation.signOutOthers.message(keyNeedsBackup: true) == SessionsConfirmation.signOutOthers.message)
+        for keepsHostedProxies in [false, true] {
+            let others = SessionsConfirmation.signOutOthers(keepsHostedProxies: keepsHostedProxies)
+            #expect(others.message(keyNeedsBackup: true) == others.message)
+        }
     }
 
     // MARK: the platform

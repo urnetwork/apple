@@ -36,7 +36,9 @@ struct SessionLastUsedItem: Equatable {
     var country: String = ""
     /// lower-case ISO alpha-2, or empty
     var countryCode: String = ""
-    /// android, ios, macos, windows, linux, web, cli, server or unknown
+    /// the sdk's device kind (LastUsed.DeviceKind): android, ios, macos,
+    /// windows, linux, web, extension (the browser extension), cli, server or
+    /// unknown
     var deviceType: String = "unknown"
     /// the version reported with that use; empty when unknown
     var appVersion: String = ""
@@ -674,7 +676,9 @@ extension SessionItem {
                     region: lastUsed.region,
                     country: lastUsed.country,
                     countryCode: lastUsed.countryCode,
-                    deviceType: lastUsed.deviceType,
+                    // the sdk's kind names the browser extension; a type from
+                    // an sdk without it is the same for every other device
+                    deviceType: lastUsed.deviceKind.isEmpty ? lastUsed.deviceType : lastUsed.deviceKind,
                     appVersion: lastUsed.appVersion
                 )
             }

@@ -34,8 +34,9 @@ enum SessionDeviceIcon: String, CaseIterable {
 /// The labels of a session's metadata.
 enum SessionLabels {
 
-    /// The label and logo of a reported device type. Anything else, empty
-    /// included, is an unknown device.
+    /// The label and logo of a reported device kind (the sdk's
+    /// LastUsed.DeviceKind: a device type, or extension for the browser
+    /// extension). Anything else, empty included, is an unknown device.
     static func device(_ deviceType: String) -> (label: String, icon: SessionDeviceIcon) {
         switch deviceType {
         case "android":
@@ -50,6 +51,9 @@ enum SessionLabels {
             return (String(localized: "Linux"), .linux)
         case "web":
             return (String(localized: "Web"), .web)
+        case SdkSessionDeviceKindExtension:
+            // the browser extension's own sign-in: a browser, with the web logo
+            return (String(localized: "Browser extension"), .web)
         case "cli":
             return (String(localized: "Command line"), .cli)
         case "server":

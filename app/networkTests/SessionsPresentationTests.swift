@@ -88,6 +88,7 @@ struct SessionsPresentationTests {
             ("windows", "Windows", .windows),
             ("linux", "Linux", .linux),
             ("web", "Web", .web),
+            ("extension", "Browser extension", .web),
             ("cli", "Command line", .cli),
             ("server", "Server", .server),
             ("unknown", "Unknown device", .unknown),

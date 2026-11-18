@@ -2079,9 +2079,15 @@ extension DeviceManager {
     }
 
     /// The main screens showed the account's sign-in notice and the user
-    /// dismissed it.
+    /// dismissed it. The SDK keeps the notice in the device's local state and
+    /// reports it again after a restart until this ends it there
+    /// (Api.DismissAccountSignInNotice), its storage write off the main actor.
     func dismissAccountSignInNotice() {
         accountSignInNotice = nil
+        guard let api else { return }
+        Task.detached(priority: .utility) {
+            api.dismissAccountSignInNotice()
+        }
     }
 
     func retireDeviceAuthCallbacks() {

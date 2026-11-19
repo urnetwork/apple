@@ -53,6 +53,7 @@ struct SettingsView: View {
                 urApiService: api,
                 clientId: clientId,
                 version: viewModel.version,
+                presentReleaseNotes: viewModel.presentReleaseNotes,
                 isUpdatingAccountPreferences: accountPreferencesViewModel.isUpdatingAccountPreferences,
                 copyToPasteboard: copyToPasteboard,
                 presentDeleteAccountConfirmation: {
@@ -73,6 +74,7 @@ struct SettingsView: View {
             .task {
                 await viewModel.fetchDeviceInfo(clientId)
             }
+            .releaseNotesSheet(isPresented: $viewModel.isPresentedReleaseNotes, presentation: viewModel.releaseNotes)
             .alert("Device name", isPresented: $viewModel.isPresentedRenameDevice) {
                 TextField("Device name", text: $viewModel.editingDeviceName)
                 Button("Save") {
@@ -165,6 +167,7 @@ struct SettingsView: View {
                 urApiService: api,
                 clientId: clientId,
                 version: viewModel.version,
+                presentReleaseNotes: viewModel.presentReleaseNotes,
                 isUpdatingAccountPreferences: accountPreferencesViewModel.isUpdatingAccountPreferences,
                 copyToPasteboard: copyToPasteboard,
                 presentDeleteAccountConfirmation: {
@@ -185,6 +188,7 @@ struct SettingsView: View {
             .task {
                 await viewModel.fetchDeviceInfo(clientId)
             }
+            .releaseNotesSheet(isPresented: $viewModel.isPresentedReleaseNotes, presentation: viewModel.releaseNotes)
             .alert("Device name", isPresented: $viewModel.isPresentedRenameDevice) {
                 TextField("Device name", text: $viewModel.editingDeviceName)
                 Button("Save") {

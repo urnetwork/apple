@@ -25,6 +25,9 @@ struct SettingsForm_macOS: View {
     let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
     let version: String
+    // opens the release notes from the version card; nil when the app has
+    // none, and the card is not tappable
+    let presentReleaseNotes: (() -> Void)?
     let isUpdatingAccountPreferences: Bool
     let copyToPasteboard: (_ value: String) -> Void
     let presentDeleteAccountConfirmation: () -> Void
@@ -744,15 +747,22 @@ struct SettingsForm_macOS: View {
                         Spacer()
                     }
                     
-                    HStack {
-                        Text(version.isEmpty ? "0.0.0" : version)
-                            .font(themeManager.currentTheme.bodyFont)
-
-                        Spacer()
+                    /**
+                     * Version, which opens the release notes
+                     */
+                    if let presentReleaseNotes {
+                        Button(action: presentReleaseNotes) {
+                            versionCard
+                                .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        // the card's label is the one above it
+                        .accessibilityLabel(Text("Version and Build info"))
+                        .accessibilityValue(Text(verbatim: version.isEmpty ? "0.0.0" : version))
+                        .accessibilityHint("Release notes")
+                    } else {
+                        versionCard
                     }
-                    .padding()
-                    .background(themeManager.currentTheme.tintedBackgroundBase)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                     Spacer().frame(height: 16)
 
@@ -806,6 +816,26 @@ struct SettingsForm_macOS: View {
         }
     }
     
+    /// The version and build, with the chevron of the cards that open
+    /// something when it opens the release notes.
+    private var versionCard: some View {
+        HStack {
+            Text(version.isEmpty ? "0.0.0" : version)
+                .font(themeManager.currentTheme.bodyFont)
+
+            Spacer()
+
+            if presentReleaseNotes != nil {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding()
+        .background(themeManager.currentTheme.tintedBackgroundBase)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
 }
 #endif
 

@@ -34,6 +34,14 @@ extension SettingsView {
         
         @Published var version: String = ""
         
+        /**
+         * Release notes: the version row opens the bundled note, in the app's
+         * language, under this version. Nil when the app has no note, and
+         * the row opens nothing.
+         */
+        let releaseNotes: ReleaseNotesPresentation?
+        @Published var isPresentedReleaseNotes: Bool = false
+
         var networkUserViewModel: NetworkUserViewModel?
         
         init(api: UrApiServiceProtocol, networkUserViewModel: NetworkUserViewModel? = nil) {
@@ -44,10 +52,26 @@ extension SettingsView {
             self.launchAtStartupEnabled = SMAppService.mainApp.status == .enabled
             #endif
             
+            let version = Sdk.version()
+            self.releaseNotes = ReleaseNotes.bundled?.presentation(
+                version: version,
+                localization: ReleaseNotes.appLocalization
+            )
+
             checkNotificationSettings()
             
-            self.version = Sdk.version()
+            self.version = version
             
+        }
+
+        /// Opens the release notes; nil when there are none to open.
+        var presentReleaseNotes: (() -> Void)? {
+            guard releaseNotes != nil else {
+                return nil
+            }
+            return { [weak self] in
+                self?.isPresentedReleaseNotes = true
+            }
         }
         
         private var isCheckingNotificationSettings = true

@@ -20,6 +20,9 @@ struct SettingsForm_iOS: View {
     let urApiService: UrApiServiceProtocol
     let clientId: SdkId?;
     let version: String
+    // opens the release notes from the version row; nil when the app has
+    // none, and the row is not tappable
+    let presentReleaseNotes: (() -> Void)?
     let isUpdatingAccountPreferences: Bool
     let copyToPasteboard: (_ value: String) -> Void
     let presentDeleteAccountConfirmation: () -> Void
@@ -453,15 +456,18 @@ struct SettingsForm_iOS: View {
             }
             
             Section("General") {
-                HStack {
-
-                    Text("Version and Build info")
-                        .font(themeManager.currentTheme.bodyFont)
-
-                    Spacer()
-
-                    Text(version.isEmpty ? "0.0.0" : version)
-                        .font(themeManager.currentTheme.bodyFont)
+                /**
+                 * Version, which opens the release notes
+                 */
+                if let presentReleaseNotes {
+                    Button(action: presentReleaseNotes) {
+                        versionRow
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Release notes")
+                } else {
+                    versionRow
                 }
 
                 Link(destination: URL(string: "https://ur.xyz")!) {
@@ -513,6 +519,27 @@ struct SettingsForm_iOS: View {
         .background(themeManager.currentTheme.backgroundColor)
     }
     
+    /// The version and build, with the chevron of the rows that open
+    /// something when it opens the release notes.
+    private var versionRow: some View {
+        HStack {
+
+            Text("Version and Build info")
+                .font(themeManager.currentTheme.bodyFont)
+
+            Spacer()
+
+            Text(version.isEmpty ? "0.0.0" : version)
+                .font(themeManager.currentTheme.bodyFont)
+
+            if presentReleaseNotes != nil {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+
 }
 #endif
 

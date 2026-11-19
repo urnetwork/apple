@@ -3,9 +3,10 @@
 //  URnetwork
 //
 //  The bundled release note (ReleaseNotes.swift), opened by tapping the
-//  version in Account > Settings on iOS and macOS: the note's title, the
-//  running version and the release date, the intro, then each section's
-//  heading and bullets. The note's text is the store's, shown as written.
+//  version in Account > Settings on iOS and macOS: the note's title, its
+//  version and date, the intro, then each section's heading and bullets.
+//  The note's text is the store's, shown as written and laid out in the
+//  note's own direction; the sheet's title and close button keep the app's.
 //
 
 import SwiftUI
@@ -50,6 +51,10 @@ struct ReleaseNotesSheet: View {
 
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // the note reads in its own language's direction, so the
+                // English fallback runs left to right in an Arabic or Hebrew
+                // app, its punctuation included
+                .environment(\.layoutDirection, presentation.isRightToLeft ? .rightToLeft : .leftToRight)
                 .padding(.horizontal)
                 // a wide window keeps the note in the readable column
                 .tabletReadableColumn()

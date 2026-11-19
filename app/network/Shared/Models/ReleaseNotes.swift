@@ -7,7 +7,9 @@
 //  generated from the localizations store (release-notes/latest.yaml, by
 //  `npm run gen`), so never edit it by hand. It carries the latest release
 //  only: `en` always, and any other store locale the note was written in.
-//  Kept pure, so the decoding and the choice of locale are unit tested.
+//  Every app shows it by one rule (localizations README.md, "Release
+//  notes"): the language, the "<version> · <date>" line and the direction
+//  below. Kept pure, so the decoding and the rule are unit tested.
 //
 
 import Foundation
@@ -71,32 +73,85 @@ struct ReleaseNotes: Decodable, Equatable {
     }
 
     /// The language the app's own strings show in ("pt-BR", "zh-Hans"),
-    /// so the note reads in the language of the screen around it.
+    /// which the note follows.
     static var appLocalization: String {
         Bundle.main.preferredLocalizations.first ?? Locale.current.identifier
     }
 
-    /// The note for `localization`, an app localization or a locale
-    /// identifier ("pt-BR", "pt_BR", "zh-Hans"): that exact locale, else its
-    /// language ("pt-BR" reads the "pt" note), else `en`. Nil only when the
-    /// file has no `en`.
+    /// The store locale of the note to show for `localization`, an app
+    /// localization or a locale identifier ("pt-BR", "pt_BR", "zh-Hans"):
+    /// - that exact store locale;
+    /// - else the same language in another form: the bare language first
+    ///   ("pt-BR" reads "pt"), then another region of it ("pt-PT" reads
+    ///   "pt-BR"; the first alphabetically when there are several);
+    /// - never across Chinese scripts: the store's zh is Simplified and
+    ///   zh-HK Traditional, so zh-Hans, zh-CN and zh-SG read only zh, and
+    ///   zh-Hant, zh-HK, zh-TW and zh-MO read only zh-HK;
+    /// - else en.
+    /// Nil only when the file has no `en`.
+    func noteLocale(for localization: String) -> String? {
+        let wanted = Self.normalized(localization)
+        if let exact = storeLocale(matching: wanted) {
+            return exact
+        }
+        let subtags = wanted.split(separator: "-").map(String.init)
+        if let language = subtags.first?.lowercased() {
+            if language == "zh" {
+                if let chinese = storeLocale(matching: Self.chineseStoreLocale(subtags)) {
+                    return chinese
+                }
+            } else {
+                if let bare = storeLocale(matching: language) {
+                    return bare
+                }
+                let regions = locales.keys
+                    .filter { $0.split(separator: "-").first?.lowercased() == language }
+                    .sorted()
+                if let region = regions.first {
+                    return region
+                }
+            }
+        }
+        return storeLocale(matching: "en")
+    }
+
+    /// The note to show for `localization` (noteLocale(for:)).
     func note(for localization: String) -> Note? {
-        let wanted = localization.replacingOccurrences(of: "_", with: "-")
-        if let note = note(exactly: wanted) {
-            return note
-        }
-        if let language = wanted.split(separator: "-").first,
-           let note = note(exactly: String(language)) {
-            return note
-        }
-        return locales["en"]
+        noteLocale(for: localization).flatMap { locales[$0] }
     }
 
-    private func note(exactly locale: String) -> Note? {
-        locales.first { $0.key.caseInsensitiveCompare(locale) == .orderedSame }?.value
+    /// The file's own spelling of `locale`, matched whatever its case.
+    private func storeLocale(matching locale: String) -> String? {
+        locales.keys.first { $0.caseInsensitiveCompare(locale) == .orderedSame }
     }
 
-    /// The release date in `locale`'s long style ("November 19, 2026"); nil
+    /// `identifier` with "-" between its subtags and without its keywords
+    /// ("en_US@calendar=buddhist" is "en-US").
+    private static func normalized(_ identifier: String) -> String {
+        let withoutKeywords = identifier.split(separator: "@", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""
+        return withoutKeywords
+            .replacingOccurrences(of: "_", with: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// The store's Chinese for a Chinese identifier's subtags: zh-HK for the
+    /// Traditional script (Hant, or no script and the region HK, TW or MO),
+    /// else zh, the Simplified.
+    private static func chineseStoreLocale(_ subtags: [String]) -> String {
+        let rest = subtags.dropFirst().map { $0.lowercased() }
+        if rest.contains("hant") {
+            return "zh-HK"
+        }
+        if rest.contains("hans") {
+            return "zh"
+        }
+        if rest.contains(where: { ["hk", "tw", "mo"].contains($0) }) {
+            return "zh-HK"
+        }
+        return "zh"
+    }
+
+    /// The release date in `locale`'s medium style ("Nov 19, 2026"); nil
     /// when the date is not YYYY-MM-DD. The date is a calendar day, so it is
     /// placed and shown in UTC and reads the same day in every time zone.
     func formattedDate(locale: Locale = .current, calendar: Calendar = .current) -> String? {
@@ -114,35 +169,38 @@ struct ReleaseNotes: Decodable, Equatable {
             return nil
         }
         return releaseDay.formatted(
-            Date.FormatStyle(date: .long, time: .omitted, locale: locale, calendar: calendar, timeZone: utc)
+            Date.FormatStyle(date: .abbreviated, time: .omitted, locale: locale, calendar: calendar, timeZone: utc)
         )
     }
 
-    /// What the sheet shows for `localization`: the note, under the running
-    /// app's `version` and the release date. Nil when there is no note to
-    /// show.
+    /// What the sheet shows for `localization`: the note, under its own
+    /// version and date. Never the running build's version: a later build
+    /// carries the same note, and its version beside this note's date would
+    /// pair two releases. The date reads in the reader's `locale`. Nil when
+    /// there is no note to show.
     func presentation(
-        version: String,
         localization: String,
         locale: Locale = .current,
         calendar: Calendar = .current
     ) -> ReleaseNotesPresentation? {
-        guard let note = note(for: localization) else {
+        guard let noteLocale = noteLocale(for: localization), let note = locales[noteLocale] else {
             return nil
         }
-        let version = version.trimmingCharacters(in: .whitespacesAndNewlines)
+        let version = self.version.trimmingCharacters(in: .whitespacesAndNewlines)
         let facts = [version, formattedDate(locale: locale, calendar: calendar) ?? ""].filter { !$0.isEmpty }
-        return ReleaseNotesPresentation(note: note, facts: facts)
+        return ReleaseNotesPresentation(note: note, noteLocale: noteLocale, facts: facts)
     }
 }
 
 /// The release notes sheet's content.
 struct ReleaseNotesPresentation: Equatable {
     let note: ReleaseNotes.Note
-    /// The running version and the release date, each when known.
+    /// The store locale the note is written in ("en", "ar").
+    let noteLocale: String
+    /// The note's version and date, each when known.
     let facts: [String]
 
-    /// The line under the title: "2026.11.19+1066894190 · November 19, 2026".
+    /// The line under the title: "2026.11 · Nov 19, 2026".
     var subtitle: String {
         facts.joined(separator: " · ")
     }
@@ -150,5 +208,12 @@ struct ReleaseNotesPresentation: Equatable {
     /// The same line read aloud, without the separator glyph.
     var subtitleAccessibilityLabel: String {
         facts.joined(separator: ", ")
+    }
+
+    /// Whether the note's language reads right to left (ar, he). The note is
+    /// laid out in its own direction, so the English one reads left to right
+    /// in an Arabic or Hebrew app.
+    var isRightToLeft: Bool {
+        Locale.Language(identifier: noteLocale).characterDirection == .rightToLeft
     }
 }

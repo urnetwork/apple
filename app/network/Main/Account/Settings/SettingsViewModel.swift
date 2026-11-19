@@ -36,8 +36,9 @@ extension SettingsView {
         
         /**
          * Release notes: the version row opens the bundled note, in the app's
-         * language, under this version. Nil when the app has no note, and
-         * the row opens nothing.
+         * language, under the note's own version and date (the row keeps
+         * showing this build's). Nil when the app has no note, and the row
+         * opens nothing.
          */
         let releaseNotes: ReleaseNotesPresentation?
         @Published var isPresentedReleaseNotes: Bool = false
@@ -52,15 +53,11 @@ extension SettingsView {
             self.launchAtStartupEnabled = SMAppService.mainApp.status == .enabled
             #endif
             
-            let version = Sdk.version()
-            self.releaseNotes = ReleaseNotes.bundled?.presentation(
-                version: version,
-                localization: ReleaseNotes.appLocalization
-            )
+            self.releaseNotes = ReleaseNotes.bundled?.presentation(localization: ReleaseNotes.appLocalization)
 
             checkNotificationSettings()
             
-            self.version = version
+            self.version = Sdk.version()
             
         }
 

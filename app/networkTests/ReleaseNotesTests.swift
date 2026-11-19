@@ -7,11 +7,13 @@ import Foundation
 import Testing
 @testable import URnetwork
 
-/// The bundled release note that the version in Account > Settings opens:
+/// The bundled release note that the version in Account > Settings opens,
+/// by the rule every app follows (localizations README.md, "Release notes"):
 /// the generated file decodes and ships in the app, a missing or invalid
-/// file opens nothing, the note reads in the exact locale, else its
-/// language, else English, and the line under the title is the running
-/// version and the release date.
+/// file opens nothing, the note reads in the exact store locale, else the
+/// same language in another form (never across Chinese scripts), else
+/// English, the line under the title is the note's own version and its
+/// date in the reader's medium style, and the note keeps its own direction.
 struct ReleaseNotesTests {
 
     // …/apple/app/networkTests/ReleaseNotesTests.swift -> …/apple/app
@@ -27,11 +29,12 @@ struct ReleaseNotesTests {
         try ReleaseNotes.decode(Data(json.utf8))
     }
 
-    private static func notes(_ locales: [String: String]) -> ReleaseNotes {
+    /// A note in each of `locales`, titled with its locale.
+    private static func notes(_ locales: [String], version: String = "2026.11", date: String = "2026-11-19") -> ReleaseNotes {
         ReleaseNotes(
-            version: "2026.11",
-            date: "2026-11-19",
-            locales: locales.mapValues { ReleaseNotes.Note(title: $0) }
+            version: version,
+            date: date,
+            locales: Dictionary(uniqueKeysWithValues: locales.map { ($0, ReleaseNotes.Note(title: $0)) })
         )
     }
 
@@ -104,91 +107,126 @@ struct ReleaseNotesTests {
         #expect(notes.locales["en"] == ReleaseNotes.Note(title: "What's new", intro: nil, sections: []))
     }
 
-    // MARK: the locale
+    // MARK: the language
 
-    @Test func theNoteIsTheExactLocaleThenItsLanguageThenEnglish() {
-        let notes = Self.notes([
-            "en": "What's new", "pt": "Novidades (pt)", "pt-BR": "Novidades (pt-BR)",
-            "es-419": "Novedades (es-419)", "es": "Novedades (es)", "zh": "新功能",
-        ])
-        // the exact locale, whatever its case or separator
-        #expect(notes.note(for: "pt-BR")?.title == "Novidades (pt-BR)")
-        #expect(notes.note(for: "pt_BR")?.title == "Novidades (pt-BR)")
-        #expect(notes.note(for: "PT-br")?.title == "Novidades (pt-BR)")
-        #expect(notes.note(for: "es-419")?.title == "Novedades (es-419)")
-        // else its language: the apple localization zh-Hans is the store's zh
-        #expect(notes.note(for: "pt-PT")?.title == "Novidades (pt)")
-        #expect(notes.note(for: "es-AR")?.title == "Novedades (es)")
-        #expect(notes.note(for: "zh-Hans")?.title == "新功能")
-        #expect(notes.note(for: "zh-Hans_CN")?.title == "新功能")
+    @Test func theNoteIsTheExactLocaleThenTheBareLanguageThenAnotherRegion() {
+        let notes = Self.notes(["en", "pt", "pt-BR", "es-419", "es-MX"])
+        // the exact store locale, whatever its case or separator
+        #expect(notes.noteLocale(for: "pt-BR") == "pt-BR")
+        #expect(notes.noteLocale(for: "pt_BR") == "pt-BR")
+        #expect(notes.noteLocale(for: "PT-br") == "pt-BR")
+        #expect(notes.noteLocale(for: "es-419") == "es-419")
+        // else the bare language first
+        #expect(notes.noteLocale(for: "pt-PT") == "pt")
+        // then another region of it, the first alphabetically
+        #expect(notes.noteLocale(for: "es") == "es-419")
+        #expect(notes.noteLocale(for: "es-AR") == "es-419")
         // else English
-        #expect(notes.note(for: "fr")?.title == "What's new")
-        #expect(notes.note(for: "en_GB")?.title == "What's new")
-        #expect(notes.note(for: "")?.title == "What's new")
+        #expect(notes.noteLocale(for: "fr") == "en")
+        #expect(notes.noteLocale(for: "en_GB") == "en")
+        #expect(notes.noteLocale(for: "en_US@calendar=buddhist") == "en")
+        #expect(notes.noteLocale(for: "") == "en")
+        #expect(notes.note(for: "pt-PT")?.title == "pt")
     }
 
-    @Test func aRegionalNoteIsNotTheLanguages() {
-        // a pt-BR note does not stand in for pt: only the language is a fallback
-        let notes = Self.notes(["en": "What's new", "pt-BR": "Novidades"])
-        #expect(notes.note(for: "pt-BR")?.title == "Novidades")
-        #expect(notes.note(for: "pt")?.title == "What's new")
-        #expect(notes.note(for: "pt-PT")?.title == "What's new")
+    @Test func anotherRegionStandsInWithoutTheBareLanguage() {
+        #expect(Self.notes(["en", "pt-BR"]).noteLocale(for: "pt-PT") == "pt-BR")
+        #expect(Self.notes(["en", "pt-BR"]).noteLocale(for: "pt") == "pt-BR")
+        #expect(Self.notes(["en", "pt-PT"]).noteLocale(for: "pt-BR") == "pt-PT")
+        #expect(Self.notes(["en", "pt-BR", "pt-PT"]).noteLocale(for: "pt") == "pt-BR")
+        #expect(Self.notes(["en", "pt-BR", "pt-PT"]).noteLocale(for: "pt-AO") == "pt-BR")
+    }
+
+    @Test func chineseNeverCrossesScripts() {
+        let both = Self.notes(["en", "zh", "zh-HK"])
+        for simplified in ["zh", "zh-Hans", "zh-CN", "zh-SG", "zh-Hans-CN", "zh_Hans_CN", "zh-Hans-SG"] {
+            #expect(both.noteLocale(for: simplified) == "zh", "\(simplified)")
+        }
+        for traditional in ["zh-Hant", "zh-HK", "zh-TW", "zh-MO", "zh-Hant-TW", "zh-Hant-HK", "zh_Hant_MO"] {
+            #expect(both.noteLocale(for: traditional) == "zh-HK", "\(traditional)")
+        }
+
+        // a note in one script never stands in for the other
+        let simplifiedOnly = Self.notes(["en", "zh"])
+        #expect(simplifiedOnly.noteLocale(for: "zh-Hans") == "zh")
+        for traditional in ["zh-Hant", "zh-HK", "zh-TW", "zh-MO"] {
+            #expect(simplifiedOnly.noteLocale(for: traditional) == "en", "\(traditional)")
+        }
+        let traditionalOnly = Self.notes(["en", "zh-HK"])
+        #expect(traditionalOnly.noteLocale(for: "zh-TW") == "zh-HK")
+        for simplified in ["zh", "zh-Hans", "zh-CN", "zh-SG"] {
+            #expect(traditionalOnly.noteLocale(for: simplified) == "en", "\(simplified)")
+        }
     }
 
     @Test func withoutEnglishAnUnmatchedLocaleHasNoNote() {
-        let notes = Self.notes(["de": "Neuigkeiten"])
-        #expect(notes.note(for: "de-AT")?.title == "Neuigkeiten")
+        let notes = Self.notes(["de"])
+        #expect(notes.noteLocale(for: "de-AT") == "de")
+        #expect(notes.noteLocale(for: "fr") == nil)
         #expect(notes.note(for: "fr") == nil)
-        #expect(notes.presentation(version: "2026.11.19", localization: "fr") == nil)
+        #expect(notes.presentation(localization: "fr") == nil)
     }
 
     // MARK: the line under the title
 
-    @Test func theDateIsTheCalendarDayInTheReadersLanguage() {
-        let notes = Self.notes(["en": "What's new"])
-        #expect(notes.formattedDate(locale: Locale(identifier: "en_US"), calendar: Self.gregorian) == "November 19, 2026")
-        #expect(notes.formattedDate(locale: Locale(identifier: "de_DE"), calendar: Self.gregorian) == "19. November 2026")
+    @Test func theDateIsTheCalendarDayInTheReadersMediumStyle() {
+        let notes = Self.notes(["en"])
+        #expect(notes.formattedDate(locale: Locale(identifier: "en_US"), calendar: Self.gregorian) == "Nov 19, 2026")
+        #expect(notes.formattedDate(locale: Locale(identifier: "de_DE"), calendar: Self.gregorian) == "19. Nov. 2026")
     }
 
     @Test func aDateThatIsNotADayIsNotShown() {
         for date in ["", "soon", "2026-11", "2026-1-9", "2026-13-01", "2026-02-31", "2026-11-19T00:00:00Z", "20261119"] {
-            let notes = ReleaseNotes(version: "2026.11", date: date, locales: ["en": ReleaseNotes.Note(title: "What's new")])
+            let notes = Self.notes(["en"], date: date)
             #expect(notes.formattedDate(locale: Locale(identifier: "en_US"), calendar: Self.gregorian) == nil, "\(date)")
         }
     }
 
-    @Test func theSubtitleIsTheRunningVersionAndTheDate() throws {
-        let notes = Self.notes(["en": "What's new", "de": "Neuigkeiten"])
+    @Test func theLineIsTheNotesOwnVersionAndDate() throws {
+        let notes = Self.notes(["en", "de"])
         let english = try #require(notes.presentation(
-            version: "2026.11.19+1066894190",
             localization: "en",
             locale: Locale(identifier: "en_US"),
             calendar: Self.gregorian
         ))
-        #expect(english.note.title == "What's new")
-        #expect(english.subtitle == "2026.11.19+1066894190 · November 19, 2026")
-        #expect(english.subtitleAccessibilityLabel == "2026.11.19+1066894190, November 19, 2026")
+        #expect(english.noteLocale == "en")
+        #expect(english.subtitle == "2026.11 · Nov 19, 2026")
+        #expect(english.subtitleAccessibilityLabel == "2026.11, Nov 19, 2026")
 
         let german = try #require(notes.presentation(
-            version: "2026.11.19+1066894190",
             localization: "de",
             locale: Locale(identifier: "de_DE"),
             calendar: Self.gregorian
         ))
-        #expect(german.note.title == "Neuigkeiten")
-        #expect(german.subtitle == "2026.11.19+1066894190 · 19. November 2026")
+        #expect(german.note.title == "de")
+        #expect(german.subtitle == "2026.11 · 19. Nov. 2026")
 
-        // a build without a version shows the date alone
-        let unversioned = try #require(notes.presentation(
-            version: " ",
-            localization: "en",
-            locale: Locale(identifier: "en_US"),
+        // the English fallback still dates in the reader's format
+        let french = try #require(notes.presentation(
+            localization: "fr",
+            locale: Locale(identifier: "fr_FR"),
             calendar: Self.gregorian
         ))
-        #expect(unversioned.subtitle == "November 19, 2026")
+        #expect(french.noteLocale == "en")
+        #expect(french.subtitle == "2026.11 · 19 nov. 2026")
 
-        // a date that is not a day leaves the version alone
-        let undated = ReleaseNotes(version: "2026.11", date: "soon", locales: ["en": ReleaseNotes.Note(title: "What's new")])
-        #expect(undated.presentation(version: "2026.11.19", localization: "en")?.subtitle == "2026.11.19")
+        // without a version the date stands alone, and without a day the version
+        let unversioned = Self.notes(["en"], version: " ")
+        #expect(unversioned.presentation(localization: "en", locale: Locale(identifier: "en_US"), calendar: Self.gregorian)?.subtitle == "Nov 19, 2026")
+        #expect(Self.notes(["en"], date: "soon").presentation(localization: "en")?.subtitle == "2026.11")
+    }
+
+    // MARK: the direction
+
+    @Test func theNoteKeepsItsOwnDirection() throws {
+        let arabic = try #require(Self.notes(["en", "ar"]).presentation(localization: "ar"))
+        #expect(arabic.noteLocale == "ar")
+        #expect(arabic.isRightToLeft)
+        #expect(try #require(Self.notes(["en", "he"]).presentation(localization: "he")).isRightToLeft)
+
+        // the English fallback in an Arabic app reads left to right
+        let fallback = try #require(Self.notes(["en"]).presentation(localization: "ar"))
+        #expect(fallback.noteLocale == "en")
+        #expect(!fallback.isRightToLeft)
     }
 }

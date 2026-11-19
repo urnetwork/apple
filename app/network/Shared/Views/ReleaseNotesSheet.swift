@@ -3,8 +3,9 @@
 //  URnetwork
 //
 //  The bundled release note (ReleaseNotes.swift), opened by tapping the
-//  version in Account > Settings on iOS and macOS: the note's title, its
-//  version and date, the intro, then each section's heading and bullets.
+//  version in Account > Settings on iOS and macOS: the note's title, the
+//  running build's version beside the note's date, the intro, then each
+//  section's heading and bullets.
 //  The note's text is the store's, shown as written and laid out in the
 //  note's own direction; the sheet's title and close button keep the app's.
 //

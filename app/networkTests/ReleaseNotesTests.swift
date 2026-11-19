@@ -12,8 +12,9 @@ import Testing
 /// the generated file decodes and ships in the app, a missing or invalid
 /// file opens nothing, the note reads in the exact store locale, else the
 /// same language in another form (never across Chinese scripts), else
-/// English, the line under the title is the note's own version and its
-/// date in the reader's medium style, and the note keeps its own direction.
+/// English, the line under the title is the running build's version beside
+/// the note's date in the reader's medium style, and the note keeps its own
+/// direction.
 struct ReleaseNotesTests {
 
     // …/apple/app/networkTests/ReleaseNotesTests.swift -> …/apple/app
@@ -24,6 +25,9 @@ struct ReleaseNotesTests {
     private final class TestBundleMarker {}
 
     private static let gregorian = Calendar(identifier: .gregorian)
+
+    /// A running build's version, as the Settings row shows it.
+    private static let buildVersion = "2026.11.19+1103049750"
 
     private static func decode(_ json: String) throws -> ReleaseNotes {
         try ReleaseNotes.decode(Data(json.utf8))
@@ -164,7 +168,7 @@ struct ReleaseNotesTests {
         #expect(notes.noteLocale(for: "de-AT") == "de")
         #expect(notes.noteLocale(for: "fr") == nil)
         #expect(notes.note(for: "fr") == nil)
-        #expect(notes.presentation(localization: "fr") == nil)
+        #expect(notes.presentation(version: Self.buildVersion, localization: "fr") == nil)
     }
 
     // MARK: the line under the title
@@ -182,50 +186,57 @@ struct ReleaseNotesTests {
         }
     }
 
-    @Test func theLineIsTheNotesOwnVersionAndDate() throws {
-        let notes = Self.notes(["en", "de"])
+    @Test func theLineIsTheRunningVersionBesideTheNotesDate() throws {
+        // the note's own version (2026.11) is not shown: the build's is,
+        // exactly as the Settings row shows it (owner 2026-11-19)
+        let notes = Self.notes(["en", "de"], version: "2026.11")
         let english = try #require(notes.presentation(
+            version: Self.buildVersion,
             localization: "en",
             locale: Locale(identifier: "en_US"),
             calendar: Self.gregorian
         ))
         #expect(english.noteLocale == "en")
-        #expect(english.subtitle == "2026.11 · Nov 19, 2026")
-        #expect(english.subtitleAccessibilityLabel == "2026.11, Nov 19, 2026")
+        #expect(english.subtitle == "2026.11.19+1103049750 · Nov 19, 2026")
+        #expect(english.subtitleAccessibilityLabel == "2026.11.19+1103049750, Nov 19, 2026")
 
         let german = try #require(notes.presentation(
+            version: Self.buildVersion,
             localization: "de",
             locale: Locale(identifier: "de_DE"),
             calendar: Self.gregorian
         ))
         #expect(german.note.title == "de")
-        #expect(german.subtitle == "2026.11 · 19. Nov. 2026")
+        #expect(german.subtitle == "2026.11.19+1103049750 · 19. Nov. 2026")
 
         // the English fallback still dates in the reader's format
         let french = try #require(notes.presentation(
+            version: Self.buildVersion,
             localization: "fr",
             locale: Locale(identifier: "fr_FR"),
             calendar: Self.gregorian
         ))
         #expect(french.noteLocale == "en")
-        #expect(french.subtitle == "2026.11 · 19 nov. 2026")
+        #expect(french.subtitle == "2026.11.19+1103049750 · 19 nov. 2026")
 
-        // without a version the date stands alone, and without a day the version
-        let unversioned = Self.notes(["en"], version: " ")
-        #expect(unversioned.presentation(localization: "en", locale: Locale(identifier: "en_US"), calendar: Self.gregorian)?.subtitle == "Nov 19, 2026")
-        #expect(Self.notes(["en"], date: "soon").presentation(localization: "en")?.subtitle == "2026.11")
+        // the row's stand-in for a build without a version shows as the row shows it
+        #expect(notes.presentation(version: "0.0.0", localization: "en", locale: Locale(identifier: "en_US"), calendar: Self.gregorian)?.subtitle == "0.0.0 · Nov 19, 2026")
+
+        // a blank version leaves the date alone, and a date that is not a day the version
+        #expect(notes.presentation(version: " ", localization: "en", locale: Locale(identifier: "en_US"), calendar: Self.gregorian)?.subtitle == "Nov 19, 2026")
+        #expect(Self.notes(["en"], date: "soon").presentation(version: Self.buildVersion, localization: "en")?.subtitle == "2026.11.19+1103049750")
     }
 
     // MARK: the direction
 
     @Test func theNoteKeepsItsOwnDirection() throws {
-        let arabic = try #require(Self.notes(["en", "ar"]).presentation(localization: "ar"))
+        let arabic = try #require(Self.notes(["en", "ar"]).presentation(version: Self.buildVersion, localization: "ar"))
         #expect(arabic.noteLocale == "ar")
         #expect(arabic.isRightToLeft)
-        #expect(try #require(Self.notes(["en", "he"]).presentation(localization: "he")).isRightToLeft)
+        #expect(try #require(Self.notes(["en", "he"]).presentation(version: Self.buildVersion, localization: "he")).isRightToLeft)
 
         // the English fallback in an Arabic app reads left to right
-        let fallback = try #require(Self.notes(["en"]).presentation(localization: "ar"))
+        let fallback = try #require(Self.notes(["en"]).presentation(version: Self.buildVersion, localization: "ar"))
         #expect(fallback.noteLocale == "en")
         #expect(!fallback.isRightToLeft)
     }

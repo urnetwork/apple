@@ -173,12 +173,12 @@ struct ReleaseNotes: Decodable, Equatable {
         )
     }
 
-    /// What the sheet shows for `localization`: the note, under its own
-    /// version and date. Never the running build's version: a later build
-    /// carries the same note, and its version beside this note's date would
-    /// pair two releases. The date reads in the reader's `locale`. Nil when
-    /// there is no note to show.
+    /// What the sheet shows for `localization`: the note, under the running
+    /// build's `version`, exactly as the version row shows it, beside the
+    /// note's date in the reader's `locale` (owner 2026-11-19). The note's
+    /// own `version` is not shown. Nil when there is no note to show.
     func presentation(
+        version: String,
         localization: String,
         locale: Locale = .current,
         calendar: Calendar = .current
@@ -186,7 +186,7 @@ struct ReleaseNotes: Decodable, Equatable {
         guard let noteLocale = noteLocale(for: localization), let note = locales[noteLocale] else {
             return nil
         }
-        let version = self.version.trimmingCharacters(in: .whitespacesAndNewlines)
+        let version = version.trimmingCharacters(in: .whitespacesAndNewlines)
         let facts = [version, formattedDate(locale: locale, calendar: calendar) ?? ""].filter { !$0.isEmpty }
         return ReleaseNotesPresentation(note: note, noteLocale: noteLocale, facts: facts)
     }
@@ -197,10 +197,10 @@ struct ReleaseNotesPresentation: Equatable {
     let note: ReleaseNotes.Note
     /// The store locale the note is written in ("en", "ar").
     let noteLocale: String
-    /// The note's version and date, each when known.
+    /// The running build's version and the note's date, each when known.
     let facts: [String]
 
-    /// The line under the title: "2026.11 · Nov 19, 2026".
+    /// The line under the title: "2026.11.19+1103049750 · Nov 19, 2026".
     var subtitle: String {
         facts.joined(separator: " · ")
     }

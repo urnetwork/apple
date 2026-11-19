@@ -43445,6 +43445,173 @@
         }
       }
     },
+    "Bitcoin payments can take up to 3 hours to confirm. A payment sent before the quote expires is credited at this price." : {
+      "comment" : "Crypto invoice, Bitcoin only: shown under the quote's countdown while the invoice can be paid. The server sees a Bitcoin payment only once it is confirmed (mined), which can take hours, and credits a payment sent before the quote expires at the quoted price if it confirms within 3 hours of the expiry. \"this price\" is the price on the invoice. Bitcoin is a product name.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قد يستغرق تأكيد مدفوعات Bitcoin ما يصل إلى 3 ساعات. يُحتسب الدفع المُرسَل قبل انتهاء صلاحية عرض السعر بهذا السعر."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potvrzení platby Bitcoin může trvat až 3 hodiny. Platba odeslaná před vypršením platnosti kurzu bude připsána za tuto cenu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin-Zahlungen können bis zu 3 Stunden für die Bestätigung brauchen. Eine Zahlung, die vor Ablauf des Kurses gesendet wurde, wird zu diesem Preis gutgeschrieben."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι πληρωμές Bitcoin μπορεί να χρειαστούν έως και 3 ώρες για να επιβεβαιωθούν. Μια πληρωμή που στάλθηκε πριν λήξει η ισοτιμία πιστώνεται σε αυτή την τιμή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin payments can take up to 3 hours to confirm. A payment sent before the quote expires is credited at this price."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los pagos en Bitcoin pueden tardar hasta 3 horas en confirmarse. Un pago enviado antes de que caduque la cotización se acredita a este precio."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los pagos en Bitcoin pueden tardar hasta 3 horas en confirmarse. Un pago enviado antes de que venza la cotización se acredita a este precio."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los pagos en Bitcoin pueden tardar hasta 3 horas en confirmarse. Un pago enviado antes de que venza la cotización se acredita a este precio."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les paiements en Bitcoin peuvent prendre jusqu'à 3 heures pour être confirmés. Un paiement envoyé avant l'expiration de la cotation est crédité à ce prix."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אישור תשלומי Bitcoin עשוי להימשך עד 3 שעות. תשלום שנשלח לפני שהצעת המחיר פגה ייזקף במחיר הזה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin भुगतानों की पुष्टि में 3 घंटे तक लग सकते हैं। दर समाप्त होने से पहले भेजा गया भुगतान इसी कीमत पर जमा किया जाता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pembayaran Bitcoin bisa memerlukan hingga 3 jam untuk dikonfirmasi. Pembayaran yang dikirim sebelum kurs berakhir dikreditkan dengan harga ini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I pagamenti in Bitcoin possono richiedere fino a 3 ore per essere confermati. Un pagamento inviato prima della scadenza della quotazione viene accreditato a questo prezzo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin の支払いは承認まで最大 3 時間かかることがあります。見積もりの期限が切れる前に送金した支払いは、この価格で入金されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin 결제는 확인까지 최대 3시간이 걸릴 수 있습니다. 견적이 만료되기 전에 보낸 결제는 이 가격으로 입금 처리됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin-betalingen kunnen tot 3 uur nodig hebben om te worden bevestigd. Een betaling die is verstuurd voordat de koers verloopt, wordt tegen deze prijs bijgeschreven."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potwierdzenie płatności w Bitcoin może potrwać do 3 godzin. Płatność wysłana przed wygaśnięciem kursu zostanie zaksięgowana po tej cenie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os pagamentos em Bitcoin podem demorar até 3 horas a ser confirmados. Um pagamento enviado antes de a cotação expirar é creditado a este preço."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamentos em Bitcoin podem levar até 3 horas para serem confirmados. Um pagamento enviado antes de a cotação expirar é creditado por este preço."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os pagamentos em Bitcoin podem demorar até 3 horas a ser confirmados. Um pagamento enviado antes de a cotação expirar é creditado a este preço."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подтверждение платежа в Bitcoin может занять до 3 часов. Платёж, отправленный до истечения срока действия курса, зачисляется по этой цене."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin-betalningar kan ta upp till 3 timmar att bekräftas. En betalning som skickas innan kursen går ut krediteras till det här priset."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การชำระเงินด้วย Bitcoin อาจใช้เวลายืนยันนานถึง 3 ชั่วโมง การชำระเงินที่ส่งก่อนราคาเสนอหมดอายุจะได้รับเครดิตในราคานี้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підтвердження платежу в Bitcoin може тривати до 3 годин. Платіж, надісланий до закінчення терміну дії курсу, зараховується за цією ціною."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanh toán Bitcoin có thể mất đến 3 giờ để được xác nhận. Khoản thanh toán gửi trước khi báo giá hết hạn sẽ được ghi nhận theo giá này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin 付款最多可能需要 3 小时才能确认。在报价过期前发送的付款将按此价格入账。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitcoin 付款最多可能需要 3 小時才能確認。在報價過期前發送的付款將按此價格入賬。"
+          }
+        }
+      }
+    },
     "Bittensor" : {
       "comment" : "Used in Main/Account/Wallet/WalletView.swift.",
       "shouldTranslate" : false
@@ -242063,6 +242230,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法透過 App Store 驗證此次購買，因此無法套用到你的帳戶。如果你已被扣款但計劃沒有更新，請聯絡支援團隊。"
+          }
+        }
+      }
+    },
+    "This quote expired. A payment you sent before it expired is credited at this price once it confirms, which can take up to 3 hours. If you didn't send one, pay another way." : {
+      "comment" : "Crypto invoice, Bitcoin only: shown in place of crypto_invoice_quote_expired and its Refresh quote button for up to 3 hours after a Bitcoin quote expires with nothing received yet. The server sees a Bitcoin payment only once it is confirmed (mined), so one sent in time may still be on its way, and it is credited at the quoted price. \"pay another way\" refers to the button crypto_invoice_pay_another_way.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتهت صلاحية عرض السعر هذا. يُحتسب الدفع الذي أرسلته قبل انتهائه بهذا السعر بعد تأكيده، وقد يستغرق ذلك ما يصل إلى 3 ساعات. إذا لم ترسل دفعة، فادفع بطريقة أخرى."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platnost tohoto kurzu vypršela. Platba, kterou jste odeslali před jeho vypršením, bude po potvrzení připsána za tuto cenu, což může trvat až 3 hodiny. Pokud jste žádnou neodeslali, zaplaťte jinak."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Kurs ist abgelaufen. Eine Zahlung, die du vor seinem Ablauf gesendet hast, wird nach der Bestätigung zu diesem Preis gutgeschrieben. Das kann bis zu 3 Stunden dauern. Wenn du keine gesendet hast, bezahle anders."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η ισοτιμία έληξε. Μια πληρωμή που στείλατε πριν λήξει πιστώνεται σε αυτή την τιμή μόλις επιβεβαιωθεί, κάτι που μπορεί να διαρκέσει έως και 3 ώρες. Αν δεν στείλατε πληρωμή, πληρώστε με άλλον τρόπο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This quote expired. A payment you sent before it expired is credited at this price once it confirms, which can take up to 3 hours. If you didn't send one, pay another way."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cotización ha caducado. Un pago que enviaste antes de que caducara se acredita a este precio en cuanto se confirma, lo que puede tardar hasta 3 horas. Si no enviaste ninguno, paga de otra forma."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cotización venció. Un pago que enviaste antes de que venciera se acredita a este precio en cuanto se confirma, lo que puede tardar hasta 3 horas. Si no enviaste ninguno, paga de otra forma."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cotización venció. Un pago que enviaste antes de que venciera se acredita a este precio en cuanto se confirma, lo que puede tardar hasta 3 horas. Si no enviaste ninguno, paga de otra forma."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette cotation a expiré. Un paiement envoyé avant son expiration est crédité à ce prix dès qu'il est confirmé, ce qui peut prendre jusqu'à 3 heures. Si vous n'en avez pas envoyé, payez autrement."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצעת המחיר הזו פגה. תשלום ששלחתם לפני שפגה ייזקף במחיר הזה ברגע שיאושר, וזה עשוי להימשך עד 3 שעות. אם לא שלחתם תשלום, שלמו בדרך אחרת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह दर समाप्त हो गई है। इसके समाप्त होने से पहले भेजा गया आपका भुगतान पुष्टि होते ही इसी कीमत पर जमा किया जाता है, जिसमें 3 घंटे तक लग सकते हैं। अगर आपने कोई भुगतान नहीं भेजा है, तो दूसरे तरीके से भुगतान करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurs ini sudah berakhir. Pembayaran yang Anda kirim sebelum kurs berakhir dikreditkan dengan harga ini setelah dikonfirmasi, yang bisa memerlukan hingga 3 jam. Jika Anda belum mengirim pembayaran, bayar dengan cara lain."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa quotazione è scaduta. Un pagamento inviato prima della scadenza viene accreditato a questo prezzo non appena confermato, il che può richiedere fino a 3 ore. Se non ne hai inviato uno, paga in altro modo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この見積もりは期限切れです。期限切れになる前に送金した支払いは、承認され次第この価格で入金されます。承認には最大 3 時間かかることがあります。送金していない場合は、別の方法で支払ってください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 견적은 만료되었습니다. 만료 전에 보낸 결제는 확인되는 대로 이 가격으로 입금 처리되며, 최대 3시간이 걸릴 수 있습니다. 결제를 보내지 않았다면 다른 방법으로 결제하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze koers is verlopen. Een betaling die je hebt verstuurd voordat hij verliep, wordt na bevestiging tegen deze prijs bijgeschreven. Dat kan tot 3 uur duren. Heb je niets verstuurd, betaal dan op een andere manier."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten kurs wygasł. Płatność wysłana przed jego wygaśnięciem zostanie zaksięgowana po tej cenie po potwierdzeniu, co może potrwać do 3 godzin. Jeśli nie wysłano płatności, zapłać w inny sposób."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cotação expirou. Um pagamento que enviou antes de expirar é creditado a este preço assim que for confirmado, o que pode demorar até 3 horas. Se não enviou nenhum, pague de outra forma."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cotação expirou. Um pagamento que você enviou antes de ela expirar é creditado por este preço assim que for confirmado, o que pode levar até 3 horas. Se você não enviou nenhum, pague de outra forma."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cotação expirou. Um pagamento que enviou antes de expirar é creditado a este preço assim que for confirmado, o que pode demorar até 3 horas. Se não enviou nenhum, pague de outra forma."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Срок действия курса истёк. Платёж, отправленный до истечения срока, будет зачислен по этой цене после подтверждения — это может занять до 3 часов. Если вы ничего не отправляли, оплатите другим способом."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här kursen har gått ut. En betalning som du skickade innan den gick ut krediteras till det här priset när den har bekräftats, vilket kan ta upp till 3 timmar. Om du inte skickade någon betalning, betala på annat sätt."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ราคาเสนอนี้หมดอายุแล้ว การชำระเงินที่คุณส่งก่อนหมดอายุจะได้รับเครดิตในราคานี้เมื่อได้รับการยืนยัน ซึ่งอาจใช้เวลานานถึง 3 ชั่วโมง หากคุณยังไม่ได้ส่ง ให้ชำระด้วยวิธีอื่น"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Термін дії курсу минув. Платіж, надісланий до закінчення терміну, буде зараховано за цією ціною після підтвердження — це може тривати до 3 годин. Якщо ви нічого не надсилали, оплатіть іншим способом."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo giá này đã hết hạn. Khoản thanh toán bạn gửi trước khi hết hạn sẽ được ghi nhận theo giá này ngay khi được xác nhận, có thể mất đến 3 giờ. Nếu bạn chưa gửi, hãy thanh toán cách khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此报价已过期。在过期前发送的付款将在确认后按此价格入账，确认最多可能需要 3 小时。如果你尚未付款，请使用其他方式支付。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此報價已過期。在過期前發送的付款將在確認後按此價格入賬，確認最多可能需要 3 小時。如果你尚未付款，請使用其他方式付款。"
           }
         }
       }

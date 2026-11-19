@@ -12,10 +12,12 @@
 //  only under DIRECT_DOWNLOAD (Shared/Views/CryptoPay). The SDK owns the coin
 //  tabs (their order, labels, marks and availability), the tab a method sits
 //  in and the coin a tap on a tab chooses, each coin's lines (network line,
-//  network-only warning, no-payment-link note), the URI check and the QR
-//  code's text, when the memo shows, the status steps, the tickers, markets,
-//  event products and URI schemes, the wallet names and the invoice state
-//  machine (CryptoPaymentSdk.swift); nothing here re-derives them.
+//  network-only warning, no-payment-link note, and Bitcoin's confirmation
+//  note and awaiting-confirmation line), the URI check and the QR code's
+//  text, when the memo shows, the status steps, the tickers, markets, event
+//  products and URI schemes, the wallet names and the invoice state machine,
+//  Bitcoin's confirmation grace included (CryptoPaymentSdk.swift); nothing
+//  here re-derives them.
 //
 
 import CoreImage
@@ -246,6 +248,12 @@ struct CryptoInvoiceSnapshot: Equatable {
     var expiresAt: String = ""
     /// 0 once expired.
     var secondsLeft: Int = 0
+    /// The quote ended with nothing received, but a payment sent within it
+    /// may still confirm and is credited at its price (the SDK's
+    /// AwaitingConfirmation, Bitcoin's confirmation grace, mmm/BTCPAY.md
+    /// §16.8): open, pending, `secondsLeft` 0, and the coin's grace not over.
+    /// False for every coin without a grace.
+    var awaitingConfirmation: Bool = false
     /// CONTRACT §2.5: pending | seen | confirming | paid | expired | review | unknown.
     var status: String = ""
     var reviewReason: String = ""
@@ -278,6 +286,9 @@ struct CryptoInvoiceSnapshot: Equatable {
     /// The server says nothing arrived: pending, or expired with nothing
     /// received. Only then is a requote allowed, and "Pay another way" drops
     /// the invoice (a resumed invoice before its first poll may be paid).
+    /// While `awaitingConfirmation` a payment sent within the quote may still
+    /// confirm: the SDK asks for no requote then, and only puts the invoice
+    /// away (mmm/BTCPAY.md §16.8).
     var isAwaitingPayment: Bool {
         status == CryptoPaymentStatus.pending || status == CryptoPaymentStatus.expired
     }
@@ -324,12 +335,17 @@ struct CryptoPayLine: Equatable {
 /// A coin's lines (the SDK's CryptoAssetLinesFor), each nil for a line the
 /// coin does not have: the network it is sent on (the invoice's first line,
 /// and the line under the coin in the More coins list), the network-only
-/// warning shown with the address (none for Zcash and Monero), and the note
-/// under the QR code of a coin without a payment link (TAO's).
+/// warning shown with the address (none for Zcash and Monero), the note
+/// under the QR code of a coin without a payment link (TAO's), and for a
+/// coin with a confirmation grace (Bitcoin's alone, mmm/BTCPAY.md §16.8) the
+/// note with the countdown and the line in place of the expired copy while
+/// a payment sent within the quote may still confirm.
 struct CryptoAssetLines: Equatable {
     var networkLine: CryptoPayLine?
     var networkWarning: CryptoPayLine?
     var noPaymentLinkNote: CryptoPayLine?
+    var confirmationNote: CryptoPayLine? = nil
+    var awaitingConfirmationNote: CryptoPayLine? = nil
 
     static let none = CryptoAssetLines(networkLine: nil, networkWarning: nil, noPaymentLinkNote: nil)
 }
@@ -369,8 +385,8 @@ protocol CryptoPaymentCatalog {
     /// `remembered` while it is one of the tab's payable coins, else the tab's
     /// first payable coin; "" for a tab with none.
     func tabCoin(_ tab: CryptoPayTab, lastChosen: String, remembered: String) -> String
-    /// CryptoAssetLinesFor: the coin's network line, network-only warning and
-    /// no-payment-link note.
+    /// CryptoAssetLinesFor: the coin's network line, network-only warning,
+    /// no-payment-link note, confirmation note and awaiting-confirmation line.
     func lines(asset: String) -> CryptoAssetLines
     /// CryptoPaymentShowsMemo: a memo shows only when the server sent one
     /// (only USDC's has one; SOL's is "").
@@ -390,6 +406,12 @@ struct CryptoInvoiceDisplay: Equatable {
         case running(String)
         /// "This quote expired. Refresh it for a new amount."
         case expired
+        /// The quote ended, but a payment sent within it may still confirm
+        /// and is credited at its price (Bitcoin's confirmation grace,
+        /// mmm/BTCPAY.md §16.8): the coin's awaiting line
+        /// (`awaitingConfirmationNote`) in place of the expired copy, and no
+        /// Refresh quote.
+        case awaitingConfirmation
     }
 
     enum Refresh: Equatable {
@@ -456,6 +478,14 @@ struct CryptoInvoiceDisplay: Equatable {
     /// has).
     var memo: String? = nil
     var countdown: Countdown? = nil
+    /// With the countdown, while payable: how long the coin's payments can
+    /// take to confirm, and that one sent before the quote expires is
+    /// credited at its price (the SDK's note; Bitcoin's alone,
+    /// mmm/BTCPAY.md §16.8).
+    var confirmationNote: CryptoPayLine? = nil
+    /// In place of the expired copy while a payment sent within the quote may
+    /// still confirm (`Countdown.awaitingConfirmation`; the SDK's line).
+    var awaitingConfirmationNote: CryptoPayLine? = nil
     var refresh: Refresh = .hidden
     var steps: [StepRow] = []
     /// `seen` short of the amount: "{amount} more to send", with its ticker,
@@ -529,7 +559,9 @@ struct CryptoInvoiceDisplay: Equatable {
             return
         }
 
-        // nothing received: a requote, and another way, are allowed
+        // nothing received: a requote, and another way, are allowed (no
+        // requote while a payment sent within the quote may still confirm,
+        // below)
         if snapshot.isAwaitingPayment {
             refresh = snapshot.refreshing ? .inFlight : .available
             showsPayAnotherWay = true
@@ -545,6 +577,9 @@ struct CryptoInvoiceDisplay: Equatable {
         case CryptoPaymentStatus.pending where 0 < snapshot.secondsLeft:
             // payable: the quote as the server built it
             countdown = .running(Self.countdownText(seconds: snapshot.secondsLeft))
+            // with it, how long a payment can take to confirm, and that one
+            // sent in time is credited at this price (Bitcoin's alone)
+            confirmationNote = lines.confirmationNote
             if !snapshot.amount.isEmpty {
                 amount = withTicker(snapshot.amount)
                 amountValue = snapshot.amount
@@ -565,6 +600,15 @@ struct CryptoInvoiceDisplay: Equatable {
             if address != nil, catalog.showsMemo(asset: snapshot.asset, memo: snapshot.memo) {
                 memo = snapshot.memo
             }
+        case CryptoPaymentStatus.pending where snapshot.awaitingConfirmation:
+            // the quote ran out, but a payment sent within it may still
+            // confirm and is credited at its price (Bitcoin's confirmation
+            // grace, mmm/BTCPAY.md §16.8): the coin's awaiting line in place
+            // of the expired copy. Nothing to pay, as once expired, and no
+            // requote: the server refuses one until the grace is over.
+            countdown = .awaitingConfirmation
+            awaitingConfirmationNote = lines.awaitingConfirmationNote
+            refresh = .hidden
         case CryptoPaymentStatus.pending, CryptoPaymentStatus.expired:
             // the quote ran out: a stale amount must not be paid
             countdown = .expired

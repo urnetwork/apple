@@ -156,7 +156,9 @@ enum CryptoPaymentSdk {
         return CryptoAssetLines(
             networkLine: CryptoPayLine(key: lines.networkLineKey, english: lines.networkLine),
             networkWarning: CryptoPayLine(key: lines.networkWarningKey, english: lines.networkWarning),
-            noPaymentLinkNote: CryptoPayLine(key: lines.noPaymentLinkNoteKey, english: lines.noPaymentLinkNote)
+            noPaymentLinkNote: CryptoPayLine(key: lines.noPaymentLinkNoteKey, english: lines.noPaymentLinkNote),
+            confirmationNote: CryptoPayLine(key: lines.confirmationNoteKey, english: lines.confirmationNote),
+            awaitingConfirmationNote: CryptoPayLine(key: lines.awaitingConfirmationNoteKey, english: lines.awaitingConfirmationNote)
         )
     }
 
@@ -292,6 +294,7 @@ extension CryptoInvoiceSnapshot {
         rateUsd = state.rateUsd
         expiresAt = state.expiresAt
         secondsLeft = state.secondsLeft
+        awaitingConfirmation = state.awaitingConfirmation
         status = state.status
         reviewReason = state.reviewReason
         received = state.received

@@ -12,6 +12,13 @@
 //  "Pay another way" and Close. The network line, the warning and TAO's note
 //  are the SDK's (CryptoAssetLinesFor), looked up by CryptoPayCopy.line.
 //
+//  Bitcoin, which the server sees only once mined, has a 3-hour confirmation
+//  grace (mmm/BTCPAY.md §16.8). Its note under the countdown says a payment
+//  can take up to 3 hours to confirm and one sent in time is credited at this
+//  price. Once the quote ends, while a payment sent within it may still
+//  confirm (the SDK's AwaitingConfirmation), its awaiting line stands in place
+//  of the expired copy, with no "Refresh quote". Both lines are the SDK's too.
+//
 //  A coin without a payment link (TAO) has no "Open in wallet": its QR code
 //  holds the address alone, with a note that says so, and "Send exactly this
 //  amount to this address." stands in its place, over the amount and the
@@ -370,7 +377,30 @@ struct CryptoInvoiceView: View {
                 }
             }
 
+            // with the countdown: how long a payment can take to confirm, and
+            // that one sent in time is credited at this price (Bitcoin's alone)
+            if let note = CryptoPayCopy.line(display.confirmationNote) {
+                Spacer().frame(height: 4)
+
+                Text(verbatim: note)
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Spacer().frame(height: 16)
+        case .awaitingConfirmation:
+            // in place of the expired copy while a payment sent within the
+            // quote may still confirm: no Refresh quote, which the server
+            // refuses until the grace is over
+            if let note = CryptoPayCopy.line(display.awaitingConfirmationNote) {
+                Text(verbatim: note)
+                    .font(themeManager.currentTheme.bodyFont)
+                    .foregroundColor(themeManager.currentTheme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer().frame(height: 16)
+            }
         case .expired:
             Text("This quote expired. Refresh it for a new amount.")
                 .font(themeManager.currentTheme.bodyFont)

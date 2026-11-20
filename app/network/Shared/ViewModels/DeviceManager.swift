@@ -184,7 +184,8 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
         guard let api = getApi() else {
             return {}
         }
-        let subscription = api.add(AccountSignInRequiredListener(c: { [weak api] in
+        // Swift imports the SDK's addAccountSignInRequiredListener selector as addAccountSign.
+        let subscription = api.addAccountSign(AccountSignInRequiredListener(c: { [weak api] in
             callback(api?.getAccountSignInRequiredCause() ?? "")
         }))
         return { subscription?.close() }

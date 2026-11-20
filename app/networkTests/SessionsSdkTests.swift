@@ -11,9 +11,10 @@ import URnetworkSdk
 /**
  * The SDK side of Account > Sessions: the store's copy of the controller's
  * typed snapshot (the session list, the nullable last use in Unix seconds,
- * the creation time in milliseconds, actions and error flags), and the
- * controller the account api opens (Api.OpenClientSessionViewController).
- * Nothing is started, so no request or goroutine runs.
+ * the creation time in milliseconds, the client groups and the counts,
+ * actions and error flags), and the controller the account api opens
+ * (Api.OpenClientSessionViewController). Nothing is started, so no request or
+ * goroutine runs.
  */
 @MainActor
 struct SessionsSdkTests {
@@ -21,6 +22,7 @@ struct SessionsSdkTests {
     // test-only session ids
     private static let thisSession = "01a1f3c2-0000-4000-8000-00000000000a"
     private static let otherSession = "02b2e4d3-0000-4000-8000-00000000000b"
+    private static let proxySession = "04d4e6f5-0000-4000-8000-00000000000d"
 
     private static func id(_ value: String) throws -> SdkId {
         try #require(SdkParseId(value, nil))
@@ -56,6 +58,26 @@ struct SessionsSdkTests {
         sessions.add(other)
         sessions.add(noId)
 
+        // an open group of hosted proxies with more rows, and a collapsed
+        // group of API clients, which carries no rows
+        let proxy = SdkNetworkSessionInfo()
+        proxy.sessionId = try Self.id(Self.proxySession)
+        proxy.kind = "legacy_proxy"
+        let proxyRows = try #require(SdkNewNetworkSessionInfoList())
+        proxyRows.add(proxy)
+        let proxies = SdkClientSessionGroup()
+        proxies.kind = SdkClientSessionGroupHostedProxies
+        proxies.count = 1_234
+        proxies.expanded = true
+        proxies.sessions = proxyRows
+        proxies.hasMore = true
+        let apiClients = SdkClientSessionGroup()
+        apiClients.kind = SdkClientSessionGroupApiClients
+        apiClients.count = 3
+        let groups = try #require(SdkNewClientSessionGroupList())
+        groups.add(proxies)
+        groups.add(apiClients)
+
         let actionError = SdkClientSessionError()
         actionError.retryable = true
         let action = SdkClientSessionAction()
@@ -73,6 +95,11 @@ struct SessionsSdkTests {
 
         let snapshot = SdkClientSessionSnapshot()
         snapshot.sessions = sessions
+        snapshot.sessionCount = 51
+        snapshot.sessionsHasMore = true
+        snapshot.groups = groups
+        snapshot.otherSessionCount = 53
+        snapshot.truncated = true
         snapshot.currentSessionId = try Self.id(Self.thisSession)
         snapshot.legacyCoverage = "partial"
         snapshot.loaded = true
@@ -101,6 +128,20 @@ struct SessionsSdkTests {
                 ),
                 SessionItem(id: Self.otherSession, current: false, kind: "legacy", createTimeMillis: nil, lastUsed: nil),
             ],
+            sessionCount: 51,
+            sessionsHasMore: true,
+            groups: [
+                SessionGroupItem(
+                    kind: SdkClientSessionGroupHostedProxies,
+                    count: 1_234,
+                    expanded: true,
+                    sessions: [SessionItem(id: Self.proxySession, current: false, kind: "legacy_proxy", createTimeMillis: nil, lastUsed: nil)],
+                    hasMore: true
+                ),
+                SessionGroupItem(kind: SdkClientSessionGroupApiClients, count: 3, expanded: false, sessions: [], hasMore: false),
+            ],
+            otherSessionCount: 53,
+            truncated: true,
             currentSessionId: Self.thisSession,
             legacyCoverage: "partial",
             loaded: true,
@@ -140,6 +181,11 @@ struct SessionsSdkTests {
         let api = try #require(space.getApi())
 
         let controller = try #require(api.openClientSessionController())
+        #expect(controller.readSnapshot() == SessionsSnapshot(legacyCoverage: "partial", supported: true))
+        // a group opened and Show more are presentation only: without a list
+        // nothing shows, and nothing is requested
+        controller.setGroupExpanded(kind: SdkClientSessionGroupHostedProxies, expanded: true)
+        controller.showMoreSessions(kind: SdkClientSessionGroupSignIns)
         #expect(controller.readSnapshot() == SessionsSnapshot(legacyCoverage: "partial", supported: true))
         let listenerSub = controller.addSnapshotListener {}
         #expect(listenerSub != nil)

@@ -151,6 +151,11 @@ protocol DeviceAuthCallbackSource: AnyObject {
     /// `callback` gets the logout's cause (Device.GetAuthLogoutCause), read
     /// as the SDK fires the listener.
     func observeAuthLogout(_ callback: @escaping @Sendable (_ cause: String) -> Void) -> () -> Void
+    /// `callback` gets the cause (Api.GetAccountSignInRequiredCause) when the
+    /// account's sign-in is rejected while this device stays signed in on a
+    /// client credential of another session (Api.AccountSignInRequired),
+    /// read as the SDK fires the listener.
+    func observeAccountSignInRequired(_ callback: @escaping @Sendable (_ cause: String) -> Void) -> () -> Void
 }
 
 extension SdkDeviceRemote: DeviceAuthCallbackSource {
@@ -166,6 +171,21 @@ extension SdkDeviceRemote: DeviceAuthCallbackSource {
         // clears it, so it is read here, on the SDK's thread, before any hop
         let subscription = add(AuthLogoutListener(c: { [weak self] in
             callback(self?.getAuthLogoutCause() ?? "")
+        }))
+        return { subscription?.close() }
+    }
+
+    func observeAccountSignInRequired(_ callback: @escaping @Sendable (_ cause: String) -> Void) -> () -> Void {
+        // the account credential is the device's api's (its network space's),
+        // which reports the rejection; the device keeps its own client
+        // credential. The api sets the cause before its listeners run and a
+        // new sign-in clears it, so it is read here, on the SDK's thread,
+        // before any hop
+        guard let api = getApi() else {
+            return {}
+        }
+        let subscription = api.add(AccountSignInRequiredListener(c: { [weak api] in
+            callback(api?.getAccountSignInRequiredCause() ?? "")
         }))
         return { subscription?.close() }
     }
@@ -461,6 +481,12 @@ class DeviceManager: ObservableObject {
     /// cause that has a notice: the sign-in screen shows it once, until the
     /// user dismisses it. A new login clears it.
     @Published private(set) var signedOutNotice: SignedOutNotice? = nil
+
+    /// The account's sign-in needs signing in again while this device stays
+    /// signed in and connected (the device's api reported
+    /// AccountSignInRequired): the main screens show it until the user
+    /// dismisses it, or until the next sign-in or sign-out clears it.
+    @Published private(set) var accountSignInNotice: AccountSignInNotice? = nil
 
     private var deviceAuthCallbackOwner: DeviceAuthCallbackOwner?
     private let authCallbackDispatch: DeviceAuthCallbackDispatch
@@ -874,6 +900,7 @@ class DeviceManager: ObservableObject {
     private var deviceProvidePausedSub: SdkSubProtocol?
     private var closeDeviceJwtRefreshListener: (() -> Void)?
     private var closeDeviceAuthLogoutListener: (() -> Void)?
+    private var closeDeviceAccountSignInRequiredListener: (() -> Void)?
     private var deviceCanShowRatingDialogSub: SdkSubProtocol?
     private var deviceCanPromptIntroFunnelSub: SdkSubProtocol?
     private var deviceAllowForegroundSub: SdkSubProtocol?
@@ -2019,6 +2046,14 @@ extension DeviceManager {
                 self.authCallbackEffects.logout(self)
             }
         }
+        closeDeviceAccountSignInRequiredListener = source.observeAccountSignInRequired { [weak self] cause in
+            dispatch { [weak self] in
+                guard let self, self.deviceAuthCallbackOwner === owner else { return }
+                // only the account's credential is gone: the device stays
+                // signed in and connected, and the main screens say so
+                self.accountSignInNotice = AccountSignInNotice(accountSignInRequiredCause: cause)
+            }
+        }
     }
 
     // An accepted explicit login owns auth before its replacement remote is
@@ -2033,12 +2068,26 @@ extension DeviceManager {
         retireDeviceAuthCallbacks()
         // a notice belongs to the signed-out stretch this login ends
         signedOutNotice = nil
+        // and the account's sign-in the login replaces
+        accountSignInNotice = nil
         return true
     }
 
     /// The sign-in screen showed the notice and the user dismissed it.
     func dismissSignedOutNotice() {
         signedOutNotice = nil
+    }
+
+    /// The main screens showed the account's sign-in notice and the user
+    /// dismissed it. The SDK keeps the notice in the device's local state and
+    /// reports it again after a restart until this ends it there
+    /// (Api.DismissAccountSignInNotice), its storage write off the main actor.
+    func dismissAccountSignInNotice() {
+        accountSignInNotice = nil
+        guard let api else { return }
+        Task.detached(priority: .utility) {
+            api.dismissAccountSignInNotice()
+        }
     }
 
     func retireDeviceAuthCallbacks() {
@@ -2087,6 +2136,8 @@ extension DeviceManager {
         closeDeviceJwtRefreshListener = nil
         closeDeviceAuthLogoutListener?()
         closeDeviceAuthLogoutListener = nil
+        closeDeviceAccountSignInRequiredListener?()
+        closeDeviceAccountSignInRequiredListener = nil
     }
 
     private func cleanupDeviceListeners() {
@@ -2270,15 +2321,21 @@ extension DeviceManager {
                         continuation.resume(throwing: error)
                     } else if let resultError = result?.error {
                         // the sdk decides what a client limit refusal offers
-                        // (ClientLimitStatus.prompt); every other refusal
-                        // keeps the server's message
+                        // (ClientLimitStatus.prompt). The account's cap of
+                        // active sessions is not one: neither an upgrade nor
+                        // a device removal frees a session, so it has its own
+                        // words. Every other refusal keeps the server's message
                         switch resultError.clientLimitPrompt {
                         case SdkClientLimitPromptUpgrade, SdkClientLimitPromptRemoveClient:
                             continuation.resume(throwing: NetworkClientLimitError(
                                 offersUpgrade: resultError.clientLimitPrompt == SdkClientLimitPromptUpgrade
                             ))
                         default:
-                            continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                            if resultError.code == SdkSessionErrorCodeLimitReached {
+                                continuation.resume(throwing: SessionLimitReachedError())
+                            } else {
+                                continuation.resume(throwing: NSError(domain: "DeviceManager", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                            }
                         }
                     } else if let clientJwt = result?.byClientJwt, !clientJwt.isEmpty {
                         continuation.resume(returning: (clientJwt, result?.clientId))
@@ -2383,6 +2440,8 @@ extension DeviceManager {
         retireNetworkLoginRequests()
         retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
+        // the account's sign-in notice belongs to the sign-in this ends
+        accountSignInNotice = nil
         if let device = owner.device { logoutStarted?(device) }
         return true
     }
@@ -2716,6 +2775,19 @@ private class AuthLogoutListener: NSObject, SdkAuthLogoutListenerProtocol {
     }
 
     func authLogout() {
+        c()
+    }
+}
+
+private class AccountSignInRequiredListener: NSObject, SdkAccountSignInRequiredListenerProtocol {
+
+    private let c: () -> Void
+
+    init(c: @escaping () -> Void) {
+        self.c = c
+    }
+
+    func accountSignInRequired() {
         c()
     }
 }

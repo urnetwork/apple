@@ -165,11 +165,16 @@ final class AddedSignInVerifyModel: ObservableObject {
         args.verifyCode = otp
 
         var verified = false
+        // the account's session cap refused the verification, which mints a
+        // session (its jwt is not installed): say so, with this device's way
+        // to free one, instead of the wrong-code line
+        var sessionLimitReached = false
         do {
             // the returned jwt is for this same network: not installed
             _ = try await api.authVerify(args)
             verified = true
         } catch {
+            sessionLimitReached = error is SessionLimitReachedError
             print("[AddedSignInVerify] verify error: \(error.localizedDescription)")
         }
 
@@ -184,7 +189,7 @@ final class AddedSignInVerifyModel: ObservableObject {
             // setting otp clears the error (didSet), so set the message after.
             // The login verify screen's text, unlocalized there as well.
             otp = ""
-            otpErrorMessage = Self.verifyErrorMessage
+            otpErrorMessage = sessionLimitReached ? SessionLimitReachedError.signedInMessage : Self.verifyErrorMessage
         }
         updateResendEnabled()
         return verified

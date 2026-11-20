@@ -151,7 +151,8 @@ struct LoginPasswordView: View {
             print("LoginPasswordView: handleResult: \(error.localizedDescription)")
             
             viewModel.setIsLoggingIn(false)
-            viewModel.setErrorMessage(snackbarErrorMessage)
+            // the account's cap of active sessions says how to free one
+            viewModel.setErrorMessage(SessionLimitReachedError.message(for: error) ?? snackbarErrorMessage)
             
             break
             

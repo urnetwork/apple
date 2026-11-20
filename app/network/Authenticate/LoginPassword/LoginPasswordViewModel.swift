@@ -80,7 +80,13 @@ extension LoginPasswordView {
                             
                             if let resultError = result.error {
 
-                                continuation.resume(throwing: NSError(domain: "LoginPassword.ViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                                if resultError.code == SdkSessionErrorCodeLimitReached {
+                                    // the account's cap of active sessions,
+                                    // not a wrong password
+                                    continuation.resume(throwing: SessionLimitReachedError())
+                                } else {
+                                    continuation.resume(throwing: NSError(domain: "LoginPassword.ViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: resultError.message]))
+                                }
                                 
                                 return
                                 

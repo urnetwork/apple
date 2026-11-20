@@ -24,6 +24,8 @@ final class AddedSignInVerifyTests: XCTestCase {
         // answered in order; a send past the end answers sent
         var sendAnswers: [(result: SdkAuthVerifySendResult?, err: Error?)] = []
         var verifyAccepts = true
+        // the refusal authVerify throws when verifyAccepts is false
+        var verifyRefusal: Error = VerifyRefused()
 
         override func authVerifySend(_ args: SdkAuthVerifySendArgs) async -> (result: SdkAuthVerifySendResult?, err: Error?) {
             sendArgs.append(args)
@@ -36,7 +38,7 @@ final class AddedSignInVerifyTests: XCTestCase {
         override func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult {
             verifyArgs.append(args)
             if !verifyAccepts {
-                throw VerifyRefused()
+                throw verifyRefusal
             }
             return SdkAuthVerifyResult()
         }
@@ -135,6 +137,24 @@ final class AddedSignInVerifyTests: XCTestCase {
         let retried = await model.submit()
         XCTAssertTrue(retried)
         XCTAssertEqual(model.step, .verified)
+    }
+
+    // The verification mints a session, so the account's session cap can
+    // refuse it: this signed-in device says so, with its own way to free
+    // one, not the wrong-code line or the sign-in screens' line.
+    func testSessionCapRefusalSaysToSignSessionsOutHere() async {
+        let api = FakeApi()
+        api.verifyAccepts = false
+        api.verifyRefusal = SessionLimitReachedError()
+        let model = model(api, Clock(start))
+        _ = await model.methodAdded(.email, userAuth: "a@example.com")
+
+        model.otp = "654321"
+        let verified = await model.submit()
+
+        XCTAssertFalse(verified)
+        XCTAssertEqual(model.otpErrorMessage, SessionLimitReachedError.signedInMessage)
+        XCTAssertNotEqual(model.otpErrorMessage, SessionLimitReachedError.message)
     }
 
     // MARK: - send errors

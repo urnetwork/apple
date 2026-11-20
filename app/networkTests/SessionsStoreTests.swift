@@ -79,6 +79,20 @@ struct SessionsStoreTests {
             onRevoke?(nil)
         }
 
+        /// runs inside a group's open or close and a Show more, before it
+        /// returns, as the SDK lays the list out again
+        var onLayout: (() -> Void)?
+
+        func setGroupExpanded(kind: String, expanded: Bool) {
+            events.log.append("expand \(kind) \(expanded)")
+            onLayout?()
+        }
+
+        func showMoreSessions(kind: String) {
+            events.log.append("show more \(kind)")
+            onLayout?()
+        }
+
         func addSnapshotListener(_ changed: @escaping @Sendable () -> Void) -> SdkSubProtocol? {
             listener = changed
             events.log.append("listen")
@@ -182,12 +196,32 @@ struct SessionsStoreTests {
         )
     }
 
+    /// Device sign-ins as the controller lays them out: all on screen, and
+    /// every one but this app's for Sign out all other sessions.
     private static func loaded(_ sessions: [SessionItem]) -> SessionsSnapshot {
         var snapshot = SessionsSnapshot()
         snapshot.sessions = sessions
+        snapshot.sessionCount = sessions.count
+        snapshot.otherSessionCount = sessions.filter { !$0.current }.count
         snapshot.currentSessionId = sessions.first(where: \.current)?.id
         snapshot.legacyCoverage = "partial"
         snapshot.loaded = true
+        return snapshot
+    }
+
+    // test-only client session ids
+    private static let proxySession = "04d4e6f5-0000-4000-8000-00000000000d"
+    private static let apiClientSession = "05e5f7a6-0000-4000-8000-00000000000e"
+
+    /// This app's session, and a hosted proxy and an API client below it in
+    /// their open groups; the bulk sign-out counts only the API client.
+    private static var withGroups: SessionsSnapshot {
+        var snapshot = loaded([session(thisSession, current: true, deviceType: "ios")])
+        snapshot.groups = [
+            SessionGroupItem(kind: SdkClientSessionGroupHostedProxies, count: 1, expanded: true, sessions: [session(proxySession, deviceType: "server", city: "")]),
+            SessionGroupItem(kind: SdkClientSessionGroupApiClients, count: 1, expanded: true, sessions: [session(apiClientSession, deviceType: "cli")]),
+        ]
+        snapshot.otherSessionCount = 1
         return snapshot
     }
 
@@ -452,7 +486,8 @@ struct SessionsStoreTests {
             sessionId: Self.otherSession,
             device: "Android",
             place: "Springfield, Illinois, United States",
-            current: false
+            current: false,
+            hostedProxy: false
         ))
         #expect(events.log.isEmpty)
     }
@@ -566,7 +601,8 @@ struct SessionsStoreTests {
             sessionId: Self.thisSession,
             device: "iOS",
             place: "Springfield, Illinois, United States",
-            current: true
+            current: true,
+            hostedProxy: false
         ))
         #expect(confirmation.message == "This is the session you're using. This app will be signed out.")
         store.confirm(confirmation)
@@ -595,7 +631,8 @@ struct SessionsStoreTests {
         #expect(events.log.isEmpty)
     }
 
-    // §4: offered only with this app's session and at least one other
+    // §4: offered only with this app's session and another session it signs
+    // out (the controller's count)
     @Test func signOutOthersIsOfferedOnlyWithThisSessionAndAnother() throws {
         let (store, controller, hops, _) = try showing()
 
@@ -628,7 +665,7 @@ struct SessionsStoreTests {
 
         store.requestSignOutOthers()
         let confirmation = try #require(store.confirmation)
-        #expect(confirmation == .signOutOthers)
+        #expect(confirmation == .signOutOthers(keepsHostedProxies: false))
         #expect(events.log.isEmpty)
         store.confirm(confirmation)
         #expect(events.log == ["revoke others"])
@@ -658,7 +695,7 @@ struct SessionsStoreTests {
 
         store.requestSignOutOthers()
         let confirmation = try #require(store.confirmation)
-        #expect(confirmation == .signOutOthers)
+        #expect(confirmation == .signOutOthers(keepsHostedProxies: false))
         store.confirm(confirmation)
         #expect(events.log == ["revoke others"])
         #expect(store.snapshot.signingOutOthers)
@@ -679,5 +716,140 @@ struct SessionsStoreTests {
         hops.run()
         #expect(store.snapshot.content == .signInRequired)
         #expect(store.snapshot.signInRequiredMessage == "Sign in again to manage sessions.")
+    }
+
+    // MARK: Groups
+
+    // a group's header opens and closes it through the controller, which lays
+    // the list out again before it returns, so the open group shows without
+    // waiting for a hop
+    @Test func aGroupOpensAndClosesThroughTheControllerAtOnce() throws {
+        let (store, controller, hops, events) = try showing()
+        var collapsed = Self.withGroups
+        collapsed.groups[1] = SessionGroupItem(kind: SdkClientSessionGroupApiClients, count: 1)
+        controller.publish(collapsed)
+        hops.run()
+        controller.onLayout = {
+            controller.snapshot = Self.withGroups
+        }
+        events.log = []
+
+        store.setGroupExpanded(SdkClientSessionGroupApiClients, expanded: true)
+        #expect(events.log == ["expand \(SdkClientSessionGroupApiClients) true"])
+        #expect(store.snapshot == Self.withGroups)
+
+        store.setGroupExpanded(SdkClientSessionGroupApiClients, expanded: false)
+        #expect(events.log.last == "expand \(SdkClientSessionGroupApiClients) false")
+    }
+
+    // Show more under the sign-ins asks for the sign-ins' next page, and
+    // under a group for that group's
+    @Test func showMoreAsksTheControllerForTheSectionsNextPage() throws {
+        let (store, _, _, events) = try showing()
+        events.log = []
+        store.showMoreSignIns()
+        store.showMoreSessions(SdkClientSessionGroupHostedProxies)
+        #expect(events.log == [
+            "show more \(SdkClientSessionGroupSignIns)",
+            "show more \(SdkClientSessionGroupHostedProxies)",
+        ])
+    }
+
+    @Test func aClosedStoreOpensNoGroupAndShowsNoMore() throws {
+        let (store, _, _, events) = try showing()
+        store.close()
+        events.log = []
+        store.setGroupExpanded(SdkClientSessionGroupHostedProxies, expanded: true)
+        store.showMoreSignIns()
+        store.showMoreSessions(SdkClientSessionGroupHostedProxies)
+        #expect(events.log.isEmpty)
+    }
+
+    // a row in a group signs out like any row, named by the group's row
+    // label; a hosted proxy's confirmation says the proxy stops working
+    @Test func aGroupRowSignsOutNamedByTheGroupsLabel() throws {
+        let (store, controller, hops, events) = try showing()
+        controller.publish(Self.withGroups)
+        hops.run()
+        events.log = []
+
+        store.requestSignOut(sessionId: Self.apiClientSession)
+        #expect(store.confirmation == .signOut(
+            sessionId: Self.apiClientSession,
+            device: "API client",
+            place: "Springfield, Illinois, United States",
+            current: false,
+            hostedProxy: false
+        ))
+        #expect(store.confirmation?.message == "API client in Springfield, Illinois, United States will be signed out.")
+        store.cancelConfirmation()
+
+        store.requestSignOut(sessionId: Self.proxySession)
+        let confirmation = try #require(store.confirmation)
+        #expect(confirmation == .signOut(
+            sessionId: Self.proxySession,
+            device: "Hosted proxy",
+            place: "Illinois, United States",
+            current: false,
+            hostedProxy: true
+        ))
+        #expect(confirmation.title == "Sign out this session?")
+        #expect(confirmation.message == "This hosted proxy will stop working. Create a new one to replace it.")
+        store.confirm(confirmation)
+        #expect(events.log == ["revoke \(Self.proxySession)"])
+    }
+
+    // a row's action shows on it in a group as well (actions are keyed by
+    // session id), and a row signing out is not asked for again
+    @Test func aGroupRowShowsItsSignOutInProgress() throws {
+        let (store, controller, hops, _) = try showing()
+        var signingOut = Self.withGroups
+        signingOut.actions = [SessionActionItem(sessionId: Self.apiClientSession, pending: true)]
+        controller.publish(signingOut)
+        hops.run()
+
+        let group = try #require(store.snapshot.groups.last)
+        let rows = store.snapshot.rows(in: group, now: Date(), format: SessionTimeFormat())
+        #expect(rows.map(\.id) == [Self.apiClientSession])
+        #expect(rows.map(\.signingOut) == [true])
+        store.requestSignOut(sessionId: Self.apiClientSession)
+        #expect(store.confirmation == nil)
+    }
+
+    // Sign out all other sessions keeps hosted proxies, and says so while the
+    // list has them
+    @Test func signOutOthersSaysItKeepsHostedProxiesWhileTheListHasThem() throws {
+        let (store, controller, hops, events) = try showing()
+        controller.publish(Self.withGroups)
+        hops.run()
+        events.log = []
+
+        store.requestSignOutOthers()
+        let confirmation = try #require(store.confirmation)
+        #expect(confirmation == .signOutOthers(keepsHostedProxies: true))
+        #expect(confirmation.message == "Every other session in this list will be signed out, except hosted proxies. This session stays signed in. Anyone who knows your sign-in details can still sign in again.")
+        store.confirm(confirmation)
+        #expect(events.log == ["revoke others"])
+    }
+
+    // offered by the controller's count: hosted proxies alone are kept, so
+    // there is nothing to sign out, while other sessions in a group count
+    @Test func signOutOthersFollowsTheControllersCount() throws {
+        let (store, controller, hops, _) = try showing()
+        var proxiesOnly = Self.loaded([Self.session(Self.thisSession, current: true)])
+        proxiesOnly.groups = [SessionGroupItem(kind: SdkClientSessionGroupHostedProxies, count: 40)]
+        controller.publish(proxiesOnly)
+        hops.run()
+        #expect(store.snapshot.content == .list)
+        #expect(!store.snapshot.showsSignOutOthers)
+        store.requestSignOutOthers()
+        #expect(store.confirmation == nil)
+
+        var clients = proxiesOnly
+        clients.groups.append(SessionGroupItem(kind: SdkClientSessionGroupApiClients, count: 3))
+        clients.otherSessionCount = 3
+        controller.publish(clients)
+        hops.run()
+        #expect(store.snapshot.showsSignOutOthers)
     }
 }

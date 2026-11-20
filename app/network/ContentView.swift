@@ -203,6 +203,26 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .modifier(BittensorKeySignOutAlert())
+        // the account's sign-in needs signing in again while this device
+        // stays signed in and connected (AccountSignInNotice): the main
+        // screens say so until the user dismisses it; the next sign-in or
+        // sign-out clears it
+        .alert(
+            deviceManager.accountSignInNotice?.message ?? "",
+            isPresented: Binding(
+                get: { deviceManager.accountSignInNotice != nil && viewModel.contentViewPath == .main },
+                set: { presented in
+                    if !presented {
+                        deviceManager.dismissAccountSignInNotice()
+                    }
+                }
+            ),
+            presenting: deviceManager.accountSignInNotice
+        ) { _ in
+            Button(String(localized: "Got it")) {
+                deviceManager.dismissAccountSignInNotice()
+            }
+        }
         // the client limit refused the sign-in: what to do, and the device
         // list. No Get Pro here: the purchase needs a signed-in device, and
         // the server signs the apps in and holds a free plan at connect,
@@ -322,7 +342,9 @@ struct ContentView: View {
                     offersUpgrade: clientLimit.offersUpgrade
                 )
             } else {
-                snackbarManager.showSnackbar(message: String(localized: "There was an error creating your network. Please try again later."))
+                // the account's cap of active sessions says how to free one
+                snackbarManager.showSnackbar(message: SessionLimitReachedError.message(for: error)
+                    ?? String(localized: "There was an error creating your network. Please try again later."))
             }
         }
     }
@@ -356,7 +378,8 @@ struct ContentView: View {
                 if let clientLimit = error as? NetworkClientLimitError {
                     signInRetryMessage = ClientLimitNotice.body(offersUpgrade: clientLimit.offersUpgrade)
                 } else {
-                    signInRetryMessage = String(localized: "There was an error creating your network. Please try again later.")
+                    signInRetryMessage = SessionLimitReachedError.message(for: error)
+                        ?? String(localized: "There was an error creating your network. Please try again later.")
                 }
             }
         }

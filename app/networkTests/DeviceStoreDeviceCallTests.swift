@@ -86,6 +86,7 @@ struct DeviceStoreDeviceCallTests {
     final class FakeLocalState: SdkLocalState, @unchecked Sendable {
         private let stateLock = NSLock()
         private var dnsWrites: [DnsSettings] = []
+        private var dnsSettings: SdkDnsResolverSettings?
         private var overridesWrites: [[String]] = []
         private var overrides: SdkBlockActionOverrideList?
 
@@ -112,7 +113,14 @@ struct DeviceStoreDeviceCallTests {
 
         override func setDnsResolverSettings(_ dnsResolverSettings: SdkDnsResolverSettings?) throws {
             let settings = dnsResolverSettings.map { DnsSettings($0) } ?? DnsSettings()
-            stateLock.withLock { dnsWrites.append(settings) }
+            stateLock.withLock {
+                dnsWrites.append(settings)
+                dnsSettings = dnsResolverSettings
+            }
+        }
+
+        override func getDnsResolverSettings() -> SdkDnsResolverSettings? {
+            stateLock.withLock { dnsSettings }
         }
 
         override func setBlockActionOverrides(_ blockActionOverrides: SdkBlockActionOverrideList?) throws {
@@ -287,6 +295,25 @@ struct DeviceStoreDeviceCallTests {
         // the setup's read, then one for the reports
         #expect(device.callCount("getDnsResolverSettings") == 2)
         #expect(localState.dnsSettingsWrites == [settings, settings])
+        store.reset()
+        await work.run()
+    }
+
+    @Test func setupRestoresSavedDnsBeforeDisconnectedRead() async throws {
+        let work = HeldDeviceWork()
+        let device = FakeDevice(location: nil)
+        let saved = Self.dns(servers: 2)
+        let localState = FakeLocalState()
+        try localState.setDnsResolverSettings(saved.toCustomSdk(base: nil))
+        localState.forgetWrites()
+        let store = DnsSettingsStore(deviceWorkQueue: work.queue)
+        store.setup(device, localState: localState)
+        #expect(store.settings == saved)
+        #expect(store.state == .custom(saved))
+        await work.settle()
+        #expect(store.settings == saved)
+        #expect(store.state == .custom(saved))
+        #expect(localState.dnsSettingsWrites.isEmpty)
         store.reset()
         await work.run()
     }

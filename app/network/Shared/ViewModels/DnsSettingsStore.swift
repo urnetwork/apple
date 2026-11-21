@@ -142,6 +142,45 @@ struct DnsSettings: Equatable {
     }
 }
 
+/// Explicit tri-state representation of DNS settings: Uninitialized, SystemDefault, or Custom.
+/// Replaces nullable settings to eliminate ambiguity between never-configured and default.
+enum DnsSettingsState: Equatable {
+    case uninitialized
+    case systemDefault
+    case custom(DnsSettings)
+
+    var settingsOrNull: DnsSettings? {
+        switch self {
+        case .uninitialized:
+            return nil
+        case .systemDefault:
+            return SdkGetDefaultDnsResolverSettings().map { DnsSettings($0) }
+        case .custom(let settings):
+            return settings
+        }
+    }
+}
+
+/// Semantic equality for SDK DNS resolver settings DTOs.
+func dnsResolverSettingsSemanticallyEqual(
+    _ first: SdkDnsResolverSettings?,
+    _ second: SdkDnsResolverSettings?
+) -> Bool {
+    guard let first, let second else {
+        return first == nil && second == nil
+    }
+    return DnsSettings(first) == DnsSettings(second)
+}
+
+func isDefaultDnsSettings(_ settings: SdkDnsResolverSettings?) -> Bool {
+    guard let settings else { return false }
+    if settings.presetId == SdkDnsPresetIdDefault {
+        return true
+    }
+    guard let defaults = SdkGetDefaultDnsResolverSettings() else { return false }
+    return dnsResolverSettingsSemanticallyEqual(settings, defaults)
+}
+
 /**
  * The description under the Fast DNS on connect toggle. Its English text is the
  * key of fast_dns_on_connect_description in Localizable.xcstrings, so it must
@@ -256,6 +295,7 @@ class DnsSettingsStore: ObservableObject {
     /// it: the status listener does not report the count (ADBLOCK3RD I3).
     static let blockedCountRefreshInterval: TimeInterval = 5
 
+    @Published private(set) var state: DnsSettingsState = .uninitialized
     @Published private(set) var settings: DnsSettings? = nil
     /// The device's dns resolver status (ADBLOCK3RD C5, C6), nil until the
     /// first read lands. Published only when it changes.
@@ -307,6 +347,9 @@ class DnsSettingsStore: ObservableObject {
 
         self.device = device
         self.localState = localState
+        if let saved = localState?.getDnsResolverSettings() {
+            apply(DnsSettingsRead(settings: saved, connected: false), afterEdit: false)
+        }
         let generation = self.generation
         self.settingsSub = device.add(DnsResolverSettingsListener { [weak self] in
             DispatchQueue.main.async {
@@ -362,6 +405,7 @@ class DnsSettingsStore: ObservableObject {
         // nothing is persisted from here: reset runs on every backgrounding
         // and the mirror is already current by then
         localState = nil
+        state = .uninitialized
         settings = nil
         sdkSettings = nil
         status = nil
@@ -429,12 +473,14 @@ class DnsSettingsStore: ObservableObject {
             if settings != read {
                 settings = read
             }
+            state = isDefaultDnsSettings(sdkSettings) ? .systemDefault : .custom(read)
             if afterEdit || answer.connected {
                 persist(sdkSettings)
             }
-        } else {
+        } else if answer.connected || afterEdit || self.sdkSettings == nil {
             self.sdkSettings = nil
             settings = nil
+            state = .uninitialized
         }
     }
 
@@ -712,12 +758,28 @@ class DnsSettingsStore: ObservableObject {
         reads.edited()
         selectionChanging(to: newSettings)
         sdkSettings = newSettings
-        settings = DnsSettings(newSettings)
+        let optimisticSettings = DnsSettings(newSettings)
+        settings = optimisticSettings
+        state = isDefaultDnsSettings(newSettings) ? .systemDefault : .custom(optimisticSettings)
         let work = DnsSettingsEditWork(device: device, settings: SdkCopyDnsResolverSettings(newSettings) ?? newSettings)
         deviceWorkQueue.async {
             work.run()
         }
         update(afterEdit: true)
+    }
+
+    /// Applies explicit tri-state settings.
+    @discardableResult
+    func apply(state: DnsSettingsState) -> Bool {
+        switch state {
+        case .custom(let customSettings):
+            guard let current = settings else { return false }
+            return apply(customSettings, original: current)
+        case .systemDefault:
+            return select(presetId: SdkDnsPresetIdDefault)
+        case .uninitialized:
+            return false
+        }
     }
 }
 

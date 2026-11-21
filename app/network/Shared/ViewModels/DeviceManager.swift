@@ -1894,11 +1894,12 @@ extension DeviceManager {
         }
 
         // the dns resolver settings cross the same way, mirrored by
-        // DnsSettingsStore. The editor opens on whatever the device reports, so
+        // DnsSettingsStore using the tri-state contract (Uninitialized, SystemDefault,
+        // Custom). The editor opens on whatever the device reports, so
         // without the seed a tunnel-down launch shows the blank
         // never-configured form over the resolver the extension has on disk,
         // and applying an edit from that blank base replaces it on the next
-        // connect. Nothing stored means never mirrored -- leave the
+        // connect. Nothing stored means Uninitialized -- leave the
         // extension's resolver alone; settings with everything turned off are
         // a real value and are seeded as one. Above setDevice for the same
         // reason as the rules.

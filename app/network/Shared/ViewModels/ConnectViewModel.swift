@@ -80,6 +80,31 @@ private class SelectedLocationListener: NSObject, SdkSelectedLocationListenerPro
     }
 }
 
+private class PostQuantumUnavailableListener: NSObject, SdkPostQuantumUnavailableListenerProtocol {
+
+    private let callback: () -> Void
+
+    init(callback: @escaping () -> Void) {
+        self.callback = callback
+    }
+
+    func postQuantumUnavailableChanged() {
+        callback()
+    }
+}
+
+/**
+ * The sdk's notice that post-quantum encryption is on and the selected
+ * location has no post-quantum exits right now
+ * (ConnectViewController.getPostQuantumUnavailable): the connect screen says
+ * so in place of the connecting state, with the two ways on, another
+ * location or post-quantum off. The sdk decides when it holds.
+ */
+struct PostQuantumUnavailableNotice: Equatable {
+    // the selected location's name, as the location list shows it
+    let locationName: String
+}
+
 private class ConnectLocationStateListener: NSObject, SdkConnectLocationChangeListenerProtocol {
     private let callback: (_ location: SdkConnectLocation?) -> Void
 
@@ -123,6 +148,12 @@ class ConnectViewModel: ObservableObject {
      * Selected Provider
      */
     @Published private(set) var selectedProvider: SdkConnectLocation?
+
+    /**
+     * The selected location has no post-quantum exits right now (the sdk's
+     * notice, PostQuantumUnavailableNotice). Nil otherwise.
+     */
+    @Published private(set) var postQuantumUnavailable: PostQuantumUnavailableNotice? = nil
     
     /**
      * Prompt ratings
@@ -184,6 +215,7 @@ class ConnectViewModel: ObservableObject {
     private var gridListenerSub: SdkSubProtocol?
     private var connectionStatusListenerSub: SdkSubProtocol?
     private var selectedLocationListenerSub: SdkSubProtocol?
+    private var postQuantumUnavailableListenerSub: SdkSubProtocol?
     private var tunnelListenerSub: SdkSubProtocol?
     private var contractListenerSub: SdkSubProtocol?
     private var clientLimitListenerSub: SdkSubProtocol?
@@ -328,8 +360,12 @@ class ConnectViewModel: ObservableObject {
         self.addGridListener()
         self.addConnectionStatusListener()
         self.addSelectedLocationListener()
+        self.addPostQuantumUnavailableListener()
 
         self.updateConnectionStatus()
+        // the listener only reports changes: a notice the controller already
+        // holds shows now
+        self.updatePostQuantumUnavailable()
 
         // if a user was connected and quit the app, it will reconnect this location
         self.selectedProvider = device.getConnectLocation()
@@ -432,6 +468,7 @@ class ConnectViewModel: ObservableObject {
         gridListenerSub?.close()
         connectionStatusListenerSub?.close()
         selectedLocationListenerSub?.close()
+        postQuantumUnavailableListenerSub?.close()
         // the device's take its state lock: closed on the command queue, and
         // their reports until then change nothing (deviceListenerGeneration)
         closeOnCommandQueue([tunnelListenerSub, contractListenerSub, clientLimitListenerSub, connectLocationStateSub, windowStatusListenerSub])
@@ -439,6 +476,9 @@ class ConnectViewModel: ObservableObject {
         gridListenerSub = nil
         connectionStatusListenerSub = nil
         selectedLocationListenerSub = nil
+        postQuantumUnavailableListenerSub = nil
+        // the notice is the retired controller's
+        postQuantumUnavailable = nil
         tunnelListenerSub = nil
         contractListenerSub = nil
         clientLimitListenerSub = nil
@@ -1514,6 +1554,30 @@ func connectGridSignature(
     points: [ConnectGridPointSignature]
 ) -> String {
     "\(width)x\(windowCurrentSize);" + points.map { $0.text }.sorted().joined(separator: "|")
+}
+
+// MARK: post-quantum notice
+extension ConnectViewModel {
+
+    private func addPostQuantumUnavailableListener() {
+        let listener = PostQuantumUnavailableListener { [weak self] in
+            DispatchQueue.main.async {
+                self?.updatePostQuantumUnavailable()
+            }
+        }
+        postQuantumUnavailableListenerSub = connectViewController?.add(listener)
+    }
+
+    /// Reads the sdk's notice. The controller's getter takes only its own
+    /// state lock, never the device's, so it is read on the main actor.
+    func updatePostQuantumUnavailable() {
+        let notice = connectViewController?.getPostQuantumUnavailable().map {
+            PostQuantumUnavailableNotice(locationName: $0.location?.name ?? "")
+        }
+        if notice != postQuantumUnavailable {
+            postQuantumUnavailable = notice
+        }
+    }
 }
 
 // MARK: connection status

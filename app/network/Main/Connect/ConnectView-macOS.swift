@@ -140,6 +140,7 @@ import URnetworkSdk
                             showProviderLocations: {
                                 presentedStatsSheet = .providerLocations
                             },
+                            postQuantumUnavailable: connectViewModel.postQuantumUnavailable,
                             tunnelConnected: $connectViewModel.tunnelConnected,
                         )
                         .animation(.spring(duration: 0.3), value: isProviderTableVisible)
@@ -207,7 +208,8 @@ import URnetworkSdk
                                 dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice,
                                 retryPlan: {
                                     Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
-                                }
+                                },
+                                postQuantumUnavailable: connectViewModel.postQuantumUnavailable
                             )
                             
                         }

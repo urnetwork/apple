@@ -21,8 +21,22 @@ struct ConnectStatusIndicator: View {
     // opens the provider-locations detail view; the label is the tap target
     // while it reads "Connected to N providers" or "Connecting to providers"
     var showProviderLocations: (() -> Void)? = nil
+    // the selected location has no post-quantum exits right now (the sdk's
+    // notice): the line says so in place of connecting
+    var postQuantumUnavailable: PostQuantumUnavailableNotice? = nil
 
     @EnvironmentObject var themeManager: ThemeManager
+
+    /**
+     * The sdk's notice shows while a connection is requested and not
+     * connected: the line names it instead of "Connecting to providers", with
+     * no ellipsis, since nothing connects until the user picks another
+     * location or turns post-quantum off (the drawer's actions).
+     */
+    var showsPostQuantumUnavailable: Bool {
+        postQuantumUnavailable != nil
+            && (connectionStatus == .connecting || connectionStatus == .destinationSet || connectionStatus == .connectFailed)
+    }
 
     /**
      * Whether the status line is a provider status: the live "Connected to N
@@ -38,11 +52,14 @@ struct ConnectStatusIndicator: View {
             && !isPollingSubscriptionBalance
             && !(contractStatus?.insufficientBalance == true && currentPlan == .none)
             && !dataLimitReached
+            && !showsPostQuantumUnavailable
     }
 
     var statusMsgIconColor: Color {
         
         if (contractStatus?.insufficientBalance == true && currentPlan == .none) || dataLimitReached {
+            return .urCoral
+        } else if showsPostQuantumUnavailable {
             return .urCoral
         } else {
             switch connectionStatus {
@@ -65,6 +82,8 @@ struct ConnectStatusIndicator: View {
             return String(localized: "Insufficient balance")
         } else if dataLimitReached {
             return String(localized: "Data limit reached")
+        } else if let postQuantumUnavailable, showsPostQuantumUnavailable {
+            return String(localized: "No post-quantum exits in \(postQuantumUnavailable.locationName) right now")
         } else {
             switch connectionStatus {
             case .disconnected: return String(localized: "Ready to connect")
@@ -106,7 +125,7 @@ struct ConnectStatusIndicator: View {
                 .font(themeManager.currentTheme.bodyFont)
                 .foregroundColor(themeManager.currentTheme.textColor)
             
-            if connectionStatus == .connecting || connectionStatus == .destinationSet {
+            if (connectionStatus == .connecting || connectionStatus == .destinationSet) && !showsPostQuantumUnavailable {
                 AnimatedEllipsis()
             }
 

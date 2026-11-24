@@ -150,6 +150,10 @@ struct ConnectActions: View {
     // the plan card's retry once a balance read failed: reads the balance
     // again
     var retryPlan: () -> Void = {}
+    // the selected location has no post-quantum exits right now (the sdk's
+    // notice): what to do, pick another location (the picker, as the
+    // location row opens it) or turn post-quantum off (the switch below)
+    var postQuantumUnavailable: PostQuantumUnavailableNotice? = nil
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
@@ -439,6 +443,18 @@ struct ConnectActions: View {
              */
 
             /**
+             * Post-quantum encryption is on and the selected location has no
+             * post-quantum exits right now: say so, with the two ways on,
+             * another location or post-quantum off, saved as the switch below
+             * saves it. Nothing changes until the user picks one. Above the
+             * fold, so the collapsed drawer shows it; Disconnect below stays
+             * the way out.
+             */
+            if let postQuantumUnavailable, showsPostQuantumUnavailable {
+                postQuantumUnavailableNotice(postQuantumUnavailable)
+            }
+
+            /**
              * The platform holds the device off for its network's client
              * limit: what to do, with Get Pro on a free plan and Retry, which
              * dials again at once. Above the fold, so the collapsed drawer
@@ -532,6 +548,53 @@ struct ConnectActions: View {
                 .connectActionsFold()
             }
         }
+    }
+
+    /// The notice shows while a connection is requested and not connected.
+    private var showsPostQuantumUnavailable: Bool {
+        connectionStatus == .connecting || connectionStatus == .destinationSet || connectionStatus == .connectFailed
+    }
+
+    /**
+     * The no post-quantum exits notice: the line, Pick another location,
+     * which opens the location picker, and Turn off post-quantum, which turns
+     * the connect option off and saves it as the switch does. The buttons
+     * wrap when the row doesn't fit.
+     */
+    @ViewBuilder
+    private func postQuantumUnavailableNotice(_ notice: PostQuantumUnavailableNotice) -> some View {
+        Text("No post-quantum exits in \(notice.locationName) right now")
+            .font(themeManager.currentTheme.bodyFont)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("acceptance.postQuantumUnavailable.notice")
+
+        ViewThatFits(in: .horizontal) {
+            HStack {
+                postQuantumPickLocationButton
+                postQuantumTurnOffButton
+            }
+            VStack {
+                postQuantumPickLocationButton
+                postQuantumTurnOffButton
+            }
+        }
+    }
+
+    private var postQuantumPickLocationButton: some View {
+        UrButton(
+            text: "Pick another location",
+            action: { setIsPresented(true) },
+            accessibilityIdentifier: "acceptance.postQuantumUnavailable.pickLocation"
+        )
+    }
+
+    private var postQuantumTurnOffButton: some View {
+        UrButton(
+            text: "Turn off post-quantum",
+            action: { postQuantumEncryption = false },
+            style: .outlineSecondary,
+            accessibilityIdentifier: "acceptance.postQuantumUnavailable.turnOff"
+        )
     }
 
     /**

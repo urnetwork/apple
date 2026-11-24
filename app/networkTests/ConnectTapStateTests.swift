@@ -780,6 +780,27 @@ struct ConnectTapStateTests {
             }
         }
 
+        // the window's client limit and window status listeners report
+        // nothing here, and the device answers no client limit status
+        override func add(_ listener: SdkClientLimitStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            record("addClientLimitStatusChangeListener")
+            return FakeSub { [weak self] in
+                self?.record("closeClientLimitStatusChangeListener")
+            }
+        }
+
+        override func getClientLimitStatus() -> SdkClientLimitStatus? {
+            record("getClientLimitStatus")
+            return nil
+        }
+
+        override func add(_ listener: SdkWindowStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            record("addWindowStatusChangeListener")
+            return FakeSub { [weak self] in
+                self?.record("closeWindowStatusChangeListener")
+            }
+        }
+
         override func close(_ vc: SdkConnectViewController?) {
             record("closeConnectViewController")
             vc?.close()
@@ -1417,6 +1438,15 @@ struct ConnectTapStateTests {
 
         override func add(_ listener: SdkSelectedLocationListenerProtocol?) -> SdkSubProtocol? {
             FakeSub {}
+        }
+
+        // no post-quantum notice
+        override func add(_ listener: SdkPostQuantumUnavailableListenerProtocol?) -> SdkSubProtocol? {
+            FakeSub {}
+        }
+
+        override func getPostQuantumUnavailable() -> SdkPostQuantumUnavailable? {
+            nil
         }
 
         override func getGrid() -> SdkConnectGrid? {

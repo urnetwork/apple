@@ -93,16 +93,47 @@ private class PostQuantumUnavailableListener: NSObject, SdkPostQuantumUnavailabl
     }
 }
 
+#if os(macOS)
+/// The device's notice listener (Device.getPostQuantumUnavailable): called
+/// on an sdk thread with the new notice on every change, and by a
+/// DeviceRemote with the extension's each time it syncs with it.
+private class PostQuantumUnavailableChangeListener: NSObject, SdkPostQuantumUnavailableChangeListenerProtocol {
+
+    private let callback: (_ postQuantumUnavailable: SdkPostQuantumUnavailable?) -> Void
+
+    init(callback: @escaping (_ postQuantumUnavailable: SdkPostQuantumUnavailable?) -> Void) {
+        self.callback = callback
+    }
+
+    func postQuantumUnavailableChanged(_ postQuantumUnavailable: SdkPostQuantumUnavailable?) {
+        callback(postQuantumUnavailable)
+    }
+}
+#endif
+
 /**
  * The sdk's notice that post-quantum encryption is on and the selected
  * location has no post-quantum exits right now
  * (ConnectViewController.getPostQuantumUnavailable): the connect screen says
  * so in place of the connecting state, with the two ways on, another
- * location or post-quantum off. The sdk decides when it holds.
+ * location or post-quantum off. The sdk decides when it holds. The device
+ * decides the same notice for what runs without the window's controller
+ * (Device.getPostQuantumUnavailable): the macOS menu bar with the window
+ * hidden.
  */
 struct PostQuantumUnavailableNotice: Equatable {
     // the selected location's name, as the location list shows it
     let locationName: String
+}
+
+extension PostQuantumUnavailableNotice {
+    /// The sdk's notice, the controller's or the device's; nil for none.
+    init?(_ postQuantumUnavailable: SdkPostQuantumUnavailable?) {
+        guard let postQuantumUnavailable else {
+            return nil
+        }
+        self.init(locationName: postQuantumUnavailable.location?.name ?? "")
+    }
 }
 
 private class ConnectLocationStateListener: NSObject, SdkConnectLocationChangeListenerProtocol {
@@ -154,6 +185,15 @@ class ConnectViewModel: ObservableObject {
      * notice, PostQuantumUnavailableNotice). Nil otherwise.
      */
     @Published private(set) var postQuantumUnavailable: PostQuantumUnavailableNotice? = nil
+
+    #if os(macOS)
+    /**
+     * The device's notice (Device.getPostQuantumUnavailable), held while
+     * suspended, when no window's controller is presented: the menu bar
+     * shows it then (menuBarPostQuantumUnavailable). Nil while one is.
+     */
+    @Published private(set) var devicePostQuantumUnavailable: PostQuantumUnavailableNotice? = nil
+    #endif
     
     /**
      * Prompt ratings
@@ -221,6 +261,12 @@ class ConnectViewModel: ObservableObject {
     private var clientLimitListenerSub: SdkSubProtocol?
     private var connectLocationStateSub: SdkSubProtocol?
     private var windowStatusListenerSub: SdkSubProtocol?
+    #if os(macOS)
+    // suspended: the device's notice listener, and its reports applied (a
+    // read made before one of them is older and is dropped)
+    private var devicePostQuantumUnavailableSub: SdkSubProtocol?
+    private var devicePostQuantumUnavailableRevision = 0
+    #endif
     // the window's last diagnosis (WindowStatus.stallReason), for the sdk's
     // can't-reach rule on a signed-in connect (makeWindowStatusListener)
     private var windowStallReason = ""
@@ -484,6 +530,13 @@ class ConnectViewModel: ObservableObject {
         clientLimitListenerSub = nil
         connectLocationStateSub = nil
         windowStatusListenerSub = nil
+        #if os(macOS)
+        // and the suspended device's: one of the two at a time
+        // (menuBarPostQuantumUnavailable)
+        closeOnCommandQueue([devicePostQuantumUnavailableSub])
+        devicePostQuantumUnavailableSub = nil
+        devicePostQuantumUnavailable = nil
+        #endif
         // the next device's window starts from no diagnosis
         windowStallReason = ""
     }
@@ -522,6 +575,9 @@ class ConnectViewModel: ObservableObject {
      * is about. A read is dropped when a report applied after it was made
      * (the report is newer), and so is everything when a setup, suspend or
      * reset retired it first; its listeners then close.
+     *
+     * On macOS the device's post-quantum notice is followed the same way,
+     * for the tray's row (addDevicePostQuantumUnavailableListener).
      */
     private func addBackgroundConnectionStateListener() {
         guard let device else {
@@ -568,6 +624,9 @@ class ConnectViewModel: ObservableObject {
                 }
             }
         }
+        #if os(macOS)
+        addDevicePostQuantumUnavailableListener()
+        #endif
     }
 
     /// While the location stays the same, its last status stands: the
@@ -1571,14 +1630,82 @@ extension ConnectViewModel {
     /// Reads the sdk's notice. The controller's getter takes only its own
     /// state lock, never the device's, so it is read on the main actor.
     func updatePostQuantumUnavailable() {
-        let notice = connectViewController?.getPostQuantumUnavailable().map {
-            PostQuantumUnavailableNotice(locationName: $0.location?.name ?? "")
-        }
+        let notice = PostQuantumUnavailableNotice(connectViewController?.getPostQuantumUnavailable())
         if notice != postQuantumUnavailable {
             postQuantumUnavailable = notice
         }
     }
 }
+
+#if os(macOS)
+// MARK: the menu bar's post-quantum notice
+extension ConnectViewModel {
+
+    /**
+     * The notice the menu bar shows: the window's controller's while one is
+     * presented, as the main window shows it, else the device's, which
+     * decides the same notice. The view model holds one of them at a time:
+     * closeListeners clears both, a setup reads the controller's and a
+     * suspend follows the device's.
+     */
+    var menuBarPostQuantumUnavailable: PostQuantumUnavailableNotice? {
+        postQuantumUnavailable ?? devicePostQuantumUnavailable
+    }
+
+    /**
+     * Suspended, the device's notice (Device.getPostQuantumUnavailable),
+     * which the app's DeviceRemote mirrors from the extension. The listener
+     * is added and the notice read on the command queue, after the commands
+     * queued so far, as the hidden tunnel and location are: the getter can
+     * ask the extension. The read is dropped when a report applied after it
+     * was made, and both when a setup, suspend or reset retired them first;
+     * the listener then closes.
+     */
+    private func addDevicePostQuantumUnavailableListener() {
+        guard let device else {
+            return
+        }
+        let generation = deviceListenerGeneration
+        let revision = devicePostQuantumUnavailableRevision
+        let work = DevicePostQuantumUnavailableListenWork(
+            device: device,
+            listener: PostQuantumUnavailableChangeListener { [weak self] postQuantumUnavailable in
+                let notice = PostQuantumUnavailableNotice(postQuantumUnavailable)
+                DispatchQueue.main.async {
+                    guard let self, self.deviceListenerGeneration == generation else {
+                        return
+                    }
+                    self.devicePostQuantumUnavailableRevision += 1
+                    self.setDevicePostQuantumUnavailable(notice)
+                }
+            }
+        )
+        let connectCommandQueue = self.connectCommandQueue
+        connectCommandQueue.async { [weak self] in
+            let listened = work.run()
+            DispatchQueue.main.async {
+                guard let self, self.deviceListenerGeneration == generation else {
+                    connectCommandQueue.async {
+                        listened.close()
+                    }
+                    return
+                }
+                self.devicePostQuantumUnavailableSub = listened.sub
+                if self.devicePostQuantumUnavailableRevision == revision {
+                    self.setDevicePostQuantumUnavailable(listened.notice)
+                }
+            }
+        }
+    }
+
+    /// Publishes the device's notice, only on a change.
+    private func setDevicePostQuantumUnavailable(_ notice: PostQuantumUnavailableNotice?) {
+        if devicePostQuantumUnavailable != notice {
+            devicePostQuantumUnavailable = notice
+        }
+    }
+}
+#endif
 
 // MARK: connection status
 extension ConnectViewModel {
@@ -1713,6 +1840,36 @@ private struct BackgroundListened: @unchecked Sendable {
         locationSub?.close()
     }
 }
+
+#if os(macOS)
+/// The suspended view model's listener for the device's post-quantum notice,
+/// then its read, in the order BackgroundListenWork adds and reads the tunnel
+/// and the location.
+private struct DevicePostQuantumUnavailableListenWork: @unchecked Sendable {
+    let device: SdkDeviceRemote
+    let listener: SdkPostQuantumUnavailableChangeListenerProtocol
+
+    func run() -> DevicePostQuantumUnavailableListened {
+        let sub = device.add(listener)
+        return DevicePostQuantumUnavailableListened(
+            sub: sub,
+            notice: PostQuantumUnavailableNotice(device.getPostQuantumUnavailable())
+        )
+    }
+}
+
+/// What DevicePostQuantumUnavailableListenWork added and read, handed back to
+/// the main actor.
+private struct DevicePostQuantumUnavailableListened: @unchecked Sendable {
+    let sub: SdkSubProtocol?
+    let notice: PostQuantumUnavailableNotice?
+
+    /// Closes the listener when it was retired before it was set up.
+    func close() {
+        sub?.close()
+    }
+}
+#endif
 
 /// The device's tunnel, to read.
 private struct TunnelReadWork: @unchecked Sendable {

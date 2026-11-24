@@ -153,6 +153,12 @@ final class DeferredWindowSetup {
  * main window says there, "VPN tunnel disconnected". The view model keeps
  * the tunnel's listener while the window is hidden, so both cases follow
  * the tunnel then too.
+ *
+ * The sdk's notice that the selected location has no post-quantum exits
+ * right now (ConnectViewModel.postQuantumUnavailable) replaces connecting
+ * and couldn't connect, as it does in the main window, and never shows over
+ * a connection. The view model holds it from the window's controller only:
+ * with the window hidden there is none, and the row reads as above.
  */
 enum MenuBarConnectionState: Equatable {
     case connected
@@ -160,8 +166,24 @@ enum MenuBarConnectionState: Equatable {
     case connecting
     case failed
     case disconnected
+    // the sdk's notice, with the location's name as the location list shows it
+    case postQuantumUnavailable(locationName: String)
 
-    init(_ connectionStatus: ConnectionStatus?, fromLocation: Bool = false, tunnelConnected: Bool = true) {
+    init(
+        _ connectionStatus: ConnectionStatus?,
+        fromLocation: Bool = false,
+        tunnelConnected: Bool = true,
+        postQuantumUnavailable: PostQuantumUnavailableNotice? = nil
+    ) {
+        if let postQuantumUnavailable {
+            switch connectionStatus {
+            case .connecting, .destinationSet, .connectFailed:
+                self = .postQuantumUnavailable(locationName: postQuantumUnavailable.locationName)
+                return
+            default:
+                break
+            }
+        }
         switch connectionStatus {
         case .connected:
             self = tunnelConnected ? .connected : .tunnelDisconnected
@@ -184,6 +206,7 @@ enum MenuBarConnectionState: Equatable {
         case .connecting: return "ellipsis"
         case .failed: return "exclamationmark.triangle"
         case .disconnected: return "xmark"
+        case .postQuantumUnavailable: return "exclamationmark.triangle"
         }
     }
 
@@ -194,6 +217,8 @@ enum MenuBarConnectionState: Equatable {
         case .tunnelDisconnected: return String(localized: "VPN tunnel disconnected 😓")
         case .connecting: return String(localized: "Connecting…")
         case .failed: return String(localized: "Couldn't connect")
+        case .postQuantumUnavailable(let locationName):
+            return String(localized: "No post-quantum exits in \(locationName) right now")
         }
     }
 
@@ -540,7 +565,8 @@ struct NetworkApp: App {
         MenuBarConnectionState(
             connectViewModel.connectionStatus,
             fromLocation: connectViewModel.connectionStatusFromLocation,
-            tunnelConnected: connectViewModel.tunnelConnected
+            tunnelConnected: connectViewModel.tunnelConnected,
+            postQuantumUnavailable: connectViewModel.postQuantumUnavailable
         )
     }
     #endif

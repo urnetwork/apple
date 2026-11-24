@@ -30,6 +30,9 @@ struct ConnectButtonView: View {
     var dataLimitReached: Bool = false
     // opens the provider-locations detail view from the connected status label
     var showProviderLocations: (() -> Void)? = nil
+    // the selected location has no post-quantum exits right now (the sdk's
+    // notice): the canvas shows its warning, not the connecting grid
+    var postQuantumUnavailable: PostQuantumUnavailableNotice? = nil
 
     @Binding var tunnelConnected: Bool
 
@@ -70,7 +73,8 @@ struct ConnectButtonView: View {
                     displayReconnectTunnel: displayReconnectTunnel,
                     insufficientBalance: contractStatus?.insufficientBalance == true,
                     currentPlan: currentPlan,
-                    dataLimitReached: dataLimitReached
+                    dataLimitReached: dataLimitReached,
+                    postQuantumUnavailable: postQuantumUnavailable != nil
                 ) {
                     
                     ConnectErrorStateView()
@@ -176,7 +180,8 @@ struct ConnectButtonView: View {
                 isPollingSubscriptionBalance: isPollingSubscriptionBalance,
                 currentPlan: currentPlan,
                 dataLimitReached: dataLimitReached,
-                showProviderLocations: showProviderLocations
+                showProviderLocations: showProviderLocations,
+                postQuantumUnavailable: postQuantumUnavailable
             )
             // the connect screen sizes the canvas to the room this leaves
             .background(
@@ -229,21 +234,24 @@ struct ConnectStatusHeightPreferenceKey: PreferenceKey {
 }
 
 /// The connector shows the warning in place of the provider grid while the
-/// tunnel needs reconnecting, while out of balance (not a supporter), and
-/// while the connect failed (the sdk's CONNECT_FAILED: no provider could be
-/// reached), as the desktop apps' connect canvas does in its error state. A
-/// provider that lands later, or a retry, brings the grid back.
+/// tunnel needs reconnecting, while out of balance (not a supporter), while
+/// the connect failed (the sdk's CONNECT_FAILED: no provider could be
+/// reached), and while a requested connection's location has no post-quantum
+/// exits (the sdk's notice), as the desktop apps' connect canvas does in its
+/// error state. A provider that lands later, or a retry, brings the grid back.
 func connectCanvasShowsWarning(
     connectionStatus: ConnectionStatus?,
     displayReconnectTunnel: Bool,
     insufficientBalance: Bool,
     currentPlan: Plan,
-    dataLimitReached: Bool
+    dataLimitReached: Bool,
+    postQuantumUnavailable: Bool = false
 ) -> Bool {
     displayReconnectTunnel
         || (insufficientBalance && currentPlan == .none)
         || dataLimitReached
         || connectionStatus == .connectFailed
+        || (postQuantumUnavailable && (connectionStatus == .connecting || connectionStatus == .destinationSet))
 }
 
 #Preview {

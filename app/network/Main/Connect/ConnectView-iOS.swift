@@ -489,6 +489,7 @@ struct ConnectView_iOS: View {
                         showProviderLocations: {
                             presentedStatsSheet = .providerLocations
                         },
+                        postQuantumUnavailable: connectViewModel.postQuantumUnavailable,
                         tunnelConnected: $connectViewModel.tunnelConnected,
                         canvasSide: placement.canvasSide
                     )
@@ -645,7 +646,8 @@ struct ConnectView_iOS: View {
             dismissProFeatures: proFeaturesNoticeStore.dismissMainNotice,
             retryPlan: {
                 Task { await subscriptionBalanceViewModel.fetchSubscriptionBalance() }
-            }
+            },
+            postQuantumUnavailable: connectViewModel.postQuantumUnavailable
         )
     }
 

@@ -618,6 +618,8 @@ struct ConnectTapStateTests {
         private var locationListeners: [Int: SdkConnectLocationChangeListenerProtocol] = [:]
         private var tunnelStarted: Bool
         private var tunnelListeners: [Int: SdkTunnelChangeListenerProtocol] = [:]
+        private var postQuantumUnavailableValue: SdkPostQuantumUnavailable?
+        private var postQuantumUnavailableListeners: [Int: SdkPostQuantumUnavailableChangeListenerProtocol] = [:]
         private var nextListenerId = 0
         private var mainThreadCallNames: [String] = []
         private var callNames: [String] = []
@@ -649,6 +651,18 @@ struct ConnectTapStateTests {
             }
             for listener in listeners {
                 listener.connectLocationChanged(location)
+            }
+        }
+
+        /// The device's post-quantum notice changed and the sdk reports it,
+        /// with the new notice, as its listener does.
+        func reportPostQuantumUnavailable(_ postQuantumUnavailable: SdkPostQuantumUnavailable?) {
+            let listeners = stateLock.withLock {
+                postQuantumUnavailableValue = postQuantumUnavailable
+                return Array(postQuantumUnavailableListeners.values)
+            }
+            for listener in listeners {
+                listener.postQuantumUnavailableChanged(postQuantumUnavailable)
             }
         }
 
@@ -685,6 +699,10 @@ struct ConnectTapStateTests {
 
         var tunnelListenerCount: Int {
             stateLock.withLock { tunnelListeners.count }
+        }
+
+        var hasPostQuantumUnavailableListener: Bool {
+            stateLock.withLock { !postQuantumUnavailableListeners.isEmpty }
         }
 
         /// The calls made on the main thread since the last `forgetMainThreadCalls`.
@@ -773,10 +791,49 @@ struct ConnectTapStateTests {
             }
         }
 
+        override func getPostQuantumUnavailable() -> SdkPostQuantumUnavailable? {
+            record("getPostQuantumUnavailable")
+            return stateLock.withLock { postQuantumUnavailableValue }
+        }
+
+        override func add(_ listener: SdkPostQuantumUnavailableChangeListenerProtocol?) -> SdkSubProtocol? {
+            record("addPostQuantumUnavailableChangeListener")
+            let id = stateLock.withLock {
+                nextListenerId += 1
+                postQuantumUnavailableListeners[nextListenerId] = listener
+                return nextListenerId
+            }
+            return FakeSub { [weak self] in
+                self?.record("closePostQuantumUnavailableChangeListener")
+                self?.stateLock.withLock { self?.postQuantumUnavailableListeners[id] = nil }
+            }
+        }
+
         override func add(_ listener: SdkContractStatusChangeListenerProtocol?) -> SdkSubProtocol? {
             record("addContractStatusChangeListener")
             return FakeSub { [weak self] in
                 self?.record("closeContractStatusChangeListener")
+            }
+        }
+
+        // the window's client limit and window status listeners report
+        // nothing here, and the device answers no client limit status
+        override func add(_ listener: SdkClientLimitStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            record("addClientLimitStatusChangeListener")
+            return FakeSub { [weak self] in
+                self?.record("closeClientLimitStatusChangeListener")
+            }
+        }
+
+        override func getClientLimitStatus() -> SdkClientLimitStatus? {
+            record("getClientLimitStatus")
+            return nil
+        }
+
+        override func add(_ listener: SdkWindowStatusChangeListenerProtocol?) -> SdkSubProtocol? {
+            record("addWindowStatusChangeListener")
+            return FakeSub { [weak self] in
+                self?.record("closeWindowStatusChangeListener")
             }
         }
 
@@ -1417,6 +1474,15 @@ struct ConnectTapStateTests {
 
         override func add(_ listener: SdkSelectedLocationListenerProtocol?) -> SdkSubProtocol? {
             FakeSub {}
+        }
+
+        // no post-quantum notice
+        override func add(_ listener: SdkPostQuantumUnavailableListenerProtocol?) -> SdkSubProtocol? {
+            FakeSub {}
+        }
+
+        override func getPostQuantumUnavailable() -> SdkPostQuantumUnavailable? {
+            nil
         }
 
         override func getGrid() -> SdkConnectGrid? {
@@ -2068,8 +2134,19 @@ struct ConnectTapStateTests {
         MenuBarConnectionState(
             model.connectionStatus,
             fromLocation: model.connectionStatusFromLocation,
-            tunnelConnected: model.tunnelConnected
+            tunnelConnected: model.tunnelConnected,
+            postQuantumUnavailable: model.menuBarPostQuantumUnavailable
         )
+    }
+
+    /// The sdk's notice that the location named `locationName` has no
+    /// post-quantum exits right now.
+    nonisolated private static func postQuantumUnavailable(locationName: String) -> SdkPostQuantumUnavailable? {
+        let location = SdkConnectLocation()
+        location.name = locationName
+        let postQuantumUnavailable: SdkPostQuantumUnavailable? = SdkPostQuantumUnavailable()
+        postQuantumUnavailable?.location = location
+        return postQuantumUnavailable
     }
 
     /// Hiding the window (Cmd-Q, close, minimize, occlusion, a hidden
@@ -2188,6 +2265,44 @@ struct ConnectTapStateTests {
         #expect(model.connectionStatus == .destinationSet)
         #expect(!model.connectionStatusFromLocation)
         #expect(Self.menuBar(model) == .connecting)
+    }
+
+    /// The device's notice that the selected location has no post-quantum
+    /// exits right now (Device.getPostQuantumUnavailable), with the window
+    /// hidden. The row's notice was the window controller's alone, so hidden
+    /// it read a connect left in progress as the location's, connected once
+    /// the tunnel was up, while the sdk held the notice. It says the notice,
+    /// from the device's read and then its reports, and the main window's
+    /// notice stays the controller's. Shown again, the controller says, and
+    /// the device's listener closes.
+    @Test func suspendedMenuBarSaysTheDevicesPostQuantumNotice() async {
+        let commands = HeldCommands(status: .connecting)
+        let model = Self.model(commands)
+        let device = FakeDevice(location: Self.location(bestAvailable: false), tunnelStarted: true)
+        device.reportPostQuantumUnavailable(Self.postQuantumUnavailable(locationName: "Germany"))
+        let notice = MenuBarConnectionState.postQuantumUnavailable(locationName: "Germany")
+
+        model.suspend(api: nil, device: device)
+        model.readConnectionStatus = { nil }
+        await Self.deviceWorkSettled(model)
+        #expect(Self.menuBar(model) == notice)
+        #expect(model.postQuantumUnavailable == nil)
+
+        // the device's notice clears, then holds again
+        device.reportPostQuantumUnavailable(nil)
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == .connected)
+        device.reportPostQuantumUnavailable(Self.postQuantumUnavailable(locationName: "Germany"))
+        await Self.mainQueueDrained()
+        #expect(Self.menuBar(model) == notice)
+
+        // shown again: the controller's notice, none here
+        model.readConnectionStatus = { commands.status }
+        model.setup(api: nil, device: device, connectViewController: FakeConnectViewController())
+        #expect(model.devicePostQuantumUnavailable == nil)
+        #expect(Self.menuBar(model) == .connecting)
+        await Self.deviceWorkSettled(model)
+        #expect(!device.hasPostQuantumUnavailableListener)
     }
     #endif
 

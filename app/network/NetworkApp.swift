@@ -155,10 +155,14 @@ final class DeferredWindowSetup {
  * the tunnel then too.
  *
  * The sdk's notice that the selected location has no post-quantum exits
- * right now (ConnectViewModel.postQuantumUnavailable) replaces connecting
- * and couldn't connect, as it does in the main window, and never shows over
- * a connection. The view model holds it from the window's controller only:
- * with the window hidden there is none, and the row reads as above.
+ * right now (ConnectViewModel.menuBarPostQuantumUnavailable) replaces
+ * connecting and couldn't connect, as it does in the main window, and never
+ * shows over a connection. While the window's controller is open it is the
+ * controller's, as the main window shows it. Without one (the window hidden,
+ * or shown while its setup waits on a command) it is the device's
+ * (Device.getPostQuantumUnavailable, mirrored from the extension). The
+ * device holds it only while its connection is not connected, so it also
+ * replaces a location the row would read as connected once the tunnel is up.
  */
 enum MenuBarConnectionState: Equatable {
     case connected
@@ -566,7 +570,7 @@ struct NetworkApp: App {
             connectViewModel.connectionStatus,
             fromLocation: connectViewModel.connectionStatusFromLocation,
             tunnelConnected: connectViewModel.tunnelConnected,
-            postQuantumUnavailable: connectViewModel.postQuantumUnavailable
+            postQuantumUnavailable: connectViewModel.menuBarPostQuantumUnavailable
         )
     }
     #endif

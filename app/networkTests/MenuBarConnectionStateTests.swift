@@ -112,6 +112,38 @@ struct MenuBarConnectionStateTests {
         #expect(MenuBarConnectionState(.connected, tunnelConnected: true) == .connected)
     }
 
+    /// The sdk's notice that the selected location has no post-quantum exits
+    /// right now replaces connecting and couldn't connect, in the main
+    /// window's words, with the icon not connected. The row said
+    /// "Connecting…" for as long as the window said the notice.
+    @Test func noPostQuantumExitsSaysWhatTheMainWindowSays() {
+        let notice = PostQuantumUnavailableNotice(locationName: "Germany")
+        for status in [ConnectionStatus.connecting, .destinationSet, .connectFailed] {
+            let state = MenuBarConnectionState(status, postQuantumUnavailable: notice)
+            #expect(state == .postQuantumUnavailable(locationName: "Germany"), "\(status)")
+            #expect(state.symbol == "exclamationmark.triangle", "\(status)")
+            let mainWindow = ConnectStatusIndicator(
+                connectionStatus: status,
+                displayReconnectTunnel: false,
+                contractStatus: nil,
+                windowCurrentSize: 0,
+                isPollingSubscriptionBalance: false,
+                currentPlan: .none,
+                postQuantumUnavailable: notice
+            )
+            #expect(state.label == mainWindow.statusMsg, "\(status)")
+            #expect(state.iconName(providing: false) == "MenuBarNoProvideNoConnect", "\(status)")
+        }
+        #expect(
+            MenuBarConnectionState(.destinationSet, fromLocation: true, tunnelConnected: true, postQuantumUnavailable: notice)
+                == .postQuantumUnavailable(locationName: "Germany")
+        )
+        // never over a connection, and not while disconnected
+        #expect(MenuBarConnectionState(.connected, postQuantumUnavailable: notice) == .connected)
+        #expect(MenuBarConnectionState(.disconnected, postQuantumUnavailable: notice) == .disconnected)
+        #expect(MenuBarConnectionState(nil, postQuantumUnavailable: notice) == .disconnected)
+    }
+
     /// Connect when disconnected, Disconnect for any connection asked for,
     /// and nothing with no status, where Disconnect had nothing to end.
     @Test func theActionNeedsAStatus() {

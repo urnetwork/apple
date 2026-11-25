@@ -300,6 +300,29 @@ final class DirectUpdater: ObservableObject {
             return
         }
 
+        // (b2) the release signature over SHA256SUMS (staged: an unsigned
+        // release continues unless ReleaseSignature.requireUpdateSignature)
+        let signatureData: Data?
+        let sumsData: Data?
+        do {
+            signatureData = try await fetchSmallAsset(offer.signatureURL)
+            sumsData = signatureData == nil ? nil : try await fetchSmallAsset(offer.sumsURL)
+        } catch {
+            try? fileManager.removeItem(at: plan.workDirectory)
+            phase = .failed(offer, .download(describe(error)))
+            return
+        }
+        switch ReleaseSignature.verify(sums: sumsData, signature: signatureData, assetName: offer.assetName, actualHex: actualHex) {
+        case .verified:
+            break
+        case .unsigned:
+            NSLog("[updater] release %@ has no %@; continuing on the digest and code signature", offer.tag, ReleaseSignature.signatureAssetName)
+        case .refused(let reason):
+            try? fileManager.removeItem(at: plan.workDirectory)
+            phase = .failed(offer, .signature(reason))
+            return
+        }
+
         // (c) unpack with ditto, then insist on exactly URnetwork.app
         do {
             try? fileManager.removeItem(at: plan.unpackDirectory)
@@ -352,6 +375,20 @@ final class DirectUpdater: ObservableObject {
     }
 
     // MARK: pieces
+
+    /// A small release asset (SHA256SUMS, its .sig), or nil when the release
+    /// does not attach it.
+    private func fetchSmallAsset(_ url: URL?) async throws -> Data? {
+        guard let url else { return nil }
+        let (data, response) = try await session.data(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw CheckError("http status \((response as? HTTPURLResponse)?.statusCode ?? 0) for \(url.lastPathComponent)")
+        }
+        guard data.count <= 1024 * 1024 else {
+            throw CheckError("\(url.lastPathComponent) larger than the 1 MiB cap")
+        }
+        return data
+    }
 
     nonisolated static func sha256Hex(of file: URL) -> String {
         guard let handle = try? FileHandle(forReadingFrom: file) else { return "" }

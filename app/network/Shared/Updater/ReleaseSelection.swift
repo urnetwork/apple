@@ -121,6 +121,10 @@ struct UpdateOffer: Equatable {
     let assetURL: URL
     /// Lowercase SHA-256 hex.
     let digestHex: String
+    /// The release's SHA256SUMS and SHA256SUMS.sig (https), when attached:
+    /// the release-signature check (ReleaseSignature).
+    var sumsURL: URL? = nil
+    var signatureURL: URL? = nil
 }
 
 enum ReleaseSelection {
@@ -185,7 +189,16 @@ enum ReleaseSelection {
         guard let digestHex = digestHex(fromAssetDigest: asset.digest) else {
             return .failure(Skip(reason: "release \(release.tag) lacks a usable sha256 digest for \(name)"))
         }
-        return .success(UpdateOffer(version: version, tag: release.tag, assetName: name, assetURL: url, digestHex: digestHex))
+        func httpsURL(_ assetName: String) -> URL? {
+            guard let asset = release.assets.last(where: { $0.name == assetName }),
+                  let url = URL(string: asset.url), url.scheme == "https" else { return nil }
+            return url
+        }
+        return .success(UpdateOffer(
+            version: version, tag: release.tag, assetName: name, assetURL: url, digestHex: digestHex,
+            sumsURL: httpsURL(ReleaseSignature.sumsAssetName),
+            signatureURL: httpsURL(ReleaseSignature.signatureAssetName)
+        ))
     }
 
     private struct Skip: Error {

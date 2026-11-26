@@ -27,6 +27,9 @@ struct LoginInitialView: View {
     // above the layout switch, so turning or resizing the window never
     // closes the sheet
     @State private var presentNetworkServerSheet = false
+    // the page's size without the software keyboard (readsLayoutSize), which
+    // picks the layout; nil until measured
+    @State private var layoutSize: CGSize? = nil
     #if os(iOS)
     // Google sign-in presents in this view's own window
     @State private var hostingWindow = HostingWindow()
@@ -61,64 +64,43 @@ struct LoginInitialView: View {
         let deviceExists = deviceManager.device != nil
         
         GeometryReader { geometry in
-            
+
+            // the carousel beside the form in a regular-width window wider
+            // than tall: the window's shape, not the device's orientation, and
+            // the whole page, not the part above the software keyboard
+            let besideCarousel = TabletLayout.showsCarouselBesideForm(
+                isRegularWidth: isRegularWidth,
+                layoutSize: layoutSize,
+                visibleSize: geometry.size
+            )
+            // beside the carousel, the form takes the right half of the page;
+            // stacked, the column fills the page inside the default padding
+            let formWidth: CGFloat? = besideCarousel ? geometry.size.width / 2 : nil
+            let stackedMaxSize: CGFloat? = besideCarousel ? nil : CGFloat.infinity
+            let stackedPadding: CGFloat? = besideCarousel ? 0 : nil
+
             ScrollView {
-                
-                // the carousel beside the form in a regular-width window wider
-                // than tall: the window's shape, not the device's orientation
-                if TabletLayout.showsCarouselBesideForm(isRegularWidth: isRegularWidth, size: geometry.size) {
-                    
-                    HStack(alignment: .center) {
-                        
+
+                // One form, in one place in the view tree whichever way the
+                // page is laid out: only the carousel moves, beside the form
+                // or above it. Two forms, one per layout, lost the email
+                // field's focus, and so the keyboard, whenever the layout
+                // changed under it.
+                HStack(alignment: .center) {
+
+                    if besideCarousel {
                         LoginCarousel()
                             .frame(width: geometry.size.width / 2)
-                        
-                        LoginInitialFormView(
-                            userAuth: $viewModel.userAuth,
-                            handleUserAuth: handleUserAuth,
-                            beginAppleLogin: beginAppleLogin,
-                            handleAppleLoginResult: completeAppleLogin,
-                            handleGoogleSignInButton: handleGoogleSignInButton,
-                            handleBrowserSignIn: handleBrowserSignIn,
-                            isValidUserAuth: viewModel.isValidUserAuth,
-                            activeLoginAction: viewModel.activeLoginAction,
-                            isLoginActionInFlight: viewModel.isLoginActionInFlight,
-                            loginErrorMessage: viewModel.loginErrorMessage,
-                            deviceExists: deviceExists,
-                            presentSignInWithSolanaSheet: {
-                                startSolanaSignIn()
-                            },
-                            signInWithBittensor: {
-                                handleBittensorSignIn()
-                            },
-                            presentAuthCodeLogin: {
-                                navigate(.authCode)
-                            },
-                            presentSeedphraseLogin: {
-                                navigate(.seedphrase)
-                            },
-                            presentCreateInstant: {
-                                navigate(.createInstant)
-                            },
-                            presentNetworkServer: {
-                                presentNetworkServerSheet = true
-                            }
-                        )
-                        .frame(width: geometry.size.width / 2, alignment: .leading)
-                        
                     }
-                    // fill the height and center the content; a short window scrolls
-                    .frame(width: geometry.size.width)
-                    .frame(minHeight: geometry.size.height)
-                    
-                } else {
-                
+
                     VStack {
-                        
-                        LoginCarousel()
-                        
-                        Spacer().frame(height: 64)
-                        
+
+                        if !besideCarousel {
+                            LoginCarousel()
+
+                            Spacer().frame(height: 64)
+                        }
+
                         LoginInitialFormView(
                             userAuth: $viewModel.userAuth,
                             handleUserAuth: handleUserAuth,
@@ -150,15 +132,17 @@ struct LoginInitialView: View {
                                 presentNetworkServerSheet = true
                             }
                         )
-                        
+                        .frame(width: formWidth, alignment: .leading)
+
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
-                    .frame(minHeight: geometry.size.height)
-                    .frame(maxWidth: .infinity)
-                    
+                    .frame(maxWidth: stackedMaxSize, maxHeight: stackedMaxSize)
+                    .padding(.all, stackedPadding)
+
                 }
-                
+                // fill the height and center the content; a short window scrolls
+                .frame(width: geometry.size.width)
+                .frame(minHeight: geometry.size.height)
+
             }
             .alert(String(localized: "No Solana Wallets Found"), isPresented: $presentNoSolanaWalletAlert) {
                 Button(String(localized: "Got it")) {}
@@ -252,6 +236,9 @@ struct LoginInitialView: View {
                 }
             }
         }
+        // the page's shape for the layout, measured as if the keyboard were
+        // hidden, so typing never changes the layout
+        .readsLayoutSize($layoutSize)
         .sheetOffTheFold(isPresented: $presentNetworkServerSheet) {
             NetworkServerSheet(
                 initialHostName: deviceManager.activeHostName,

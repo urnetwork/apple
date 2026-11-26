@@ -14,7 +14,8 @@ struct LoginNavigationView: View {
     
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var deviceManager: DeviceManager
-    
+    @EnvironmentObject var snackbarManager: UrSnackbarManager
+
     var api: SdkApi
     var cancel: (() -> Void)? = nil
     var handleSuccess: NetworkLoginHandler
@@ -116,7 +117,15 @@ struct LoginNavigationView: View {
                 }
             }
         }
-        .environment(\.networkLoginContext, NetworkLoginContext(manager: deviceManager, origin: loginOrigin))
+        .environment(\.networkLoginContext, NetworkLoginContext(
+            manager: deviceManager,
+            origin: loginOrigin,
+            // a sign-in that can't start says why, such as a sign-out still
+            // finishing, instead of leaving the tap without an answer
+            refused: { refusal in
+                snackbarManager.showSnackbar(message: refusal.message)
+            }
+        ))
         // why the server signed this app out, when it said (SignedOutNotice):
         // shown once, dismissing it clears it
         .alert(

@@ -2693,12 +2693,18 @@ class VPNManager: ObservableObject {
             notifyProviders: { sendLogoutMessageToTunnelProviders(settings: settings, completion: $0) },
             removeProfiles: { removeAllVpnProfiles(settings: settings, completion: $0) }
         ) { error in
-            // Preserve an unresolved provider operation even if removal succeeds.
+            // the removal's outcome; the provider notice is best effort
             WidgetRefresh.reloadAll()
             completion(error)
         }
     }
 
+    /// Tells each running tunnel's extension the account signed out, so it
+    /// closes its device and logs out its local state before the profile
+    /// goes. Only running sessions get it (vpnLogoutNoticeReaches): a stopped
+    /// profile's session throws, and its extension has nothing to close. Best
+    /// effort, within the notice deadline; performVPNLogoutCleanup only logs
+    /// a failure.
     private static func sendLogoutMessageToTunnelProviders(
         settings: VPNManagerSettings,
         completion: @escaping (Error?) -> Void
@@ -2730,7 +2736,8 @@ class VPNManager: ObservableObject {
                 var providerError: Error?
 
                 for manager in managers {
-                    guard let session = manager.connection as? NETunnelProviderSession else {
+                    guard let session = manager.connection as? NETunnelProviderSession,
+                          vpnLogoutNoticeReaches(VPNManager.tunnelConnectionState(session.status)) else {
                         continue
                     }
 

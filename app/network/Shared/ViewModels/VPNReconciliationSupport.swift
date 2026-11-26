@@ -9,8 +9,16 @@
 
 import Foundation
 
-/// Removal must not hide an unresolved provider logout (including a deadline).
-/// Both callbacks are admitted once on the main actor, as in VPNManager.
+/// A sign-out's VPN cleanup: the running tunnels' providers are told first, so
+/// an extension can close its device and log out before its profile goes,
+/// then every profile is removed. The notice is best effort and only logged
+/// when it fails or runs out its deadline (a stopped profile's session
+/// throws; a busy extension answers late), as the other provider messages
+/// are; the completion carries the removal's outcome alone. A notice failure
+/// once reached the sign-out's admission fence and kept every sign-in from
+/// starting until the app was relaunched (found with the App Store review
+/// rejection of iOS 2026.11.19). Both callbacks are admitted once on the main
+/// actor, as in VPNManager.
 @MainActor
 func performVPNLogoutCleanup(
     notifyProviders: (@escaping (Error?) -> Void) -> Void,
@@ -22,11 +30,27 @@ func performVPNLogoutCleanup(
     notifyProviders { providerError in
         guard !providersCompleted else { return }
         providersCompleted = true
+        if let providerError {
+            print("[logout] provider logout notice not delivered: \(providerError.localizedDescription)")
+        }
         removeProfiles { removalError in
             guard !removalCompleted else { return }
             removalCompleted = true
-            completion(providerError ?? removalError)
+            completion(removalError)
         }
+    }
+}
+
+/// Whether a sign-out's logout notice goes to a tunnel in this state: only a
+/// running one, whose extension has a device to close, as the other provider
+/// messages decide (ProvidePowerStore, TunnelDiagnosticsFlush). A stopped or
+/// disabled profile's session refuses the message.
+func vpnLogoutNoticeReaches(_ connectionState: VPNTunnelConnectionState) -> Bool {
+    switch connectionState {
+    case .connected, .connecting, .reasserting:
+        return true
+    case .invalid, .disconnected, .disconnecting:
+        return false
     }
 }
 

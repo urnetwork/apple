@@ -304,7 +304,9 @@ private final class NetworkClientAuthenticationOwner {
     }
 }
 
-/// Global profile cleanup excludes new auth until its original local cleanup joins.
+/// Global profile cleanup excludes new auth until its original local cleanup
+/// joins, and, when the profile removal failed, until that removal's one
+/// retry answers. Every step is bounded, so the exclusion always ends.
 @MainActor
 private final class DeviceLogoutOwner {
     let networkSpace: SdkNetworkSpace?
@@ -316,6 +318,8 @@ private final class DeviceLogoutOwner {
     var profilesCompleted = false
     var profilesSucceeded = false
     var localStateCompleted = false
+    var profileRetryStarted = false
+    var profileRetryCompleted = false
 
     init(manager: DeviceManager) {
         networkSpace = manager.networkSpace
@@ -1271,10 +1275,19 @@ class DeviceManager: ObservableObject {
 extension DeviceManager {
     /// Producer admission happens before auth/network/browser work starts.
     func beginNetworkLoginRequest(origin: NetworkLoginOrigin) -> NetworkLoginRequest? {
-        guard !isLoggingOut, networkLoginOrigin === origin, let networkSpace, let api else { return nil }
+        guard networkLoginRefusal(origin: origin) == nil, let networkSpace, let api else { return nil }
         let request = NetworkLoginRequest(origin: origin, networkSpace: networkSpace, api: api, manager: self)
         pendingNetworkLoginRequest = request
         return request
+    }
+
+    /// Why a sign-in from `origin` can't start now, or nil when it can: the
+    /// sign-in screens say it rather than do nothing (NetworkLoginContext).
+    func networkLoginRefusal(origin: NetworkLoginOrigin) -> NetworkLoginRefusal? {
+        if isLoggingOut { return .signingOut }
+        if networkLoginOrigin !== origin { return .retired }
+        if networkSpace == nil || api == nil { return .unavailable }
+        return nil
     }
 
     func isCurrentNetworkLoginRequest(_ request: NetworkLoginRequest) -> Bool {
@@ -2480,14 +2493,17 @@ extension DeviceManager {
         }
     }
 
+    /// `error` is the profile removal's alone: the providers' logout notice is
+    /// best effort (performVPNLogoutCleanup).
     private func completeLogoutProfiles(_ owner: DeviceLogoutOwner, error: Error?) {
         guard logoutOwner === owner, !owner.profilesCompleted else { return }
         owner.profilesCompleted = true
         owner.profilesSucceeded = error == nil
-        if error != nil {
+        if let error {
             // A deadline is not a join of OS work. Retain the admission fence
-            // after failure, even while clearing the signed-out local account.
-            print("[logout] profile cleanup unresolved; login remains blocked")
+            // after failure, even while clearing the signed-out local account,
+            // until the removal's retry answers (completeLogoutLocalState).
+            print("[logout] profile cleanup unresolved, retried after the local cleanup: \(error.localizedDescription)")
         }
         owner.vpnManager?.close()
         if vpnManager === owner.vpnManager { vpnManager = nil }
@@ -2507,7 +2523,45 @@ extension DeviceManager {
         owner.localStateCompleted = true
         if !success { print("[logout] asyncLocalState logout failed") }
         if networkSpace === owner.networkSpace, device === owner.device { clearDevice() }
-        guard owner.profilesSucceeded else { return }
+        guard owner.profilesSucceeded else {
+            retryLogoutProfiles(owner)
+            return
+        }
+        finishLogout(owner)
+    }
+
+    /**
+     * The profile removal that failed or ran out its deadline, once more,
+     * now that the local cleanup is done. The fence still holds, so no
+     * sign-in can add a profile this removal could take. Its answer ends the
+     * sign-out whatever it says: the removal is bounded by its own deadlines,
+     * and a fence that waited for a join the system never gives kept every
+     * sign-in from starting until the app was relaunched (found with the App
+     * Store review rejection of iOS 2026.11.19). A sign-in tried meanwhile
+     * says the sign-out is still finishing (NetworkLoginRefusal).
+     */
+    private func retryLogoutProfiles(_ owner: DeviceLogoutOwner) {
+        guard logoutOwner === owner, !owner.profileRetryStarted else { return }
+        owner.profileRetryStarted = true
+        let dispatch = authCallbackDispatch
+        // the owner's manager is closed by now: the retry has none to stop
+        logoutEffects.removeProfiles(nil) { error in
+            dispatch { self.completeLogoutProfileRetry(owner, error: error) }
+        }
+    }
+
+    private func completeLogoutProfileRetry(_ owner: DeviceLogoutOwner, error: Error?) {
+        guard logoutOwner === owner, owner.profileRetryStarted, !owner.profileRetryCompleted else { return }
+        owner.profileRetryCompleted = true
+        if let error {
+            print("[logout] profile cleanup retry unresolved, sign-in admitted: \(error.localizedDescription)")
+        }
+        finishLogout(owner)
+    }
+
+    /// Ends the sign-out's admission fence: sign-in can start again.
+    private func finishLogout(_ owner: DeviceLogoutOwner) {
+        guard logoutOwner === owner else { return }
         logoutOwner = nil
         isLoggingOut = false
     }

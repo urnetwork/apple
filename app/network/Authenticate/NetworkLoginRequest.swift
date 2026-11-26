@@ -37,20 +37,57 @@ final class NetworkLoginRequest {
     }
 }
 
+/// Why a sign-in can't start (DeviceManager.networkLoginRefusal). Every
+/// sign-in screen starts through NetworkLoginContext, which says it, so a tap
+/// that can't start a sign-in never looks like nothing happened.
+enum NetworkLoginRefusal: Equatable {
+    /// a sign-out is still finishing its cleanup
+    case signingOut
+    /// the screen's sign-in flow was replaced (an accepted sign-in, another
+    /// network space, a sign-out); its replacement is on the way
+    case retired
+    /// no network space or api to sign in with
+    case unavailable
+
+    var message: String {
+        switch self {
+        case .signingOut:
+            return String(localized: "Signing out…") + " " + String(localized: "Please try again.")
+        case .retired, .unavailable:
+            return String(localized: "There was an error logging in")
+        }
+    }
+}
+
 /// Retained by one login view hierarchy. Old views cannot mint a new request
-/// after space replacement, logout, quit or an accepted explicit login.
+/// after space replacement, logout, quit or an accepted explicit login. A
+/// sign-in that can't start reports why to `refused`.
 @MainActor
 final class NetworkLoginContext {
     private weak var manager: DeviceManager?
     let origin: NetworkLoginOrigin
+    private let refused: @MainActor (NetworkLoginRefusal) -> Void
 
-    init(manager: DeviceManager, origin: NetworkLoginOrigin) {
+    init(
+        manager: DeviceManager,
+        origin: NetworkLoginOrigin,
+        refused: @escaping @MainActor (NetworkLoginRefusal) -> Void = { _ in }
+    ) {
         self.manager = manager
         self.origin = origin
+        self.refused = refused
     }
 
     func begin() -> NetworkLoginRequest? {
-        manager?.beginNetworkLoginRequest(origin: origin)
+        guard let manager else {
+            refused(.unavailable)
+            return nil
+        }
+        if let request = manager.beginNetworkLoginRequest(origin: origin) {
+            return request
+        }
+        refused(manager.networkLoginRefusal(origin: origin) ?? .unavailable)
+        return nil
     }
 }
 

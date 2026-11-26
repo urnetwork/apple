@@ -64,6 +64,18 @@ struct VPNReconciliationSupportTests {
         #expect(!vpnProfileRemovalMayContinue(attempt: 2, limit: 2))
     }
 
+    @Test func theSignOutNoticeGoesOnlyToARunningTunnel() {
+        #expect(vpnLogoutNoticeReaches(.connected))
+        #expect(vpnLogoutNoticeReaches(.connecting))
+        #expect(vpnLogoutNoticeReaches(.reasserting))
+        // a stopped or disabled profile's session refuses the message; the
+        // sign-out used to message every installed profile, so a stopped
+        // tunnel's refusal reached its admission fence
+        #expect(!vpnLogoutNoticeReaches(.disconnected))
+        #expect(!vpnLogoutNoticeReaches(.disconnecting))
+        #expect(!vpnLogoutNoticeReaches(.invalid))
+    }
+
     @Test func activeExistingProfileStopsBeforeConfigurationReplacement() {
         #expect(vpnTunnelNeedsStopBeforeConfiguration(
             profileExists: true,

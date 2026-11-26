@@ -100,6 +100,18 @@ class SubscriptionBalanceViewModel: ObservableObject {
     /// with every balance request so the tier follows the store's territory.
     private(set) var storefrontCountry: String?
     private var storefrontResolved = false
+    /// The one StoreKit storefront lookup. A balance read waits on it at most
+    /// storefrontLookupTimeout and then reads without it, as with no
+    /// storefront (the server resolves the tier from the request); a late
+    /// answer serves the reads after it.
+    private var storefrontLookup: Task<String?, Never>?
+    /// Seconds a balance read waits on the storefront. StoreKit's lookup has
+    /// no deadline and can't be cancelled, and while a read waited on it
+    /// isLoading held the welcome screen's Enter disabled (found with the App
+    /// Store review rejection of iOS 2026.11.19). Non-positive reads at once
+    /// unless the lookup has already answered.
+    private let storefrontLookupTimeout: TimeInterval
+    private let lookupStorefrontCountry: () async -> String?
 
     /// The in-app offer surface's assignment: the intro plan step and the
     /// final offer screen show the welcome offer unless the network is in the
@@ -157,7 +169,9 @@ class SubscriptionBalanceViewModel: ObservableObject {
         refreshJwt: @escaping () -> Void,
         planLoaded: @escaping (Bool) -> Bool = { _ in false },
         planReadFailed: @escaping () -> Void = {},
-        purchaseConfirmation: PurchaseConfirming
+        purchaseConfirmation: PurchaseConfirming,
+        storefrontLookupTimeout: TimeInterval = 2,
+        lookupStorefrontCountry: @escaping () async -> String? = SubscriptionBalanceViewModel.appStoreStorefrontCountry
     ) {
         self.urApiService = urApiService
         self.refreshJwt = refreshJwt
@@ -165,6 +179,8 @@ class SubscriptionBalanceViewModel: ObservableObject {
         self.planReadFailed = planReadFailed
         self.isPro = isPro
         self.purchaseConfirmation = purchaseConfirmation
+        self.storefrontLookupTimeout = storefrontLookupTimeout
+        self.lookupStorefrontCountry = lookupStorefrontCountry
         purchaseConfirmation.setForeground(active)
         purchaseConfirmation.onStateChanged = { [weak self] state in
             self?.purchaseConfirmationStateChanged(state)
@@ -224,13 +240,35 @@ class SubscriptionBalanceViewModel: ObservableObject {
     
     private func resolveStorefrontIfNeeded() async {
         guard !storefrontResolved else { return }
-        storefrontResolved = true
         // no App Store storefront on the direct-download build: the server
         // resolves the tier from the request
-        #if !DIRECT_DOWNLOAD
-        if let storefront = await Storefront.current {
-            storefrontCountry = storefront.countryCode
+        #if DIRECT_DOWNLOAD
+        storefrontResolved = true
+        #else
+        let lookup: Task<String?, Never>
+        if let storefrontLookup {
+            lookup = storefrontLookup
+        } else {
+            let lookupStorefrontCountry = self.lookupStorefrontCountry
+            lookup = Task { await lookupStorefrontCountry() }
+            storefrontLookup = lookup
         }
+        guard let country = await taskValue(lookup, within: storefrontLookupTimeout) else {
+            print("\(domain) no App Store storefront within \(storefrontLookupTimeout)s; reading the balance without it")
+            return
+        }
+        storefrontCountry = country
+        storefrontResolved = true
+        #endif
+    }
+
+    /// The App Store storefront's country, from StoreKit; nil without one.
+    /// The direct-download build has no storefront.
+    nonisolated static func appStoreStorefrontCountry() async -> String? {
+        #if DIRECT_DOWNLOAD
+        return nil
+        #else
+        return await Storefront.current?.countryCode
         #endif
     }
 
@@ -631,5 +669,48 @@ private class PurchaseConfirmationListener: NSObject, SdkPurchaseConfirmationLis
 
     func purchaseConfirmationStateChanged(_ state: String?) {
         callback(state ?? "")
+    }
+}
+
+/// `task`'s value, or nil when it has not answered within `timeout` seconds.
+/// The task keeps running, and a later wait gets its answer: this bounds an
+/// await that has no deadline and can't be cancelled, such as StoreKit's
+/// storefront lookup.
+func taskValue<Value: Sendable>(_ task: Task<Value, Never>, within timeout: TimeInterval) async -> Value? {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Value?, Never>) in
+        let once = TaskValueResume(continuation)
+        let bound = Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(max(0, timeout) * 1_000_000_000))
+            } catch {
+                // the answer came first
+                return
+            }
+            once.resume(returning: nil)
+        }
+        Task {
+            let value = await task.value
+            // resumed before the bound is cancelled, so the bound can't win
+            once.resume(returning: value)
+            bound.cancel()
+        }
+    }
+}
+
+/// Resumes exactly once, whichever of the answer and the bound lands first.
+private final class TaskValueResume<Value>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Value?, Never>?
+
+    init(_ continuation: CheckedContinuation<Value?, Never>) {
+        self.continuation = continuation
+    }
+
+    func resume(returning value: Value?) {
+        lock.lock()
+        let pending = continuation
+        continuation = nil
+        lock.unlock()
+        pending?.resume(returning: value)
     }
 }

@@ -358,7 +358,10 @@ struct ContentView: View {
      * app; another refusal keeps it open, saying why.
      */
     private func retrySignIn(_ limit: SignInDeviceLimit) {
-        guard let request = deviceManager.beginNetworkLoginRequest(origin: deviceManager.networkLoginOrigin) else {
+        let origin = deviceManager.networkLoginOrigin
+        guard let request = deviceManager.beginNetworkLoginRequest(origin: origin) else {
+            // the list says why the sign-in can't start, rather than nothing
+            signInRetryMessage = (deviceManager.networkLoginRefusal(origin: origin) ?? .unavailable).message
             return
         }
         Task {

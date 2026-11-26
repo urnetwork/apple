@@ -359,16 +359,93 @@ final class DeviceLoginLogoutOwnershipTests: XCTestCase {
         XCTAssertEqual(f.localWork.count, 1)
     }
 
-    func testProfileTimeoutKeepsAdmissionClosedAfterLocalCompletion() async throws {
+    /// A removal that ran out its deadline once kept the fence closed for the
+    /// rest of the process: no sign-in could start until a relaunch (found
+    /// with the App Store review rejection of iOS 2026.11.19). It now runs
+    /// once more after the local cleanup, and that answer, whatever it is,
+    /// ends the sign-out.
+    func testProfileTimeoutRetriesRemovalThenAdmitsSignInWhateverTheRetrySays() async throws {
         let f = try LoginLogoutFixture(); defer { f.close() }
         try f.original.setByJwt("synthetic-original-admin")
         f.manager.logout()
         f.completeProfiles(VPNOperationTimeoutError(operation: "synthetic-logout", timeout: 2))
         await f.runLocalLogout()
         XCTAssertTrue(try f.original.getAuthStateSnapshot().getEmpty())
+        guard f.profileCompletions.count == 2 else {
+            return XCTFail("the failed removal was not retried: the sign-out kept sign-in closed")
+        }
+        // the retry still runs: sign-in waits for its answer
         await f.assertLoginRejected()
-        f.completeProfiles() // a late duplicate cannot convert a deadline into a join
+        f.completeProfiles() // a late duplicate of the first answer is not the retry's
         await f.assertLoginRejected()
+        f.completeProfiles(VPNOperationTimeoutError(operation: "synthetic-retry", timeout: 2), index: 1)
+        XCTAssertNotNil(f.manager.beginNetworkLoginRequest(origin: f.manager.networkLoginOrigin))
+        let current = await f.beginLogin("synthetic-new-admin")
+        f.succeed(0, client: "synthetic-new-client")
+        if case .failure = await current.value { XCTFail("the sign-out kept sign-in closed") }
+        XCTAssertEqual(f.original.getByClientJwt(), "synthetic-new-client")
+        XCTAssertEqual(f.profileCompletions.count, 2)
+    }
+
+    func testProfileRemovalErrorRetriesOnceAndASucceedingRetryAdmitsSignIn() async throws {
+        let f = try LoginLogoutFixture(); defer { f.close() }
+        f.manager.logout()
+        f.completeProfiles(NSError(domain: "synthetic-removal", code: 1))
+        await f.runLocalLogout()
+        guard f.profileCompletions.count == 2 else {
+            return XCTFail("the failed removal was not retried: the sign-out kept sign-in closed")
+        }
+        var commits = 0
+        XCTAssertFalse(f.manager.acceptNetworkLogin { commits += 1 })
+        f.completeProfiles(index: 1)
+        XCTAssertTrue(f.manager.acceptNetworkLogin { commits += 1 })
+        XCTAssertEqual(commits, 1)
+        // one retry only, and its duplicate answer changes nothing
+        f.completeProfiles(index: 1)
+        XCTAssertEqual(f.profileCompletions.count, 2)
+    }
+
+    /// A sign-out with the tunnel running: its provider took longer than the
+    /// notice deadline to answer and every profile was removed, and every
+    /// later sign-in did nothing until a relaunch. The live cleanup's
+    /// outcome, delivered to the manager, admits the next sign-in.
+    func testProviderNoticeTimeoutWithTheProfilesRemovedAdmitsTheNextSignIn() async throws {
+        let f = try LoginLogoutFixture(); defer { f.close() }
+        try f.original.setByJwt("synthetic-original-admin")
+        f.manager.logout()
+        performVPNLogoutCleanup(
+            notifyProviders: { $0(VPNOperationTimeoutError(operation: "synthetic-provider", timeout: 2)) },
+            removeProfiles: { $0(nil) },
+            completion: { f.completeProfiles($0) }
+        )
+        await f.runLocalLogout()
+        XCTAssertTrue(try f.original.getAuthStateSnapshot().getEmpty())
+        // nothing to retry: the removal succeeded
+        XCTAssertEqual(f.profileCompletions.count, 1)
+        guard f.manager.beginNetworkLoginRequest(origin: f.manager.networkLoginOrigin) != nil else {
+            return XCTFail("a provider notice that timed out kept sign-in closed")
+        }
+        let current = await f.beginLogin("synthetic-new-admin")
+        f.succeed(0, client: "synthetic-new-client")
+        if case .failure = await current.value { XCTFail("the sign-out kept sign-in closed") }
+        XCTAssertEqual(f.original.getByClientJwt(), "synthetic-new-client")
+    }
+
+    func testSignInTriedWhileTheSignOutFinishesIsToldWhy() async throws {
+        let f = try LoginLogoutFixture(); defer { f.close() }
+        var refusals: [NetworkLoginRefusal] = []
+        let retired = NetworkLoginContext(manager: f.manager, origin: f.manager.networkLoginOrigin) { refusals.append($0) }
+        f.manager.logout()
+        let current = NetworkLoginContext(manager: f.manager, origin: f.manager.networkLoginOrigin) { refusals.append($0) }
+        XCTAssertNil(current.begin())
+        XCTAssertNil(retired.begin())
+        XCTAssertEqual(refusals, [.signingOut, .signingOut])
+        f.completeProfiles()
+        await f.runLocalLogout()
+        XCTAssertNotNil(current.begin())
+        // the screen from before the sign-out was replaced
+        XCTAssertNil(retired.begin())
+        XCTAssertEqual(refusals, [.signingOut, .signingOut, .retired])
     }
 
     func testOldFinalCallbackCannotReleaseLaterLogout() async throws {
@@ -389,7 +466,9 @@ final class DeviceLoginLogoutOwnershipTests: XCTestCase {
         XCTAssertTrue(f.manager.acceptNetworkLogin {})
     }
 
-    func testCleanupRetainsProviderTimeoutWhenRemovalSucceeds() {
+    /// The provider notice is best effort: a removal that succeeded completes
+    /// the cleanup as a success, whatever the notice did.
+    func testCleanupCompletesWithTheRemovalWhenTheProviderNoticeTimesOut() {
         var provider: ((Error?) -> Void)?
         var removal: ((Error?) -> Void)?
         var outcomes: [Error?] = []
@@ -398,10 +477,24 @@ final class DeviceLoginLogoutOwnershipTests: XCTestCase {
         XCTAssertTrue(outcomes.isEmpty)
         removal?(nil)
         XCTAssertEqual(outcomes.count, 1)
-        XCTAssertTrue(outcomes[0] is VPNOperationTimeoutError)
+        XCTAssertNil(outcomes[0])
         provider?(nil)
         removal?(nil)
         XCTAssertEqual(outcomes.count, 1)
+    }
+
+    func testCleanupCompletesWithTheRemovalErrorNotTheProviderNotice() {
+        var outcomes: [Error?] = []
+        performVPNLogoutCleanup(
+            notifyProviders: { $0(VPNOperationTimeoutError(operation: "synthetic-provider", timeout: 2)) },
+            removeProfiles: { $0(NSError(domain: "synthetic-removal", code: 1)) },
+            completion: { outcomes.append($0) }
+        )
+        XCTAssertEqual(outcomes.count, 1)
+        guard let outcome = outcomes.first ?? nil else {
+            return XCTFail("the cleanup completed without the removal's error")
+        }
+        XCTAssertEqual((outcome as NSError).domain, "synthetic-removal")
     }
 
     func testCleanupCurrentSuccessStillCompletes() {

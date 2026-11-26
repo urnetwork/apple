@@ -218,12 +218,76 @@ struct SplitLayoutTests {
 
     // MARK: the auth screens and Account
 
+    // an 11-inch iPad's sign-in page, below the status and navigation bars
+    private static let elevenInchPortraitPage = CGSize(width: 820, height: 1086)
+    private static let elevenInchLandscapePage = CGSize(width: 1180, height: 726)
+
+    /// The decision for a page with no keyboard over it: the measured and
+    /// the visible size are the same.
+    private static func carouselBesideForm(isRegularWidth: Bool, page: CGSize) -> Bool {
+        TabletLayout.showsCarouselBesideForm(isRegularWidth: isRegularWidth, layoutSize: page, visibleSize: page)
+    }
+
     @Test func theCarouselSitsBesideTheFormOnlyInAWideRegularWindow() {
-        #expect(TabletLayout.showsCarouselBesideForm(isRegularWidth: true, size: CGSize(width: 1194, height: 834)))
-        #expect(!TabletLayout.showsCarouselBesideForm(isRegularWidth: true, size: CGSize(width: 834, height: 1194)))
+        #expect(Self.carouselBesideForm(isRegularWidth: true, page: CGSize(width: 1194, height: 834)))
+        #expect(!Self.carouselBesideForm(isRegularWidth: true, page: CGSize(width: 834, height: 1194)))
         // a phone in landscape, or a narrow window on a landscape iPad
-        #expect(!TabletLayout.showsCarouselBesideForm(isRegularWidth: false, size: CGSize(width: 874, height: 402)))
-        #expect(!TabletLayout.showsCarouselBesideForm(isRegularWidth: false, size: CGSize(width: 507, height: 834)))
+        #expect(!Self.carouselBesideForm(isRegularWidth: false, page: CGSize(width: 874, height: 402)))
+        #expect(!Self.carouselBesideForm(isRegularWidth: false, page: CGSize(width: 507, height: 834)))
+    }
+
+    @Test func theKeyboardKeepsAPortraitSignInPageInOneColumn() {
+        // the keyboard up on an 11-inch iPad in portrait (316 pt with its
+        // shortcut bar) leaves about 820 x 790 of the page, wider than tall.
+        // Deciding from that put the carousel beside the form, which moved
+        // the email field the keyboard was typing into and closed the
+        // keyboard (App Store review of 2026.11.19, iPad Air 11-inch, iPadOS
+        // 27.2.1). The page stays one column.
+        #expect(!TabletLayout.showsCarouselBesideForm(
+            isRegularWidth: true,
+            layoutSize: Self.elevenInchPortraitPage,
+            visibleSize: CGSize(width: 820, height: 790)
+        ))
+        // and so for every keyboard height, a hardware keyboard's shortcut
+        // bar up to a keyboard taller than the page
+        for keyboardHeight in stride(from: CGFloat(0), through: 1086, by: 2) {
+            let visible = CGSize(width: 820, height: Self.elevenInchPortraitPage.height - keyboardHeight)
+            #expect(!TabletLayout.showsCarouselBesideForm(
+                isRegularWidth: true,
+                layoutSize: Self.elevenInchPortraitPage,
+                visibleSize: visible
+            ))
+        }
+    }
+
+    @Test func theKeyboardLeavesTheCarouselBesideTheFormInLandscape() {
+        #expect(TabletLayout.showsCarouselBesideForm(
+            isRegularWidth: true,
+            layoutSize: Self.elevenInchLandscapePage,
+            visibleSize: CGSize(width: 1180, height: 380)
+        ))
+    }
+
+    @Test func theKeyboardNeverPutsTheCarouselOnAPhone() {
+        // compact width, whatever the keyboard leaves
+        #expect(!TabletLayout.showsCarouselBesideForm(
+            isRegularWidth: false,
+            layoutSize: CGSize(width: 402, height: 729),
+            visibleSize: CGSize(width: 402, height: 393)
+        ))
+    }
+
+    @Test func beforeItsFirstMeasurementThePageDecidesFromWhatItShows() {
+        #expect(TabletLayout.showsCarouselBesideForm(
+            isRegularWidth: true,
+            layoutSize: nil,
+            visibleSize: Self.elevenInchLandscapePage
+        ))
+        #expect(!TabletLayout.showsCarouselBesideForm(
+            isRegularWidth: true,
+            layoutSize: nil,
+            visibleSize: Self.elevenInchPortraitPage
+        ))
     }
 
     @Test func accountKeepsItsScreenAcrossTheListDetailSwitch() {

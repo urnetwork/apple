@@ -33,11 +33,15 @@ enum TabletLayout {
  * and the form column the right half, both centered vertically; taller than
  * wide, the form column sits centered on the page. Compact windows scroll the
  * form from the top as before. The content stays in one place in the view
- * tree whichever way the window turns, so its state does too.
+ * tree whichever way the window turns, so its state does too. The page's
+ * shape is measured without the software keyboard (readsLayoutSize), so the
+ * keyboard never moves the carousel in or out.
  */
 struct AuthTabletLayout<Content: View>: View {
 
     @Environment(\.isRegularWidth) private var isRegularWidth
+    // the page's size without the keyboard, nil until measured
+    @State private var layoutSize: CGSize? = nil
 
     @ViewBuilder let content: () -> Content
 
@@ -45,7 +49,8 @@ struct AuthTabletLayout<Content: View>: View {
         GeometryReader { proxy in
             let besideCarousel = TabletLayout.showsCarouselBesideForm(
                 isRegularWidth: isRegularWidth,
-                size: proxy.size
+                layoutSize: layoutSize,
+                visibleSize: proxy.size
             )
 
             ScrollView {
@@ -63,6 +68,7 @@ struct AuthTabletLayout<Content: View>: View {
                 .frame(minHeight: isRegularWidth ? proxy.size.height : 0)
             }
         }
+        .readsLayoutSize($layoutSize)
     }
 }
 
@@ -71,9 +77,48 @@ extension TabletLayout {
     /// Whether the auth screens show the carousel beside the form: a
     /// regular-width window that is wider than it is tall. The window's
     /// shape, not the device's orientation, which a resizable window does
-    /// not follow.
-    static func showsCarouselBesideForm(isRegularWidth: Bool, size: CGSize) -> Bool {
-        isRegularWidth && size.height < size.width
+    /// not follow; and the whole page, not the part the software keyboard
+    /// leaves. An 11-inch iPad's portrait sign-in page is about 820 x 1086
+    /// pt, and a 316 pt keyboard leaves about 820 x 790 of it, wider than
+    /// tall: deciding from that moved the form the keyboard was typing into,
+    /// which closed the keyboard, so nothing could be typed (App Store
+    /// review, iPadOS 27.2.1).
+    ///
+    /// `layoutSize` is the page measured without the keyboard
+    /// (readsLayoutSize), nil until its first measurement; `visibleSize` is
+    /// the page above the keyboard, the GeometryReader's, used only until
+    /// then.
+    static func showsCarouselBesideForm(isRegularWidth: Bool, layoutSize: CGSize?, visibleSize: CGSize) -> Bool {
+        let size = layoutSize ?? visibleSize
+        return isRegularWidth && size.height < size.width
+    }
+}
+
+extension View {
+
+    /// Keeps `size` at this view's size as if the software keyboard were
+    /// hidden: the measurement extends under the keyboard's safe area, so the
+    /// keyboard showing, hiding or docking leaves it as it was, while turning
+    /// and resizing the window update it. The content itself keeps avoiding
+    /// the keyboard. The Mac has no software keyboard and no regular-width
+    /// auth layout (isRegularWidth), so it measures nothing.
+    func readsLayoutSize(_ size: Binding<CGSize?>) -> some View {
+        #if os(iOS)
+        return background {
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear {
+                        size.wrappedValue = proxy.size
+                    }
+                    .onChange(of: proxy.size) { measured in
+                        size.wrappedValue = measured
+                    }
+            }
+            .ignoresSafeArea(.keyboard)
+        }
+        #else
+        return self
+        #endif
     }
 }
 

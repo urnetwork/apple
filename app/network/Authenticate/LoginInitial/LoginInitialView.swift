@@ -486,7 +486,20 @@ struct LoginInitialView: View {
          } catch {
              guard request.isCurrent else { return }
              print("Error signing in: \(error.localizedDescription)")
-             viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+             // the sdk reads the GoogleSignIn error: the code goes to the log the
+             // feedback upload carries and into the message, and a cancel of the
+             // sign-in sheet shows nothing
+             let nsError = error as NSError
+             SdkLogGoogleSignInFailure(SdkGoogleSignInFailureSourceApple, nsError.domain, nsError.code)
+             let message = SdkGoogleSignInFailureMessage(
+                 SdkGoogleSignInFailureSourceApple,
+                 nsError.domain,
+                 nsError.code,
+                 String(localized: "There was an error logging in")
+             )
+             if !message.isEmpty {
+                 viewModel.setLoginErrorMessage(message)
+             }
          }
         
         

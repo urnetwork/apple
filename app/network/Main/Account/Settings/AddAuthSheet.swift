@@ -777,7 +777,23 @@ struct AddAuthSheet: View {
             await signInAdded(.google, userAuth: "", message: String(localized: "Google sign-in method added"))
         } catch(let error) {
             isAdding = false
-            addError = error.localizedDescription
+            let nsError = error as NSError
+            // a refused add (the api) keeps its own message
+            guard nsError.domain == kGIDSignInErrorDomain else {
+                addError = error.localizedDescription
+                return
+            }
+            // the sdk reads the GoogleSignIn error: the code goes to the log the
+            // feedback upload carries and into the message, and a cancel of the
+            // sign-in sheet shows nothing
+            SdkLogGoogleSignInFailure(SdkGoogleSignInFailureSourceApple, nsError.domain, nsError.code)
+            let message = SdkGoogleSignInFailureMessage(
+                SdkGoogleSignInFailureSourceApple,
+                nsError.domain,
+                nsError.code,
+                error.localizedDescription
+            )
+            addError = message.isEmpty ? nil : message
         }
     }
     

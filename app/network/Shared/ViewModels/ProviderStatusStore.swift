@@ -29,6 +29,18 @@ struct ProviderStatusSnapshot: Equatable {
     var appearancesPerMinute: [Int64]? = nil
     var numbers: [ProviderStatusNumber] = []
     var country: ProviderStatusCountry? = nil
+    /// this device's data in the newest settled SN25 epoch (its status's
+    /// Provided): the epoch, 0 without one, the usage bytes SN25 counted, and
+    /// whether SN25 paid nothing for them because no payout wallet was
+    /// connected
+    var providedEpoch: Int64 = 0
+    var providedByteCount: Int64 = 0
+    var providedUnpaid: Bool = false
+    /// the network's data in the newest settled epoch, over all its devices,
+    /// that SN25 did not pay for want of a payout wallet: the epoch, 0
+    /// without one, and the bytes
+    var networkProvidedEpoch: Int64 = 0
+    var unpaidByteCount: Int64 = 0
 
     var presentation: ProviderStatusPresentation {
         providerStatusPresentation(
@@ -244,6 +256,14 @@ extension SdkProviderStatusViewController: ProviderStatusControlling {
                 countryCode: country.countryCode
             )
         }
+        // nil while the server has read no settled epoch
+        if let provided = status?.provided {
+            snapshot.providedEpoch = provided.epoch
+            snapshot.providedByteCount = provided.usageByteCount
+            snapshot.providedUnpaid = provided.payout == SdkProviderStatusProvidedUnpaid
+        }
+        snapshot.networkProvidedEpoch = getProvidedEpoch()
+        snapshot.unpaidByteCount = getUnpaidByteCount()
         return snapshot
     }
 }

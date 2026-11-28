@@ -538,6 +538,23 @@ struct SettingsForm_macOS: View {
                     Spacer().frame(height: 32)
                     
                     /**
+                     * Sharing limits: what this device shares with others,
+                     * after the provide settings above
+                     */
+                    HStack {
+                        UrLabel(text: "Sharing limits")
+
+                        Spacer()
+                    }
+
+                    ProvideShareLimitsRows()
+                        .padding()
+                        .background(themeManager.currentTheme.tintedBackgroundBase)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    Spacer().frame(height: 32)
+
+                    /**
                      * Notifications
                      */
                     

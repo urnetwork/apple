@@ -149,6 +149,16 @@ struct ProviderStatsSection: View {
 
                     ProviderDemandSection(snapshot: providerStatusStore.snapshot)
                 }
+
+                // the data SN25 counted in the newest settled epoch, beside
+                // this device's status: its own, and the network's that SN25
+                // did not pay for want of a payout wallet
+                if 0 < providerStatusStore.snapshot.providedEpoch
+                    || 0 < providerStatusStore.snapshot.networkProvidedEpoch {
+                    Spacer().frame(height: 12)
+
+                    ProviderProvidedRows(snapshot: providerStatusStore.snapshot)
+                }
             } else {
                 Text("Providing is disabled")
                     .font(themeManager.currentTheme.secondaryBodyFont)
@@ -230,6 +240,58 @@ private struct ProviderStatusLineRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// The data SN25 counted in the newest settled epoch (feature 14): this
+/// device's, with a second line when SN25 paid nothing for it because no
+/// payout wallet was connected, then the network's unpaid data provided over
+/// all its devices. Data, never an amount.
+private struct ProviderProvidedRows: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let snapshot: ProviderStatusSnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+
+            if 0 < snapshot.providedEpoch {
+                Text("Provided in epoch \(Int(snapshot.providedEpoch)): \(formatBalanceBytes(Int(clamping: snapshot.providedByteCount)))")
+                    .font(themeManager.currentTheme.secondaryBodyFont)
+                    .foregroundColor(themeManager.currentTheme.textMutedColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                if snapshot.providedUnpaid {
+                    Text("Not paid: no payout wallet")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(.urAmber)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            if 0 < snapshot.networkProvidedEpoch {
+                if 0 < snapshot.providedEpoch {
+                    Spacer().frame(height: 8)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text("Unpaid data provided")
+                            .font(themeManager.currentTheme.secondaryBodyFont)
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                        Spacer()
+                        Text(verbatim: formatBalanceBytes(Int(clamping: snapshot.unpaidByteCount)))
+                            .font(themeManager.currentTheme.secondaryBodyFont.monospacedDigit())
+                            .foregroundColor(themeManager.currentTheme.textColor)
+                    }
+                    // styled like the help lines of the "Why?" numbers
+                    Text("Data SN25 counted in epoch \(Int(snapshot.networkProvidedEpoch)) but did not pay, because no payout wallet was connected. This is data, not money owed.")
+                        .font(.system(size: 11))
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
     }
 }
 

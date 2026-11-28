@@ -362,6 +362,13 @@ struct NetworkApp: App {
         #endif
         let deviceManager = DeviceManager(startupMode: startupMode, automaticallyInitialize: !hostsUnitTests)
         _deviceManager = StateObject(wrappedValue: deviceManager)
+        #if os(macOS)
+        // the app provides while the VPN is off (apple#174); only this
+        // manager's, not the intents' or the previews'
+        if startupMode.allowsVPNProfileSystemAccess && !hostsUnitTests {
+            deviceManager.appProviderHost = AppProviderHost()
+        }
+        #endif
         let connectViewModel = ConnectViewModel()
         _connectViewModel = StateObject(wrappedValue: connectViewModel)
         // the device stores close their device subs and controllers on the

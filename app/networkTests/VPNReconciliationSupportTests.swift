@@ -11,7 +11,12 @@ struct VPNReconciliationSupportTests {
 
     @Test func desiredStateRunsForProviding() {
         let state = VPNDesiredState(provideEnabled: true)
+        #if os(macOS)
+        // the app provides while the VPN is off (AppProviderHost)
+        #expect(!state.shouldRun)
+        #else
         #expect(state.shouldRun)
+        #endif
     }
 
     @Test func desiredStateRunsForConnecting() {

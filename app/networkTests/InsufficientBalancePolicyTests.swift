@@ -385,7 +385,8 @@ struct InsufficientBalancePolicyTests {
                 }
             }
         }
-        // after the user disconnects, only provide or the kill switch keep it
+        // after the user disconnects, only the kill switch keeps it, and on
+        // iOS providing (the Mac provides from the app)
         #expect(!VPNDesiredState(provideEnabled: false, connectEnabled: false, routeLocal: true, providePaused: false).shouldRun)
         #expect(VPNDesiredState(provideEnabled: false, connectEnabled: false, routeLocal: false, providePaused: false).shouldRun)
     }

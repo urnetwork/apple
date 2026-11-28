@@ -61,7 +61,15 @@ struct VPNDesiredState {
     var providePaused = false
 
     var shouldRun: Bool {
+        #if os(macOS)
+        // the app provides while the VPN is off and hands the provider to the
+        // tunnel when it connects (AppProviderHost, apple#174), so providing
+        // alone does not keep the tunnel up
+        connectEnabled || !routeLocal
+        #else
+        // the extension is iOS's only background runtime: providing needs it
         provideEnabled || connectEnabled || !routeLocal
+        #endif
     }
 }
 

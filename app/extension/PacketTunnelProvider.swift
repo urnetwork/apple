@@ -258,6 +258,39 @@ private enum SharedTunnelJwtStore {
     }
 }
 
+#if os(macOS)
+/// This process's client leases (sdk client_lease.go), one per instance: a
+/// session that replaces another in this process takes its hold while the old
+/// device still closes, so the lease is not let go in between.
+enum TunnelClientLeases {
+    /// The app's provider closes its device in a few seconds; past this the
+    /// start fails rather than run a second client.
+    static let acquireTimeoutMilliseconds: Int64 = 20_000
+    /// The profile key the app puts its provider's identity in (AppProviderHost).
+    static let clientIdentityConfigurationKey = "client_identity"
+    /// The app asks for the identity this client presents (AppProviderHost).
+    static let clientIdentityProviderMessage = "client-identity"
+
+    private static let lock = NSLock()
+    private static var leases: [String: SdkClientLease] = [:]
+
+    static func lease(instanceId: SdkId) -> SdkClientLease? {
+        lock.lock()
+        defer { lock.unlock() }
+        let key = instanceId.string()
+        if let lease = leases[key] {
+            return lease
+        }
+        var err: NSError?
+        guard let lease = SdkNewClientLease(instanceId, SdkClientLeaseRoleTunnel, &err), err == nil else {
+            return nil
+        }
+        leases[key] = lease
+        return lease
+    }
+}
+#endif
+
 // see https://developer.apple.com/documentation/networkextension/nepackettunnelprovider
 // discussion on how the PacketTunnelProvider is excluded from the routes it sets up:
 // see https://forums.developer.apple.com/forums/thread/677180
@@ -284,6 +317,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private let lifecycleId = String(UUID().uuidString.prefix(8))
     private let lifecycleLock = NSLock()
     private var sleepStartedAt: Date?
+    // counts stops, so a start that waited for the client lease across a stop
+    // builds nothing (lifecycleLock)
+    private var stopGeneration: UInt64 = 0
 
     private struct ProviderSession {
         let device: SdkDeviceLocal
@@ -423,6 +459,62 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
 
     override func startTunnel(options: [String : NSObject]? = nil, completionHandler: @escaping ((any Error)?) -> Void) {
+        #if os(macOS)
+        // One client per install (sdk client_lease.go, docs/MACOS-APP-PROVIDER.md):
+        // the app runs the provider while the VPN is off, so this process
+        // takes the client lease before it builds its device. The app's
+        // holder closes its device and lets the lease go when asked; the hold
+        // is bound to this process's device below and ends only when that
+        // device's close has completed. A start without a usable instance
+        // goes on to fail on the body's own checks, holding nothing.
+        guard let configuredInstanceId = (protocolConfiguration as? NETunnelProviderProtocol)?
+                .providerConfiguration?["instance_id"] as? String,
+              !configuredInstanceId.isEmpty,
+              let leaseInstanceId = SdkParseId(configuredInstanceId, nil),
+              let lease = TunnelClientLeases.lease(instanceId: leaseInstanceId) else {
+            startTunnelHoldingClientLease(options: options, hold: nil, completionHandler: completionHandler)
+            return
+        }
+        lifecycleLock.lock()
+        let stopGeneration = self.stopGeneration
+        lifecycleLock.unlock()
+        logger.info("[PacketTunnelProvider][\(self.lifecycleId)] start: taking the client lease on port \(lease.getPort())")
+        DispatchQueue.global(qos: .userInitiated).async {
+            let hold: SdkClientLeaseHold
+            do {
+                hold = try lease.acquire(TunnelClientLeases.acquireTimeoutMilliseconds)
+            } catch {
+                self.logger.error("[PacketTunnelProvider]the client is still held by the app: \(error.localizedDescription, privacy: .public)")
+                completionHandler(error)
+                return
+            }
+            self.lifecycleLock.lock()
+            let stopped = self.stopGeneration != stopGeneration
+            self.lifecycleLock.unlock()
+            guard !stopped else {
+                hold.end()
+                completionHandler(TunnelLocalAuthIdentityError.superseded)
+                return
+            }
+            self.startTunnelHoldingClientLease(options: options, hold: hold) { error in
+                // a no-op once the hold is bound to the device
+                hold.end()
+                completionHandler(error)
+            }
+        }
+        #else
+        startTunnelHoldingClientLease(options: options, hold: nil, completionHandler: completionHandler)
+        #endif
+    }
+
+    /// The start itself. `hold` is the client lease hold on macOS, bound to
+    /// the device this start builds; nil on iOS, where the extension is the
+    /// only process that runs the client.
+    private func startTunnelHoldingClientLease(
+        options: [String : NSObject]?,
+        hold: SdkClientLeaseHold?,
+        completionHandler: @escaping ((any Error)?) -> Void
+    ) {
         logger.info("[PacketTunnelProvider][\(self.lifecycleId)] start")
         // who started the tunnel (the system for VPN On Demand), and why no
         // network country is reported, for the uploaded logs
@@ -767,6 +859,23 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             throw error
                         }
                     }
+                    #if os(macOS)
+                    // the identity the app's provider presents while the VPN
+                    // is off (sdk client_identity.go): this device presents the
+                    // same one. One of another network is refused, and the
+                    // stored one stands.
+                    if let identityJson = providerConfiguration[TunnelClientLeases.clientIdentityConfigurationKey] as? String,
+                       !identityJson.isEmpty {
+                        var importError: NSError?
+                        let imported = SdkImportClientIdentityJson(localState, identityJson, selectedClientJwt, &importError)
+                        if importError == nil, let imported {
+                            keyMaterial = imported
+                            self.recordRecoveryStage("key-load", "configured")
+                        } else {
+                            self.recordRecoveryStage("key-load", "configured-refused")
+                        }
+                    }
+                    #endif
                     self.recordRecoveryStage("auth-observation", "accepted")
                     let newDevice = SdkNewDeviceLocalWithMemoryTarget(
                         networkSpace,
@@ -798,6 +907,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                             userInfo: [NSLocalizedDescriptionKey: "Failed to create device"]
                         )
                     }
+                    // the lease is let go only once this device's close has
+                    // completed, whichever path closes it
+                    _ = hold?.bindDevice(newDevice)
                     return newDevice
                 }
             )
@@ -2354,6 +2466,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         logger.info("[PacketTunnelProvider][\(self.lifecycleId)] stop reason=\(String(describing: reason))")
+        lifecycleLock.lock()
+        stopGeneration &+= 1
+        lifecycleLock.unlock()
         let reasonKind: TunnelStopReasonKind
         switch reason {
         case .userInitiated, .providerDisabled, .configurationDisabled, .configurationRemoved:
@@ -2518,6 +2633,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             completionHandler?(Data("ok".utf8))
             return
         }
+
+        #if os(macOS)
+        if String(data: messageData, encoding: .utf8) == TunnelClientLeases.clientIdentityProviderMessage {
+            // the app adopts the identity this client presents, so its own
+            // provider presents the same one while the VPN is off
+            var exportError: NSError?
+            let identityJson = device.map { SdkExportClientIdentityJson($0, &exportError) } ?? ""
+            completionHandler?(Data((exportError == nil ? identityJson : "").utf8))
+            return
+        }
+        #endif
 
         if String(data: messageData, encoding: .utf8) == logoutProviderMessage {
             var retiringState: RecoverySession.Snapshot?

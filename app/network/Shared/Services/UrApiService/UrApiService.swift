@@ -728,6 +728,61 @@ extension UrApiService {
         }
     }
 
+    func authEmailChange(newEmail: String) async -> (result: SdkAuthEmailChangeResult?, err: Error?) {
+        let api: SdkApi
+        do {
+            api = try requireApi()
+        } catch {
+            return (nil, error)
+        }
+        return await withCheckedContinuation { continuation in
+            let callback = AuthEmailChangeCallback { result, err in
+                continuation.resume(returning: (result, err))
+            }
+            let args = SdkAuthEmailChangeArgs()
+            args.newEmail = newEmail
+            api.authEmailChange(args, callback: callback)
+        }
+    }
+
+    func authEmailChangeConfirm(currentCode: String, newCode: String) async -> (result: SdkAuthEmailChangeConfirmResult?, err: Error?) {
+        let api: SdkApi
+        do {
+            api = try requireApi()
+        } catch {
+            return (nil, error)
+        }
+        return await withCheckedContinuation { continuation in
+            let callback = AuthEmailChangeConfirmCallback { result, err in
+                continuation.resume(returning: (result, err))
+            }
+            // the sdk normalizes the codes (NormalizeEmailChangeCode)
+            let args = SdkAuthEmailChangeConfirmArgs()
+            args.currentCode = currentCode
+            args.newCode = newCode
+            api.authEmailChangeConfirm(args, callback: callback)
+        }
+    }
+
+    func authEmailChangeCancel() async -> (result: SdkAuthEmailChangeCancelResult?, err: Error?) {
+        let api: SdkApi
+        do {
+            api = try requireApi()
+        } catch {
+            return (nil, error)
+        }
+        return await withCheckedContinuation { continuation in
+            let callback = AuthEmailChangeCancelCallback { result, err in
+                continuation.resume(returning: (result, err))
+            }
+            api.authEmailChangeCancel(callback)
+        }
+    }
+
+    func hasNetworkCredential() -> Bool {
+        api?.hasNetworkCredential() ?? false
+    }
+
     func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult {
         let api = try requireApi()
         return try await withCheckedThrowingContinuation { continuation in
@@ -1796,6 +1851,24 @@ private class AddAuthCallback: SdkCallback<SdkAddAuthResult, SdkAddAuthCallbackP
 
 private class AuthVerifySendCallback: OneShotSdkCallback<SdkAuthVerifySendResult, SdkAuthVerifySendCallbackProtocol>, SdkAuthVerifySendCallbackProtocol {
     func result(_ result: SdkAuthVerifySendResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthEmailChangeCallback: OneShotSdkCallback<SdkAuthEmailChangeResult, SdkAuthEmailChangeCallbackProtocol>, SdkAuthEmailChangeCallbackProtocol {
+    func result(_ result: SdkAuthEmailChangeResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthEmailChangeConfirmCallback: OneShotSdkCallback<SdkAuthEmailChangeConfirmResult, SdkAuthEmailChangeConfirmCallbackProtocol>, SdkAuthEmailChangeConfirmCallbackProtocol {
+    func result(_ result: SdkAuthEmailChangeConfirmResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class AuthEmailChangeCancelCallback: OneShotSdkCallback<SdkAuthEmailChangeCancelResult, SdkAuthEmailChangeCancelCallbackProtocol>, SdkAuthEmailChangeCancelCallbackProtocol {
+    func result(_ result: SdkAuthEmailChangeCancelResult?, err: Error?) {
         handleResult(result, err: err)
     }
 }

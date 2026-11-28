@@ -108,6 +108,7 @@ struct LoginInitialView: View {
                             handleAppleLoginResult: completeAppleLogin,
                             handleGoogleSignInButton: handleGoogleSignInButton,
                             handleBrowserSignIn: handleBrowserSignIn,
+                            handleMicrosoftSignInButton: handleMicrosoftSignInButton,
                             isValidUserAuth: viewModel.isValidUserAuth,
                             isInvalidPhone: viewModel.isInvalidPhone,
                             activeLoginAction: viewModel.activeLoginAction,
@@ -307,6 +308,13 @@ struct LoginInitialView: View {
         .onReceive(deepLinkRouter.$pendingBrowserSso) { ssoReturn in
             guard ssoReturn != nil, let ssoReturn = deepLinkRouter.consumeBrowserSso() else { return }
             handleBrowserSsoReturn(ssoReturn)
+        }
+        // the api's callback handing a Microsoft browser sign-in back, taken
+        // only while this screen's attempt waits for it
+        .onReceive(deepLinkRouter.$pendingMicrosoftSignIn) { returnUrl in
+            guard returnUrl != nil, viewModel.microsoftAttempts.isPending,
+                  let returnUrl = deepLinkRouter.consumeMicrosoftSignIn() else { return }
+            handleMicrosoftSignInReturn(returnUrl)
         }
         #endif
         
@@ -572,6 +580,82 @@ struct LoginInitialView: View {
         #endif
     }
 
+    /// Sign in with Microsoft, in the browser on every build (the api holds
+    /// the Microsoft client, MicrosoftSignIn): an authentication session on
+    /// iOS and the macOS App Store build; the default browser on the
+    /// direct-download build, which continues on the urnetwork://oauth/microsoft
+    /// return (handleMicrosoftSignInReturn), or times out.
+    private func handleMicrosoftSignInButton() async {
+        guard !viewModel.isLoginActionInFlight, let request = loginContext?.begin() else { return }
+        guard viewModel.beginLoginAction(.microsoft) else {
+            return
+        }
+
+        #if os(macOS) && DIRECT_DOWNLOAD
+        browserRequest = request
+        let url = viewModel.microsoftAttempts.begin(apiUrl: request.networkSpace.getApiUrl(), onTimeout: {
+            guard request.isCurrent else { return }
+            viewModel.setLoginErrorMessage(BrowserSso.Failure.expired.userMessage)
+            viewModel.endLoginAction(.microsoft)
+        })
+        guard let url, NSWorkspace.shared.open(url) else {
+            print("microsoft sign-in: could not open the start url")
+            viewModel.microsoftAttempts.cancel()
+            viewModel.setLoginErrorMessage(MicrosoftSignIn.failedText)
+            viewModel.endLoginAction(.microsoft)
+            return
+        }
+        #else
+        defer {
+            if request.isCurrent { viewModel.endLoginAction(.microsoft) }
+        }
+
+        #if os(iOS)
+        let anchor = hostingWindow.window
+        #else
+        let anchor = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first
+        #endif
+        guard let anchor else {
+            print("microsoft sign-in: no window to present over")
+            viewModel.setLoginErrorMessage(MicrosoftSignIn.failedText)
+            return
+        }
+
+        let outcome = await MicrosoftSignIn.signInInSession(apiUrl: request.networkSpace.getApiUrl(), anchor: anchor)
+        guard request.isCurrent else { return }
+        await completeMicrosoftSignIn(outcome, request: request)
+        #endif
+    }
+
+    /// The direct-download build's Microsoft return, for the attempt this
+    /// screen started; a return for another attempt leaves it waiting.
+    private func handleMicrosoftSignInReturn(_ returnUrl: URL) {
+        #if os(macOS) && DIRECT_DOWNLOAD
+        guard let request = browserRequest, request.isCurrent,
+              let outcome = viewModel.microsoftAttempts.finish(returnUrl) else { return }
+        NetworkLoginCallback(request: request).receive(outcome) { outcome, request in
+            defer {
+                if request.isCurrent { viewModel.endLoginAction(.microsoft) }
+            }
+            await completeMicrosoftSignIn(outcome, request: request)
+        }
+        #endif
+    }
+
+    /// Signs in with the identity token as with Google's, the new network
+    /// included (handleAuthLoginResult); a cancel shows nothing.
+    private func completeMicrosoftSignIn(_ outcome: MicrosoftSignIn.Outcome, request: NetworkLoginRequest) async {
+        switch outcome {
+        case .signedIn(let idToken):
+            let result = await viewModel.authLogin(args: viewModel.createMicrosoftAuthLoginArgs(idToken), request: request)
+            await self.handleAuthLoginResult(result, request: request)
+        case .cancelled, .notThisAttempt:
+            break
+        case .failed(let message):
+            viewModel.setLoginErrorMessage(message)
+        }
+    }
+
     /// `failureMessage` replaces the generic line for a failure that has its
     /// own words (bittensorSignInFailureText), as the account's cap of active
     /// sessions does (SessionLimitReachedError).
@@ -718,6 +802,7 @@ private struct LoginInitialFormView: View {
     let handleAppleLoginResult: @MainActor (Result<ASAuthorization, Error>, NetworkLoginRequest) async -> Void
     let handleGoogleSignInButton: () async -> Void
     let handleBrowserSignIn: (BrowserSsoProvider) -> Void
+    let handleMicrosoftSignInButton: () async -> Void
     let isValidUserAuth: Bool
     // a phone number in a format the login does not send: Get started stays
     // enabled, and says how to write it
@@ -735,11 +820,11 @@ private struct LoginInitialFormView: View {
     // "Change Network API": its sheet is the page's, above the layout switch
     let presentNetworkServer: () -> Void
     
-    // The login stack rule shared by every app: up to three full-width
-    // buttons (Apple, Google, Create Instant Account), then the remaining
-    // methods as square icon tiles four per row with each row filled
-    // (Secret key, Auth code, Bittensor, Solana), then the "or" divider and
-    // the email / phone form.
+    // The login stack rule shared by every app: up to four full-width
+    // buttons (Apple, Google, Microsoft, Create Instant Account), then the
+    // remaining methods as square icon tiles four per row with each row
+    // filled (Secret key, Auth code, Bittensor, Solana), then the "or"
+    // divider and the email / phone form.
     var body: some View {
         
         VStack {
@@ -749,6 +834,7 @@ private struct LoginInitialFormView: View {
                 handleAppleLoginResult: handleAppleLoginResult,
                 handleGoogleSignInButton: handleGoogleSignInButton,
                 handleBrowserSignIn: handleBrowserSignIn,
+                handleMicrosoftSignInButton: handleMicrosoftSignInButton,
                 presentCreateInstant: presentCreateInstant,
                 activeLoginAction: activeLoginAction,
                 isLoginActionInFlight: isLoginActionInFlight
@@ -918,8 +1004,8 @@ private extension View {
     }
 }
 
-// The up-to-three full-width buttons: Apple (the native button), Google and
-// Create Instant Account.
+// The up-to-four full-width buttons: Apple (the native button), Google,
+// Microsoft and Create Instant Account.
 private struct LoginFullButtons: View {
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -928,6 +1014,7 @@ private struct LoginFullButtons: View {
     let handleAppleLoginResult: @MainActor (Result<ASAuthorization, Error>, NetworkLoginRequest) async -> Void
     let handleGoogleSignInButton: () async -> Void
     let handleBrowserSignIn: (BrowserSsoProvider) -> Void
+    let handleMicrosoftSignInButton: () async -> Void
     let presentCreateInstant: () -> Void
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
@@ -985,6 +1072,14 @@ private struct LoginFullButtons: View {
                 )
                 .buttonStyle(.plain)
             }
+
+            // every build: Microsoft signs in through the browser, with the
+            // api's client (MicrosoftSignIn)
+            LoginMicrosoftButton(
+                action: handleMicrosoftSignInButton,
+                activeLoginAction: activeLoginAction,
+                isLoginActionInFlight: isLoginActionInFlight
+            )
             
             // Instant create account button
             Button(action: presentCreateInstant) {
@@ -1060,6 +1155,56 @@ private struct LoginBrowserAppleButton: View {
         .opacity(isLoginActionInFlight && activeLoginAction != .apple ? 0.3 : 1)
         .disabled(isLoginActionInFlight)
         .accessibilityIdentifier("acceptance.login.apple")
+    }
+}
+
+// The Microsoft pill, in the same white pill as the browser Apple button. The
+// app ships no Microsoft logo, so a plain grid symbol stands in for it.
+private struct LoginMicrosoftButton: View {
+
+    @EnvironmentObject var themeManager: ThemeManager
+
+    let action: () async -> Void
+    let activeLoginAction: LoginInitialView.LoginAction?
+    let isLoginActionInFlight: Bool
+
+    var body: some View {
+        Button(action: {
+            Task {
+                await action()
+            }
+        }) {
+            HStack {
+                Image(systemName: "square.grid.2x2.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: LoginStackMetrics.pillIcon, height: LoginStackMetrics.pillIcon)
+                    .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                Spacer().frame(width: 8)
+                Text("Sign in with Microsoft")
+                    .foregroundColor(themeManager.currentTheme.inverseTextColor)
+                    .font(
+                        Font.system(size: LoginStackMetrics.pillFont, weight: .medium)
+                    )
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: LoginStackMetrics.pillHeight)
+        .frame(maxWidth: .infinity)
+        .background(.white)
+        .loginPill()
+        .buttonStyle(.plain)
+        .overlay(alignment: .trailing) {
+            if activeLoginAction == .microsoft {
+                ProgressView()
+                    .tint(.urBlack)
+                    .controlSize(.small)
+                    .padding(.trailing, 16)
+            }
+        }
+        .opacity(isLoginActionInFlight && activeLoginAction != .microsoft ? 0.3 : 1)
+        .disabled(isLoginActionInFlight)
+        .accessibilityIdentifier("acceptance.login.microsoft")
     }
 }
 

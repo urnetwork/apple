@@ -18,6 +18,7 @@ extension LoginInitialView {
         case userAuth
         case apple
         case google
+        case microsoft
         case solana
         case bittensor
     }
@@ -31,6 +32,10 @@ extension LoginInitialView {
         // build): see startBrowserSso below
         let browserSsoAttempts = BrowserSsoAttemptStore()
         var browserSsoTimeoutTask: Task<Void, Never>?
+
+        // the Microsoft attempt in the default browser (direct-download
+        // build); the other builds run it in an authentication session
+        let microsoftAttempts = MicrosoftSignInBrowserAttempts()
         
         @Published var userAuth: String = "" {
             didSet {
@@ -283,6 +288,19 @@ extension LoginInitialView.ViewModel {
         
     }
     
+}
+
+// MARK: Sign in with Microsoft (MicrosoftSignIn)
+extension LoginInitialView.ViewModel {
+
+    /// The login args for a Microsoft identity token, which continue as the
+    /// Google token's do, the new network included.
+    func createMicrosoftAuthLoginArgs(_ idToken: String) -> SdkAuthLoginArgs {
+        let args = SdkAuthLoginArgs()
+        args.authJwt = idToken
+        args.authJwtType = SdkAuthJwtTypeMicrosoft
+        return args
+    }
 }
 
 // MARK: Solana Sign in

@@ -75,6 +75,9 @@ enum SessionLabels {
             return String(localized: "Apple")
         case "google":
             return String(localized: "Google")
+        case "microsoft":
+            // the catalog's Microsoft label (key microsoft)
+            return String(localized: "Microsoft")
         case "sso":
             return String(localized: "Single sign-on")
         case "wallet":

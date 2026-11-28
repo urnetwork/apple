@@ -178,6 +178,18 @@ struct SettingsForm_macOS: View {
 
                             Spacer().frame(height: 4)
 
+                            // the account's email sign-in changes with a code
+                            // to each address (EmailChangeSheet)
+                            if !networkUser.emailSignIn().isEmpty {
+                                Button(action: {
+                                    viewModel.presentEmailChangeSheet = true
+                                }) {
+                                    Text("Change email")
+                                }
+
+                                Spacer().frame(height: 8)
+                            }
+
                             Button(action: {
                                 viewModel.presentAddAuthSheet = true
                             }) {

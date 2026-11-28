@@ -64,11 +64,12 @@ final class AddedSignInVerifyTests: XCTestCase {
         XCTAssertTrue(addedSignInNeedsVerification(.email))
         XCTAssertFalse(addedSignInNeedsVerification(.apple))
         XCTAssertFalse(addedSignInNeedsVerification(.google))
+        XCTAssertFalse(addedSignInNeedsVerification(.microsoft))
         XCTAssertFalse(addedSignInNeedsVerification(.wallet))
     }
 
     func testProviderAndWalletAdditionsNeedNoCode() async {
-        for method in [AddAuthSheetMethod.apple, .google, .wallet] {
+        for method in [AddAuthSheetMethod.apple, .google, .microsoft, .wallet] {
             let api = FakeApi()
             let model = model(api, Clock(start))
 

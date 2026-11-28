@@ -31,6 +31,11 @@ final class DeepLinkRouter: ObservableObject {
     /// from the api's callback, until the login screen or the add sign-in
     /// method sheet checks it against the attempt it started.
     @Published private(set) var pendingBrowserSso: BrowserSso.Return? = nil
+    /// A Microsoft browser sign-in return (urnetwork://oauth/microsoft) from
+    /// the api's callback (direct-download build), until the login screen or
+    /// the add sign-in method sheet finishes the attempt it started with it
+    /// (MicrosoftSignInBrowserAttempts).
+    @Published private(set) var pendingMicrosoftSignIn: URL? = nil
     /// A Top 200 sign link (urnetwork://top200/sign?binding=...) from the
     /// ur.io page, until the tab view opens Account > Sign fleet binding.
     @Published private(set) var pendingTop200Sign: Top200SignDestination? = nil
@@ -64,6 +69,10 @@ final class DeepLinkRouter: ObservableObject {
 
     func open(_ ssoReturn: BrowserSso.Return) {
         pendingBrowserSso = ssoReturn
+    }
+
+    func openMicrosoftSignIn(_ returnUrl: URL) {
+        pendingMicrosoftSignIn = returnUrl
     }
 
     func open(_ link: Top200SignDestination) {
@@ -111,6 +120,12 @@ final class DeepLinkRouter: ObservableObject {
         guard let ssoReturn = pendingBrowserSso else { return nil }
         pendingBrowserSso = nil
         return ssoReturn
+    }
+
+    func consumeMicrosoftSignIn() -> URL? {
+        guard let returnUrl = pendingMicrosoftSignIn else { return nil }
+        pendingMicrosoftSignIn = nil
+        return returnUrl
     }
 
     func consumeTop200Sign() -> Top200SignDestination? {

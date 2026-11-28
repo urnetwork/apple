@@ -22,8 +22,9 @@ final class AddAuthSheetMethodsTests: XCTestCase {
     }
 
     func testSheetOffersTheProviderMethodsAndEmail() {
-        XCTAssertEqual(addAuthSheetMethods(appleAvailable: true, googleAvailable: true), [.apple, .google, .wallet, .email])
-        XCTAssertEqual(addAuthSheetMethods(appleAvailable: false, googleAvailable: false), [.wallet, .email])
+        XCTAssertEqual(addAuthSheetMethods(appleAvailable: true, googleAvailable: true), [.apple, .google, .microsoft, .wallet, .email])
+        // Microsoft signs in through the browser on every build
+        XCTAssertEqual(addAuthSheetMethods(appleAvailable: false, googleAvailable: false), [.microsoft, .wallet, .email])
     }
 
     func testEmailRequestCarriesTheAddressAndPassword() {

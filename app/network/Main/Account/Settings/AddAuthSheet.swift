@@ -13,17 +13,20 @@ struct AddAuthSheet: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var snackbarManager: UrSnackbarManager
     @EnvironmentObject var connectWalletProviderViewModel: ConnectWalletProviderViewModel
-    #if os(macOS) && DIRECT_DOWNLOAD
-    // the Google or Apple browser flow (BrowserSso) of the direct-download
-    // build: the api origin the callback lives on, and the return
-    // NetworkApp.onOpenURL routes here
+    // the api origin a browser sign-in starts on (Microsoft on every build,
+    // Google and Apple on the direct-download build)
     @EnvironmentObject var deviceManager: DeviceManager
+    #if os(macOS) && DIRECT_DOWNLOAD
+    // the Google or Apple browser flow (BrowserSso) and the Microsoft browser
+    // attempt of the direct-download build: the return
+    // NetworkApp.onOpenURL routes here
     @EnvironmentObject var deepLinkRouter: DeepLinkRouter
     @State private var browserSsoAttempts = BrowserSsoAttemptStore()
     @State private var browserSsoTimeoutTask: Task<Void, Never>?
+    @State private var microsoftAttempts = MicrosoftSignInBrowserAttempts()
     #endif
     #if os(iOS)
-    // Google sign-in presents in this sheet's own window
+    // Google and Microsoft sign-in present in this sheet's own window
     @State private var hostingWindow = HostingWindow()
     #endif
     
@@ -99,6 +102,8 @@ struct AddAuthSheet: View {
                                     Text("Apple").tag(method)
                                 case .google:
                                     Text("Google").tag(method)
+                                case .microsoft:
+                                    Text("Microsoft").tag(method)
                                 case .wallet:
                                     Text("Wallet").tag(method)
                                 case .email:
@@ -112,6 +117,8 @@ struct AddAuthSheet: View {
                             appleSignInView
                         } else if selectedMethod == .google {
                             googleSignInView
+                        } else if selectedMethod == .microsoft {
+                            microsoftSignInView
                         } else if selectedMethod == .wallet {
                             walletSignInView
                         } else if selectedMethod == .email {
@@ -191,6 +198,16 @@ struct AddAuthSheet: View {
                 guard ssoReturn != nil, let ssoReturn = deepLinkRouter.consumeBrowserSso() else { return }
                 Task {
                     await completeBrowserSignIn(ssoReturn)
+                }
+            }
+            // the api's callback handing a Microsoft browser sign-in back,
+            // taken only while this sheet's attempt waits for it
+            .onReceive(deepLinkRouter.$pendingMicrosoftSignIn) { returnUrl in
+                guard returnUrl != nil, microsoftAttempts.isPending,
+                      let returnUrl = deepLinkRouter.consumeMicrosoftSignIn(),
+                      let outcome = microsoftAttempts.finish(returnUrl) else { return }
+                Task {
+                    await completeMicrosoftSignIn(outcome)
                 }
             }
             #endif
@@ -278,6 +295,91 @@ struct AddAuthSheet: View {
         }
     }
 
+    // MARK: - Microsoft Sign-In
+
+    private var microsoftSignInView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Sign in with Microsoft to add it as a sign-in method.")
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundColor(themeManager.currentTheme.textMutedColor)
+
+            // the browser on every build, with the api's client (MicrosoftSignIn);
+            // no Microsoft logo ships with the app
+            UrButton(
+                text: "Sign in with Microsoft",
+                action: {
+                    startMicrosoftSignIn()
+                },
+                enabled: !isAdding,
+                leadingSystemImage: "square.grid.2x2.fill",
+                isProcessing: isAdding
+            )
+        }
+    }
+
+    /// An authentication session on iOS and the macOS App Store build; the
+    /// default browser on the direct-download build, which continues on the
+    /// urnetwork://oauth/microsoft return the router hands this sheet, or
+    /// times out.
+    private func startMicrosoftSignIn() {
+        isAdding = true
+        addError = nil
+        #if os(macOS) && DIRECT_DOWNLOAD
+        let url = microsoftAttempts.begin(apiUrl: deviceManager.activeApiUrl, onTimeout: {
+            addError = BrowserSso.Failure.expired.userMessage
+            isAdding = false
+        })
+        guard let url, NSWorkspace.shared.open(url) else {
+            microsoftAttempts.cancel()
+            addError = String(localized: "Could not open the browser. Please try again.")
+            isAdding = false
+            return
+        }
+        #else
+        #if os(iOS)
+        let anchor = hostingWindow.window
+        #else
+        let anchor = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first
+        #endif
+        guard let anchor else {
+            addError = MicrosoftSignIn.failedText
+            isAdding = false
+            return
+        }
+        let apiUrl = deviceManager.activeApiUrl
+        Task {
+            let outcome = await MicrosoftSignIn.signInInSession(apiUrl: apiUrl, anchor: anchor)
+            await completeMicrosoftSignIn(outcome)
+        }
+        #endif
+    }
+
+    /// Adds the identity token the way the Google and Apple tokens are added;
+    /// a cancel shows nothing.
+    private func completeMicrosoftSignIn(_ outcome: MicrosoftSignIn.Outcome) async {
+        switch outcome {
+        case .signedIn(let idToken):
+            do {
+                let args = SdkAddAuthArgs()
+                args.authJwt = idToken
+                args.authJwtType = SdkAuthJwtTypeMicrosoft
+
+                let _ = try await api.addAuth(args)
+                isAdding = false
+                _ = await networkUserViewModel?.refreshNetworkUser()
+                await signInAdded(.microsoft, userAuth: "", message: String(localized: "Microsoft sign-in method added"))
+            } catch(let error) {
+                isAdding = false
+                addError = error.localizedDescription
+            }
+        case .cancelled, .notThisAttempt:
+            isAdding = false
+        case .failed(let message):
+            isAdding = false
+            addError = message
+        }
+    }
+
     // MARK: - Browser Sign-In (direct-download build)
 
     /// Opens the provider's authorize page in the default browser; the rest
@@ -314,6 +416,7 @@ struct AddAuthSheet: View {
         browserSsoTimeoutTask?.cancel()
         browserSsoTimeoutTask = nil
         browserSsoAttempts.cancel()
+        microsoftAttempts.cancel()
         #endif
     }
 

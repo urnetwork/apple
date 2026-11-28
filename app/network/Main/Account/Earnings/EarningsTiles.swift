@@ -208,7 +208,10 @@ struct Top200Tile: View {
 /// The Bittensor wallet block: the connect call when none is attached, the
 /// coldkey and the settlement note once it is. While no wallet is read and the
 /// payout key is on this device, the key's address takes the connect call's
-/// place, so the one tap leaves no second wallet to connect.
+/// place, so the one tap leaves no second wallet to connect. A wallet
+/// connected without a signed payout consent can be disconnected
+/// (WalletDisconnectSheet), and with no wallet at all the card says the
+/// earnings can't be paid out.
 struct BittensorWalletCard: View {
 
     @EnvironmentObject var themeManager: ThemeManager
@@ -224,6 +227,11 @@ struct BittensorWalletCard: View {
     /// is unknown, so no connect offer
     var loadFailed: Bool = false
     var retry: () -> Void = {}
+    /// Disconnect wallet, while the wallet read says the owner can
+    /// (SnGetWalletResult.Disconnectable); nil offers none
+    var disconnect: (() -> Void)? = nil
+    /// the wallet read found no wallet on the network (SnGetWalletResult.HasWallet false)
+    var noPayoutWallet: Bool = false
 
     @State private var copied = false
 
@@ -254,6 +262,15 @@ struct BittensorWalletCard: View {
                 Text("Connected to the UR protocol. Claims land here. Alpha accrues from the next epoch after connecting.")
                     .font(themeManager.currentTheme.secondaryBodyFont)
                     .foregroundColor(themeManager.currentTheme.textMutedColor)
+                if let disconnect {
+                    Spacer().frame(height: 4)
+                    BittensorKeyDestructiveButton(
+                        text: "Disconnect wallet",
+                        filled: false,
+                        accessibilityIdentifier: "earnings.wallet.disconnect",
+                        action: disconnect
+                    )
+                }
             } else if loadFailed {
                 SectionLoadFailedView(retry: retry)
             } else if let localKey {
@@ -278,6 +295,12 @@ struct BittensorWalletCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else {
+                if noPayoutWallet {
+                    Text("No payout wallet. Your earnings can't be paid out until you connect one.")
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 WalletNotRetroactiveNote()
                 Spacer().frame(height: 4)
                 UrButton(text: "Connect Bittensor wallet", action: connect)

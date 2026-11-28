@@ -368,6 +368,9 @@ extension SettingsView {
         // MARK: - Auth Method Management
         
         @Published var presentAddAuthSheet: Bool = false
+        /// Change email (EmailChangeSheet), offered while the account has an
+        /// email sign-in
+        @Published var presentEmailChangeSheet: Bool = false
         @Published var presentRemoveAuthConfirmation: Bool = false
         @Published var authTypeToRemove: String?
         @Published var isAddingAuth: Bool = false

@@ -51,6 +51,8 @@ struct EarningsView: View {
     /// its warning, once the sheet is gone
     @State private var createKeyAfterConsentSheet = false
     @State private var presentRelayClaimSheet = false
+    /// the payout wallet's disconnect (WalletDisconnectSheet)
+    @State private var presentWalletDisconnectSheet = false
     // the Top 200 tile is in the stack: a Claim on Earnings scroll waits for it
     @State private var top200TileShown = false
 
@@ -160,7 +162,9 @@ struct EarningsView: View {
                             Task {
                                 await viewModel.refresh()
                             }
-                        }
+                        },
+                        disconnect: walletDisconnect,
+                        noPayoutWallet: viewModel.noPayoutWallet
                     )
 
                     if viewModel.hasWallet {
@@ -341,6 +345,29 @@ struct EarningsView: View {
             .frame(minWidth: 480, minHeight: 560)
             #endif
         }
+        .sheetOffTheFold(isPresented: $presentWalletDisconnectSheet) {
+            WalletDisconnectSheet(
+                client: viewModel.client,
+                dismiss: { presentWalletDisconnectSheet = false },
+                ended: { ending in
+                    presentWalletDisconnectSheet = false
+                    if ending == .disconnected {
+                        snackbarManager.showSnackbar(message: String(localized: "Wallet disconnected. Your earnings can't be paid out until you connect a payout wallet."))
+                    }
+                    // the card reads the wallet again, as its retry does
+                    Task {
+                        await viewModel.refresh()
+                    }
+                }
+            )
+            .environmentObject(themeManager)
+            #if os(iOS)
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            #elseif os(macOS)
+            .frame(minWidth: 460, minHeight: 320)
+            #endif
+        }
         .sheetOffTheFold(isPresented: $presentConsentSheet, onDismiss: {
             consentFlow.reset()
             if createKeyAfterConsentSheet {
@@ -420,6 +447,18 @@ struct EarningsView: View {
             }
         }
         #endif
+    }
+
+    /// The wallet card's Disconnect wallet: a wallet connected without a
+    /// signed payout consent, offered to a session that administers the
+    /// network, as Change wallet is.
+    private var walletDisconnect: (() -> Void)? {
+        guard viewModel.walletDisconnectable, consentFlow.hasNetworkCredential else {
+            return nil
+        }
+        return {
+            presentWalletDisconnectSheet = true
+        }
     }
 
     /// Change wallet's offer of a key on this device, while the flow offers one.

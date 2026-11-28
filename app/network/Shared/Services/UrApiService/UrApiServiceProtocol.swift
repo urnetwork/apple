@@ -94,6 +94,20 @@ protocol UrApiServiceProtocol {
     func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult
 
     /**
+     * Account Management — Email change (sdk api_email_change.go). The raw
+     * answers: a request error and the result's refusal are the caller's to
+     * word (EmailChangeModel), so nothing is thrown.
+     */
+    func authEmailChange(newEmail: String) async -> (result: SdkAuthEmailChangeResult?, err: Error?)
+    /// "" for a code already confirmed: only the other one is sent.
+    func authEmailChangeConfirm(currentCode: String, newCode: String) async -> (result: SdkAuthEmailChangeConfirmResult?, err: Error?)
+    func authEmailChangeCancel() async -> (result: SdkAuthEmailChangeCancelResult?, err: Error?)
+    /// Whether the api holds the network credential the account's
+    /// administration needs; without it the sdk fails an email change before
+    /// sending it (ErrNetworkCredentialRequired).
+    func hasNetworkCredential() -> Bool
+
+    /**
      * Account Management — Network Name
      */
     func changeNetworkName(_ newName: String) async throws -> SdkChangeNetworkNameResult

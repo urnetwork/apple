@@ -47,7 +47,7 @@ struct UsageBar: View {
         showReferrals: Bool = true,
         openDataInfo: (() -> Void)? = nil
     ) {
-        // the series names are also the chart legend labels, so they localize;
+        // the series names are also the legend's labels, so they localize;
         // they must match the chartForegroundStyleScale keys below exactly
         self.data = [
             .init(name: String(localized: "Used"), bytes: usedByteCount),
@@ -124,28 +124,40 @@ struct UsageBar: View {
     var body: some View {
         
         VStack(alignment: .leading) {
-         
-            Chart(data.indices, id: \.self) { index in
-                   
-                BarMark(
-                    x: .value("Data", self.minNonZeroValue(data[index].bytes))
-                )
-                .foregroundStyle(by: .value("Name", data[index].name))
-                .clipShape(
-                    UnevenRoundedRectangle(
-                        cornerRadii: getCornerRadii(index)
+
+            /**
+             * The bar and the legend share the 32 pt the chart had with its
+             * own legend: the legend takes its line and the bar the rest. The
+             * legend is drawn here rather than by the chart, so the '?' beside
+             * Pending is an ordinary button.
+             */
+            VStack(alignment: .leading, spacing: 8) {
+
+                Chart(data.indices, id: \.self) { index in
+
+                    BarMark(
+                        x: .value("Data", self.minNonZeroValue(data[index].bytes))
                     )
-                )
-                
+                    .foregroundStyle(by: .value("Name", data[index].name))
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            cornerRadii: getCornerRadii(index)
+                        )
+                    )
+
+                }
+                .chartXAxis(.hidden)
+                .chartLegend(.hidden)
+                .chartForegroundStyleScale([
+                    String(localized: "Used"): Color.urElectricBlue,
+                    String(localized: "Pending"): Color.urCoral,
+                    String(localized: "Available"): themeManager.currentTheme.textFaintColor,
+                ])
+
+                legend
             }
-            .chartXAxis(.hidden)
             .frame(height: 32)
-            .chartForegroundStyleScale([
-                String(localized: "Used"): Color.urElectricBlue,
-                String(localized: "Pending"): Color.urCoral,
-                String(localized: "Available"): themeManager.currentTheme.textFaintColor,
-            ])
-            
+
             Spacer().frame(height: 16)
             
             HStack {
@@ -197,6 +209,39 @@ struct UsageBar: View {
 
         }
 
+    }
+
+    /**
+     * Used, Pending and Available, each with its dot in the bar's color, and
+     * the '?' beside Pending. One line: a name too long for the width shrinks
+     * a little instead of wrapping into the bar's share.
+     */
+    private var legend: some View {
+        HStack(spacing: 12) {
+            legendItem(String(localized: "Used"), color: Color.urElectricBlue)
+
+            HStack(spacing: 4) {
+                legendItem(String(localized: "Pending"), color: Color.urCoral)
+                HelpButton(topic: .pending)
+            }
+
+            legendItem(String(localized: "Available"), color: themeManager.currentTheme.textFaintColor)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// One series of the legend: its dot and name.
+    private func legendItem(_ name: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(verbatim: name)
+                .font(themeManager.currentTheme.secondaryBodyFont)
+                .foregroundStyle(themeManager.currentTheme.textMutedColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
     }
 
     private func referralRow(showsChevron: Bool) -> some View {

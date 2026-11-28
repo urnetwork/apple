@@ -53,6 +53,7 @@ struct IntroductionParticipateSettingsView: View {
                             ProvideModeIndicator()
                             Text("Provide mode")
                                 .font(themeManager.currentTheme.bodyFont)
+                            HelpButton(topic: .providing)
                             Spacer()
                         }
                         ProvideControlModeList()

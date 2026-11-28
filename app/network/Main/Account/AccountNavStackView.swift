@@ -333,6 +333,12 @@ struct AccountNavStackView: View {
                 .navigationTitle("Developer")
                 .background(themeManager.currentTheme.backgroundColor)
 
+        case .logViewer:
+
+            LogViewerView()
+                .navigationTitle("View Logs")
+                .background(themeManager.currentTheme.backgroundColor)
+
         case .licenses:
 
             LicensesView(device: device, navigate: viewModel.navigate)

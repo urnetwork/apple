@@ -41,6 +41,8 @@ enum AccountNavigationPath: Hashable {
     case providerContracts
     case providerIdentities
     case developer
+    /// Settings › View Logs: the last lines of the app's and the tunnel's logs
+    case logViewer
     case licenses
     case licenseDetail(LicenseEntry)
 }

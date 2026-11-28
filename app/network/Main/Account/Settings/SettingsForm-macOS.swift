@@ -424,6 +424,10 @@ struct SettingsForm_macOS: View {
                             }
                             .accentColor(themeManager.currentTheme.textColor)
                             
+                            // beside the picker, outside the label the picker
+                            // lays out itself
+                            HelpButton(topic: .providing)
+                            
                             Spacer()
                         }
 

@@ -500,7 +500,8 @@ struct AccountRootView: View {
                             action: {
                                 navigate(.extenders)
                             },
-                            isSelected: selection == .extenders
+                            isSelected: selection == .extenders,
+                            helpTopic: .extender
                         )
                         .accessibilityIdentifier("acceptance.account.extenders")
 
@@ -875,6 +876,10 @@ private struct AccountNavLink: View {
     var action: () -> Void
     // the row of the screen shown beside the list
     var isSelected: Bool = false
+    // a '?' after the name that explains the term; a plain button inside the
+    // row's button, it takes its own taps and the rest of the row still opens
+    // the screen
+    var helpTopic: HelpTopic? = nil
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -892,6 +897,10 @@ private struct AccountNavLink: View {
                     Text(name)
                         .font(themeManager.currentTheme.bodyFont)
                         .foregroundColor(themeManager.currentTheme.textColor)
+                    
+                    if let helpTopic {
+                        HelpButton(topic: helpTopic)
+                    }
                     
                     Spacer()
                     

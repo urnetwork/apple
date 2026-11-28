@@ -34250,6 +34250,173 @@
         }
       }
     },
+    "An extender relays your connection to URnetwork where it is blocked. Your traffic stays encrypted through it, and the extender can't read it." : {
+      "comment" : "Body of the short help for extenders (title: \"What is an extender?\"), opened from a '?' button next to Extenders. An extender relays the connection to URnetwork where the network is blocked; the traffic stays encrypted and the extender cannot read it.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يمرّر الموسّع اتصالك إلى URnetwork حيث يكون محظورًا. تبقى حركة مرورك مشفّرة عبره، ولا يستطيع الموسّع قراءتها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender přenáší vaše připojení k URnetwork tam, kde je blokované. Váš provoz přes něj zůstává šifrovaný a extender ho nemůže číst."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Extender leitet deine Verbindung zu URnetwork weiter, wo sie blockiert ist. Dein Datenverkehr bleibt dabei verschlüsselt, und der Extender kann ihn nicht lesen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ένας επεκτατής αναμεταδίδει τη σύνδεσή σας προς το URnetwork όπου αυτή είναι αποκλεισμένη. Η κίνησή σας παραμένει κρυπτογραφημένη μέσα από αυτόν και ο επεκτατής δεν μπορεί να τη διαβάσει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An extender relays your connection to URnetwork where it is blocked. Your traffic stays encrypted through it, and the extender can't read it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un extensor retransmite tu conexión a URnetwork donde está bloqueada. Tu tráfico sigue cifrado a través de él y el extensor no puede leerlo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un extensor retransmite tu conexión a URnetwork donde está bloqueada. Tu tráfico sigue cifrado a través de él y el extensor no puede leerlo."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un extensor retransmite tu conexión a URnetwork donde está bloqueada. Tu tráfico sigue cifrado a través de él y el extensor no puede leerlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un extendeur relaie votre connexion à URnetwork là où elle est bloquée. Votre trafic reste chiffré en le traversant, et l’extendeur ne peut pas le lire."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מרחיב מעביר את החיבור שלך ל-URnetwork במקומות שבהם הוא חסום. התעבורה שלך נשארת מוצפנת דרכו, והמרחיב לא יכול לקרוא אותה."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक्सटेंडर आपके कनेक्शन को वहाँ URnetwork तक पहुँचाता है जहाँ वह ब्लॉक है। आपका ट्रैफ़िक उससे होकर भी एन्क्रिप्टेड रहता है, और एक्सटेंडर उसे पढ़ नहीं सकता।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender meneruskan koneksi Anda ke URnetwork di tempat koneksi itu diblokir. Lalu lintas Anda tetap terenkripsi saat melewatinya, dan extender tidak dapat membacanya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un extender inoltra la tua connessione a URnetwork dove è bloccata. Il tuo traffico resta cifrato mentre lo attraversa e l’extender non può leggerlo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エクステンダーは、URnetwork への接続がブロックされている場所で、その接続を中継します。通信は暗号化されたまま通過するため、エクステンダーが内容を読むことはできません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "익스텐더는 URnetwork 연결이 차단된 곳에서 연결을 중계합니다. 트래픽은 암호화된 상태로 통과하므로 익스텐더가 내용을 읽을 수 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een extender stuurt je verbinding met URnetwork door waar die geblokkeerd is. Je verkeer blijft versleuteld terwijl het erdoorheen gaat, en de extender kan het niet lezen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extender przekazuje twoje połączenie z URnetwork tam, gdzie jest ono blokowane. Twój ruch pozostaje przy tym zaszyfrowany i extender nie może go odczytać."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um extensor retransmite sua conexão com a URnetwork onde ela está bloqueada. Seu tráfego continua criptografado ao passar por ele, e o extensor não consegue lê-lo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um extensor retransmite sua conexão com a URnetwork onde ela está bloqueada. Seu tráfego continua criptografado ao passar por ele, e o extensor não consegue lê-lo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um extensor retransmite a sua ligação à URnetwork onde ela está bloqueada. O seu tráfego continua encriptado ao passar por ele, e o extensor não o consegue ler."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экстендер передаёт ваше подключение к URnetwork там, где оно заблокировано. Ваш трафик остаётся зашифрованным, и экстендер не может его прочитать."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En extender vidarebefordrar din anslutning till URnetwork där den är blockerad. Din trafik förblir krypterad genom den, och extendern kan inte läsa den."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตัวขยายส่งต่อการเชื่อมต่อของคุณไปยัง URnetwork ในที่ที่ถูกบล็อก ทราฟฟิกของคุณยังคงเข้ารหัสขณะผ่านตัวขยาย และตัวขยายอ่านไม่ได้"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Екстендер передає ваше підключення до URnetwork там, де його заблоковано. Ваш трафік залишається зашифрованим, і екстендер не може його прочитати."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ mở rộng chuyển tiếp kết nối của bạn tới URnetwork ở nơi kết nối bị chặn. Lưu lượng của bạn vẫn được mã hóa khi đi qua nó, và bộ mở rộng không thể đọc được."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在连接 URnetwork 受阻的地方，扩展器会中继你的连接。你的流量经过它时依然是加密的，扩展器无法读取。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在連接 URnetwork 受阻的地方，擴展器會中繼你的連線。你的流量經過它時依然是加密的，擴展器無法讀取。"
+          }
+        }
+      }
+    },
     "Android" : {
       "comment" : "Sessions screen (Account > Sessions), row line 1: the device type of a session signed in from the Android app, before its app version (\"Android · 2026.10.8-1067\"). The operating system's name, unchanged in every language.",
       "localizations" : {
@@ -170965,6 +171132,173 @@
         }
       }
     },
+    "Pending is data set aside for your open connections. What they don't use goes back to your available data when they close." : {
+      "comment" : "Body of the short help for the usage bar's Pending (title: \"What is Pending?\"). Use the usage bar's words for Pending and Available (pending_data_key, available_data_key) as they read in your language. No time promise for the return.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«معلّق» هو بيانات محجوزة لاتصالاتك المفتوحة. ما لا تستخدمه منها يعود إلى بياناتك المتاحة عند إغلاقها."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Čekající“ jsou data vyhrazená pro vaše otevřená připojení. Co nevyužijí, se po jejich ukončení vrátí do vašich dostupných dat."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Ausstehend“ sind Daten, die für deine offenen Verbindungen reserviert sind. Was sie nicht verbrauchen, geht beim Schließen zurück zu deinen verfügbaren Daten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Σε εκκρεμότητα» είναι δεδομένα δεσμευμένα για τις ανοιχτές συνδέσεις σας. Ό,τι δεν χρησιμοποιήσουν επιστρέφει στα διαθέσιμα δεδομένα σας όταν κλείσουν."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pending is data set aside for your open connections. What they don't use goes back to your available data when they close."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Pendiente» son datos reservados para tus conexiones abiertas. Lo que no usen vuelve a tus datos disponibles cuando se cierran."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Pendiente” son datos reservados para tus conexiones abiertas. Lo que no usen vuelve a tus datos disponibles cuando se cierran."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Pendiente” son datos reservados para tus conexiones abiertas. Lo que no usen vuelve a tus datos disponibles cuando se cierran."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« En attente » désigne les données réservées à vos connexions ouvertes. Ce qu’elles n’utilisent pas revient à vos données disponibles à leur fermeture."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“ממתין” הוא נתונים ששמורים לחיבורים הפתוחים שלך. מה שהם לא מנצלים חוזר לנתונים הזמינים שלך כשהם נסגרים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“लंबित” आपके खुले कनेक्शनों के लिए आरक्षित डेटा है। जो वे इस्तेमाल नहीं करते, वह कनेक्शन बंद होने पर आपके उपलब्ध डेटा में लौट आता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Tertunda” adalah data yang dicadangkan untuk koneksi Anda yang terbuka. Yang tidak terpakai kembali ke data tersedia Anda saat koneksi ditutup."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“In sospeso” sono i dati riservati alle tue connessioni aperte. Ciò che non usano torna ai tuoi dati disponibili quando si chiudono."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「保留中」は、開いている接続のために確保されたデータです。使われなかった分は、接続が閉じると利用可能なデータに戻ります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘대기 중’은 열려 있는 연결을 위해 확보된 데이터입니다. 사용되지 않은 부분은 연결이 닫히면 사용 가능한 데이터로 돌아갑니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘In behandeling’ is data die is gereserveerd voor je open verbindingen. Wat ze niet gebruiken, gaat terug naar je beschikbare data wanneer ze sluiten."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Oczekujące” to dane zarezerwowane dla twoich otwartych połączeń. To, czego nie wykorzystają, wraca do dostępnych danych po ich zamknięciu."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Pendente” são dados reservados para suas conexões abertas. O que elas não usarem volta para seus dados disponíveis quando forem fechadas."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Pendente” são dados reservados para suas conexões abertas. O que elas não usarem volta para seus dados disponíveis quando forem fechadas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Pendente» são dados reservados para as suas ligações abertas. O que não utilizarem volta aos seus dados disponíveis quando forem fechadas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«В ожидании» — это данные, зарезервированные для ваших открытых подключений. То, что они не используют, вернётся в доступные данные, когда подключения закроются."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "”Väntande” är data som är reserverad för dina öppna anslutningar. Det de inte använder går tillbaka till din tillgängliga data när de stängs."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“รอดำเนินการ” คือข้อมูลที่กันไว้สำหรับการเชื่อมต่อที่เปิดอยู่ ส่วนที่ไม่ได้ใช้จะกลับไปเป็นข้อมูลที่ใช้ได้เมื่อการเชื่อมต่อปิดลง"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«В очікуванні» — це дані, зарезервовані для ваших відкритих підключень. Те, що вони не використають, повернеться до доступних даних, коли підключення закриються."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Đang chờ” là dữ liệu được giữ cho các kết nối đang mở của bạn. Phần không dùng đến sẽ trở về dữ liệu khả dụng khi các kết nối đóng lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“待处理”是为你打开的连接预留的数据。连接关闭时，未用完的部分会退回你的可用数据。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「待處理」是為你開啟的連線預留的數據。連線關閉時，未用完的部分會退回你的可用數據。"
+          }
+        }
+      }
+    },
     "Pending: %@ MB provided" : {
       "comment" : "Payout list row label while a payout is still pending: the amount of traffic provided that the pending payout covers. Used in apple Shared/Views/PaymentsList.swift and android ui/wallet/PayoutRow.kt.",
       "localizations" : {
@@ -182830,6 +183164,173 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供功能是可選的。開啟後，應用程式在使用 Wi-Fi 並於背景運行時，可與網絡分享你的連接。"
+          }
+        }
+      }
+    },
+    "Providing shares some of your internet with other URnetwork members: their traffic can go out through your connection. Providers can earn rewards for the data they share. Provide mode sets when this device provides, and you can stop at any time." : {
+      "comment" : "Body of the short help for providing (title: \"What is providing?\"), opened from a '?' button next to the provide controls. Plain and honest: other members' traffic can leave through the user's connection; rewards are possible, not promised. Keep Provide mode as the app's label for that setting.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التوفير يشارك جزءًا من اتصالك بالإنترنت مع أعضاء URnetwork الآخرين: يمكن أن تخرج حركة مرورهم عبر اتصالك. يمكن للموفّرين كسب مكافآت مقابل البيانات التي يشاركونها. يحدد وضع التوفير متى يوفّر هذا الجهاز، ويمكنك التوقف في أي وقت."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poskytování sdílí část vašeho internetu s ostatními členy URnetwork: jejich provoz může odcházet přes vaše připojení. Poskytovatelé mohou za sdílená data získávat odměny. Režim poskytování určuje, kdy toto zařízení poskytuje, a kdykoli můžete přestat."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Bereitstellen teilst du einen Teil deines Internets mit anderen URnetwork-Mitgliedern: Ihr Datenverkehr kann über deine Verbindung ins Internet gehen. Anbieter können für die geteilten Daten Belohnungen verdienen. Der Bereitstellungsmodus legt fest, wann dieses Gerät bereitstellt, und du kannst jederzeit aufhören."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η παροχή μοιράζεται μέρος του διαδικτύου σας με άλλα μέλη του URnetwork: η κίνησή τους μπορεί να βγαίνει μέσω της σύνδεσής σας. Οι πάροχοι μπορούν να κερδίζουν ανταμοιβές για τα δεδομένα που μοιράζονται. Η λειτουργία παροχής ορίζει πότε παρέχει αυτή η συσκευή και μπορείτε να σταματήσετε οποιαδήποτε στιγμή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Providing shares some of your internet with other URnetwork members: their traffic can go out through your connection. Providers can earn rewards for the data they share. Provide mode sets when this device provides, and you can stop at any time."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La provisión comparte parte de tu internet con otros miembros de URnetwork: su tráfico puede salir a través de tu conexión. Los proveedores pueden ganar recompensas por los datos que comparten. El modo de provisión define cuándo provee este dispositivo, y puedes dejar de hacerlo en cualquier momento."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La provisión comparte parte de tu internet con otros miembros de URnetwork: su tráfico puede salir a través de tu conexión. Los proveedores pueden ganar recompensas por los datos que comparten. El modo de provisión define cuándo provee este dispositivo, y puedes dejar de hacerlo en cualquier momento."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La provisión comparte parte de tu internet con otros miembros de URnetwork: su tráfico puede salir a través de tu conexión. Los proveedores pueden ganar recompensas por los datos que comparten. El modo de provisión define cuándo provee este dispositivo, y puedes dejar de hacerlo en cualquier momento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La fourniture partage une partie de votre connexion internet avec d’autres membres d’URnetwork : leur trafic peut sortir par votre connexion. Les fournisseurs peuvent gagner des récompenses pour les données qu’ils partagent. Le mode de fourniture définit quand cet appareil fournit, et vous pouvez arrêter à tout moment."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אספקה משתפת חלק מהאינטרנט שלך עם חברי URnetwork אחרים: התעבורה שלהם יכולה לצאת דרך החיבור שלך. ספקים יכולים להרוויח תגמולים על הנתונים שהם משתפים. מצב האספקה קובע מתי המכשיר הזה מספק, ואפשר להפסיק בכל עת."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रदान करने से आपका कुछ इंटरनेट URnetwork के अन्य सदस्यों के साथ साझा होता है: उनका ट्रैफ़िक आपके कनेक्शन से बाहर जा सकता है। प्रदाता साझा किए गए डेटा के लिए पुरस्कार कमा सकते हैं। प्रदान मोड तय करता है कि यह डिवाइस कब प्रदान करे, और आप कभी भी रोक सकते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penyediaan membagikan sebagian internet Anda dengan anggota URnetwork lain: lalu lintas mereka dapat keluar melalui koneksi Anda. Penyedia dapat memperoleh hadiah atas data yang mereka bagikan. Mode penyediaan menentukan kapan perangkat ini menyediakan, dan Anda dapat berhenti kapan saja."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La fornitura condivide parte della tua connessione internet con altri membri di URnetwork: il loro traffico può uscire dalla tua connessione. I fornitori possono guadagnare ricompense per i dati che condividono. La modalità di fornitura stabilisce quando questo dispositivo fornisce, e puoi smettere in qualsiasi momento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供とは、インターネット回線の一部を他の URnetwork メンバーと共有することです。メンバーの通信があなたの回線から外部へ出ることがあります。提供者は共有したデータに応じて報酬を得られます。提供モードでこのデバイスが提供するタイミングを設定でき、いつでも停止できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제공은 인터넷의 일부를 다른 URnetwork 회원과 공유하는 것입니다. 회원의 트래픽이 사용자의 연결을 통해 나갈 수 있습니다. 제공자는 공유한 데이터에 대해 보상을 받을 수 있습니다. 제공 모드로 이 기기가 제공하는 시점을 정하며, 언제든지 중단할 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bij leveren deel je een deel van je internet met andere URnetwork-leden: hun verkeer kan via jouw verbinding naar buiten gaan. Leveranciers kunnen beloningen verdienen voor de data die ze delen. De leveringsmodus bepaalt wanneer dit apparaat levert, en je kunt op elk moment stoppen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Udostępnianie dzieli część twojego internetu z innymi członkami URnetwork: ich ruch może wychodzić przez twoje połączenie. Dostawcy mogą zdobywać nagrody za udostępniane dane. Tryb udostępniania określa, kiedy to urządzenie udostępnia, a przestać możesz w każdej chwili."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O fornecimento compartilha parte da sua internet com outros membros da URnetwork: o tráfego deles pode sair pela sua conexão. Os fornecedores podem ganhar recompensas pelos dados que compartilham. O modo de fornecimento define quando este dispositivo fornece, e você pode parar a qualquer momento."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O fornecimento compartilha parte da sua internet com outros membros da URnetwork: o tráfego deles pode sair pela sua conexão. Os fornecedores podem ganhar recompensas pelos dados que compartilham. O modo de fornecimento define quando este dispositivo fornece, e você pode parar a qualquer momento."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O fornecimento partilha parte da sua internet com outros membros da URnetwork: o tráfego deles pode sair pela sua ligação. Os fornecedores podem ganhar recompensas pelos dados que partilham. O modo de fornecimento define quando este dispositivo fornece, e pode parar a qualquer momento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предоставление делится частью вашего интернета с другими участниками URnetwork: их трафик может выходить через ваше подключение. Поставщики могут получать вознаграждения за переданные данные. Режим предоставления определяет, когда это устройство предоставляет доступ, и вы можете остановиться в любой момент."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillhandahållande delar en del av ditt internet med andra URnetwork-medlemmar: deras trafik kan gå ut via din anslutning. Leverantörer kan tjäna belöningar för den data de delar. Tillhandahållandeläget avgör när den här enheten tillhandahåller, och du kan sluta när som helst."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การให้บริการคือการแบ่งปันอินเทอร์เน็ตบางส่วนของคุณกับสมาชิก URnetwork คนอื่น ทราฟฟิกของพวกเขาอาจออกผ่านการเชื่อมต่อของคุณ ผู้ให้บริการสามารถรับรางวัลจากข้อมูลที่แบ่งปัน โหมดการให้บริการกำหนดว่าอุปกรณ์นี้จะให้บริการเมื่อใด และคุณหยุดได้ทุกเมื่อ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надання ділиться частиною вашого інтернету з іншими учасниками URnetwork: їхній трафік може виходити через ваше підключення. Постачальники можуть отримувати винагороди за дані, якими діляться. Режим надання визначає, коли цей пристрій надає доступ, і ви можете зупинитися будь-коли."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cung cấp là chia sẻ một phần internet của bạn với các thành viên URnetwork khác: lưu lượng của họ có thể đi ra qua kết nối của bạn. Nhà cung cấp có thể nhận phần thưởng cho dữ liệu họ chia sẻ. Chế độ cung cấp quyết định khi nào thiết bị này cung cấp, và bạn có thể dừng bất cứ lúc nào."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供是指与其他 URnetwork 成员共享你的一部分网络：他们的流量可以通过你的连接出去。提供者可以凭共享的数据获得奖励。提供模式决定此设备何时提供，你可以随时停止。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供是指與其他 URnetwork 成員共享你的一部分網絡：他們的流量可以經你的連線出去。提供者可以憑共享的數據獲得獎勵。提供模式決定此裝置何時提供，你可以隨時停止。"
           }
         }
       }
@@ -279323,6 +279824,507 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "供應商故障的代價。重設、執行測試、讀取結果。"
+          }
+        }
+      }
+    },
+    "What is an extender?" : {
+      "comment" : "Title of the short help that a '?' button next to Extenders opens (and that button's accessible name). Use the app's own word for extender (extenders, in the singular).",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ما هو الموسّع؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co je extender?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was ist ein Extender?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τι είναι ένας επεκτατής;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is an extender?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es un extensor?"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es un extensor?"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es un extensor?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qu’est-ce qu’un extendeur ?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מהו מרחיב?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक्सटेंडर क्या है?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apa itu extender?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Che cos’è un extender?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エクステンダーとは？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "익스텐더란 무엇인가요?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat is een extender?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czym jest extender?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que é um extensor?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que é um extensor?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que é um extensor?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что такое экстендер?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vad är en extender?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตัวขยายคืออะไร"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Що таке екстендер?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ mở rộng là gì?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什么是扩展器？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什麼是擴展器？"
+          }
+        }
+      }
+    },
+    "What is Pending?" : {
+      "comment" : "Title of the short help that a '?' button next to the usage bar's Pending opens (and that button's accessible name). Quote the usage bar's own word for Pending (pending_data_key) as it reads in your language.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ما معنى «معلّق»؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co znamená „Čekající“?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was bedeutet „Ausstehend“?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τι σημαίνει «Σε εκκρεμότητα»;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is Pending?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué significa «Pendiente»?"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué significa “Pendiente”?"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué significa “Pendiente”?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Que signifie « En attente » ?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה פירוש “ממתין”?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“लंबित” का क्या मतलब है?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apa arti “Tertunda”?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Che cosa significa “In sospeso”?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「保留中」とは？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘대기 중’이란 무엇인가요?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat betekent ‘In behandeling’?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co oznacza „Oczekujące”?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que significa “Pendente”?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que significa “Pendente”?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que significa «Pendente»?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что значит «В ожидании»?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vad betyder ”Väntande”?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“รอดำเนินการ” หมายถึงอะไร"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Що означає «В очікуванні»?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Đang chờ” nghĩa là gì?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“待处理”是什么意思？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「待處理」是甚麼意思？"
+          }
+        }
+      }
+    },
+    "What is providing?" : {
+      "comment" : "Title of the short help that a '?' button next to the provide controls opens (and that button's accessible name): what providing means. Use the same word for providing as the app's Provide mode label.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ما هو التوفير؟"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co je poskytování?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was ist Bereitstellen?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τι είναι η παροχή;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is providing?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es la provisión?"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es la provisión?"
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es la provisión?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qu’est-ce que la fourniture ?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה זה אספקה?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रदान करना क्या है?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apa itu penyediaan?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Che cos’è la fornitura?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供とは？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제공이란 무엇인가요?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat is leveren?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czym jest udostępnianie?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que é o fornecimento?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que é o fornecimento?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que é o fornecimento?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что такое предоставление?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vad är tillhandahållande?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การให้บริการคืออะไร"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Що таке надання?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cung cấp là gì?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什么是提供？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什麼是提供？"
           }
         }
       }

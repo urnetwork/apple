@@ -746,7 +746,7 @@ class DeviceManager: ObservableObject {
 
     // the sdk's default (SdkDefaultPostQuantumEncryption: on) until the device
     // answers, and for a device that holds no profile
-    @Published var postQuantumEncryption: Bool = SdkDefaultPostQuantumEncryption {
+    @Published var postQuantumEncryption: Bool = SdkDefaultPostQuantumEncryption.boolValue {
         didSet {
             guard !isLoadingFromDevice else { return }
             propagatePerformanceProfileToDevice()
@@ -831,7 +831,7 @@ class DeviceManager: ObservableObject {
         }
 
         self.allowDirect = performanceProfile?.allowDirect ?? false
-        self.postQuantumEncryption = performanceProfile?.postQuantumEncryption ?? SdkDefaultPostQuantumEncryption
+        self.postQuantumEncryption = performanceProfile?.postQuantumEncryption ?? SdkDefaultPostQuantumEncryption.boolValue
 
         if performanceProfile?.windowSize?.windowSizeMin == 1 && performanceProfile?.windowSize?.windowSizeMax == 1 {
             self.fixedIpSize = true

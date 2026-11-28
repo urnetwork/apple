@@ -79,7 +79,14 @@ class SubscriptionBalanceViewModel: ObservableObject {
     /// Reports a balance read that failed to the same decision, which then
     /// shows the plan as not known rather than Free (support inbox 4074).
     private let planReadFailed: () -> Void
+    /// Hands a loaded balance to the sdk's low-data warning decision
+    /// (LowDataWarningForBalance, over the network space's local state),
+    /// which answers the warning to show now, if any.
+    private let lowDataWarning: (SdkSubscriptionBalanceResult) -> SdkLowDataWarning?
     private var isPro: Bool
+
+    /// The low-data warning's message while its alert shows (LowDataWarningAlert).
+    @Published private(set) var lowDataWarningMessage: String?
 
     // the last balance published for the Home Screen dashboard, so the
     // 30 s poll only rewrites the snapshot (and reloads the widget) on change.
@@ -169,6 +176,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
         refreshJwt: @escaping () -> Void,
         planLoaded: @escaping (Bool) -> Bool = { _ in false },
         planReadFailed: @escaping () -> Void = {},
+        lowDataWarning: @escaping (SdkSubscriptionBalanceResult) -> SdkLowDataWarning? = { _ in nil },
         purchaseConfirmation: PurchaseConfirming,
         storefrontLookupTimeout: TimeInterval = 2,
         lookupStorefrontCountry: @escaping () async -> String? = SubscriptionBalanceViewModel.appStoreStorefrontCountry
@@ -177,6 +185,7 @@ class SubscriptionBalanceViewModel: ObservableObject {
         self.refreshJwt = refreshJwt
         self.planLoaded = planLoaded
         self.planReadFailed = planReadFailed
+        self.lowDataWarning = lowDataWarning
         self.isPro = isPro
         self.purchaseConfirmation = purchaseConfirmation
         self.storefrontLookupTimeout = storefrontLookupTimeout
@@ -431,7 +440,15 @@ class SubscriptionBalanceViewModel: ObservableObject {
             if planLoaded(serverIsPro) {
                 refreshJwt()
             }
-            
+
+            // little data left: the sdk says when, once per threshold per
+            // balance period. It only informs; nothing disconnects
+            if let warning = lowDataWarning(result) {
+                let body = LowDataWarningNotice.body(warning)
+                self.lowDataWarningMessage = body
+                LowDataWarningNotice.post(body: body)
+            }
+
             self.isLoading = false
             self.errorFetchingSubscriptionBalance = false
             
@@ -559,6 +576,13 @@ class SubscriptionBalanceViewModel: ObservableObject {
     func clearPurchaseConfirmationTimeout() {
         if purchaseConfirmationTimedOut {
             purchaseConfirmationTimedOut = false
+        }
+    }
+
+    /// The low-data warning's alert was dismissed.
+    func dismissLowDataWarning() {
+        if lowDataWarningMessage != nil {
+            lowDataWarningMessage = nil
         }
     }
 

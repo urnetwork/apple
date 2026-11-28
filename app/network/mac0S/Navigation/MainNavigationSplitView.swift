@@ -354,6 +354,8 @@ struct MainNavigationSplitView: View {
             .environmentObject(connectViewModel)
             .frame(minWidth: 560, minHeight: 700)
         }
+        // little data left (the sdk's LowDataWarningForBalance)
+        .modifier(LowDataWarningAlert(openUpgrade: { openUpgradeSheet() }))
         .onChange(of: presentationActive) { active in
             setPresentationActive(active)
         }

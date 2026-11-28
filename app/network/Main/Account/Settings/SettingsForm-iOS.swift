@@ -490,6 +490,22 @@ struct SettingsForm_iOS: View {
             }
 
             Section("Developer") {
+                // the logs "send feedback with logs" uploads, to the share
+                // sheet, and their last lines (LogExport.swift)
+                ExportLogsRow()
+
+                HStack {
+                    Text("View Logs")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.logViewer)
+                }
+
                 HStack {
                     Text("Open developer tools")
                         .font(themeManager.currentTheme.bodyFont)

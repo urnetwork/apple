@@ -169392,6 +169392,12 @@
             "value" : "Solo te quedan %@ de datos."
           }
         },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فقط %@ داده باقی مانده است."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -169482,6 +169488,12 @@
             "value" : "เหลือข้อมูลเพียง %@"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnızca %@ veri kaldı."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -169557,6 +169569,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Solo te queda el %1$lld%% de tus datos (%2$@)."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فقط %1$lld%% از دادهٔ شما باقی مانده است (%2$@)."
           }
         },
         "fr" : {
@@ -169647,6 +169665,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ข้อมูลของคุณเหลือเพียง %1$lld%% (%2$@)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verinizin yalnızca %%%1$lld kadarı kaldı (%2$@)."
           }
         },
         "uk" : {
@@ -213272,6 +213296,12 @@
             "value" : "Te quedan pocos datos"
           }
         },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دادهٔ شما رو به اتمام است"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -213360,6 +213390,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ข้อมูลของคุณใกล้หมดแล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veriniz azalıyor"
           }
         },
         "uk" : {

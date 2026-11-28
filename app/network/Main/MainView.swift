@@ -82,6 +82,14 @@ struct MainView: View {
                 },
                 planLoaded: subscriptionPlanLoaded,
                 planReadFailed: subscriptionPlanFailed,
+                // the warning is remembered in the signed-in space's local
+                // state, so it shows once per threshold per balance period
+                lowDataWarning: { result in
+                    SdkLowDataWarningForBalance(
+                        device.getNetworkSpace()?.getAsyncLocalState()?.getLocalState(),
+                        result
+                    )
+                },
                 purchaseConfirmation: SdkPurchaseConfirmation(api: api)
             )
             

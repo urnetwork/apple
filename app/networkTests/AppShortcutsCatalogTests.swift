@@ -30,7 +30,7 @@ struct AppShortcutsCatalogTests {
     /// as zh-Hans): every phrase reads in each of them.
     private static let siriLocales = [
         "ar", "de", "en", "es", "es-419", "es-MX", "fr", "he", "it", "ja", "ko",
-        "nl", "pt", "pt-BR", "ru", "sv", "th", "zh-Hans", "zh-HK",
+        "nl", "pt", "pt-BR", "ru", "sv", "th", "tr", "zh-Hans", "zh-HK",
     ]
 
     @Test func theScannerReadsThePhrases() {

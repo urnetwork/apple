@@ -144,6 +144,16 @@ struct SettingsForm_iOS: View {
                         }
                     }
 
+                    // the account's email sign-in changes with a code to
+                    // each address (EmailChangeSheet)
+                    if !networkUser.emailSignIn().isEmpty {
+                        Button(action: {
+                            viewModel.presentEmailChangeSheet = true
+                        }) {
+                            Text("Change email")
+                        }
+                    }
+
                     Button(action: {
                         viewModel.presentAddAuthSheet = true
                     }) {

@@ -161,7 +161,11 @@ struct SettingsView: View {
                     .environmentObject(snackbarManager)
                     .environmentObject(connectWalletProviderViewModel)
             }
-        
+            .sheetOffTheFold(isPresented: $viewModel.presentEmailChangeSheet) {
+                EmailChangeSheet(api: api, networkUserViewModel: networkUserViewModel)
+                    .environmentObject(themeManager)
+            }
+
         #elseif os(macOS)
             SettingsForm_macOS(
                 urApiService: api,
@@ -280,7 +284,12 @@ struct SettingsView: View {
                     .environmentObject(deepLinkRouter)
                     #endif
             }
-        
+            .sheetOffTheFold(isPresented: $viewModel.presentEmailChangeSheet) {
+                EmailChangeSheet(api: api, networkUserViewModel: networkUserViewModel)
+                    .environmentObject(themeManager)
+                    .frame(minWidth: 460, minHeight: 420)
+            }
+
         #endif
         
     }

@@ -135,7 +135,23 @@ class MockUrApiService: UrApiServiceProtocol {
     func authVerify(_ args: SdkAuthVerifyArgs) async throws -> SdkAuthVerifyResult {
         return SdkAuthVerifyResult()
     }
-    
+
+    func authEmailChange(newEmail: String) async -> (result: SdkAuthEmailChangeResult?, err: Error?) {
+        return (SdkAuthEmailChangeResult(), nil)
+    }
+
+    func authEmailChangeConfirm(currentCode: String, newCode: String) async -> (result: SdkAuthEmailChangeConfirmResult?, err: Error?) {
+        return (SdkAuthEmailChangeConfirmResult(), nil)
+    }
+
+    func authEmailChangeCancel() async -> (result: SdkAuthEmailChangeCancelResult?, err: Error?) {
+        return (SdkAuthEmailChangeCancelResult(), nil)
+    }
+
+    func hasNetworkCredential() -> Bool {
+        return true
+    }
+
     func removeAuth(authType: String) async throws -> SdkRemoveAuthResult {
         return SdkRemoveAuthResult()
     }

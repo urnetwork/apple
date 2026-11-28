@@ -19,6 +19,7 @@ enum AuthType {
     case password
     case apple
     case google
+    case microsoft
     case solana
 }
 
@@ -195,7 +196,7 @@ extension CreateNetworkView {
                                 // if auth type is password, check password length
                                 (authType == .password && password.count >= ViewModel.minPasswordLength)
                                 // otherwise, no need to check password length
-                                || (authType == .apple || authType == .google || authType == .solana)
+                                || (authType == .apple || authType == .google || authType == .microsoft || authType == .solana)
                             ) &&
                             termsAgreed
         }

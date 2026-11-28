@@ -160,6 +160,8 @@ struct SettingsView: View {
                     .environmentObject(themeManager)
                     .environmentObject(snackbarManager)
                     .environmentObject(connectWalletProviderViewModel)
+                    // the api origin Microsoft's browser sign-in starts on
+                    .environmentObject(deviceManager)
             }
             .sheetOffTheFold(isPresented: $viewModel.presentEmailChangeSheet) {
                 EmailChangeSheet(api: api, networkUserViewModel: networkUserViewModel)
@@ -278,9 +280,11 @@ struct SettingsView: View {
                     .environmentObject(themeManager)
                     .environmentObject(snackbarManager)
                     .environmentObject(connectWalletProviderViewModel)
-                    #if DIRECT_DOWNLOAD
-                    // the Google and Apple browser flow (BrowserSso)
+                    // the api origin the browser sign-ins start on
                     .environmentObject(deviceManager)
+                    #if DIRECT_DOWNLOAD
+                    // the Google, Apple and Microsoft browser returns
+                    // (BrowserSso, MicrosoftSignIn)
                     .environmentObject(deepLinkRouter)
                     #endif
             }

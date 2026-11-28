@@ -48,6 +48,11 @@ struct CreateNetworkView: View {
         if authLoginArgs.authJwtType == "google" {
             authType = AuthType.google
         }
+
+        // a Microsoft identity token signs up as Google's does: no password
+        if authLoginArgs.authJwtType == SdkAuthJwtTypeMicrosoft {
+            authType = AuthType.microsoft
+        }
         
         if authLoginArgs.walletAuth != nil {
             authType = AuthType.solana

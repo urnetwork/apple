@@ -3,7 +3,8 @@ import URnetworkSdk
 @testable import URnetwork
 
 // The add sign-in method sheet offers the same options on every app and on
-// ur.io: Apple, Google, a Solana or Bittensor wallet, and an email or phone.
+// ur.io: Apple, Google, Microsoft, a Solana or Bittensor wallet, and an email
+// or phone.
 // The apple sheet had no Bittensor wallet, and the macOS App Store build
 // showed "Apple Sign-In is available on iOS." although its login signs in
 // with Apple natively.
@@ -136,7 +137,7 @@ final class AddAuthParityTests: XCTestCase {
 
     func testWalletOffersSolanaAndBittensor() {
         XCTAssertEqual(addAuthWalletChains, [.solana, .bittensor])
-        XCTAssertEqual(addAuthSheetMethods(appleAvailable: true, googleAvailable: true), [.apple, .google, .wallet, .email])
+        XCTAssertEqual(addAuthSheetMethods(appleAvailable: true, googleAvailable: true), [.apple, .google, .microsoft, .wallet, .email])
     }
 
     // the login screen's flows: native where configured (iOS, the macOS App

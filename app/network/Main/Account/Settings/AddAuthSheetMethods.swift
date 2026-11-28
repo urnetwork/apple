@@ -5,8 +5,9 @@
 
 import URnetworkSdk
 
-/// A sign-in method the add sheet offers. Apple, Google and wallet complete
-/// through their own provider flow; email is sent with the sheet's Add button.
+/// A sign-in method the add sheet offers. Apple, Google, Microsoft and wallet
+/// complete through their own provider flow; email is sent with the sheet's
+/// Add button.
 ///
 /// A seed phrase is not one: the server's AddAuth takes an email or phone with
 /// a password, an SSO token, or a wallet signature, and answers a request with
@@ -16,6 +17,7 @@ import URnetworkSdk
 enum AddAuthSheetMethod: String, Hashable {
     case apple
     case google
+    case microsoft
     case wallet
     case email
 }
@@ -50,7 +52,9 @@ func addAuthProviderFlow(nativeConfigured: Bool, browserAvailable: Bool) -> AddA
     return .unavailable
 }
 
-/// The methods the add sheet offers, in picker order.
+/// The methods the add sheet offers, in picker order. Microsoft is on every
+/// build: it signs in through the browser with the api's client
+/// (MicrosoftSignIn).
 func addAuthSheetMethods(appleAvailable: Bool, googleAvailable: Bool) -> [AddAuthSheetMethod] {
     var methods: [AddAuthSheetMethod] = []
     if appleAvailable {
@@ -59,7 +63,7 @@ func addAuthSheetMethods(appleAvailable: Bool, googleAvailable: Bool) -> [AddAut
     if googleAvailable {
         methods.append(.google)
     }
-    methods.append(contentsOf: [.wallet, .email])
+    methods.append(contentsOf: [.microsoft, .wallet, .email])
     return methods
 }
 
@@ -72,7 +76,7 @@ func addAuthButtonArgs(_ method: AddAuthSheetMethod, email: String, password: St
         args.userAuth = email
         args.password = password
         return args
-    case .apple, .google, .wallet:
+    case .apple, .google, .microsoft, .wallet:
         return nil
     }
 }
@@ -112,13 +116,13 @@ func addAuthArgsSupplyMethod(_ args: SdkAddAuthArgs) -> Bool {
 /// Whether a sign-in added with `method` must be verified with a code before
 /// it counts as added. AddAuth stores an email or phone unverified, and the
 /// first sign-in with it would stop at a code anyway; the sheet asks for that
-/// code right away. Apple and Google identities are verified by the provider,
-/// and a wallet proves itself with its signature.
+/// code right away. Apple, Google and Microsoft identities are verified by
+/// the provider, and a wallet proves itself with its signature.
 func addedSignInNeedsVerification(_ method: AddAuthSheetMethod) -> Bool {
     switch method {
     case .email:
         return true
-    case .apple, .google, .wallet:
+    case .apple, .google, .microsoft, .wallet:
         return false
     }
 }

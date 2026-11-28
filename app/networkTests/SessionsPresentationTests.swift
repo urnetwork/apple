@@ -135,6 +135,7 @@ struct SessionsPresentationTests {
             ("verify", "Verification code"),
             ("apple", "Apple"),
             ("google", "Google"),
+            ("microsoft", "Microsoft"),
             ("sso", "Single sign-on"),
             ("wallet", "Wallet"),
             ("seedphrase", "Recovery phrase"),

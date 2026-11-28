@@ -110,6 +110,7 @@ func methodDisplayName(_ method: String) -> String {
     case "email": return "Email"
     case "google": return "Google"
     case "apple": return "Apple"
+    case "microsoft": return String(localized: "Microsoft")
     case "solana": return "Solana Wallet"
     case "seedphrase": return "Seedphrase"
     default: return method.capitalized

@@ -784,6 +784,12 @@ struct NetworkApp: App {
                         // login screen or the add sign-in method sheet checks
                         // it against the attempt it started
                         deepLinkRouter.open(ssoReturn)
+                    } else if let microsoftReturn = microsoftSignInReturn(url) {
+                        // the api's callback handing a Microsoft browser
+                        // sign-in back (direct-download build): the login
+                        // screen or the add sign-in method sheet finishes the
+                        // attempt it started with it
+                        deepLinkRouter.openMicrosoftSignIn(microsoftReturn)
                     } else {
                         GIDSignIn.sharedInstance.handle(url)
                     }
@@ -1068,6 +1074,18 @@ struct NetworkApp: App {
     private func browserSsoReturn(_ url: URL) -> BrowserSso.Return? {
         #if DIRECT_DOWNLOAD
         return BrowserSso.parseReturn(url)
+        #else
+        return nil
+        #endif
+    }
+
+    /// The Microsoft browser sign-in return (urnetwork://oauth/microsoft) the
+    /// direct-download build routes; the App Store build signs in with
+    /// Microsoft in an authentication session, which takes its return itself
+    /// (MicrosoftSignIn).
+    private func microsoftSignInReturn(_ url: URL) -> URL? {
+        #if DIRECT_DOWNLOAD
+        return SdkIsMicrosoftSignInReturnUrl(url.absoluteString) ? url : nil
         #else
         return nil
         #endif

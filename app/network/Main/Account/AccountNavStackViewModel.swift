@@ -37,6 +37,8 @@ enum AccountNavigationPath: Hashable {
     case extenders
     case vless
     case blockedLocations
+    /// Settings › Excluded exit locations: places the connection's picks avoid
+    case excludedExitLocations
     case transferBalanceCodes
     case providerContracts
     case providerIdentities

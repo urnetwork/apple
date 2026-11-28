@@ -27,6 +27,8 @@ struct ProviderListSheetView: View {
     let providerRegions: [SdkConnectLocation]
     let providerCities: [SdkConnectLocation]
     let providerBestSearchMatches: [SdkConnectLocation]
+    // the user's favorites (ConnectViewModel.favoriteLocations)
+    var favoriteLocations: [SdkConnectLocation] = []
     
     #if os(iOS)
     let padding: CGFloat = 16
@@ -50,6 +52,15 @@ struct ProviderListSheetView: View {
         } else {
             
             List {
+
+                /**
+                 * favorites, pinned above everything else
+                 */
+                FavoriteLocationsSection(
+                    favoriteLocations: favoriteLocations,
+                    selectedProvider: selectedProvider,
+                    connect: connect
+                )
 
                 /**
                  * network peers, pinned at the top

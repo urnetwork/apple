@@ -12,6 +12,8 @@ struct SelectedProvider: View {
 
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var networkPeersStore: NetworkPeersStore
+    // the favorites the star keeps the location in
+    @EnvironmentObject var connectViewModel: ConnectViewModel
 
     let selectedProvider: SdkConnectLocation?
     // the selected location's current provider count (selectedProviderCount)
@@ -91,6 +93,12 @@ struct SelectedProvider: View {
 
             Spacer()
 
+            // keeps the location, or the exit stayed on, in the location
+            // list's Favorites; never the best available provider
+            if let selectedProvider, SdkCanFavoriteLocation(selectedProvider) {
+                favoriteButton(selectedProvider)
+            }
+
             Button(action: openSelectProvider) {
                 Text("Change")
                     .font(themeManager.currentTheme.secondaryBodyFont)
@@ -103,6 +111,22 @@ struct SelectedProvider: View {
             openSelectProvider()
         }
 
+    }
+
+    /// The star, filled while the location is a favorite. Its own tap, not
+    /// the row's, which opens the location list.
+    private func favoriteButton(_ location: SdkConnectLocation) -> some View {
+        let isFavorite = connectViewModel.isFavoriteLocation(location)
+        let label = isFavorite ? Text("Remove from favorites") : Text("Add to favorites")
+        return Button {
+            connectViewModel.toggleFavoriteLocation(location)
+        } label: {
+            Image(systemName: isFavorite ? "star.fill" : "star")
+                .foregroundColor(isFavorite ? Color.urYellow : themeManager.currentTheme.textMutedColor)
+        }
+        .buttonStyle(.plain)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 

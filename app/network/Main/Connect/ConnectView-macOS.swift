@@ -237,6 +237,7 @@ import URnetworkSdk
                             providerRegions: providerListStore.providerRegions,
                             providerCities: providerListStore.providerCities,
                             providerBestSearchMatches: providerListStore.providerBestSearchMatches,
+                            favoriteLocations: connectViewModel.favoriteLocations,
                             searchQuery: $providerListStore.searchQuery,
                             refresh: {
                                 Task {
@@ -521,6 +522,8 @@ import URnetworkSdk
         let providerRegions: [SdkConnectLocation]
         let providerCities: [SdkConnectLocation]
         let providerBestSearchMatches: [SdkConnectLocation]
+        // the user's favorites (ConnectViewModel.favoriteLocations)
+        var favoriteLocations: [SdkConnectLocation] = []
 
         @Binding var searchQuery: String
 
@@ -537,6 +540,15 @@ import URnetworkSdk
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(32)
                 } else {
+
+                    /**
+                     * favorites, pinned above everything else
+                     */
+                    FavoriteLocationsSection(
+                        favoriteLocations: favoriteLocations,
+                        selectedProvider: selectedProvider,
+                        connect: connect
+                    )
 
                     /**
                      * network peers, pinned at the top

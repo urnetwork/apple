@@ -20,6 +20,8 @@ struct ProviderListItemView: View {
     let isStable: Bool
     let isStrongPrivacy: Bool
     var displayIcons: Bool = true
+    // a line under the name, as a favorite exit's (FavoriteLocationsSection)
+    var note: String? = nil
     
     #if os(iOS)
     let padding: CGFloat = 16
@@ -42,6 +44,13 @@ struct ProviderListItemView: View {
                 Text(name)
                     .font(themeManager.currentTheme.bodyFont)
                     .foregroundColor(themeManager.currentTheme.textColor)
+                
+                if let note {
+                    Text(note)
+                        .font(themeManager.currentTheme.secondaryBodyFont)
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 
                 HStack(spacing: 0) {
                  

@@ -195,3 +195,33 @@ struct CantReachUrnetworkTests {
         #expect(store.selectedCode == "cn")
     }
 }
+
+/// The location list names a country in the app's language with the lookup
+/// the connection region picker uses, and keeps the server's English name as
+/// the fallback and for every other kind of location (support inbox 8621).
+struct LocationDisplayNameTests {
+
+    private let turkish = Locale(identifier: "tr_TR")
+
+    @Test func aCountryReadsInTheAppLanguage() {
+        let name = locationDisplayName(isCountry: true, countryCode: "de", serverName: "Germany", locale: turkish)
+        #expect(name == turkish.localizedString(forRegionCode: "DE"))
+        #expect(name != "Germany")
+    }
+
+    @Test func theConnectionRegionPickerNamesItAlike() {
+        #expect(locationDisplayName(isCountry: true, countryCode: "ir", serverName: "Iran", locale: turkish)
+            == connectionRegionName("ir", locale: turkish))
+    }
+
+    @Test func aCodeThePlatformDoesNotNameKeepsTheServerName() {
+        #expect(locationDisplayName(isCountry: true, countryCode: "", serverName: "Germany", locale: turkish) == "Germany")
+        #expect(locationDisplayName(isCountry: true, countryCode: "deu", serverName: "Germany", locale: turkish) == "Germany")
+    }
+
+    @Test func aRegionCityGroupOrDeviceKeepsTheServerName() {
+        // a city carries its country's code, which must not rename it
+        #expect(locationDisplayName(isCountry: false, countryCode: "de", serverName: "Berlin", locale: turkish) == "Berlin")
+        #expect(locationDisplayName(isCountry: false, countryCode: "", serverName: "Strong Privacy", locale: turkish) == "Strong Privacy")
+    }
+}

@@ -40,7 +40,8 @@ struct ProviderListGroup: View {
             
             ForEach(providers, id: \.connectLocationId) { provider in
                 ProviderListItemView(
-                    name: provider.name,
+                    // a country in the app's language, the server's name otherwise
+                    name: locationDisplayName(provider),
                     providerCount: provider.providerCount,
                     color: getProviderColor(provider),
                     isSelected: selectedProvider != nil && selectedProvider?.connectLocationId?.cmp(provider.connectLocationId) == 0,

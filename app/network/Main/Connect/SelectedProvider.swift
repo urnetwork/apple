@@ -29,7 +29,8 @@ struct SelectedProvider: View {
             let peer = networkPeersStore.connectedProvidePeers.first(where: { $0.clientId.idStr == clientId }) {
             return peer.displayName
         }
-        return location.name
+        // the location list's name for it: a country in the app's language
+        return locationDisplayName(location)
     }
 
     var body: some View {

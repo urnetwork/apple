@@ -58124,6 +58124,185 @@
         }
       }
     },
+    "Check the phone number format. Use the country code and digits only, as in +15551234567." : {
+      "comment" : "Login screen, under the email or phone number field (user_auth_input_label): shown when the user continues with a phone number in a format the app does not send (dashes, dots, parentheses, a leading 0, a + in the middle, another script's digits, too few or too many digits). Android shows it in a snackbar, Apple above the field. Keep the example +15551234567 exactly as written, in these digits.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحقق من تنسيق رقم الهاتف. استخدم رمز البلد والأرقام فقط، مثل +15551234567."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkontrolujte formát telefonního čísla. Použijte předvolbu země a pouze číslice, například +15551234567."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prüfe das Format der Telefonnummer. Verwende die Ländervorwahl und nur Ziffern, zum Beispiel +15551234567."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ελέγξτε τη μορφή του αριθμού τηλεφώνου. Χρησιμοποιήστε τον κωδικό χώρας και μόνο ψηφία, για παράδειγμα +15551234567."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the phone number format. Use the country code and digits only, as in +15551234567."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa el formato del número de teléfono. Usa el prefijo del país y solo dígitos, por ejemplo +15551234567."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa el formato del número de teléfono. Usa el código de país y solo dígitos, por ejemplo +15551234567."
+          }
+        },
+        "es-MX" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa el formato del número de teléfono. Usa el código de país y solo dígitos, por ejemplo +15551234567."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قالب شمارهٔ تلفن را بررسی کنید. از کد کشور و فقط رقم استفاده کنید، مانند +15551234567."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifiez le format du numéro de téléphone. Utilisez l’indicatif du pays et uniquement des chiffres, par exemple +15551234567."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדוק את תבנית מספר הטלפון. השתמש בקידומת המדינה ובספרות בלבד, למשל +15551234567."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़ोन नंबर का फ़ॉर्मैट जाँचें। देश का कोड और केवल अंक इस्तेमाल करें, जैसे +15551234567।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Periksa format nomor telepon. Gunakan kode negara dan angka saja, misalnya +15551234567."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controlla il formato del numero di telefono. Usa il prefisso internazionale e solo cifre, ad esempio +15551234567."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電話番号の形式を確認してください。国番号を付け、数字のみで入力してください（例: +15551234567）。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전화번호 형식을 확인하세요. 국가 번호를 포함해 숫자만 입력하세요(예: +15551234567)."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controleer de notatie van het telefoonnummer. Gebruik de landcode en alleen cijfers, bijvoorbeeld +15551234567."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź format numeru telefonu. Użyj numeru kierunkowego kraju i samych cyfr, na przykład +15551234567."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifique o formato do número de telefone. Use o código do país e apenas dígitos, como em +15551234567."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifique o formato do número de telefone. Use o código do país e apenas dígitos, como em +15551234567."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifique o formato do número de telemóvel. Utilize o indicativo do país e apenas algarismos, como em +15551234567."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте формат номера телефона. Укажите код страны и только цифры, например +15551234567."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontrollera telefonnumrets format. Använd landsnumret och bara siffror, till exempel +15551234567."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตรวจสอบรูปแบบหมายเลขโทรศัพท์ ใช้รหัสประเทศและตัวเลขเท่านั้น เช่น +15551234567"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telefon numarasının biçimini kontrol edin. Ülke kodunu ve yalnızca rakam kullanın, örneğin +15551234567."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірте формат номера телефону. Вкажіть код країни й лише цифри, наприклад +15551234567."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy kiểm tra định dạng số điện thoại. Dùng mã quốc gia và chỉ chữ số, ví dụ +15551234567."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请检查手机号码格式。请使用国家代码，并且只输入数字，例如 +15551234567。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請檢查電話號碼格式。請使用國家代碼，並且只輸入數字，例如 +15551234567。"
+          }
+        }
+      }
+    },
     "Check your phone" : {
       "comment" : "Call to action",
       "localizations" : {

@@ -336,6 +336,23 @@ struct SettingsForm_iOS: View {
                 }
 
                 /**
+                 * Excluded exit locations: places, such as a US state, the
+                 * connection's picks avoid (ExcludedExitLocationsView)
+                 */
+                HStack {
+                    Text("Excluded exit locations")
+                        .font(themeManager.currentTheme.bodyFont)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(themeManager.currentTheme.textMutedColor)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    navigate(.excludedExitLocations)
+                }
+                .accessibilityAddTraits(.isButton)
+
+                /**
                  * VLESS: a VLESS server the client strategy also dials
                  * through, stored in the network space
                  */

@@ -813,7 +813,8 @@ struct ConnectView_iOS: View {
                 providerDevices: providerListStore.providerDevices,
                 providerRegions: providerListStore.providerRegions,
                 providerCities: providerListStore.providerCities,
-                providerBestSearchMatches: providerListStore.providerBestSearchMatches
+                providerBestSearchMatches: providerListStore.providerBestSearchMatches,
+                favoriteLocations: connectViewModel.favoriteLocations
             )
             .environmentObject(themeManager)
             .navigationBarTitleDisplayMode(.inline)

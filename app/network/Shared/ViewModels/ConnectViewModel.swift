@@ -181,6 +181,16 @@ class ConnectViewModel: ObservableObject {
     @Published private(set) var selectedProvider: SdkConnectLocation?
 
     /**
+     * The user's favorite locations and exits (the location list's
+     * Favorites, the connect screen's star) and excluded exit locations
+     * (settings), the newest first, as the network space's local state keeps
+     * them: read at setup and after every change made here (exit location
+     * preferences)
+     */
+    @Published private(set) var favoriteLocations: [SdkConnectLocation] = []
+    @Published private(set) var excludedExitLocations: [SdkConnectLocation] = []
+
+    /**
      * The selected location has no post-quantum exits right now (the sdk's
      * notice, PostQuantumUnavailableNotice). Nil otherwise.
      */
@@ -421,6 +431,9 @@ class ConnectViewModel: ObservableObject {
             self.selectedProvider = device.getDefaultLocation()
         }
 
+        // the account's favorites and excluded exit locations
+        self.loadExitLocationPreferences()
+
         self.addTunnelListener()
 
         self.contractListenerSub = device.add(makeContractStatusListener())
@@ -485,6 +498,8 @@ class ConnectViewModel: ObservableObject {
         self.gridWidth = 0
         self.lastGridSignature = ""
         self.selectedProvider = nil
+        self.favoriteLocations = []
+        self.excludedExitLocations = []
         self.tunnelConnected = false
         self.contractStatus = nil
         self.isPresentedUpgradeSheet = false
@@ -1746,6 +1761,123 @@ extension ConnectViewModel {
     
 }
 
+// MARK: exit location preferences
+
+/**
+ * The user's favorites and excluded exit locations, which the sdk keeps in
+ * the network space's local state (exit_location_preferences.go). The lists
+ * are small files under the local state's own lock, read and written here on
+ * the main actor as the app's other preferences are (DeviceManager); the
+ * device itself is not called. A write the sdk refuses (past its most
+ * entries, or a location it cannot keep) changes nothing, and the list is
+ * read again either way.
+ */
+extension ConnectViewModel {
+
+    /// The local state of the device's network space; nil without a device.
+    private var exitLocationLocalState: SdkLocalState? {
+        device?.getNetworkSpace()?.getAsyncLocalState()?.getLocalState()
+    }
+
+    /// Reads both lists again: at setup, and as the excluded exit locations
+    /// screen opens.
+    func loadExitLocationPreferences() {
+        let localState = exitLocationLocalState
+        favoriteLocations = connectLocations(localState?.getFavoriteLocations())
+        excludedExitLocations = connectLocations(localState?.getExcludedExitLocations())
+    }
+
+    func isFavoriteLocation(_ location: SdkConnectLocation) -> Bool {
+        listContainsLocation(favoriteLocations, location)
+    }
+
+    /// Adds the location to the favorites, at the front, or removes it when
+    /// it is one.
+    func toggleFavoriteLocation(_ location: SdkConnectLocation) {
+        guard let localState = exitLocationLocalState else {
+            return
+        }
+        do {
+            if isFavoriteLocation(location) {
+                try localState.removeFavoriteLocation(location)
+            } else {
+                try localState.addFavoriteLocation(location)
+            }
+        } catch {
+            print("[favorites] \(error)")
+        }
+        favoriteLocations = connectLocations(localState.getFavoriteLocations())
+    }
+
+    func isExcludedExitLocation(_ location: SdkConnectLocation) -> Bool {
+        listContainsLocation(excludedExitLocations, location)
+    }
+
+    /// Excludes a country, region or city from the connection's picks.
+    func addExcludedExitLocation(_ location: SdkConnectLocation) {
+        changeExcludedExitLocations { localState in
+            try localState.addExcludedExitLocation(location)
+        }
+    }
+
+    func removeExcludedExitLocation(_ location: SdkConnectLocation) {
+        changeExcludedExitLocations { localState in
+            try localState.removeExcludedExitLocation(location)
+        }
+    }
+
+    /**
+     * Writes the change, reads the list again and, once the write went
+     * through, has the presented controller apply it: a connection the change
+     * affects connects to its location again with the new list, and any other
+     * is left as it is (ConnectViewController.ExcludedExitLocationsChanged).
+     * That may connect, so it runs on the command queue after the commands
+     * made before it, and never for an account signing out. Without a
+     * presented controller the next connect carries the list.
+     */
+    private func changeExcludedExitLocations(_ write: (SdkLocalState) throws -> Void) {
+        guard let localState = exitLocationLocalState else {
+            return
+        }
+        let written: Bool
+        do {
+            try write(localState)
+            written = true
+        } catch {
+            print("[excluded exit locations] \(error)")
+            written = false
+        }
+        excludedExitLocations = connectLocations(localState.getExcludedExitLocations())
+        guard written, !signingOut, let connectViewController else {
+            return
+        }
+        let work = ExcludedExitLocationsChangedWork(
+            viewController: connectViewController,
+            generation: commandGeneration.current,
+            commandGeneration: commandGeneration
+        )
+        connectCommandQueue.async {
+            work.run()
+        }
+    }
+}
+
+/// The sdk list's locations, in its order; none for nil.
+private func connectLocations(_ connectLocationList: SdkConnectLocationList?) -> [SdkConnectLocation] {
+    guard let connectLocationList else {
+        return []
+    }
+    return (0..<connectLocationList.len()).compactMap { connectLocationList.get($0) }
+}
+
+/// Whether the list holds the location, by its id, as the sdk's lists compare.
+private func listContainsLocation(_ locations: [SdkConnectLocation], _ location: SdkConnectLocation) -> Bool {
+    guard let connectLocationId = location.connectLocationId else {
+        return false
+    }
+    return locations.contains { $0.connectLocationId?.cmp(connectLocationId) == 0 }
+}
+
 // MARK: connect commands
 
 /// One queued command and what it runs against, handed from the main actor
@@ -1804,6 +1936,22 @@ private struct ConnectViewControllerCloseWork: @unchecked Sendable {
         } else {
             viewController.close()
         }
+    }
+}
+
+/// A change of the excluded exit locations for the presented controller to
+/// apply (changeExcludedExitLocations). It may connect, so like a connect
+/// command it is skipped once a sign out has started (ConnectCommandWork).
+private struct ExcludedExitLocationsChangedWork: @unchecked Sendable {
+    let viewController: SdkConnectViewController
+    let generation: Int
+    let commandGeneration: ConnectCommandGeneration
+
+    func run() {
+        if commandGeneration.current != generation {
+            return
+        }
+        viewController.excludedExitLocationsChanged()
     }
 }
 

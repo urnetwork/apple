@@ -309,6 +309,12 @@ struct AccountNavStackView: View {
             .navigationTitle("Blocked Locations")
             .background(themeManager.currentTheme.backgroundColor)
 
+        case .excludedExitLocations:
+
+            ExcludedExitLocationsView(api: urApiService)
+                .navigationTitle("Excluded exit locations")
+                .background(themeManager.currentTheme.backgroundColor)
+
         case .transferBalanceCodes:
 
             TransferBalanceCodesView(api: urApiService)

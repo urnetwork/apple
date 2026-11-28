@@ -96,6 +96,13 @@ final class EarningsViewModel: ObservableObject {
     /// the latest wallet read failed and no wallet is cached; that is not
     /// "no wallet connected"
     @Published private(set) var walletLoadFailed = false
+    /// the latest good wallet read lets the owner disconnect the payout
+    /// wallet (SnGetWalletResult.Disconnectable); the server decides again
+    /// when it is asked
+    @Published private(set) var walletDisconnectable = false
+    /// the latest good wallet read found no wallet on the network
+    /// (SnGetWalletResult.HasWallet false): its earnings can't be paid out
+    @Published private(set) var noPayoutWallet = false
 
     /// the v1 claim's progress, the session's (EarningsSession)
     var claimProgress: [Int64: ClaimRowState] {
@@ -463,15 +470,18 @@ final class EarningsViewModel: ObservableObject {
         // read as "none"; earningsAttempt keeps the failure distinct
         let client = client
         session.readCtfWins()
-        async let walletTask = earningsAttempt { try await client.fetchWallet() }
+        async let walletTask = earningsAttempt { try await client.fetchWalletRead() }
         async let epochsTask = earningsAttempt { try await client.accountEpochs() }
         async let topTask = earningsAttempt { try await client.topMe() }
 
         let (walletResult, epochsResult, topResult) = await (walletTask, epochsTask, topTask)
         if let walletResult {
-            wallet = walletResult
+            wallet = walletResult.wallet
+            walletDisconnectable = walletResult.disconnectable
+            noPayoutWallet = !walletResult.hasWallet
             walletLoadFailed = false
         } else {
+            // a failed read keeps what the last good one said of disconnecting
             wallet = client.cachedWallet()
             walletLoadFailed = wallet == nil
         }

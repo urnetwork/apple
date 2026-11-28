@@ -47,8 +47,20 @@ protocol EarningsClient: AnyObject {
     func validateWallet(_ address: String) async throws -> SnWalletValidation
     func cachedWallet() -> SnWalletInfo?
     func fetchWallet() async throws -> SnWalletInfo?
+    /// fetchWallet's read with what it says of the network's payout wallets:
+    /// whether the owner can disconnect one, and whether there is any
+    func fetchWalletRead() async throws -> SnWalletRead
     func connectWallet(coldkeySs58: String, signature: String, message: String) async throws -> SnWalletInfo
     func observeWallet(_ onChange: @escaping (SnWalletInfo?) -> Void) -> EarningsSubscription
+
+    // payout wallet disconnect: the raw answers, which the sheet words
+    // (WalletDisconnectModel)
+    /// emails the code that confirms the disconnect (POST
+    /// /sn/wallet/disconnect-code)
+    func walletDisconnectCode() async -> (result: SdkSnWalletDisconnectCodeResult?, err: Error?)
+    /// disconnects the network's payout wallet with the emailed code (POST
+    /// /sn/wallet/disconnect)
+    func walletDisconnect(code: String) async -> (result: SdkSnWalletDisconnectResult?, err: Error?)
 
     // gas key and claims
     /// stores the vault and coordinator addresses from the server's epoch
@@ -202,6 +214,10 @@ final class EarningsSdkClient: EarningsClient {
     }
 
     func fetchWallet() async throws -> SnWalletInfo? {
+        try await fetchWalletRead().wallet
+    }
+
+    func fetchWalletRead() async throws -> SnWalletRead {
         let device = try requireDevice()
         let result: SdkSnGetWalletResult = try await withCheckedThrowingContinuation { continuation in
             let callback = SnGetWalletCallback { result, err in
@@ -222,10 +238,41 @@ final class EarningsSdkClient: EarningsClient {
             // refreshes the device's wallet cache from the server as well
             device.syncSnWallet(callback)
         }
-        guard let sdkWallet = result.wallet, !sdkWallet.coldkeySs58.isEmpty else {
-            return nil
+        var wallet: SnWalletInfo?
+        if let sdkWallet = result.wallet, !sdkWallet.coldkeySs58.isEmpty {
+            wallet = Self.wallet(from: sdkWallet)
         }
-        return Self.wallet(from: sdkWallet)
+        // the sdk decides from every wallet on the account, as the server does
+        return SnWalletRead(
+            wallet: wallet,
+            disconnectable: result.disconnectable(),
+            hasWallet: result.hasWallet()
+        )
+    }
+
+    func walletDisconnectCode() async -> (result: SdkSnWalletDisconnectCodeResult?, err: Error?) {
+        guard let api else {
+            return (nil, EarningsClientError.sdkUnavailable)
+        }
+        return await withCheckedContinuation { continuation in
+            let callback = SnWalletDisconnectCodeCallback { result, err in
+                continuation.resume(returning: (result, err))
+            }
+            api.snWalletDisconnectCode(callback)
+        }
+    }
+
+    func walletDisconnect(code: String) async -> (result: SdkSnWalletDisconnectResult?, err: Error?) {
+        guard let api else {
+            return (nil, EarningsClientError.sdkUnavailable)
+        }
+        return await withCheckedContinuation { continuation in
+            let callback = SnWalletDisconnectCallback { result, err in
+                continuation.resume(returning: (result, err))
+            }
+            // the sdk normalizes the code (NormalizeEmailChangeCode)
+            api.snWalletDisconnect(code, callback: callback)
+        }
     }
 
     func connectWallet(coldkeySs58: String, signature: String, message: String) async throws -> SnWalletInfo {
@@ -648,6 +695,18 @@ private class SnGetWalletCallback: SdkCallback<SdkSnGetWalletResult, SdkSnGetWal
     }
 }
 
+private class SnWalletDisconnectCodeCallback: OneShotSdkCallback<SdkSnWalletDisconnectCodeResult, SdkSnWalletDisconnectCodeCallbackProtocol>, SdkSnWalletDisconnectCodeCallbackProtocol {
+    func result(_ result: SdkSnWalletDisconnectCodeResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
+private class SnWalletDisconnectCallback: OneShotSdkCallback<SdkSnWalletDisconnectResult, SdkSnWalletDisconnectCallbackProtocol>, SdkSnWalletDisconnectCallbackProtocol {
+    func result(_ result: SdkSnWalletDisconnectResult?, err: Error?) {
+        handleResult(result, err: err)
+    }
+}
+
 private class SnConnectWalletCallback: SdkCallback<SdkSnConnectWalletResult, SdkSnConnectWalletCallbackProtocol>, SdkSnConnectWalletCallbackProtocol {
     func result(_ result: SdkSnConnectWalletResult?, err: Error?) {
         handleResult(result, err: err)
@@ -860,4 +919,19 @@ extension EarningsClient {
     func claimStatus() async -> SnClaimStatusInfo? { nil }
     func claimNow(coldkeySs58: String) async -> SnClaimNowOutcome { .failed("unavailable") }
     func ctfUnclaimedWins() async -> SnCtfWinsAnswer? { SnCtfWinsAnswer(wins: []) }
+}
+
+/// Without the sdk's wallet read, as in previews and the test doubles: the
+/// wallet alone, with nothing to disconnect, and no disconnect to ask for.
+extension EarningsClient {
+    func fetchWalletRead() async throws -> SnWalletRead {
+        let wallet = try await fetchWallet()
+        return SnWalletRead(wallet: wallet, disconnectable: false, hasWallet: wallet != nil)
+    }
+    func walletDisconnectCode() async -> (result: SdkSnWalletDisconnectCodeResult?, err: Error?) {
+        (nil, EarningsClientError.sdkUnavailable)
+    }
+    func walletDisconnect(code: String) async -> (result: SdkSnWalletDisconnectResult?, err: Error?) {
+        (nil, EarningsClientError.sdkUnavailable)
+    }
 }

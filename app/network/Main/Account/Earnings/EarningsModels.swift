@@ -19,6 +19,19 @@ struct SnWalletInfo: Equatable {
     let setAtMillis: Int64
 }
 
+/// One wallet read (GET /sn/wallet): the wallet the card shows, and what the
+/// read says of the network's payout wallets (sdk SnGetWalletResult).
+struct SnWalletRead: Equatable {
+    let wallet: SnWalletInfo?
+    /// a wallet connected without a signed payout consent, and no consent or
+    /// hotkey delegation in force: the owner can disconnect it
+    /// (SnGetWalletResult.Disconnectable)
+    let disconnectable: Bool
+    /// any wallet is attached to the network; without one its earnings can't
+    /// be paid out (SnGetWalletResult.HasWallet)
+    let hasWallet: Bool
+}
+
 /// The SDK-generated EVM key that pays claim gas. The secret never leaves the
 /// SDK; the app only sees the address and the ss58 mirror to fund it.
 struct SnGasKeyInfo: Equatable {

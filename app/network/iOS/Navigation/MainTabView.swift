@@ -253,6 +253,8 @@ struct MainTabView: View {
             }
             .environmentObject(themeManager)
         }
+        // little data left (the sdk's LowDataWarningForBalance)
+        .modifier(LowDataWarningAlert(openUpgrade: { openUpgradeSheet() }))
         .onAppear {
             setPresentationActive(presentationActive)
             withAnimation(.easeOut(duration: 1.0)) {

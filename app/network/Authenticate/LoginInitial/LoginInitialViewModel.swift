@@ -35,11 +35,17 @@ extension LoginInitialView {
         @Published var userAuth: String = "" {
             didSet {
                 isValidUserAuth = ValidationUtils.isValidUserAuth(userAuth)
+                isInvalidPhone = !isValidUserAuth && SdkIsInvalidUserAuthPhone(userAuth)
                 loginErrorMessage = nil
             }
         }
 
         @Published private(set) var isValidUserAuth: Bool = false
+
+        // the field holds a phone number in a format the login does not send
+        // (the sdk's IsInvalidUserAuthPhone): Get started stays enabled and
+        // says how to write it instead of sending it (apple#193)
+        @Published private(set) var isInvalidPhone: Bool = false
         
         @Published private(set) var activeLoginAction: LoginAction?
         

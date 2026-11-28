@@ -109,6 +109,7 @@ struct LoginInitialView: View {
                             handleGoogleSignInButton: handleGoogleSignInButton,
                             handleBrowserSignIn: handleBrowserSignIn,
                             isValidUserAuth: viewModel.isValidUserAuth,
+                            isInvalidPhone: viewModel.isInvalidPhone,
                             activeLoginAction: viewModel.activeLoginAction,
                             isLoginActionInFlight: viewModel.isLoginActionInFlight,
                             loginErrorMessage: viewModel.loginErrorMessage,
@@ -435,7 +436,13 @@ struct LoginInitialView: View {
         
         case .failure(let error):
             print("error create args result: \(error.localizedDescription)")
-            viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+            if viewModel.isInvalidPhone {
+                // a phone number the login does not send: say how to write it
+                // (apple#193)
+                viewModel.setLoginErrorMessage(String(localized: "Check the phone number format. Use the country code and digits only, as in +15551234567."))
+            } else {
+                viewModel.setLoginErrorMessage(String(localized: "There was an error logging in"))
+            }
         }
         
     }
@@ -712,6 +719,9 @@ private struct LoginInitialFormView: View {
     let handleGoogleSignInButton: () async -> Void
     let handleBrowserSignIn: (BrowserSsoProvider) -> Void
     let isValidUserAuth: Bool
+    // a phone number in a format the login does not send: Get started stays
+    // enabled, and says how to write it
+    let isInvalidPhone: Bool
     let activeLoginAction: LoginInitialView.LoginAction?
     let isLoginActionInFlight: Bool
     let loginErrorMessage: String?
@@ -829,7 +839,7 @@ private struct LoginInitialFormView: View {
                         await handleUserAuth()
                     }
                 },
-                enabled: isValidUserAuth && !isLoginActionInFlight,
+                enabled: (isValidUserAuth || isInvalidPhone) && !isLoginActionInFlight,
                 isProcessing: activeLoginAction == .userAuth,
                 accessibilityIdentifier: "acceptance.password.next"
             )

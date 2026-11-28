@@ -404,6 +404,14 @@ struct SettingsForm_iOS: View {
                 
             }
             
+            /**
+             * Sharing limits: what this device shares with others, after the
+             * provide settings above
+             */
+            Section("Sharing limits") {
+                ProvideShareLimitsRows()
+            }
+
             Section("Stay in touch") {
                 /**
                  * Notifications

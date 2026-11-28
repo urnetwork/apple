@@ -266,6 +266,8 @@ extension SettingsView {
                 return
             }
             
+            // the user's choice: the app's provider never changes it from now on
+            AppProviderHost.userChoseLoginItem()
             do {
                 if enabled {
                     print("enabling launch at system start")

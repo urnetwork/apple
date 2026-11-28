@@ -545,8 +545,26 @@ class DeviceManager: ObservableObject {
     #endif
     
     
+    #if os(macOS)
+    /// The app's own provider, which runs while the VPN is off (apple#174).
+    /// Only the main app's manager has one (NetworkApp); intents and previews
+    /// build managers that do not provide.
+    var appProviderHost: AppProviderHost? {
+        didSet {
+            appProviderHost?.setProvideControlMode(provideControlMode)
+            appProviderHost?.setClient(device: device, networkSpace: networkSpace)
+            vpnManager?.appProviderHost = appProviderHost
+        }
+    }
+    #endif
+
     @Published var provideControlMode: ProvideControlMode = ProvideControlMode.Never {
         didSet {
+            #if os(macOS)
+            // the device's own load too: the app's provider follows the mode
+            // the device has, whoever set it
+            appProviderHost?.setProvideControlMode(provideControlMode)
+            #endif
             guard DeviceSettingWritePolicy.shouldPropagate(
                 isLoadingFromDevice: isLoadingFromDevice
             ) else { return }
@@ -978,12 +996,19 @@ class DeviceManager: ObservableObject {
                     vpnManagerInitializationInvocationCount += 1
                     self.vpnManager = VPNManager(device: device)
                 }
+                #if os(macOS)
+                self.vpnManager?.appProviderHost = appProviderHost
+                appProviderHost?.setClient(device: device, networkSpace: networkSpace)
+                #endif
             } else {
                 withDeviceStateLoad {
                     self.provideControlMode = ProvideControlMode.Never
                     self.allowProvidingCell = false
                 }
                 self.deviceInitialized = false
+                #if os(macOS)
+                appProviderHost?.setClient(device: nil, networkSpace: nil)
+                #endif
             }
             
         }
@@ -1261,6 +1286,11 @@ class DeviceManager: ObservableObject {
         networkClientAuthenticationOwner = nil
         retireStoredAuthenticationStartup()
         retireDeviceAuthCallbacks()
+        #if os(macOS)
+        // the provider's device closes off the main actor; the lease goes with
+        // its close, or with the process
+        appProviderHost?.close()
+        #endif
         Self.closeOffMainActor(self.device)
         
         if let vpnManager = self.vpnManager {
@@ -2048,6 +2078,11 @@ extension DeviceManager {
             dispatch { [weak self] in
                 guard let self, self.deviceAuthCallbackOwner === owner else { return }
                 self.updateParsedJwt()
+                #if os(macOS)
+                // the provider's next start picks the newer credential; the
+                // same client keeps running
+                self.appProviderHost?.setClient(device: self.device, networkSpace: self.networkSpace)
+                #endif
                 guard self.startupMode.allowsVPNProfileSystemAccess else { return }
                 guard let jwt, !jwt.isEmpty,
                       let instanceId, !instanceId.isEmpty else { return }
@@ -2460,6 +2495,11 @@ extension DeviceManager {
         // the account's sign-in notice belongs to the sign-in this ends
         accountSignInNotice = nil
         if let device = owner.device { logoutStarted?(device) }
+        #if os(macOS)
+        // the app's provider closes its device, lets the client go and wipes
+        // its own storage, as the sign-out wipes the app's
+        appProviderHost?.signOut()
+        #endif
         return true
     }
 

@@ -137,6 +137,18 @@ class VPNManager: ObservableObject {
     
     var device: SdkDeviceRemote
     @Published private(set) var lastError: Error?
+
+    #if os(macOS)
+    /// The app's own provider (AppProviderHost), which runs while the tunnel
+    /// does not: told whether the tunnel is wanted, given the rpc session, and
+    /// asked for the identity the tunnel profile carries.
+    weak var appProviderHost: AppProviderHost? {
+        didSet {
+            appProviderHost?.setTunnelWanted(desiredState.shouldRun)
+            appProviderHost?.setRpcSession(currentRpcSession)
+        }
+    }
+    #endif
     
 //    var tunnelRequestStatus: TunnelRequestStatus = .none
     
@@ -305,7 +317,20 @@ class VPNManager: ObservableObject {
         
 //        updateTunnel()
 //        updateContractStatus()
-        
+
+        #if os(macOS)
+        // the app's provider serves the device rpc while the tunnel is down,
+        // so the remote dials the session from launch, not from the first
+        // connect; the same session goes to the provider (appProviderHost)
+        if let session = prepareRpcSession() {
+            do {
+                try device.setRpcServer(session.clientPem, serverCertPem: session.serverCertPem, hostPort: session.hostPort)
+            } catch {
+                print("[VPNManager]setRpcServer failed: \(error.localizedDescription)")
+            }
+        }
+        #endif
+
         // Force one initial application: a newly created manager also installs
         // the per-session RPC material, even if an old tunnel is still up.
         requestVpnServiceUpdate(force: true, coalesceBurst: false)
@@ -632,6 +657,11 @@ class VPNManager: ObservableObject {
         }
 
         let shouldRun = desiredState.shouldRun
+        #if os(macOS)
+        // the app's provider gives the client up as soon as the tunnel is
+        // wanted, before the tunnel asks for it
+        appProviderHost?.setTunnelWanted(shouldRun)
+        #endif
         if reconcileInFlight, activeShouldRun == shouldRun, !force {
             // A listener echoed the state already being applied. If an opposite
             // state was queued earlier in this same burst, the newest state wins.
@@ -792,6 +822,21 @@ class VPNManager: ObservableObject {
             print("[VPNManager]stop")
             #endif
 
+            #if os(macOS)
+            if let appProviderHost {
+                // the identity a running tunnel presents is adopted first, when
+                // the app's provider keeps none yet
+                appProviderHost.beforeTunnelStop { [weak self] in
+                    self?.stopVpnTunnel(
+                        index: index,
+                        reset: reset,
+                        shouldRun: shouldRun,
+                        completion: completion
+                    )
+                }
+                return
+            }
+            #endif
             self.stopVpnTunnel(
                 index: index,
                 reset: reset,
@@ -1974,6 +2019,11 @@ class VPNManager: ObservableObject {
     private func applyRpcSession(_ session: RpcSession, device: SdkDeviceRemote, tunnelInstance: Int) {
         self.rpcRemoteChangeSub?.close()
         self.rpcConnectTimeoutWork?.cancel()
+        #if os(macOS)
+        // the app's provider serves the same session, so the remote reaches
+        // whichever device runs the client
+        appProviderHost?.setRpcSession(session)
+        #endif
 
         let confirmSession = { [weak self] in
             guard let self, tunnelInstance == self.tunnelInstance else { return }
@@ -2400,6 +2450,14 @@ class VPNManager: ObservableObject {
                         "network_space": networkSpaceJson,
                         "instance_id": instanceId,
                     ]
+                    #if os(macOS)
+                    // the identity the app's provider presents while the VPN
+                    // is off, so the tunnel's client presents the same keys
+                    // (sdk client_identity.go); none yet keeps the tunnel's own
+                    if let identityJson = self.appProviderHost?.clientIdentityJson, !identityJson.isEmpty {
+                        tunnelProtocol.providerConfiguration?[AppProviderHost.clientIdentityConfigurationKey] = identityJson
+                    }
+                    #endif
                     #if DIRECT_DOWNLOAD
                     // the SYSTEM extension runs as root and cannot read the
                     // shared intent in the App Group; the profile carries it
